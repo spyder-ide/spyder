@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 01:07\n"
+"PO-Revision-Date: 2020-11-02 01:16\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1738,43 +1738,43 @@ msgstr "在插入时删除触发文本"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:257
 msgid "Check if the text that triggers this snippet should be removed when inserting it"
-msgstr ""
+msgstr "若勾选该选项，则在插入该代码片段时，会同时删除触发它的文本。"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:263
 msgid "<b>Snippet text:</b>"
-msgstr ""
+msgstr "<b>代码片段文本：</b>"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:274
 msgid "Snippet editor"
-msgstr ""
+msgstr "代码片段编辑器"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:278
 msgid "Trigger text for the current snippet"
-msgstr ""
+msgstr "当前代码片段的触发文本"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:307
 msgid "Snippet text completion to insert"
-msgstr ""
+msgstr "插入时补全代码片段文本"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:314
 msgid "Trigger information"
-msgstr ""
+msgstr "触发信息"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:456
 msgid "Double-click to view or edit"
-msgstr ""
+msgstr "双击以查看或编辑"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:468
 msgid "Trigger text"
-msgstr ""
+msgstr "触发文本"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:470
 msgid "Description"
-msgstr ""
+msgstr "描述"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
-msgstr ""
+msgstr "正在启动"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:37
 msgid "ready"
@@ -1782,11 +1782,11 @@ msgstr "就绪"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:38
 msgid "restarting"
-msgstr ""
+msgstr "正在重新启动"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:39
 msgid "down"
-msgstr ""
+msgstr "已停止"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:46
 msgid "Completions, linting, code\n"
@@ -2072,7 +2072,7 @@ msgstr "保存文件时自动移除尾随空格"
 
 #: spyder/plugins/editor/confpage.py:142
 msgid "Insert a newline at the end if one does not exist when saving a file"
-msgstr ""
+msgstr "当保存文件时，若文件结尾无空行，则插入一个空行符"
 
 #: spyder/plugins/editor/confpage.py:147
 msgid "Trim all newlines after the final one when saving a file"
