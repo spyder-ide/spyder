@@ -18,11 +18,9 @@ import pytest
 
 # Local imports
 from spyder.config import base
-from spyder.utils import conda
 from spyder.widgets.status import (BaseTimerStatus, CPUStatus,
                                    InterpreterStatus, MemoryStatus,
                                    StatusBarWidget)
-import spyder.widgets.status
 
 
 @pytest.fixture
@@ -69,38 +67,22 @@ def test_status_bar_widget_signal(status_bar, qtbot):
 def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
     """Test status bar message with conda interpreter."""
     # We patch where the method is used not where it is imported from
-    version = 'Python 6.6.6'
     win, statusbar = status_bar
     w = InterpreterStatus(win, statusbar)
-    # Generate the information about the envs
-    if os.name == 'nt':
-        path_base = os.sep.join(['miniconda', 'python'])
-    else:
-        path_base = os.sep.join(['miniconda', 'bin', 'python'])
-
-    if os.name == 'nt':
-        path_foo = os.sep.join(['miniconda', 'envs', 'foo', 'python'])
-    else:
-        path_foo = os.sep.join(['miniconda', 'envs', 'foo', 'bin', 'python'])
-
     name_base = 'conda: base'
-    name_foo = 'conda: foo'
-    w.envs = {
-        name_base: (path_base, version),
-        name_foo: (path_foo, version)
-    }
-
-    w.path_to_env = {path_base: name_base, path_foo: name_foo}
+    name_test = 'conda: test'
 
     # Update to the base conda environment
+    path_base, version = w.envs[name_base]
     w.update_interpreter(path_base)
-    expected = 'conda: base (Python 6.6.6)'
+    expected = 'conda: base ({})'.format(version)
     assert w.get_tooltip() == path_base
     assert expected == w._get_env_info(path_base)
 
     # Update to the foo conda environment
+    path_foo, version = w.envs[name_test]
     w.update_interpreter(path_foo)
-    expected = 'conda: foo (Python 6.6.6)'
+    expected = 'conda: test ({})'.format(version)
     assert w.get_tooltip() == path_foo
     assert expected == w._get_env_info(path_foo)
 

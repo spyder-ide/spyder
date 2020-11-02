@@ -18,6 +18,7 @@ import subprocess
 
 from spyder.py3compat import is_text_string, getcwd
 from spyder.config.base import get_home_dir, running_in_mac_app
+from spyder.utils.programs import find_program
 
 
 logger = logging.getLogger(__name__)
@@ -343,9 +344,17 @@ def get_pyenv_path(name):
 
 def get_list_pyenv_envs():
     """Return the list of all pyenv envs found in the system."""
+    pyenv = 'pyenv'
+    if running_in_mac_app():
+        old_path = os.environ['PATH']
+        os.environ['PATH'] = os.pathsep.join([old_path, '/usr/local/bin'])
+        pyenv_path = find_program('pyenv')
+        os.environ['PATH'] = old_path  # restore PATH
+        if pyenv_path:
+            pyenv = pyenv_path
     try:
         out, err = subprocess.Popen(
-            ['pyenv', 'versions', '--bare', '--skip-aliases'],
+            [pyenv, 'versions', '--bare', '--skip-aliases'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         ).communicate()
@@ -370,7 +379,7 @@ def get_list_pyenv_envs():
 
 
 def get_interpreter_info(path):
-    """Return the version information of the selected python interpreter."""
+    """Return version information of the selected Python interpreter."""
     try:
         out, err = subprocess.Popen(
                 [path, '-V'],
