@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 10:41\n"
+"PO-Revision-Date: 2020-11-02 11:07\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -868,7 +868,7 @@ msgstr "Haupt-Backend für den Python-Sprachserver"
 
 #: spyder/dependencies.py:120
 msgid "Verify if snippets files are valid"
-msgstr "Überprüfen ob Snippets Dateien gültig sind"
+msgstr "Überprüfen ob Schnipseldateien gültig sind"
 
 #: spyder/dependencies.py:124
 msgid "Save Github credentials to report internal errors securely"
@@ -1076,7 +1076,7 @@ msgstr "Kite-Fehler"
 
 #: spyder/plugins/completion/kite/plugin.py:232
 msgid "The Kite completion engine returned an unexpected result for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Please make sure that your Kite installation is correct. In the meantime, Spyder will disable the Kite client to prevent further errors. For more information, please visit the <a href='https://help.kite.com/'>Kite help center</a>"
-msgstr ""
+msgstr "Die Kite-Vervollständigungs-Engine hat ein unerwartetes Ergebnis für die Anfrage <tt>{0}</tt>: <br><br><tt>{1}</tt> zurückgegeben- <br><br>Bitte stellen Sie sicher, dass Ihre Kite-Installation korrekt ist. In der Zwischenzeit wird Spyder den Kite-Client deaktivieren, um weitere Fehler zu vermeiden. Für weitere Informationen besuchen Sie bitte das <a href='https://help.kite.com/'>Kite-Hilfe-Center</a>"
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
@@ -1336,7 +1336,7 @@ msgstr "Spyder kann {0}, {1} oder {2} verwenden, um Ihren Code entsprechend der 
 
 #: spyder/plugins/completion/languageserver/confpage.py:266
 msgid "Choose the code formatting provider: "
-msgstr ""
+msgstr "Wählen Sie den Anbieter zur Codeformatierung: "
 
 #: spyder/plugins/completion/languageserver/confpage.py:274
 msgid "Autoformat files on save"
@@ -1344,7 +1344,7 @@ msgstr "Dateien beim Speichern autoformatieren"
 
 #: spyder/plugins/completion/languageserver/confpage.py:276
 msgid "If enabled, autoformatting will take place when saving a file"
-msgstr ""
+msgstr "Wenn aktiviert, wird beim Speichern einer Datei die automatische Formatierung durchgeführt"
 
 #: spyder/plugins/completion/languageserver/confpage.py:295
 msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
@@ -1392,11 +1392,11 @@ msgstr "Punktverzeichnisse überspringen: [^\\.].*"
 
 #: spyder/plugins/completion/languageserver/confpage.py:385
 msgid "the LSP grammar"
-msgstr ""
+msgstr "die LSP-Grammatik"
 
 #: spyder/plugins/completion/languageserver/confpage.py:387
 msgid "Spyder allows to define custom completion snippets to use in addition to the ones offered by the Language Server Protocol (LSP). Each snippet should follow {}.<br><br> <b>Note:</b> All changes will be effective only when applying the settings"
-msgstr ""
+msgstr "Spyder erlaubt es, benutzerdefinierte Vervollständigung von Schnipseln zu definieren, die zusätzlich zu den vom Language Server Protocol (LSP) angeboten werden. Jeder Schnipsel sollte {} entsprechen.<br><br> <b>Hinweis:</b> Alle Änderungen werden nur wirksam, wenn die Einstellungen angewendet werden"
 
 #: spyder/plugins/completion/languageserver/confpage.py:398 spyder/plugins/completion/languageserver/widgets/serversconfig.py:162
 msgid "Programming language provided by the LSP server"
@@ -1584,7 +1584,7 @@ msgstr "Ungültiges Format des Snippets"
 
 #: spyder/plugins/completion/languageserver/confpage.py:823
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
-msgstr ""
+msgstr "Spyder konnte {0}/{1} Schnipsel korrekt laden. Bitte überprüfen Sie die folgenden Schnipsel auf mögliche Syntaxfehler: <br><br>{2}"
 
 #: spyder/plugins/completion/languageserver/confpage.py:839
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -1720,51 +1720,51 @@ msgstr "Auszuführender Befehl"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:210
 msgid "Valid snippet"
-msgstr ""
+msgstr "Gültiger Schnipsel"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:211
 msgid "Invalid snippet"
-msgstr ""
+msgstr "Ungültiger Schnipsel"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:223
 msgid "To add a new text snippet, you need to define the text that triggers it, a short description (two words maximum) of the snippet and if it should delete the trigger text when inserted. Finally, you need to define the snippet body to insert."
-msgstr ""
+msgstr "Um einen neuen Textschnipsel hinzuzufügen, müssen Sie den Text definieren, der es auslöst, eine kurze Beschreibung (maximal zwei Wörter) des Schnipsel und ob er den Auslösetext löschen soll, wenn er eingefügt wird. Außerdem müssen Sie den einzusetzenden Schnipseltext definieren."
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:246
 msgid "Trigger text:"
-msgstr ""
+msgstr "Auslösetext:"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:251
 msgid "Description:"
-msgstr ""
+msgstr "Beschreibung:"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:256
 msgid "Remove trigger text on insertion"
-msgstr ""
+msgstr "Auslösetext beim Einfügen löschen"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:257
 msgid "Check if the text that triggers this snippet should be removed when inserting it"
-msgstr ""
+msgstr "Überprüfen, ob der Text, der diesen Schnipsel auslöst, beim Einfügen entfernt werden soll"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:263
 msgid "<b>Snippet text:</b>"
-msgstr ""
+msgstr "<b>Schnipseltext:</b>"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:274
 msgid "Snippet editor"
-msgstr ""
+msgstr "Schnipsel-Editor"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:278
 msgid "Trigger text for the current snippet"
-msgstr ""
+msgstr "Auslösetext für den aktuellen Schnipsel"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:307
 msgid "Snippet text completion to insert"
-msgstr ""
+msgstr "Einzufügende Vervollständigung für Schnipseltext"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:314
 msgid "Trigger information"
-msgstr ""
+msgstr "Auslöseinformation"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:456
 msgid "Double-click to view or edit"
@@ -1772,7 +1772,7 @@ msgstr "Doppelklick zum Anzeigen oder Bearbeiten"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:468
 msgid "Trigger text"
-msgstr ""
+msgstr "Auslösetext"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:470
 msgid "Description"
@@ -1780,7 +1780,7 @@ msgstr "Beschreibung"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
-msgstr ""
+msgstr "startet"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:37
 msgid "ready"
@@ -1788,7 +1788,7 @@ msgstr "bereit"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:38
 msgid "restarting"
-msgstr ""
+msgstr "startet neu"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:39
 msgid "down"
@@ -2088,7 +2088,7 @@ msgstr "Eine neue Zeile am Ende einfügen, wenn diese beim Speichern einer Datei
 
 #: spyder/plugins/editor/confpage.py:147
 msgid "Trim all newlines after the final one when saving a file"
-msgstr ""
+msgstr "Überzählige Zeilenumbrüche am Ende einer Datei beim Speichern kürzen"
 
 #: spyder/plugins/editor/confpage.py:152
 msgid "Indentation characters: "
@@ -2862,7 +2862,7 @@ msgstr "In externem Dateimanager anzeigen"
 
 #: spyder/plugins/editor/widgets/editor.py:636
 msgid "Spyder can't show this file in the external file explorer because the <tt>xdg-utils</tt> package is not available on your system."
-msgstr ""
+msgstr "Spyder kann diese Datei nicht im externen Dateimanager anzeigen, da das <tt>xdg-utils</tt> Paket auf Ihrem System nicht verfügbar ist."
 
 #: spyder/plugins/editor/widgets/editor.py:1465
 msgid "Temporary file"
@@ -3056,7 +3056,7 @@ msgstr "Filtereinstellungen"
 
 #: spyder/plugins/explorer/confpage.py:44 spyder/plugins/explorer/widgets/explorer.py:401
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
-msgstr ""
+msgstr "Filtern Sie Dateien nach Namen, Dateierweiterung oder mehr mit Hilfe von <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">Glob-Mustern.</a> Bitte geben Sie mehrere Glob-Muster der Dateien, die Sie anzeigen möchten, durch Kommata getrennt an."
 
 #: spyder/plugins/explorer/confpage.py:91 spyder/preferences/general.py:42 spyder/preferences/general.py:49
 msgid "General"
@@ -3936,7 +3936,7 @@ msgstr "Verwenden Sie folgende Datei:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:235
 msgid "Run code while debugging"
-msgstr ""
+msgstr "Code während des Debuggens ausführen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:236
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt</i>"
@@ -3948,19 +3948,19 @@ msgstr "Debuggen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:256
 msgid "Prevent editor from closing files while debugging"
-msgstr ""
+msgstr "Verhindere das Schließen von Dateien beim Debuggen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:258
 msgid "This option prevents the user from closing a file while it is debugged."
-msgstr ""
+msgstr "Diese Option hindert den Benutzer daran, eine Datei zu schließen, während sie debuggt wird."
 
 #: spyder/plugins/ipythonconsole/confpage.py:263
 msgid "Stop debugging on first line of files without breakpoints"
-msgstr ""
+msgstr "Debuggen in der ersten Zeile von Dateien ohne Haltepunkte anhalten"
 
 #: spyder/plugins/ipythonconsole/confpage.py:265
 msgid "This option lets you decide if the debugger should stop on the first line while debugging if no breakpoints are present."
-msgstr ""
+msgstr "Mit dieser Option können Sie entscheiden, ob der Debugger während des Debugging in der ersten Zeile anhalten soll, wenn keine Haltepunkte vorhanden sind."
 
 #: spyder/plugins/ipythonconsole/confpage.py:271
 msgid "Ignore Python libraries while debugging"
@@ -3968,7 +3968,7 @@ msgstr "Python-Bibliotheken beim Debuggen ignorieren"
 
 #: spyder/plugins/ipythonconsole/confpage.py:272
 msgid "This option lets you decide if the debugger should ignore the system libraries while debugging."
-msgstr ""
+msgstr "Mit dieser Option können Sie entscheiden, ob der Debugger während des Debuggens die Systembibliotheken ignorieren soll."
 
 #: spyder/plugins/ipythonconsole/confpage.py:277
 msgid "Process execute events while debugging"
@@ -3980,11 +3980,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:284
 msgid "Use exclamation mark prefix for Pdb commands"
-msgstr ""
+msgstr "Benutze Ausrufezeichen-Präfix für Pdb-Befehle"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "This option lets you decide if the Pdb commands should be prefixed by an exclamation mark. This helps in separating Pdb commands from Python code."
-msgstr ""
+msgstr "Diese Option lässt dich entscheiden, ob Pdb-Befehlen ein Ausrufezeichen vorangestellt werden soll. Dies hilft dabei, Pdb-Befehle vom Python-Code zu trennen."
 
 #: spyder/plugins/ipythonconsole/confpage.py:295
 msgid "Jedi completion"
@@ -4100,7 +4100,7 @@ msgstr "Start"
 
 #: spyder/plugins/ipythonconsole/confpage.py:432
 msgid "Debugger"
-msgstr ""
+msgstr "Debugger"
 
 #: spyder/plugins/ipythonconsole/plugin.py:83
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4160,7 +4160,7 @@ msgstr "Derzeit ist keine IPython-Konsole zum Ausführen von <b>{}</b> verfügba
 
 #: spyder/plugins/ipythonconsole/plugin.py:718
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.9.4 and < 1.10.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
-msgstr ""
+msgstr "In Ihrer Python-Umgebung oder -Installation ist das <tt>spyder-kernels</tt>-Modul oder die richtige Version davon ist nicht installiert (>= 1.9.4 und < 1.10.0). Ohne dieses Modul kann Spyder keine Konsole für Sie erstellen. <br><br>Sie können es installieren, indem Sie folgende Befehle in einem Systemterminal ausführen: <br><br><tt>conda install spyder-kernels</tt><br><br> oder <br><br><tt>pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1014
 msgid "Do you want to close this console?"
@@ -4464,7 +4464,7 @@ msgstr "Methode"
 
 #: spyder/plugins/outlineexplorer/widgets.py:74
 msgid "Property"
-msgstr ""
+msgstr "Eigenschaft"
 
 #: spyder/plugins/outlineexplorer/widgets.py:75 spyder/plugins/variableexplorer/widgets/collectionseditor.py:198
 msgid "Attribute"
@@ -4572,7 +4572,7 @@ msgstr "Variablen und Attribute anzeigen"
 
 #: spyder/plugins/outlineexplorer/widgets.py:369
 msgid "Follow cursor position"
-msgstr ""
+msgstr "Cursorposition folgen"
 
 #: spyder/plugins/outlineexplorer/widgets.py:374
 msgid "Sort files alphabetically"
@@ -5152,7 +5152,7 @@ msgstr "unterstützt in der Spyder MacOS-Anwendung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:145
 msgid "found in your Spyder environment. Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "in Ihrer Spyderumgebung gefunden. Bitte installieren Sie dieses Paket in Ihrer Spyderumgebung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:154
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br>%s"
