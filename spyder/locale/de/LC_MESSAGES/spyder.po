@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 11:23\n"
+"PO-Revision-Date: 2020-11-02 11:44\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -5144,7 +5144,7 @@ msgstr "Bitte installieren Sie dieses Paket in Ihrer Spyder-Umgebung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:138
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not "
-msgstr "Spyder kann die Variable, die Sie anzusehen versuchen, nicht anzeigen, da das Modul <tt>{module}</tt> nicht installiert ist oder unterstützt wird:"
+msgstr "Spyder kann die Variable, die Sie anzusehen versuchen, nicht anzeigen, da das Modul <tt>{module}</tt> nicht installiert ist oder unterstützt wird: "
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:142
 msgid "supported in the Spyder MacOS application.<br>"
@@ -5152,7 +5152,7 @@ msgstr "unterstützt in der Spyder MacOS-Anwendung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:145
 msgid "found in your Spyder environment. Please install this package in your Spyder environment.<br>"
-msgstr "in Ihrer Spyderumgebung gefunden. Bitte installieren Sie dieses Paket in Ihrer Spyderumgebung.<br>"
+msgstr "Nicht in Ihrer Spyderumgebung gefunden. Bitte installieren Sie dieses Paket in Ihre Spyderumgebung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:154
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br>%s"
@@ -5398,7 +5398,7 @@ msgstr "Tabulator"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:152
 msgid "Whitespace"
-msgstr "Leerzeichen"
+msgstr "Leerzeichen (Leerraum)"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:155 spyder/plugins/variableexplorer/widgets/importwizard.py:173
 msgid "other"
