@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 07:27\n"
+"PO-Revision-Date: 2020-11-02 01:07\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1566,19 +1566,19 @@ msgstr "在尝试加载提供的 JSON 文件时出错: <tt>{0}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:804
 msgid "Invalid snippet file"
-msgstr ""
+msgstr "无效的代码片段文件"
 
 #: spyder/plugins/completion/languageserver/confpage.py:805
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "提供的代码片段文件不符合 Spyder JSON 代码片段规范，因此无法加载。<br><br><tt>{}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:822
 msgid "Incorrect snippet format"
-msgstr ""
+msgstr "代码片段格式错误"
 
 #: spyder/plugins/completion/languageserver/confpage.py:823
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
-msgstr ""
+msgstr "Spyder 成功加载了 {0}/{1} 个代码片段。请检查以下代码片段，以确认是否存在语法错误：<br><br>{2}"
 
 #: spyder/plugins/completion/languageserver/confpage.py:839
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -1714,27 +1714,27 @@ msgstr "要执行的命令"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:210
 msgid "Valid snippet"
-msgstr ""
+msgstr "无效的代码片段"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:211
 msgid "Invalid snippet"
-msgstr ""
+msgstr "无效的代码片段"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:223
 msgid "To add a new text snippet, you need to define the text that triggers it, a short description (two words maximum) of the snippet and if it should delete the trigger text when inserted. Finally, you need to define the snippet body to insert."
-msgstr ""
+msgstr "要添加新的文本代码片段，您需要定义触发它的文本， 提供代码片段的简短描述(最大多两个词)，并定义在插入时是否删除触发它的文本。 最后，您需要定义要插入的代码片段主体。"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:246
 msgid "Trigger text:"
-msgstr ""
+msgstr "触发文本："
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:251
 msgid "Description:"
-msgstr ""
+msgstr "描述："
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:256
 msgid "Remove trigger text on insertion"
-msgstr ""
+msgstr "在插入时删除触发文本"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:257
 msgid "Check if the text that triggers this snippet should be removed when inserting it"
