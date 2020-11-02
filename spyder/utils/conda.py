@@ -151,7 +151,8 @@ def get_list_conda_envs():
         except Exception:
             version = ''
             err = ''
-        name = 'base' if name == 'anaconda3' or name == 'miniconda3' else name
+        name = ('base' if name.startswith('anaconda') or
+                name.startswith('miniconda') else name)
         name = 'conda: {}'.format(name)
         env_list[name] = (path, version.strip())
     return env_list
