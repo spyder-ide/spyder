@@ -51,7 +51,8 @@ SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
 
 ADD_PACKAGES = os.environ.get('ADD_PACKAGES', '').split()
 
-# Packages to be installed using the editable flag (python-language-server)
+# Packages to be installed using the editable flag
+# (python-language-server in PRs)
 
 INSTALL_EDITABLE_PACKAGES = os.environ.get(
     'INSTALL_EDITABLE_PACKAGES', '').split()
@@ -89,6 +90,7 @@ packages=
     win32security
     ntsecuritycon
     {packages}
+files=black-20.8b1.dist-info > $INSTDIR/pkgs
 [Build]
 installer_name={installer_name}
 """
@@ -291,6 +293,12 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
         with tempfile.TemporaryDirectory(
                 prefix="installer-pynsist-") as work_dir:
             print("Temporary working directory at", work_dir)
+
+            # NOTE: SHOULD BE TEMPORAL (until black has wheels available).
+            # See the 'files' section on the pynsist template config too.
+            print("Copying dist.info for black-20.8b1")
+            shutil.copytree("installers/Windows/black-20.8b1.dist-info",
+                            os.path.join(work_dir, "black-20.8b1.dist-info"))
 
             print("Creating the package virtual environment.")
             env_python = create_packaging_env(

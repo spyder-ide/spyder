@@ -1,2 +1,3 @@
-# Spyder external dependencies (spyder-kernels)
+# Spyder external dependencies (spyder-kernels, python-language-server)
 ./external-deps/spyder-kernels
+./external-deps/python-language-server
