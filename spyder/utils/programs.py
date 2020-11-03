@@ -73,8 +73,8 @@ def is_program_installed(basename):
     Return program absolute path if installed in PATH.
     Otherwise, return None.
 
-    Temporarily adds specific platform dependent paths to PATH if not already
-    present. This permits general use without assuming user profiles are
+    Also searches specific platform dependent paths that are not already in
+    PATH. This permits general use without assuming user profiles are
     sourced (e.g. .bash_Profile), such as when login shells are not used to
     launch Spyder.
 
@@ -114,20 +114,10 @@ def is_program_installed(basename):
         # TODO: what are the possible pyenv paths?
         pass
 
-    # Temporarily add required paths
-    old_path = os.environ['PATH']
-    for path in req_paths:
-        if path not in old_path:
-            os.environ['PATH'] += os.pathsep + path
-
-    abspath = None
-    for path in os.environ["PATH"].split(os.pathsep):
+    for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
-            break
-    os.environ['PATH'] = old_path  # retore PATH
-
-    return abspath
+            return abspath
 
 
 def find_program(basename):
