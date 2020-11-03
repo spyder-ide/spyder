@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ccordoba12/python-language-server.git
 	branch = symbols-no-init
-	commit = 7edf85b1e8faa03460b87f0b3583727716678f0f
-	parent = 613fbd5f45939c9359d40ec2dc1bed765bc1a4f1
+	commit = 4bde52e7cd6775a66abe17ae0eea21fcd3c5f10f
+	parent = fbc65e2f9b5328576bdfbfb114fdac7ce1197acb
 	method = merge
 	cmdver = 0.4.1

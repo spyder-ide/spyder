@@ -19,7 +19,7 @@ def pyls_document_symbols(config, document):
     add_import_symbols = symbols_settings.get('include_import_symbols', True)
 
     use_document_path = False
-    document_dir = os.path.dirname(document.path)
+    document_dir = os.path.normpath(os.path.dirname(document.path))
     if not os.path.isfile(os.path.join(document_dir, '__init__.py')):
         use_document_path = True
 

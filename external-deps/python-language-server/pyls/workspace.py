@@ -263,7 +263,7 @@ class Document(object):
 
         # Extend sys_path with document's path if requested
         if use_document_path:
-            sys_path += [os.path.dirname(self.path)]
+            sys_path += [os.path.normpath(os.path.dirname(self.path))]
 
         kwargs = {
             'code': self.source,
