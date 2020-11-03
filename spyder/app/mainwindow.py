@@ -291,7 +291,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        if options.project is not None:
+        if options.project is not None and not running_in_mac_app():
             self.open_project = osp.normpath(osp.join(CWD, options.project))
         else:
             self.open_project = None
@@ -1374,7 +1374,7 @@ class MainWindow(QMainWindow):
         if self.splash is not None:
             self.splash.hide()
 
-        if self.open_project:
+        if self.open_project and not self.first_spyder_run:
             self.projects.open_project(self.open_project)
         else:
             # Load last project if a project was active when Spyder
