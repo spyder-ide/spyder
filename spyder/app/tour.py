@@ -1412,12 +1412,12 @@ class OpenTourDialog(QDialog):
         # Label
         tour_label_title = QLabel(
             _("Welcome to Spyder!"))
-        tour_label_title.setStyleSheet("font-size: 19pt")
+        tour_label_title.setStyleSheet("font-size: 17pt")
         tour_label_title.setWordWrap(True)
         tour_label = QLabel(
             _("Check out our interactive tour to "
               "explore some of Spyder's panes and features."))
-        tour_label.setStyleSheet("font-size: 15pt")
+        tour_label.setStyleSheet("font-size: 12pt")
         tour_label.setWordWrap(True)
         tour_label.setFixedWidth(300)
 
@@ -1425,31 +1425,39 @@ class OpenTourDialog(QDialog):
         buttons_layout = QHBoxLayout()
         self.launch_tour_button = QPushButton(_('Start tour'))
         self.launch_tour_button.setStyleSheet(
-          "background-color: #3775A9; font-size: 15pt; padding: 6px")
+          "background-color: #3775A9; font-size: 13pt; padding: 4px 10px")
         self.launch_tour_button.setAutoDefault(False)
         self.dismiss_button = QPushButton(_('Dismiss'))
         self.dismiss_button.setStyleSheet(
-          "background-color: #60798B; font-size: 15pt; padding: 6px")
+          "background-color: #60798B; font-size: 13pt; padding: 4px 10px")
         self.dismiss_button.setAutoDefault(False)
-        buttons_layout.addStretch()
+        buttons_layout.addSpacing(7)
         buttons_layout.addWidget(self.launch_tour_button)
+        buttons_layout.addSpacing(20)
         buttons_layout.addWidget(self.dismiss_button)
+        buttons_layout.addStretch()
 
         layout = QHBoxLayout()
         layout.addLayout(images_layout)
 
         label_layout = QVBoxLayout()
         label_layout.addWidget(tour_label_title)
+        label_layout.addSpacing(5)
         label_layout.addWidget(tour_label)
-        label_layout.addSpacing(10)
 
         vertical_layout = QVBoxLayout()
+        vertical_layout.addStretch()
         vertical_layout.addLayout(label_layout)
+        vertical_layout.addSpacing(15)
         vertical_layout.addLayout(buttons_layout)
+        vertical_layout.addStretch()
 
         general_layout = QHBoxLayout()
+        general_layout.addStretch()
         general_layout.addLayout(layout)
+        general_layout.addSpacing(25)
         general_layout.addLayout(vertical_layout)
+        general_layout.addStretch()
 
         self.setLayout(general_layout)
 
@@ -1457,6 +1465,7 @@ class OpenTourDialog(QDialog):
         self.dismiss_button.clicked.connect(self.close)
         self.setStyleSheet("background-color: #262E38")
         self.setContentsMargins(18, 40, 18, 40)
+        self.setFixedSize(640, 280)
 
     def _start_tour(self):
         self.close()
