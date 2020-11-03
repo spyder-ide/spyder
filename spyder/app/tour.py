@@ -1431,11 +1431,10 @@ class OpenTourDialog(QDialog):
         self.dismiss_button.setStyleSheet(
           "background-color: #60798B; font-size: 13pt; padding: 4px 10px")
         self.dismiss_button.setAutoDefault(False)
-        buttons_layout.addSpacing(7)
+        buttons_layout.addStretch()
         buttons_layout.addWidget(self.launch_tour_button)
         buttons_layout.addSpacing(20)
         buttons_layout.addWidget(self.dismiss_button)
-        buttons_layout.addStretch()
 
         layout = QHBoxLayout()
         layout.addLayout(images_layout)
