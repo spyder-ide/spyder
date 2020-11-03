@@ -14,7 +14,7 @@ import subprocess
 import sys
 
 from spyder.config.base import running_in_mac_app, get_home_dir
-from spyder.utils.programs import find_program
+from spyder.utils.programs import find_program, run_shell_command
 
 
 WINDOWS = os.name == 'nt'
@@ -110,12 +110,9 @@ def get_list_conda_envs():
     if conda is None:
         return env_list
 
+    cmdstr = ' '.join([conda, 'env', 'list', '--json'])
     try:
-        out, err = subprocess.Popen(
-            [conda, 'env', 'list', '--json'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        ).communicate()
+        out, err = run_shell_command(cmdstr, env={}).communicate()
         out = out.decode()
         err = err.decode()
         out = json.loads(out)

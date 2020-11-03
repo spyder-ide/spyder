@@ -189,6 +189,11 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
                         break  # don't risk multiple values
                 if sys_root_key is not None:
                     kwargs['env'].update({sys_root_key: os.environ[sys_root_key]})
+    else:
+        # linux and macOS
+        if kwargs.get('env') is not None:
+            if 'HOME' not in kwargs['env']:
+                kwargs['env'].update({'HOME': get_home_dir()})
 
     return kwargs
 
@@ -1064,12 +1069,9 @@ def get_list_pyenv_envs():
     if pyenv is None:
         return env_list
 
+    cmdstr = ' '.join([pyenv, 'versions', '--bare', '--skip-aliases'])
     try:
-        out, err = subprocess.Popen(
-            [pyenv, 'versions', '--bare', '--skip-aliases'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        ).communicate()
+        out, err = run_shell_command(cmdstr, env={}).communicate()
         out = out.decode()
         err = err.decode()
     except Exception:
