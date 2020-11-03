@@ -4,7 +4,7 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/palantir/python-language-server.git
+	remote = https://github.com/ccordoba12/python-language-server.git
 	branch = symbols-no-init
 	commit = 7edf85b1e8faa03460b87f0b3583727716678f0f
 	parent = 613fbd5f45939c9359d40ec2dc1bed765bc1a4f1
