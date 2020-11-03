@@ -61,6 +61,7 @@ RTREE_REQVER = '>=0.8.3'
 SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=1.9.4;<1.10.0'
+TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = '>=0.10.3'
 
@@ -218,6 +219,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': 'textdistance',
+     'package_name': "textdistance",
+     'features': _('Compute distances between strings'),
+     'required_version': TEXTDISTANCE_REQVER},
     {'modname': "three_merge",
      'package_name': "three-merge",
      'features': _("3-way merge algorithm to merge document changes"),

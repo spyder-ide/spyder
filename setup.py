@@ -218,6 +218,7 @@ install_requires = [
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
     'spyder-kernels>=1.9.4,<1.10.0',
+    'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
 ]

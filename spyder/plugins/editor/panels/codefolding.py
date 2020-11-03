@@ -222,8 +222,6 @@ def collect_folding_regions(root):
         folding_levels[start] = folding_level
         folding_nesting[start] = folding_nest
         folding_status[start] = node
-        # if folding_nest == -1:
-        #     folding_nest = start
         queue = [(x, folding_level + 1, start) for x in node.children] + queue
     return folding_regions, folding_nesting, folding_levels, folding_status
 
