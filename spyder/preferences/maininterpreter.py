@@ -22,8 +22,10 @@ from spyder.config.base import _
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import get_python_executable
 from spyder.utils import programs
+from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.misc import get_python_executable
+from spyder.utils.programs import get_list_pyenv_envs
 
 
 class MainInterpreterConfigPage(GeneralConfigPage):
@@ -36,6 +38,15 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         self.cus_exec_radio = None
         self.pyexec_edit = None
         self.cus_exec_combo = None
+
+        conda_env = get_list_conda_envs()
+        pyenv_env = get_list_pyenv_envs()
+        envs = {**conda_env, **pyenv_env}
+        valid_custom_list = []
+        for env in envs.keys():
+            path, _ = envs[env]
+            valid_custom_list.append(path)
+        self.set_option('custom_interpreters_list', valid_custom_list)
 
         # Python executable selection (initializing default values as well)
         executable = self.get_option('executable', get_python_executable())
