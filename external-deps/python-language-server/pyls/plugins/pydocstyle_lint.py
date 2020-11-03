@@ -26,7 +26,7 @@ def pyls_settings():
 
 @hookimpl
 def pyls_lint(config, document):
-    settings = config.plugin_settings('pydocstyle')
+    settings = config.plugin_settings('pydocstyle', document_path=document.path)
     log.debug("Got pydocstyle settings: %s", settings)
 
     # Explicitly passing a path to pydocstyle means it doesn't respect the --match flag, so do it ourselves

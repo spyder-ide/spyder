@@ -18,6 +18,7 @@ import sys
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.utils import IMPORT_EXT
+from spyder.config.snippets import SNIPPETS
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
@@ -269,6 +270,8 @@ DEFAULTS = [
               'group_cells': True,
               'sort_files_alphabetically': False,
               'show_comments': True,
+              'follow_cursor': True,
+              'display_variables': False
               }),
             ('project_explorer',
              {
@@ -530,6 +533,11 @@ DEFAULTS = [
             ('fallback-completions',
              {
               'enable': True,
+             }),
+            ('snippet-completions',
+             {
+               'enable': True,
+               **SNIPPETS
              }),
             ('kite',
              {

@@ -15,10 +15,12 @@ except ImportError:
 
 # Third party imports
 from qtpy.QtCore import QObject, QThread, Signal, QMutex
+from qtpy.QtWidgets import QMessageBox
 import requests
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
+from spyder.config.manager import CONF
 from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
 from spyder.plugins.completion.kite.decorators import class_register
 from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
@@ -41,6 +43,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_status_response_ready = Signal((str,), (dict,))
     sig_perform_onboarding_request = Signal()
     sig_onboarding_response_ready = Signal(str)
+    sig_client_wrong_response = Signal(str, object)
 
     def __init__(self, parent, enable_code_snippets=True):
         QObject.__init__(self, parent)
@@ -170,4 +173,8 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 converter = getattr(self, converter_name)
                 if response is not None:
                     response = converter(response)
-        self.sig_response_ready.emit(req_id, response or {})
+        if not isinstance(response, (dict, type(None))):
+            if not running_under_pytest():
+                self.sig_client_wrong_response.emit(method, response)
+        else:
+            self.sig_response_ready.emit(req_id, response or {})

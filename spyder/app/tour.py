@@ -183,8 +183,8 @@ def get_tour(index):
                            "programming workflow, like syntax highlighting, "
                            "autocompletion, plotting and 'magic' commands. "
                            "To learn more, check out the "
-                           f"<a href=\"{qtconsole_link}\">documentation</a>."
-                           f"<br><br>{button_text}"),
+                           "<a href=\"{0}\">documentation</a>."
+                           "<br><br>{1}").format(qtconsole_link, button_text),
               'widgets': [sw.ipython_console],
               'run': [
                   "test_list_tour = [1, 2, 3, 4, 5]",
@@ -269,9 +269,11 @@ def get_tour(index):
               'interact': True},
 
              {'title': _("The end"),
-              'content': _('You have reached the end of our tour and are ready to '
-                           'start using Spyder! For more information, check out '
-                           f'our <a href="{__docs_url__}">documentation</a>.<br><br>'),
+              'content': _('You have reached the end of our tour and are '
+                           'ready to start using Spyder! For more '
+                           'information, check out our '
+                           '<a href="{}">documentation</a>.'
+                           '<br><br>').format(__docs_url__),
               'image': 'tour-spyder-logo.png'
               },
 
@@ -1265,6 +1267,7 @@ class AnimatedTour(QWidget):
                     self.spy_window.windowState()
                     & (~ Qt.WindowFullScreen))
         return False
+
     def start_tour(self):
         """ """
         self.spy_window.setUpdatesEnabled(False)

@@ -607,6 +607,7 @@ class CodeEditor(TextEditBaseWidget):
         self.highlight_enabled = False
         self.formatting_enabled = False
         self.range_formatting_enabled = False
+        self.document_symbols_enabled = False
         self.formatting_characters = []
         self.rename_support = False
         self.completion_args = None
@@ -1144,6 +1145,9 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_enabled = capabilities['documentFormattingProvider']
         self.range_formatting_enabled = (
             capabilities['documentRangeFormattingProvider'])
+        self.document_symbols_enabled = (
+            capabilities['documentSymbolProvider']
+        )
         self.formatting_characters.append(
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (
@@ -1179,6 +1183,8 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
         """Request document symbols."""
+        if not self.document_symbols_enabled:
+            return
         if self.oe_proxy is not None:
             self.oe_proxy.emit_request_in_progress()
         params = {'file': self.filename}
@@ -1276,6 +1282,14 @@ class CodeEditor(TextEditBaseWidget):
             return
         self.completion_args = None
         position, automatic = args
+
+        start_cursor = self.textCursor()
+        start_cursor.movePosition(QTextCursor.StartOfBlock)
+        line_text = self.get_text(start_cursor.position(), 'eol')
+        leading_whitespace = self.compute_whitespace(line_text)
+        indentation_whitespace = ' ' * leading_whitespace
+        eol_char = self.get_line_separator()
+
         try:
             completions = params['params']
             completions = ([] if completions is None else
@@ -1329,6 +1343,16 @@ class CodeEditor(TextEditBaseWidget):
                         completion['filterText'] = insert_text
                         completion['insertText'] = insert_text
                         del completion['textEdit']
+
+                if 'insertText' in completion:
+                    insert_text = completion['insertText']
+                    insert_text_lines = insert_text.splitlines()
+                    reindented_text = [insert_text_lines[0]]
+                    for insert_line in insert_text_lines[1:]:
+                        insert_line = indentation_whitespace + insert_line
+                        reindented_text.append(insert_line)
+                    reindented_text = eol_char.join(reindented_text)
+                    completion['insertText'] = reindented_text
 
             self.completion_widget.show_list(
                 completion_list, position, automatic)
@@ -1681,23 +1705,23 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_change()
 
     # ------------- LSP: Code folding ranges -------------------------------
-    def update_whitespace_count(self, line, column):
-        def compute_whitespace(line):
-            whitespace_regex = re.compile(r'(\s+).*')
-            whitespace_match = whitespace_regex.match(line)
-            total_whitespace = 0
-            if whitespace_match is not None:
-                whitespace_chars = whitespace_match.group(1)
-                whitespace_chars = whitespace_chars.replace(
-                    '\t', tab_size * ' ')
-                total_whitespace = len(whitespace_chars)
-            return total_whitespace
-
+    def compute_whitespace(self, line):
         tab_size = self.tab_stop_width_spaces
+        whitespace_regex = re.compile(r'(\s+).*')
+        whitespace_match = whitespace_regex.match(line)
+        total_whitespace = 0
+        if whitespace_match is not None:
+            whitespace_chars = whitespace_match.group(1)
+            whitespace_chars = whitespace_chars.replace(
+                '\t', tab_size * ' ')
+            total_whitespace = len(whitespace_chars)
+        return total_whitespace
+
+    def update_whitespace_count(self, line, column):
         self.leading_whitespaces = {}
         lines = to_text_string(self.toPlainText()).splitlines()
         for i, text in enumerate(lines):
-            total_whitespace = compute_whitespace(text)
+            total_whitespace = self.compute_whitespace(text)
             self.leading_whitespaces[i] = total_whitespace
 
     def cleanup_folding(self):
