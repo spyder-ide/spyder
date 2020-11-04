@@ -120,6 +120,54 @@ def test_goto_uri(qtbot, editorbot, mocker, params):
         assert expected_output_2 == output_2
 
 
+def test_goto_uri_project_root_path(qtbot, editorbot, mocker, tmpdir):
+    """Test that the uri search is working correctly."""
+    _, code_editor = editorbot
+    code_editor.show()
+    mock_project_dir = str(tmpdir)
+    expected_output_path = os.path.join(mock_project_dir, "some-file.txt")
+    with open(expected_output_path, "w") as fh:
+        fh.write("BOOM!\n")
+
+    code_editor.set_current_project_path(mock_project_dir)
+    code_editor.filename = "foo.txt"
+    mocker.patch.object(QDesktopServices, 'openUrl')
+
+    # Set text in editor
+    code_editor.set_text("file://^/some-file.txt")
+
+    # Get cursor coordinates
+    code_editor.moveCursor(QTextCursor.Start)
+    x, y = code_editor.get_coordinates('cursor')
+
+    # The `+ 23` is to put the mouse on top of the word
+    point = code_editor.calculate_real_position(QPoint(x + 23, y))
+
+    # Move cursor to end of line
+    code_editor.moveCursor(QTextCursor.End)
+
+    # Move mouse cursor on top of test word
+    qtbot.mouseMove(code_editor, point, delay=500)
+
+    # Check valid with project open
+    with qtbot.waitSignal(code_editor.sig_file_uri_preprocessed,
+                          timeout=3000) as blocker:
+        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
+        args = blocker.args
+        assert args[0] == expected_output_path
+
+    qtbot.wait(500)
+
+    # Check with project closed
+    expected_output_path = os.path.expanduser("~/some-file.txt")
+    code_editor.set_current_project_path()
+    with qtbot.waitSignal(code_editor.sig_file_uri_preprocessed,
+                          timeout=3000) as blocker:
+        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
+        args = blocker.args
+        assert args[0] == expected_output_path
+
+
 def test_goto_uri_message_box(qtbot, editorbot, mocker):
     """
     Test that a message box is displayed when the shorthand issue notation is

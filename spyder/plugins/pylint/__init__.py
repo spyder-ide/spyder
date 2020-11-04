@@ -6,9 +6,4 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-
-# =============================================================================
-# The following statement is required to register this 3rd party plugin:
-# =============================================================================
-
-from .plugin import Pylint as PLUGIN_CLASS
+from spyder.plugins.pylint.plugin import Pylint as PLUGIN_CLASS

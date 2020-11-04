@@ -27,7 +27,7 @@ from spyder.plugins.completion.languageserver.tests.conftest import (
     qtbot_module, MainWindowMock, MainWindowWidgetMock)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
-from spyder.plugins.completion.plugin import CompletionManager
+from spyder.plugins.completion.manager.plugin import CompletionManager
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.py3compat import PY2, to_text_string
 from spyder.widgets.findreplace import FindReplace
@@ -99,6 +99,38 @@ def fallback_codeeditor(qtbot_module, request):
     request.addfinalizer(teardown)
     fallback = completions.get_client('fallback')
     return editor, fallback
+
+
+@pytest.fixture
+def snippets_codeeditor(qtbot_module, request):
+    """CodeEditor instance with text snippets enabled."""
+    completions = CompletionManager(None, ['snippets'])
+    completions.start()
+    completions.start_client('python')
+    completions.language_status['python']['snippets'] = True
+    qtbot_module.addWidget(completions)
+
+    # Create a CodeEditor instance
+    editor = codeeditor_factory()
+    qtbot_module.addWidget(editor)
+    editor.show()
+
+    # Redirect editor snippets requests to SnippetsActor
+    editor.sig_perform_completion_request.connect(completions.send_request)
+    editor.filename = 'test.py'
+    editor.language = 'Python'
+    editor.completions_available = True
+    qtbot_module.wait(2000)
+
+    def teardown():
+        completions.shutdown()
+        editor.hide()
+        editor.completion_widget.hide()
+
+    request.addfinalizer(teardown)
+    snippets = completions.get_client('snippets')
+    snippets.update_configuration()
+    return editor, snippets
 
 
 @pytest.fixture

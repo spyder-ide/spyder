@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/palantir/python-language-server.git
 	branch = develop
-	commit = e0f8b3d0e6dfc27eb78da1ea2ce2d441f7930263
-	parent = a31205d58c54bfc77d9555ffee691ba4b304481f
+	commit = cf59b8f558cc8121c5fe2de6db70ab91560e2da8
+	parent = c043cbdf8f2edb184e637ec584c1512cda6d396b
 	method = merge
 	cmdver = 0.4.1

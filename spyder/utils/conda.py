@@ -7,8 +7,17 @@
 """Conda/anaconda utilities."""
 
 # Standard library imports
+import json
 import os
+import os.path as osp
+import subprocess
 import sys
+
+from spyder.config.base import running_in_mac_app, get_home_dir
+from spyder.utils.programs import find_program, run_shell_command
+
+
+WINDOWS = os.name == 'nt'
 
 
 def add_quotes(path):
@@ -92,3 +101,41 @@ def get_conda_env_path(pyexec, quote=False):
         conda_env = add_quotes(conda_env)
 
     return conda_env
+
+
+def get_list_conda_envs():
+    """Return the list of all conda envs found in the system."""
+    env_list = {}
+    conda = find_program('conda')
+    if conda is None:
+        return env_list
+
+    cmdstr = ' '.join([conda, 'env', 'list', '--json'])
+    try:
+        out, err = run_shell_command(cmdstr, env={}).communicate()
+        out = out.decode()
+        err = err.decode()
+        out = json.loads(out)
+    except Exception:
+        out = {'envs': []}
+        err = ''
+    for env in out['envs']:
+        name = env.split('/')[-1]
+        try:
+            path = osp.join(env, 'python') if WINDOWS else osp.join(
+                env, 'bin', 'python')
+            version, err = subprocess.Popen(
+                [path, '--version'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            ).communicate()
+            version = version.decode()
+            err = err.decode()
+        except Exception:
+            version = ''
+            err = ''
+        name = ('base' if name.lower().startswith('anaconda') or
+                name.lower().startswith('miniconda') else name)
+        name = 'conda: {}'.format(name)
+        env_list[name] = (path, version.strip())
+    return env_list

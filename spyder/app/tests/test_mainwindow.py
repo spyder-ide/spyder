@@ -16,13 +16,10 @@ import os
 import os.path as osp
 import re
 import shutil
+import sys
 import tempfile
 from textwrap import dedent
-try:
-    from unittest.mock import Mock, MagicMock
-except ImportError:
-    from mock import Mock, MagicMock  # Python 2
-import sys
+from unittest.mock import Mock, MagicMock
 import uuid
 
 # Third party imports
@@ -36,11 +33,11 @@ from numpy.testing import assert_array_equal
 import pylint
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QEvent, QPoint, QUrl
+from qtpy.QtCore import Qt, QTimer, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
-                            QTabBar, QToolTip, QWidget)
+                            QTabBar, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
@@ -49,24 +46,15 @@ from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_conf_path, get_module_path
 from spyder.config.manager import CONF
-from spyder.widgets.dock import TabFilter
-from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.plugins.projects.projecttypes import EmptyProject
+from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.run.widgets import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
-from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
-
-# For testing various Spyder urls
-if not PY2:
-    from urllib.request import urlopen
-    from urllib.error import URLError
-else:
-    from urllib2 import urlopen, URLError
 
 
 # =============================================================================
@@ -106,8 +94,14 @@ def open_file_in_editor(main_window, fname, directory=None):
 def get_thirdparty_plugin(main_window, plugin_title):
     """Get a reference to the thirdparty plugin with the title given."""
     for plugin in main_window.thirdparty_plugins:
-        if plugin.get_plugin_title() == plugin_title:
-            return plugin
+        try:
+            # New API
+            if plugin.get_name() == plugin_title:
+                return plugin
+        except AttributeError:
+            # Old API
+            if plugin.get_plugin_title() == plugin_title:
+                return plugin
 
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
@@ -229,8 +223,10 @@ def main_window(request, tmpdir):
         # Close everything we can think of
         window.editor.close_file()
         window.projects.close_project()
-        if window.console.error_dlg:
-            window.console.close_error_dlg()
+
+        if window.console.error_dialog:
+            window.console.close_error_dialog()
+
         window.switcher.close()
         for client in window.ipyconsole.get_clients():
             window.ipyconsole.close_client(client=client, force=True)
@@ -317,8 +313,8 @@ def test_lock_action(main_window):
     action = main_window.lock_interface_action
     plugins = main_window.widgetlist
 
-    # By default the action is checked
-    assert action.isChecked()
+    # By default the interface is locked.
+    assert main_window.interface_locked
 
     # In this state the title bar is an empty QWidget
     for plugin in plugins:
@@ -327,14 +323,16 @@ def test_lock_action(main_window):
         assert isinstance(title_bar, QWidget)
 
     # Test that our custom title bar is shown when the action
-    # is unchecked
-    action.setChecked(False)
+    # is triggered.
+    action.trigger()
     for plugin in plugins:
         title_bar = plugin.dockwidget.titleBarWidget()
         assert isinstance(title_bar, DockTitleBar)
+    assert not main_window.interface_locked
 
     # Restore default state
-    action.setChecked(True)
+    action.trigger()
+    assert main_window.interface_locked
 
 
 @pytest.mark.slow
@@ -430,7 +428,7 @@ def test_get_help_combo(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     if WEBENGINE:
         webpage = webview.page()
     else:
@@ -442,30 +440,31 @@ def test_get_help_combo(main_window, qtbot):
         shell.execute('import numpy as np')
 
     # Get help - numpy
-    help_plugin.combo.setFocus()
+    object_combo = help_plugin.get_widget().object_combo
+    object_combo.setFocus()
 
-    qtbot.keyClicks(help_plugin.combo, 'numpy', delay=100)
+    qtbot.keyClicks(object_combo, 'numpy', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - numpy.arange
-    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+    qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
 
     # Get help - np
     # Clear combo
-    help_plugin.combo.set_current_text('')
+    object_combo.set_current_text('')
 
-    qtbot.keyClicks(help_plugin.combo, 'np', delay=100)
+    qtbot.keyClicks(object_combo, 'np', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - np.arange
-    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+    qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
@@ -495,7 +494,7 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     qtbot.wait(500)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write function name
@@ -535,7 +534,7 @@ def test_get_help_ipython_console_special_characters(
     qtbot.wait(500)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write function name and assert in Console
@@ -565,7 +564,7 @@ def test_get_help_ipython_console(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write some object in the console
@@ -580,9 +579,8 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif((not sys.platform.startswith('linux') or
-                     os.environ.get('CI', None) is None),
-                    reason="Only works on Linux and CIs")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Does not work on Mac and Windows!")
 @pytest.mark.use_introspection
 @pytest.mark.parametrize(
     "object_info",
@@ -592,7 +590,7 @@ def test_get_help_ipython_console(main_window, qtbot):
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     main_window.editor.new(fname="test.py", text="")
@@ -931,13 +929,16 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     # Change directory in IPython console using %cd
     with qtbot.waitSignal(shell.executed):
         shell.execute(u"%cd {}".format(temp_dir))
+
     qtbot.wait(1000)
 
     # Assert that cwd changed in workingdirectory
-    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
+    assert osp.normpath(wdir.get_container().history[-1]) == osp.normpath(
+        temp_dir)
 
     # Assert that cwd changed in explorer
-    assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(temp_dir)
+    assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(
+        temp_dir)
 
 
 @pytest.mark.slow
@@ -964,7 +965,8 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     qtbot.wait(1000)
 
     # Assert that cwd changed in workingdirectory
-    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
+    assert osp.normpath(wdir.get_container().history[-1]) == osp.normpath(
+        temp_dir)
 
     # Assert that cwd changed in IPython console
     assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
@@ -1610,8 +1612,6 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_stop_dbg(main_window, qtbot):
     """Test that we correctly stop a debugging session."""
-    nsb = main_window.variableexplorer.get_focus_widget()
-
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -1674,9 +1674,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Set LOCATION as cwd
-    main_window.workingdirectory.chdir(tempfile.gettempdir(),
-                                       browsing_history=False,
-                                       refresh_explorer=True)
+    main_window.workingdirectory.chdir(tempfile.gettempdir())
     qtbot.wait(1000)
     print(repr(control.toPlainText()))
     shell.clear_console()
@@ -2070,7 +2068,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
             break
 
     # Test opening tutorial with Help plguin closed
-    main_window.help._toggle_view_action.setChecked(False)
+    main_window.help.toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert help_tabbar is None and help_index is None
@@ -2111,60 +2109,15 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     assert help_pane_menuitem.isChecked()
 
 
-def test_report_issue_url(monkeypatch):
-    """Test that report_issue sends the data, and to correct url."""
-    body = 'This is an example error report body text.'
-    title = 'Uncreative issue title here'
-    body_autogenerated = 'Auto-generated text.'
-    target_url_base = __project_url__ + '/issues/new'
-
-    MockMainWindow = MagicMock(spec=MainWindow)
-    mockMainWindow_instance = MockMainWindow()
-    mockMainWindow_instance.__class__ = MainWindow
-    mockMainWindow_instance.render_issue.return_value = body_autogenerated
-
-    MockQDesktopServices = MagicMock()
-    mockQDesktopServices_instance = MockQDesktopServices()
-    attr_to_patch = ('spyder.app.mainwindow.QDesktopServices')
-    monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
-
-    # Test when body != None, i.e. when auto-submitting error to Github
-    target_url = QUrl(target_url_base + '?body=' + body)
-    MainWindow.report_issue(mockMainWindow_instance, body=body, title=None,
-                            open_webpage=True)
-    assert MockQDesktopServices.openUrl.call_count == 1
-    mockQDesktopServices_instance.openUrl.called_with(target_url)
-
-    # Test when body != None and title != None
-    target_url = QUrl(target_url_base + '?body=' + body
-                      + "&title=" + title)
-    MainWindow.report_issue(mockMainWindow_instance, body=body, title=title,
-                            open_webpage=True)
-    assert MockQDesktopServices.openUrl.call_count == 2
-    mockQDesktopServices_instance.openUrl.called_with(target_url)
-
-
-def test_render_issue():
-    """Test that render issue works without errors and returns text."""
-    test_description = "This is a test description"
-    test_traceback = "An error occurred. Oh no!"
-
-    MockMainWindow = MagicMock(spec=MainWindow)
-    mockMainWindow_instance = MockMainWindow()
-    mockMainWindow_instance.__class__ = MainWindow
-
-    # Test when description and traceback are not provided
-    test_issue_1 = MainWindow.render_issue(mockMainWindow_instance)
-    assert type(test_issue_1) == str
-    assert len(test_issue_1) > 100
-
-    # Test when description and traceback are provided
-    test_issue_2 = MainWindow.render_issue(mockMainWindow_instance,
-                                           test_description, test_traceback)
-    assert type(test_issue_2) == str
-    assert len(test_issue_2) > 100
-    assert test_description in test_issue_2
-    assert test_traceback in test_issue_2
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_report_issue(main_window, qtbot):
+    """Test that the report error dialog opens correctly."""
+    main_window.report_issue()
+    qtbot.wait(300)
+    assert main_window._report_dlg is not None
+    assert main_window._report_dlg.isVisible()
+    assert main_window._report_dlg.close()
 
 
 @pytest.mark.slow
@@ -2195,7 +2148,12 @@ def test_custom_layouts(main_window, qtbot):
                         if idx == 0:
                             if widget not in hidden_widgets:
                                 print(widget)  # spyder: test-skip
-                                assert widget.isVisible()
+                                try:
+                                    # New API
+                                    assert widget.get_widget().isVisible()
+                                except AttributeError:
+                                    # Old API
+                                    assert widget.isVisible()
 
 
 @pytest.mark.slow
@@ -2287,11 +2245,11 @@ def test_report_comms_error(qtbot, main_window):
     with qtbot.waitSignal(shell.executed, timeout=3000):
         shell.execute('ls')
 
-    error_dlg = main_window.console.error_dlg
-    assert error_dlg is not None
-    assert 'Exception in comms call get_cwd' in error_dlg.error_traceback
-    assert 'No module named' in error_dlg.error_traceback
-    main_window.console.close_error_dlg()
+    error_dialog = main_window.console.error_dialog
+    assert error_dialog is not None
+    assert 'Exception in comms call get_cwd' in error_dialog.error_traceback
+    assert 'No module named' in error_dialog.error_traceback
+    main_window.console.close_error_dialog()
     CONF.set('main', 'show_internal_errors', False)
 
 
@@ -2362,6 +2320,15 @@ def preferences_dialog_helper(qtbot, main_window, section):
     page = dlg.get_page(index)
     dlg.set_current_index(index)
     return dlg, index, page
+
+
+@pytest.mark.slow
+def test_preferences_run_section_exists(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder#13524 regression.
+    Ensure the Run section exists.
+    """
+    assert preferences_dialog_helper(qtbot, main_window, 'run')
 
 
 @pytest.mark.slow
@@ -2457,7 +2424,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
         'editor', 'run cell and advance', '')
     CONF.set_shortcut(
         'editor', 'run selection', base_run_cell_advance)
-    main_window.apply_shortcuts()
+    main_window.shortcuts.apply_shortcuts()
 
     # Check execution of shortcut
     # Create new file
@@ -2475,7 +2442,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
         'editor', 'run selection', 'F9')
     CONF.set_shortcut(
         'editor', 'run cell and advance', 'Shift+Return')
-    main_window.apply_shortcuts()
+    main_window.shortcuts.apply_shortcuts()
     qtbot.wait(500)  # Wait for shortcut change to actually be applied
 
     # Check shortcut run cell and advance reset
@@ -2580,7 +2547,6 @@ def test_go_to_definition(main_window, qtbot, capsys):
 
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_def)
-    n_editors = len(main_window.editor.get_filenames())
     code_editor = main_window.editor.get_focus_widget()
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_open()
@@ -2657,7 +2623,6 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
         shell.execute(function + u"(0, r'{}')".format(to_text_string(p)))
-    control = main_window.ipyconsole.get_focus_widget()
 
     if debug:
         # Reach the 'name' input
@@ -3371,7 +3336,6 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     Test that the variable explorer is cleared after a kernel restart.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = main_window.ipyconsole.get_focus_widget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
@@ -3401,7 +3365,6 @@ def test_varexp_cleared_after_reset(main_window, qtbot):
     reset in the IPython console and variable explorer panes.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = main_window.ipyconsole.get_focus_widget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
@@ -3743,6 +3706,30 @@ def test_continue_first_line(main_window, qtbot):
     # Check everything was executed
     qtbot.waitUntil(lambda: "a = 7" in shell._control.toPlainText())
     assert "b = 9" in shell._control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_outline_no_init(main_window, qtbot):
+    # Open file in one of our directories without an __init__ file
+    spy_dir = osp.dirname(get_module_path('spyder'))
+    main_window.editor.load(osp.join(spy_dir, 'tools', 'rm_whitespace.py'))
+
+    # Show outline explorer
+    outline_explorer = main_window.outlineexplorer
+    outline_explorer._toggle_view_action.setChecked(True)
+
+    # Wait a bit for trees to be filled
+    qtbot.wait(5000)
+
+    # Get tree length
+    treewidget = outline_explorer.explorer.treewidget
+    editor_id = list(treewidget.editor_ids.values())[1]
+
+    # Assert symbols in the file are detected and shown
+    assert len(treewidget.editor_tree_cache[editor_id]) > 0
 
 
 if __name__ == "__main__":

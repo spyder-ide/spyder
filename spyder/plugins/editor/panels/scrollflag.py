@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.gui import is_dark_interface
-from spyder.plugins.completion.languageserver import DiagnosticSeverity
+from spyder.plugins.completion.manager.api import DiagnosticSeverity
 
 
 REFRESH_RATE = 1000

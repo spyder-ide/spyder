@@ -66,7 +66,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_change_cwd = Signal(str)
 
     # For printing internal errors
-    sig_exception_occurred = Signal(str, bool)
+    sig_exception_occurred = Signal(dict)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):

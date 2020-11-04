@@ -52,9 +52,9 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                          get_run_configuration,
-                                          RunConfigDialog, RunConfigOneDialog)
+from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
+                                        get_run_configuration,
+                                        RunConfigDialog, RunConfigOneDialog)
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,21 @@ class Editor(SpyderPluginWidget):
     debug_cell_in_ipyclient = Signal(str, object, str, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
-    open_dir = Signal(str)
+
+    sig_dir_opened = Signal(str)
+    """
+    This signal is emitted when the editor changes the current directory.
+
+    Parameters
+    ----------
+    new_working_directory: str
+        The new working directory path.
+
+    Notes
+    -----
+    This option is available on the options menu of the editor plugin
+    """
+
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
@@ -89,6 +103,32 @@ class Editor(SpyderPluginWidget):
 
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
+
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Dictionary required by the Help pane to render a docstring.
+
+    Examples
+    --------
+    >>> help_data = {
+        'obj_text': str,
+        'name': str,
+        'argspec': str,
+        'note': str,
+        'docstring': str,
+        'force_refresh': bool,
+        'path': str,
+    }
+
+    See Also
+    --------
+    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    """
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -113,7 +153,6 @@ class Editor(SpyderPluginWidget):
 
         self.projects = None
         self.outlineexplorer = None
-        self.help = None
 
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
@@ -254,11 +293,6 @@ class Editor(SpyderPluginWidget):
         self.outlineexplorer.explorer.edit.connect(
                              lambda filenames:
                              self.load(filenames=filenames, editorwindow=self))
-
-    def set_help(self, help_plugin):
-        self.help = help_plugin
-        for editorstack in self.editorstacks:
-            editorstack.set_help(self.help)
 
     #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
@@ -1117,14 +1151,15 @@ class Editor(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
-        self.main.console.edit_goto.connect(self.load)
+        self.main.console.sig_edit_goto_requested.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.open_dir.connect(self.main.workingdirectory.chdir)
-        self.set_help(self.main.help)
+
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
+
         editorstack = self.get_current_editorstack()
+
         self.add_dockwidget()
         self.update_pdb_state(False, {})
 
@@ -1279,7 +1314,6 @@ class Editor(SpyderPluginWidget):
             editorstack.file_saved.connect(
                 self.vcs_status.update_vcs_state)
 
-        editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
@@ -1332,6 +1366,7 @@ class Editor(SpyderPluginWidget):
             getattr(editorstack, method)(self.get_option(setting))
 
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
+
         editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
                                                      'enable_hover_hints'))
         editorstack.set_format_on_save(
@@ -1407,6 +1442,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_save_bookmark.connect(self.save_bookmark)
         editorstack.sig_load_bookmark.connect(self.load_bookmark)
         editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
+        editorstack.sig_help_requested.connect(self.sig_help_requested)
 
         # Register editorstack's autosave component with plugin's autosave
         # component
@@ -1731,7 +1767,7 @@ class Editor(SpyderPluginWidget):
         fname = self.get_current_filename()
         if fname is not None:
             directory = osp.dirname(osp.abspath(fname))
-            self.open_dir.emit(directory)
+            self.sig_dir_opened.emit(directory)
 
     def __add_recent_file(self, fname):
         """Add to recent file list"""
@@ -3057,3 +3093,15 @@ class Editor(SpyderPluginWidget):
         """Switch to previous file tab on the current editor stack."""
         editorstack = self.get_current_editorstack()
         editorstack.tabs.tab_navigate(-1)
+
+    def set_current_project_path(self, root_path=None):
+        """
+        Set the current active project root path.
+
+        Parameters
+        ----------
+        root_path: str or None, optional
+            Path to current project root path. Default is None.
+        """
+        for editorstack in self.editorstacks:
+            editorstack.set_current_project_path(root_path)

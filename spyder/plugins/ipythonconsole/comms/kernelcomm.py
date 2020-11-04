@@ -33,7 +33,7 @@ class KernelComm(CommBase, QObject):
 
     _sig_got_reply = Signal()
     _sig_comm_port_changed = Signal()
-    sig_exception_occurred = Signal(str, bool)
+    sig_exception_occurred = Signal(dict)
 
     def __init__(self):
         super(KernelComm, self).__init__()
@@ -223,4 +223,6 @@ class KernelComm(CommBase, QObject):
         Handle an error that was raised on the other side and sent back.
         """
         for line in error_wrapper.format_error():
-            self.sig_exception_occurred.emit(line, True)
+            self.sig_exception_occurred.emit(
+                dict(text=line, is_traceback=True)
+            )

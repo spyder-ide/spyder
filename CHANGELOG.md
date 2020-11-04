@@ -1,5 +1,93 @@
 # History of changes
 
+## Version v5.0alpha1 (2020-08-04)
+
+### Issues Closed
+
+* [Issue 13471](https://github.com/spyder-ide/spyder/issues/13471) - Recursing problem with new plugin API on master ([PR 13472](https://github.com/spyder-ide/spyder/pull/13472) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13378](https://github.com/spyder-ide/spyder/issues/13378) - Some problems with the Find plugin in master ([PR 13398](https://github.com/spyder-ide/spyder/pull/13398) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13310](https://github.com/spyder-ide/spyder/issues/13310) - Traceback from the Files pane (AttributeError: 'FindInFilesWidget' object has no attribute 'extras_toolbar') ([PR 13316](https://github.com/spyder-ide/spyder/pull/13316) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13142](https://github.com/spyder-ide/spyder/issues/13142) - Spyder prints "code True" in internal console ([PR 13208](https://github.com/spyder-ide/spyder/pull/13208) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13127](https://github.com/spyder-ide/spyder/issues/13127) - All plugins in the new API are shown after startup ([PR 13208](https://github.com/spyder-ide/spyder/pull/13208) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13099](https://github.com/spyder-ide/spyder/issues/13099) - Migrate RunConfig to Plugin with new API ([PR 13100](https://github.com/spyder-ide/spyder/pull/13100) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12938](https://github.com/spyder-ide/spyder/issues/12938) - Add cookicutter handling and UI generation ([PR 12924](https://github.com/spyder-ide/spyder/pull/12924) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12798](https://github.com/spyder-ide/spyder/issues/12798) - Create new Appearance Plugin using new API ([PR 12793](https://github.com/spyder-ide/spyder/pull/12793) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12760](https://github.com/spyder-ide/spyder/issues/12760) - Move Working Directory to new API ([PR 12756](https://github.com/spyder-ide/spyder/pull/12756) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12727](https://github.com/spyder-ide/spyder/issues/12727) - Move Internal Console plugin to new API ([PR 12438](https://github.com/spyder-ide/spyder/pull/12438) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12725](https://github.com/spyder-ide/spyder/issues/12725) - Move collections editor out of Variable Explorer into widgets ([PR 12726](https://github.com/spyder-ide/spyder/pull/12726) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12488](https://github.com/spyder-ide/spyder/issues/12488) - An idea to improve the visual of the 'Lock panes and toolbars' action in the View menu ([PR 12527](https://github.com/spyder-ide/spyder/pull/12527) by [@jnsebgosselin](https://github.com/jnsebgosselin))
+* [Issue 12325](https://github.com/spyder-ide/spyder/issues/12325) - Move Breakpoints plugin to use new API ([PR 12324](https://github.com/spyder-ide/spyder/pull/12324) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12191](https://github.com/spyder-ide/spyder/issues/12191) - Move Profiler plugin to use new API ([PR 12377](https://github.com/spyder-ide/spyder/pull/12377) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12190](https://github.com/spyder-ide/spyder/issues/12190) - Move History plugin to use new API ([PR 12490](https://github.com/spyder-ide/spyder/pull/12490) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12189](https://github.com/spyder-ide/spyder/issues/12189) - Move Find in files plugin to use new API ([PR 12382](https://github.com/spyder-ide/spyder/pull/12382) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12187](https://github.com/spyder-ide/spyder/issues/12187) - Move Online Help plugin to use new API  ([PR 12330](https://github.com/spyder-ide/spyder/pull/12330) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12186](https://github.com/spyder-ide/spyder/issues/12186) - Move Help plugin to use new API ([PR 12338](https://github.com/spyder-ide/spyder/pull/12338) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12182](https://github.com/spyder-ide/spyder/issues/12182) - Move Plots plugin to use new API ([PR 12196](https://github.com/spyder-ide/spyder/pull/12196) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12180](https://github.com/spyder-ide/spyder/issues/12180) - Modernize global plugin API ([PR 11741](https://github.com/spyder-ide/spyder/pull/11741) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12130](https://github.com/spyder-ide/spyder/issues/12130) - Update plots plugin to python 3 ([PR 12131](https://github.com/spyder-ide/spyder/pull/12131) by [@steff456](https://github.com/steff456))
+* [Issue 12002](https://github.com/spyder-ide/spyder/issues/12002) - spyder-kernels dependency not correctly detected for dev version ([PR 12017](https://github.com/spyder-ide/spyder/pull/12017) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11839](https://github.com/spyder-ide/spyder/issues/11839) - Move find in files plugin to python3 ([PR 11840](https://github.com/spyder-ide/spyder/pull/11840) by [@steff456](https://github.com/steff456))
+* [Issue 11725](https://github.com/spyder-ide/spyder/issues/11725) - Move PyLint plugin to Python 3 ([PR 11816](https://github.com/spyder-ide/spyder/pull/11816) by [@steff456](https://github.com/steff456))
+* [Issue 11616](https://github.com/spyder-ide/spyder/issues/11616) - Move breakpoints plugin to python3 only ([PR 11815](https://github.com/spyder-ide/spyder/pull/11815) by [@steff456](https://github.com/steff456))
+
+In this release 25 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 13472](https://github.com/spyder-ide/spyder/pull/13472) - PR: Fix parent of project type, by [@goanpeca](https://github.com/goanpeca) ([13471](https://github.com/spyder-ide/spyder/issues/13471))
+* [PR 13460](https://github.com/spyder-ide/spyder/pull/13460) - PR: Use Binder images from our binder-environments repo, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13414](https://github.com/spyder-ide/spyder/pull/13414) - PR: Remove duplicate preferences pages, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13403](https://github.com/spyder-ide/spyder/pull/13403) - PR: Move completion plugin files to manager plugin and create a completions.manager.api file, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13400](https://github.com/spyder-ide/spyder/pull/13400) - PR: Find internal plugins in plugin module for Spyder installs, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13398](https://github.com/spyder-ide/spyder/pull/13398) - PR: Add option to disable tooltip on toolbars when creating actions, by [@goanpeca](https://github.com/goanpeca) ([13378](https://github.com/spyder-ide/spyder/issues/13378))
+* [PR 13375](https://github.com/spyder-ide/spyder/pull/13375) - PR: Generalize error reporting via signal and simplify widget, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13367](https://github.com/spyder-ide/spyder/pull/13367) - PR: Add file hover-go-to relative to project root, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13317](https://github.com/spyder-ide/spyder/pull/13317) - PR: Add name validation and status of project methods, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13316](https://github.com/spyder-ide/spyder/pull/13316) - PR: Add check for extras_toolbar existence, by [@goanpeca](https://github.com/goanpeca) ([13310](https://github.com/spyder-ide/spyder/issues/13310))
+* [PR 13299](https://github.com/spyder-ide/spyder/pull/13299) - PR: Fix project logic to allow for extra dialogs, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13290](https://github.com/spyder-ide/spyder/pull/13290) - PR: Display external plugins in the dependencies dialog, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13280](https://github.com/spyder-ide/spyder/pull/13280) - PR: Add intermediate Project API while new API migration is finished, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13278](https://github.com/spyder-ide/spyder/pull/13278) - PR: Fix toolbar title and tabify of external plugins, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13208](https://github.com/spyder-ide/spyder/pull/13208) - PR: Fix visible plugins on restart and online server start, by [@goanpeca](https://github.com/goanpeca) ([13142](https://github.com/spyder-ide/spyder/issues/13142), [13127](https://github.com/spyder-ide/spyder/issues/13127))
+* [PR 13186](https://github.com/spyder-ide/spyder/pull/13186) - PR: Fix a wrong import in our tests, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13151](https://github.com/spyder-ide/spyder/pull/13151) - PR: Fix test_lsp_config_dialog, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13143](https://github.com/spyder-ide/spyder/pull/13143) - PR: Fix showing internal errors, by [@impact27](https://github.com/impact27)
+* [PR 13122](https://github.com/spyder-ide/spyder/pull/13122) - PR: Fix spelling error in tutorial (Help), by [@scottwedge](https://github.com/scottwedge)
+* [PR 13116](https://github.com/spyder-ide/spyder/pull/13116) - PR: Fix rename of CodeEditor kwarg (History), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13100](https://github.com/spyder-ide/spyder/pull/13100) - PR: Migrate RunConfig to Plugin with new API, by [@goanpeca](https://github.com/goanpeca) ([13099](https://github.com/spyder-ide/spyder/issues/13099))
+* [PR 13070](https://github.com/spyder-ide/spyder/pull/13070) - WIP: Add ability to hot start some plugins., by [@goanpeca](https://github.com/goanpeca) ([13067](https://github.com/spyder-ide/spyder/issues/13067))
+* [PR 12965](https://github.com/spyder-ide/spyder/pull/12965) - PR: Fix reporting internal PyLS errors and generalize reporting error mechanism, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 12961](https://github.com/spyder-ide/spyder/pull/12961) - PR: Add job to build docs, by [@goanpeca](https://github.com/goanpeca)
+* [PR 12924](https://github.com/spyder-ide/spyder/pull/12924) - PR: Add cookiecutter widget, by [@goanpeca](https://github.com/goanpeca) ([12938](https://github.com/spyder-ide/spyder/issues/12938))
+* [PR 12893](https://github.com/spyder-ide/spyder/pull/12893) - PR: Add entry point plugin discovery and add plugin deps solver, by [@goanpeca](https://github.com/goanpeca)
+* [PR 12793](https://github.com/spyder-ide/spyder/pull/12793) - PR: Create a new Appearance plugin, by [@goanpeca](https://github.com/goanpeca) ([12798](https://github.com/spyder-ide/spyder/issues/12798))
+* [PR 12756](https://github.com/spyder-ide/spyder/pull/12756) - PR: Migrate Working Directory plugin to the new API, by [@goanpeca](https://github.com/goanpeca) ([12760](https://github.com/spyder-ide/spyder/issues/12760))
+* [PR 12726](https://github.com/spyder-ide/spyder/pull/12726) - PR: Move collections editor out of the Variable Explorer and into the widgets module, by [@goanpeca](https://github.com/goanpeca) ([12725](https://github.com/spyder-ide/spyder/issues/12725))
+* [PR 12669](https://github.com/spyder-ide/spyder/pull/12669) - PR: Update duplicates.yml, by [@goanpeca](https://github.com/goanpeca)
+* [PR 12527](https://github.com/spyder-ide/spyder/pull/12527) - PR: Change icon and text of 'Lock Interface Action' when clicked, by [@jnsebgosselin](https://github.com/jnsebgosselin) ([12488](https://github.com/spyder-ide/spyder/issues/12488))
+* [PR 12490](https://github.com/spyder-ide/spyder/pull/12490) - PR: Migrate History Plugin to new API, by [@goanpeca](https://github.com/goanpeca) ([12190](https://github.com/spyder-ide/spyder/issues/12190))
+* [PR 12438](https://github.com/spyder-ide/spyder/pull/12438) - PR: Migrate Console Plugin to the new API, by [@goanpeca](https://github.com/goanpeca) ([12727](https://github.com/spyder-ide/spyder/issues/12727))
+* [PR 12382](https://github.com/spyder-ide/spyder/pull/12382) - PR: Migrate Find in files plugin to new API, by [@goanpeca](https://github.com/goanpeca) ([12189](https://github.com/spyder-ide/spyder/issues/12189))
+* [PR 12377](https://github.com/spyder-ide/spyder/pull/12377) - PR: Migrate Profiler to new API, by [@goanpeca](https://github.com/goanpeca) ([12191](https://github.com/spyder-ide/spyder/issues/12191))
+* [PR 12338](https://github.com/spyder-ide/spyder/pull/12338) - PR: Migrate Help plugin to new API, by [@goanpeca](https://github.com/goanpeca) ([12186](https://github.com/spyder-ide/spyder/issues/12186))
+* [PR 12330](https://github.com/spyder-ide/spyder/pull/12330) - PR: Move Online help to new API , by [@goanpeca](https://github.com/goanpeca) ([12187](https://github.com/spyder-ide/spyder/issues/12187))
+* [PR 12324](https://github.com/spyder-ide/spyder/pull/12324) - PR: Move Breakpoints Plugin to new API, by [@goanpeca](https://github.com/goanpeca) ([12325](https://github.com/spyder-ide/spyder/issues/12325))
+* [PR 12196](https://github.com/spyder-ide/spyder/pull/12196) - PR: Move Plots to use new Plugin API, by [@goanpeca](https://github.com/goanpeca) ([12182](https://github.com/spyder-ide/spyder/issues/12182))
+* [PR 12131](https://github.com/spyder-ide/spyder/pull/12131) - PR: Update plots plugin to Python 3, by [@steff456](https://github.com/steff456) ([12130](https://github.com/spyder-ide/spyder/issues/12130))
+* [PR 12017](https://github.com/spyder-ide/spyder/pull/12017) - PR: Update spyder-kernels requirement for Spyder 5, by [@ccordoba12](https://github.com/ccordoba12) ([12002](https://github.com/spyder-ide/spyder/issues/12002))
+* [PR 11935](https://github.com/spyder-ide/spyder/pull/11935) - PR: Spelling correction, by [@michelwoo](https://github.com/michelwoo)
+* [PR 11840](https://github.com/spyder-ide/spyder/pull/11840) - PR: Update Find plugin to Python 3, by [@steff456](https://github.com/steff456) ([11839](https://github.com/spyder-ide/spyder/issues/11839))
+* [PR 11816](https://github.com/spyder-ide/spyder/pull/11816) - PR: Update Pylint plugin to Python 3, by [@steff456](https://github.com/steff456) ([11725](https://github.com/spyder-ide/spyder/issues/11725))
+* [PR 11815](https://github.com/spyder-ide/spyder/pull/11815) - PR: Update Breakpoints plugin to Python 3, by [@steff456](https://github.com/steff456) ([11616](https://github.com/spyder-ide/spyder/issues/11616))
+* [PR 11741](https://github.com/spyder-ide/spyder/pull/11741) - PR: Create new API for plugins and widgets, by [@goanpeca](https://github.com/goanpeca) ([12180](https://github.com/spyder-ide/spyder/issues/12180))
+* [PR 10963](https://github.com/spyder-ide/spyder/pull/10963) - PR: Remove Python 2 and 3.5 from our CIs, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 47 pull requests were closed.
+
+
+----
+
+
 ## Version 4.1.5 (2020-09-01)
 
 ### New features

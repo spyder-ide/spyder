@@ -6,10 +6,12 @@ applaunchservices >=0.1.7
 atomicwrites >=1.2.0
 chardet >=2.0.0
 cloudpickle >=0.5.0
+cookiecutter >=1.6.0
 diff-match-patch >=20181111
 intervaltree >=3.0.2
 IPython >=4.0
 jedi =0.17.2
+jsonschema >=3.2.0
 keyring >=17.0.0
 nbconvert >=4.0
 numpydoc >=0.6.0
@@ -21,6 +23,7 @@ psutil >=5.3
 pygments >=2.0
 pylint >=1.0
 pyls-black >=0.4.6
+pyls-spyder >=0.1.1
 pyqt <5.13
 # There's no need to set a version for python-language-server
 # because we install it from master for our tests.

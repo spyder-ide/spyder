@@ -16,14 +16,12 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
+from qtpy.QtGui import QIcon
 import pytest
+import mock
 
 # Local imports
-from spyder.plugins.profiler.widgets import profilergui
-
-
-# --- Helper methods
-# -----------------------------------------------------------------------------
+from spyder.plugins.profiler.widgets.main_widget import ProfilerDataTree
 
 
 # --- Fixtures
@@ -31,7 +29,9 @@ from spyder.plugins.profiler.widgets import profilergui
 @pytest.fixture
 def profiler_datatree_bot(qtbot):
     """Set up Profiler widget."""
-    tree = profilergui.ProfilerDataTree(None)
+    # Avoid qtawesome startup errors
+    ProfilerDataTree.create_icon = lambda x, y: QIcon()
+    tree = ProfilerDataTree(None)
     qtbot.addWidget(tree)
     tree.show()
     yield tree

@@ -21,6 +21,7 @@ Licensed under the terms of the MIT License
 # =============================================================================
 from __future__ import print_function
 from collections import OrderedDict
+from enum import Enum
 import errno
 import gc
 import logging
@@ -181,6 +182,8 @@ from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
+# TODO: Remove circular dependency between help and ipython console and remove
+# this import. Help plugin should take care of it
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
 from spyder.config.gui import is_dark_font_color
 
@@ -204,6 +207,11 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     MENU_SEPARATOR, set_menu_icons)
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
+from spyder.app.solver import find_external_plugins, solve_plugin_dependencies
+
+# Spyder API Imports
+from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
 
 #==============================================================================
 # Third-party library imports
@@ -270,6 +278,308 @@ class MainWindow(QMainWindow):
     sig_moved = Signal("QMoveEvent")         # Related to interactive tour
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
+    # --- Plugin handling methods
+    # ------------------------------------------------------------------------
+    def get_plugin(self, plugin_name):
+        """
+        Return a plugin instance by providing the plugin class.
+        """
+        for name, plugin in self._PLUGINS.items():
+            if plugin_name == name:
+                return plugin
+        else:
+            raise SpyderAPIError('Plugin "{}" not found!'.format(plugin_name))
+
+    def show_status_message(self, message, timeout):
+        """
+        Show a status message in Spyder Main Window.
+        """
+        status_bar = self.statusBar()
+        if status_bar.isVisible():
+            status_bar.showMessage(message, timeout)
+
+    def show_plugin_compatibility_message(self, message):
+        """
+        Show a compatibility message.
+        """
+        messageBox = QMessageBox(self)
+        messageBox.setWindowModality(Qt.NonModal)
+        messageBox.setAttribute(Qt.WA_DeleteOnClose)
+        messageBox.setWindowTitle(_('Compatibility Check'))
+        messageBox.setText(message)
+        messageBox.setStandardButtons(QMessageBox.Ok)
+        messageBox.show()
+
+    def add_plugin(self, plugin, external=False):
+        """
+        Add plugin to plugins dictionary.
+        """
+        self._PLUGINS[plugin.CONF_SECTION] = plugin
+        if external:
+            self._EXTERNAL_PLUGINS[plugin.CONF_SECTION] = plugin
+        else:
+            self._INTERNAL_PLUGINS[plugin.CONF_SECTION] = plugin
+
+    def register_plugin(self, plugin, external=False):
+        """
+        Register a plugin in Spyder Main Window.
+        """
+        self.set_splash(_("Loading {}...".format(plugin.get_name())))
+        logger.info("Loading {}...".format(plugin.NAME))
+
+        # Check plugin compatibility
+        is_compatible, message = plugin.check_compatibility()
+        plugin.is_compatible = is_compatible
+        plugin.get_description()
+
+        if not is_compatible:
+            self.show_compatibility_message(message)
+            return
+
+        # Signals
+        plugin.sig_exception_occurred.connect(self.handle_exception)
+        plugin.sig_free_memory_requested.connect(self.free_memory)
+        plugin.sig_quit_requested.connect(self.close)
+        plugin.sig_restart_requested.connect(self.restart)
+        plugin.sig_restart_requested.connect(self.restart)
+        plugin.sig_redirect_stdio_requested.connect(
+            self.redirect_internalshell_stdio)
+        plugin.sig_status_message_requested.connect(self.show_status_message)
+
+        if isinstance(plugin, SpyderDockablePlugin):
+            plugin.sig_focus_changed.connect(self.plugin_focus_changed)
+            plugin.sig_switch_to_plugin_requested.connect(
+                self.switch_to_plugin)
+            plugin.sig_update_ancestor_requested.connect(
+                lambda: plugin.set_ancestor(self))
+
+        # Register plugin
+        plugin._register()
+        plugin.register()
+
+        if isinstance(plugin, SpyderDockablePlugin):
+            # Add dockwidget
+            self.add_dockwidget(plugin)
+
+            # Update margins
+            margin = 0
+            if CONF.get('main', 'use_custom_margin'):
+                margin = CONF.get('main', 'custom_margin')
+            plugin.update_margins(margin)
+
+        self.add_plugin(plugin, external=external)
+
+        logger.info("Registering shortcuts for {}...".format(plugin.NAME))
+        for action_name, action in plugin.get_actions().items():
+            context = (getattr(action, 'shortcut_context', plugin.NAME)
+                       or plugin.NAME)
+
+            if getattr(action, 'register_shortcut', True):
+                if isinstance(action_name, Enum):
+                    action_name = action_name.value
+
+                self.register_shortcut(action, context, action_name)
+
+        if isinstance(plugin, SpyderDockablePlugin):
+            try:
+                context = '_'
+                name = 'switch to {}'.format(plugin.CONF_SECTION)
+                shortcut = CONF.get_shortcut(context, name,
+                                             plugin_name=plugin.CONF_SECTION)
+            except (cp.NoSectionError, cp.NoOptionError):
+                shortcut = None
+
+            sc = QShortcut(QKeySequence(), self,
+                           lambda: self.switch_to_plugin(plugin))
+            sc.setContext(Qt.ApplicationShortcut)
+            plugin._shortcut = sc
+
+            self.register_shortcut(sc, context, name)
+            self.register_shortcut(plugin.toggle_view_action, context, name)
+
+        toolbars = plugin.get_registered_application_toolbars()
+        for __, toolbar in toolbars.items():
+            # TODO: To update this render call
+            toolbar._render()
+            self.toolbarslist.append(toolbar)
+
+    def unregister_plugin(self, plugin):
+        """
+        Unregister a plugin from the Spyder Main Window.
+        """
+        logger.info("Unloading {}...".format(plugin.NAME))
+
+        # Disconnect all slots
+        signals = [
+            plugin.sig_quit_requested,
+            plugin.sig_redirect_stdio,
+            plugin.sig_status_message_requested,
+        ]
+        for signal in signals:
+            try:
+                signal.disconnect()
+            except TypeError:
+                pass
+
+        # Unregister shortcuts for actions
+        logger.info("Unregistering shortcuts for {}...".format(plugin.NAME))
+        for action_name, action in plugin.get_actions().items():
+            context = (getattr(action, 'shortcut_context', plugin.NAME)
+                       or plugin.NAME)
+            self.unregister_shortcut(action, context, action_name)
+
+        # Unregister switch to shortcut
+        try:
+            context = '_'
+            name = 'switch to {}'.format(plugin.CONF_SECTION)
+            shortcut = CONF.get_shortcut(context, name,
+                                         plugin_name=plugin.CONF_SECTION)
+        except Exception:
+            pass
+
+        if shortcut is not None:
+            self.unregister_shortcut(
+                plugin._shortcut,
+                context,
+                "Switch to {}".format(plugin.CONF_SECTION),
+            )
+
+        # Remove dockwidget
+        logger.info("Removing {} dockwidget...".format(plugin.NAME))
+        self.remove_dockwidget(plugin)
+
+        plugin.unregister()
+        plugin._unregister()
+
+    def create_plugin_conf_widget(self, plugin):
+        """
+        Create configuration dialog box page widget.
+        """
+        config_dialog = self.prefs_dialog_instance
+        if plugin.CONF_WIDGET_CLASS is not None and config_dialog is not None:
+            conf_widget = plugin.CONF_WIDGET_CLASS(plugin, config_dialog)
+            conf_widget.initialize()
+            return conf_widget
+
+    def switch_to_plugin(self, plugin, force_focus=None):
+        """
+        Switch to this plugin.
+
+        Notes
+        -----
+        This operation unmaximizes the current plugin (if any), raises
+        this plugin to view (if it's hidden) and gives it focus (if
+        possible).
+        """
+        try:
+            # New API
+            if (self.last_plugin is not None
+                    and self.last_plugin.get_widget().is_maximized
+                    and self.last_plugin is not plugin):
+                self.maximize_dockwidget()
+        except AttributeError:
+            # Old API
+            if (self.last_plugin is not None and self.last_plugin._ismaximized
+                    and self.last_plugin is not plugin):
+                self.maximize_dockwidget()
+
+        try:
+            # New API
+            if not plugin.toggle_view_action.isChecked():
+                plugin.toggle_view_action.setChecked(True)
+                plugin.get_widget().is_visible = False
+        except AttributeError:
+            # Old API
+            if not plugin._toggle_view_action.isChecked():
+                plugin._toggle_view_action.setChecked(True)
+                plugin._widget._is_visible = False
+
+        plugin.change_visibility(True, force_focus=force_focus)
+
+    def remove_dockwidget(self, plugin):
+        """
+        Remove a plugin QDockWidget from the main window.
+        """
+        self.removeDockWidget(plugin.dockwidget)
+        self.widgetlist.remove(plugin)
+
+    def tabify_plugin(self, plugin):
+        """
+        Tabify the plugin using the list of possible TABIFY options.
+
+        Only do this if the dockwidget does not have more dockwidgets
+        in the same position and if the plugin is using the New API.
+        """
+        def tabify_helper(plugin, next_to_plugins):
+            for next_to_plugin in next_to_plugins:
+                try:
+                    self.tabify_plugins(next_to_plugin, plugin)
+                    break
+                except SpyderAPIError as err:
+                    logger.error(err)
+
+        # If TABIFY not defined use the [Console]
+        tabify = getattr(plugin, 'TABIFY', [self.get_plugin(Plugins.Console)])
+        if not isinstance(tabify, list):
+            next_to_plugins = [tabify]
+        else:
+            next_to_plugins = tabify
+
+        # Get the actual plugins from the names
+        next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
+
+        # First time plugin starts
+        if plugin.get_conf_option('first_time', True):
+            if (isinstance(plugin, SpyderDockablePlugin)
+                    and plugin.NAME != Plugins.Console):
+                logger.info(
+                    "Tabify {} dockwidget for the first time...".format(
+                        plugin.NAME))
+                tabify_helper(plugin, next_to_plugins)
+
+            plugin.set_conf_option('enable', True)
+            plugin.set_conf_option('first_time', False)
+        else:
+            # This is needed to ensure new plugins are placed correctly
+            # without the need for a layout reset.
+            logger.info("Tabify {} dockwidget...".format(plugin.NAME))
+            # Check if plugin has no other dockwidgets in the same position
+            if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
+                tabify_helper(plugin, next_to_plugins)
+
+    def handle_exception(self, error_data):
+        """
+        This method will call the handle exception method of the Console
+        plugin. It is provided as a signal on the Plugin API for convenience,
+        so that plugin do not need to explicitely call the Console plugin.
+
+        Parameters
+        ----------
+        error_data: dict
+            The dictionary containing error data. The expected keys are:
+            >>> error_data= {
+                "text": str,
+                "is_traceback": bool,
+                "repo": str,
+                "title": str,
+                "label": str,
+                "steps": str,
+            }
+
+        Notes
+        -----
+        The `is_traceback` key indicates if `text` contains plain text or a
+        Python error traceback.
+
+        The `title` and `repo` keys indicate how the error data should
+        customize the report dialog and Github error submission.
+
+        The `label` and `steps` keys allow customizing the content of the
+        error dialog.
+        """
+        if self.console:
+            self.console.handle_exception(error_data)
+
     def __init__(self, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
@@ -291,7 +601,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        if options.project is not None:
+        if options.project is not None and not running_in_mac_app():
             self.open_project = osp.normpath(osp.join(CWD, options.project))
         else:
             self.open_project = None
@@ -335,6 +645,13 @@ class MainWindow(QMainWindow):
         self.not_active_path = ()
         self.project_path = ()
 
+        # New API
+        self._APPLICATION_TOOLBARS = OrderedDict()
+        self._STATUS_WIDGETS = OrderedDict()
+        self._PLUGINS = OrderedDict()
+        self._EXTERNAL_PLUGINS = OrderedDict()
+        self._INTERNAL_PLUGINS = OrderedDict()
+
         # Plugins
         self.console = None
         self.workingdirectory = None
@@ -367,17 +684,13 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.preferences.appearance import AppearanceConfigPage
         from spyder.preferences.general import MainConfigPage
-        from spyder.preferences.shortcuts import ShortcutsConfigPage
-        from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        self.general_prefs = [MainConfigPage, AppearanceConfigPage,
-                              ShortcutsConfigPage, MainInterpreterConfigPage,
-                              RunConfigPage]
+        self.general_prefs = [MainConfigPage, MainInterpreterConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
+        self._report_dlg = None
 
         # Quick Layouts and Dialogs
         from spyder.preferences.layoutdialog import (LayoutSaveDialog,
@@ -557,9 +870,100 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(toolbar)
         return toolbar
 
+    def _update_shortcuts_in_panes_menu(self, show=True):
+        """
+        Display the shortcut for the "Switch to plugin..." on the toggle view
+        action of the plugins displayed in the Help/Panes menu.
+
+        Notes
+        -----
+        SpyderDockablePlugins provide two actions that function as a single
+        action. The `Switch to Plugin...` action has an assignable shortcut
+        via the shortcut preferences. The `Plugin toggle View` in the `View`
+        application menu, uses a custom `Toggle view action` that displays the
+        shortcut assigned to the `Switch to Plugin...` action, but is not
+        triggered by that shortcut.
+        """
+        for plugin_id, plugin in self._PLUGINS.items():
+            if isinstance(plugin, SpyderDockablePlugin):
+                try:
+                    # New API
+                    action = plugin.toggle_view_action
+                except AttributeError:
+                    # Old API
+                    action = plugin._toggle_view_action
+
+                if show:
+                    section = plugin.CONF_SECTION
+                    try:
+                        context = '_'
+                        name = 'switch to {}'.format(section)
+                        shortcut = CONF.get_shortcut(
+                            context, name, plugin_name=section)
+                    except (cp.NoSectionError, cp.NoOptionError):
+                        shortcut = QKeySequence()
+                else:
+                    shortcut = QKeySequence()
+
+                action.setShortcut(shortcut)
+
     def setup(self):
         """Setup main window"""
         logger.info("*** Start of MainWindow setup ***")
+
+        logger.info("Creating toolbars...")
+        # File menu/toolbar
+        self.file_menu = self.menuBar().addMenu(_("&File"))
+        self.file_toolbar = self.create_toolbar(_("File toolbar"),
+                                                "file_toolbar")
+        # Edit menu/toolbar
+        self.edit_menu = self.menuBar().addMenu(_("&Edit"))
+        self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
+                                                "edit_toolbar")
+        # Search menu/toolbar
+        self.search_menu = self.menuBar().addMenu(_("&Search"))
+        self.search_toolbar = self.create_toolbar(_("Search toolbar"),
+                                                  "search_toolbar")
+        # Source menu/toolbar
+        self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
+        self.source_toolbar = self.create_toolbar(_("Source toolbar"),
+                                                  "source_toolbar")
+        # Run menu/toolbar
+        self.run_menu = self.menuBar().addMenu(_("&Run"))
+        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
+                                               "run_toolbar")
+
+        # Debug menu/toolbar
+        self.debug_menu = self.menuBar().addMenu(_("&Debug"))
+        self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
+                                                 "debug_toolbar")
+
+        # Consoles menu/toolbar
+        self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
+        self.consoles_menu.aboutToShow.connect(
+                self.update_execution_state_kernel)
+
+        # Projects menu
+        self.projects_menu = self.menuBar().addMenu(_("&Projects"))
+        self.projects_menu.aboutToShow.connect(self.valid_project)
+
+        # Tools menu
+        self.tools_menu = self.menuBar().addMenu(_("&Tools"))
+
+        # View menu
+        self.view_menu = self.menuBar().addMenu(_("&View"))
+        self.view_menu.aboutToShow.connect(
+            lambda: self._update_shortcuts_in_panes_menu(True))
+        self.view_menu.aboutToHide.connect(
+            lambda: self._update_shortcuts_in_panes_menu(False))
+
+        # Help menu
+        self.help_menu = self.menuBar().addMenu(_("&Help"))
+
+        # Status bar
+        status = self.statusBar()
+        status.setObjectName("StatusBar")
+        status.showMessage(_("Welcome to Spyder!"), 5000)
 
         logger.info("Updating PYTHONPATH")
         path_dict = self.get_spyder_pythonpath_dict()
@@ -593,6 +997,11 @@ class MainWindow(QMainWindow):
         else:
             css_path = CSS_PATH
 
+        # Shortcuts plugin
+        from spyder.plugins.shortcuts.plugin import Shortcuts
+        self.shortcuts = Shortcuts(self, configuration=CONF)
+        self.register_plugin(self.shortcuts)
+
         logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(
             self, icon=ima.icon('close_pane'),
@@ -604,8 +1013,11 @@ class MainWindow(QMainWindow):
                                "Close pane")
         self.lock_interface_action = create_action(
             self,
-            _("Lock panes and toolbars"),
-            toggled=self.toggle_lock,
+            (_("Unlock panes and toolbars") if self.interface_locked else
+             _("Lock panes and toolbars")),
+            icon=ima.icon('lock' if self.interface_locked else 'lock_open'),
+            triggered=lambda checked:
+                self.toggle_lock(not self.interface_locked),
             context=Qt.ApplicationShortcut)
         self.register_shortcut(self.lock_interface_action, "_",
                                "Lock unlock panes")
@@ -672,57 +1084,7 @@ class MainWindow(QMainWindow):
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
 
-        logger.info("Creating toolbars...")
-        # File menu/toolbar
-        self.file_menu = self.menuBar().addMenu(_("&File"))
-        self.file_toolbar = self.create_toolbar(_("File toolbar"),
-                                                "file_toolbar")
-        # Edit menu/toolbar
-        self.edit_menu = self.menuBar().addMenu(_("&Edit"))
-        self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
-                                                "edit_toolbar")
-        # Search menu/toolbar
-        self.search_menu = self.menuBar().addMenu(_("&Search"))
-        self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-                                                   "search_toolbar")
-        # Source menu/toolbar
-        self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
-        self.source_toolbar = self.create_toolbar(_("Source toolbar"),
-                                                    "source_toolbar")
         self.source_menu.aboutToShow.connect(self.update_source_menu)
-
-        # Run menu/toolbar
-        self.run_menu = self.menuBar().addMenu(_("&Run"))
-        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
-                                                "run_toolbar")
-
-        # Debug menu/toolbar
-        self.debug_menu = self.menuBar().addMenu(_("&Debug"))
-        self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
-                                                    "debug_toolbar")
-
-        # Consoles menu/toolbar
-        self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
-        self.consoles_menu.aboutToShow.connect(
-                self.update_execution_state_kernel)
-
-        # Projects menu
-        self.projects_menu = self.menuBar().addMenu(_("&Projects"))
-        self.projects_menu.aboutToShow.connect(self.valid_project)
-
-        # Tools menu
-        self.tools_menu = self.menuBar().addMenu(_("&Tools"))
-
-        # View menu
-        self.view_menu = self.menuBar().addMenu(_("&View"))
-
-        # Help menu
-        self.help_menu = self.menuBar().addMenu(_("&Help"))
-
-        # Status bar
-        status = self.statusBar()
-        status.setObjectName("StatusBar")
-        status.showMessage(_("Welcome to Spyder!"), 5000)
 
         logger.info("Creating Tools menu...")
         # Tools + External Tools
@@ -868,38 +1230,43 @@ class MainWindow(QMainWindow):
         self.create_switcher()
 
         # Internal console plugin
-        logger.info("Loading internal console...")
+        message = _(
+            "Spyder Internal Console\n\n"
+            "This console is used to report application\n"
+            "internal errors and to inspect Spyder\n"
+            "internals with the following commands:\n"
+            "  spy.app, spy.window, dir(spy)\n\n"
+            "Please don't use it to run your code\n\n"
+        )
+        CONF.set('internal_console', 'message', message)
+        CONF.set('internal_console', 'multithreaded', self.multithreaded)
+        CONF.set('internal_console', 'profile', self.profile)
+        CONF.set('internal_console', 'commands', [])
+        CONF.set('internal_console', 'namespace', {})
+        CONF.set('internal_console', 'show_internal_errors', True)
+
         from spyder.plugins.console.plugin import Console
-        self.console = Console(self, namespace=None, exitfunc=self.closing,
-                            profile=self.profile,
-                            multithreaded=self.multithreaded,
-                            message=_("Spyder Internal Console\n\n"
-                                    "This console is used to report application\n"
-                                    "internal errors and to inspect Spyder\n"
-                                    "internals with the following commands:\n"
-                                    "  spy.app, spy.window, dir(spy)\n\n"
-                                    "Please don't use it to run your code\n\n"))
-        self.console.register_plugin()
+        self.console = Console(self, configuration=CONF)
+        self.console.set_exit_function(self.closing)
+        self.register_plugin(self.console)
+
+        # TODO: Load and register the rest of the plugins using new API
+
+        # Run plugin
+        from spyder.plugins.run.plugin import Run
+        self.run = Run(self, configuration=CONF)
+        self.register_plugin(self.run)
+
+        # Appearance plugin
+        from spyder.plugins.appearance.plugin import Appearance
+        self.appearance = Appearance(self, configuration=CONF)
+        self.register_plugin(self.appearance)
 
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
-        from spyder.plugins.completion.plugin import CompletionManager
+        from spyder.plugins.completion.manager.plugin import CompletionManager
         self.completions = CompletionManager(self)
         self.completions.start()
-
-        # Working directory plugin
-        logger.info("Loading working directory...")
-        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-        self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
-        self.workingdirectory.register_plugin()
-        self.toolbarslist.append(self.workingdirectory.toolbar)
-
-        # Help plugin
-        if CONF.get('help', 'enable'):
-            self.set_splash(_("Loading help..."))
-            from spyder.plugins.help.plugin import Help
-            self.help = Help(self, css_path=css_path)
-            self.help.register_plugin()
 
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
@@ -907,6 +1274,7 @@ class MainWindow(QMainWindow):
             from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
+            self.add_plugin(self.outlineexplorer)
 
         from spyder.widgets.status import InterpreterStatus
         self.interpreter_status = InterpreterStatus(
@@ -921,6 +1289,7 @@ class MainWindow(QMainWindow):
         from spyder.plugins.editor.plugin import Editor
         self.editor = Editor(self)
         self.editor.register_plugin()
+        self.add_plugin(self.editor)
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -953,25 +1322,35 @@ class MainWindow(QMainWindow):
         from spyder.plugins.variableexplorer.plugin import VariableExplorer
         self.variableexplorer = VariableExplorer(self)
         self.variableexplorer.register_plugin()
-
-        # Figure browser
-        self.set_splash(_("Loading figure browser..."))
-        from spyder.plugins.plots.plugin import Plots
-        self.plots = Plots(self)
-        self.plots.register_plugin()
-
-        # History log widget
-        if CONF.get('historylog', 'enable'):
-            self.set_splash(_("Loading history plugin..."))
-            from spyder.plugins.history.plugin import HistoryLog
-            self.historylog = HistoryLog(self)
-            self.historylog.register_plugin()
+        self.add_plugin(self.variableexplorer)
 
         # IPython console
         self.set_splash(_("Loading IPython console..."))
         from spyder.plugins.ipythonconsole.plugin import IPythonConsole
         self.ipyconsole = IPythonConsole(self, css_path=css_path)
         self.ipyconsole.register_plugin()
+        self.add_plugin(self.ipyconsole)
+
+        # Help plugin
+        # TODO: There is a circular dependency between help and ipython since
+        # ipython console uses css_path.
+        if CONF.get('help', 'enable'):
+            CONF.set('help', 'css_path', css_path)
+            from spyder.plugins.help.plugin import Help
+            self.help = Help(self, configuration=CONF)
+            self.register_plugin(self.help)
+
+        # History log widget
+        if CONF.get('historylog', 'enable'):
+            from spyder.plugins.history.plugin import HistoryLog
+            self.historylog = HistoryLog(self, configuration=CONF)
+            self.register_plugin(self.historylog)
+
+        # Figure browser
+        self.set_splash(_("Loading figure browser..."))
+        from spyder.plugins.plots.plugin import Plots
+        self.plots = Plots(self, configuration=CONF)
+        self.register_plugin(self.plots)
 
         # Explorer
         if CONF.get('explorer', 'enable'):
@@ -979,13 +1358,13 @@ class MainWindow(QMainWindow):
             from spyder.plugins.explorer.plugin import Explorer
             self.explorer = Explorer(self)
             self.explorer.register_plugin()
+            self.add_plugin(self.explorer)
 
         # Online help widget
         if CONF.get('onlinehelp', 'enable'):
-            self.set_splash(_("Loading online help..."))
             from spyder.plugins.onlinehelp.plugin import OnlineHelp
-            self.onlinehelp = OnlineHelp(self)
-            self.onlinehelp.register_plugin()
+            self.onlinehelp = OnlineHelp(self, configuration=CONF)
+            self.register_plugin(self.onlinehelp)
 
         # Project explorer widget
         self.set_splash(_("Loading project explorer..."))
@@ -993,17 +1372,40 @@ class MainWindow(QMainWindow):
         self.projects = Projects(self)
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
+        self.add_plugin(self.projects)
+
+        # Working directory plugin
+        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
+        CONF.set('workingdir', 'init_workdir', self.init_workdir)
+        self.workingdirectory = WorkingDirectory(self, configuration=CONF)
+        self.register_plugin(self.workingdirectory)
 
         # Find in files
         if CONF.get('find_in_files', 'enable'):
             from spyder.plugins.findinfiles.plugin import FindInFiles
-            self.findinfiles = FindInFiles(self)
-            self.findinfiles.register_plugin()
+            self.findinfiles = FindInFiles(self, configuration=CONF)
+            self.register_plugin(self.findinfiles)
 
         # Load other plugins (former external plugins)
         # TODO: Use this bucle to load all internall plugins and remove
         # duplicated code
-        other_plugins = ['breakpoints', 'profiler', 'pylint']
+
+        # Breakpoints
+        if CONF.get('breakpoints', 'enable'):
+            from spyder.plugins.breakpoints.plugin import Breakpoints
+            self.breakpoints = Breakpoints(self, configuration=CONF)
+            self.register_plugin(self.breakpoints)
+            self.thirdparty_plugins.append(self.breakpoints)
+
+        # Profiler plugin
+        if CONF.get('profiler', 'enable'):
+            from spyder.plugins.profiler.plugin import Profiler
+            self.profiler = Profiler(self, configuration=CONF)
+            self.register_plugin(self.profiler)
+            self.thirdparty_plugins.append(self.profiler)
+
+        other_plugins = ['pylint']
+
         for plugin_name in other_plugins:
             if CONF.get(plugin_name, 'enable'):
                 module = importlib.import_module(
@@ -1012,6 +1414,7 @@ class MainWindow(QMainWindow):
                 if plugin.check_compatibility()[0]:
                     self.thirdparty_plugins.append(plugin)
                     plugin.register_plugin()
+                    self.add_plugin(plugin)
 
         # Third-party plugins
         from spyder import dependencies
@@ -1043,6 +1446,29 @@ class MainWindow(QMainWindow):
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
+
+        # New API: Load and register external plugins
+        external_plugins = find_external_plugins()
+        plugin_deps = solve_plugin_dependencies(external_plugins.values())
+        for plugin_class in plugin_deps:
+            if issubclass(plugin_class, SpyderPluginV2):
+                try:
+                    plugin_instance = plugin_class(
+                        self,
+                        configuration=CONF,
+                    )
+                    self.register_plugin(plugin_instance, external=True)
+
+                    # These attributes come from spyder.app.solver
+                    module = plugin_class._spyder_module_name
+                    package_name = plugin_class._spyder_package_name
+                    version = plugin_class._spyder_version
+                    description = plugin_instance.get_description()
+                    dependencies.add(module, package_name, description,
+                                     version, None, kind=dependencies.PLUGIN)
+                except Exception as error:
+                    print("%s: %s" % (plugin_class, str(error)), file=STDERR)
+                    traceback.print_exc(file=STDERR)
 
         self.set_splash(_("Setting up main window..."))
 
@@ -1079,10 +1505,6 @@ class MainWindow(QMainWindow):
                                    triggered=lambda:
                                    programs.start_file(spyder_vid))
 
-        shortcuts_action = create_action(self, _("Shortcuts Summary"),
-                                         shortcut="Meta+F1",
-                                         triggered=self.show_shortcuts_dialog)
-
         #----- Tours
         self.tour = tour.AnimatedTour(self)
         # self.tours_menu = QMenu(_("Interactive tours"), self)
@@ -1108,12 +1530,18 @@ class MainWindow(QMainWindow):
             tip=_("Interactive tour introducing Spyder's panes and features"),
             triggered=lambda: self.show_tour(DEFAULT_TOUR))
 
-        self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
-                                  self.tour_action,
-                                  MENU_SEPARATOR, trouble_action,
-                                  report_action, dep_action,
-                                  self.check_updates_action, support_action,
-                                  MENU_SEPARATOR]
+        self.help_menu_actions = [
+            doc_action,
+            vid_action,
+            # shortcuts_action,
+            self.tour_action,
+            MENU_SEPARATOR,
+            trouble_action,
+            report_action, dep_action,
+            self.check_updates_action,
+            support_action,
+            MENU_SEPARATOR,
+        ]
         # Python documentation
         if get_python_doc_path() is not None:
             pydoc_act = create_action(self, _("Python documentation"),
@@ -1255,9 +1683,6 @@ class MainWindow(QMainWindow):
         add_actions(self.debug_toolbar, self.debug_toolbar_actions)
         add_actions(self.run_toolbar, self.run_toolbar_actions)
 
-        # Apply all defined shortcuts (plugins + 3rd-party plugins)
-        self.apply_shortcuts()
-
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
         self.all_actions_defined.emit()
@@ -1277,6 +1702,11 @@ class MainWindow(QMainWindow):
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
+
+        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
+            if isinstance(plugin, SpyderDockablePlugin):
+                self.tabify_plugin(plugin_instance)
+                plugin_instance.toggle_view(False)
 
     def setup_menus(self):
         """Setup menus."""
@@ -1314,6 +1744,12 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
+        for plugin_id, plugin in self._PLUGINS.items():
+            try:
+                plugin.on_mainwindow_visible()
+            except AttributeError:
+                pass
+
         self.restore_scrollbar_position.emit()
 
         logger.info('Deleting previous Spyder instance LSP logs...')
@@ -1348,12 +1784,12 @@ class MainWindow(QMainWindow):
         self.load_last_visible_toolbars()
 
         # Update lock status
-        self.lock_interface_action.setChecked(self.interface_locked)
+        self.toggle_lock(self.interface_locked)
 
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
         if self.console.dockwidget.isVisible() and DEV is None:
-            self.console._toggle_view_action.setChecked(False)
+            self.console.toggle_view_action.setChecked(False)
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
@@ -1374,7 +1810,8 @@ class MainWindow(QMainWindow):
         if self.splash is not None:
             self.splash.hide()
 
-        if self.open_project:
+        if (self.open_project and
+                (running_in_mac_app() and not self.first_spyder_run)):
             self.projects.open_project(self.open_project)
         else:
             # Load last project if a project was active when Spyder
@@ -1715,11 +2152,15 @@ class MainWindow(QMainWindow):
 
             # Regenerate menu
             self.quick_layout_set_menu()
+
         self.set_window_settings(*settings)
 
+        # Old API
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             try:
                 plugin._initialize_plugin_in_mainwindow_layout()
+            except AttributeError:
+                pass
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
@@ -1905,12 +2346,6 @@ class MainWindow(QMainWindow):
             for row in column:
                 for widget in row:
                     widgets.append(widget)
-
-        # Make every widget visible
-        for widget in widgets:
-            widget.toggle_view(True)
-            if widget._toggle_view_action:
-                widget._toggle_view_action.setChecked(True)
 
         # We use both directions to ensure proper update when moving from
         # 'Horizontal Split' to 'Spyder Default'
@@ -2174,8 +2609,24 @@ class MainWindow(QMainWindow):
 
         # make sure the flags are correctly set for visible panes
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            action = plugin._toggle_view_action
+            try:
+                action = plugin._toggle_view_action
+            except AttributeError:
+                # New API
+                action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
+
+    # TODO: To be removed after all actions are moved to their corresponding
+    # plugins
+    def register_shortcut(self, qaction_or_qshortcut, context, name,
+                          add_shortcut_to_tip=True, plugin_name=None):
+        self.shortcuts.register_shortcut(
+            qaction_or_qshortcut,
+            context,
+            name,
+            add_shortcut_to_tip=add_shortcut_to_tip,
+            plugin_name=plugin_name,
+        )
 
     # --- Show/Hide toolbars
     def _update_show_toolbars_action(self):
@@ -2315,7 +2766,12 @@ class MainWindow(QMainWindow):
                 editorstack = self.editor.get_current_editorstack()
                 editorstack.menu.hide()
             else:
-                plugin._options_menu.hide()
+                try:
+                    # New API
+                    plugin.options_menu.hide()
+                except AttributeError:
+                    # Old API
+                    plugin._options_menu.hide()
 
     def get_focus_widget_properties(self):
         """Get properties of focus widget
@@ -2405,22 +2861,34 @@ class MainWindow(QMainWindow):
                  'project_explorer', 'find_in_files', None, 'historylog',
                  'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
+
         for plugin in self.widgetlist:
-            action = plugin._toggle_view_action
-            action.setChecked(plugin.dockwidget.isVisible())
+            try:
+                # New API
+                action = plugin.toggle_view_action
+            except AttributeError:
+                # Old API
+                action = plugin._toggle_view_action
+
+            if action:
+                action.setChecked(plugin.dockwidget.isVisible())
+
             try:
                 name = plugin.CONF_SECTION
                 pos = order.index(name)
             except ValueError:
                 pos = None
+
             if pos is not None:
                 order[pos] = action
             else:
                 order.append(action)
+
         actions = order[:]
         for action in order:
             if type(action) is str:
                 actions.remove(action)
+
         self.plugins_menu_actions = actions
         add_actions(self.plugins_menu, actions)
 
@@ -2490,8 +2958,17 @@ class MainWindow(QMainWindow):
         """Reimplement Qt method"""
         try:
             for plugin in (self.widgetlist + self.thirdparty_plugins):
-                if plugin.isAncestorOf(self.last_focused_widget):
-                    plugin._visibility_changed(True)
+                # TODO: Remove old API
+                try:
+                    # New API
+                    if plugin.get_widget().isAncestorOf(
+                            self.last_focused_widget):
+                        plugin.change_visibility(True)
+                except AttributeError:
+                    # Old API
+                    if plugin.isAncestorOf(self.last_focused_widget):
+                        plugin._visibility_changed(True)
+
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
@@ -2524,10 +3001,35 @@ class MainWindow(QMainWindow):
         if not self.completions.closing_plugin(cancelable):
             return False
 
+        # Internal plugins
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            plugin._close_window()
-            if not plugin.closing_plugin(cancelable):
-                return False
+            # New API
+            try:
+                if isinstance(plugin, SpyderDockablePlugin):
+                    plugin.close_window()
+                if not plugin.on_close(cancelable):
+                    return False
+            except AttributeError:
+                pass
+
+            # Old API
+            try:
+                plugin._close_window()
+                if not plugin.closing_plugin(cancelable):
+                    return False
+            except AttributeError:
+                pass
+
+        # New API: External plugins
+        for plugin_name, plugin in self._EXTERNAL_PLUGINS.items():
+            try:
+                if isinstance(plugin, SpyderDockablePlugin):
+                    plugin.close_window()
+
+                if not plugin.on_close(cancelable):
+                    return False
+            except AttributeError as e:
+                logger.error(str(e))
 
         # Save window settings *after* closing all plugin windows, in order
         # to show them in their previous locations in the next session.
@@ -2546,24 +3048,47 @@ class MainWindow(QMainWindow):
         return True
 
     def add_dockwidget(self, plugin):
-        """Add a plugin QDockWidget to the window."""
-        if plugin._is_compatible:
-            dockwidget, location = plugin._create_dockwidget()
-            self.addDockWidget(location, dockwidget)
-            self.widgetlist.append(plugin)
+        """
+        Add a plugin QDockWidget to the main window.
+        """
+        try:
+            # New API
+            if plugin.is_compatible:
+                dockwidget, location = plugin.create_dockwidget(self)
+                self.addDockWidget(location, dockwidget)
+                self.widgetlist.append(plugin)
+        except AttributeError:
+            # Old API
+            if plugin._is_compatible:
+                dockwidget, location = plugin._create_dockwidget()
+                self.addDockWidget(location, dockwidget)
+                self.widgetlist.append(plugin)
 
     @Slot()
     def close_current_dockwidget(self):
         widget = QApplication.focusWidget()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            if plugin.isAncestorOf(widget):
-                plugin._toggle_view_action.setChecked(False)
+            # TODO: remove old API
+            try:
+                # New API
+                if plugin.get_widget().isAncestorOf(widget):
+                    plugin._toggle_view_action.setChecked(False)
+                break
+            except AttributeError:
+                # Old API
+                if plugin.isAncestorOf(widget):
+                    plugin._toggle_view_action.setChecked(False)
                 break
 
     def toggle_lock(self, value):
         """Lock/Unlock dockwidgets and toolbars"""
         self.interface_locked = value
         CONF.set('main', 'panes_locked', value)
+        self.lock_interface_action.setIcon(
+            ima.icon('lock' if self.interface_locked else 'lock_open'))
+        self.lock_interface_action.setText(
+            _("Unlock panes and toolbars") if self.interface_locked else
+            _("Lock panes and toolbars"))
 
         # Apply lock to panes
         for plugin in (self.widgetlist + self.thirdparty_plugins):
@@ -2608,10 +3133,18 @@ class MainWindow(QMainWindow):
             # Select plugin to maximize
             self.state_before_maximizing = self.saveState()
             focus_widget = QApplication.focusWidget()
+
             for plugin in (self.widgetlist + self.thirdparty_plugins):
                 plugin.dockwidget.hide()
-                if plugin.isAncestorOf(focus_widget):
-                    self.last_plugin = plugin
+
+                try:
+                    # New API
+                    if plugin.get_widget().isAncestorOf(focus_widget):
+                        self.last_plugin = plugin
+                except Exception:
+                    # Old API
+                    if plugin.isAncestorOf(focus_widget):
+                        self.last_plugin = plugin
 
             # Only plugins that have a dockwidget are part of widgetlist,
             # so last_plugin can be None after the above "for" cycle.
@@ -2624,14 +3157,27 @@ class MainWindow(QMainWindow):
 
             # Maximize last_plugin
             self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
-            self.setCentralWidget(self.last_plugin)
+            try:
+                # New API
+                self.setCentralWidget(self.last_plugin.get_widget())
+            except AttributeError:
+                # Old API
+                self.setCentralWidget(self.last_plugin)
+
             self.last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline explorer
             #  and the latter won't be refreshed if not visible)
-            self.last_plugin.show()
-            self.last_plugin._visibility_changed(True)
+            try:
+                # New API
+                self.last_plugin.get_widget().show()
+                self.last_plugin.change_visibility(True)
+            except AttributeError:
+                # Old API
+                self.last_plugin.show()
+                self.last_plugin._visibility_changed(True)
+
             if self.last_plugin is self.editor:
                 # Automatically show the outline if the editor was maximized:
                 self.addDockWidget(Qt.RightDockWidgetArea,
@@ -2639,13 +3185,33 @@ class MainWindow(QMainWindow):
                 self.outlineexplorer.dockwidget.show()
         else:
             # Restore original layout (before maximizing current dockwidget)
-            self.last_plugin.dockwidget.setWidget(self.last_plugin)
+            try:
+                # New API
+                self.last_plugin.dockwidget.setWidget(
+                    self.last_plugin.get_widget())
+            except AttributeError:
+                # Old API
+                self.last_plugin.dockwidget.setWidget(self.last_plugin)
+
             self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.setCentralWidget(None)
-            self.last_plugin._ismaximized = False
+
+            try:
+                # New API
+                self.last_plugin.get_widget().is_maximized = False
+            except AttributeError:
+                # Old API
+                self.last_plugin._ismaximized = False
+
             self.restoreState(self.state_before_maximizing)
             self.state_before_maximizing = None
-            self.last_plugin.get_focus_widget().setFocus()
+            try:
+                # New API
+                self.last_plugin.get_widget().get_focus_widget().setFocus()
+            except AttributeError:
+                # Old API
+                self.last_plugin.get_focus_widget().setFocus()
+
         self.__update_maximize_action()
 
     def __update_fullscreen_action(self):
@@ -2715,85 +3281,13 @@ class MainWindow(QMainWindow):
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.show()
 
-    def render_issue(self, description='', traceback=''):
-        """Render issue before sending it to Github"""
-        # Get component versions
-        versions = get_versions()
-
-        # Get git revision for development version
-        revision = ''
-        if versions['revision']:
-            revision = versions['revision']
-
-        # Make a description header in case no description is supplied
-        if not description:
-            description = "### What steps reproduce the problem?"
-
-        # Make error section from traceback and add appropriate reminder header
-        if traceback:
-            error_section = ("### Traceback\n"
-                             "```python-traceback\n"
-                             "{}\n"
-                             "```".format(traceback))
-        else:
-            error_section = ''
-        issue_template = """\
-## Description
-
-{description}
-
-{error_section}
-
-## Versions
-
-* Spyder version: {spyder_version} {commit}
-* Python version: {python_version}
-* Qt version: {qt_version}
-* {qt_api_name} version: {qt_api_version}
-* Operating System: {os_name} {os_version}
-
-### Dependencies
-
-```
-{dependencies}
-```
-""".format(description=description,
-           error_section=error_section,
-           spyder_version=versions['spyder'],
-           commit=revision,
-           python_version=versions['python'],
-           qt_version=versions['qt'],
-           qt_api_name=versions['qt_api'],
-           qt_api_version=versions['qt_api_ver'],
-           os_name=versions['system'],
-           os_version=versions['release'],
-           dependencies=dependencies.status())
-
-        return issue_template
-
     @Slot()
-    def report_issue(self, body=None, title=None, open_webpage=False):
-        """Report a Spyder issue to github, generating body text if needed."""
-        if body is None:
-            from spyder.widgets.reporterror import SpyderErrorDialog
-            report_dlg = SpyderErrorDialog(self, is_report=True)
-            report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
-            report_dlg.show()
-        else:
-            if open_webpage:
-                if PY3:
-                    from urllib.parse import quote
-                else:
-                    from urllib import quote     # analysis:ignore
-                from qtpy.QtCore import QUrlQuery
-
-                url = QUrl(__project_url__ + '/issues/new')
-                query = QUrlQuery()
-                query.addQueryItem("body", quote(body))
-                if title:
-                    query.addQueryItem("title", quote(title))
-                url.setQuery(query)
-                QDesktopServices.openUrl(url)
+    def report_issue(self):
+        """Report a Spyder issue to github."""
+        from spyder.widgets.reporterror import SpyderErrorDialog
+        self._report_dlg = SpyderErrorDialog(self, is_report=True)
+        self._report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
+        self._report_dlg.show()
 
     @Slot()
     def trouble_guide(self):
@@ -2823,9 +3317,9 @@ class MainWindow(QMainWindow):
 
     def redirect_internalshell_stdio(self, state):
         if state:
-            self.console.shell.interpreter.redirect_stds()
+            self.console.redirect_stds()
         else:
-            self.console.shell.interpreter.restore_stds()
+            self.console.restore_stds()
 
     def open_external_console(self, fname, wdir, args, interact, debug, python,
                               python_args, systerm, post_mortem=False):
@@ -3045,11 +3539,21 @@ class MainWindow(QMainWindow):
             qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
 
     def apply_panes_settings(self):
-        """Update dockwidgets features settings"""
+        """Update dockwidgets features settings."""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             features = plugin.dockwidget.FEATURES
+
             plugin.dockwidget.setFeatures(features)
-            plugin._update_margins()
+
+            try:
+                # New API
+                margin = 0
+                if CONF.get('main', 'use_custom_margin'):
+                    margin = CONF.get('main', 'custom_margin')
+                plugin.update_margins(margin)
+            except AttributeError:
+                # Old API
+                plugin._update_margins()
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
@@ -3105,16 +3609,38 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     dlg.add_page(widget)
 
-            for plugin in [self.workingdirectory, self.editor,
-                           self.projects, self.ipyconsole,
-                           self.historylog, self.help, self.variableexplorer,
-                           self.onlinehelp, self.explorer, self.findinfiles
-                           ] + self.thirdparty_plugins:
+            for plugin in [self.appearance,
+                           self.run,
+                           self.shortcuts,
+                           self.workingdirectory,
+                           self.editor,
+                           self.projects,
+                           self.ipyconsole,
+                           self.historylog,
+                           self.help,
+                           self.variableexplorer,
+                           self.onlinehelp,
+                           self.explorer,
+                           self.findinfiles] + self.thirdparty_plugins:
                 if plugin is not None:
+                    # New API
+                    if getattr(plugin, 'CONF_WIDGET_CLASS', None):
+                        try:
+                            widget = self.create_plugin_conf_widget(plugin)
+                            if widget is not None:
+                                dlg.add_page(widget)
+                        except Exception:
+                            # Avoid a crash at startup if a plugin's config
+                            # page fails to load.
+                            traceback.print_exc(file=sys.stderr)
+
+                    # Old API
                     try:
                         widget = plugin._create_configwidget(dlg, self)
                         if widget is not None:
                             dlg.add_page(widget)
+                    except AttributeError:
+                        pass
                     except Exception:
                         # Avoid a crash at startup if a plugin's config
                         # page fails to load.
@@ -3145,69 +3671,6 @@ class MainWindow(QMainWindow):
     def set_prefs_size(self, size):
         """Save preferences dialog size"""
         self.prefs_dialog_size = size
-
-    #---- Shortcuts
-    def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_shortcut_to_tip=False, plugin_name=None):
-        """
-        Register QAction or QShortcut to Spyder main application,
-        with shortcut (context, name, default)
-        """
-        self.shortcut_data.append((qaction_or_qshortcut, context,
-                                   name, add_shortcut_to_tip, plugin_name))
-
-    def apply_shortcuts(self):
-        """Apply shortcuts settings to all widgets/plugins."""
-        toberemoved = []
-        for index, (qobject, context, name, add_shortcut_to_tip,
-                    plugin_name) in enumerate(self.shortcut_data):
-            try:
-                shortcut_sequence = CONF.get_shortcut(context, name,
-                                                      plugin_name)
-            except (cp.NoSectionError, cp.NoOptionError):
-                # If shortcut does not exist, save it to CONF. This is an
-                # action for which there is no shortcut assigned (yet) in
-                # the configuration
-                CONF.set_shortcut(context, name, '', plugin_name)
-                shortcut_sequence = ''
-
-            if shortcut_sequence:
-                keyseq = QKeySequence(shortcut_sequence)
-            else:
-                # Needed to remove old sequences that were cleared.
-                # See spyder-ide/spyder#12992
-                keyseq = QKeySequence()
-            try:
-                if isinstance(qobject, QAction):
-                    if (sys.platform == 'darwin'
-                            and qobject._shown_shortcut == 'missing'):
-                        qobject._shown_shortcut = keyseq
-                    else:
-                        qobject.setShortcut(keyseq)
-
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
-
-                elif isinstance(qobject, QShortcut):
-                    qobject.setKey(keyseq)
-
-            except RuntimeError:
-                # Object has been deleted
-                toberemoved.append(index)
-
-        for index in sorted(toberemoved, reverse=True):
-            self.shortcut_data.pop(index)
-
-        # TODO: Update plugin API to include an update shortcuts method
-        # See: spyder-ide/spyder#6992
-        if self.help:
-            self.help.show_intro_message()
-
-    @Slot()
-    def show_shortcuts_dialog(self):
-        from spyder.widgets.shortcutssummary import ShortcutsSummaryDialog
-        dlg = ShortcutsSummaryDialog(None)
-        dlg.exec_()
 
     # -- Open files server
     def start_open_files_server(self):
@@ -3360,7 +3823,7 @@ class MainWindow(QMainWindow):
         """Called by WorkerUpdates when ready"""
         from spyder.widgets.helperwidgets import MessageCheckBox
 
-        # feedback` = False is used on startup, so only positive feedback is
+        # `feedback` = False is used on startup, so only positive feedback is
         # given. `feedback` = True is used when after startup (when using the
         # menu action, and gives feeback if updates are, or are not found.
         feedback = self.give_updates_feedback
@@ -3370,14 +3833,15 @@ class MainWindow(QMainWindow):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        url_r = __project_url__ + '/releases'
+        # Release url
+        url_r = __project_url__ + '/releases/tag/v{}'.format(latest_release)
         url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
                               parent=self)
-        box.setWindowTitle(_("Spyder updates"))
-        box.set_checkbox_text(_("Check for updates on startup"))
+        box.setWindowTitle(_("New Spyder version"))
+        box.set_checkbox_text(_("Check for updates at startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
 
@@ -3394,26 +3858,29 @@ class MainWindow(QMainWindow):
             check_updates = box.is_checked()
         else:
             if update_available:
-                anaconda_msg = ''
-                if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
-                    anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
-                                     "that you are using Spyder with "
-                                     "<b>Anaconda/Miniconda</b>. Please "
-                                     "<b>don't</b> use <code>pip</code> to "
-                                     "update it as that will probably break "
-                                     "your installation.<br><br>"
-                                     "Instead, please wait until new conda "
-                                     "packages are available and use "
-                                     "<code>conda</code> to perform the "
-                                     "update.<hr>")
-                msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
-                        "your package manager to update Spyder or go to our "
-                        "<a href=\"%s\">Releases</a> page to download this "
-                        "new version. <br><br>If you are not sure how to "
-                        "proceed to update Spyder please refer to our "
-                        " <a href=\"%s\">Installation</a> instructions."
-                        "") % (latest_release, url_r, url_i)
-                msg += '<br>' + anaconda_msg
+                header = _("<b>Spyder {} is available!</b><br><br>").format(
+                    latest_release)
+                footer = _(
+                    "For more information visit our "
+                    "<a href=\"{}\">installation guide</a>."
+                ).format(url_i)
+                if is_anaconda():
+                    content = _(
+                        "<b>Important note:</b> Since you installed "
+                        "Spyder with Anaconda, please <b>don't</b> use "
+                        "<code>pip</code> to update it as that will break "
+                        "your installation.<br><br>"
+                        "Instead, run the following commands in a "
+                        "terminal:<br>"
+                        "<code>conda update anaconda</code><br>"
+                        "<code>conda install spyder={}</code><br><br>"
+                    ).format(latest_release)
+                else:
+                    content = _(
+                        "Please go to <a href=\"{}\">this page</a> to "
+                        "download it.<br><br>"
+                    ).format(url_r)
+                msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
@@ -3567,7 +4034,7 @@ def run_spyder(app, options, args):
     except BaseException:
         if main.console is not None:
             try:
-                main.console.shell.exit_interpreter()
+                main.console.exit_interpreter()
             except BaseException:
                 pass
         raise
@@ -3576,8 +4043,9 @@ def run_spyder(app, options, args):
     main.post_visible_setup()
 
     if main.console:
-        main.console.shell.interpreter.namespace['spy'] = \
-                                                    Spy(app=app, window=main)
+        namespace = CONF.get('internal_console', 'namespace', {})
+        main.console.start_interpreter(namespace)
+        main.console.set_namespace_item('spy', Spy(app=app, window=main))
 
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':

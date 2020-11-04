@@ -127,10 +127,15 @@ def test_objectexplorer_collection_types(objectexplorer, params):
 
     # Check number of rows and row content
     model = editor.obj_tree.model()
+
     # The row for the variable
     assert model.rowCount() == 1
+
     # Root row with children
-    assert model.rowCount(model.index(0, 0)) in row_count
+    # Since rowCount for python 3 and 2 varies on differents systems,
+    # we use a range of values
+    expected_output_range = list(range(min(row_count), max(row_count) + 1))
+    assert model.rowCount(model.index(0, 0)) in expected_output_range
     assert model.columnCount() == 11
 
 

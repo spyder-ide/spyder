@@ -44,9 +44,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
+from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-        CollectionsEditor)
 
 
 #-----------------------------------------------------------------------------

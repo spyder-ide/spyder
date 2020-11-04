@@ -67,6 +67,8 @@ class ASTNode:
         self.index_in_parent = -1
         self.to_delete = False
         self.depth = 0
+        self.name = ''
+        self.value = ''
 
     def update_position(self, position):
         """Updates node text position."""

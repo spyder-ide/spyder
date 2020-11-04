@@ -16,6 +16,7 @@ import os
 import os.path as osp
 
 # Third-party imports
+from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
 
@@ -24,9 +25,9 @@ from spyder.config.base import (_, get_conf_path, running_under_pytest,
                                 running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
-from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import check_connection_port
-from spyder.plugins.completion.languageserver import LSP_LANGUAGES
+from spyder.plugins.completion.manager.api import (LSP_LANGUAGES,
+                                                   SpyderCompletionPlugin)
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
     LanguageServerConfigPage)
@@ -52,6 +53,30 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
 
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_exception_occurred = Signal(dict)
+    """
+    This Signal is emitted to report that an exception has occured.
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The expected keys are:
+        >>> error_data = {
+            "text": str,
+            "is_traceback": bool,
+            "title": str,
+        }
+
+    Notes
+    -----
+    The `is_traceback` key indicates if `text` contains plain text or a Python
+    error traceback.
+
+    `title` indicates how the error data should customize the report dialog.
+    """
+
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
 
@@ -71,6 +96,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             statusbar = parent.statusBar()
             self.status_widget = LSPStatusWidget(
                 None, statusbar, plugin=self)
+
+        # TODO: Move to register in the new API
+        self.sig_exception_occurred.connect(
+            self.main.console.handle_exception)
 
     def __del__(self):
         """Stop all heartbeats"""
@@ -286,8 +315,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     @Slot(str)
     def report_server_error(self, error):
         """Report server errors in our error report dialog."""
-        self.main.console.exception_occurred(error, is_traceback=True,
-                                             is_pyls_error=True)
+        error_data = dict(
+            text=error,
+            is_traceback=True,
+            title="Internal Python Language Server error",
+        )
+        self.sig_exception_occurred.emit(error_data)
 
     def report_no_external_server(self, host, port, language):
         """
@@ -665,6 +698,20 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         if formatter == 'pyls_black':
             formatter_options['pyls_black']['line_length'] = cs_max_line_length
 
+        # PyLS-Spyder configuration
+        group_cells = self.get_option(
+            'group_cells',
+            section='outline_explorer'
+        )
+        display_block_comments = self.get_option(
+            'show_comments',
+            section='outline_explorer'
+        )
+        pyls_spyder_options = {
+            'enable_block_comments': display_block_comments,
+            'group_cells': group_cells
+        }
+
         # Jedi configuration
         if self.get_option('default', section='main_interpreter'):
             environment = None
@@ -716,6 +763,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
         plugins['pydocstyle'].update(pydocstyle)
+        plugins['pyls_spyder'].update(pyls_spyder_options)
         plugins['jedi'].update(jedi)
         plugins['jedi_completion'].update(jedi_completion)
         plugins['jedi_signature_help'].update(jedi_signature_help)

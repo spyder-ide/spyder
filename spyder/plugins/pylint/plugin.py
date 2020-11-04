@@ -50,7 +50,7 @@ class Pylint(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent=None):
-        SpyderPluginWidget.__init__(self, parent)
+        super().__init__(parent)
 
         max_entries = self.get_option('max_entries', DEFAULT_HISTORY_ENTRIES)
         self.pylint = PylintWidget(self, max_entries=max_entries,
@@ -77,7 +77,7 @@ class Pylint(SpyderPluginWidget):
         # analysis
         self.pylint.start_analysis.connect(self.run_pylint_from_analyze_button)
 
-    #------ SpyderPluginWidget API --------------------------------------------
+    # ------ SpyderPluginWidget API -------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Code Analysis")
@@ -134,15 +134,10 @@ class Pylint(SpyderPluginWidget):
         self.pylint.save_history()
         return True
 
-    #------ Public API --------------------------------------------------------
+    # ----- Public API --------------------------------------------------------
     @Slot()
     def change_history_depth(self):
         """Change history max entries."""
-        # Create dialog
-        dialog = QInputDialog(self)
-
-        # Set dialog properties
-        dialog.setModal(False)
         dialog.setWindowTitle(_('History'))
         dialog.setLabelText(_('Maximum entries'))
         dialog.setInputMode(QInputDialog.IntInput)

@@ -10,7 +10,7 @@ import logging
 
 from spyder.plugins.completion.languageserver.providers.utils import (
     path_as_uri, process_uri, match_path_to_folder)
-from spyder.plugins.completion.languageserver import (
+from spyder.plugins.completion.manager.api import (
     LSPRequestTypes, ClientConstants, WorkspaceUpdateKind)
 from spyder.plugins.completion.languageserver.decorators import (
     handles, send_request, send_response, send_notification)

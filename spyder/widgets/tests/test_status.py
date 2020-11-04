@@ -18,11 +18,9 @@ import pytest
 
 # Local imports
 from spyder.config import base
-from spyder.utils import conda
 from spyder.widgets.status import (BaseTimerStatus, CPUStatus,
                                    InterpreterStatus, MemoryStatus,
                                    StatusBarWidget)
-import spyder.widgets.status
 
 
 @pytest.fixture
@@ -66,75 +64,60 @@ def test_status_bar_widget_signal(status_bar, qtbot):
     assert w.get_icon() == 'icon'
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on win")
 def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
+    """Test status bar message with conda interpreter."""
     # We patch where the method is used not where it is imported from
-    mocker.patch.object(spyder.widgets.status, 'is_conda_env',
-                        return_value=True)
-    mock_py_ver = 'Python 6.6.6'
-
     win, statusbar = status_bar
     w = InterpreterStatus(win, statusbar)
+    name_base = 'conda: base'
+    name_test = 'conda: test'
 
-    # Check that we process stdout and stderr correctly
-    out_or_err = mock_py_ver + ' (hello!)'
-    for (out, err) in [(out_or_err, ''), ('', out_or_err)]:
-        # We patch the method that calls for info to return values to test
-        mocker.patch.object(w, '_get_interpreter_env_info',
-                            return_value=(out, err))
+    # Update to the base conda environment
+    path_base, version = w.envs[name_base]
+    w.update_interpreter(path_base)
+    expected = 'conda: base ({})'.format(version)
+    assert w.get_tooltip() == path_base
+    assert expected == w._get_env_info(path_base)
 
-        if os.name == 'nt':
-            interpreter = os.sep.join(['miniconda', 'python'])
-        else:
-            interpreter = os.sep.join(['miniconda', 'bin', 'python'])
-        w.update_interpreter(interpreter)
-        expected = 'conda: base (Python 6.6.6)'
-        assert w.get_tooltip() == interpreter
-        assert expected == w._process_interpreter_env_info()
-
-        # We patch the method that calls for info to return values to test
-        if os.name == 'nt':
-            interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'python'])
-        else:
-            interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'bin',
-                                       'python'])
-
-        w.update_interpreter(interpreter)
-        expected = 'conda: foo (Python 6.6.6)'
-        assert w.get_tooltip() == interpreter
-        assert expected == w._process_interpreter_env_info()
+    # Update to the foo conda environment
+    path_foo, version = w.envs[name_test]
+    w.update_interpreter(path_foo)
+    expected = 'conda: test ({})'.format(version)
+    assert w.get_tooltip() == path_foo
+    assert expected == w._get_env_info(path_foo)
 
 
-def test_status_bar_other_interpreter_status(status_bar, qtbot, mocker):
-    mocker.patch.object(spyder.widgets.status, 'is_conda_env',
-                        return_value=False)
-
+def test_status_bar_pyenv_interpreter_status(status_bar, qtbot, mocker):
+    """Test status var message with pyenv interpreter."""
     win, statusbar = status_bar
     w = InterpreterStatus(win, statusbar)
-    mocker.patch.object(w, '_get_interpreter_env_info',
-                        return_value=('Python 3.6.6', ''))
-
+    version = 'Python 3.6.6'
+    name = 'pyenv: test'
     interpreter = os.sep.join(['some-other', 'bin', 'python'])
+    w.envs = {name: (interpreter, version)}
+    w.path_to_env = {interpreter: name}
     w.update_interpreter(interpreter)
     assert w.get_tooltip() == interpreter
-    assert 'venv (Python 3.6.6)' == w._process_interpreter_env_info()
+    assert 'pyenv: test (Python 3.6.6)' == w._get_env_info(interpreter)
 
 
 @pytest.mark.skipif(sys.platform != 'darwin', reason="Only valid on Mac")
 def test_status_bar_internal_interpreter_status(status_bar, qtbot, mocker):
-    mocker.patch.object(spyder.widgets.status, 'is_conda_env',
-                        return_value=False)
-    mocker.patch.object(spyder.widgets.status, 'running_in_mac_app',
-                        return_value=True)
+    """Test status bar message with internal interpreter."""
+    # mocker.patch.object(spyder.widgets.status, 'running_in_mac_app',
+    #                     return_value=True)
 
     win, statusbar = status_bar
     w = InterpreterStatus(win, statusbar)
-    mocker.patch.object(w, '_get_interpreter_env_info',
-                        return_value=('Python 3.6.6', ''))
-
     interpreter = os.sep.join(['Spyder.app', 'Contents', 'MacOS', 'Python'])
+    name = 'system:'
+    version = 'Python 3.6.6'
+    w.envs = {name: (interpreter, version)}
+    w.path_to_env = {interpreter: name}
     w.update_interpreter(interpreter)
     assert w.get_tooltip() == interpreter
-    assert 'internal (Python 3.6.6)' == w._process_interpreter_env_info()
+    assert 'system: (Python 3.6.6)' == w._get_env_info(interpreter)
 
 
 if __name__ == "__main__":

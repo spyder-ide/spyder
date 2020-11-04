@@ -33,10 +33,12 @@ APPLAUNCHSERVICES_REQVER = '>=0.1.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
+COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 JEDI_REQVER = '=0.17.2'
+JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
@@ -49,6 +51,7 @@ PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
 PYLS_REQVER = '>=0.35.0;<1.0.0'
 PYLS_BLACK_REQVER = '>=0.4.6'
+PYLS_SPYDER_REQVER = '>=0.1.1'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
 QDARKSTYLE_REQVER = '>=2.8'
@@ -58,7 +61,7 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
 SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=1.9.4;<1.10.0'
+SPYDER_KERNELS_REQVER = '>=2.0.0dev0'
 THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = '>=0.10.3'
 
@@ -97,6 +100,10 @@ DESCRIPTIONS = [
      'package_name': "cloudpickle",
      'features': _("Handle communications between kernel and frontend"),
      'required_version': CLOUDPICKLE_REQVER},
+    {'modname': "cookiecutter",
+     'package_name': "cookiecutter",
+     'features': _("Create projects from cookiecutter templates"),
+     'required_version': COOKIECUTTER_REQVER},
     {'modname': "diff_match_patch",
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
@@ -113,6 +120,10 @@ DESCRIPTIONS = [
      'package_name': "jedi",
      'features': _("Main backend for the Python Language Server"),
      'required_version': JEDI_REQVER},
+    {'modname': 'jsonschema',
+     'package_name': 'jsonschema',
+     'features': _('Verify if snippets files are valid'),
+     'required_version': JSONSCHEMA_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
      'features': _("Save Github credentials to report internal "
@@ -166,6 +177,10 @@ DESCRIPTIONS = [
      'features': _("Autoformat Python files in the Editor with the Black "
                    "package"),
      'required_version': PYLS_BLACK_REQVER},
+    {'modname': 'pyls_spyder',
+     'package_name': 'pyls-spyder',
+     'features': _('Spyder plugin for the Python Language Server'),
+     'required_version': PYLS_SPYDER_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",
      'features': _("Parse desktop files on Linux"),
@@ -215,7 +230,7 @@ DESCRIPTIONS = [
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
-     'required_version': WATCHDOG_REQVER}
+     'required_version': WATCHDOG_REQVER},
 ]
 
 

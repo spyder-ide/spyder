@@ -20,14 +20,16 @@ import pytest
 
 # Local imports
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
+from spyder.plugins.projects.api import EmptyProject
 
 
 @pytest.fixture
 def projects_dialog(qtbot):
     """Set up ProjectDialog."""
-    dlg = ProjectDialog(None)
+    dlg = ProjectDialog(None, {'Empty project': EmptyProject})
     qtbot.addWidget(dlg)
     return dlg
+
 
 def test_project_dialog(projects_dialog):
     """Run project dialog."""
@@ -38,7 +40,7 @@ def test_project_dialog(projects_dialog):
 @pytest.mark.skipif(os.name != 'nt', reason="Specific to Windows platform")
 def test_projectdialog_location(monkeypatch):
     """Test that select_location normalizes delimiters and updates the path."""
-    dlg = ProjectDialog(None)
+    dlg = ProjectDialog(None, {'Empty project': EmptyProject})
     mock_getexistingdirectory = Mock()
     monkeypatch.setattr('spyder.plugins.projects.widgets.projectdialog' +
                         '.getexistingdirectory', mock_getexistingdirectory)

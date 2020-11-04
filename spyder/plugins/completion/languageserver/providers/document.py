@@ -10,7 +10,7 @@
 import logging
 
 # Local imports
-from spyder.plugins.completion.languageserver import (
+from spyder.plugins.completion.manager.api import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)
 from spyder.plugins.completion.languageserver.providers.utils import (

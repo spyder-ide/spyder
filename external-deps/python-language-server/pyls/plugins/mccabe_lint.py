@@ -12,7 +12,7 @@ DEFAULT_THRESHOLD = 15
 
 @hookimpl
 def pyls_lint(config, document):
-    threshold = config.plugin_settings('mccabe').get(THRESHOLD, DEFAULT_THRESHOLD)
+    threshold = config.plugin_settings('mccabe', document_path=document.path).get(THRESHOLD, DEFAULT_THRESHOLD)
     log.debug("Running mccabe lint with threshold: %s", threshold)
 
     try:

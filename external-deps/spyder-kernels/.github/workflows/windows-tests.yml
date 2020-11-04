@@ -1,12 +1,12 @@
-name: Windows tests 1.x
+name: Windows tests
 
 on:
   push:
     branches:
-    - 1.x
+    - master
   pull_request:
     branches:
-    - 1.x
+    - master
 
 jobs:
   windows:
@@ -51,6 +51,3 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: pytest spyder_kernels --cov=spyder_kernels -x -vv
-      - name: Upload coverage to Codecov
-        shell: bash -l {0}
-        run: codecov -t 02fa9892-fa7f-4cf8-ac3c-d54143ddc933

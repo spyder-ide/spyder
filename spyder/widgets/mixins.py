@@ -1373,7 +1373,10 @@ class BaseEditMixin(object):
 class TracebackLinksMixin(object):
     """ """
     QT_CLASS = None
-    go_to_error = None
+
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = None
 
     def __init__(self):
         self.__cursor_changed = False
@@ -1385,8 +1388,8 @@ class TracebackLinksMixin(object):
         self.QT_CLASS.mouseReleaseEvent(self, event)
         text = self.get_line_at(event.pos())
         if get_error_match(text) and not self.has_selected_text():
-            if self.go_to_error is not None:
-                self.go_to_error.emit(text)
+            if self.sig_go_to_error_requested is not None:
+                self.sig_go_to_error_requested.emit(text)
 
     def mouseMoveEvent(self, event):
         """Show Pointing Hand Cursor on error messages"""
@@ -1411,13 +1414,9 @@ class TracebackLinksMixin(object):
 
 
 class GetHelpMixin(object):
-    def __init__(self):
-        self.help = None
-        self.help_enabled = False
 
-    def set_help(self, help_plugin):
-        """Set Help DockWidget reference"""
-        self.help = help_plugin
+    def __init__(self):
+        self.help_enabled = False
 
     def set_help_enabled(self, state):
         self.help_enabled = state
@@ -1433,21 +1432,12 @@ class GetHelpMixin(object):
 
         # Show docstring
         help_enabled = self.help_enabled or force
-        if force and self.help is not None:
-            self.help.dockwidget.setVisible(True)
-            self.help.dockwidget.raise_()
-        if help_enabled and (self.help is not None) and \
-           (self.help.dockwidget.isVisible()):
-            # Help widget exists and is visible
-            if hasattr(self, 'get_doc'):
-                self.help.set_shell(self)
-            else:
-                self.help.set_shell(self.parent())
-            self.help.set_object_text(text, ignore_unknown=False)
-            self.setFocus() # if help was not at top level, raising it to
-                            # top will automatically give it focus because of
-                            # the visibility_changed signal, so we must give
-                            # focus back to shell
+        if help_enabled:
+            doc = {
+                'name': text,
+                'ignore_unknown': False,
+            }
+            self.sig_help_requested.emit(doc)
 
         # Show calltip
         if call and getattr(self, 'calltips', None):

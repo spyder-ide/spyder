@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# -----------------------------------------------------------------------------
 # Copyright (c) 2009- Spyder Project Contributors
 #
 # Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-# -----------------------------------------------------------------------------
 
 """Script and functions to automatically remove trailing spaces from files."""
 

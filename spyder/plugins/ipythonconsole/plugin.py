@@ -79,6 +79,80 @@ class IPythonConsole(SpyderPluginWidget):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_pdb_state = Signal(bool, dict)
 
+    sig_shellwidget_process_started = Signal(object)
+    """
+    This signal is emitted when a shellwidget process starts.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
+    sig_shellwidget_process_finished = Signal(object)
+    """
+    This signal is emitted when a shellwidget process finishes.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
+    sig_shellwidget_changed = Signal(object)
+    """
+    This signal is emitted when the current shellwidget changes.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
+    sig_render_plain_text_requested = Signal(str)
+    """
+    This signal is emitted to request a plain text help render.
+
+    Parameters
+    ----------
+    plain_text: str
+        The plain text to render.
+    """
+
+    sig_render_rich_text_requested = Signal(str, bool)
+    """
+    This signal is emitted to request a rich text help render.
+
+    Parameters
+    ----------
+    rich_text: str
+        The rich text.
+    collapse: bool
+        If the text contains collapsed sections, show them closed (True) or
+        open (False).
+    """
+
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Example `{'name': str, 'ignore_unknown': bool}`.
+    """
+
+    sig_current_directory_changed = Signal(str)
+    """
+    This signal is emitted when the current directory of the active shell
+    widget has changed.
+
+    Parameters
+    ----------
+    working_directory: str
+        The new working directory path.
+    """
+
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
@@ -292,13 +366,14 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = []
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+
         if client:
             sw = client.shellwidget
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
-            self.main.plots.set_shellwidget_from_id(id(sw))
-            self.main.help.set_shell(sw)
             self.sig_pdb_state.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
+            self.sig_shellwidget_changed.emit(sw)
+
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -409,8 +484,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
         self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
-        self.main.workingdirectory.set_current_console_wd.connect(
-            self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
@@ -568,9 +641,8 @@ class IPythonConsole(SpyderPluginWidget):
         """Set current working directory.
         In the workingdirectory and explorer plugins.
         """
-        if dirname:
-            self.main.workingdirectory.chdir(dirname, refresh_explorer=True,
-                                             refresh_console=False)
+        if osp.isdir(dirname):
+            self.sig_current_directory_changed.emit(dirname)
 
     def update_working_directory(self):
         """Update working directory to console cwd."""
@@ -787,7 +859,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.set_kernel_client_and_manager(kc, km)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.exception_occurred)
+            self.main.console.handle_exception)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -925,6 +997,9 @@ class IPythonConsole(SpyderPluginWidget):
         # For tracebacks
         control.go_to_error.connect(self.go_to_error)
 
+        # For help requests
+        control.sig_help_requested.connect(self.sig_help_requested)
+
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
@@ -951,11 +1026,6 @@ class IPythonConsole(SpyderPluginWidget):
             if give_focus:
                 # Syncronice cwd with explorer and cwd widget
                 shellwidget.update_cwd()
-
-        # Connect text widget to Help
-        if self.main.help is not None:
-            control.set_help(self.main.help)
-            control.set_help_enabled(CONF.get('help', 'connect/ipython_console'))
 
         # Connect client to our history log
         if self.main.historylog is not None:
@@ -1270,14 +1340,15 @@ class IPythonConsole(SpyderPluginWidget):
         """
         sw = shellwidget
         kc = shellwidget.kernel_client
-        if self.main.help is not None:
-            self.main.help.set_shell(sw)
+        self.sig_shellwidget_changed.emit(sw)
+
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.add_shellwidget(sw)
             sw.set_namespace_view_settings()
             sw.refresh_namespacebrowser()
             kc.stopped_channels.connect(lambda :
                 self.main.variableexplorer.remove_shellwidget(id(sw)))
+
         if self.main.plots is not None:
             self.main.plots.add_shellwidget(sw)
             kc.stopped_channels.connect(lambda :
@@ -1383,19 +1454,19 @@ class IPythonConsole(SpyderPluginWidget):
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
-        self.main.help.show_rich_text(interactive_usage)
+        self.sig_render_rich_text_requested.emit(interactive_usage, False)
 
     @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
         from qtconsole.usage import gui_reference
-        self.main.help.show_rich_text(gui_reference, collapse=True)
+        self.sig_render_rich_text_requested.emit(gui_reference, True)
 
     @Slot()
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
-        self.main.help.show_plain_text(quick_reference)
+        self.sig_render_plain_text_requested.emit(quick_reference)
 
     #------ Private API -------------------------------------------------------
     def _init_asyncio_patch(self):
@@ -1453,19 +1524,19 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def process_started(self, client):
-        if self.main.help is not None:
-            self.main.help.set_shell(client.shellwidget)
+        self.sig_shellwidget_process_started.emit(client.shellwidget)
+
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.add_shellwidget(client.shellwidget)
-        if self.main.plots is not None:
-            self.main.plots.add_shellwidget(client.shellwidget)
+
+        self.sig_shellwidget_process_started.emit(client.shellwidget)
 
     def process_finished(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.remove_shellwidget(
                 id(client.shellwidget))
-        if self.main.plots is not None:
-            self.main.plots.remove_shellwidget(id(client.shellwidget))
+
+        self.sig_shellwidget_process_finished.emit(client.shellwidget)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
@@ -1577,7 +1648,8 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.exception_occurred)
+            self.main.console.handle_exception)
+
         if external_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_kernel)

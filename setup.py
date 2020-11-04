@@ -21,6 +21,8 @@ capabilities of a scientific package.
 
 from __future__ import print_function
 
+# Standard library imports
+from distutils.command.install_data import install_data
 import io
 import os
 import os.path as osp
@@ -28,14 +30,15 @@ import subprocess
 import sys
 import shutil
 
-from distutils.core import setup
-from distutils.command.install_data import install_data
+# Third party imports
+from setuptools import setup, find_packages
+from setuptools.command.install import install
 
 
-#==============================================================================
+# =============================================================================
 # Minimal Python version sanity check
 # Taken from the notebook setup.py -- Modified BSD License
-#==============================================================================
+# =============================================================================
 v = sys.version_info
 if v[0] >= 3 and v[:2] < (3, 6):
     error = "ERROR: Spyder requires Python version 3.6 and above."
@@ -43,19 +46,21 @@ if v[0] >= 3 and v[:2] < (3, 6):
     sys.exit(1)
 
 
-#==============================================================================
+# =============================================================================
 # Constants
-#==============================================================================
+# =============================================================================
 NAME = 'spyder'
 LIBNAME = 'spyder'
 from spyder import __version__, __website_url__  #analysis:ignore
 
 
-#==============================================================================
+# =============================================================================
 # Auxiliary functions
-#==============================================================================
+# =============================================================================
 def get_package_data(name, extlist):
-    """Return data files for package *name* with extensions in *extlist*"""
+    """
+    Return data files for package *name* with extensions in *extlist*.
+    """
     flist = []
     # Workaround to replace os.path.relpath (not available until Python 2.6):
     offset = len(name)+len(os.pathsep)
@@ -69,17 +74,22 @@ def get_package_data(name, extlist):
 
 
 def get_subpackages(name):
-    """Return subpackages of package *name*"""
+    """
+    Return subpackages of package *name*.
+    """
     splist = []
     for dirpath, _dirnames, _filenames in os.walk(name):
         if 'tests' not in dirpath:
             if osp.isfile(osp.join(dirpath, '__init__.py')):
                 splist.append(".".join(dirpath.split(os.sep)))
+
     return splist
 
 
 def get_data_files():
-    """Return data_files in a platform dependent manner"""
+    """
+    Return data_files in a platform dependent manner.
+    """
     if sys.platform.startswith('linux'):
         data_files = [('share/applications', ['scripts/spyder.desktop']),
                       ('share/icons', ['img_src/spyder.png'])]
@@ -88,19 +98,23 @@ def get_data_files():
                                    'img_src/spyder_reset.ico'])]
     else:
         data_files = []
+
     return data_files
 
 
 def get_packages():
-    """Return package list"""
+    """
+    Return package list.
+    """
     packages = get_subpackages(LIBNAME)
     return packages
 
 
-#==============================================================================
-# Make Linux detect Spyder desktop file
-#==============================================================================
-class MyInstallData(install_data):
+# =============================================================================
+# Make Linux detect Spyder desktop file (will not work with wheels)
+# =============================================================================
+class CustomInstallData(install_data):
+
     def run(self):
         install_data.run(self)
         if sys.platform.startswith('linux'):
@@ -109,12 +123,14 @@ class MyInstallData(install_data):
             except:
                 print("ERROR: unable to update desktop database",
                       file=sys.stderr)
-CMDCLASS = {'install_data': MyInstallData}
 
 
-#==============================================================================
+CMDCLASS = {'install_data': CustomInstallData}
+
+
+# =============================================================================
 # Main scripts
-#==============================================================================
+# =============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process
 # See spyder-ide/spyder#1158.
@@ -125,17 +141,18 @@ SCRIPTS.append('spyder')
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
 
-#==============================================================================
+
+# =============================================================================
 # Files added to the package
-#==============================================================================
+# =============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
            '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
            '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh']
 
 
-#==============================================================================
+# =============================================================================
 # Use Readme for long description
-#==============================================================================
+# =============================================================================
 with io.open('README.md', encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
@@ -160,38 +177,37 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
-    classifiers=['License :: OSI Approved :: MIT License',
-                 'Operating System :: MacOS',
-                 'Operating System :: Microsoft :: Windows',
-                 'Operating System :: POSIX :: Linux',
-                 'Programming Language :: Python :: 3',
-                 'Programming Language :: Python :: 3.6',
-                 'Programming Language :: Python :: 3.7',
-                 'Programming Language :: Python :: 3.8',
-                 'Development Status :: 5 - Production/Stable',
-                 'Intended Audience :: Education',
-                 'Intended Audience :: Science/Research',
-                 'Intended Audience :: Developers',
-                 'Topic :: Scientific/Engineering',
-                 'Topic :: Software Development :: Widget Sets'],
-    cmdclass=CMDCLASS)
+    classifiers=[
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: MacOS',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Education',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Software Development :: Widget Sets',
+    ],
+    cmdclass=CMDCLASS,
+)
 
-
-#==============================================================================
-# Setuptools deps
-#==============================================================================
-if any(arg == 'bdist_wheel' for arg in sys.argv):
-    import setuptools     # analysis:ignore
 
 install_requires = [
     'applaunchservices>=0.1.7;platform_system=="Darwin"',
     'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
+    'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
     'ipython>=4.0',
     'jedi==0.17.2',
+    'jsonschema>=3.2.0',
     'keyring>=17.0.0',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
@@ -207,6 +223,7 @@ install_requires = [
     'pyqtwebengine<5.13',
     'python-language-server[all]>=0.35.0,<1.0.0',
     'pyls-black>=0.4.6',
+    'pyls-spyder>=0.1.1',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
@@ -215,6 +232,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
+    # Don't forget to update this to >=2.0 for Spyder 5!
     'spyder-kernels>=1.9.4,<1.10.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -244,20 +262,51 @@ extras_require = {
     ],
 }
 
-if 'setuptools' in sys.modules:
-    setup_args['install_requires'] = install_requires
-    setup_args['extras_require'] = extras_require
 
-    setup_args['entry_points'] = {
-        'gui_scripts': [
+spyder_plugins_entry_points = [
+    'appearance = spyder.plugins.appearance.plugin:Appearance',
+    'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
+    ('code_completion = spyder.plugins.completion.manager.plugin:'
+     'CompletionManager'),
+    'core = spyder.plugins.core.plugin:Core',
+    'editor = spyder.plugins.editor.plugin:Editor',
+    'explorer = spyder.plugins.explorer.plugin:Explorer',
+    ('fallback_completion = spyder.plugins.completion.fallback.plugin:'
+     'FallbackPlugin'),
+    'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
+    'help = spyder.plugins.help.plugin:Help',
+    'historylog = spyder.plugins.history.plugin:HistoryLog',
+    'ipython_console = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
+    ('kite_completion = spyder.plugins.completion.kite.plugin:'
+     'KiteCompletionPlugin'),
+    'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
+    'outline_explorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
+    'plots = spyder.plugins.plots.plugin:Plots',
+    'profiler = spyder.plugins.profiler.plugin:Profiler',
+    'project_explorer = spyder.plugins.projects.plugin:Projects',
+    'pylint = spyder.plugins.pylint.plugin:Pylint',
+    ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
+     'LanguageServerPlugin'),
+    'python = spyder.plugins.python.plugin:Python',
+    ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
+     'VariableExplorer'),
+    ('workingdir = spyder.plugins.workingdirectory.plugin:'
+     'WorkingDirectory'),
+]
+
+
+setup_args['install_requires'] = install_requires
+setup_args['extras_require'] = extras_require
+setup_args['entry_points'] = {
+    'gui_scripts': [
             'spyder = spyder.app.start:main'
-        ]
-    }
+    ],
+    'spyder.plugins': spyder_plugins_entry_points,
+}
+setup_args.pop('scripts', None)
 
-    setup_args.pop('scripts', None)
 
-
-#==============================================================================
+# =============================================================================
 # Main setup
-#==============================================================================
+# =============================================================================
 setup(**setup_args)

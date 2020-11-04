@@ -7,7 +7,10 @@ jobs:
     if: |
       (
         (github.event.issue.pull_request != null) &&
-        contains(github.event.comment.body, '/binder')
+        (
+          contains(github.event.comment.body, '/Show binder') ||
+          contains(github.event.comment.body, '/show binder')
+        )
       )
     runs-on: ubuntu-latest
     steps:
@@ -29,10 +32,11 @@ jobs:
             // use the branch name to make a comment  on the PR with a Binder badge
             var BRANCH_NAME = pr.data.head.ref;
             var USER_NAME = pr.data.head.user.login;
+            var BASE_NAME = pr.data.base.ref
             github.issues.createComment({
               issue_number: context.payload.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/${USER_NAME}/${context.repo.repo}/${BRANCH_NAME}?urlpath=%2Fdesktop) :point_left: Launch a Binder instance on this branch`
+              body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/binder-environments/${BASE_NAME}?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252F${USER_NAME}%252Fspyder%26urlpath%3Ddesktop%252F%26branch%3D${BRANCH_NAME}) :point_left: Launch a Binder instance on this branch`
             })
           })

@@ -4,113 +4,139 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Profiler Plugin."""
+"""
+Profiler Plugin.
+"""
 
 # Standard library imports
 import os.path as osp
 
 # Third party imports
-from qtpy.QtWidgets import QVBoxLayout
+from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.config.base import _
-from spyder.config.gui import is_dark_interface
-from spyder.api.plugins import SpyderPluginWidget
-from spyder.preferences.runconfig import get_run_configuration
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
+from spyder.api.plugins import ApplicationMenus, Plugins, SpyderDockablePlugin
+from spyder.api.translations import get_translation
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
-from spyder.plugins.profiler.widgets.profilergui import (ProfilerWidget,
+from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
+                                                         ProfilerWidgetActions,
                                                          is_profiler_installed)
+from spyder.plugins.run.widgets import get_run_configuration
+
+# Localization
+_ = get_translation('spyder')
 
 
-if is_dark_interface():
-    MAIN_TEXT_COLOR = 'white'
-else:
-    MAIN_TEXT_COLOR = '#444444'
+# --- Constants
+# ----------------------------------------------------------------------------
+class ProfilerActions:
+    ProfileCurrentFile = 'profile_current_filename_action'
 
 
-class Profiler(SpyderPluginWidget):
-    """Profiler (after python's profile and pstats)."""
+# --- Plugin
+# ----------------------------------------------------------------------------
+class Profiler(SpyderDockablePlugin):
+    """
+    Profiler (after python's profile and pstats).
+    """
 
-    CONF_SECTION = 'profiler'
-    CONFIGWIDGET_CLASS = ProfilerConfigPage
+    NAME = 'profiler'
+    REQUIRES = [Plugins.Editor, Plugins.VariableExplorer]
+    TABIFY = Plugins.Help
+    WIDGET_CLASS = ProfilerWidget
+    CONF_SECTION = NAME
+    CONF_WIDGET_CLASS = ProfilerConfigPage
     CONF_FILE = False
 
-    def __init__(self, parent=None):
-        SpyderPluginWidget.__init__(self, parent)
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_started = Signal()
+    """This signal is emitted to inform the profiling process has started."""
 
-        max_entries = self.get_option('max_entries', 50)
-        self.profiler = ProfilerWidget(self, max_entries,
-                                       options_button=self.options_button,
-                                       text_color=MAIN_TEXT_COLOR)
+    sig_finished = Signal()
+    """This signal is emitted to inform the profile profiling has finished."""
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.profiler)
-        self.setLayout(layout)
-
-    #------ SpyderPluginWidget API ---------------------------------------------    
-    def get_plugin_title(self):
-        """Return widget title"""
+    # --- SpyderDockablePlugin API
+    # ------------------------------------------------------------------------
+    def get_name(self):
         return _("Profiler")
 
-    def get_plugin_icon(self):
-        """Return widget icon"""
-        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
-        return ima.icon('profiler', icon_path=path)
+    def get_description(self):
+        return _("Profile your scripts and find bottlenecks.")
 
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.profiler.datatree
+    def get_icon(self):
+        path = osp.join(self.get_path(), self.IMG_PATH)
+        return self.create_icon('profiler', path=path)
 
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.tabify(self.main.help)
-        self.dockwidget.hide()
+    def register(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
 
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.profiler.datatree.sig_edit_goto.connect(self.main.editor.load)
-        self.profiler.redirect_stdio.connect(
-            self.main.redirect_internalshell_stdio)
-        self.add_dockwidget()
+        widget.sig_edit_goto_requested.connect(editor.load)
+        widget.sig_started.connect(self.sig_started)
+        widget.sig_finished.connect(self.sig_finished)
 
-        profiler_act = create_action(self, _("Profile"),
-                                     icon=self.get_plugin_icon(),
-                                     triggered=self.run_profiler)
-        profiler_act.setEnabled(is_profiler_installed())
-        self.register_shortcut(profiler_act, context="Profiler",
-                               name="Run profiler")
-        
-        self.main.run_menu_actions += [profiler_act]
-        self.main.editor.pythonfile_dependent_actions += [profiler_act]
+        run_action = self.create_action(
+            ProfilerActions.ProfileCurrentFile,
+            text=_("Run profiler"),
+            tip=_("Run profiler"),
+            icon=self.create_icon('run'),
+            triggered=self.run_profiler,
+            register_shortcut=True,
+        )
+        run_action.setEnabled(is_profiler_installed())
 
-    def refresh_plugin(self):
-        """Refresh profiler widget"""
-        #self.remove_obsolete_items()  # FIXME: not implemented yet
-        pass
+        run_menu = self.get_application_menu(ApplicationMenus.Run)
+        self.add_item_to_application_menu(run_action, menu=run_menu)
 
-    #------ Public API ---------------------------------------------------------        
+        # TODO: On a separate PR when core plugin is merged
+        # self.main.editor.pythonfile_dependent_actions += [profiler_act]
+
+    # --- Public API
+    # ------------------------------------------------------------------------
     def run_profiler(self):
-        """Run profiler"""
-        if self.main.editor.save():
+        """
+        Run profiler.
+
+        Notes
+        -----
+        This method will check if the file on the editor can be saved first.
+        """
+        editor = self.get_plugin(Plugins.Editor)
+        if editor.save():
             self.switch_to_plugin()
-            self.analyze(self.main.editor.get_current_filename())
+            self.analyze(editor.get_current_filename())
+
+    def stop_profiler(self):
+        """
+        Stop profiler.
+        """
+        self.get_widget().stop()
 
     def analyze(self, filename):
-        """Reimplement analyze method"""
-        if self.dockwidget:
-            self.switch_to_plugin()
+        """
+        Run profile analysis on `filename`.
+
+        Parameters
+        ----------
+        filename: str
+            Path to file to analyze.
+        """
+        # TODO: how to get access to this in a better way?
         pythonpath = self.main.get_spyder_pythonpath()
-        runconf = get_run_configuration(filename)
+
         wdir, args = None, []
+        runconf = get_run_configuration(filename)
         if runconf is not None:
             if runconf.wdir_enabled:
                 wdir = runconf.wdir
+
             if runconf.args_enabled:
                 args = runconf.args
-        self.profiler.analyze(filename, wdir=wdir, args=args,
-                              pythonpath=pythonpath)
+
+        self.get_widget().analyze(
+            filename,
+            wdir=wdir,
+            args=args,
+            pythonpath=pythonpath,
+        )

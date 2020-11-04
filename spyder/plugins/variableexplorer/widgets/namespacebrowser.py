@@ -36,9 +36,8 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, create_plugin_layout,
     create_waitspinner, MENU_SEPARATOR)
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-    RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
+from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.widgets.helperwidgets import FinderLineEdit
 
 

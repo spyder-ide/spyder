@@ -21,7 +21,7 @@ import pytest
 from pytestqt.plugin import QtBot
 
 from spyder.config.manager import CONF
-from spyder.plugins.completion.languageserver import SERVER_CAPABILITES
+from spyder.plugins.completion.manager.api import SERVER_CAPABILITES
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
 
