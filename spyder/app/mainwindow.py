@@ -1374,7 +1374,8 @@ class MainWindow(QMainWindow):
         if self.splash is not None:
             self.splash.hide()
 
-        if self.open_project and not self.first_spyder_run:
+        if (self.open_project and
+                (running_in_mac_app() and not self.first_spyder_run)):
             self.projects.open_project(self.open_project)
         else:
             # Load last project if a project was active when Spyder
