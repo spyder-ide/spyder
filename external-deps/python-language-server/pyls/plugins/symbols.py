@@ -1,5 +1,7 @@
 # Copyright 2017 Palantir Technologies, Inc.
 import logging
+import os
+
 from pyls import hookimpl
 from pyls.lsp import SymbolKind
 
@@ -15,7 +17,13 @@ def pyls_document_symbols(config, document):
     symbols_settings = config.plugin_settings('jedi_symbols')
     all_scopes = symbols_settings.get('all_scopes', True)
     add_import_symbols = symbols_settings.get('include_import_symbols', True)
-    definitions = document.jedi_names(all_scopes=all_scopes)
+
+    use_document_path = False
+    document_dir = os.path.normpath(os.path.dirname(document.path))
+    if not os.path.isfile(os.path.join(document_dir, '__init__.py')):
+        use_document_path = True
+
+    definitions = document.jedi_names(use_document_path, all_scopes=all_scopes)
     module_name = document.dot_path
     symbols = []
     exclude = set({})
