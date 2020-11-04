@@ -870,7 +870,7 @@ class FoldingPanel(Panel):
                 positions_to_check = (cursor.position(), )
             for pos in positions_to_check:
                 block = self.editor.document().findBlock(pos)
-                start_line = block.blockNumber() + 1
+                start_line = block.blockNumber()
                 if (start_line in self.folding_regions and
                         self.folding_status[start_line]):
                     end_line = self.folding_regions[start_line]
