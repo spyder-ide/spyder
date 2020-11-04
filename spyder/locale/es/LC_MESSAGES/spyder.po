@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-04 23:28\n"
+"PO-Revision-Date: 2020-11-04 23:37\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -952,7 +952,7 @@ msgstr "Acceso rápido a regiones de fragmentos de código"
 
 #: spyder/dependencies.py:211
 msgid "Determine package version"
-msgstr ""
+msgstr "Determinar versión del paquete"
 
 #: spyder/dependencies.py:215
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -1072,7 +1072,7 @@ msgstr "Parece que su instalación de Kite es defectuosa. Si desea utilizar Kite
 
 #: spyder/plugins/completion/kite/plugin.py:231
 msgid "Kite error"
-msgstr ""
+msgstr "Error de Kite"
 
 #: spyder/plugins/completion/kite/plugin.py:232
 msgid "The Kite completion engine returned an unexpected result for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Please make sure that your Kite installation is correct. In the meantime, Spyder will disable the Kite client to prevent further errors. For more information, please visit the <a href='https://help.kite.com/'>Kite help center</a>"
@@ -1333,11 +1333,11 @@ msgstr "Por defecto es 79"
 
 #: spyder/plugins/completion/languageserver/confpage.py:258
 msgid "Spyder can use {0}, {1} or {2} to format your code for conformance to the {3} convention."
-msgstr ""
+msgstr "Spyder puede usar {0}, {1} o {2} para formatear su código conforme a la convención {3}."
 
 #: spyder/plugins/completion/languageserver/confpage.py:266
 msgid "Choose the code formatting provider: "
-msgstr ""
+msgstr "Seleccione el proveedor de formato de código: "
 
 #: spyder/plugins/completion/languageserver/confpage.py:274
 msgid "Autoformat files on save"
@@ -1417,15 +1417,15 @@ msgstr "Restaurar los valores por defecto"
 
 #: spyder/plugins/completion/languageserver/confpage.py:421
 msgid "Create a new snippet"
-msgstr ""
+msgstr "Crear nuevo fragmento"
 
 #: spyder/plugins/completion/languageserver/confpage.py:423
 msgid "Delete currently selected snippet"
-msgstr ""
+msgstr "Eliminar el fragmento seleccionado"
 
 #: spyder/plugins/completion/languageserver/confpage.py:425
 msgid "Export snippets to JSON"
-msgstr ""
+msgstr "Exportar fragmentos a JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:426
 msgid "Import snippets from JSON"
