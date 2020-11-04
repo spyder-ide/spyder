@@ -16,13 +16,10 @@ import os
 import os.path as osp
 import re
 import shutil
+import sys
 import tempfile
 from textwrap import dedent
-try:
-    from unittest.mock import Mock, MagicMock
-except ImportError:
-    from mock import Mock, MagicMock  # Python 2
-import sys
+from unittest.mock import Mock, MagicMock
 import uuid
 
 # Third party imports
@@ -36,11 +33,11 @@ from numpy.testing import assert_array_equal
 import pylint
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QEvent, QPoint, QUrl
+from qtpy.QtCore import Qt, QTimer, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
-                            QTabBar, QToolTip, QWidget)
+                            QTabBar, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
@@ -49,7 +46,6 @@ from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_conf_path, get_module_path
 from spyder.config.manager import CONF
-from spyder.widgets.dock import TabFilter
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -58,15 +54,7 @@ from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.run.widgets import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
-from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
-
-# For testing various Spyder urls
-if not PY2:
-    from urllib.request import urlopen
-    from urllib.error import URLError
-else:
-    from urllib2 import urlopen, URLError
 
 
 # =============================================================================
@@ -1624,8 +1612,6 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_stop_dbg(main_window, qtbot):
     """Test that we correctly stop a debugging session."""
-    nsb = main_window.variableexplorer.get_focus_widget()
-
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -2561,7 +2547,6 @@ def test_go_to_definition(main_window, qtbot, capsys):
 
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_def)
-    n_editors = len(main_window.editor.get_filenames())
     code_editor = main_window.editor.get_focus_widget()
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_open()
@@ -2638,7 +2623,6 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
         shell.execute(function + u"(0, r'{}')".format(to_text_string(p)))
-    control = main_window.ipyconsole.get_focus_widget()
 
     if debug:
         # Reach the 'name' input
@@ -3352,7 +3336,6 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     Test that the variable explorer is cleared after a kernel restart.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = main_window.ipyconsole.get_focus_widget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
@@ -3382,7 +3365,6 @@ def test_varexp_cleared_after_reset(main_window, qtbot):
     reset in the IPython console and variable explorer panes.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = main_window.ipyconsole.get_focus_widget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
@@ -3724,6 +3706,30 @@ def test_continue_first_line(main_window, qtbot):
     # Check everything was executed
     qtbot.waitUntil(lambda: "a = 7" in shell._control.toPlainText())
     assert "b = 9" in shell._control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_outline_no_init(main_window, qtbot):
+    # Open file in one of our directories without an __init__ file
+    spy_dir = osp.dirname(get_module_path('spyder'))
+    main_window.editor.load(osp.join(spy_dir, 'tools', 'rm_whitespace.py'))
+
+    # Show outline explorer
+    outline_explorer = main_window.outlineexplorer
+    outline_explorer._toggle_view_action.setChecked(True)
+
+    # Wait a bit for trees to be filled
+    qtbot.wait(5000)
+
+    # Get tree length
+    treewidget = outline_explorer.explorer.treewidget
+    editor_id = list(treewidget.editor_ids.values())[1]
+
+    # Assert symbols in the file are detected and shown
+    assert len(treewidget.editor_tree_cache[editor_id]) > 0
 
 
 if __name__ == "__main__":
