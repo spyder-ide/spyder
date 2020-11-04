@@ -72,8 +72,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'automatic_completions_after_ms', min_=0, max_=5000, step=10,
             tip=_("Default is 300"), section='editor')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
-        vertical_line_box = newcb(_("Show vertical line"), 'edge_line',
-                                  section='editor')
 
         completion_layout = QGridLayout()
         completion_layout.addWidget(self.completion_box, 0, 0)
@@ -90,7 +88,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
         completion_layout.addWidget(self.completions_after_ms.plabel, 5, 0)
         completion_layout.addWidget(self.completions_after_ms.spinbox, 5, 1)
         completion_layout.addWidget(code_snippets_box, 6, 0)
-        completion_layout.addWidget(vertical_line_box, 7, 0)
         completion_layout.setColumnStretch(2, 6)
         completion_widget = QWidget()
         completion_widget.setLayout(completion_layout)
@@ -215,6 +212,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'pycodestyle/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 79"))
 
+        vertical_line_box = newcb(
+            _("Show vertical line at maximum allowed length"), 'edge_line',
+            section='editor')
+
         # Code style layout
         code_style_g_layout = QGridLayout()
         code_style_g_layout.addWidget(
@@ -243,6 +244,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(self.code_style_check)
         code_style_layout.addWidget(code_style_g_widget)
+        code_style_layout.addWidget(vertical_line_box)
 
         code_style_widget = QWidget()
         code_style_widget.setLayout(code_style_layout)
