@@ -73,6 +73,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     astroid :
         ImportError: cannot import name 'context' from 'astroid'
         (<path>/Resources/lib/python38.zip/astroid/__init__.pyc)
+    blib2to3 :
+        File "<frozen zipimport>", line 177, in get_data
+        KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
+        Grammar3.8.6.final.0.pickle'
     ipykernel :
         ModuleNotFoundError: No module named 'ipykernel.datapub'
     ipython :
@@ -121,10 +125,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'ipykernel', 'IPython', 'jedi',
-                'jinja2', 'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
-                'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
-                'spyder_kernels']
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'ipykernel', 'IPython',
+                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pyls',
+                'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
+                'sphinx', 'spyder', 'spyder_kernels']
 
     if make_lite:
         INCLUDES = []
@@ -172,8 +176,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     for dist in pkg_resources.working_set:
         if dist.egg_info is None:
             continue
-        dest = os.path.join(dest_dir, os.path.basename(dist.egg_info))
+        egg = os.path.basename(dist.egg_info)
+        dest = os.path.join(dest_dir, egg)
         shutil.copytree(dist.egg_info, dest)
+        logger.info(f'Copied {egg}')
 
     logger.info('App bundle complete.')
 
