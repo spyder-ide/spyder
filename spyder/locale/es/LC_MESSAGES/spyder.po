@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-04 05:27\n"
+"PO-Revision-Date: 2020-11-04 23:28\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -612,7 +612,7 @@ msgstr ""
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
-msgstr ""
+msgstr "Explorador de variables"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
@@ -724,7 +724,7 @@ msgstr ""
 
 #: spyder/app/tour.py:1428
 msgid "Start tour"
-msgstr ""
+msgstr "Comenzar el tour"
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -1737,7 +1737,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:251
 msgid "Description:"
-msgstr ""
+msgstr "Descripción:"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:256
 msgid "Remove trigger text on insertion"
@@ -1769,11 +1769,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:456
 msgid "Double-click to view or edit"
-msgstr ""
+msgstr "Doble clic para ver o editar"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:468
 msgid "Trigger text"
-msgstr ""
+msgstr "Activar texto"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:470
 msgid "Description"
@@ -2087,11 +2087,11 @@ msgstr "Eliminar automáticamente espacios en blanco al guardar un archivo"
 
 #: spyder/plugins/editor/confpage.py:142
 msgid "Insert a newline at the end if one does not exist when saving a file"
-msgstr ""
+msgstr "La opción de insertar una nueva línea al final no existe al guardar un archivo"
 
 #: spyder/plugins/editor/confpage.py:147
 msgid "Trim all newlines after the final one when saving a file"
-msgstr ""
+msgstr "Recortar todas las nuevas líneas después de la última al guardar un archivo"
 
 #: spyder/plugins/editor/confpage.py:152
 msgid "Indentation characters: "
@@ -2618,7 +2618,7 @@ msgstr "Eliminar espacios en blanco"
 
 #: spyder/plugins/editor/plugin.py:810 spyder/plugins/editor/plugin.py:1644 spyder/plugins/editor/widgets/codeeditor.py:4101 spyder/plugins/editor/widgets/codeeditor.py:4879
 msgid "Format file or selection with {0}"
-msgstr ""
+msgstr "Formatear archivo o selección con {0}"
 
 #: spyder/plugins/editor/plugin.py:836
 msgid "Show code style warnings"
