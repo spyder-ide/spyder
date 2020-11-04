@@ -54,7 +54,6 @@ class EdgeLine(Panel):
             self.columns = columns
         elif is_text_string(columns):
             self.columns = tuple(int(e) for e in columns.split(','))
-
         self.update()
 
     def update_color(self):
