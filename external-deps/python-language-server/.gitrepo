@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/ccordoba12/python-language-server.git
-	branch = symbols-no-init
-	commit = 4bde52e7cd6775a66abe17ae0eea21fcd3c5f10f
-	parent = fbc65e2f9b5328576bdfbfb114fdac7ce1197acb
+	remote = https://github.com/palantir/python-language-server.git
+	branch = develop
+	commit = cf59b8f558cc8121c5fe2de6db70ab91560e2da8
+	parent = c043cbdf8f2edb184e637ec584c1512cda6d396b
 	method = merge
 	cmdver = 0.4.1
