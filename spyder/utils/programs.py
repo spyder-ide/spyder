@@ -31,7 +31,7 @@ import psutil
 
 # Local imports
 from spyder.config.base import (is_stable_version, running_under_pytest,
-                                get_home_dir, running_in_mac_app, get_home_dir)
+                                get_home_dir, running_in_mac_app)
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -79,17 +79,6 @@ def is_program_installed(basename):
     launch Spyder.
 
     On macOS systems, a .app is considered installed if it exists.
-
-    Darwin:
-        /usr/local/bin
-        ~/opt/anaconda3/condabin
-        ~/opt/miniconda3/condabin
-        /opt/anaconda3/condabin
-        /opt/miniconda3/condabin
-    Linux:
-        ?
-    Windows:
-        ?
     """
     home = get_home_dir()
     req_paths = []
@@ -97,22 +86,32 @@ def is_program_installed(basename):
         if basename.endswith('.app') and osp.exists(basename):
             return basename
 
+        pyenv = [osp.join('/usr', 'local', 'bin')]
+
         # prioritize anaconda before miniconda; local before global
-        req_paths.extend([
-            osp.join('/usr', 'local', 'bin'),
-            osp.join(home, 'opt', 'anaconda3', 'condabin'),
-            osp.join(home, 'opt', 'miniconda3', 'condabin'),
-            osp.join('/opt', 'anaconda3', 'condabin'),
-            osp.join('/opt', 'miniconda3', 'condabin')
-        ])
+        a = [osp.join(home, 'opt'), '/opt']
+        b = ['anaconda3', 'miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
     elif sys.platform.startswith('linux'):
-        # TODO: what are the possible conda paths?
-        # TODO: what are the possible pyenv paths?
-        pass
+        pyenv = [osp.join('/usr', 'local', 'bin')]
+
+        a = [home, '/opt']
+        b = ['anacona3', 'miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
     elif WINDOWS:
-        # TODO: what are the possible conda paths?
-        # TODO: what are the possible pyenv paths?
-        pass
+        pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
+
+        a = [home, 'C:', osp.join('C:', 'ProgramData')]
+        b = ['Anaconda3', 'Miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
 
     for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
