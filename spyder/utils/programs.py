@@ -71,17 +71,49 @@ def get_temp_dir(suffix=None):
 def is_program_installed(basename):
     """
     Return program absolute path if installed in PATH.
+    Otherwise, return None.
 
-    Otherwise, return None
+    Also searches specific platform dependent paths that are not already in
+    PATH. This permits general use without assuming user profiles are
+    sourced (e.g. .bash_Profile), such as when login shells are not used to
+    launch Spyder.
 
-    On macOS systems, a .app is considered installed if
-    it exists.
+    On macOS systems, a .app is considered installed if it exists.
     """
-    if (sys.platform == 'darwin' and basename.endswith('.app') and
-            osp.exists(basename)):
-        return basename
+    home = get_home_dir()
+    req_paths = []
+    if sys.platform == 'darwin':
+        if basename.endswith('.app') and osp.exists(basename):
+            return basename
 
-    for path in os.environ["PATH"].split(os.pathsep):
+        pyenv = [osp.join('/usr', 'local', 'bin')]
+
+        # prioritize anaconda before miniconda; local before global
+        a = [osp.join(home, 'opt'), '/opt']
+        b = ['anaconda3', 'miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
+    elif sys.platform.startswith('linux'):
+        pyenv = [osp.join('/usr', 'local', 'bin')]
+
+        a = [home, '/opt']
+        b = ['anacona3', 'miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
+    elif WINDOWS:
+        pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
+
+        a = [home, 'C:', osp.join('C:', 'ProgramData')]
+        b = ['Anaconda3', 'Miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
+    for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
             return abspath
@@ -156,6 +188,11 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
                         break  # don't risk multiple values
                 if sys_root_key is not None:
                     kwargs['env'].update({sys_root_key: os.environ[sys_root_key]})
+    else:
+        # linux and macOS
+        if kwargs.get('env') is not None:
+            if 'HOME' not in kwargs['env']:
+                kwargs['env'].update({'HOME': get_home_dir()})
 
     return kwargs
 
@@ -1026,27 +1063,20 @@ def get_pyenv_path(name):
 
 def get_list_pyenv_envs():
     """Return the list of all pyenv envs found in the system."""
-    pyenv = 'pyenv'
-    if running_in_mac_app():
-        old_path = os.environ['PATH']
-        os.environ['PATH'] = os.pathsep.join([old_path, '/usr/local/bin'])
-        pyenv_path = find_program('pyenv')
-        os.environ['PATH'] = old_path  # restore PATH
-        if pyenv_path:
-            pyenv = pyenv_path
+    env_list = {}
+    pyenv = find_program('pyenv')
+    if pyenv is None:
+        return env_list
+
+    cmdstr = ' '.join([pyenv, 'versions', '--bare', '--skip-aliases'])
     try:
-        out, err = subprocess.Popen(
-            [pyenv, 'versions', '--bare', '--skip-aliases'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        ).communicate()
+        out, err = run_shell_command(cmdstr, env={}).communicate()
         out = out.decode()
         err = err.decode()
     except Exception:
         out = ''
         err = ''
     out = out.split('\n')
-    env_list = {}
     for env in out:
         data = env.split('/')
         path = get_pyenv_path(data[-1])
