@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-05 07:17\n"
+"PO-Revision-Date: 2020-11-05 19:58\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4460,23 +4460,23 @@ msgstr "Módulo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:70
 msgid "Namespace"
-msgstr ""
+msgstr "Espacio de nombres"
 
 #: spyder/plugins/outlineexplorer/widgets.py:71
 msgid "Package"
-msgstr ""
+msgstr "Paquete"
 
 #: spyder/plugins/outlineexplorer/widgets.py:72
 msgid "Class"
-msgstr ""
+msgstr "Clase"
 
 #: spyder/plugins/outlineexplorer/widgets.py:73
 msgid "Method"
-msgstr ""
+msgstr "Método"
 
 #: spyder/plugins/outlineexplorer/widgets.py:74
 msgid "Property"
-msgstr ""
+msgstr "Propiedad"
 
 #: spyder/plugins/outlineexplorer/widgets.py:75 spyder/plugins/variableexplorer/widgets/collectionseditor.py:198
 msgid "Attribute"
@@ -4484,39 +4484,39 @@ msgstr "Atributo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:76
 msgid "constructor"
-msgstr ""
+msgstr "constructor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:77
 msgid "Enum"
-msgstr ""
+msgstr "Enumerar"
 
 #: spyder/plugins/outlineexplorer/widgets.py:79
 msgid "Function"
-msgstr ""
+msgstr "Función"
 
 #: spyder/plugins/outlineexplorer/widgets.py:80
 msgid "Variable"
-msgstr ""
+msgstr "Variable"
 
 #: spyder/plugins/outlineexplorer/widgets.py:81
 msgid "Constant"
-msgstr ""
+msgstr "Constante"
 
 #: spyder/plugins/outlineexplorer/widgets.py:82
 msgid "String"
-msgstr ""
+msgstr "Cadena"
 
 #: spyder/plugins/outlineexplorer/widgets.py:83
 msgid "Number"
-msgstr ""
+msgstr "Número"
 
 #: spyder/plugins/outlineexplorer/widgets.py:84
 msgid "Boolean"
-msgstr ""
+msgstr "Booleano"
 
 #: spyder/plugins/outlineexplorer/widgets.py:85
 msgid "Array"
-msgstr ""
+msgstr "Arreglo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:87 spyder/plugins/variableexplorer/widgets/collectionseditor.py:193
 msgid "Key"
@@ -4524,15 +4524,15 @@ msgstr "Clave/Tecla"
 
 #: spyder/plugins/outlineexplorer/widgets.py:88
 msgid "Null"
-msgstr ""
+msgstr "Nulo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:89
 msgid "Enum member"
-msgstr ""
+msgstr "Miembro de Enum"
 
 #: spyder/plugins/outlineexplorer/widgets.py:90
 msgid "Struct"
-msgstr ""
+msgstr "Estructura"
 
 #: spyder/plugins/outlineexplorer/widgets.py:91
 msgid "Event"
