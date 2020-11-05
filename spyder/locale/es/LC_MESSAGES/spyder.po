@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-05 06:16\n"
+"PO-Revision-Date: 2020-11-05 06:24\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -648,15 +648,15 @@ msgstr "Historial"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
-msgstr ""
+msgstr "Este panel registra todos los comandos y ejecuciones de código en cualquier consola IPython, lo que te permite rastrear fácilmente tus pasos para una investigación reproducible."
 
 #: spyder/app/tour.py:249 spyder/plugins/findinfiles/plugin.py:155
 msgid "Find"
-msgstr "Encontrar"
+msgstr "Búsqueda"
 
 #: spyder/app/tour.py:250
 msgid "The Find pane allows you to search for text in a given directory and navigate through all the found occurrences."
-msgstr ""
+msgstr "El panel de Busqueda te permite buscar texto en un directorio determinado y navegar a través de todas las ocurrencias encontradas."
 
 #: spyder/app/tour.py:256 spyder/plugins/profiler/plugin.py:55
 msgid "Profiler"
@@ -664,7 +664,7 @@ msgstr "Perfilador (Profiler)"
 
 #: spyder/app/tour.py:257
 msgid "The Profiler helps you optimize your code by determining the run time and number of calls for every function and method used in a file. It also allows you to save and compare your results between runs."
-msgstr ""
+msgstr "El Perfilador te ayuda a optimizar tu código determinando el tiempo de ejecución y el número de llamadas para cada función y método usado en un archivo. También te permite guardar y comparar tus resultados entre ejecuciones."
 
 #: spyder/app/tour.py:264 spyder/plugins/pylint/plugin.py:83
 msgid "Code Analysis"
@@ -672,15 +672,15 @@ msgstr "Análisis del código"
 
 #: spyder/app/tour.py:265
 msgid "The Code Analysis helps you improve the quality of your programs by detecting style issues, bad practices and potential bugs."
-msgstr ""
+msgstr "El panel de Análisis de Código te ayuda a mejorar la calidad de tus programas al detectar problemas de estilo, malas prácticas y posibles errores."
 
 #: spyder/app/tour.py:271
 msgid "The end"
-msgstr ""
+msgstr "Fin"
 
 #: spyder/app/tour.py:272
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
-msgstr ""
+msgstr "¡Has llegado al final de nuestro tour y estás listo para empezar a usar Spyder! Para obtener más información, consulta nuestra <a href=\"{}\">documentación</a>.<br><br>"
 
 #: spyder/app/tour.py:324
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -712,15 +712,15 @@ msgstr "Ir al paso: "
 
 #: spyder/app/tour.py:1256
 msgid "Request"
-msgstr ""
+msgstr "Solicitud"
 
 #: spyder/app/tour.py:1257
 msgid "To run the tour, please press the green button on the left of the Spyder window's title bar to take it out of fullscreen mode."
-msgstr ""
+msgstr "Para ejecutar el tour, pulse el botón verde a la izquierda de la barra de título de la ventana de Spyder para sacarlo del modo de pantalla completa."
 
 #: spyder/app/tour.py:1422
 msgid "Welcome to Spyder!<br><br>Check out our interactive tour to explore some of Spyder's panes and features."
-msgstr ""
+msgstr "¡Bienvenido a Spyder!<br><br>Echa un vistazo a nuestro tour interactivo para explorar algunos de los paneles y características de Spyder."
 
 #: spyder/app/tour.py:1428
 msgid "Start tour"
@@ -868,7 +868,7 @@ msgstr "Módulo para el servidor del lenguaje de Python"
 
 #: spyder/dependencies.py:120
 msgid "Verify if snippets files are valid"
-msgstr ""
+msgstr "Verificar si los archivos de fragmentos son válidos"
 
 #: spyder/dependencies.py:124
 msgid "Save Github credentials to report internal errors securely"
@@ -916,7 +916,7 @@ msgstr "Completado y análisis del estilo del código en el Editor"
 
 #: spyder/dependencies.py:172
 msgid "Autoformat Python files in the Editor with the Black package"
-msgstr ""
+msgstr "Autoformatear archivos de Python en el Editor con el paquete Black"
 
 #: spyder/dependencies.py:177
 msgid "Spyder plugin for the Python Language Server"
