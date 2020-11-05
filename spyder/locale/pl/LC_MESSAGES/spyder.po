@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 20:27\n"
+"PO-Revision-Date: 2020-11-05 07:17\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1760,7 +1760,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:456
 msgid "Double-click to view or edit"
-msgstr ""
+msgstr "Kliknij dwukrotnie aby wyświetlić lub edytować"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:468
 msgid "Trigger text"
@@ -1768,11 +1768,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:470
 msgid "Description"
-msgstr ""
+msgstr "Opis"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
-msgstr ""
+msgstr "uruchamianie"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:37
 msgid "ready"
@@ -1780,7 +1780,7 @@ msgstr "gotowy"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:38
 msgid "restarting"
-msgstr ""
+msgstr "ponownie uruchamianie"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:39
 msgid "down"
@@ -1973,7 +1973,7 @@ msgstr "Pokaż pasek kart"
 
 #: spyder/plugins/editor/confpage.py:37 spyder/plugins/editor/plugin.py:832
 msgid "Show selector for classes and functions"
-msgstr ""
+msgstr "Pokaż selektor dla klas i funkcji"
 
 #: spyder/plugins/editor/confpage.py:39 spyder/plugins/editor/plugin.py:826
 msgid "Show indent guides"
@@ -2021,19 +2021,19 @@ msgstr " ms"
 
 #: spyder/plugins/editor/confpage.py:108
 msgid "Automatic insertion of parentheses, braces and brackets"
-msgstr ""
+msgstr "Automatyczne wprowadzanie nawiasów"
 
 #: spyder/plugins/editor/confpage.py:111
 msgid "Automatic insertion of closing quotes"
-msgstr ""
+msgstr "Automatyczne wprowadzanie cudzysłowów zamykających"
 
 #: spyder/plugins/editor/confpage.py:114
 msgid "Automatic insertion of colons after 'for', 'if', 'def', etc"
-msgstr ""
+msgstr "Automatyczne umieszczanie dwukropka po 'for', 'if', 'def', itp."
 
 #: spyder/plugins/editor/confpage.py:117
 msgid "Automatic indentation after 'else', 'elif', etc."
-msgstr ""
+msgstr "Automatyczne wcięcie po 'else', 'elif', itp."
 
 #: spyder/plugins/editor/confpage.py:120
 msgid "Tab always indent"
@@ -2045,7 +2045,11 @@ msgid "If enabled, pressing Tab will always indent,\n"
 "of a line (when this option is enabled, code\n"
 "completion may be triggered using the alternate\n"
 "shortcut: Ctrl+Space)"
-msgstr ""
+msgstr "Jeśli włączone, naciśnięcie klawisza Tab zawsze będzie wcinać kod,\n"
+"nawet gdy kursor nie jest na początku\n"
+"linii (gdy ta opcja jest włączona,\n"
+"uzupełnianie kodu może być wywołane za pomocą alternatywnego\n"
+"skrótu: Ctrl+Space)"
 
 #: spyder/plugins/editor/confpage.py:128
 msgid "Automatically strip trailing spaces on changed lines"
