@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-05 06:43\n"
+"PO-Revision-Date: 2020-11-05 07:06\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3064,7 +3064,7 @@ msgstr "Ajustes de filtro"
 
 #: spyder/plugins/explorer/confpage.py:44 spyder/plugins/explorer/widgets/explorer.py:401
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
-msgstr ""
+msgstr "Filtrar archivos por nombre, extensión o más usando <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">patrones de glob.</a> Por favor, introduzca los patrones de glob de los archivos que desea mostrar, separados por comas."
 
 #: spyder/plugins/explorer/confpage.py:91 spyder/preferences/general.py:42 spyder/preferences/general.py:49
 msgid "General"
@@ -3104,7 +3104,7 @@ msgstr "Archivo..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:460
 msgid "Python file..."
-msgstr ""
+msgstr "Archivo de Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:464
 msgid "Folder..."
@@ -3112,7 +3112,7 @@ msgstr "Carpeta..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:468
 msgid "Python Package..."
-msgstr ""
+msgstr "Paquete de Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:489
 msgid "Open in Spyder"
@@ -3360,11 +3360,11 @@ msgstr "Mostrar fecha de modificación"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Activate filename filters"
-msgstr ""
+msgstr "Editar los filtros para los nombres de archivo"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Deactivate filename filters"
-msgstr ""
+msgstr "Desactivar filtros para nombres de archivo"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
@@ -3948,7 +3948,7 @@ msgstr "Usar el siguiente archivo:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:235
 msgid "Run code while debugging"
-msgstr ""
+msgstr "Ejecutar código al depurar"
 
 #: spyder/plugins/ipythonconsole/confpage.py:236
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt</i>"
