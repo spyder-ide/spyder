@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-05 07:17\n"
+"PO-Revision-Date: 2020-11-05 07:31\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -2063,7 +2063,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:134
 msgid "Intelligent backspace"
-msgstr ""
+msgstr "Inteligentny backspace"
 
 #: spyder/plugins/editor/confpage.py:138
 msgid "Automatically remove trailing spaces when saving files"
@@ -2071,7 +2071,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:142
 msgid "Insert a newline at the end if one does not exist when saving a file"
-msgstr ""
+msgstr "Podczas zapisywania pliku wstaw na końcu, jeśli nie istnieje, znak nowej linii"
 
 #: spyder/plugins/editor/confpage.py:147
 msgid "Trim all newlines after the final one when saving a file"
@@ -2175,7 +2175,7 @@ msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:262
 msgid "Type:"
-msgstr ""
+msgstr "Typ:"
 
 #: spyder/plugins/editor/confpage.py:272
 msgid "Annotations"
