@@ -135,16 +135,17 @@ class CollectionsDelegate(QItemDelegate):
                     message.format(val_type=val_type, module=module))
                 return
             else:
-                message = _("Spyder is unable to show the variable you're"
-                            " trying to view because the module "
-                            "<tt>{module}</tt> is not ")
                 if running_in_mac_app():
-                    message += _("supported in the Spyder MacOS "
-                                 "application.<br>")
+                    message = _("Spyder is unable to show the variable you're"
+                                " trying to view because the module "
+                                "<tt>{module}</tt> is not supported in the "
+                                "Spyder MacOS application.<br>")
                 else:
-                    message += _("found in your Spyder environment. Please "
-                                 "install this package in your Spyder "
-                                 "environment.<br>")
+                    message = _("Spyder is unable to show the variable you're"
+                                " trying to view because the module "
+                                "<tt>{module}</tt> is not found in your "
+                                "Spyder environment. Please install this "
+                                "package in your Spyder environment.<br>")
                 QMessageBox.critical(self.parent(), _("Error"),
                                      message.format(module=module))
                 return
