@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-05 19:58\n"
+"PO-Revision-Date: 2020-11-05 20:07\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -616,7 +616,7 @@ msgstr "Explorador de variables"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr "En este panel podrás ver y editar las variables generadas durante la ejecución de un programa, o de los comandos introducidos directamente en la Terminal IPython.<br><br>. Si corriste el código en el paso anterior, podrás observar en el Explorador de Variables la lista y diccionario generados. Al hacer doble click en alguna de ellas, se mostrará una nueva ventana, en la cual se pueden inspeccionar y modificar sus contenidos."
+msgstr "En este panel podrás ver y editar las variables generadas durante la ejecución de un programa, o de los comandos introducidos directamente en la consola IPython.<br><br>. Si corriste el código en el paso anterior, podrás observar en el Explorador de Variables la lista y diccionario Al hacer doble click en alguna de ellas, se mostrará una nueva ventana, en la cual se pueden inspeccionar y modificar sus contenidos."
 
 #: spyder/app/tour.py:209 spyder/plugins/console/widgets/internalshell.py:269 spyder/plugins/help/plugin.py:198 spyder/plugins/help/plugin.py:693 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
@@ -3980,7 +3980,7 @@ msgstr "Ignorar las librerías de Python mientras se depura"
 
 #: spyder/plugins/ipythonconsole/confpage.py:272
 msgid "This option lets you decide if the debugger should ignore the system libraries while debugging."
-msgstr ""
+msgstr "Esta opción le permite decidir si el depurador debe ignorar las librerías del sistema durante la depuración."
 
 #: spyder/plugins/ipythonconsole/confpage.py:277
 msgid "Process execute events while debugging"
@@ -4536,23 +4536,23 @@ msgstr "Estructura"
 
 #: spyder/plugins/outlineexplorer/widgets.py:91
 msgid "Event"
-msgstr ""
+msgstr "Evento"
 
 #: spyder/plugins/outlineexplorer/widgets.py:92
 msgid "Operator"
-msgstr ""
+msgstr "Operador"
 
 #: spyder/plugins/outlineexplorer/widgets.py:93
 msgid "Type parameter"
-msgstr ""
+msgstr "Parámetro tipo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:94
 msgid "Cell"
-msgstr ""
+msgstr "Celda"
 
 #: spyder/plugins/outlineexplorer/widgets.py:95
 msgid "Block comment"
-msgstr ""
+msgstr "Bloque de comentario"
 
 #: spyder/plugins/outlineexplorer/widgets.py:275
 msgid "Line %s"
@@ -4580,11 +4580,11 @@ msgstr "Agrupar celdas"
 
 #: spyder/plugins/outlineexplorer/widgets.py:363
 msgid "Display variables and attributes"
-msgstr ""
+msgstr "Mostrar variables y atributos"
 
 #: spyder/plugins/outlineexplorer/widgets.py:369
 msgid "Follow cursor position"
-msgstr ""
+msgstr "Ir a la posición del cursor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:374
 msgid "Sort files alphabetically"
@@ -5148,15 +5148,15 @@ msgstr "Abrir e inspeccionar esta variable puede tomar mucho tiempo\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:124
 msgid "Spyder is unable to show the {val_type} or object you're trying to view because <tt>{module}</tt> is not installed. "
-msgstr ""
+msgstr "Spyder no puede mostrar el {val_type} u objeto que esta intentando ver porque <tt>{module}</tt> no está instalado. "
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:128
 msgid "Please consider using the full version of the Spyder MacOS application.<br>"
-msgstr ""
+msgstr "Por favor, considere utilizar la versión completa de la aplicación Spyder MacOS.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:131
 msgid "Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "Por favor, instale este paquete en su entorno de Spyder.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:138
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not "
