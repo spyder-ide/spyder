@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-05 20:07\n"
+"PO-Revision-Date: 2020-11-05 20:18\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -964,7 +964,7 @@ msgstr "Núcleos de Jupyter para la terminal de IPython"
 
 #: spyder/dependencies.py:223
 msgid "3-way merge algorithm to merge document changes"
-msgstr ""
+msgstr "Algoritmo de fusión de 3 vías para combinar los cambios del documento"
 
 #: spyder/dependencies.py:227
 msgid "Watch file changes on project directories"
@@ -1076,7 +1076,7 @@ msgstr "Error de Kite"
 
 #: spyder/plugins/completion/kite/plugin.py:232
 msgid "The Kite completion engine returned an unexpected result for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Please make sure that your Kite installation is correct. In the meantime, Spyder will disable the Kite client to prevent further errors. For more information, please visit the <a href='https://help.kite.com/'>Kite help center</a>"
-msgstr ""
+msgstr "El motor de completado de Kite devolvió un resultado inesperado para la solicitud <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Por favor asegúrese de que su instalación de Kite es correcta. Mientras tanto, Spyder deshabilitará el cliente de Kite para prevenir mas errores. Para mas información visite el <a href='https://help.kite.com/'>centro de ayuda de Kite </a>"
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
@@ -3988,15 +3988,15 @@ msgstr "Procesar ejecución de eventos al depurar"
 
 #: spyder/plugins/ipythonconsole/confpage.py:278
 msgid "This option lets you decide if the debugger should process the 'execute events' after each prompt, such as matplotlib 'show' command."
-msgstr ""
+msgstr "Esta opción le permite decidir si el depurador debe procesar los 'eventos de ejecución' después de cada comando como el de matplotlib 'show'."
 
 #: spyder/plugins/ipythonconsole/confpage.py:284
 msgid "Use exclamation mark prefix for Pdb commands"
-msgstr ""
+msgstr "Use signo de exclamación como prefijo para comandos Pdb"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "This option lets you decide if the Pdb commands should be prefixed by an exclamation mark. This helps in separating Pdb commands from Python code."
-msgstr ""
+msgstr "Esta opción te permite decidir si los comandos Pdb deben ser precedidos por una signo de exclamación. Esto ayuda a separar los comandos Pdb del código de Python."
 
 #: spyder/plugins/ipythonconsole/confpage.py:295
 msgid "Jedi completion"
@@ -4172,7 +4172,7 @@ msgstr "No existe un intérprete de IPython para ejecutar <b>%s</b>.<br><br>Por 
 
 #: spyder/plugins/ipythonconsole/plugin.py:718
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.9.4 and < 1.10.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
-msgstr ""
+msgstr "Su entorno o instalación de Python no cuentan con el módulo <tt>spyder-kernels</tt> o con la versión correcta del mismo instalada (>= 1.9.4 and < 1.10.0). Sin este módulo no es posible para Spyder crear una terminal.<br><br>Puede instalarlo ejecutando en una terminal del sistema:<br><br><tt>conda install spyder-kernels</tt><br><br>o<br><br><tt>pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1014
 msgid "Do you want to close this console?"
@@ -4374,7 +4374,7 @@ msgstr "El núcleo está muerto"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:93
 msgid "An error occured, see the console."
-msgstr ""
+msgstr "Se ha producido un error, vea la terminal."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:94
 msgid "%s.<br><br>Note: Please don't report this problem on Github, there's nothing to do about it."
@@ -5216,7 +5216,7 @@ msgstr "elementos"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:203
 msgid "element"
-msgstr ""
+msgstr "elemento"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:444
 msgid "Value"
@@ -5256,11 +5256,11 @@ msgstr "Insertar"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:621
 msgid "Insert above"
-msgstr ""
+msgstr "Insertar arriba"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:626
 msgid "Insert below"
-msgstr ""
+msgstr "Insertar debajo"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:640 spyder/plugins/variableexplorer/widgets/collectionseditor.py:934
 msgid "Duplicate"
@@ -6613,11 +6613,11 @@ msgstr "Reemplazar texto"
 
 #: spyder/widgets/findreplace.py:148
 msgid "In selection"
-msgstr ""
+msgstr "En selección"
 
 #: spyder/widgets/findreplace.py:156
 msgid "All"
-msgstr ""
+msgstr "Todo"
 
 #: spyder/widgets/findreplace.py:633
 msgid "of"
