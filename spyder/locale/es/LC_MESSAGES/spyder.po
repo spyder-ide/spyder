@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-04 23:55\n"
+"PO-Revision-Date: 2020-11-05 06:16\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -616,7 +616,7 @@ msgstr "Explorador de variables"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr ""
+msgstr "En este panel podrás ver y editar las variables generadas durante la ejecución de un programa, o de los comandos introducidos directamente en la consola IPython.<br><br>. Si corriste el código en el paso anterior, podrás observar en el Explorador de Variables la lista y diccionario generados. Al hacer doble click en alguna de ellas, se mostrará una nueva ventana, en la cual se pueden inspeccionar y modificar sus contenidos."
 
 #: spyder/app/tour.py:209 spyder/plugins/console/widgets/internalshell.py:269 spyder/plugins/help/plugin.py:198 spyder/plugins/help/plugin.py:693 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
@@ -624,7 +624,7 @@ msgstr "Ayuda"
 
 #: spyder/app/tour.py:210
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the IPython Console.<br><br>To use it, press <b>Ctrl+I</b> (<b>Cmd-I</b> on macOS) with the text cursor in or next to the object you want help on."
-msgstr ""
+msgstr "Este panel muestra la documentación de las funciones, clases, métodos o módulos que se estén usando en el Editor o la Consola IPython.<br><br>Para usarlo, por favor oprime la tecla <b>Ctrl+I</b> (<b>Cmd-I</b> en macOS) con el cursor al lado del objeto para el cual deseas ayuda."
 
 #: spyder/app/tour.py:220 spyder/plugins/plots/plugin.py:133
 msgid "Plots"
@@ -632,7 +632,7 @@ msgstr "Gráficos"
 
 #: spyder/app/tour.py:221
 msgid "This pane shows the figures and images created during your code execution. It allows you to browse, zoom, copy, and save the generated plots."
-msgstr ""
+msgstr "Este panel muestra las figuras e imágenes creadas durante la ejecución del código. Te permite explorar, acercar, copiar y guardar los gráficos generados."
 
 #: spyder/app/tour.py:227 spyder/plugins/explorer/plugin.py:64
 msgid "Files"
@@ -640,11 +640,11 @@ msgstr "Archivos"
 
 #: spyder/app/tour.py:228
 msgid "This pane lets you browse the files and directories on your computer.<br><br>You can open any file in its corresponding application by double-clicking it, and supported file types will be opened right inside of Spyder.<br><br>The Files pane also allows you to copy one or many absolute or relative paths, automatically formatted as Python strings or lists, and perform a variety of other file operations."
-msgstr ""
+msgstr "Este panel te permite navegar por los archivos y directorios de su computadora.<br><br>Puedes abrir cualquier archivo en su aplicación correspondiente haciendo doble clic en él y los tipos de archivo soportados se abrirán justo dentro de Spyder.<br><br>El panel de Archivos también te permite copiar una o varias rutas absolutas o relativas, formateadas automáticamente como cadenas de Python o listas, y realizar una variedad de otras operaciones de archivos."
 
 #: spyder/app/tour.py:241
 msgid "History Log"
-msgstr ""
+msgstr "Historial"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
