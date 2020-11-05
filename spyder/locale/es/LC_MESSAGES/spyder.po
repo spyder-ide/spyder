@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-05 06:24\n"
+"PO-Revision-Date: 2020-11-05 06:43\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -608,7 +608,7 @@ msgstr "Terminal de IPython"
 
 #: spyder/app/tour.py:176
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
-msgstr "Aquí es donde puedes ejecutar código de Python, ya sea desde el Editor o interactivamente. Para ejecutar el archivo actual, presione <b>F5</b> por defecto, o presione <b>F9</b> para ejecutar la línea o selección actual.<br><br>La consola IPython viene con muchas características útiles que mejoran significativamente su flujo de trabajo de programación, incluyendo el resaltado de sintaxis, autocompletado, gráficas y magias de Python. Para obtener más información, revisa la documentación <a href=\"{0}\">documentation</a>.<br><br>{1}"
+msgstr "Aquí es donde puedes ejecutar código de Python, ya sea desde el Editor o interactivamente. Para ejecutar el archivo actual, presione <b>F5</b> por defecto, o presione <b>F9</b> para ejecutar la línea o selección actual.<br><br>La Terminal IPython viene con muchas características útiles que mejoran significativamente su flujo de trabajo de programación, incluyendo el resaltado de sintaxis, autocompletado, gráficas y magias de Python. Para obtener más información, revisa la documentación <a href=\"{0}\">documentation</a>.<br><br>{1}"
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
@@ -616,7 +616,7 @@ msgstr "Explorador de variables"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr "En este panel podrás ver y editar las variables generadas durante la ejecución de un programa, o de los comandos introducidos directamente en la consola IPython.<br><br>. Si corriste el código en el paso anterior, podrás observar en el Explorador de Variables la lista y diccionario generados. Al hacer doble click en alguna de ellas, se mostrará una nueva ventana, en la cual se pueden inspeccionar y modificar sus contenidos."
+msgstr "En este panel podrás ver y editar las variables generadas durante la ejecución de un programa, o de los comandos introducidos directamente en la Terminal IPython.<br><br>. Si corriste el código en el paso anterior, podrás observar en el Explorador de Variables la lista y diccionario generados. Al hacer doble click en alguna de ellas, se mostrará una nueva ventana, en la cual se pueden inspeccionar y modificar sus contenidos."
 
 #: spyder/app/tour.py:209 spyder/plugins/console/widgets/internalshell.py:269 spyder/plugins/help/plugin.py:198 spyder/plugins/help/plugin.py:693 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
@@ -624,7 +624,7 @@ msgstr "Ayuda"
 
 #: spyder/app/tour.py:210
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the IPython Console.<br><br>To use it, press <b>Ctrl+I</b> (<b>Cmd-I</b> on macOS) with the text cursor in or next to the object you want help on."
-msgstr "Este panel muestra la documentación de las funciones, clases, métodos o módulos que se estén usando en el Editor o la Consola IPython.<br><br>Para usarlo, por favor oprime la tecla <b>Ctrl+I</b> (<b>Cmd-I</b> en macOS) con el cursor al lado del objeto para el cual deseas ayuda."
+msgstr "Este panel muestra la documentación de las funciones, clases, métodos o módulos que se estén usando en el Editor o la Terminal IPython.<br><br>Para usarlo, por favor oprime la tecla <b>Ctrl+I</b> (<b>Cmd-I</b> en macOS) con el cursor al lado del objeto para el cual deseas ayuda."
 
 #: spyder/app/tour.py:220 spyder/plugins/plots/plugin.py:133
 msgid "Plots"
@@ -648,7 +648,7 @@ msgstr "Historial"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
-msgstr "Este panel registra todos los comandos y ejecuciones de código en cualquier consola IPython, lo que te permite rastrear fácilmente tus pasos para una investigación reproducible."
+msgstr "Este panel registra todos los comandos y ejecuciones de código en cualquier Terminal IPython, lo que te permite rastrear fácilmente tus pasos para una investigación reproducible."
 
 #: spyder/app/tour.py:249 spyder/plugins/findinfiles/plugin.py:155
 msgid "Find"
@@ -920,7 +920,7 @@ msgstr "Autoformatear archivos de Python en el Editor con el paquete Black"
 
 #: spyder/dependencies.py:177
 msgid "Spyder plugin for the Python Language Server"
-msgstr ""
+msgstr "Plugin Spyder para el servidor del lenguaje de Python"
 
 #: spyder/dependencies.py:181
 msgid "Parse desktop files on Linux"
@@ -1341,11 +1341,11 @@ msgstr "Seleccione el proveedor de formato de código: "
 
 #: spyder/plugins/completion/languageserver/confpage.py:274
 msgid "Autoformat files on save"
-msgstr ""
+msgstr "Autoformatear archivos al guardar"
 
 #: spyder/plugins/completion/languageserver/confpage.py:276
 msgid "If enabled, autoformatting will take place when saving a file"
-msgstr ""
+msgstr "Si está habilitado, el autoformateo tendrá lugar al guardar un archivo"
 
 #: spyder/plugins/completion/languageserver/confpage.py:295
 msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
@@ -1393,11 +1393,11 @@ msgstr "Omitir directorios ocultos: [^\\.].*"
 
 #: spyder/plugins/completion/languageserver/confpage.py:385
 msgid "the LSP grammar"
-msgstr ""
+msgstr "la gramática LSP"
 
 #: spyder/plugins/completion/languageserver/confpage.py:387
 msgid "Spyder allows to define custom completion snippets to use in addition to the ones offered by the Language Server Protocol (LSP). Each snippet should follow {}.<br><br> <b>Note:</b> All changes will be effective only when applying the settings"
-msgstr ""
+msgstr "Spyder permite definir fragmentos de completado personalizados que se usarán además de los que ofrece el Protocolo del Servidor de Lenguaje de Python(LSP). Cada fragmento debe seguir a {}.<br><br> <b>Nota:</b> Todos los cambios solo serán efectivos al aplicar la configuración"
 
 #: spyder/plugins/completion/languageserver/confpage.py:398 spyder/plugins/completion/languageserver/widgets/serversconfig.py:162
 msgid "Programming language provided by the LSP server"
@@ -1409,7 +1409,7 @@ msgstr "Lenguaje"
 
 #: spyder/plugins/completion/languageserver/confpage.py:414
 msgid "Available snippets"
-msgstr ""
+msgstr "Fragmentos disponibles"
 
 #: spyder/plugins/completion/languageserver/confpage.py:420 spyder/plugins/completion/languageserver/confpage.py:585 spyder/plugins/explorer/confpage.py:59 spyder/preferences/shortcuts.py:857
 msgid "Reset to default values"
@@ -1573,11 +1573,11 @@ msgstr "Hubo un error al intentar cargar el archivo JSON proporcionado: <tt>{0}<
 
 #: spyder/plugins/completion/languageserver/confpage.py:804
 msgid "Invalid snippet file"
-msgstr ""
+msgstr "Archivo de fragmentado inválido"
 
 #: spyder/plugins/completion/languageserver/confpage.py:805
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "El archivo de fragmentos proporcionado no cumple con la especificación de Spyder JSON y por lo tanto no se puede cargar.<br><br><tt>{}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:822
 msgid "Incorrect snippet format"
@@ -1585,7 +1585,7 @@ msgstr "Formato de fragmento incorrecto"
 
 #: spyder/plugins/completion/languageserver/confpage.py:823
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
-msgstr ""
+msgstr "Spyder pudo cargar {0}/{1} snippets correctamente, por favor compruebe los siguientes fragmentos para cualquier error de sintaxis: <br><br>{2}"
 
 #: spyder/plugins/completion/languageserver/confpage.py:839
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -1729,11 +1729,11 @@ msgstr "Fragmento no válido"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:223
 msgid "To add a new text snippet, you need to define the text that triggers it, a short description (two words maximum) of the snippet and if it should delete the trigger text when inserted. Finally, you need to define the snippet body to insert."
-msgstr ""
+msgstr "Para añadir un nuevo fragmento de texto, necesita definir el texto que lo activa, una descripción corta (dos palabras como máximo) del fragmento y si debería eliminar el texto del disparador cuando se inserta. Por último, es necesario definir el cuerpo del fragmento a insertar."
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:246
 msgid "Trigger text:"
-msgstr ""
+msgstr "Texto del disparador:"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:251
 msgid "Description:"
@@ -1741,31 +1741,31 @@ msgstr "Descripción:"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:256
 msgid "Remove trigger text on insertion"
-msgstr ""
+msgstr "Quitar el texto del disparador de la inserción"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:257
 msgid "Check if the text that triggers this snippet should be removed when inserting it"
-msgstr ""
+msgstr "Comprueba si el texto que activa este fragmento debe ser eliminado al insertarlo"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:263
 msgid "<b>Snippet text:</b>"
-msgstr ""
+msgstr "<b>Texto del fragmento:</b>"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:274
 msgid "Snippet editor"
-msgstr ""
+msgstr "Editor de fragmentos"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:278
 msgid "Trigger text for the current snippet"
-msgstr ""
+msgstr "Texto del disparador para el fragmento actual"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:307
 msgid "Snippet text completion to insert"
-msgstr ""
+msgstr "Texto de fragmento completado a insertar"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:314
 msgid "Trigger information"
-msgstr ""
+msgstr "Información del disparador"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:456
 msgid "Double-click to view or edit"
@@ -5712,7 +5712,7 @@ msgstr "Editor de texto"
 
 #: spyder/plugins/workingdirectory/confpage.py:26
 msgid "The <b>current working directory</b> is the working directory for IPython consoles and the current directory for the File Explorer."
-msgstr "El <b>directorio de trabajo actual</b> es el directorio de trabajo de las consolas IPython y el directorio actual del explorador de archivos."
+msgstr "El <b>directorio de trabajo actual</b> es el directorio de trabajo de las Terminales IPython y el directorio actual del explorador de archivos."
 
 #: spyder/plugins/workingdirectory/confpage.py:33
 msgid "At startup, the current working directory is:"
