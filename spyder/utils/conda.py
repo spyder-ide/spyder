@@ -14,7 +14,8 @@ import subprocess
 import sys
 
 from spyder.config.base import running_in_mac_app, get_home_dir
-from spyder.utils.programs import find_program, run_shell_command
+from spyder.utils.programs import (find_program, run_program,
+                                   run_shell_command)
 
 
 WINDOWS = os.name == 'nt'
@@ -120,15 +121,11 @@ def get_list_conda_envs():
         out = {'envs': []}
         err = ''
     for env in out['envs']:
-        name = env.split('/')[-1]
+        name = env.split(osp.sep)[-1]
         try:
-            path = osp.join(env, 'python') if WINDOWS else osp.join(
+            path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
                 env, 'bin', 'python')
-            version, err = subprocess.Popen(
-                [path, '--version'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            ).communicate()
+            version, err = run_program(path, ['--version']).communicate()
             version = version.decode()
             err = err.decode()
         except Exception:

@@ -1054,7 +1054,7 @@ def get_pyenv_path(name):
     home = get_home_dir()
     if WINDOWS:
         path = osp.join(
-            home, '.pyenv', 'pyenv-win', 'versions', name, 'python')
+            home, '.pyenv', 'pyenv-win', 'versions', name, 'python.exe')
     elif name == '':
         path = osp.join(home, '.pyenv', 'shims', 'python')
     else:
@@ -1079,7 +1079,7 @@ def get_list_pyenv_envs():
         err = ''
     out = out.split('\n')
     for env in out:
-        data = env.split('/')
+        data = env.split(osp.sep)
         path = get_pyenv_path(data[-1])
         if data[-1] == '':
             name = 'internal' if running_in_mac_app(path) else 'system'
