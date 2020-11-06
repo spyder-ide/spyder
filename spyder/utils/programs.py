@@ -877,7 +877,7 @@ def get_package_version(package_name):
     try:
         ver = pkg_resources.get_distribution(package_name).version
         return ver
-    except DistributionNotFound:
+    except pkg_resources.DistributionNotFound:
         return None
 
 
