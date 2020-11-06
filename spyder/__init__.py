@@ -32,7 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 version_info = (4, 2, 0, "dev0")
 
 __version__ = '.'.join(map(str, version_info))
-__installer_version__ = '0.1.0'
+__installer_version__ = __version__
 __title__ = 'Spyder'
 __author__ = 'Spyder Project Contributors and others'
 __license__ = __doc__
