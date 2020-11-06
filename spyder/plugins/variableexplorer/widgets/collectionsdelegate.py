@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
                             QItemDelegate, QLineEdit, QMessageBox, QTableView)
 
 # Local imports
-from spyder.config.base import _, running_in_mac_app
+from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder_kernels.utils.nsview import (
@@ -135,16 +135,17 @@ class CollectionsDelegate(QItemDelegate):
                     message.format(val_type=val_type, module=module))
                 return
             else:
-                message = _("Spyder is unable to show the variable you're"
-                            " trying to view because the module "
-                            "<tt>{module}</tt> is not ")
-                if running_in_mac_app():
-                    message += _("supported in the Spyder MacOS "
-                                 "application.<br>")
+                if running_in_mac_app() or is_pynsist():
+                    message = _("Spyder is unable to show the variable you're"
+                                " trying to view because the module "
+                                "<tt>{module}</tt> is not supported in the "
+                                "Spyder Lite application.<br>")
                 else:
-                    message += _("found in your Spyder environment. Please "
-                                 "install this package in your Spyder "
-                                 "environment.<br>")
+                    message = _("Spyder is unable to show the variable you're"
+                                " trying to view because the module "
+                                "<tt>{module}</tt> is not found in your "
+                                "Spyder environment. Please install this "
+                                "package in this environment.<br>")
                 QMessageBox.critical(self.parent(), _("Error"),
                                      message.format(module=module))
                 return
