@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2020-10-31 20:18-0500\n"
+"POT-Creation-Date: 2020-11-05 21:29-0500\n"
 "PO-Revision-Date: 2020-07-03 12:20\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
@@ -427,7 +427,7 @@ msgstr "Werkzeugleisten"
 msgid "Window layouts"
 msgstr "Fensterlayouts"
 
-#: spyder/app/mainwindow.py:1210 spyder/app/mainwindow.py:2187 spyder/app/mainwindow.py:2188
+#: spyder/app/mainwindow.py:1210 spyder/app/mainwindow.py:2188 spyder/app/mainwindow.py:2189
 msgid "Show toolbars"
 msgstr "Werkzeugleisten anzeigen"
 
@@ -435,51 +435,51 @@ msgstr "Werkzeugleisten anzeigen"
 msgid "Attached console window (debugging)"
 msgstr "Anhängendes Konsolenfenster (Debugging)"
 
-#: spyder/app/mainwindow.py:1462
+#: spyder/app/mainwindow.py:1463
 msgid "Hide this message during the current session"
 msgstr "Diese Nachricht während der aktuellen Sitzung ausblenden"
 
-#: spyder/app/mainwindow.py:1468
+#: spyder/app/mainwindow.py:1469
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
 msgstr "Es wurde eine Änderung der Monitorgröße erkannt. <br><br>Wir empfehlen, Spyder neu zu starten, um sicherzustellen, dass es korrekt angezeigt wird. Wenn Sie das nicht möchten bitte aktivieren Sie die Option<br><br><tt>Automatische hohe DPI-Skalierung aktivieren</tt><br><br>in <tt>Einstellungen > Allgemein > Oberfläche</tt>, falls Spyder nicht korrekt angezeigt wird.<br><br>Möchten Sie Spyder neu starten?"
 
-#: spyder/app/mainwindow.py:1475
+#: spyder/app/mainwindow.py:1476
 msgid "Restart now"
 msgstr "Jetzt neu starten"
 
-#: spyder/app/mainwindow.py:1476 spyder/app/tour.py:1430 spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
+#: spyder/app/mainwindow.py:1477 spyder/app/tour.py:1430 spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
 msgid "Dismiss"
 msgstr "Ausblenden"
 
-#: spyder/app/mainwindow.py:1536 spyder/app/mainwindow.py:2262 spyder/app/mainwindow.py:2893 spyder/plugins/completion/languageserver/confpage.py:838 spyder/plugins/completion/languageserver/confpage.py:856 spyder/plugins/explorer/widgets/explorer.py:1024 spyder/plugins/explorer/widgets/explorer.py:1323 spyder/plugins/profiler/widgets/profilergui.py:309 spyder/plugins/profiler/widgets/profilergui.py:504 spyder/plugins/projects/plugin.py:299 spyder/plugins/pylint/widgets/pylintgui.py:92 spyder/plugins/pylint/widgets/pylintgui.py:451 spyder/plugins/pylint/widgets/pylintgui.py:479 spyder/plugins/variableexplorer/widgets/arrayeditor.py:642 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:134 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:148 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:153 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:473 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1494 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:646 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1301 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1305 spyder/preferences/general.py:312 spyder/preferences/general.py:337 spyder/widgets/reporterror.py:302
+#: spyder/app/mainwindow.py:1537 spyder/app/mainwindow.py:2263 spyder/app/mainwindow.py:2894 spyder/plugins/completion/languageserver/confpage.py:838 spyder/plugins/completion/languageserver/confpage.py:856 spyder/plugins/explorer/widgets/explorer.py:1024 spyder/plugins/explorer/widgets/explorer.py:1323 spyder/plugins/profiler/widgets/profilergui.py:309 spyder/plugins/profiler/widgets/profilergui.py:504 spyder/plugins/projects/plugin.py:299 spyder/plugins/pylint/widgets/pylintgui.py:92 spyder/plugins/pylint/widgets/pylintgui.py:451 spyder/plugins/pylint/widgets/pylintgui.py:479 spyder/plugins/variableexplorer/widgets/arrayeditor.py:642 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:134 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:149 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:154 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:474 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1494 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:646 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1301 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1305 spyder/preferences/general.py:312 spyder/preferences/general.py:337 spyder/widgets/reporterror.py:302
 msgid "Error"
 msgstr "Fehler"
 
-#: spyder/app/mainwindow.py:1537
+#: spyder/app/mainwindow.py:1538
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
 msgstr "<b>Sie haben fehlende Abhängigkeiten!</b><br><br><tt>%s</tt><br><b>Bitte installieren Sie diese, um diese Nachricht zu vermeiden.</b><br><br><i>Hinweis</i>: Spyder könnte ohne einige dieser Abhängigkeiten arbeiten, aber um ein reibungsloses Erlebnis bei der Verwendung von Spyder zu haben, empfehlen wir Ihnen <i>dringend</i>, alle aufgeführten fehlenden Abhängigkeiten zu installieren.<br><br>Wenn diese Abhängigkeiten nicht installiert werden, kann es zu Fehlern kommen. Bitte stellen Sie sicher, dass gefundene Fehler nicht die direkte Folge fehlender Abhängigkeiten sind, bevor Sie ein neues Problem melden."
 
-#: spyder/app/mainwindow.py:2030
+#: spyder/app/mainwindow.py:2031
 msgid "Spyder Default Layout"
 msgstr "Spyder-Standardlayout"
 
-#: spyder/app/mainwindow.py:2048
+#: spyder/app/mainwindow.py:2049
 msgid "Save current layout"
 msgstr "Aktuelles Layout speichern"
 
-#: spyder/app/mainwindow.py:2052
+#: spyder/app/mainwindow.py:2053
 msgid "Layout preferences"
 msgstr "Layout-Einstellungen"
 
-#: spyder/app/mainwindow.py:2056
+#: spyder/app/mainwindow.py:2057
 msgid "Reset to spyder default"
 msgstr "Auf Spyder-Standardeinstellung zurücksetzen"
 
-#: spyder/app/mainwindow.py:2076 spyder/app/mainwindow.py:2098 spyder/app/mainwindow.py:2160 spyder/app/mainwindow.py:2168 spyder/app/mainwindow.py:3247 spyder/plugins/completion/languageserver/confpage.py:711 spyder/plugins/completion/languageserver/plugin.py:326 spyder/plugins/completion/languageserver/plugin.py:363 spyder/plugins/editor/widgets/editor.py:635 spyder/plugins/ipythonconsole/plugin.py:510 spyder/plugins/ipythonconsole/plugin.py:550 spyder/plugins/ipythonconsole/plugin.py:1092 spyder/plugins/ipythonconsole/utils/ssh.py:68 spyder/plugins/pylint/widgets/pylintgui.py:90 spyder/plugins/variableexplorer/widgets/arrayeditor.py:564 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:106 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:457 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1103 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1115 spyder/preferences/appearance.py:411 spyder/preferences/maininterpreter.py:165 spyder/preferences/maininterpreter.py:194 spyder/utils/environ.py:91 spyder/utils/environ.py:142 spyder/utils/environ.py:155
+#: spyder/app/mainwindow.py:2077 spyder/app/mainwindow.py:2099 spyder/app/mainwindow.py:2161 spyder/app/mainwindow.py:2169 spyder/app/mainwindow.py:3248 spyder/plugins/completion/languageserver/confpage.py:711 spyder/plugins/completion/languageserver/plugin.py:326 spyder/plugins/completion/languageserver/plugin.py:363 spyder/plugins/editor/widgets/editor.py:635 spyder/plugins/ipythonconsole/plugin.py:510 spyder/plugins/ipythonconsole/plugin.py:550 spyder/plugins/ipythonconsole/plugin.py:1092 spyder/plugins/ipythonconsole/utils/ssh.py:68 spyder/plugins/pylint/widgets/pylintgui.py:90 spyder/plugins/variableexplorer/widgets/arrayeditor.py:564 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:106 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:458 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1103 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1115 spyder/preferences/appearance.py:411 spyder/preferences/maininterpreter.py:176 spyder/preferences/maininterpreter.py:205 spyder/utils/environ.py:91 spyder/utils/environ.py:142 spyder/utils/environ.py:155
 msgid "Warning"
 msgstr "Warnung"
 
-#: spyder/app/mainwindow.py:2077
+#: spyder/app/mainwindow.py:2078
 msgid ""
 "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
@@ -487,72 +487,83 @@ msgstr ""
 "Das Fenster-Layout wird auf die Standardeinstellungen zurückgesetzt: Dies wirkt sich auf die Fensterposition, die Größe und die angedockten Steuerelemente aus.\n"
 "Möchten Sie fortfahren?"
 
-#: spyder/app/mainwindow.py:2099
+#: spyder/app/mainwindow.py:2100
 #, fuzzy
 msgid "<b>%s</b> will be overwritten. Do you want to continue?"
 msgstr "<b>%s</b> wurde geändert.<br>Möchten Sie die Änderungen speichern?"
 
-#: spyder/app/mainwindow.py:2161
+#: spyder/app/mainwindow.py:2162
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
 msgstr "Fehler beim öffnen des eigenen Layouts.  Bitte schließen Sie Spyder und versuchen Sie es erneut.  Falls das Problem bestehen bleibt müssen Sie 'Auf Spyder-Standardeinstellung zurücksetzen\" aus dem Layout-Menü benutzen."
 
-#: spyder/app/mainwindow.py:2169
+#: spyder/app/mainwindow.py:2170
 msgid "Quick switch layout #%s has not yet been defined."
 msgstr "Schnell umschaltbares Layout #%s wurde noch nicht definiert."
 
-#: spyder/app/mainwindow.py:2184 spyder/app/mainwindow.py:2185
+#: spyder/app/mainwindow.py:2185 spyder/app/mainwindow.py:2186
 msgid "Hide toolbars"
 msgstr "Werkzeugleisten ausblenden"
 
-#: spyder/app/mainwindow.py:2263
+#: spyder/app/mainwindow.py:2264
 msgid "<b>{}</b> is no longer a valid Spyder project! Since it is the current active project, it will be closed automatically."
 msgstr "<b>{}</b> ist nicht länger ein gültiges Spyder-Projekt! Da es das aktuell aktive Projekt ist, wird es automatisch geschlossen."
 
-#: spyder/app/mainwindow.py:2587 spyder/app/mainwindow.py:2588
+#: spyder/app/mainwindow.py:2588 spyder/app/mainwindow.py:2589
 msgid "Maximize current pane"
 msgstr "Aktuellen Bereich maximieren"
 
-#: spyder/app/mainwindow.py:2591
+#: spyder/app/mainwindow.py:2592
 msgid "Restore current pane"
 msgstr "Aktuellen Bereich wiederherstellen"
 
-#: spyder/app/mainwindow.py:2592
+#: spyder/app/mainwindow.py:2593
 msgid "Restore pane to its original size"
 msgstr "Bereich auf seine ursprüngliche Größe zurücksetzen"
 
-#: spyder/app/mainwindow.py:2844 spyder/plugins/explorer/widgets/explorer.py:486 spyder/preferences/runconfig.py:364 spyder/preferences/runconfig.py:499 spyder/utils/programs.py:727
+#: spyder/app/mainwindow.py:2845 spyder/plugins/explorer/widgets/explorer.py:486 spyder/preferences/runconfig.py:364 spyder/preferences/runconfig.py:499 spyder/utils/programs.py:769
 msgid "Run"
 msgstr "Ausführen"
 
-#: spyder/app/mainwindow.py:2845
+#: spyder/app/mainwindow.py:2846
 msgid "Running an external system terminal is not supported on platform %s."
 msgstr "Das Ausführen eines externen Systemterminals wird auf der Plattform %s nicht unterstützt."
 
-#: spyder/app/mainwindow.py:2894
+#: spyder/app/mainwindow.py:2895
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
 msgstr "Bitte verwenden Sie <code>spyder -p \"{fname}\"</code>, um <code>{fpath}</code> als ein Projekt mit Spyder zu öffnen."
 
-#: spyder/app/mainwindow.py:3248
+#: spyder/app/mainwindow.py:3249
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
 msgstr "Spyder wird neu gestartet und auf die Standardeinstellungen zurückgesetzt: <br><br>Möchten Sie fortfahren?"
 
-#: spyder/app/mainwindow.py:3379 spyder/widgets/helperwidgets.py:382
-msgid "Spyder updates"
-msgstr "Spyder-Aktualisierungen"
+#: spyder/app/mainwindow.py:3381
+#, fuzzy
+msgid "New Spyder version"
+msgstr "Neu bei Spyder? Lesen Sie unser"
 
-#: spyder/app/mainwindow.py:3380 spyder/preferences/general.py:80
-msgid "Check for updates on startup"
+#: spyder/app/mainwindow.py:3382
+#, fuzzy
+msgid "Check for updates at startup"
 msgstr "Beim Starten nach Aktualisierungen suchen"
 
 #: spyder/app/mainwindow.py:3399
-msgid "<hr><b>IMPORTANT NOTE:</b> It seems that you are using Spyder with <b>Anaconda/Miniconda</b>. Please <b>don't</b> use <code>pip</code> to update it as that will probably break your installation.<br><br>Instead, please wait until new conda packages are available and use <code>conda</code> to perform the update.<hr>"
+msgid "<b>Spyder {} is available!</b><br><br>"
+msgstr ""
+
+#: spyder/app/mainwindow.py:3401
+msgid "For more information visit our <a href=\"{}\">installation guide</a>."
+msgstr ""
+
+#: spyder/app/mainwindow.py:3406
+#, fuzzy
+msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
 msgstr "<hr><b>WICHTIGER HINWEIS:</b> Es scheint, dass Sie Spyder mit <b>Anaconda/Miniconda</b> verwenden. Bitte verwenden Sie <b>nicht</b> <code>pip</code>, um es zu aktualisieren, da es wahrscheinlich Ihre Installation beschädigen wird.<br><br>Stattdessen warten Sie bitte, bis neue conda-Pakete verfügbar sind und verwenden Sie <code>conda</code>, um die Aktualisierung durchzuführen.<hr>"
 
-#: spyder/app/mainwindow.py:3409
-msgid "<b>Spyder %s is available!</b> <br><br>Please use your package manager to update Spyder or go to our <a href=\"%s\">Releases</a> page to download this new version. <br><br>If you are not sure how to proceed to update Spyder please refer to our  <a href=\"%s\">Installation</a> instructions."
-msgstr "<b>Spyder %s ist verfügbar!</b> <br><br>Bitte benutzen Sie Ihren Paketmanager, um Spyder zu aktualisieren oder gehen Sie auf unsere <a href=\"%s\">Veröffentlichungsseite</a>, um diese neue Version herunterzuladen. <br><br>Wenn Sie sich nicht sicher sind, wie Sie Spyder aktualisieren sollen, verweisen wir Sie auf unsere  <a href=\"%s\">Installationsanweisungen</a>."
+#: spyder/app/mainwindow.py:3417
+msgid "Please go to <a href=\"{}\">this page</a> to download it.<br><br>"
+msgstr ""
 
-#: spyder/app/mainwindow.py:3422
+#: spyder/app/mainwindow.py:3427
 msgid "Spyder is up to date."
 msgstr "Spyder ist auf dem neuesten Stand."
 
@@ -5266,7 +5277,7 @@ msgstr "Aus Leistungsgründen werden Änderungen, die auf ein maskiertes Array a
 msgid "Save and Close"
 msgstr "Speichern und Schließen"
 
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:107 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:458
+#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:107 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:459
 msgid ""
 "Opening this variable can be slow\n"
 "\n"
@@ -5289,33 +5300,29 @@ msgstr ""
 msgid "Please install this package in your Spyder environment.<br>"
 msgstr ""
 
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:138
+#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:139
 #, fuzzy
-msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not "
+msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not supported in the Spyder Lite application.<br>"
 msgstr "Spyder kann die Variable, die Sie versuchen anzusehen, nicht anzeigen, weil <tt>{module}</tt> nicht in Ihrer Spyder-Umgebung gefunden wurde. Bitte installieren Sie dieses Paket in Ihrer Spyder-Umgebung.<br>"
 
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:142
-msgid "supported in the Spyder MacOS application.<br>"
-msgstr ""
-
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:145
+#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144
 #, fuzzy
-msgid "found in your Spyder environment. Please install this package in your Spyder environment.<br>"
-msgstr "Spyder kann die Variable, die Sie versuchen anzusehen, nicht anzeigen, weil <tt>{module}</tt> nicht in Ihrer Spyder-Umgebung gefunden wurde. Bitte installieren Sie dieses Paket in Ihrer Spyder-Umgebung.<br>"
+msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not found in your Spyder environment. Please install this package in this environment.<br>"
+msgstr "Spyder kann die Datei, die Sie laden möchten, nicht öffnen, da <tt>{module}</tt> nicht installiert ist. Bitte installieren Sie dieses Paket in Ihrer Arbeitsumgebung.<br>"
 
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:154
+#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:155
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br>%s"
 msgstr "Spyder konnte den Wert dieser Variable nicht von der Konsole abrufen.<br><br>Die Fehlermeldung war:<br>%s"
 
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:385
+#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:386
 msgid "Edit item"
 msgstr "Element bearbeiten"
 
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:386
+#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:387
 msgid "<b>Unable to assign data to item.</b><br><br>Error message:<br>%s"
 msgstr "<b>Dem Element können keine Daten zugeordnet werden.</b><br><br>Fehlermeldung:<br>%s"
 
-#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:474
+#: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:475
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br><i>%s</i>"
 msgstr "Spyder konnte den Wert dieser Variable nicht von der Konsole abrufen.<br><br>Die Fehlermeldung war:<br><i>%s</i>"
 
@@ -6060,6 +6067,10 @@ msgstr "Eingabeaufforderung beim Beenden"
 msgid "Show internal Spyder errors to report them to Github"
 msgstr "Zeige Spyder-interne Fehler um sie an Github zu melden"
 
+#: spyder/preferences/general.py:80
+msgid "Check for updates on startup"
+msgstr "Beim Starten nach Aktualisierungen suchen"
+
 #: spyder/preferences/general.py:108
 msgid "Vertical tabs in panes"
 msgstr "Vertikale Registerkarten in Bereichen"
@@ -6176,75 +6187,75 @@ msgstr "Layout löschen"
 msgid "Layout Display and Order"
 msgstr "Layoutanzeige und -anordnung"
 
-#: spyder/preferences/maininterpreter.py:31 spyder/preferences/maininterpreter.py:71
+#: spyder/preferences/maininterpreter.py:33 spyder/preferences/maininterpreter.py:82
 msgid "Python interpreter"
 msgstr "Python-Interpreter"
 
-#: spyder/preferences/maininterpreter.py:73
+#: spyder/preferences/maininterpreter.py:84
 msgid "Select the Python interpreter for all Spyder consoles"
 msgstr "Wählen Sie den Python-Interpreter für alle Spyder-Konsolen aus"
 
-#: spyder/preferences/maininterpreter.py:76
+#: spyder/preferences/maininterpreter.py:87
 msgid "Default (i.e. the same as Spyder's)"
 msgstr "Voreinstellung (d.h. der gleiche wie Spyder)"
 
-#: spyder/preferences/maininterpreter.py:79
+#: spyder/preferences/maininterpreter.py:90
 msgid "Use the following Python interpreter:"
 msgstr "Folgenden Python-Interpreter verwenden:"
 
-#: spyder/preferences/maininterpreter.py:82
+#: spyder/preferences/maininterpreter.py:93
 msgid "Executables"
 msgstr "Programmdateien"
 
-#: spyder/preferences/maininterpreter.py:92
+#: spyder/preferences/maininterpreter.py:103
 msgid "Recent custom interpreters"
 msgstr "Letzte benutzerdefinierte Interpreter"
 
-#: spyder/preferences/maininterpreter.py:108
+#: spyder/preferences/maininterpreter.py:119
 msgid "User Module Reloader (UMR)"
 msgstr "Benutzermodul Reloader (UMR)"
 
-#: spyder/preferences/maininterpreter.py:109
+#: spyder/preferences/maininterpreter.py:120
 msgid "UMR forces Python to reload modules which were imported when executing a file in a Python or IPython console with the <i>runfile</i> function."
 msgstr "UMR zwingt Python, Module nachzuladen, die beim Ausführen einer Datei in einer Python- oder IPython-Konsole mit der Funktion <i>runfile</i> importiert wurden."
 
-#: spyder/preferences/maininterpreter.py:114
+#: spyder/preferences/maininterpreter.py:125
 msgid "Enable UMR"
 msgstr "UMR aktivieren"
 
-#: spyder/preferences/maininterpreter.py:115
+#: spyder/preferences/maininterpreter.py:126
 msgid "This option will enable the User Module Reloader (UMR) in Python/IPython consoles. UMR forces Python to reload deeply modules during import when running a Python script using the Spyder's builtin function <b>runfile</b>.<br><br><b>1.</b> UMR may require to restart the console in which it will be called (otherwise only newly imported modules will be reloaded when executing files).<br><br><b>2.</b> If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <b>Qt.WA_DeleteOnClose</b> on your main window, using the <b>setAttribute</b> method)"
 msgstr "Diese Option aktiviert den User Module Reloader (UMR) in Python/IPython-Konsolen. UMR zwingt Python, tiefgreifende Module beim Import zu laden, wenn ein Python-Skript mit der eingebauten Spyder-Funktion <b>runfile</b> ausgeführt wird.<br><br><b>1.</b> UMR kann einen Neustart der Konsole erfordern, in der es aufgerufen wird (sonst werden nur neu importierte Module beim Ausführen von Dateien neu geladen).<br><br><b>2.</b> Wenn Fehler beim Ausführen eines PyQt-basierten Programms auftreten, überprüfen Sie bitte, ob die Qt-Objekte ordnungsgemäß zerstört sind (z.B. müssen Sie das Attribut <b>Qt.WA_DeleteOnClose</b> der Methode <b>setAttribute</b> in Ihrem Hauptfenster verwenden)"
 
-#: spyder/preferences/maininterpreter.py:131
+#: spyder/preferences/maininterpreter.py:142
 msgid "Show reloaded modules list"
 msgstr "Liste der nachgeladenen Module anzeigen"
 
-#: spyder/preferences/maininterpreter.py:132
+#: spyder/preferences/maininterpreter.py:143
 msgid "Please note that these changes will be applied only to new consoles"
 msgstr "Bitte beachten Sie, dass diese Änderungen nur auf neue Konsolen angewendet werden"
 
-#: spyder/preferences/maininterpreter.py:136
+#: spyder/preferences/maininterpreter.py:147
 msgid "Set UMR excluded (not reloaded) modules"
 msgstr "UMR-excluded (nicht neu geladene) Module festlegen"
 
-#: spyder/preferences/maininterpreter.py:166
+#: spyder/preferences/maininterpreter.py:177
 msgid "You selected a <b>Python %d</b> interpreter for the console but Spyder is running on <b>Python %d</b>!.<br><br>Although this is possible, we recommend you to install and run Spyder directly with your selected interpreter, to avoid seeing false warnings and errors due to the incompatible syntax between these two Python versions."
 msgstr "Sie haben einen <b>Python %d</b>-Interpreter für die Konsole ausgewählt, aber Spyder läuft unter <b>Python %d</b>!.<br><br>Obwohl dies möglich ist, empfehlen wir Ihnen, Spyder direkt mit Ihrem ausgewählten Interpreter zu installieren und auszuführen, um falsche Warnungen und Fehler aufgrund der inkompatiblen Syntax zwischen diesen beiden Python-Versionen zu vermeiden."
 
-#: spyder/preferences/maininterpreter.py:177 spyder/preferences/maininterpreter.py:204 spyder/preferences/maininterpreter.py:208
+#: spyder/preferences/maininterpreter.py:188 spyder/preferences/maininterpreter.py:215 spyder/preferences/maininterpreter.py:219
 msgid "UMR"
 msgstr "UMR"
 
-#: spyder/preferences/maininterpreter.py:178
+#: spyder/preferences/maininterpreter.py:189
 msgid "Set the list of excluded modules as this: <i>numpy, scipy</i>"
 msgstr "Legen Sie die Liste der ausgeschlossenen Module wie folgt fest: <i>numpy, scipy</i>"
 
-#: spyder/preferences/maininterpreter.py:195
+#: spyder/preferences/maininterpreter.py:206
 msgid "You are working with Python 2, this means that you can not import a module that contains non-ascii characters."
 msgstr "Sie arbeiten mit Python 2, das bedeutet, dass Sie kein Modul importieren können, das Nicht-ASCII-Zeichen enthält."
 
-#: spyder/preferences/maininterpreter.py:205
+#: spyder/preferences/maininterpreter.py:216
 msgid ""
 "The following modules are not installed on your machine:\n"
 "%s"
@@ -6252,7 +6263,7 @@ msgstr ""
 "Die folgenden Module sind auf Ihrem Rechner nicht installiert:\n"
 "%s"
 
-#: spyder/preferences/maininterpreter.py:209
+#: spyder/preferences/maininterpreter.py:220
 msgid "Please note that these changes will be applied only to new Python/IPython consoles"
 msgstr "Bitte beachten Sie, dass diese Änderungen nur auf neue Python/IPython-Konsolen angewendet werden"
 
@@ -6468,7 +6479,7 @@ msgstr "Modul <b>pywin32 wurde nicht gefunden</b>.<br>Bitte starten Sie diese Wi
 msgid "If you accept changes, this will modify the current user environment variables directly <b>in Windows registry</b>. Use it with precautions, at your own risks.<br><br>Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Spyder if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like <i>Python(x,y) Home</i> for example)"
 msgstr "Wenn Sie Änderungen akzeptieren, werden die aktuellen Benutzerumgebungsvariablen direkt <b>in der Windows-Registrierungsdatenbank</b> geändert. Verwenden Sie dies mit Vorsicht, auf eigene Gefahr.<br><br>Beachten Sie: Damit die Änderungen wirksam werden, müssen Sie den übergeordneten Prozess dieser Anwendung neu starten (starten Sie Spyder einfach neu, wenn Sie es über eine Windows-Verknüpfung ausgeführt haben, andernfalls starten Sie jede Anwendung neu, von wo Sie sie ausgeführt haben, wie zum Beispiel <i>Python(x,y) Home</i>)"
 
-#: spyder/utils/programs.py:728
+#: spyder/utils/programs.py:770
 msgid "It was not possible to run this file in an external terminal"
 msgstr "Es war nicht möglich, diese Datei in einem externen Terminal auszuführen"
 
@@ -6535,77 +6546,6 @@ msgstr "Zahl:"
 #: spyder/utils/syntaxhighlighters.py:74
 msgid "Instance:"
 msgstr "Instanz:"
-
-#: spyder/widgets/about.py:49
-msgid ""
-"\n"
-"            <div style='font-family: \"{font_family}\";\n"
-"                        font-size: {font_size}pt;\n"
-"                        font-weight: normal;\n"
-"                        '>\n"
-"            <p>\n"
-"            <b>Spyder {spyder_ver}</b> {revision}\n"
-"            <br>\n"
-"            The Scientific Python Development Environment |\n"
-"            <a href=\"{website_url}\">Spyder-IDE.org</a>\n"
-"            <br>\n"
-"            Copyright &copy; 2009-2020 Spyder Project Contributors and\n"
-"            <a href=\"{github_url}/blob/master/AUTHORS.txt\">others</a>.\n"
-"            <br>\n"
-"            Distributed under the terms of the\n"
-"            <a href=\"{github_url}/blob/master/LICENSE.txt\">MIT License</a>.\n"
-"            </p>\n"
-"            <p>\n"
-"            Created by Pierre Raybaut; current maintainer is Carlos Cordoba.\n"
-"            Developed by the\n"
-"            <a href=\"{github_url}/graphs/contributors\">international\n"
-"            Spyder community</a>. Many thanks to all the Spyder beta testers\n"
-"            and dedicated users.\n"
-"            </p>\n"
-"            <p>For help with Spyder errors and crashes, please read our\n"
-"            <a href=\"{trouble_url}\">Troubleshooting Guide</a>, and for bug\n"
-"            reports and feature requests, visit our\n"
-"            <a href=\"{github_url}\">Github site</a>. For project discussion,\n"
-"            see our <a href=\"{forum_url}\">Google Group</a>.\n"
-"            </p>\n"
-"            <p>\n"
-"            This project is part of a larger effort to promote and\n"
-"            facilitate the use of Python for scientific and engineering\n"
-"            software development.\n"
-"            The popular Python distributions\n"
-"            <a href=\"https://www.anaconda.com/download/\">Anaconda</a> and\n"
-"            <a href=\"https://winpython.github.io/\">WinPython</a>\n"
-"            also contribute to this plan.\n"
-"            </p>\n"
-"            <p>\n"
-"            Python {python_ver} {bitness}-bit | Qt {qt_ver} |\n"
-"            {qt_api} {qt_api_ver} | {os_name} {os_ver}\n"
-"            </p>\n"
-"            <p><small>Certain source files under other compatible permissive\n"
-"            licenses and/or originally by other authors.\n"
-"            Spyder 3 theme icons derived from\n"
-"            <a href=\"https://fontawesome.com/\">Font Awesome</a> 4.7\n"
-"            (&copy; 2016 David Gandy; SIL OFL 1.1) and\n"
-"            <a href=\"http://materialdesignicons.com/\">Material Design</a>\n"
-"            (&copy; 2014 Austin Andrews; SIL OFL 1.1).\n"
-"            Most Spyder 2 theme icons sourced from the\n"
-"            <a href=\"https://www.everaldo.com\">Crystal Project iconset</a>\n"
-"            (&copy; 2006-2007 Everaldo Coelho; LGPL 2.1+).\n"
-"            Other icons from\n"
-"            <a href=\"http://p.yusukekamiyamane.com/\">Yusuke Kamiyamane</a>\n"
-"            (&copy; 2013 Yusuke Kamiyamane; CC-BY 3.0),\n"
-"            the <a href=\"http://www.famfamfam.com/lab/icons/silk/\">FamFamFam\n"
-"            Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and\n"
-"            the <a href=\"https://www.kde.org/\">KDE Oxygen icons</a>\n"
-"            (&copy; 2007 KDE Artists; LGPL 3.0+).</small>\n"
-"            </p>\n"
-"            <p>\n"
-"            See the <a href=\"{github_url}/blob/master/NOTICE.txt\">NOTICE</a>\n"
-"            file for full legal information.\n"
-"            </p>\n"
-"            </div>\n"
-"            "
-msgstr ""
 
 #: spyder/widgets/about.py:151 spyder/widgets/dependencies.py:94
 msgid "Copy to clipboard"
@@ -6842,6 +6782,10 @@ msgstr "Zugangs-Token"
 msgid "Sign in"
 msgstr "Anmelden"
 
+#: spyder/widgets/helperwidgets.py:382
+msgid "Spyder updates"
+msgstr "Spyder-Aktualisierungen"
+
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
 msgstr "Alle einklappen"
@@ -6986,15 +6930,19 @@ msgstr "Titel vollständig. Danke!"
 msgid "Spyder Keyboard ShortCuts"
 msgstr "Spyder Tastaturkürzel"
 
-#: spyder/widgets/status.py:196
+#: spyder/widgets/status.py:195
 msgid "Memory usage"
 msgstr "Speichernutzung"
 
-#: spyder/widgets/status.py:222
+#: spyder/widgets/status.py:221
 msgid "CPU usage"
 msgstr "CPU-Auslastung"
 
-#: spyder/widgets/status.py:313
+#: spyder/widgets/status.py:251
+msgid "Change default environment in Preferences..."
+msgstr ""
+
+#: spyder/widgets/status.py:315
 msgid "Clock"
 msgstr "Uhr"
 
@@ -7077,6 +7025,13 @@ msgstr "Kann nicht mit dem Internet verbinden. <br><br>Stellen Sie sicher, dass 
 #: spyder/workers/updates.py:136
 msgid "Unable to check for updates."
 msgstr "Aktualisierungen können nicht gesucht werden."
+
+#~ msgid "<b>Spyder %s is available!</b> <br><br>Please use your package manager to update Spyder or go to our <a href=\"%s\">Releases</a> page to download this new version. <br><br>If you are not sure how to proceed to update Spyder please refer to our  <a href=\"%s\">Installation</a> instructions."
+#~ msgstr "<b>Spyder %s ist verfügbar!</b> <br><br>Bitte benutzen Sie Ihren Paketmanager, um Spyder zu aktualisieren oder gehen Sie auf unsere <a href=\"%s\">Veröffentlichungsseite</a>, um diese neue Version herunterzuladen. <br><br>Wenn Sie sich nicht sicher sind, wie Sie Spyder aktualisieren sollen, verweisen wir Sie auf unsere  <a href=\"%s\">Installationsanweisungen</a>."
+
+#, fuzzy
+#~ msgid "found in your Spyder environment. Please install this package in your Spyder environment.<br>"
+#~ msgstr "Spyder kann die Variable, die Sie versuchen anzusehen, nicht anzeigen, weil <tt>{module}</tt> nicht in Ihrer Spyder-Umgebung gefunden wurde. Bitte installieren Sie dieses Paket in Ihrer Spyder-Umgebung.<br>"
 
 #~ msgid "Python Path Manager"
 #~ msgstr "Python-Pfadverwaltung"
