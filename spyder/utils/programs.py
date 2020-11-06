@@ -1094,11 +1094,7 @@ def get_list_pyenv_envs():
 def get_interpreter_info(path):
     """Return version information of the selected Python interpreter."""
     try:
-        out, err = subprocess.Popen(
-                [path, '-V'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-        ).communicate()
+        out, err = run_program(path, ['-V']).communicate()
         out = out.decode()
         err = err.decode()
     except Exception:
