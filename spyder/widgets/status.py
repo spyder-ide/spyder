@@ -273,7 +273,9 @@ class InterpreterStatus(StatusBarWidget):
         try:
             name = self.path_to_env[path]
         except KeyError:
-            if 'Spyder.app' in path:
+            win_app_path = osp.join(
+                'AppData', 'Local', 'Programs', 'spyder')
+            if 'Spyder.app' in path or win_app_path in path:
                 name = 'internal'
             elif 'conda' in path:
                 name = 'conda: {}'.format(osp.split(path)[-2])
