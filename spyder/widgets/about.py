@@ -46,7 +46,7 @@ class AboutDialog(QDialog):
         if sys.platform == 'darwin':
             font_size -= 2
 
-        self.label = QLabel(_(
+        self.label = QLabel((
             """
             <div style='font-family: "{font_family}";
                         font-size: {font_size}pt;
