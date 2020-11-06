@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
                             QItemDelegate, QLineEdit, QMessageBox, QTableView)
 
 # Local imports
-from spyder.config.base import _, running_in_mac_app
+from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder_kernels.utils.nsview import (
