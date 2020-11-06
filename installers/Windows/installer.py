@@ -26,7 +26,6 @@ https://github.com/mu-editor/mu/blob/master/win_installer.py
 import argparse
 import importlib.util as iutil
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -158,7 +157,7 @@ def about_dict(repo_root, package):
     package = iutil.module_from_spec(spec)
     spec.loader.exec_module(package)
 
-    return  package.__dict__
+    return package.__dict__
 
 
 def pypi_wheels_in(requirements, skip_packages):
