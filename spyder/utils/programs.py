@@ -89,7 +89,7 @@ def is_program_installed(basename):
 
         pyenv = [osp.join('/usr', 'local', 'bin')]
 
-        # prioritize anaconda before miniconda; local before global
+        # Prioritize Anaconda before Miniconda; local before global.
         a = [osp.join(home, 'opt'), '/opt']
         b = ['anaconda3', 'miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
@@ -108,7 +108,7 @@ def is_program_installed(basename):
     elif WINDOWS:
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
-        a = [home, 'C:', osp.join('C:', 'ProgramData')]
+        a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
         b = ['Anaconda3', 'Miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
@@ -1054,7 +1054,7 @@ def get_pyenv_path(name):
     home = get_home_dir()
     if WINDOWS:
         path = osp.join(
-            home, '.pyenv', 'pyenv-win', 'versions', name, 'python')
+            home, '.pyenv', 'pyenv-win', 'versions', name, 'python.exe')
     elif name == '':
         path = osp.join(home, '.pyenv', 'shims', 'python')
     else:
@@ -1079,7 +1079,7 @@ def get_list_pyenv_envs():
         err = ''
     out = out.split('\n')
     for env in out:
-        data = env.split('/')
+        data = env.split(osp.sep)
         path = get_pyenv_path(data[-1])
         if data[-1] == '':
             name = 'internal' if running_in_mac_app(path) else 'system'
@@ -1094,11 +1094,7 @@ def get_list_pyenv_envs():
 def get_interpreter_info(path):
     """Return version information of the selected Python interpreter."""
     try:
-        out, err = subprocess.Popen(
-                [path, '-V'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-        ).communicate()
+        out, err = run_program(path, ['-V']).communicate()
         out = out.decode()
         err = err.decode()
     except Exception:
