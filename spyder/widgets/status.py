@@ -282,7 +282,7 @@ class InterpreterStatus(StatusBarWidget):
             if 'Spyder.app' in path or win_app_path in path:
                 name = 'internal'
             elif 'conda' in path:
-                name = 'conda: {}'.format(osp.split(path)[-2])
+                name = 'conda'
             else:
                 name = 'custom'
             version = get_interpreter_info(path)
