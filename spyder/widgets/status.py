@@ -240,6 +240,9 @@ class InterpreterStatus(StatusBarWidget):
         self.envs = {**conda_env, **pyenv_env}
         for env in list(self.envs.keys()):
             path, version = self.envs[env]
+            # Save paths in lowercase on Windows to avoid issues with
+            # capitalization.
+            path = path.lower() if os.name == 'nt' else path
             self.path_to_env[path] = env
         self.menu = QMenu(self)
         self.sig_clicked.connect(self.show_menu)
@@ -270,6 +273,7 @@ class InterpreterStatus(StatusBarWidget):
 
     def _get_env_info(self, path):
         """Get environment information."""
+        path = path.lower() if os.name == 'nt' else path
         try:
             name = self.path_to_env[path]
         except KeyError:

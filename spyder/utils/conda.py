@@ -107,7 +107,8 @@ def get_conda_env_path(pyexec, quote=False):
 def get_list_conda_envs():
     """Return the list of all conda envs found in the system."""
     env_list = {}
-    conda = find_program('conda')
+    conda_exec = 'conda.bat' if WINDOWS else 'conda'
+    conda = find_program(conda_exec)
     if conda is None:
         return env_list
 
