@@ -52,7 +52,7 @@ class EdgeLine(Panel):
         """Set edge line columns values."""
         if isinstance(columns, tuple):
             self.columns = columns
-        else:
+        elif columns:
             columns = str(columns)
             self.columns = tuple(int(e) for e in columns.split(','))
 
