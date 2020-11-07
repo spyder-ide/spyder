@@ -38,6 +38,7 @@ from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
 
+HERE = osp.abspath(osp.dirname(__file__))
 WINDOWS = os.name == 'nt'
 
 
@@ -71,17 +72,49 @@ def get_temp_dir(suffix=None):
 def is_program_installed(basename):
     """
     Return program absolute path if installed in PATH.
+    Otherwise, return None.
 
-    Otherwise, return None
+    Also searches specific platform dependent paths that are not already in
+    PATH. This permits general use without assuming user profiles are
+    sourced (e.g. .bash_Profile), such as when login shells are not used to
+    launch Spyder.
 
-    On macOS systems, a .app is considered installed if
-    it exists.
+    On macOS systems, a .app is considered installed if it exists.
     """
-    if (sys.platform == 'darwin' and basename.endswith('.app') and
-            osp.exists(basename)):
-        return basename
+    home = get_home_dir()
+    req_paths = []
+    if sys.platform == 'darwin':
+        if basename.endswith('.app') and osp.exists(basename):
+            return basename
 
-    for path in os.environ["PATH"].split(os.pathsep):
+        pyenv = [osp.join('/usr', 'local', 'bin')]
+
+        # Prioritize Anaconda before Miniconda; local before global.
+        a = [osp.join(home, 'opt'), '/opt']
+        b = ['anaconda3', 'miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
+    elif sys.platform.startswith('linux'):
+        pyenv = [osp.join('/usr', 'local', 'bin')]
+
+        a = [home, '/opt']
+        b = ['anacona3', 'miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
+    elif WINDOWS:
+        pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
+
+        a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
+        b = ['Anaconda3', 'Miniconda3']
+        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+
+        req_paths.extend(pyenv + conda)
+
+    for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
             return abspath
@@ -156,6 +189,11 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
                         break  # don't risk multiple values
                 if sys_root_key is not None:
                     kwargs['env'].update({sys_root_key: os.environ[sys_root_key]})
+    else:
+        # linux and macOS
+        if kwargs.get('env') is not None:
+            if 'HOME' not in kwargs['env']:
+                kwargs['env'].update({'HOME': get_home_dir()})
 
     return kwargs
 
@@ -839,7 +877,7 @@ def get_package_version(package_name):
     try:
         ver = pkg_resources.get_distribution(package_name).version
         return ver
-    except DistributionNotFound:
+    except pkg_resources.DistributionNotFound:
         return None
 
 
@@ -1016,7 +1054,7 @@ def get_pyenv_path(name):
     home = get_home_dir()
     if WINDOWS:
         path = osp.join(
-            home, '.pyenv', 'pyenv-win', 'versions', name, 'python')
+            home, '.pyenv', 'pyenv-win', 'versions', name, 'python.exe')
     elif name == '':
         path = osp.join(home, '.pyenv', 'shims', 'python')
     else:
@@ -1026,29 +1064,22 @@ def get_pyenv_path(name):
 
 def get_list_pyenv_envs():
     """Return the list of all pyenv envs found in the system."""
-    pyenv = 'pyenv'
-    if running_in_mac_app():
-        old_path = os.environ['PATH']
-        os.environ['PATH'] = os.pathsep.join([old_path, '/usr/local/bin'])
-        pyenv_path = find_program('pyenv')
-        os.environ['PATH'] = old_path  # restore PATH
-        if pyenv_path:
-            pyenv = pyenv_path
+    env_list = {}
+    pyenv = find_program('pyenv')
+    if pyenv is None:
+        return env_list
+
+    cmdstr = ' '.join([pyenv, 'versions', '--bare', '--skip-aliases'])
     try:
-        out, err = subprocess.Popen(
-            [pyenv, 'versions', '--bare', '--skip-aliases'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        ).communicate()
+        out, err = run_shell_command(cmdstr, env={}).communicate()
         out = out.decode()
         err = err.decode()
     except Exception:
         out = ''
         err = ''
     out = out.split('\n')
-    env_list = {}
     for env in out:
-        data = env.split('/')
+        data = env.split(osp.sep)
         path = get_pyenv_path(data[-1])
         if data[-1] == '':
             name = 'internal' if running_in_mac_app(path) else 'system'
@@ -1063,14 +1094,22 @@ def get_list_pyenv_envs():
 def get_interpreter_info(path):
     """Return version information of the selected Python interpreter."""
     try:
-        out, err = subprocess.Popen(
-                [path, '-V'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-        ).communicate()
+        out, err = run_program(path, ['-V']).communicate()
         out = out.decode()
         err = err.decode()
     except Exception:
         out = ''
         err = ''
     return out.strip()
+
+
+def find_git():
+    """Find git executable in the system."""
+    if sys.platform == 'darwin':
+        proc = subprocess.run(
+            osp.join(HERE, "check-git.sh"), capture_output=True)
+        if proc.returncode != 0:
+            return None
+        return find_program('git')
+    else:
+        return find_program('git')
