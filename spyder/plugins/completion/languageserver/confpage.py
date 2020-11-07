@@ -942,13 +942,11 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 self.get_option('pycodestyle/max_line_length') == 79):
             self.set_option('pycodestyle/max_line_length', 88)
             self.code_style_max_line_length.spinbox.setValue(88)
-            self.set_option('edge_line_columns', 88, section='editor')
 
         if(self.get_option('formatting') != 'black' and
                 self.get_option('pycodestyle/max_line_length') == 88):
             self.set_option('pycodestyle/max_line_length', 79)
             self.code_style_max_line_length.spinbox.setValue(79)
-            self.set_option('edge_line_columns', 79, section='editor')
 
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
@@ -985,7 +983,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 'editor', 'automatic_completions_after_chars'),
             'set_automatic_completions_after_ms': (
                 'editor', 'automatic_completions_after_ms'),
-            'set_edgeline_columns': ('editor', 'edge_line_columns'),
+            'set_edgeline_columns': (self.CONF_SECTION,
+                                     'pycodestyle/max_line_length'),
             'set_edgeline_enabled': ('editor', 'edge_line'),
         }
         for editorstack in editor.editorstacks:
