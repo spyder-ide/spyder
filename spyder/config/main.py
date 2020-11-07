@@ -509,7 +509,7 @@ DEFAULTS = [
               'preload_modules': PRELOAD_MDOULES,
               'pyflakes': True,
               'mccabe': False,
-              'formatting': 'black',
+              'formatting': 'autopep8',
               'format_on_save': False,
               'pycodestyle': False,
               'pycodestyle/filename': '',
@@ -647,4 +647,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '61.1.0'
+CONF_VERSION = '61.2.0'

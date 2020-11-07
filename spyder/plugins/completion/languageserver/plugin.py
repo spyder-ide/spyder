@@ -695,6 +695,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             for fmt in formatters
         }
 
+        if formatter == 'pyls_black':
+            formatter_options['pyls_black']['line_length'] = cs_max_line_length
+
         # PyLS-Spyder configuration
         group_cells = self.get_option(
             'group_cells',

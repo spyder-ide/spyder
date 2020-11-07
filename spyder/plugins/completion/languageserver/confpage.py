@@ -208,10 +208,14 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _("Ignore the following errors or warnings:"),
             'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E201, E303"))
-        code_style_max_line_length = self.create_spinbox(
+        self.code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,
             'pycodestyle/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 79"))
+
+        vertical_line_box = newcb(
+            _("Show vertical line at maximum allowed length"), 'edge_line',
+            section='editor')
 
         # Code style layout
         code_style_g_layout = QGridLayout()
@@ -225,9 +229,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
         code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
         code_style_g_layout.addWidget(code_style_ignore.textbox, 4, 1)
-        code_style_g_layout.addWidget(code_style_max_line_length.plabel, 5, 0)
         code_style_g_layout.addWidget(
-            code_style_max_line_length.spinbox, 5, 1)
+            self.code_style_max_line_length.plabel, 5, 0)
+        code_style_g_layout.addWidget(
+            self.code_style_max_line_length.spinbox, 5, 1)
 
         # Set Code style options enabled/disabled
         code_style_g_widget = QWidget()
@@ -240,6 +245,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(self.code_style_check)
         code_style_layout.addWidget(code_style_g_widget)
+        code_style_layout.addWidget(vertical_line_box)
 
         code_style_widget = QWidget()
         code_style_widget.setLayout(code_style_layout)
@@ -266,7 +272,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_fmt_provider = self.create_combobox(
             _("Choose the code formatting provider: "),
             (("autopep8", 'autopep8'),
-             ("yapf", 'yapf'),
              ("black", 'black')),
             'formatting')
 
@@ -934,6 +939,16 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.table.save_servers()
         self.snippets_proxy.save_snippets()
 
+        if(self.get_option('formatting') == 'black' and
+                self.get_option('pycodestyle/max_line_length') == 79):
+            self.set_option('pycodestyle/max_line_length', 88)
+            self.code_style_max_line_length.spinbox.setValue(88)
+
+        if(self.get_option('formatting') != 'black' and
+                self.get_option('pycodestyle/max_line_length') == 88):
+            self.set_option('pycodestyle/max_line_length', 79)
+            self.code_style_max_line_length.spinbox.setValue(79)
+
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
@@ -969,6 +984,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 'editor', 'automatic_completions_after_chars'),
             'set_automatic_completions_after_ms': (
                 'editor', 'automatic_completions_after_ms'),
+            'set_edgeline_columns': (self.CONF_SECTION,
+                                     'pycodestyle/max_line_length'),
+            'set_edgeline_enabled': ('editor', 'edge_line'),
         }
         for editorstack in editor.editorstacks:
             for method_name, (sec, opt) in editor_method_sec_opts.items():
