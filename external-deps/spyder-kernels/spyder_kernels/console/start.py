@@ -17,6 +17,10 @@ import os.path as osp
 import sys
 import site
 
+# Local imports
+from spyder_kernels.utils.misc import (
+    MPL_BACKENDS_FROM_SPYDER, INLINE_FIGURE_FORMATS, is_module_installed)
+
 
 PY2 = sys.version[0] == '2'
 
@@ -43,19 +47,6 @@ def import_spydercustomize():
         sys.path.remove(customize_dir)
     except ValueError:
         pass
-
-
-def is_module_installed(module_name):
-    """
-    Simpler version of spyder.utils.programs.is_module_installed
-    to improve startup time.
-    """
-    try:
-        __import__(module_name)
-        return True
-    except:
-        # Module is not installed
-        return False
 
 
 def sympy_config(mpl_backend):
@@ -150,39 +141,12 @@ def kernel_config():
         pylab_o = os.environ.get('SPY_PYLAB_O')
         backend_o = os.environ.get('SPY_BACKEND_O')
         if pylab_o == 'True' and backend_o is not None:
-            # Select the automatic backend
-            if backend_o == '1':
-                if is_module_installed('PyQt5'):
-                    auto_backend = 'qt5'
-                elif is_module_installed('PyQt4'):
-                    auto_backend = 'qt4'
-                elif is_module_installed('_tkinter'):
-                    auto_backend = 'tk'
-                else:
-                    auto_backend = 'inline'
-            else:
-                auto_backend = ''
-
-            # Mapping of Spyder options to backends
-            backends = {'0': 'inline',
-                        '1': auto_backend,
-                        '2': 'qt5',
-                        '3': 'qt4',
-                        '4': 'osx',
-                        '5': 'gtk3',
-                        '6': 'gtk',
-                        '7': 'wx',
-                        '8': 'tk'}
-
-            # Select backend
-            mpl_backend = backends[backend_o]
-
+            mpl_backend = MPL_BACKENDS_FROM_SPYDER[backend_o]
             # Inline backend configuration
             if mpl_backend == 'inline':
                 # Figure format
                 format_o = os.environ.get('SPY_FORMAT_O')
-                formats = {'0': 'png',
-                           '1': 'svg'}
+                formats = INLINE_FIGURE_FORMATS
                 if format_o is not None:
                     spy_cfg.InlineBackend.figure_format = formats[format_o]
 
