@@ -197,7 +197,7 @@ install_requires = [
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
     # Required to get SSH connections to remote kernels
-    'paramiko>=2.4.0,<2.8;platform_system=="Windows"',
+    'paramiko>=2.4.0;platform_system=="Windows"',
     'parso==0.7.0',
     'pexpect>=4.4.0',
     'pickleshare>=0.4',
@@ -206,7 +206,7 @@ install_requires = [
     'pylint>=1.0',
     'pyqt5<5.13',
     'pyqtwebengine<5.13',
-    'python-language-server[all]>=0.35.0,<1.0.0',
+    'python-language-server[all]>=0.36.1,<1.0.0',
     'pyls-black>=0.4.6',
     'pyls-spyder>=0.1.1',
     'pyxdg>=0.26;platform_system=="Linux"',
@@ -217,7 +217,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.9.4,<1.10.0',
+    'spyder-kernels>=1.10.0,<1.11.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
 ]
