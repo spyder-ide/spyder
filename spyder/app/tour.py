@@ -44,6 +44,8 @@ else:
     MAIN_TOP_COLOR = QColor.fromRgb(230, 230, 230)
     MAIN_BG_COLOR = QColor.fromRgb(255, 255, 255)
 
+MAC = sys.platform == 'darwin'
+
 # FIXME: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython
 # on python3.3, should that frame be removed? should it display a warning?
@@ -1390,59 +1392,114 @@ class AnimatedTour(QWidget):
 class OpenTourDialog(QDialog):
     """Initial Widget with tour"""
 
+    ICON_SCALE_FACTOR = 0.7 if MAC else 0.75
+    TITLE_FONT_SIZE = '19pt' if MAC else '16pt'
+    CONTENT_FONT_SIZE = '15pt' if MAC else '12pt'
+    BUTTONS_FONT_SIZE = '15pt' if MAC else '13pt'
+    BUTTONS_PADDING = '6px' if MAC else '4px 10px'
+
     def __init__(self, parent, tour_function):
         super().__init__(parent)
-        self.setFixedHeight(170)
-        self.setFixedWidth(350)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.tour_function = tour_function
 
         # Image
         images_layout = QHBoxLayout()
-        icon_filename = 'tour-spyder-logo.png'
+        icon_filename = 'tour-spyder-logo.svg'
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
-        screen = QApplication.primaryScreen()
-        device_image_ratio = screen.devicePixelRatio()
-        if device_image_ratio > 1:
-            image.setDevicePixelRatio(device_image_ratio)
-        else:
-            image_height = image.height() * 0.5
-            image_width = image.width() * 0.5
-            image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                                 Qt.SmoothTransformation)
+        image_height = image.height() * self.ICON_SCALE_FACTOR
+        image_width = image.width() * self.ICON_SCALE_FACTOR
+        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
+                             Qt.SmoothTransformation)
         image_label.setPixmap(image)
 
         images_layout.addStretch()
         images_layout.addWidget(image_label)
         images_layout.addStretch()
+        if MAC:
+            images_layout.setContentsMargins(0, -5, 20, 0)
+        else:
+            images_layout.setContentsMargins(0, -8, 35, 0)
 
         # Label
+        tour_label_title = QLabel(_("Welcome to Spyder!"))
+        tour_label_title.setStyleSheet(f"font-size: {self.TITLE_FONT_SIZE}")
+        tour_label_title.setWordWrap(True)
         tour_label = QLabel(
-            _("Welcome to Spyder!<br><br>Check out our interactive tour to "
+            _("Check out our interactive tour to "
               "explore some of Spyder's panes and features."))
+        tour_label.setStyleSheet(f"font-size: {self.CONTENT_FONT_SIZE}")
         tour_label.setWordWrap(True)
+        tour_label.setFixedWidth(340)
 
         # Buttons
         buttons_layout = QHBoxLayout()
         self.launch_tour_button = QPushButton(_('Start tour'))
+        self.launch_tour_button.setStyleSheet(
+          "background-color: #3775A9;"
+          f"font-size: {self.BUTTONS_FONT_SIZE};"
+          f"padding: {self.BUTTONS_PADDING}"
+        )
         self.launch_tour_button.setAutoDefault(False)
         self.dismiss_button = QPushButton(_('Dismiss'))
+        self.dismiss_button.setStyleSheet(
+          "background-color: #60798B;"
+          f"font-size: {self.BUTTONS_FONT_SIZE};"
+          f"padding: {self.BUTTONS_PADDING}"
+        )
         self.dismiss_button.setAutoDefault(False)
+
         buttons_layout.addStretch()
         buttons_layout.addWidget(self.launch_tour_button)
+        if not MAC:
+            buttons_layout.addSpacing(10)
         buttons_layout.addWidget(self.dismiss_button)
 
         layout = QHBoxLayout()
         layout.addLayout(images_layout)
-        layout.addWidget(tour_label)
-        general_layout = QVBoxLayout()
-        general_layout.addLayout(layout)
-        general_layout.addLayout(buttons_layout)
+
+        label_layout = QVBoxLayout()
+        label_layout.addWidget(tour_label_title)
+        if not MAC:
+            label_layout.addSpacing(3)
+            label_layout.addWidget(tour_label)
+        else:
+            label_layout.addWidget(tour_label)
+            label_layout.addSpacing(10)
+
+        vertical_layout = QVBoxLayout()
+        if not MAC:
+            vertical_layout.addStretch()
+            vertical_layout.addLayout(label_layout)
+            vertical_layout.addSpacing(20)
+            vertical_layout.addLayout(buttons_layout)
+            vertical_layout.addStretch()
+        else:
+            vertical_layout.addLayout(label_layout)
+            vertical_layout.addLayout(buttons_layout)
+
+        general_layout = QHBoxLayout()
+        if not MAC:
+            general_layout.addStretch()
+            general_layout.addLayout(layout)
+            general_layout.addSpacing(1)
+            general_layout.addLayout(vertical_layout)
+            general_layout.addStretch()
+        else:
+            general_layout.addLayout(layout)
+            general_layout.addLayout(vertical_layout)
+
         self.setLayout(general_layout)
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
+        self.setStyleSheet("background-color: #262E38")
+        self.setContentsMargins(18, 40, 18, 40)
+        if not MAC:
+            self.setFixedSize(640, 280)
 
     def _start_tour(self):
         self.close()
