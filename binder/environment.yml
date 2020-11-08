@@ -6,41 +6,41 @@ dependencies:
 # the contents of this requirements/conda.txt to this file.yml.
 # Please *DO NOT* make changes directly just to here - make changes
 # to requirements/conda.txt, and copy it here.
-- applaunchservices >=0.1.7
-- atomicwrites >=1.2.0
-- chardet >=2.0.0
-- cloudpickle >=0.5.0
-- diff-match-patch >=20181111
-- intervaltree
+- applaunchservices >=0.1.7,<1.0.0
+- atomicwrites >=1.2.0,<=1.4.0
+- chardet >=2.0.0,<=3.0.4
+- cloudpickle >=0.5.0,<=1.3.0
+- diff-match-patch =20181111
+- intervaltree <=3.1.0
 - ipython >=4.0
 - jedi =0.17.1
-- keyring
-- nbconvert >=4.0
-- numpydoc >=0.6.0
-- paramiko >=2.4.0
+- keyring <21.2.0
+- nbconvert >=4.0,<6.0
+- numpydoc >=0.6.0,<1.0.0
+- paramiko >=2.4.0,<2.8
 - parso =0.7.0
-- pexpect >=4.4.0
-- pickleshare >=0.4
-- psutil >=5.3
-- pygments >=2.0
-- pylint >=1.0
+- pexpect >=4.4.0,<4.9.0
+- pickleshare >=0.4,<0.8
+- psutil >=5.3,<5.8
+- pygments >=2.0,<=2.5.2
+- pylint >=1.0,<=1.9.5
 - pyqt <5.13
 - pyyaml
 # NOTE: There's no need to set constraints for python-language-server
 # here because Spyder uses the subrepo for it when started in Binder.
 - python-language-server
-- pyxdg >=0.26
-- pyzmq >=17
-- qdarkstyle >=2.8
-- qtawesome >=0.5.7
-- qtconsole >=4.6.0
-- qtpy >=1.5.0
+- pyxdg >=0.26,<=0.27
+- pyzmq >=17,<20
+- qdarkstyle >=2.8,<2.9
+- qtawesome >=0.5.7,<1.0.0
+- qtconsole >=4.6.0,<5.0.0
+- qtpy >=1.5.0,<2.0.0
 - rtree >=0.8.3
-- sphinx >=0.6.6
+- sphinx >=0.6.6,<=1.8.5
 # NOTE: There's no need to set constraints for spyder-kernels here
 # because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
-- watchdog
+- watchdog =0.10.3
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied

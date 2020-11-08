@@ -218,6 +218,7 @@ def test_dependencies_for_binder_in_sync():
     assert spyder_env == full_reqs
 
 
+@pytest.mark.skip
 def test_dependencies_for_spyder_dialog_in_sync():
     """
     Spyder dependencies dialog should share deps with conda.txt.
