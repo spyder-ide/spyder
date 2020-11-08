@@ -845,7 +845,7 @@ class ShortcutsSortFilterProxy(QSortFilterProxyModel):
 
     def __init__(self, parent=None):
         """Initialize the multiple sort filter proxy."""
-        super().__init__(parent)
+        super(ShortcutsSortFilterProxy, self).__init__(parent)
         self._parent = parent
         self.pattern = re.compile(r'')
         self.filters = {}

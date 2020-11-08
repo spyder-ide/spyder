@@ -88,6 +88,28 @@ In this release 47 pull requests were closed.
 ----
 
 
+## Version 4.1.6 (2020-11-08)
+
+### Important fixes
+
+* Fix support for Python 2
+
+### Issues Closed
+
+* [Issue 13962](https://github.com/spyder-ide/spyder/issues/13962) - Spyder within Python 2.7 Anaconda environment crashes ([PR 14169](https://github.com/spyder-ide/spyder/pull/14169) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 14169](https://github.com/spyder-ide/spyder/pull/14169) - PR: Fixes to release 4.1.6, by [@ccordoba12](https://github.com/ccordoba12) ([13962](https://github.com/spyder-ide/spyder/issues/13962))
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 4.1.5 (2020-09-01)
 
 ### New features

@@ -212,7 +212,7 @@ install_requires = [
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
     # Required to get SSH connections to remote kernels
-    'paramiko>=2.4.0;platform_system=="Windows"',
+    'paramiko>=2.4.0,<2.8;platform_system=="Windows"',
     'parso==0.7.0',
     'pexpect>=4.4.0',
     'pickleshare>=0.4',
