@@ -91,7 +91,9 @@ def setup_logging(cli_options):
         handlers = [logging.StreamHandler()]
         if cli_options.debug_output == 'file':
             log_file = 'spyder-debug.log'
-            handlers.append(logging.FileHandler(open(log_file, 'w+')))
+            handlers.append(
+                logging.FileHandler(filename=log_file, mode='w+')
+            )
         else:
             log_file = None
 
