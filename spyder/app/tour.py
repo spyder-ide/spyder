@@ -1398,6 +1398,8 @@ class OpenTourDialog(QDialog):
 
     def __init__(self, parent, tour_function):
         super().__init__(parent)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.tour_function = tour_function
 
         # Image
