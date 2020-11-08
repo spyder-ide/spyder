@@ -1,33 +1,47 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.1.5 is released!
+**Subject**: [ANN] Spyder 4.2.0 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.1.5** has been released and is available for
+I'm pleased to announce that Spyder **4.2.0** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes seven weeks after version 4.1.4 and it contains the
+This release comes a bit more than two months after version 4.1.5 and it contains the
 following new features and important fixes:
 
 
 - New features
-  * Add natural sorting for variables in the Variable Explorer.
-  * Add shortcut to open files in the Editor in the operating system file
-    explorer.
-  * Add an option to run lines of code when entering the debugger. This is
-    present in `Preferences > IPython console > Startup`.
+  * New, self-contained installers for Windows and macOS.
+  * Add support for inline and interactive Matplotlib plots in the debugger.
+  * Automatic detection of conda and pyenv environments on
+    `Preferences > Python interpreter`.
+  * Add functionality to do auto-formatting in the Editor. It can triggered in
+    the menu `Source > Format file or selection` or with the shorcut
+    `Ctrl+Alt+I` (`Cmd+Alt+I` in macOS).
+  * Add support for text snippets in the Editor. The list of available snippets
+    is shown in `Preferences > Completion and linting > Snippets`.
+  * Support caching cells send in succession to the IPython console. This will
+    run one cell after the previous one ended.
+  * Variables will take precedence over Pdb commands in the debugger. In case a
+    variable clashes with a command, you'll have to prefix the command with `!`.
+  * Show a message to take a tour of Spyder features the first time 4.2.0 is
+    launched.
+  * Drop support fot Python 2.7 and 3.5.
 
 - Important fixes
-  * Fix error when opening projects.
-  * Fix error when hovering in the Editor caused by Kite.
-  * Don't save files when running cells.
-  * Several improvements to the user experience of Files.
+  * Improve performance in the Editor when paiting indent guides and showing
+    linting messages.
+  * Prevent the creation of temporary files in Dropbox directories after saving
+    in the Editor.
+  * Prevent the Outline to degrade performance in the Editor when visible. This
+    was achieved by moving this pane to use the LSP architecture.
+  * Support Jedi 0.17.2
 
-In this release we fixed 17 issues and merged 30 pull requests that amount
-to more than 120 commits. For a full list of fixes, please see our
+In this release we fixed 76 issues and merged 105 pull requests that amount
+to more than 770 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
