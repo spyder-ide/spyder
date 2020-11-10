@@ -228,10 +228,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
         code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
         code_style_g_layout.addWidget(code_style_ignore.textbox, 4, 1)
-        code_style_g_layout.addWidget(
-            self.code_style_max_line_length.plabel, 5, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_max_line_length.spinbox, 5, 1)
 
         # Set Code style options enabled/disabled
         code_style_g_widget = QWidget()
@@ -244,6 +240,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(self.code_style_check)
         code_style_layout.addWidget(code_style_g_widget)
+        code_style_layout.addWidget(self.code_style_max_line_length)
         code_style_layout.addWidget(vertical_line_box)
 
         code_style_widget = QWidget()
@@ -937,16 +934,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         self.table.save_servers()
         self.snippets_proxy.save_snippets()
-
-        if(self.get_option('formatting') == 'black' and
-                self.get_option('pycodestyle/max_line_length') == 79):
-            self.set_option('pycodestyle/max_line_length', 88)
-            self.code_style_max_line_length.spinbox.setValue(88)
-
-        if(self.get_option('formatting') != 'black' and
-                self.get_option('pycodestyle/max_line_length') == 88):
-            self.set_option('pycodestyle/max_line_length', 79)
-            self.code_style_max_line_length.spinbox.setValue(79)
 
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
