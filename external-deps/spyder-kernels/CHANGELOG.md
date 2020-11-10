@@ -1,5 +1,40 @@
 # History of changes
 
+## Version 1.10.0 (2020-11-08)
+
+### New features
+
+* Use '!' to prefix Pdb commands.
+* Show length of all iterables.
+
+### Issues Closed
+
+* [Issue 247](https://github.com/spyder-ide/spyder-kernels/issues/247) - Remove from warning that future versions of Spyder will give an error when using non-Python syntax ([PR 243](https://github.com/spyder-ide/spyder-kernels/pull/243) by [@impact27](https://github.com/impact27))
+* [Issue 245](https://github.com/spyder-ide/spyder-kernels/issues/245) - Display size of string in variable editor
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 255](https://github.com/spyder-ide/spyder-kernels/pull/255) - PR: Fix warning for '!' Pdb option, by [@impact27](https://github.com/impact27)
+* [PR 253](https://github.com/spyder-ide/spyder-kernels/pull/253) - PR: Extend sys.path with paths that come from Spyder, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 252](https://github.com/spyder-ide/spyder-kernels/pull/252) - PR: Use frame locals when evaluating code in Pdb, by [@impact27](https://github.com/impact27)
+* [PR 251](https://github.com/spyder-ide/spyder-kernels/pull/251) - PR: Catch errors when trying to get the len of an object, by [@impact27](https://github.com/impact27)
+* [PR 250](https://github.com/spyder-ide/spyder-kernels/pull/250) - PR: Show size of objects correctly, if they implement len(), by [@skjerns](https://github.com/skjerns)
+* [PR 246](https://github.com/spyder-ide/spyder-kernels/pull/246) - PR: Allow sorting with custom sorting key, by [@skjerns](https://github.com/skjerns)
+* [PR 244](https://github.com/spyder-ide/spyder-kernels/pull/244) - PR: Set multiprocessing ORIGINAL_DIR at startup, by [@impact27](https://github.com/impact27) ([13632](https://github.com/spyder-ide/spyder/issues/13632))
+* [PR 243](https://github.com/spyder-ide/spyder-kernels/pull/243) - PR: Allow leading indents in cells, by [@impact27](https://github.com/impact27) ([247](https://github.com/spyder-ide/spyder-kernels/issues/247))
+* [PR 242](https://github.com/spyder-ide/spyder-kernels/pull/242) - PR: Display error if required, by [@impact27](https://github.com/impact27)
+* [PR 240](https://github.com/spyder-ide/spyder-kernels/pull/240) - PR: Hide runcell and runfile frames using a new IPython feature, by [@impact27](https://github.com/impact27)
+* [PR 239](https://github.com/spyder-ide/spyder-kernels/pull/239) - PR: Improve Pdb input handling, by [@impact27](https://github.com/impact27)
+* [PR 232](https://github.com/spyder-ide/spyder-kernels/pull/232) - PR: Make do_where go to the current file, by [@impact27](https://github.com/impact27)
+* [PR 223](https://github.com/spyder-ide/spyder-kernels/pull/223) - PR: Add methods to handle IPython console config on the fly, by [@dalthviz](https://github.com/dalthviz)
+* [PR 214](https://github.com/spyder-ide/spyder-kernels/pull/214) - PR: Use '!' for Pdb commands, by [@impact27](https://github.com/impact27)
+
+In this release 14 pull requests were closed.
+
+----
+
 ## Version 1.9.4 (2020-09-01)
 
 ### Pull Requests Merged
