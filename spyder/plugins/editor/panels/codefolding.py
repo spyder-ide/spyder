@@ -152,7 +152,7 @@ def merge_folding(ranges, current_tree, root):
         if ending_line > starting_line:
             starting_line += 1
             ending_line += 1
-            folding_repr = FoldingRegion(text,(starting_line, ending_line))
+            folding_repr = FoldingRegion(text, (starting_line, ending_line))
             folding_ranges.append((starting_line, ending_line, folding_repr))
 
     tree = IntervalTree.from_tuples(folding_ranges)
