@@ -12,7 +12,7 @@ import sys
 
 # Local imports
 from spyder.utils import programs
-from spyder.config.base import _
+from spyder.config.base import _, is_pynsist
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2
 
@@ -34,7 +34,9 @@ ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-INTERVALTREE_REQVER = '>=3.0.2'
+# None for pynsist install for now
+# (check way to add dist.info/egg.info from packages without wheels available)
+INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 JEDI_REQVER = '=0.17.2'
 JSONSCHEMA_REQVER = '>=3.2.0'
@@ -48,7 +50,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
-PYLS_REQVER = '>=0.35.0;<1.0.0'
+PYLS_REQVER = '>=0.36.1;<1.0.0'
 PYLS_BLACK_REQVER = '>=0.4.6'
 PYLS_SPYDER_REQVER = '>=0.1.1'
 PYXDG_REQVER = '>=0.26'
@@ -60,10 +62,12 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
 SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=1.9.4;<1.10.0'
+SPYDER_KERNELS_REQVER = '>=1.10.0;<1.11.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
-WATCHDOG_REQVER = '>=0.10.3'
+# None for pynsist install for now
+# (check way to add dist.info/egg.info from packages without wheels available)
+WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
 
 
 # Optional dependencies

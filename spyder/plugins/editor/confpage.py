@@ -49,19 +49,6 @@ class EditorConfigPage(PluginConfigPage):
         scroll_past_end_box = newcb(_("Scroll past the end"),
                                     'scroll_past_end')
 
-        edgeline_box = newcb(_("Show vertical lines at"), 'edge_line')
-        edgeline_edit = self.create_lineedit(
-            "",
-            'edge_line_columns',
-            tip=("Enter values separated by commas"),
-            alignment=Qt.Horizontal,
-            regex="[0-9]+(,[0-9]+)*")
-        edgeline_edit_label = QLabel(_("characters"))
-        edgeline_box.toggled.connect(edgeline_edit.setEnabled)
-        edgeline_box.toggled.connect(edgeline_edit_label.setEnabled)
-        edgeline_edit.setEnabled(self.get_option('edge_line'))
-        edgeline_edit_label.setEnabled(self.get_option('edge_line'))
-
         occurrence_box = newcb(_("Highlight occurrences after"),
                                'occurrence_highlighting')
         occurrence_spin = self.create_spinbox(
@@ -76,12 +63,9 @@ class EditorConfigPage(PluginConfigPage):
                 self.get_option('occurrence_highlighting'))
 
         display_g_layout = QGridLayout()
-        display_g_layout.addWidget(edgeline_box, 0, 0)
-        display_g_layout.addWidget(edgeline_edit.textbox, 0, 1)
-        display_g_layout.addWidget(edgeline_edit_label, 0, 2)
-        display_g_layout.addWidget(occurrence_box, 1, 0)
-        display_g_layout.addWidget(occurrence_spin.spinbox, 1, 1)
-        display_g_layout.addWidget(occurrence_spin.slabel, 1, 2)
+        display_g_layout.addWidget(occurrence_box, 0, 0)
+        display_g_layout.addWidget(occurrence_spin.spinbox, 0, 1)
+        display_g_layout.addWidget(occurrence_spin.slabel, 0, 2)
 
         display_h_layout = QHBoxLayout()
         display_h_layout.addLayout(display_g_layout)

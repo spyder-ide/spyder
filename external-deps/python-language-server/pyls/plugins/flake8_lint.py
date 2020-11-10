@@ -144,6 +144,8 @@ def parse_stdout(document, stdout):
         _, line, character, code, msg = parsed_line
         line = int(line) - 1
         character = int(character) - 1
+        # show also the code in message
+        msg = code + ' ' + msg
         diagnostics.append(
             {
                 'source': 'flake8',

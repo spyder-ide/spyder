@@ -1,0 +1,2 @@
+# Spyder external dependencies (spyder-kernels)
+./external-deps/spyder-kernels

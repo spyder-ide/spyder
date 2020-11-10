@@ -31,7 +31,7 @@ def temp_document(doc_text, workspace):
 def test_flake8_unsaved(workspace):
     doc = Document('', workspace, DOC)
     diags = flake8_lint.pyls_lint(workspace, doc)
-    msg = 'local variable \'a\' is assigned to but never used'
+    msg = 'F841 local variable \'a\' is assigned to but never used'
     unused_var = [d for d in diags if d['message'] == msg][0]
 
     assert unused_var['source'] == 'flake8'
@@ -45,7 +45,7 @@ def test_flake8_lint(workspace):
     try:
         name, doc = temp_document(DOC, workspace)
         diags = flake8_lint.pyls_lint(workspace, doc)
-        msg = 'local variable \'a\' is assigned to but never used'
+        msg = 'F841 local variable \'a\' is assigned to but never used'
         unused_var = [d for d in diags if d['message'] == msg][0]
 
         assert unused_var['source'] == 'flake8'
