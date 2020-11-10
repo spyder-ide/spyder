@@ -691,6 +691,26 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             if fold_status:
                 folding_panel.toggle_fold_trigger(block)
 
+        if after_current_line:
+            # Shift selection down
+            fold_start_line = cursor.blockNumber() + 2
+            block = cursor.block().next().next()
+
+            if fold_start_line in folding_panel.folding_status:
+                fold_status = folding_panel.folding_status[fold_start_line]
+                if fold_status:
+                    folding_panel.toggle_fold_trigger(block)
+        else:
+            # Shift selection up
+            block = cursor.block()
+            block = folding_panel.find_parent_scope(block)
+            fold_start_line = block.blockNumber()
+
+            if fold_start_line in folding_panel.folding_status:
+                fold_status = folding_panel.folding_status[fold_start_line]
+                if fold_status:
+                    folding_panel.toggle_fold_trigger(block)
+
         # ------ Select text
         # Get selection start location
         cursor.setPosition(start_pos)
