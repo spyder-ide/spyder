@@ -21,26 +21,26 @@ class TrieNode:
         if len(self.key) > 0:
             sequence = sequence[1:]
 
-        if len(sequence) == 0:
-            self.value = value
-        else:
+        if sequence:
             elem = sequence[0]
             node = self.children.get(elem, None)
             if node is None:
                 node = TrieNode()
                 self.children[elem] = node
             node[sequence] = value
+        else:
+            self.value = value
 
     def __getitem__(self, sequence):
         node = None
         if sequence[0] == self.key:
             sequence = sequence[1:]
-            if len(sequence) == 0:
-                node = self
-            else:
+            if sequence:
                 if sequence[0] in self.children:
                     next_children = self.children[sequence[0]]
                     node = next_children[sequence]
+            else:
+                node = self
         return node
 
     def __iter__(self):
@@ -58,7 +58,7 @@ class TrieNode:
         elem = sequence[0]
         if elem == self.key:
             sequence = sequence[1:]
-            if len(sequence) == 0:
+            if not sequence:
                 if self.value is not None:
                     return True
                 else:
@@ -78,17 +78,17 @@ class Trie(TrieNode):
         self.sequences = []
 
     def __getitem__(self, sequence):
-        if len(sequence) == 0:
-            return self
-        else:
+        if sequence:
             elem = sequence[0]
             if elem in self.children:
                 node = self.children[elem]
                 return node[sequence]
+        else:
+            return self
         return None
 
     def __setitem__(self, sequence, value):
-        if len(sequence) == 0:
-            self.value = value
-        else:
+        if sequence:
             super().__setitem__(sequence, value)
+        else:
+            self.value = value
