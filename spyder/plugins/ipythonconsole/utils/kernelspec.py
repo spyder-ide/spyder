@@ -18,8 +18,8 @@ import sys
 from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
-from spyder.config.base import (DEV, running_under_pytest, get_safe_mode,
-                                running_in_mac_app)
+from spyder.config.base import (DEV, is_pynsist, running_under_pytest,
+                                get_safe_mode, running_in_mac_app)
 from spyder.config.manager import CONF
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
@@ -190,7 +190,7 @@ class SpyderKernelSpec(KernelSpec):
             env_vars['SPY_RUN_CYTHON'] = True
 
         # macOS app considerations
-        if running_in_mac_app() and not default_interpreter:
+        if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
             env_vars.pop('PYTHONHOME', None)
             env_vars.pop('PYTHONPATH', None)
 

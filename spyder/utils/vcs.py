@@ -124,7 +124,7 @@ def get_git_revision(repopath):
     error
     """
     try:
-        git = programs.find_program('git')
+        git = programs.find_git()
         assert git is not None and osp.isdir(osp.join(repopath, '.git'))
         commit = programs.run_program(git, ['rev-parse', '--short', 'HEAD'],
                                       cwd=repopath).communicate()
@@ -163,7 +163,7 @@ def get_git_refs(repopath):
     if os.path.isfile(repopath):
         repopath = os.path.dirname(repopath)
 
-    git = programs.find_program('git')
+    git = programs.find_git()
 
     if git:
         try:

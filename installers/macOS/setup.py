@@ -73,6 +73,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     astroid :
         ImportError: cannot import name 'context' from 'astroid'
         (<path>/Resources/lib/python38.zip/astroid/__init__.pyc)
+    blib2to3 :
+        File "<frozen zipimport>", line 177, in get_data
+        KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
+        Grammar3.8.6.final.0.pickle'
     ipykernel :
         ModuleNotFoundError: No module named 'ipykernel.datapub'
     ipython :
@@ -100,24 +104,31 @@ def make_app_bundle(dist_dir, make_lite=False):
     pyls :
         <path>/Contents/MacOS/python: No module named pyls
         Note: still occurs in alias mode
+    pyls_black :
+        Mandatory: pyls_black >=0.4.6 : None (NOK)
+    pyls_spyder :
+        Mandatory: pyls_spyder >=0.1.1 : None (NOK)
     qtawesome :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resourses/lib/
         python38.zip/qtawesome/fonts/fontawesome4.7-webfont.ttf'
+    setuptools :
+        Mandatory: setuptools >=39.0.0 : None (NOK)
+    sphinx :
+        No module named 'sphinx.builders.changes'
     spyder :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python38.zip/spyder/app/mac_stylesheet.qss'
     spyder_kernels :
         No module named spyder_kernels.console.__main__
-    sphinx :
-        No module named 'sphinx.builders.changes'
 
    """
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'ipykernel', 'IPython', 'jedi',
-                'jinja2', 'keyring', 'parso', 'pygments', 'pyls', 'qtawesome',
-                'spyder', 'spyder_kernels', 'sphinx']
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'ipykernel', 'IPython',
+                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pyls',
+                'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
+                'sphinx', 'spyder', 'spyder_kernels']
 
     if make_lite:
         INCLUDES = []
@@ -165,8 +176,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     for dist in pkg_resources.working_set:
         if dist.egg_info is None:
             continue
-        dest = os.path.join(dest_dir, os.path.basename(dist.egg_info))
+        egg = os.path.basename(dist.egg_info)
+        dest = os.path.join(dest_dir, egg)
         shutil.copytree(dist.egg_info, dest)
+        logger.info(f'Copied {egg}')
 
     logger.info('App bundle complete.')
 
@@ -242,7 +255,7 @@ if __name__ == '__main__':
             make_app_bundle(dist_dir, make_lite=args.make_lite)
         else:
             logger.info('Skipping app bundle.')
-    
+
         if args.make_dmg:
             make_disk_image(dist_dir, make_lite=args.make_lite)
         else:

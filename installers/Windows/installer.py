@@ -24,8 +24,8 @@ https://github.com/mu-editor/mu/blob/master/win_installer.py
 """
 
 import argparse
+import importlib.util as iutil
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -34,19 +34,33 @@ import tempfile
 import yarg
 
 
-# Packages to remove from the requirements for example pip
+# Packages to remove from the requirements for example pip or
+# external direct dependencies (python-language-server spyder-kernels)
 
-UNWANTED_PACKAGES = ['pip']
+UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', '').split()
 
-# Packages to skip checking for wheels and instead add them directly in the
-# 'packages' section
+# Packages to skip when checking for wheels and instead add them directly in
+# the 'packages' section, for example bcrypt
 
-SKIP_PACKAGES = ['bcrypt']
+SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
+
+
+# Packages to be added to the packages section regardles wheel checks or
+# packages skipped, for example external direct dependencies
+# (spyder-kernels python-language-server)
+
+ADD_PACKAGES = os.environ.get('ADD_PACKAGES', '').split()
+
+# Packages to be installed using the editable flag
+# (python-language-server in PRs)
+
+INSTALL_EDITABLE_PACKAGES = os.environ.get(
+    'INSTALL_EDITABLE_PACKAGES', '').split()
 
 # The pynsist requirement spec that will be used to install pynsist in
-# the temporary packaging virtual environment.
+# the temporary packaging virtual environment (pynsist==2.5.1).
 
-PYNSIST_REQ = "pynsist==2.5.1"
+PYNSIST_REQ = os.environ.get('PYNSIST_REQ', 'pynsist==2.5.1')
 
 # The pynsist configuration file template that will be used. Of note,
 # with regards to pynsist dependency collection and preparation:
@@ -76,8 +90,11 @@ packages=
     win32security
     ntsecuritycon
     {packages}
+files=black-20.8b1.dist-info > $INSTDIR/pkgs
+    __main__.py > $INSTDIR/pkgs/jedi/inference/compiled/subprocess
 [Build]
 installer_name={installer_name}
+nsi_template={template}
 """
 
 
@@ -135,16 +152,15 @@ def about_dict(repo_root, package):
 
     keys are the __variables__ in <package>/__init__.py.
     """
-    DUNDER_ASSIGN_RE = re.compile(r"""^__\w+__\s*=\s*['"].+['"]$""")
-    about = {}
-    with open(os.path.join(repo_root, package, "__init__.py")) as f:
-        for line in f:
-            if DUNDER_ASSIGN_RE.search(line):
-                exec(line, about)
-    return about
+    package_init = os.path.join(repo_root, package, "__init__.py")
+    spec = iutil.spec_from_file_location("package", package_init)
+    package = iutil.module_from_spec(spec)
+    spec.loader.exec_module(package)
+
+    return package.__dict__
 
 
-def pypi_wheels_in(requirements, skip):
+def pypi_wheels_in(requirements, skip_packages):
     """
     Return a list of the entries in requirements (distributed as wheels).
 
@@ -157,7 +173,7 @@ def pypi_wheels_in(requirements, skip):
         # Needed to detect the package being installed from source
         # <package> @ <path to package>==<version>
         name = name.split('@')[0].strip()
-        if name in skip:
+        if name in skip_packages:
             print("-", requirement, "skipped")
         else:
             print("-", requirement, end=" ")
@@ -195,12 +211,14 @@ def packages_from(requirements, wheels, skip_packages):
     "name==version".
     """
     packages = set(requirements) - set(wheels) - set(skip_packages)
+    packages = packages | set(ADD_PACKAGES)
     return [package_name(p) for p in packages]
 
 
 def create_pynsist_cfg(
         python, python_version, repo_root, entrypoint, package,
-        icon_file, license_file, filename, encoding="latin1"):
+        icon_file, license_file, filename, encoding="latin1", extras=None,
+        suffix=None, template=None):
     """
     Create a pynsist configuration file from the PYNSIST_CFG_TEMPLATE.
 
@@ -209,27 +227,39 @@ def create_pynsist_cfg(
     others. Returns the name of the resulting installer executable, as
     set into the pynsist configuration file.
     """
-    repo_about = about_dict(repo_root, package)
-    repo_package_name = repo_about["__title__"]
-    repo_version = repo_about["__installer_version__"]
-    repo_author = repo_about["__author__"]
+    repo_about_file = about_dict(repo_root, package)
+    repo_package_name = repo_about_file["__title__"]
+    repo_version = repo_about_file["__installer_version__"]
+    repo_author = repo_about_file["__author__"]
 
     requirements = [
-        # Those from pip freeze except the package itself.
+        # Those from pip freeze except the package itself and packages local
+        # installed (by passing a directory path or with the editable flag).
+        # To add such packages the ADD_PACKAGES should include the import names
+        # of the packages.
         line
         for line in pip_freeze(python, encoding=encoding)
         if package_name(line) != package and \
-        package_name(line) not in UNWANTED_PACKAGES
+        package_name(line) not in UNWANTED_PACKAGES and \
+        '-e git' not in line
     ]
     skip_wheels = [package] + SKIP_PACKAGES
     wheels = pypi_wheels_in(requirements, skip_wheels)
     skip_packages = [package]
     packages = packages_from(requirements, wheels, skip_packages)
 
-    installer_exe = "{}_{}bit.exe".format(repo_package_name, bitness)
+    if suffix:
+        installer_name = "{}_{}bit_{}.exe"
+    else:
+        installer_name = "{}_{}bit{}.exe"
+
+    if not suffix:
+        suffix = ""
+
+    installer_exe = installer_name.format(repo_package_name, bitness, suffix)
 
     pynsist_cfg_payload = PYNSIST_CFG_TEMPLATE.format(
-        name=package,
+        name=repo_package_name,
         version=repo_version,
         entrypoint=entrypoint,
         icon_file=icon_file,
@@ -240,6 +270,7 @@ def create_pynsist_cfg(
         pypi_wheels="\n    ".join(wheels),
         packages="\n    ".join(packages),
         installer_name=installer_exe,
+        template=template,
     )
     with open(filename, "wt", encoding=encoding) as f:
         f.write(pynsist_cfg_payload)
@@ -252,7 +283,8 @@ def create_pynsist_cfg(
 
 
 def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
-        license_path, extra_packages=None, conda_path=None):
+        license_path, extra_packages=None, conda_path=None, suffix=None,
+        template=None):
     """
     Run the installer generation.
 
@@ -264,6 +296,33 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
         with tempfile.TemporaryDirectory(
                 prefix="installer-pynsist-") as work_dir:
             print("Temporary working directory at", work_dir)
+
+            # NOTE: SHOULD BE TEMPORAL (until black has wheels available).
+            # See the 'files' section on the pynsist template config too.
+            print("Copying dist.info for black-20.8b1")
+            shutil.copytree(
+                "installers/Windows/assets/black/black-20.8b1.dist-info",
+                os.path.join(work_dir, "black-20.8b1.dist-info"))
+
+            # NOTE: SHOULD BE TEMPORAL (until jedi has the fix available).
+            # See the 'files' section on the pynsist template config too.
+            print("Copying patched CompiledSubprocess __main__.py for jedi")
+            shutil.copy(
+                "installers/Windows/assets/jedi/__main__.py",
+                os.path.join(work_dir, "__main__.py"))
+
+            if template:
+                print("Copying template into discoverable path for Pynsist")
+                template_basename = os.path.basename(template)
+                template_new_path = os.path.normpath(
+                    os.path.join(
+                        work_dir,
+                        "packaging-env/Lib/site-packages/nsist"))
+                os.makedirs(template_new_path)
+                shutil.copy(
+                    template,
+                    os.path.join(template_new_path, template_basename))
+                template = template_basename
 
             print("Creating the package virtual environment.")
             env_python = create_packaging_env(
@@ -282,6 +341,13 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
                  "--no-warn-script-location"]
             )
 
+            print("Updating/installing wheel in the virtual environment",
+                  env_python)
+            subprocess_run(
+                [env_python, "-m", "pip", "install", "--upgrade", "wheel",
+                 "--no-warn-script-location"]
+            )
+
             print("Installing package with", env_python)
             subprocess_run([env_python, "-m",
                             "pip", "install", repo_root,
@@ -292,11 +358,18 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
                 subprocess_run([env_python, "-m", "pip", "install", "-r",
                                 extra_packages, "--no-warn-script-location"])
 
+            if INSTALL_EDITABLE_PACKAGES:
+                print("Installing packages with the --editable flag")
+                for e_package in INSTALL_EDITABLE_PACKAGES:
+                    subprocess_run([env_python, "-m", "pip", "install", "-e",
+                                    e_package, "--no-warn-script-location"])
+
             pynsist_cfg = os.path.join(work_dir, "pynsist.cfg")
             print("Creating pynsist configuration file", pynsist_cfg)
             installer_exe = create_pynsist_cfg(
                 env_python, python_version, repo_root, entrypoint, package,
-                icon_path, license_path, pynsist_cfg)
+                icon_path, license_path, pynsist_cfg, extras=extra_packages,
+                suffix=suffix, template=template)
 
             print("Installing pynsist.")
             subprocess_run([env_python, "-m", "pip", "install", PYNSIST_REQ,
@@ -336,14 +409,20 @@ if __name__ == "__main__":
              '''the main package''')
     parser.add_argument(
         '-cp', '--conda_path', help='Path to conda executable')
+    parser.add_argument(
+        '-s', '--suffix',
+        help='Suffix for the name of the generated executable')
+    parser.add_argument(
+        '-t', '--template',
+        help='Path to .nsi template for the installer')
 
     args = parser.parse_args()
     from operator import attrgetter
     (python_version, bitness, setup_py_path, entrypoint, package, icon_path,
-     license_path, extra_packages, conda_path) = attrgetter(
+     license_path, extra_packages, conda_path, suffix, template) = attrgetter(
          'python_version', 'bitness', 'setup_py_path',
          'entrypoint', 'package', 'icon_path', 'license_path',
-         'extra_packages', 'conda_path')(args)
+         'extra_packages', 'conda_path', 'suffix', 'template')(args)
 
     if not setup_py_path.endswith("setup.py"):
         sys.exit("Invalid path to setup.py:", setup_py_path)
@@ -353,7 +432,9 @@ if __name__ == "__main__":
     license_file = os.path.abspath(license_path)
     if extra_packages:
         extra_packages = os.path.abspath(extra_packages)
+    if template:
+        template = os.path.abspath(template)
 
     run(python_version, bitness, repo_root, entrypoint,
         package, icon_file, license_file, extra_packages=extra_packages,
-        conda_path=conda_path)
+        conda_path=conda_path, suffix=suffix, template=template)
