@@ -711,6 +711,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     offset = 1
             fold_start_line = block.blockNumber() - 1 - offset
 
+            # Find the innermost code folding region for the current position
             enclosing_regions = sorted(list(
                 folding_panel.current_tree[fold_start_line]))
 
