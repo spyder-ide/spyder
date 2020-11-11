@@ -16,6 +16,7 @@ import textdistance
 
 # --------------------- Code Folding Panel ------------------------------------
 
+
 class FoldingRegion:
     """Internal representation of a code folding region."""
 
