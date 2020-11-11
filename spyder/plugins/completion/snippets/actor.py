@@ -87,6 +87,9 @@ class SnippetsActor(QObject):
             current_word = msg['current_word']
             snippets = []
 
+            if current_word is None:
+                return
+
             if language in self.language_snippets:
                 language_snippets = self.language_snippets[language]
                 if language_snippets[current_word]:
