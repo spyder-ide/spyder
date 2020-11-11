@@ -1742,6 +1742,9 @@ class CodeEditor(TextEditBaseWidget):
         """Handle folding response."""
         try:
             ranges = response['params']
+            if ranges is None:
+                return
+
             folding_panel = self.panels.get(FoldingPanel)
 
             # Update folding
