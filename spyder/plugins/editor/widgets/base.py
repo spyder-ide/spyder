@@ -692,7 +692,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 folding_panel.toggle_fold_trigger(block)
 
         if after_current_line:
-            # Shift selection down
+            # Unfold any folded region when moving lines down
             fold_start_line = cursor.blockNumber() + 2
             block = cursor.block().next().next()
 
@@ -701,7 +701,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 if fold_status:
                     folding_panel.toggle_fold_trigger(block)
         else:
-            # Shift selection up
+            # Unfold any folded region when moving lines up
             block = cursor.block()
             offset = 0
             if self.has_selected_text():
