@@ -4768,6 +4768,63 @@ class CodeEditor(TextEditBaseWidget):
             return N_strip
         return 0
 
+    def move_line_up(self):
+        """Move up current line or selected text"""
+        self.__move_line_or_selection(after_current_line=False)
+
+    def move_line_down(self):
+        """Move down current line or selected text"""
+        self.__move_line_or_selection(after_current_line=True)
+
+    def __move_line_or_selection(self, after_current_line=True):
+        cursor = self.textCursor()
+        # Unfold any folded code block before moving lines up/down
+        folding_panel = self.panels.get('FoldingPanel')
+        fold_start_line = cursor.blockNumber() + 1
+        block = cursor.block().next()
+
+        if fold_start_line in folding_panel.folding_status:
+            fold_status = folding_panel.folding_status[fold_start_line]
+            if fold_status:
+                folding_panel.toggle_fold_trigger(block)
+
+        if after_current_line:
+            # Unfold any folded region when moving lines down
+            fold_start_line = cursor.blockNumber() + 2
+            block = cursor.block().next().next()
+
+            if fold_start_line in folding_panel.folding_status:
+                fold_status = folding_panel.folding_status[fold_start_line]
+                if fold_status:
+                    folding_panel.toggle_fold_trigger(block)
+        else:
+            # Unfold any folded region when moving lines up
+            block = cursor.block()
+            offset = 0
+            if self.has_selected_text():
+                ((selection_start, _),
+                 (selection_end)) = self.get_selection_start_end()
+                if selection_end != selection_start:
+                    offset = 1
+            fold_start_line = block.blockNumber() - 1 - offset
+
+            # Find the innermost code folding region for the current position
+            enclosing_regions = sorted(list(
+                folding_panel.current_tree[fold_start_line]))
+
+            if len(enclosing_regions) > 0:
+                innermost_region = enclosing_regions[-1]
+                fold_start_line = innermost_region.begin
+                block = self.document().findBlockByNumber(fold_start_line)
+
+                if fold_start_line in folding_panel.folding_status:
+                    fold_status = folding_panel.folding_status[fold_start_line]
+                    if fold_status:
+                        folding_panel.toggle_fold_trigger(block)
+
+        self._TextEditBaseWidget__move_line_or_selection(
+            after_current_line=after_current_line)
+
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
         # Restart timer every time the mouse is moved
