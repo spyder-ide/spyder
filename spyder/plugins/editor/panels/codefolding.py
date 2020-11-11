@@ -114,6 +114,10 @@ class FoldingStatus(dict):
     folding region without having to deal with the internal representation.
     """
 
+    def values(self):
+        values = dict.values(self)
+        return [x.status for x in values]
+
     def __getitem__(self, key):
         value = dict.__getitem__(self, key)
         return value.status
@@ -442,6 +446,21 @@ class FoldingPanel(Panel):
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
         painter = QPainter(self)
+        document = self.editor.document()
+        for line in self.folding_status:
+            status = self.folding_status[line]
+            if status:
+                block = document.findBlockByNumber(line - 1)
+                if not block.isVisible():
+                    parent_line = self.folding_nesting[line]
+                    if parent_line == -1:
+                        block.setVisible(True)
+                    else:
+                        parent_block = document.findBlockByNumber(
+                            parent_line - 1)
+                        if not parent_block.isVisible():
+                            block.setVisible(True)
+
         if not self._display_folding and not self._key_pressed:
             if any(self.folding_status.values()):
                 for info in self.editor.visible_blocks:
