@@ -179,16 +179,14 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
 
         # ensure Windows subprocess environment has SYSTEMROOT
         if kwargs.get('env') is not None:
-            # Is SYSTEMROOT in env? case insensitive
-            if 'SYSTEMROOT' not in map(str.upper, kwargs['env'].keys()):
-                # Add SYSTEMROOT from os.environ
-                sys_root_key = None
-                for k, v in os.environ.items():
-                    if 'SYSTEMROOT' == k.upper():
-                        sys_root_key = k
-                        break  # don't risk multiple values
-                if sys_root_key is not None:
-                    kwargs['env'].update({sys_root_key: os.environ[sys_root_key]})
+            # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
+            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE']:
+                if env_var not in map(str.upper, kwargs['env'].keys()):
+                    # Add from os.environ
+                    for k, v in os.environ.items():
+                        if env_var == k.upper():
+                            kwargs['env'].update({k: v})
+                            break  # don't risk multiple values
     else:
         # linux and macOS
         if kwargs.get('env') is not None:
