@@ -55,8 +55,9 @@ from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ig
 from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
 from spyder.plugins.editor.widgets.codeeditor import get_file_language
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
-                                                  EncodingStatus, EOLStatus,
-                                                  ReadWriteStatus, VCSStatus)
+                                                  EncodingStatus, LanguageStatus,
+                                                  EOLStatus, ReadWriteStatus,
+                                                  VCSStatus)
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.manager import CONF
@@ -416,6 +417,7 @@ class EditorStack(QWidget):
     sig_editor_cursor_position_changed = Signal(int, int)
     sig_refresh_eol_chars = Signal(str)
     sig_refresh_formatting = Signal(bool)
+    sig_refresh_language_name = Signal(str)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -2555,6 +2557,7 @@ class EditorStack(QWidget):
         self.refresh_save_all_action.emit()
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
+        self.refresh_language_name(finfo.editor.language)
         self.refresh_eol_chars(eol_chars)
         self.stack_history.refresh()
 
@@ -2562,6 +2565,8 @@ class EditorStack(QWidget):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.sig_refresh_eol_chars.emit(os_name)
 
+    def refresh_language_name(self, language):
+        self.sig_refresh_language_name.emit(language)
 
     #------ Load, reload
     def reload(self, index):
@@ -3282,6 +3287,7 @@ class EditorWidget(QSplitter):
         self.vcs_status = VCSStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
+        self.language_status = LanguageStatus(self, statusbar)
         self.eol_status = EOLStatus(self, statusbar)
         self.readwrite_status = ReadWriteStatus(self, statusbar)
 
@@ -3333,10 +3339,13 @@ class EditorWidget(QSplitter):
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
         editorstack.reset_statusbar.connect(self.readwrite_status.hide)
+        editorstack.reset_statusbar.connect(self.language_status.hide)
         editorstack.reset_statusbar.connect(self.encoding_status.hide)
         editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
         editorstack.readonly_changed.connect(
                                         self.readwrite_status.update_readonly)
+        editorstack.sig_refresh_language_name.connect(
+            self.language_status.update_language)
         editorstack.encoding_changed.connect(
                                          self.encoding_status.update_encoding)
         editorstack.sig_editor_cursor_position_changed.connect(

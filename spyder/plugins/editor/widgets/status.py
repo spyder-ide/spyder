@@ -58,6 +58,20 @@ class EncodingStatus(StatusBarWidget):
         return _("Encoding")
 
 
+class LanguageStatus(StatusBarWidget):
+    """Status bar widget for the current file language."""
+
+    def update_language(self, language):
+        """Update language name status."""
+        if language is None or language == "None":
+            language = "Text"
+        self.set_value(language)
+
+    def get_tooltip(self):
+        """Return localized tool tip for widget."""
+        return _("Language name")
+
+
 class CursorPositionStatus(StatusBarWidget):
     """Status bar widget for the current file cursor postion."""
 

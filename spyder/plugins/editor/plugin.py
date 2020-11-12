@@ -49,8 +49,9 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
                                                   clear_breakpoint)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
-                                                  EncodingStatus, EOLStatus,
-                                                  ReadWriteStatus, VCSStatus)
+                                                  EncodingStatus, LanguageStatus,
+                                                  EOLStatus, ReadWriteStatus,
+                                                  VCSStatus)
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                           get_run_configuration,
@@ -144,6 +145,7 @@ class Editor(SpyderPluginWidget):
         self.vcs_status = VCSStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
+        self.language_status = LanguageStatus(self, statusbar)
         self.eol_status = EOLStatus(self, statusbar)
         self.readwrite_status = ReadWriteStatus(self, statusbar)
 
@@ -1263,9 +1265,12 @@ class Editor(SpyderPluginWidget):
             editorstack.set_find_widget(self.find_widget)
             editorstack.reset_statusbar.connect(self.readwrite_status.hide)
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
+            editorstack.reset_statusbar.connect(self.language_status.hide)
             editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
             editorstack.readonly_changed.connect(
                                         self.readwrite_status.update_readonly)
+            editorstack.sig_refresh_language_name.connect(
+                self.language_status.update_language)
             editorstack.encoding_changed.connect(
                                          self.encoding_status.update_encoding)
             editorstack.sig_editor_cursor_position_changed.connect(
