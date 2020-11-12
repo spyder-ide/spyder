@@ -80,7 +80,7 @@ To release a new version of Spyder you need to follow these steps:
       git add .
       git commit -m "Update core dependencies"
 
-* Update their respective subrepos with the follwing commands, but only if new versions are available!
+* Update their respective subrepos with the following commands, but only if new versions are available!
 
       git subrepo pull external-deps/spyder-kernels
       git subrepo pull external-deps/python-language-server
@@ -106,7 +106,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update version in `__init__.py` (set release version, remove 'dev0')
 
-* `git add .` and `git commit .m "Release X.X.X"`
+* `git add .` and `git commit -m "Release X.X.X"`
 
 * python setup.py sdist
 
@@ -138,6 +138,31 @@ To release a new version of Spyder you need to follow these steps:
 
 * git push upstream --tags
 
-* Publish release in our Github Releases page
 
-* Publish release announcements to our list
+## After the release
+
+* Publish release in our Github Releases page.
+
+* Publish release announcements to our list.
+
+* Merge PRs on Conda-forge that update the `spyder-kernels` and `python-language-server` feedstocks.
+
+  **Notes**:
+
+  - Review carefully the release notes of those packages to see if it's necessary to add new dependencies or update the constraints on the current ones (e.g. `jedi >=0.17.2`).
+  - After merging each of those PRs, give a ping to the Anaconda team telling them that these packages are required for the new Spyder version. You need to use the handle `@anaconda-pkg-build` for that. Here is an example of this kinf of messages:
+
+    https://github.com/conda-forge/spyder-kernels-feedstock/pull/58#issuecomment-725664085
+
+* After those PRs are merged, go to
+
+  https://github.com/conda-forge/spyder-feedstock
+
+  and merge the corresponding PR for the new release.
+
+  **Notes**:
+
+  - Don't forget to add new dependencis and update constraints on the rest of them. For that, you need to compare line by line the contents of the `recipe/meta.yaml` file in the feedstock with
+
+    https://github.com/spyder-ide/spyder/blob/4.x/requirements/conda.txt
+  - After merging, give a ping to `@anaconda-pkg-build` about the new release.

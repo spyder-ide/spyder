@@ -23,7 +23,7 @@
 
 ### Important fixes
 
-* Improve performance in the Editor when paiting indent guides and showing
+* Improve performance in the Editor when painting indent guides and showing
   linting messages.
 * Prevent the creation of temporary files in Dropbox directories after saving
   in the Editor.
