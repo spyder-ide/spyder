@@ -63,7 +63,7 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
 SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=1.10.0;<1.11.0'
+SPYDER_KERNELS_REQVER = '>=2.0.0dev0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
