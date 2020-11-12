@@ -1,5 +1,50 @@
 # History of changes
 
+## Version 5.0alpha2 (2020-11-12)
+
+### Issues Closed
+
+* [Issue 13947](https://github.com/spyder-ide/spyder/issues/13947) - Fix import in test_mainwindow after merge of #13828 ([PR 13948](https://github.com/spyder-ide/spyder/pull/13948) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 13695](https://github.com/spyder-ide/spyder/issues/13695) - [API] Support adding icons to menus ([PR 13709](https://github.com/spyder-ide/spyder/pull/13709) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13684](https://github.com/spyder-ide/spyder/issues/13684) - Differences in online help pane toolbar ([PR 13686](https://github.com/spyder-ide/spyder/pull/13686) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13683](https://github.com/spyder-ide/spyder/issues/13683) - The icon of internal console settings disappeared  ([PR 13689](https://github.com/spyder-ide/spyder/pull/13689) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13670](https://github.com/spyder-ide/spyder/issues/13670) - Breakpoint's hamburger menu has duplicated options than in context menu ([PR 13672](https://github.com/spyder-ide/spyder/pull/13672) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13665](https://github.com/spyder-ide/spyder/issues/13665) - Spyder crashes with `select all` + `copy all` in the help pane ([PR 13676](https://github.com/spyder-ide/spyder/pull/13676) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13659](https://github.com/spyder-ide/spyder/issues/13659) - Plots pane issues and details ([PR 13677](https://github.com/spyder-ide/spyder/pull/13677) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13524](https://github.com/spyder-ide/spyder/issues/13524) - "Run in current namespace" missing in Spyder 5.0.0a1 ([PR 13528](https://github.com/spyder-ide/spyder/pull/13528) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13422](https://github.com/spyder-ide/spyder/issues/13422) - After new Spyder IDE installation, clicked on popup to read "tutorial" ([PR 13529](https://github.com/spyder-ide/spyder/pull/13529) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13096](https://github.com/spyder-ide/spyder/issues/13096) - Move shortcut standalone preferences page to new plugin with new API ([PR 13097](https://github.com/spyder-ide/spyder/pull/13097) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 10722](https://github.com/spyder-ide/spyder/issues/10722) - Move creation of actions and shortcuts to the plugin API ([PR 13097](https://github.com/spyder-ide/spyder/pull/13097) by [@goanpeca](https://github.com/goanpeca))
+
+In this release 11 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 14018](https://github.com/spyder-ide/spyder/pull/14018) - PR: Update script installer to handle python-slugify package, by [@dalthviz](https://github.com/dalthviz)
+* [PR 14015](https://github.com/spyder-ide/spyder/pull/14015) - PR: Use our convention for os.path to fix import error (Breakpoints), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13948](https://github.com/spyder-ide/spyder/pull/13948) - PR: Fix EmptyProject test fixture. Remove notify_project_open call, by [@dalthviz](https://github.com/dalthviz) ([13947](https://github.com/spyder-ide/spyder/issues/13947))
+* [PR 13904](https://github.com/spyder-ide/spyder/pull/13904) - PR: Add missing instruction to Maintenance guide, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13886](https://github.com/spyder-ide/spyder/pull/13886) - PR: Update duplicate messages after the release of 4.1.5, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13874](https://github.com/spyder-ide/spyder/pull/13874) - PR: Fix loading of external (non dockable) plugins and other fixes, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13871](https://github.com/spyder-ide/spyder/pull/13871) - PR: Add some instructions for maintainers, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13709](https://github.com/spyder-ide/spyder/pull/13709) - PR: Add icon to menu creation mixin, by [@goanpeca](https://github.com/goanpeca) ([13695](https://github.com/spyder-ide/spyder/issues/13695))
+* [PR 13689](https://github.com/spyder-ide/spyder/pull/13689) - PR: Restore submenu icon on internal console settings, by [@goanpeca](https://github.com/goanpeca) ([13683](https://github.com/spyder-ide/spyder/issues/13683))
+* [PR 13686](https://github.com/spyder-ide/spyder/pull/13686) - PR: Update placeholder text in Online Help plugin, by [@goanpeca](https://github.com/goanpeca) ([13684](https://github.com/spyder-ide/spyder/issues/13684))
+* [PR 13677](https://github.com/spyder-ide/spyder/pull/13677) - PR: Fix several issues with the plots pane from API migration, by [@goanpeca](https://github.com/goanpeca) ([13659](https://github.com/spyder-ide/spyder/issues/13659))
+* [PR 13676](https://github.com/spyder-ide/spyder/pull/13676) - PR: Rename original browser copy action, by [@goanpeca](https://github.com/goanpeca) ([13665](https://github.com/spyder-ide/spyder/issues/13665))
+* [PR 13672](https://github.com/spyder-ide/spyder/pull/13672) - PR: Remove actions from breakpoints options menu, by [@goanpeca](https://github.com/goanpeca) ([13670](https://github.com/spyder-ide/spyder/issues/13670))
+* [PR 13600](https://github.com/spyder-ide/spyder/pull/13600) - PR:  Refactor the toolbar handling on main widgets, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13529](https://github.com/spyder-ide/spyder/pull/13529) - PR: Fix error when showing context menu on Help plugin, by [@goanpeca](https://github.com/goanpeca) ([13422](https://github.com/spyder-ide/spyder/issues/13422))
+* [PR 13528](https://github.com/spyder-ide/spyder/pull/13528) - PR: Fix missing Run section on Preferences, by [@goanpeca](https://github.com/goanpeca) ([13524](https://github.com/spyder-ide/spyder/issues/13524))
+* [PR 13440](https://github.com/spyder-ide/spyder/pull/13440) - PR: Create a simple code editor and use that for other plugins, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13097](https://github.com/spyder-ide/spyder/pull/13097) - PR: Move shortcuts to new API, by [@goanpeca](https://github.com/goanpeca) ([13096](https://github.com/spyder-ide/spyder/issues/13096), [10722](https://github.com/spyder-ide/spyder/issues/10722))
+
+In this release 18 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0alpha1 (2020-08-04)
 
 ### Issues Closed
