@@ -197,8 +197,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = _("Attribute")
         if not isinstance(self._data, ProxyObject):
-            self.title += (' (' + str(len(self.keys)) + ' ' +
-                           _("element" + "s" * (len(self.keys) != 1)) + ')')
+            if len(self.keys) > 1:
+                elements = _("elements")
+            else:
+                elements = _("element")
+            self.title += (' (' + str(len(self.keys)) + ' ' + elements + ')')
         else:
             self.title += data_type
         self.total_rows = len(self.keys)

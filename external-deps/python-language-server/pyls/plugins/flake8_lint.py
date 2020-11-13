@@ -19,7 +19,7 @@ def pyls_settings():
 @hookimpl
 def pyls_lint(workspace, document):
     config = workspace._config
-    settings = config.plugin_settings('flake8')
+    settings = config.plugin_settings('flake8', document_path=document.path)
     log.debug("Got flake8 settings: %s", settings)
 
     opts = {
@@ -144,6 +144,8 @@ def parse_stdout(document, stdout):
         _, line, character, code, msg = parsed_line
         line = int(line) - 1
         character = int(character) - 1
+        # show also the code in message
+        msg = code + ' ' + msg
         diagnostics.append(
             {
                 'source': 'flake8',

@@ -1,0 +1,21 @@
+# Spyder extra packages
+autopep8
+flake8
+Paramiko
+pycodestyle
+pydocstyle
+pyflakes
+pyxdg
+rope
+yapf
+
+# Scientific packages (for Same as Spyder)
+# Ping NumPy version to 1.19.3 do message error on Windows
+numpy==1.19.3
+scipy
+pandas
+matplotlib
+cython
+sympy
+
+

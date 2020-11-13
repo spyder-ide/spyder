@@ -291,7 +291,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        if options.project is not None:
+        if options.project is not None and not running_in_mac_app():
             self.open_project = osp.normpath(osp.join(CWD, options.project))
         else:
             self.open_project = None
@@ -1374,7 +1374,8 @@ class MainWindow(QMainWindow):
         if self.splash is not None:
             self.splash.hide()
 
-        if self.open_project:
+        if (self.open_project and
+                (running_in_mac_app() and not self.first_spyder_run)):
             self.projects.open_project(self.open_project)
         else:
             # Load last project if a project was active when Spyder
@@ -1549,18 +1550,24 @@ class MainWindow(QMainWindow):
                   ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
-        """Load window layout settings from userconfig-based configuration
-        with *prefix*, under *section*
-        default: if True, do not restore inner layout"""
+        """
+        Load window layout settings from userconfig-based configuration
+        with `prefix`, under `section`.
+
+        Parameters
+        ----------
+        default: bool
+            If True, do not restore inner layout.
+        """
         get_func = CONF.get_default if default else CONF.get
-        window_size = get_func(section, prefix+'size')
-        prefs_dialog_size = get_func(section, prefix+'prefs_dialog_size')
+        window_size = get_func(section, prefix + 'size')
+        prefs_dialog_size = get_func(section, prefix + 'prefs_dialog_size')
         if default:
             hexstate = None
         else:
-            hexstate = get_func(section, prefix+'state', None)
+            hexstate = get_func(section, prefix + 'state', None)
 
-        pos = get_func(section, prefix+'position')
+        pos = get_func(section, prefix + 'position')
 
         # It's necessary to verify if the window/position value is valid
         # with the current screen. See spyder-ide/spyder#3748.
@@ -1570,16 +1577,19 @@ class MainWindow(QMainWindow):
         current_width = screen_shape.width()
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
-            pos = CONF.get_default(section, prefix+'position')
+            pos = CONF.get_default(section, prefix + 'position')
 
-        is_maximized =  get_func(section, prefix+'is_maximized')
-        is_fullscreen = get_func(section, prefix+'is_fullscreen')
-        return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
-               is_fullscreen
+        is_maximized = get_func(section, prefix + 'is_maximized')
+        is_fullscreen = get_func(section, prefix + 'is_fullscreen')
+        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+                is_fullscreen)
 
     def get_window_settings(self):
-        """Return current window settings
-        Symetric to the 'set_window_settings' setter"""
+        """
+        Return current window settings.
+
+        Symmetric to the 'set_window_settings' setter.
+        """
         window_size = (self.window_size.width(), self.window_size.height())
         is_fullscreen = self.isFullScreen()
         if is_fullscreen:
@@ -1595,8 +1605,11 @@ class MainWindow(QMainWindow):
 
     def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
                             pos, is_maximized, is_fullscreen):
-        """Set window settings
-        Symetric to the 'get_window_settings' accessor"""
+        """
+        Set window settings.
+
+        Symmetric to the 'get_window_settings' accessor.
+        """
         self.setUpdatesEnabled(False)
         self.window_size = QSize(window_size[0], window_size[1]) # width,height
         self.prefs_dialog_size = QSize(prefs_dialog_size[0],
@@ -1632,26 +1645,31 @@ class MainWindow(QMainWindow):
 
     def save_current_window_settings(self, prefix, section='main',
                                      none_state=False):
-        """Save current window settings with *prefix* in
-        the userconfig-based configuration, under *section*"""
-        win_size = self.window_size
+        """
+        Save current window settings with `prefix` in
+        the userconfig-based configuration, under `section`.
+        """
+        # Use current size and position when saving window settings.
+        # Fixes spyder-ide/spyder#13882
+        win_size = self.size()
+        pos = self.pos()
         prefs_size = self.prefs_dialog_size
 
-        CONF.set(section, prefix+'size', (win_size.width(), win_size.height()))
-        CONF.set(section, prefix+'prefs_dialog_size',
+        CONF.set(section, prefix + 'size',
+                 (win_size.width(), win_size.height()))
+        CONF.set(section, prefix + 'prefs_dialog_size',
                  (prefs_size.width(), prefs_size.height()))
-        CONF.set(section, prefix+'is_maximized', self.isMaximized())
-        CONF.set(section, prefix+'is_fullscreen', self.isFullScreen())
-        pos = self.window_position
-        CONF.set(section, prefix+'position', (pos.x(), pos.y()))
+        CONF.set(section, prefix + 'is_maximized', self.isMaximized())
+        CONF.set(section, prefix + 'is_fullscreen', self.isFullScreen())
+        CONF.set(section, prefix + 'position', (pos.x(), pos.y()))
         self.maximize_dockwidget(restore=True)# Restore non-maximized layout
         if none_state:
             CONF.set(section, prefix + 'state', None)
         else:
             qba = self.saveState()
             CONF.set(section, prefix + 'state', qbytearray_to_str(qba))
-        CONF.set(section, prefix+'statusbar',
-                    not self.statusBar().isHidden())
+        CONF.set(section, prefix + 'statusbar',
+                 not self.statusBar().isHidden())
 
     def tabify_plugins(self, first, second):
         """Tabify plugin dockwigdets"""
@@ -1976,11 +1994,9 @@ class MainWindow(QMainWindow):
         self.toggle_layout('next')
 
     def toggle_layout(self, direction='next'):
-        """ """
-        get = CONF.get
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         if len(active) == 0:
             return
@@ -2006,11 +2022,9 @@ class MainWindow(QMainWindow):
         self.quick_layout_switch(layout_index[new_index])
 
     def quick_layout_set_menu(self):
-        """ """
-        get = CONF.get
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         ql_actions = []
 
@@ -2070,11 +2084,9 @@ class MainWindow(QMainWindow):
 
     def quick_layout_save(self):
         """Save layout dialog"""
-        get = CONF.get
-        set_ = CONF.set
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         dlg = self.dialog_layout_save(self, names)
 
@@ -2082,11 +2094,13 @@ class MainWindow(QMainWindow):
             name = dlg.combo_box.currentText()
 
             if name in names:
-                answer = QMessageBox.warning(self, _("Warning"),
-                                             _("Layout <b>%s</b> will be \
-                                               overwritten. Do you want to \
-                                               continue?") % name,
-                                             QMessageBox.Yes | QMessageBox.No)
+                answer = QMessageBox.warning(
+                    self,
+                    _("Warning"),
+                    _("<b>%s</b> will be overwritten. Do you want to "
+                      "continue?") % name,
+                    QMessageBox.Yes | QMessageBox.No
+                )
                 index = order.index(name)
             else:
                 answer = True
@@ -2106,27 +2120,23 @@ class MainWindow(QMainWindow):
             if answer:
                 self.save_current_window_settings('layout_{}/'.format(index),
                                                   section='quick_layouts')
-                set_('quick_layouts', 'names', names)
-                set_('quick_layouts', 'order', order)
-                set_('quick_layouts', 'active', active)
+                CONF.set('quick_layouts', 'names', names)
+                CONF.set('quick_layouts', 'order', order)
+                CONF.set('quick_layouts', 'active', active)
                 self.quick_layout_set_menu()
 
     def quick_layout_settings(self):
         """Layout settings dialog"""
-        get = CONF.get
-        set_ = CONF.set
-
         section = 'quick_layouts'
-
-        names = get(section, 'names')
-        order = get(section, 'order')
-        active = get(section, 'active')
+        names = CONF.get(section, 'names')
+        order = CONF.get(section, 'order')
+        active = CONF.get(section, 'active')
 
         dlg = self.dialog_layout_settings(self, names, order, active)
         if dlg.exec_():
-            set_(section, 'names', dlg.names)
-            set_(section, 'order', dlg.order)
-            set_(section, 'active', dlg.active)
+            CONF.set(section, 'names', dlg.names)
+            CONF.set(section, 'order', dlg.order)
+            CONF.set(section, 'active', dlg.active)
             self.quick_layout_set_menu()
 
     def quick_layout_switch(self, index):
@@ -2139,7 +2149,7 @@ class MainWindow(QMainWindow):
             (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
              is_fullscreen) = settings
 
-            # The defaults layouts will always be regenerated unless there was
+            # The default layouts will always be regenerated unless there was
             # an overwrite, either by rewriting with same name, or by deleting
             # and then creating a new one
             if hexstate is None:
@@ -2160,9 +2170,6 @@ class MainWindow(QMainWindow):
                                  _("Quick switch layout #%s has not yet "
                                    "been defined.") % str(index))
             return
-            # TODO: is there any real use in calling the previous layout
-            # setting?
-            # self.previous_layout_settings = self.get_window_settings()
         self.set_window_settings(*settings)
         self.current_quick_layout = index
 
@@ -3354,7 +3361,7 @@ class MainWindow(QMainWindow):
         """Called by WorkerUpdates when ready"""
         from spyder.widgets.helperwidgets import MessageCheckBox
 
-        # feedback` = False is used on startup, so only positive feedback is
+        # `feedback` = False is used on startup, so only positive feedback is
         # given. `feedback` = True is used when after startup (when using the
         # menu action, and gives feeback if updates are, or are not found.
         feedback = self.give_updates_feedback
@@ -3364,14 +3371,15 @@ class MainWindow(QMainWindow):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        url_r = __project_url__ + '/releases'
+        # Release url
+        url_r = __project_url__ + '/releases/tag/v{}'.format(latest_release)
         url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
                               parent=self)
-        box.setWindowTitle(_("Spyder updates"))
-        box.set_checkbox_text(_("Check for updates on startup"))
+        box.setWindowTitle(_("New Spyder version"))
+        box.set_checkbox_text(_("Check for updates at startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
 
@@ -3388,26 +3396,29 @@ class MainWindow(QMainWindow):
             check_updates = box.is_checked()
         else:
             if update_available:
-                anaconda_msg = ''
-                if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
-                    anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
-                                     "that you are using Spyder with "
-                                     "<b>Anaconda/Miniconda</b>. Please "
-                                     "<b>don't</b> use <code>pip</code> to "
-                                     "update it as that will probably break "
-                                     "your installation.<br><br>"
-                                     "Instead, please wait until new conda "
-                                     "packages are available and use "
-                                     "<code>conda</code> to perform the "
-                                     "update.<hr>")
-                msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
-                        "your package manager to update Spyder or go to our "
-                        "<a href=\"%s\">Releases</a> page to download this "
-                        "new version. <br><br>If you are not sure how to "
-                        "proceed to update Spyder please refer to our "
-                        " <a href=\"%s\">Installation</a> instructions."
-                        "") % (latest_release, url_r, url_i)
-                msg += '<br>' + anaconda_msg
+                header = _("<b>Spyder {} is available!</b><br><br>").format(
+                    latest_release)
+                footer = _(
+                    "For more information visit our "
+                    "<a href=\"{}\">installation guide</a>."
+                ).format(url_i)
+                if is_anaconda():
+                    content = _(
+                        "<b>Important note:</b> Since you installed "
+                        "Spyder with Anaconda, please <b>don't</b> use "
+                        "<code>pip</code> to update it as that will break "
+                        "your installation.<br><br>"
+                        "Instead, run the following commands in a "
+                        "terminal:<br>"
+                        "<code>conda update anaconda</code><br>"
+                        "<code>conda install spyder={}</code><br><br>"
+                    ).format(latest_release)
+                else:
+                    content = _(
+                        "Please go to <a href=\"{}\">this page</a> to "
+                        "download it.<br><br>"
+                    ).format(url_r)
+                msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()

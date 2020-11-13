@@ -10,20 +10,19 @@
 
 # Standard library imports
 import os
-import subprocess
+import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Qt, QSize, QTimer, Signal
+from qtpy.QtCore import Qt, QPoint, QSize, QTimer, Signal
 from qtpy.QtGui import QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
+from qtpy.QtWidgets import QHBoxLayout, QLabel, QMenu, QWidget
 
 # Local imports
-from spyder.config.base import _, running_in_mac_app
-from spyder.config.gui import get_font
-from spyder.config import utils
-from spyder.py3compat import PY3
-from spyder.utils.qthelpers import create_waitspinner
-from spyder.utils.conda import is_conda_env
+from spyder.config.base import _
+from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.programs import get_list_pyenv_envs, get_interpreter_info
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_waitspinner)
 
 
 class StatusBarWidget(QWidget):
@@ -233,53 +232,64 @@ class InterpreterStatus(StatusBarWidget):
         """Status bar widget for displaying the current conda environment."""
         self._interpreter = None
         super(InterpreterStatus, self).__init__(parent, statusbar, icon=icon)
+        self.main = parent
+        self.env_actions = []
+        self.path_to_env = {}
+        conda_env = get_list_conda_envs()
+        pyenv_env = get_list_pyenv_envs()
+        self.envs = {**conda_env, **pyenv_env}
+        for env in list(self.envs.keys()):
+            path, version = self.envs[env]
+            # Save paths in lowercase on Windows to avoid issues with
+            # capitalization.
+            path = path.lower() if os.name == 'nt' else path
+            self.path_to_env[path] = env
+        self.menu = QMenu(self)
+        self.sig_clicked.connect(self.show_menu)
 
-    def _get_interpreter_env_info(self):
-        """Get conda environment information."""
+    def show_menu(self):
+        """Display a menu when clicking on the widget."""
+        menu = self.menu
+        menu.clear()
+        text = _("Change default environment in Preferences...")
+        change_action = create_action(
+            self,
+            text=text,
+            triggered=self.open_interpreter_preferences,
+        )
+        add_actions(menu, [change_action])
+        rect = self.contentsRect()
+        os_height = 7 if os.name == 'nt' else 12
+        pos = self.mapToGlobal(
+                rect.topLeft() + QPoint(-40, -rect.height() - os_height))
+        menu.popup(pos)
+
+    def open_interpreter_preferences(self):
+        """Open the Preferences dialog in the Python interpreter section."""
+        self.main.show_preferences()
+        dlg = self.main.prefs_dialog_instance
+        index = dlg.get_index_by_name("main_interpreter")
+        dlg.set_current_index(index)
+
+    def _get_env_info(self, path):
+        """Get environment information."""
+        path = path.lower() if os.name == 'nt' else path
         try:
-            out, err = subprocess.Popen(
-                [self._interpreter, '-V'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            ).communicate()
-
-            if PY3:
-                out = out.decode()
-                err = err.decode()
-        except Exception:
-            out = ''
-            err = ''
-
-        return out, err
-
-    def _process_interpreter_env_info(self):
-        """Process conda environment information."""
-        out, err = self._get_interpreter_env_info()
-        out = out or err  # Anaconda base python prints to stderr
-        out = out.split('\n')[0]
-        parts = out.split()
-
-        if len(parts) >= 2:
-            out = ' '.join(parts[:2])
-
-        if is_conda_env(pyexec=self._interpreter):
-            envs_folder = os.path.sep + 'envs' + os.path.sep
-            if envs_folder in self._interpreter:
-                if os.name == 'nt':
-                    env = os.path.dirname(self._interpreter)
-                else:
-                    env = os.path.dirname(os.path.dirname(self._interpreter))
-                env = os.path.basename(env)
+            name = self.path_to_env[path]
+        except KeyError:
+            win_app_path = osp.join(
+                'AppData', 'Local', 'Programs', 'spyder')
+            if 'Spyder.app' in path or win_app_path in path:
+                name = 'internal'
+            elif 'conda' in path:
+                name = 'conda'
             else:
-                env = 'base'
-            env = 'conda: ' + env
-        elif running_in_mac_app(self._interpreter):
-            env = 'internal'
-        else:
-            env = 'venv'  # Update when additional environments are supported
-
-        text = '{env} ({version})'.format(env=env, version=out)
-        return text
+                name = 'custom'
+            version = get_interpreter_info(path)
+            self.path_to_env[path] = name
+            self.envs[name] = (path, version)
+        _, version = self.envs[name]
+        return '{env} ({version})'.format(env=name, version=version)
 
     def get_tooltip(self):
         """Override api method."""
@@ -288,9 +298,7 @@ class InterpreterStatus(StatusBarWidget):
     def update_interpreter(self, interpreter):
         """Set main interpreter and update information."""
         self._interpreter = interpreter
-
-        text = self._process_interpreter_env_info()
-
+        text = self._get_env_info(interpreter)
         self.set_value(text)
         self.update_tooltip()
 
