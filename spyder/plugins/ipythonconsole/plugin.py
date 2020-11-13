@@ -320,6 +320,24 @@ class IPythonConsole(SpyderPluginWidget):
                 pdb_use_exclamation_mark_n)
             sw.set_pdb_use_exclamation_mark(pdb_use_exclamation_mark_o)
 
+    def apply_plugin_settings_to_client(
+            self, options, client, disconnect_ready_signal=False):
+        """Apply given plugin settings to the given client."""
+        # GUI options
+        self._apply_gui_plugin_settings(options, client)
+
+        # Matplotlib options
+        self._apply_mpl_plugin_settings(options, client)
+
+        # Advanced options
+        self._apply_advanced_plugin_settings(options, client)
+
+        # Debugging options
+        self._apply_pdb_plugin_settings(options, client)
+
+        if disconnect_ready_signal:
+            client.shellwidget.sig_prompt_ready.disconnect()
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings."""
         restart_needed = False
@@ -374,17 +392,15 @@ class IPythonConsole(SpyderPluginWidget):
             restart = ((pylab_restart and client_backend_not_inline[idx]) or
                        restart_needed)
             if not (restart and restart_all) or no_restart:
-                # GUI options
-                self._apply_gui_plugin_settings(options, client)
-
-                # Matplotlib options
-                self._apply_mpl_plugin_settings(options, client)
-
-                # Advanced options
-                self._apply_advanced_plugin_settings(options, client)
-
-                # Debugging options
-                self._apply_pdb_plugin_settings(options, client)
+                sw = client.shellwidget
+                if sw._executing or sw.is_debugging():
+                    signal = client.shellwidget.sig_prompt_ready
+                    signal.connect(
+                        lambda o=options, c=client:
+                            self.apply_plugin_settings_to_client(
+                                o, c, disconnect_ready_signal=True))
+                else:
+                    self.apply_plugin_settings_to_client(options, client)
             elif restart and restart_all:
                 client.ask_before_restart = False
                 client.restart_kernel()
