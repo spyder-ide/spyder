@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-06 02:36\n"
+"PO-Revision-Date: 2020-11-13 15:34\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -243,7 +243,7 @@ msgstr "Tryb pełnoekranowy"
 
 #: spyder/app/mainwindow.py:847
 msgid "For fullscreen mode use macOS built-in feature"
-msgstr ""
+msgstr "W celu włączenia trybu pełnoekranowego użyj wbudowanej funkcji macOS"
 
 #: spyder/app/mainwindow.py:863
 msgid "Main toolbar"
@@ -356,7 +356,7 @@ msgstr "Dokumentacja Spydera"
 
 #: spyder/app/mainwindow.py:1077
 msgid "Tutorial videos"
-msgstr ""
+msgstr "Poradnik wideo"
 
 #: spyder/app/mainwindow.py:1082
 msgid "Shortcuts Summary"
