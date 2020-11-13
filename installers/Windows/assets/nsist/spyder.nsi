@@ -110,6 +110,8 @@ Section "!${PRODUCT_NAME}" sec_app
     [% for scname, sc in ib.shortcuts.items() %]
     CreateShortCut "$SMPROGRAMS\[[scname]].lnk" "[[sc['target'] ]]" \
       '[[ sc['parameters'] ]]' "$INSTDIR\[[ sc['icon'] ]]"
+    ; Set AppUserModelID for pinned shortcuts
+    WinShell::SetLnkAUMI "$SMPROGRAMS\[[scname]].lnk" "[[scname]].${PRODUCT_NAME}"
     [% endfor %]
   [% else %]
     [# Multiple shortcuts: create a directory for them #]
@@ -118,9 +120,12 @@ Section "!${PRODUCT_NAME}" sec_app
     CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\[[scname]].lnk" "[[sc['target'] ]]" \
       '[[ sc['parameters'] ]]' "$INSTDIR\[[ sc['icon'] ]]"
     [% endfor %]
+    ; Set AppUserModelID for pinned shortcuts
+    WinShell::SetLnkAUMI "$SMPROGRAMS\${PRODUCT_NAME}\[[scname]].lnk" "[[scname]].${PRODUCT_NAME}"
   [% endif %]
   SetOutPath "$INSTDIR"
 
+  ; Set context menu entry
   WriteRegStr SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}" "MUIVerb" "Edit with ${PRODUCT_NAME}"
   WriteRegStr SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}" "Icon" "$INSTDIR\${PRODUCT_ICON}"
   WriteRegStr SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}\command" "" \
@@ -208,9 +213,15 @@ Section "Uninstall"
   ; Uninstall shortcuts
   [% if single_shortcut %]
     [% for scname in ib.shortcuts %]
+      WinShell::UninstAppUserModelId "[[scname]].${PRODUCT_NAME}"
+      WinShell::UninstShortcut "$SMPROGRAMS\[[scname]].lnk"
       Delete "$SMPROGRAMS\[[scname]].lnk"
     [% endfor %]
   [% else %]
+    [% for scname in ib.shortcuts %]
+      WinShell::UninstAppUserModelId "[[scname]].${PRODUCT_NAME}"
+      WinShell::UninstShortcut "$SMPROGRAMS\${PRODUCT_NAME}\[[scname]].lnk"
+    [% endfor %]
     RMDir /r "$SMPROGRAMS\${PRODUCT_NAME}"
   [% endif %]
   DeleteRegKey SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}"
