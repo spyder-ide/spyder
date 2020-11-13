@@ -120,6 +120,12 @@ Section "!${PRODUCT_NAME}" sec_app
     [% endfor %]
   [% endif %]
   SetOutPath "$INSTDIR"
+
+  WriteRegStr SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}" "MUIVerb" "Edit with ${PRODUCT_NAME}"
+  WriteRegStr SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}" "Icon" "$INSTDIR\${PRODUCT_ICON}"
+  WriteRegStr SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}\command" "" \
+    '"$INSTDIR\Python\pythonw.exe" "$INSTDIR\${PRODUCT_NAME}.launch.pyw" "%1"'
+
   [% endblock install_shortcuts %]
 
   [% block install_commands %]
@@ -207,6 +213,7 @@ Section "Uninstall"
   [% else %]
     RMDir /r "$SMPROGRAMS\${PRODUCT_NAME}"
   [% endif %]
+  DeleteRegKey SHCTX "Software\Classes\*\shell\edit_with_${PRODUCT_NAME}"
   [% endblock uninstall_shortcuts %]
   RMDir $INSTDIR
   DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
