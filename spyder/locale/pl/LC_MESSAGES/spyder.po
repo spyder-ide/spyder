@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-13 15:34\n"
+"PO-Revision-Date: 2020-11-13 15:55\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -444,7 +444,7 @@ msgstr "Błąd"
 
 #: spyder/app/mainwindow.py:1538
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr ""
+msgstr "<b>Część zależności jest niespełniona!</b><br><br><tt>%s</tt><br><b>Po zainstalowaniu wszystkich zależności wiadomość przestanie się pojawiać.</b><br><br><i>Uwaga</i>: Spyder będzie działał bez niektórych zależności, jednak żeby doświadczyć pełni możliwości <i>gorąco</i> zachęcamy aby zainstalować wszystkie wyświetlone zależności.<br><br>Brakujące zależności mogą skutkować błędami w działaniu. W przypadku zgłaszania błędu upewnij się, że nie wynika on z niespełnionych zależności."
 
 #: spyder/app/mainwindow.py:2031
 msgid "Spyder Default Layout"
@@ -474,7 +474,7 @@ msgstr "Układ okna zostanie przywrócony do ustawień domyślnych: wpłynie to 
 
 #: spyder/app/mainwindow.py:2100
 msgid "<b>%s</b> will be overwritten. Do you want to continue?"
-msgstr ""
+msgstr "<b>%s</b> zostanie nadpisany. Czy chcesz kontynuować?"
 
 #: spyder/app/mainwindow.py:2162
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
@@ -522,23 +522,23 @@ msgstr "Spyder uruchomi się ponownie i zostaną przywrócone ustawienia domyśl
 
 #: spyder/app/mainwindow.py:3381
 msgid "New Spyder version"
-msgstr ""
+msgstr "Nowa wersja Spyder"
 
 #: spyder/app/mainwindow.py:3382
 msgid "Check for updates at startup"
-msgstr ""
+msgstr "Sprawdzaj aktualizacje przy starcie"
 
 #: spyder/app/mainwindow.py:3399
 msgid "<b>Spyder {} is available!</b><br><br>"
-msgstr ""
+msgstr "<b>Spyder {} jest dostępny!</b><br><br>"
 
 #: spyder/app/mainwindow.py:3401
 msgid "For more information visit our <a href=\"{}\">installation guide</a>."
-msgstr ""
+msgstr "Aby uzyskać więcej informacji odwiedź nasz <a href=\"{}\">poradnik instalacji</a>."
 
 #: spyder/app/mainwindow.py:3406
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
-msgstr ""
+msgstr "<b>Ważna uwaga:</b> W związku z tym, że zainstalowałeś Spyder razem z środowiskiem Anaconda, <b>nie</b> używaj <code>pip</code> do aktualizacji, gdyż spowoduje to uszkodzenie programu.<br><br>Zamiast tego, uruchom następujące polecenia w terminalu:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
 
 #: spyder/app/mainwindow.py:3417
 msgid "Please go to <a href=\"{}\">this page</a> to download it.<br><br>"
