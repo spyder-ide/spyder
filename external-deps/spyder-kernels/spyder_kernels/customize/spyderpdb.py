@@ -93,8 +93,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     def print_exclamation_warning(self):
         """Print pdb warning for exclamation mark."""
         if not self._exclamation_warning_printed:
-            print("Warning: '!' option enabled."
-                  " Use '!' as an optionnal prefix for pdb commands.")
+            print("Warning: The exclamation mark option is enabled."
+                  "Please use '!' as a prefix for Pdb commands.")
             self._exclamation_warning_printed = True
 
     def default(self, line):
@@ -133,15 +133,20 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         if self.pdb_use_exclamation_mark:
             # Find pdb commands executed without !
             cmd, arg, line = self.parseline(line)
-            if cmd and cmd not in ns and cmd not in builtins.__dict__:
-                # Check if it is not an assignment
-                if not (arg and arg[0] == "="):
-                    func = getattr(self, 'do_' + cmd, None)
-                    if func:
+            if cmd:
+                cmd_in_namespace = (
+                    cmd in ns or cmd in builtins.__dict__)
+                cmd_func = getattr(self, 'do_' + cmd, None)
+                is_pdb_cmd = cmd_func is not None
+                is_assignment = arg and arg[0] == "="
+                if is_pdb_cmd:
+                    if not cmd_in_namespace and not is_assignment:
+                        # This is a pdb command without the '!' prefix.
                         self.lastcmd = line
-                        return func(arg)
-            elif cmd:
-                self.print_exclamation_warning()
+                        return cmd_func(arg)
+                    else:
+                        # The pdb command is masked by something
+                        self.print_exclamation_warning()
         try:
             line = TransformerManager().transform_cell(line)
             try:
