@@ -37,16 +37,8 @@ import threading
 import traceback
 import importlib
 
-logger = logging.getLogger(__name__)
-
-
 #==============================================================================
-# Keeping a reference to the original sys.exit before patching it
-#==============================================================================
-ORIGINAL_SYS_EXIT = sys.exit
-
-#==============================================================================
-# Check requirements
+# Check requirements before proceeding
 #==============================================================================
 from spyder import requirements
 requirements.check_path()
@@ -54,18 +46,7 @@ requirements.check_qt()
 requirements.check_spyder_kernels()
 
 #==============================================================================
-# Windows only: support for hiding console window when started with python.exe
-#==============================================================================
-set_attached_console_visible = None
-is_attached_console_visible = None
-set_windows_appusermodelid = None
-if os.name == 'nt':
-    from spyder.utils.windows import (set_attached_console_visible,
-                                      is_attached_console_visible,
-                                      set_windows_appusermodelid)
-
-#==============================================================================
-# Qt imports
+# Third-party imports
 #==============================================================================
 from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant
@@ -83,15 +64,20 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
-# To catch font errors in QtAwesome
+import qdarkstyle
 from qtawesome.iconic_font import FontError
 
 #==============================================================================
-# Local utility imports
+# Local imports
+# NOTE: Move (if possible) import's of widgets and plugins exactly where they
+# are needed in MainWindow to speed up perceived startup time (i.e. the time
+# from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions,
                     __docs_url__)
+from spyder import dependencies
+from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
                               get_python_doc_path, qt_message_handler,
                               setup_logging, set_opengl_implementation)
@@ -100,31 +86,18 @@ from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_module_source_path, get_safe_mode,
                                 reset_config_files, running_in_mac_app,
                                 running_under_pytest, STDERR)
+from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
-from spyder import dependencies
+from spyder.otherplugins import get_spyderplugins_mods
 from spyder.py3compat import (configparser as cp, is_text_string,
                               PY3, qbytearray_to_str, to_text_string)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
+from spyder.utils.misc import (select_port, getcwd_or_home,
+                               get_python_executable)
 from spyder.utils.programs import is_module_installed
-from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
-from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
-from spyder.config.gui import is_dark_font_color
-
-#==============================================================================
-# Local gui imports
-#==============================================================================
-# NOTE: Move (if possible) import's of widgets and plugins exactly where they
-# are needed in MainWindow to speed up perceived startup time (i.e. the time
-# from clicking the Spyder icon to showing the splash screen).
-try:
-    from spyder.utils.environ import WinUserEnvDialog
-except ImportError:
-    WinUserEnvDialog = None  # analysis:ignore
-
-
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
@@ -132,29 +105,40 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_python_script_action, file_uri,
                                     MENU_SEPARATOR, qapplication,
                                     set_menu_icons)
-from spyder.otherplugins import get_spyderplugins_mods
-from spyder.app import tour
 
 #==============================================================================
-# Third-party library imports
+# Windows only local imports
 #==============================================================================
-import qdarkstyle
+set_attached_console_visible = None
+is_attached_console_visible = None
+set_windows_appusermodelid = None
+WinUserEnvDialog = None
+if os.name == 'nt':
+    from spyder.utils.windows import (set_attached_console_visible,
+                                      is_attached_console_visible,
+                                      set_windows_appusermodelid)
+    from spyder.utils.environ import WinUserEnvDialog
 
 #==============================================================================
+# Constants
+#==============================================================================
+# Module logger
+logger = logging.getLogger(__name__)
+
+# Keeping a reference to the original sys.exit before patching it
+ORIGINAL_SYS_EXIT = sys.exit
+
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
-#==============================================================================
 CWD = getcwd_or_home()
+
+# Set the index for the default tour
+DEFAULT_TOUR = 0
 
 #==============================================================================
 # Install Qt messaage handler
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
-
-#==============================================================================
-# Set the index for the default tour
-#==============================================================================
-DEFAULT_TOUR = 0
 
 #==============================================================================
 # Main Window
@@ -491,6 +475,7 @@ class MainWindow(QMainWindow):
 
     def setup(self):
         """Setup main window"""
+        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
 
         logger.info("Updating PYTHONPATH")
