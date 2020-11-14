@@ -3410,10 +3410,10 @@ class MainWindow(QMainWindow):
 
 
 #==============================================================================
-# Utilities to create the 'main' function
+# Utilities for the 'main' function below
 #==============================================================================
-def initialize():
-    """Initialize Qt, patching sys.exit and eventually setting up ETS"""
+def create_application():
+    """Create application, patch sys.exit and set up ETS."""
     # Our QApplication
     app = qapplication()
 
@@ -3461,7 +3461,7 @@ def initialize():
     return app
 
 
-def run_spyder(app, splash, options, args):
+def create_window(app, splash, options, args):
     """
     Create and show Spyder's main window and start QApplication event loop.
     """
@@ -3524,8 +3524,8 @@ def main(options, args):
             option = CONF.get('main', 'opengl')
             set_opengl_implementation(option)
 
-        app = initialize()
-        window = run_spyder(app, options, None)
+        app = create_application()
+        window = create_window(app, options, None)
         return window
 
     # **** Handle hide_console option ****
@@ -3553,7 +3553,7 @@ def main(options, args):
             set_opengl_implementation(option)
 
     # **** Set high DPI scaling ****
-    # This attibute must be set before creating the application.
+    # This attribute must be set before creating the application.
     if hasattr(Qt, 'AA_EnableHighDpiScaling'):
         QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
                                       CONF.get('main', 'high_dpi_scaling'))
@@ -3562,7 +3562,7 @@ def main(options, args):
     setup_logging(options)
 
     # **** Create the application ****
-    app = initialize()
+    app = create_application()
 
     # **** Create splash screen ****
     splash = create_splash_screen()
@@ -3608,9 +3608,9 @@ def main(options, args):
             import faulthandler
             with open(faulthandler_file, 'w') as f:
                 faulthandler.enable(file=f)
-                mainwindow = run_spyder(app, splash, options, args)
+                mainwindow = create_window(app, splash, options, args)
         else:
-            mainwindow = run_spyder(app, splash, options, args)
+            mainwindow = create_window(app, splash, options, args)
     except FontError as fontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
