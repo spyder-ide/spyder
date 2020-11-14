@@ -136,6 +136,10 @@ class KernelComm(CommBase, QObject):
                 raise RuntimeError("Kernel is dead")
             else:
                 # The user has other problems
+                logger.info(
+                    "Dropping message because kernel is dead: ",
+                    str(call_dict)
+                )
                 return
 
         settings = call_dict['settings']
@@ -163,6 +167,10 @@ class KernelComm(CommBase, QObject):
                 raise
             else:
                 # The user has other problems
+                logger.info(
+                    "Dropping message because kernel is dead: ",
+                    str(call_dict)
+                )
                 return
 
     def _wait_reply(self, call_id, call_name, timeout):
