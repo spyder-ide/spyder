@@ -16,7 +16,7 @@ import jupyter_client
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 import zmq
 
-from spyder_kernels.comms.commbase import CommBase
+from spyder_kernels.comms.commbase import CommBase, CommError
 from spyder.py3compat import TimeoutError
 
 logger = logging.getLogger(__name__)
@@ -82,11 +82,7 @@ class KernelComm(CommBase, QObject):
         if not self.comm_channel_connected():
             # Ask again for comm config
             self.remote_call()._send_comm_config()
-            timeout = 25
-            self._wait(self.comm_channel_connected,
-                       self._sig_comm_port_changed,
-                       "Timeout while waiting for comm port.",
-                       timeout)
+            raise CommError("Comm not connected.")
 
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
@@ -144,10 +140,17 @@ class KernelComm(CommBase, QObject):
 
         settings = call_dict['settings']
         interrupt = 'interrupt' in settings and settings['interrupt']
-
+        # Need to make sure any blocking call is replied rapidely.
+        if not self.comm_channel_connected():
+            # Ask again for comm config
+            self.remote_call()._send_comm_config()
+            # Can not interrupt if comm not connected
+            interrupt = False
+            if blocking:
+                raise CommError("Can not block on a disconnected comm")
         try:
             with self.comm_channel_manager(
-                    comm_id, queue_message=not interrupt):
+                    comm_id, queue_message=not (interrupt or blocking)):
                 return super(KernelComm, self)._get_call_return_value(
                     call_dict, call_data, comm_id)
         except RuntimeError:

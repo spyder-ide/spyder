@@ -24,6 +24,7 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import _
 from spyder.py3compat import PY2, to_text_string, TimeoutError
+from spyder_kernels.comms.commbase import CommError
 
 
 logger = logging.getLogger(__name__)
@@ -91,12 +92,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_not_picklable = _("The variable is not picklable")
         reason_dead = _("The kernel is dead")
         reason_other = _("An error occured, see the console.")
+        reason_comm = _("The comm channel is not working.")
         msg = _("%s.<br><br>"
                 "Note: Please don't report this problem on Github, "
                 "there's nothing to do about it.")
         try:
             return self.call_kernel(
-                interrupt=True,
                 blocking=True,
                 display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT).get_value(name)
@@ -108,6 +109,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             raise ValueError(msg % reason_dead)
         except KeyError:
             raise
+        except CommError:
+            raise ValueError(msg % reason_comm)
         except Exception:
             raise ValueError(msg % reason_other)
 
@@ -148,7 +151,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             overwrite = result == QMessageBox.Yes
         try:
             return self.call_kernel(
-                interrupt=True,
                 blocking=True,
                 display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT).load_data(
@@ -164,20 +166,19 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except TimeoutError:
             msg = _("Data is too big to be loaded")
             return msg
-        except (UnpicklingError, RuntimeError):
+        except (UnpicklingError, RuntimeError, CommError):
             return None
 
     def save_namespace(self, filename):
         try:
             return self.call_kernel(
-                interrupt=True,
                 blocking=True,
                 display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
         except TimeoutError:
             msg = _("Data is too big to be saved")
             return msg
-        except (UnpicklingError, RuntimeError):
+        except (UnpicklingError, RuntimeError, CommError):
             return None
 
     # ---- Private API (overrode by us) ----------------------------
