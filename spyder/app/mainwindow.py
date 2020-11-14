@@ -3518,7 +3518,7 @@ def main(options, args):
             set_opengl_implementation(option)
 
         app = create_application()
-        window = create_window(app, options, None)
+        window = create_window(app, None, options, None)
         return window
 
     # **** Handle hide_console option ****
