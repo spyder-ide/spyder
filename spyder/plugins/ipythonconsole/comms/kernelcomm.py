@@ -146,6 +146,8 @@ class KernelComm(CommBase, QObject):
             self.remote_call()._send_comm_config()
             # Can not interrupt if comm not connected
             interrupt = False
+            logger.info("Dropping interrupt because comm is disconnected: ",
+                            str(call_dict))
             if blocking:
                 raise CommError("Can not block on a disconnected comm")
         try:
