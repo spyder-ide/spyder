@@ -80,7 +80,7 @@ from spyder import dependencies
 from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
                               get_python_doc_path, qt_message_handler,
-                              setup_logging, set_opengl_implementation)
+                              setup_logging, set_opengl_implementation, Spy)
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_image_path, get_module_path,
                                 get_module_source_path, get_safe_mode,
@@ -3461,24 +3461,6 @@ def initialize():
     return app
 
 
-class Spy(object):
-    """
-    Inspect Spyder internals
-
-    Attributes:
-        app       Reference to main QApplication object
-        window    Reference to spyder.MainWindow widget
-    """
-    def __init__(self, app, window):
-        self.app = app
-        self.window = window
-    def __dir__(self):
-        return list(self.__dict__.keys()) +\
-                 [x for x in dir(self.__class__) if x[0] != '_']
-    def versions(self):
-        return get_versions()
-
-
 def run_spyder(app, splash, options, args):
     """
     Create and show Spyder's main window and start QApplication event loop.
@@ -3499,8 +3481,8 @@ def run_spyder(app, splash, options, args):
     main.post_visible_setup()
 
     if main.console:
-        main.console.shell.interpreter.namespace['spy'] = \
-                                                    Spy(app=app, window=main)
+        internal_intrepreter = main.console.shell.interpreter
+        internal_intrepreter.namespace['spy'] = Spy(app=app, window=main)
 
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':

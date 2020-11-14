@@ -38,6 +38,24 @@ FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')
 FILTER_NAMES = [f.strip() for f in FILTER_NAMES]
 
 
+class Spy:
+    """
+    This is used to inject a 'spy' object in the internal console
+    namespace to inspect Spyder internals.
+
+    Attributes:
+        app       Reference to main QApplication object
+        window    Reference to spyder.MainWindow widget
+    """
+    def __init__(self, app, window):
+        self.app = app
+        self.window = window
+
+    def __dir__(self):
+        return (list(self.__dict__.keys()) +
+                [x for x in dir(self.__class__) if x[0] != '_'])
+
+
 def get_python_doc_path():
     """
     Return Python documentation path
