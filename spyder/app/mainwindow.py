@@ -3413,7 +3413,7 @@ class MainWindow(QMainWindow):
 # Utilities for the 'main' function below
 #==============================================================================
 def create_application():
-    """Create application, patch sys.exit and set up ETS."""
+    """Create application and patch sys.exit."""
     # Our QApplication
     app = qapplication()
 
@@ -3450,13 +3450,6 @@ def create_application():
 
     # Removing arguments from sys.argv as in standard Python interpreter
     sys.argv = ['']
-
-    # Selecting Qt4 backend for Enthought Tool Suite (if installed)
-    try:
-        from enthought.etsconfig.api import ETSConfig
-        ETSConfig.toolkit = 'qt4'
-    except ImportError:
-        pass
 
     return app
 
