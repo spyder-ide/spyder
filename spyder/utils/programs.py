@@ -1035,7 +1035,7 @@ def is_spyder_process(pid):
 
         # Valid names for main script
         names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
-                     'bootstrap.py', 'spyder-script.py'])
+                     'bootstrap.py', 'spyder-script.py', 'Spyder.launch.pyw'])
         if running_under_pytest():
             names.add('runtests.py')
 

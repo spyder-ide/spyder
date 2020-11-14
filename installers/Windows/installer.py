@@ -310,6 +310,12 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
                 "installers/Windows/assets/jedi/__main__.py",
                 os.path.join(work_dir, "__main__.py"))
 
+            print("Copying NSIS plugins into discoverable path")
+            shutil.copy(
+                "installers/Windows/assets/nsist/plugins/x86-unicode/"
+                "WinShell.dll",
+                "C:/Program Files (x86)/NSIS/Plugins/x86-unicode/WinShell.dll")
+
             if template:
                 print("Copying template into discoverable path for Pynsist")
                 template_basename = os.path.basename(template)
