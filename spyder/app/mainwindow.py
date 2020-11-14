@@ -72,10 +72,10 @@ from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
+from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget, QCheckBox)
+                            QStyleFactory, QWidget, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -86,97 +86,26 @@ from qtpy import QtWebEngineWidgets  # analysis:ignore
 # To catch font errors in QtAwesome
 from qtawesome.iconic_font import FontError
 
-
-#==============================================================================
-# Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
-# be set before creating the application.
-#==============================================================================
-from spyder.config.manager import CONF
-
-if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
-                                  CONF.get('main', 'high_dpi_scaling'))
-
-#==============================================================================
-# Get CLI options and set OpenGL backend. This attibute must
-# be set before creating the application. See spyder-ide/spyder#11227
-#==============================================================================
-from spyder.app.utils import set_opengl_implementation
-from spyder.app.cli_options import get_options
-from spyder.config.base import running_under_pytest
-
-# Get CLI options/args and make them available for future use.
-# Ignore args if running tests or Spyder will try and fail to parse pytests's.
-if running_under_pytest():
-    sys_argv = [sys.argv[0]]
-    cli_options, __ = get_options(sys_argv)
-else:
-    cli_options, __ = get_options()
-
-# **** Set OpenGL implementation to use ****
-if cli_options.opengl_implementation:
-    option = cli_options.opengl_implementation
-    set_opengl_implementation(option)
-else:
-    if CONF.get('main', 'opengl') != 'automatic':
-        option = CONF.get('main', 'opengl')
-        set_opengl_implementation(option)
-
-#==============================================================================
-# Create our QApplication instance here because it's needed to render the
-# splash screen created below
-#==============================================================================
-from spyder.utils.qthelpers import qapplication
-from spyder.config.base import get_image_path
-from spyder.py3compat import PY3
-MAIN_APP = qapplication()
-
-if PYQT5:
-    APP_ICON = QIcon(get_image_path("spyder.svg"))
-else:
-    APP_ICON = QIcon(get_image_path("spyder.png"))
-
-MAIN_APP.setWindowIcon(APP_ICON)
-
-# Required for correct icon on GNOME/Wayland:
-if hasattr(MAIN_APP, 'setDesktopFileName'):
-    MAIN_APP.setDesktopFileName('spyder3' if PY3 else 'spyder')
-
-#==============================================================================
-# Create splash screen out of MainWindow to reduce perceived startup time.
-#==============================================================================
-from spyder.config.base import _, get_image_path, DEV, get_safe_mode
-
-if not running_under_pytest():
-    SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
-    SPLASH_FONT = SPLASH.font()
-    SPLASH_FONT.setPixelSize(10)
-    SPLASH.setFont(SPLASH_FONT)
-    SPLASH.show()
-    SPLASH.showMessage(_("Initializing..."),
-                       int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
-                       QColor(Qt.white))
-    QApplication.processEvents()
-else:
-    SPLASH = None
-
 #==============================================================================
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions,
                     __docs_url__)
-from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
-                              qt_message_handler, setup_logging)
-from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
-                                get_debug_level, MAC_APP_NAME, get_home_dir,
-                                running_in_mac_app, get_module_path,
-                                reset_config_files)
+from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
+                              get_python_doc_path, qt_message_handler,
+                              setup_logging, set_opengl_implementation)
+from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
+                                get_home_dir, get_image_path, get_module_path,
+                                get_module_source_path, get_safe_mode,
+                                reset_config_files, running_in_mac_app,
+                                running_under_pytest, STDERR)
 from spyder.config.main import OPEN_FILES_PORT
+from spyder.config.manager import CONF
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
 from spyder import dependencies
-from spyder.py3compat import (is_text_string, to_text_string,
-                              qbytearray_to_str, configparser as cp)
+from spyder.py3compat import (configparser as cp, is_text_string,
+                              PY3, qbytearray_to_str, to_text_string)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
@@ -201,7 +130,8 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
-                                    MENU_SEPARATOR, set_menu_icons)
+                                    MENU_SEPARATOR, qapplication,
+                                    set_menu_icons)
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
@@ -235,7 +165,6 @@ class MainWindow(QMainWindow):
         QMainWindow.AllowTabbedDocks | QMainWindow.AllowNestedDocks |
         QMainWindow.AnimatedDocks
     )
-    CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     BOOKMARKS = (
@@ -270,7 +199,7 @@ class MainWindow(QMainWindow):
     sig_moved = Signal("QMoveEvent")         # Related to interactive tour
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
-    def __init__(self, options=None):
+    def __init__(self, splash=None, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
 
@@ -284,6 +213,7 @@ class MainWindow(QMainWindow):
         if PYQT5:
             # Enabling scaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
         self.default_style = str(qapp.style().objectName())
         self.dialog_manager = DialogManager()
 
@@ -462,21 +392,23 @@ class MainWindow(QMainWindow):
         # Set window title
         self.set_window_title()
 
+        self.CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
+
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
             logger.info("appusermodelid: %s", res)
 
         # Setting QTimer if running in travis
-        test_travis = os.environ.get('TEST_CI_APP', None)
-        if test_travis is not None:
-            global MAIN_APP
+        test_app = os.environ.get('TEST_CI_APP')
+        if test_app is not None:
+            app = qapplication()
             timer_shutdown_time = 30000
             self.timer_shutdown = QTimer(self)
-            self.timer_shutdown.timeout.connect(MAIN_APP.quit)
+            self.timer_shutdown.timeout.connect(app.quit)
             self.timer_shutdown.start(timer_shutdown_time)
 
         # Showing splash screen
-        self.splash = SPLASH
+        self.splash = splash
         if CONF.get('main', 'current_version', '') != __version__:
             CONF.set('main', 'current_version', __version__)
             # Execute here the actions to be performed only once after
@@ -3497,13 +3429,16 @@ class MainWindow(QMainWindow):
 #==============================================================================
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
-    # This doesn't create our QApplication, just holds a reference to
-    # MAIN_APP, created above to show our splash screen as early as
-    # possible
+    # Our QApplication
     app = qapplication()
 
     # --- Set application icon
-    app.setWindowIcon(APP_ICON)
+    app_icon = QIcon(get_image_path("spyder.svg"))
+    app.setWindowIcon(app_icon)
+
+    # Required for correct icon on GNOME/Wayland:
+    if hasattr(app, 'setDesktopFileName'):
+        app.setDesktopFileName('spyder')
 
     #----Monkey patching QApplication
     class FakeQApplication(QApplication):
@@ -3559,14 +3494,12 @@ class Spy(object):
         return get_versions()
 
 
-def run_spyder(app, options, args):
+def run_spyder(app, splash, options, args):
     """
-    Create and show Spyder's main window
-    Start QApplication event loop
+    Create and show Spyder's main window and start QApplication event loop.
     """
-    #TODO: insert here
     # Main window
-    main = MainWindow(options)
+    main = MainWindow(splash, options)
     try:
         main.setup()
     except BaseException:
@@ -3641,11 +3574,39 @@ def main(options, args):
                                      or options.optimize
                                      or bool(get_debug_level()))
 
+    # **** Set OpenGL implementation to use ****
+    # This attibute must be set before creating the application.
+    # See spyder-ide/spyder#11227
+    if options.opengl_implementation:
+        option = options.opengl_implementation
+        set_opengl_implementation(option)
+    else:
+        if CONF.get('main', 'opengl') != 'automatic':
+            option = CONF.get('main', 'opengl')
+            set_opengl_implementation(option)
+
+    # **** Set high DPI scaling ****
+    # This attibute must be set before creating the application.
+    if hasattr(Qt, 'AA_EnableHighDpiScaling'):
+        QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
+                                      CONF.get('main', 'high_dpi_scaling'))
+
     # **** Set debugging info ****
     setup_logging(options)
 
     # **** Create the application ****
     app = initialize()
+
+    # **** Create splash screen ****
+    splash = create_splash_screen()
+    if splash is not None:
+        splash.show()
+        splash.showMessage(
+            _("Initializing..."),
+            int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
+            QColor(Qt.white)
+        )
+        QApplication.processEvents()
 
     if options.reset_to_defaults:
         # Reset Spyder settings to defaults
@@ -3680,9 +3641,9 @@ def main(options, args):
             import faulthandler
             with open(faulthandler_file, 'w') as f:
                 faulthandler.enable(file=f)
-                mainwindow = run_spyder(app, options, args)
+                mainwindow = run_spyder(app, splash, options, args)
         else:
-            mainwindow = run_spyder(app, options, args)
+            mainwindow = run_spyder(app, splash, options, args)
     except FontError as fontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
@@ -3692,8 +3653,8 @@ def main(options, args):
         CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred
-        if SPLASH is not None:
-            SPLASH.hide()
+        if splash is not None:
+            splash.hide()
         return
 
     ORIGINAL_SYS_EXIT()
