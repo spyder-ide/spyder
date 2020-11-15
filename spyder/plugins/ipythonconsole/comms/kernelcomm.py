@@ -145,7 +145,7 @@ class KernelComm(CommBase, QObject):
         settings = call_dict['settings']
         interrupt = 'interrupt' in settings and settings['interrupt']
         interrupt = interrupt or blocking
-        # Need to make sure any blocking call is replied rapidely.
+        # Need to make sure any blocking call is replied rapidly.
         if interrupt and not self.comm_channel_connected():
             # Ask again for comm config
             self.remote_call()._send_comm_config()
@@ -156,7 +156,7 @@ class KernelComm(CommBase, QObject):
                 str(call_dict)
             )
             if blocking:
-                raise CommError("Can not block on a disconnected comm")
+                raise CommError("Cannot block on a disconnected comm")
         try:
             with self.comm_channel_manager(
                     comm_id, queue_message=not interrupt):

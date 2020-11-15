@@ -140,16 +140,14 @@ class HelpWidget(RichJupyterWidget):
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         try:
-            return self.call_kernel(blocking=True
-                                    ).get_doc(objtxt)
+            return self.call_kernel(blocking=True).get_doc(objtxt)
         except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
     def get_source(self, objtxt):
         """Get object source"""
         try:
-            return self.call_kernel(blocking=True
-                                    ).get_source(objtxt)
+            return self.call_kernel(blocking=True).get_source(objtxt)
         except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
