@@ -162,13 +162,14 @@ class KernelComm(CommBase, QObject):
                     comm_id, queue_message=not interrupt):
                 return super(KernelComm, self)._get_call_return_value(
                     call_dict, call_data, comm_id)
-        except RuntimeError:
+        except RuntimeError as e:
             if blocking:
                 raise
             else:
                 # The user has other problems
                 logger.info(
-                    "Dropping message because kernel is dead: ",
+                    "Dropping message because of exception: ",
+                    str(e),
                     str(call_dict)
                 )
                 return
