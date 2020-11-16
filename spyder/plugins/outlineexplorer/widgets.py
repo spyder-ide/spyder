@@ -113,6 +113,7 @@ class SymbolStatus:
         self.index = None
         self.children = []
         self.status = False
+        self.selected = False
         self.parent = None
 
     def delete(self):
@@ -161,9 +162,11 @@ class SymbolStatus:
         self.path = node.path
         self.children = node.children
         self.status = node.status
+        self.selected = node.selected
         self.node = node.node
         self.parent = node.parent
-        self.node.update_info(self.name, self.kind, self.position[0] + 1)
+        self.node.update_info(self.name, self.kind, self.position[0] + 1,
+                              self.status, self.selected)
         self.node.ref = self
 
         for child in self.children:
@@ -172,12 +175,17 @@ class SymbolStatus:
         if self.parent is not None:
             self.parent.replace_node(self.index, self)
 
+    def refresh(self):
+        self.node.update_info(self.name, self.kind, self.position[0] + 1,
+                              self.status, self.selected)
+
     def replace_node(self, index, node):
         self.children[index] = node
 
     def create_node(self):
         self.node = SymbolItem(None, self, self.name, self.kind,
-                               self.position[0] + 1)
+                               self.position[0] + 1, self.status,
+                               self.selected)
 
     def __repr__(self):
         return str(self)
@@ -220,14 +228,14 @@ class FileRootItem(BaseTreeItem):
 
 class SymbolItem(BaseTreeItem):
     """Generic symbol tree item."""
-    def __init__(self, parent, ref, name, kind, position):
+    def __init__(self, parent, ref, name, kind, position, status, selected):
         QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
         self.parent = parent
         self.ref = ref
         self.num_children = 0
-        self.update_info(name, kind, position)
+        self.update_info(name, kind, position, status, selected)
 
-    def update_info(self, name, kind, position):
+    def update_info(self, name, kind, position, status, selected):
         self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
         identifier = SYMBOL_NAME_MAP.get(kind, '')
         identifier = identifier.replace('_', ' ').capitalize()
@@ -235,6 +243,8 @@ class SymbolItem(BaseTreeItem):
             identifier, name, position, _('Line')))
         set_item_user_text(self, name)
         self.setText(0, name)
+        self.setExpanded(status)
+        self.setSelected(selected)
 
 
 class TreeItem(QTreeWidgetItem):
@@ -324,6 +334,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.set_title(title)
         self.setWindowTitle(title)
         self.setUniformRowHeights(True)
+        self.currentItemChanged.connect(self.selection_switched)
+        self.itemExpanded.connect(self.tree_item_expanded)
+        self.itemCollapsed.connect(self.tree_item_collapsed)
 
     @property
     def current_editor(self):
@@ -637,6 +650,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 node.node.parent.remove_children(node.node)
 
         parent.add_node(node)
+        node.refresh()
         return node
 
     def update_tree(self, items, editor_id, language):
@@ -685,13 +699,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if deleted_entry_i.name == changed_entry_i.name:
                 deleted_span = line_span(deleted_entry_i.position)
                 changed_span = line_span(changed_entry_i.position)
-                if deleted_span == changed_span:
-                    # Copy symbol status
-                    changed_entry_i.clone_node(deleted_entry_i)
-                else:
-                    deleted_entry_i.delete()
-                    changed_entry_i.create_node()
-                    non_merged += 1
+                # Copy symbol status
+                changed_entry_i.clone_node(deleted_entry_i)
                 deleted_entry = next(deleted_iter, None)
                 changed_entry = next(changes_iter, None)
             else:
@@ -724,10 +733,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 non_merged += 1
                 changed_entry = next(changes_iter, None)
 
-        if non_merged > 0:
-            tree_copy = IntervalTree(tree)
-            tree_copy.merge_overlaps(
-                data_reducer=self.merge_interval, data_initializer=root)
+        tree_copy = IntervalTree(tree)
+        tree_copy.merge_overlaps(
+            data_reducer=self.merge_interval, data_initializer=root)
 
         self.editor_tree_cache[editor_id] = tree
         self.sig_tree_updated.emit()
@@ -867,6 +875,21 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if isinstance(item, FileRootItem):
             self.root_item_selected(item)
         self.activated(item)
+
+    def selection_switched(self, current_item, previous_item):
+        current_ref = current_item.ref
+        current_ref.selected = True
+        if previous_item is not None:
+            previous_ref = previous_item.ref
+            previous_ref.selected = False
+
+    def tree_item_collapsed(self, item):
+        ref = item.ref
+        ref.status = False
+
+    def tree_item_expanded(self, item):
+        ref = item.ref
+        ref.status = True
 
     def set_editors_to_update(self, language, reset_info=False):
         """Set editors to update per language."""
