@@ -1838,7 +1838,13 @@ class MainWindow(QMainWindow):
 
         # Show dialog with missing dependencies
         if not running_under_pytest():
-            self.report_missing_dependencies()
+            # This avoids computing missing deps before the window is fully up
+            timer_report_deps = QTimer(self)
+            timer_report_deps.setInterval(2000)
+            timer_report_deps.setSingleShot(True)
+            timer_report_deps.timeout.connect(
+                self.report_missing_dependencies)
+            timer_report_deps.start()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1957,6 +1963,7 @@ class MainWindow(QMainWindow):
         self.base_title = title
         self.setWindowTitle(self.base_title)
 
+    @Slot()
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
         # Declare dependencies before trying to detect the missing ones
