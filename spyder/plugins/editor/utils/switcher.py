@@ -136,7 +136,7 @@ class EditorSwitcherManager(object):
         self._current_line = editor.get_cursor_line_number()
         self._switcher.clear()
         self._switcher.set_placeholder_text(_('Select symbol'))
-        oe_symbols = editor.oe_proxy.info
+        oe_symbols = editor.oe_proxy.info or []
 
         idx = 0
         total_symbols = len(oe_symbols)
