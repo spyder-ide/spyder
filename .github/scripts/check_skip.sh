@@ -6,12 +6,12 @@ echo "Last commit text: $LAST_COMMIT_TEXT"
 COUNT=$(echo "$LAST_COMMIT_TEXT" | grep -c -E "\[ci skip\]|\[skip ci\]")
 echo "Results: $COUNT"
 
-if [[ $COUNT == '0' ]]; then 
+if [[ $COUNT == '0' ]]; then
   echo "Run build!"
-  echo "::set-env name=RUN_BUILD::true"
+  echo "RUN_BUILD=true" >> $GITHUB_ENV
 else
   echo "Skip build! Commits including the filter: $COUNT"
-  echo "::set-env name=RUN_BUILD::false"
+  echo "RUN_BUILD=false" >> $GITHUB_ENV
 fi
 
 echo " "
