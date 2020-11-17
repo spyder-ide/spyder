@@ -1959,6 +1959,7 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.use_introspection
 def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     """
     Test that the symbol finder is working as expected when called from the
@@ -1983,6 +1984,8 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
 
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.request_symbols()
+
+    qtbot.wait(5000)
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
