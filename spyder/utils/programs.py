@@ -929,6 +929,10 @@ def is_module_installed(module_name, version=None, interpreter=None):
             # Module is not installed
             return False
 
+        # This can happen if a package was not uninstalled correctly
+        if module_version is None:
+            return False
+
     if version is None:
         return True
     else:
