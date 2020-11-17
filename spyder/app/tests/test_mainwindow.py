@@ -1959,7 +1959,7 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
-def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
+def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     """
     Test that the symbol finder is working as expected when called from the
     editorstack.
@@ -1976,6 +1976,13 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
                    pass
                ''')
     main_window.editor.load(str(file))
+
+    code_editor = main_window.editor.get_focus_widget()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_symbols()
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
