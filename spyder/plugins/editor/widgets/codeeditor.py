@@ -701,7 +701,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def outlineexplorer_data_list(self):
         """Get the list of all user data in document."""
-        return self.oe_proxy.info
+        for data in self.blockuserdata_list():
+            if data.oedata:
+                yield data.oedata
 
     # ---- Keyboard Shortcuts
 
