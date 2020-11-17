@@ -877,8 +877,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.activated(item)
 
     def selection_switched(self, current_item, previous_item):
-        current_ref = current_item.ref
-        current_ref.selected = True
+        if current_item is not None:
+            current_ref = current_item.ref
+            current_ref.selected = True
         if previous_item is not None:
             previous_ref = previous_item.ref
             previous_ref.selected = False
