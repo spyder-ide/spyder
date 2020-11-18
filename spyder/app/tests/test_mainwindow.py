@@ -1879,6 +1879,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.use_introspection
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
     switcher = main_window.switcher
@@ -1926,6 +1927,16 @@ def example_def_2():
 
     # Assert symbol switcher works
     main_window.editor.set_current_filename(str(file_a))
+
+    code_editor = main_window.editor.get_focus_widget()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_symbols()
+
+    qtbot.wait(9000)
+
     main_window.open_switcher()
     qtbot.keyClicks(switcher.edit, '@')
     qtbot.wait(200)
