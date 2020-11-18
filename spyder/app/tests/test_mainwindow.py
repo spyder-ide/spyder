@@ -1960,6 +1960,8 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.use_introspection
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It times out too much on Windows and macOS")
 def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     """
     Test that the symbol finder is working as expected when called from the
