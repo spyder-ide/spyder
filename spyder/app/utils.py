@@ -17,9 +17,12 @@ import sys
 # Third-party imports
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
+from qtpy.QtGui import QPixmap
+from qtpy.QtWidgets import QSplashScreen
 
 # Local imports
-from spyder.config.base import DEV, get_conf_path, get_debug_level
+from spyder.config.base import (DEV, get_conf_path, get_debug_level,
+                                get_image_path, running_under_pytest)
 from spyder.utils.qthelpers import file_uri
 from spyder.utils.external.dafsa.dafsa import DAFSA
 
@@ -33,6 +36,24 @@ except Exception:
 root_logger = logging.getLogger()
 FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')
 FILTER_NAMES = [f.strip() for f in FILTER_NAMES]
+
+
+class Spy:
+    """
+    This is used to inject a 'spy' object in the internal console
+    namespace to inspect Spyder internals.
+
+    Attributes:
+        app       Reference to main QApplication object
+        window    Reference to spyder.MainWindow widget
+    """
+    def __init__(self, app, window):
+        self.app = app
+        self.window = window
+
+    def __dir__(self):
+        return (list(self.__dict__.keys()) +
+                [x for x in dir(self.__class__) if x[0] != '_'])
 
 
 def get_python_doc_path():
@@ -148,3 +169,16 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
     ]
     if DEV or msg_string not in BLACKLIST:
         print(msg_string)  # spyder: test-skip
+
+
+def create_splash_screen():
+    """Create splash screen."""
+    if not running_under_pytest():
+        splash = QSplashScreen(QPixmap(get_image_path('splash.svg')))
+        splash_font = splash.font()
+        splash_font.setPixelSize(10)
+        splash.setFont(splash_font)
+    else:
+        splash = None
+
+    return splash
