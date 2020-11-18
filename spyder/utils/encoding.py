@@ -262,7 +262,9 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             # Creating a new file, emulate what os.open() does
             umask = os.umask(0)
             os.umask(umask)
-            original_mode = 0o777 & ~umask
+            # Set base permission of a file to standard permissions.
+            # See #spyder-ide/spyder#14112.
+            original_mode = 0o666 & ~umask
             creation = time.time()
         try:
             # fixes issues with scripts in Dropbox leaving
