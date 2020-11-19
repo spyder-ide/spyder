@@ -1323,17 +1323,12 @@ class MainWindow(QMainWindow):
             self.register_plugin(self.profiler)
             self.thirdparty_plugins.append(self.profiler)
 
-        other_plugins = ['pylint']
-
-        for plugin_name in other_plugins:
-            if CONF.get(plugin_name, 'enable'):
-                module = importlib.import_module(
-                        'spyder.plugins.{}'.format(plugin_name))
-                plugin = module.PLUGIN_CLASS(self)
-                if plugin.check_compatibility()[0]:
-                    self.thirdparty_plugins.append(plugin)
-                    plugin.register_plugin()
-                    self.add_plugin(plugin)
+        # Code analysis
+        if CONF.get("pylint", "enable"):
+            from spyder.plugins.pylint.plugin import Pylint
+            self.pylint = Pylint(self, configuration=CONF)
+            self.register_plugin(self.pylint)
+            self.thirdparty_plugins.append(self.pylint)
 
         # Third-party plugins
         from spyder import dependencies

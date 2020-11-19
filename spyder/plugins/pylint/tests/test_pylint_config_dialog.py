@@ -30,7 +30,7 @@ class MainWindowMock(QObject):
 @pytest.mark.parametrize(
     'config_dialog',
     # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
-    [[MainWindowMock, [], [Pylint]]],
+    [[None, [], [Pylint]]],
     indirect=True)
 def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()

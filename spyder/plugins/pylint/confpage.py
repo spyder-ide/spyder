@@ -12,16 +12,17 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
-from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
+from spyder.api.translations import get_translation
+from spyder.plugins.pylint.main_widget import (MAX_HISTORY_ENTRIES,
+                                               MIN_HISTORY_ENTRIES,
+                                               PylintWidget)
 
-
-MIN_HISTORY_ENTRIES = 5
-MAX_HISTORY_ENTRIES = 100
-DEFAULT_HISTORY_ENTRIES = 30
+# Localization
+_ = get_translation("spyder")
 
 
 class PylintConfigPage(PluginConfigPage):
+
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
         save_box = self.create_checkbox(_("Save file before analyzing it"),
@@ -33,8 +34,13 @@ class PylintConfigPage(PluginConfigPage):
         hist_label1.setWordWrap(True)
         hist_spin = self.create_spinbox(
             _("History: "),
-            _(" results"), 'max_entries', default=DEFAULT_HISTORY_ENTRIES,
-            min_=MIN_HISTORY_ENTRIES, max_=MAX_HISTORY_ENTRIES, step=1)
+            _(" results"),
+            "max_entries",
+            self.get_option('max_entries'),
+            min_=MIN_HISTORY_ENTRIES,
+            max_=MAX_HISTORY_ENTRIES,
+            step=1,
+        )
 
         results_group = QGroupBox(_("Results"))
         results_label1 = QLabel(_("Results are stored here:"))

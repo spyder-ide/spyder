@@ -314,7 +314,9 @@ DEFAULTS = [
             ('pylint',
              {
               'enable': True,
+              'history_filenames': [],
               'max_entries': 30,
+              'project_dir': None,
               }),
             ('workingdir',
              {

@@ -2004,19 +2004,19 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
                     reason="Times out sometimes on macOS")
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
+    from spyder.plugins.pylint.main_widget import PylintWidgetActions
     # Select the third-party plugin
     pylint_plugin = get_thirdparty_plugin(main_window, "Code Analysis")
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
     main_window.editor.load(test_file)
-    code_editor = main_window.editor.get_focus_widget()
-    qtbot.keyClick(code_editor, Qt.Key_F8)
+    pylint_plugin.get_action(PylintWidgetActions.RunCodeAnalysis).trigger()
     qtbot.wait(3000)
 
     # Perform the test
     # Check output of the analysis
-    treewidget = pylint_plugin.get_focus_widget()
+    treewidget = pylint_plugin.get_widget().get_focus_widget()
     qtbot.waitUntil(lambda: treewidget.results is not None,
                     timeout=SHELL_TIMEOUT)
     result_content = treewidget.results

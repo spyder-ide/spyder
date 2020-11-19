@@ -773,7 +773,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
 
     def get_options_menu_button(self):
         """
-        Return the main options button of the widget.
+        Return the main options menu button of the widget.
         """
         return self._options_button
 
