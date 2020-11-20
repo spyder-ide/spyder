@@ -929,6 +929,10 @@ def is_module_installed(module_name, version=None, interpreter=None):
             # Module is not installed
             return False
 
+        # This can happen if a package was not uninstalled correctly
+        if module_version is None:
+            return False
+
     if version is None:
         return True
     else:
@@ -1035,7 +1039,7 @@ def is_spyder_process(pid):
 
         # Valid names for main script
         names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
-                     'bootstrap.py', 'spyder-script.py'])
+                     'bootstrap.py', 'spyder-script.py', 'Spyder.launch.pyw'])
         if running_under_pytest():
             names.add('runtests.py')
 

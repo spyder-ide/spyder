@@ -39,7 +39,7 @@ jobs:
       OS: 'linux'
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         PYTHON_VERSION: ['3.7', '3.6']
     steps:
@@ -61,7 +61,7 @@ jobs:
       - name: Check build runs
         if: github.event_name != 'pull_request'
         shell: bash -l {0}
-        run: echo "::set-env name=RUN_BUILD::true"
+        run: echo "RUN_BUILD=true" >> $GITHUB_ENV
       - name: Install dependencies
         if: env.RUN_BUILD == 'true'
         shell: bash
@@ -84,12 +84,12 @@ jobs:
           key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
       - name: Install Conda
         if: env.RUN_BUILD == 'true'
-        uses: goanpeca/setup-miniconda@v1
+        uses: conda-incubator/setup-miniconda@v2
         with:
            activate-environment: test
            auto-update-conda: true
            auto-activate-base: false
-           python-version: ${{ matrix.PYTHON_VERSION }} 
+           python-version: ${{ matrix.PYTHON_VERSION }}
            use-only-tar-bz2: true
       - name: Create test environment
         if: env.RUN_BUILD == 'true'
