@@ -343,9 +343,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""
-        self.call_kernel(
-            interrupt=True).set_matplotlib_backend(
-                backend_option, pylab=pylab)
+        self.call_kernel().set_matplotlib_backend(backend_option, pylab=pylab)
 
     def set_mpl_inline_figure_format(self, figure_format):
         """Set matplotlib inline figure format."""
