@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-13 15:55\n"
+"PO-Revision-Date: 2020-11-20 07:09\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -542,7 +542,7 @@ msgstr "<b>Ważna uwaga:</b> W związku z tym, że zainstalowałeś Spyder razem
 
 #: spyder/app/mainwindow.py:3417
 msgid "Please go to <a href=\"{}\">this page</a> to download it.<br><br>"
-msgstr ""
+msgstr "Przejdź na <a href=\"{}\">tę stronę</a>, aby pobrać.<br><br>"
 
 #: spyder/app/mainwindow.py:3427
 msgid "Spyder is up to date."
@@ -592,11 +592,11 @@ msgstr "Ponownie uruchamianie"
 
 #: spyder/app/tour.py:147
 msgid "Welcome to the introduction tour!"
-msgstr ""
+msgstr "Witaj we wprowadzeniu!"
 
 #: spyder/app/tour.py:148
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
-msgstr ""
+msgstr "<b>Spyder</b> jest potężnym interaktywnym środowiskiem programistycznym (Interactive Development Environment, IDE) dla języka programowania Pythona.<br><br>Teraz chcielibyśmy przedstawić Ci jego najważniejsze możliwości.<br><br>Używaj klawiszy strzałek lub przycisków poniżej, aby zapoznać się z kolejnymi funkcjami."
 
 #: spyder/app/tour.py:157 spyder/plugins/base.py:324 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:346 spyder/plugins/editor/plugin.py:1894 spyder/plugins/editor/utils/switcher.py:105 spyder/plugins/editor/widgets/codeeditor.py:132 spyder/plugins/editor/widgets/codeeditor.py:5087 spyder/plugins/editor/widgets/editor.py:541 spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
