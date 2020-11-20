@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-20 07:09\n"
+"PO-Revision-Date: 2020-11-20 07:19\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -612,11 +612,11 @@ msgstr "Konsola IPython"
 
 #: spyder/app/tour.py:176
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
-msgstr ""
+msgstr "Tutaj możesz uruchomić kod Pythona, albo z Edytora, albo interaktywnie. Aby uruchomić bieżący plik, naciśnij <b>F5</b>, lub naciśnij <b>F9</b> aby wykonać bieżący wiersz lub zaznaczenie.<br><br>Konsola IPython posiada wiele przydatnych funkcji, które znacznie ułatwiają pracę programisty, takie jak podświetlenie składni, autouzupełnianie, rysowanie czy 'magiczne' komendy. Aby dowiedzieć się więcej, sprawdź <a href=\"{0}\">dokumentację</a>.<br><br>{1}"
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
-msgstr ""
+msgstr "Przeglądarka zmiennych"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
@@ -648,7 +648,7 @@ msgstr ""
 
 #: spyder/app/tour.py:241
 msgid "History Log"
-msgstr ""
+msgstr "Dziennik działań"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
