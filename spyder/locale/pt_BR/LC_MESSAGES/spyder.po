@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-21 21:49\n"
+"PO-Revision-Date: 2020-11-21 21:58\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -540,11 +540,11 @@ msgstr "Para mais informações, visite nosso <a href=\"{}\">guia de instalaçã
 
 #: spyder/app/mainwindow.py:3406
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
-msgstr ""
+msgstr "<b>Nota importante:</b> Já que você instalou o Spyder com o Anaconda, por favor <b>não</b> use <code>pip</code> para atualizar ele, isso quebrará sua instalação.<br><br>Ao invés disso, execute os seguintes comandos no terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
 
 #: spyder/app/mainwindow.py:3417
 msgid "Please go to <a href=\"{}\">this page</a> to download it.<br><br>"
-msgstr ""
+msgstr "Por favor, vá para <a href=\"{}\">esta página</a> para baixá-lo.<br><br>"
 
 #: spyder/app/mainwindow.py:3427
 msgid "Spyder is up to date."
@@ -598,7 +598,7 @@ msgstr "Bem-vindo ao tour de introdução!"
 
 #: spyder/app/tour.py:148
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
-msgstr ""
+msgstr "<b>Spyder</b> é um poderoso Ambiente de Desenvolvimento Integrado (ou IDE) para a linguagem de programação Python.<br><br>Aqui vamos guiar você nas mais importantes características e funcionalidades do Spyder.<br><br>Por favor use as teclas de seta ou clique nos botões abaixo para se mover durante a tour."
 
 #: spyder/app/tour.py:157 spyder/plugins/base.py:324 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:346 spyder/plugins/editor/plugin.py:1894 spyder/plugins/editor/utils/switcher.py:105 spyder/plugins/editor/widgets/codeeditor.py:132 spyder/plugins/editor/widgets/codeeditor.py:5087 spyder/plugins/editor/widgets/editor.py:541 spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
