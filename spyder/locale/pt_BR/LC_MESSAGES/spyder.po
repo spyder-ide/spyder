@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-21 22:08\n"
+"PO-Revision-Date: 2020-11-21 22:17\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -606,7 +606,7 @@ msgstr "Editor"
 
 #: spyder/app/tour.py:158
 msgid "This is where you write Python code before evaluating it. You can get automatic completions while typing, along with calltips when calling a function and help when hovering over an object.<br><br>The Editor comes with a line number area (highlighted here in red) where Spyder shows warnings and syntax errors. They can help you to detect potential problems before running your code.<br><br>You can also set debug breakpoints in the line number area by clicking next to any non-empty line."
-msgstr ""
+msgstr "Este é o painel aonde você escreve seu código Python antes de executá-lo. Enquanto digita você pode receber sugestões de preenchimento automático quando passar o mouse sobre um objeto, juntamente de dicas de preenchimento no caso de funções e ajuda para objetos.<br><br>O Editor possui uma área com uma linha numérica (destacada aqui em vermelho), onde o Spyder mostra avisos e erros de sintaxe. Isso pode ajudar você a detectar potenciais problemas antes de executar o código.<br><br>Você também pode definir pontos de interrupção para depuração do código nesta área clicando duas vezes em linhas com código."
 
 #: spyder/app/tour.py:175 spyder/plugins/help/confpage.py:33
 msgid "IPython Console"
@@ -614,7 +614,7 @@ msgstr "Console IPython"
 
 #: spyder/app/tour.py:176
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
-msgstr ""
+msgstr "É aqui que você pode executar o código Python, seja do Editor ou interativamente. Para executar o arquivo atual, pressione <b>F5</b> por padrão ou pressione <b>F9</b> para executar a linha ou seleção atual.<br><br>O Console do IPython vem com muitos recursos úteis que melhoram muito seu fluxo de trabalho de programação, como realce de sintaxe, preenchimento automático, plotagem e comandos 'mágico'. Para saber mais, confira a <a href=\"{0}\">documentação</a>.<br><br>{1}"
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
