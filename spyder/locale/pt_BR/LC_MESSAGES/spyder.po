@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-06 02:36\n"
+"PO-Revision-Date: 2020-11-21 21:49\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -524,19 +524,19 @@ msgstr "O Spyder será reiniciado e voltará para suas definições padrões: <b
 
 #: spyder/app/mainwindow.py:3381
 msgid "New Spyder version"
-msgstr ""
+msgstr "Nova versão do Spyder"
 
 #: spyder/app/mainwindow.py:3382
 msgid "Check for updates at startup"
-msgstr ""
+msgstr "Verificar se há atualizações na inicialização"
 
 #: spyder/app/mainwindow.py:3399
 msgid "<b>Spyder {} is available!</b><br><br>"
-msgstr ""
+msgstr "<b>Spyder {} está disponível!</b><br><br>"
 
 #: spyder/app/mainwindow.py:3401
 msgid "For more information visit our <a href=\"{}\">installation guide</a>."
-msgstr ""
+msgstr "Para mais informações, visite nosso <a href=\"{}\">guia de instalação</a>."
 
 #: spyder/app/mainwindow.py:3406
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
@@ -5239,11 +5239,11 @@ msgstr "Inserir"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:621
 msgid "Insert above"
-msgstr ""
+msgstr "Inserir acima"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:626
 msgid "Insert below"
-msgstr ""
+msgstr "Inserir abaixo"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:640 spyder/plugins/variableexplorer/widgets/collectionseditor.py:934
 msgid "Duplicate"
@@ -6526,11 +6526,11 @@ msgstr "Substituir string"
 
 #: spyder/widgets/findreplace.py:148
 msgid "In selection"
-msgstr ""
+msgstr "Na seleção"
 
 #: spyder/widgets/findreplace.py:156
 msgid "All"
-msgstr ""
+msgstr "Tudo"
 
 #: spyder/widgets/findreplace.py:633
 msgid "of"
@@ -6626,11 +6626,11 @@ msgstr "Restaurar a disposição original"
 
 #: spyder/widgets/onecolumntree.py:66
 msgid "Collapse section"
-msgstr ""
+msgstr "Recolher seção"
 
 #: spyder/widgets/onecolumntree.py:72
 msgid "Expand section"
-msgstr ""
+msgstr "Expandir seção"
 
 #: spyder/widgets/pathmanager.py:113
 msgid "Move to top"
@@ -6766,7 +6766,7 @@ msgstr "Utilização da CPU"
 
 #: spyder/widgets/status.py:251
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "Alterar ambiente padrão em Preferências..."
 
 #: spyder/widgets/status.py:315
 msgid "Clock"
