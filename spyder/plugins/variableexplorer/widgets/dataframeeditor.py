@@ -366,6 +366,10 @@ class DataFrameModel(QAbstractTableModel):
                          "an error ocurred while trying to do it")
         return to_qvariant()
 
+    def recalculate_index(self):
+        """Recalcuate index information."""
+        self.df_index_list = self.df.index.tolist()
+
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
         if self.complex_intran is not None:
@@ -397,6 +401,8 @@ class DataFrameModel(QAbstractTableModel):
                     QMessageBox.critical(self.dialog, "Error",
                                          "SystemError: %s" % to_text_string(e))
             else:
+                # Update index list
+                self.recalculate_index()
                 # To sort by index
                 self.df.sort_index(inplace=True, ascending=ascending)
         except TypeError as e:
@@ -580,7 +586,6 @@ class DataFrameView(QTableView):
         if self.sort_old == [None]:
             self.header_class.setSortIndicatorShown(True)
         sort_order = self.header_class.sortIndicatorOrder()
-        self.sig_sort_by_column.emit()
         if not self.model().sort(index, sort_order):
             if len(self.sort_old) != 2:
                 self.header_class.setSortIndicatorShown(False)
@@ -589,6 +594,7 @@ class DataFrameView(QTableView):
                                                    self.sort_old[1])
             return
         self.sort_old = [index, self.header_class.sortIndicatorOrder()]
+        self.sig_sort_by_column.emit()
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method."""
@@ -1338,6 +1344,8 @@ class DataFrameEditor(BaseDialog):
 
         Uses the model of the dataTable as the base.
         """
+        # Update index list calculation
+        self.dataModel.recalculate_index()
         self.setModel(self.dataTable.model())
 
     def _fetch_more_columns(self):
