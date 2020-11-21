@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import os
 import os.path as osp
 import pickle
 import re
@@ -27,7 +28,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QMessageBox,
                             QSizePolicy, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import get_translation, running_in_mac_app
 from spyder.api.widgets import PluginMainWidget
 from spyder.config.base import get_conf_path
 from spyder.config.gui import is_dark_interface
@@ -306,6 +307,12 @@ class PylintWidget(PluginMainWidget):
         command_args = self.get_command(self.get_filename())
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
+
+        # resolve spyder-ide/spyder#14262
+        if running_in_mac_app():
+            pyhome = os.environ.get("PYTHONHOME")
+            processEnvironment.insert("PYTHONHOME", pyhome)
+
         process.setProcessEnvironment(processEnvironment)
         process.start(sys.executable, command_args)
         running = process.waitForStarted()
