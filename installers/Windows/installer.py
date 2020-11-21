@@ -4,6 +4,7 @@
 # Licensed under the terms of the GPL-3.0 License
 # (see spyder/__init__.py for details)
 #
+
 # Copyright © 2018 Nicholas H.Tollervey.
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
