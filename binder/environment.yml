@@ -52,16 +52,15 @@ dependencies:
 # the contents of this requirements/tests.txt to this file.yml.
 # Please *DO NOT* make changes directly just to here - make changes
 # to requirements/tests.txt, and copy it here.
-- coverage <5.0
+- coverage
 - cython
 - flaky
 - matplotlib
 - mock
 - pandas
 - pillow
-- pytest <5.0
+- pytest <6.0
 - pytest-cov
-- pytest-faulthandler <2.0
 - pytest-lazy-fixture
 - pytest-mock
 - pytest-ordering
