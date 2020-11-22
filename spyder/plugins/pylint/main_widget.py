@@ -28,9 +28,9 @@ from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QMessageBox,
                             QSizePolicy, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.translations import get_translation, running_in_mac_app
+from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
-from spyder.config.base import get_conf_path
+from spyder.config.base import get_conf_path, running_in_mac_app
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
