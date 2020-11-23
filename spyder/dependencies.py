@@ -209,7 +209,7 @@ DESCRIPTIONS = [
      'package_name': "rtree",
      'features': _("Fast access to code snippets regions"),
      'required_version': RTREE_REQVER,
-     'display': is_anaconda()},
+     'display': is_anaconda() or is_pynsist()},
     {'modname': "setuptools",
      'package_name': "setuptools",
      'features': _("Determine package version"),
