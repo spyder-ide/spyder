@@ -65,7 +65,7 @@ jobs:
       - name: Check build runs
         if: github.event_name != 'pull_request'
         shell: bash -l {0}
-        run: echo "::set-env name=RUN_BUILD::true"
+        run: echo "RUN_BUILD=true" >> $GITHUB_ENV
       - name: Cache conda
         uses: actions/cache@v1
         env:
@@ -82,7 +82,7 @@ jobs:
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
       - name: Install Conda
         if: env.RUN_BUILD == 'true'
-        uses: goanpeca/setup-miniconda@v1
+        uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: test
           auto-update-conda: true

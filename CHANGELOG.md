@@ -6,24 +6,24 @@
 
 * New, self-contained installers for Windows and macOS.
 * Add support for inline and interactive Matplotlib plots in the debugger.
-* Automatic detection of conda and pyenv environments on
+* Automatic detection of conda and pyenv environments in
   `Preferences > Python interpreter`.
-* Add functionality to do auto-formatting in the Editor. It can triggered in
+* Add functionality to do auto-formatting in the Editor. It can be triggered in
   the menu `Source > Format file or selection` or with the shorcut
   `Ctrl+Alt+I` (`Cmd+Alt+I` in macOS).
 * Add support for text snippets in the Editor. The list of available snippets
   is shown in `Preferences > Completion and linting > Snippets`.
 * Support caching cells send in succession to the IPython console. This will
-  run one cell after the previous one ended.
-* Variables will take precedence over Pdb commands in the debugger. In case a
+  run one cell after the previous one finished.
+* Make variables take precedence over Pdb commands in the debugger. In case a
   variable clashes with a command, you'll have to prefix the command with `!`.
 * Show a message to take a tour of Spyder features the first time 4.2.0 is
   launched.
-* Drop support fot Python 2.7 and 3.5.
+* Drop support for Python 2.7 and 3.5.
 
 ### Important fixes
 
-* Improve performance in the Editor when paiting indent guides and showing
+* Improve performance in the Editor when painting indent guides and showing
   linting messages.
 * Prevent the creation of temporary files in Dropbox directories after saving
   in the Editor.

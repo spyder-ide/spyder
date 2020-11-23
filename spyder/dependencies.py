@@ -210,7 +210,7 @@ DESCRIPTIONS = [
      'package_name': "rtree",
      'features': _("Fast access to code snippets regions"),
      'required_version': RTREE_REQVER,
-     'display': is_anaconda()},
+     'display': is_anaconda() or is_pynsist()},
     {'modname': "setuptools",
      'package_name': "setuptools",
      'features': _("Determine package version"),
@@ -393,7 +393,7 @@ def missing_dependencies():
     """Return the status of missing dependencies (if any)"""
     missing_deps = []
     for dependency in DEPENDENCIES:
-        if not dependency.check() and dependency.kind != OPTIONAL:
+        if dependency.kind != OPTIONAL and not dependency.check():
             missing_deps.append(dependency)
 
     if missing_deps:
