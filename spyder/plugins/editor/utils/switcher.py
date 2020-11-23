@@ -143,6 +143,8 @@ class EditorSwitcherManager(object):
 
         idx = 0
         total_symbols = len(oe_symbols)
+        oe_symbols = sorted(
+            oe_symbols, key=lambda x: x['location']['range']['start']['line'])
         for symbol in oe_symbols:
             symbol_name = symbol['name']
             symbol_kind = symbol['kind']
