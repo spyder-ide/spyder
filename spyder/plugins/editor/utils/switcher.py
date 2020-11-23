@@ -16,6 +16,7 @@ from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.switcher import shorten_paths, get_file_icon
 from spyder.plugins.completion.languageserver import (
@@ -137,6 +138,8 @@ class EditorSwitcherManager(object):
         self._switcher.clear()
         self._switcher.set_placeholder_text(_('Select symbol'))
         oe_symbols = editor.oe_proxy.info or []
+        display_variables = CONF.get('outline_explorer', 'display_variables')
+        group_cells = CONF.get('outline_explorer', 'group_cells')
 
         idx = 0
         total_symbols = len(oe_symbols)
@@ -147,9 +150,17 @@ class EditorSwitcherManager(object):
                 if symbol_kind == SymbolKind.MODULE:
                     total_symbols -= 1
                     continue
+                if (symbol_kind == SymbolKind.VARIABLE and
+                        not display_variables):
+                    total_symbols -= 1
+                    continue
+                if symbol_kind == SymbolKind.FIELD and not display_variables:
+                    total_symbols -= 1
+                    continue
 
             symbol_range = symbol['location']['range']
             symbol_start = symbol_range['start']['line']
+
             fold_level = editor.leading_whitespaces[symbol_start]
 
             space = ' ' * fold_level
