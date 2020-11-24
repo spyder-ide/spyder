@@ -44,6 +44,7 @@ dependencies:
 # NOTE: There's no need to set constraints for spyder-kernels here
 # because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
+- textdistance >=4.2.0
 - three-merge >=0.1.1
 - watchdog >=0.10.3
 
