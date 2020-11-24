@@ -230,7 +230,7 @@ class IPythonConsole(SpyderPluginWidget):
         if completion_type_n in options:
             completion_type_o = self.get_option(completion_type_n)
             completions = {0: "droplist", 1: "ncurses", 2: "plain"}
-            sw.set_completion_type(completions[completion_type_o])
+            sw._set_completion_widget(completions[completion_type_o])
 
         # Advanced GUI options
         if in_prompt_n in options:
