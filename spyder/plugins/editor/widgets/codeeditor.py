@@ -4812,15 +4812,15 @@ class CodeEditor(TextEditBaseWidget):
             enclosing_regions = sorted(list(
                 folding_panel.current_tree[fold_start_line]))
 
+            folding_status = folding_panel.folding_status
             if len(enclosing_regions) > 0:
-                innermost_region = enclosing_regions[-1]
-                fold_start_line = innermost_region.begin
-                block = self.document().findBlockByNumber(fold_start_line)
-
-                if fold_start_line in folding_panel.folding_status:
-                    fold_status = folding_panel.folding_status[fold_start_line]
-                    if fold_status:
-                        folding_panel.toggle_fold_trigger(block)
+                for region in enclosing_regions:
+                    fold_start_line = region.begin
+                    block = self.document().findBlockByNumber(fold_start_line)
+                    if fold_start_line in folding_status:
+                        fold_status = folding_status[fold_start_line]
+                        if fold_status:
+                            folding_panel.toggle_fold_trigger(block)
 
         self._TextEditBaseWidget__move_line_or_selection(
             after_current_line=after_current_line)
