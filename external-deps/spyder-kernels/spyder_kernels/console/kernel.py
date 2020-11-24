@@ -469,7 +469,10 @@ class SpyderKernel(IPythonKernel):
 
     def get_cwd(self):
         """Get current working directory."""
-        return os.getcwd()
+        try:
+            return os.getcwd()
+        except (IOError, OSError):
+            pass
 
     def get_syspath(self):
         """Return sys.path contents."""
