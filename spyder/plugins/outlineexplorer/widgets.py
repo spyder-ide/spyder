@@ -23,46 +23,13 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.plugins.completion.manager.api import SymbolKind
+from spyder.plugins.completion.manager.api import (
+    SymbolKind, BLOCK_COMMENT, CELL, SYMBOL_KIND_ICON)
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text, create_plugin_layout,
                                     create_waitspinner)
 from spyder.widgets.onecolumntree import OneColumnTree
 
-# Additional symbol constants (non-standard)
-BLOCK_COMMENT = 224
-CELL = 225
-
-SYMBOL_KIND_ICON = {
-    SymbolKind.FILE: 'file',
-    SymbolKind.MODULE: 'module',
-    SymbolKind.NAMESPACE: 'namespace',
-    SymbolKind.PACKAGE: 'package',
-    SymbolKind.CLASS: 'class',
-    SymbolKind.METHOD: 'method',
-    SymbolKind.PROPERTY: 'property',
-    SymbolKind.FIELD: 'field',
-    SymbolKind.CONSTRUCTOR: 'constructor',
-    SymbolKind.ENUM: 'enum',
-    SymbolKind.INTERFACE: 'interface',
-    SymbolKind.FUNCTION: 'function',
-    SymbolKind.VARIABLE: 'variable',
-    SymbolKind.CONSTANT: 'constant',
-    SymbolKind.STRING: 'string',
-    SymbolKind.NUMBER: 'number',
-    SymbolKind.BOOLEAN: 'boolean',
-    SymbolKind.ARRAY: 'array',
-    SymbolKind.OBJECT: 'object',
-    SymbolKind.KEY: 'key',
-    SymbolKind.NULL: 'null',
-    SymbolKind.ENUM_MEMBER: 'enum_member',
-    SymbolKind.STRUCT: 'struct',
-    SymbolKind.EVENT: 'event',
-    SymbolKind.OPERATOR: 'operator',
-    SymbolKind.TYPE_PARAMETER: 'type_parameter',
-    BLOCK_COMMENT: 'blockcomment',
-    CELL: 'cell'
-}
 
 SYMBOL_NAME_MAP = {
     SymbolKind.FILE: _('File'),

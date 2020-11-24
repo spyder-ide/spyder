@@ -1891,6 +1891,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.use_introspection
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
     switcher = main_window.switcher
@@ -1938,6 +1939,16 @@ def example_def_2():
 
     # Assert symbol switcher works
     main_window.editor.set_current_filename(str(file_a))
+
+    code_editor = main_window.editor.get_focus_widget()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_symbols()
+
+    qtbot.wait(9000)
+
     main_window.open_switcher()
     qtbot.keyClicks(switcher.edit, '@')
     qtbot.wait(200)
@@ -1971,7 +1982,10 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
-def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
+@pytest.mark.use_introspection
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It times out too much on Windows and macOS")
+def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     """
     Test that the symbol finder is working as expected when called from the
     editorstack.
@@ -1988,6 +2002,15 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
                    pass
                ''')
     main_window.editor.load(str(file))
+
+    code_editor = main_window.editor.get_focus_widget()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_symbols()
+
+    qtbot.wait(5000)
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
