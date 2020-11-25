@@ -407,6 +407,7 @@ class PylintWidget(PluginMainWidget):
             list_save_files = []
             for fname in self.curr_filenames:
                 if _("untitled") not in fname:
+                    filename = osp.normpath(fname)
                     list_save_files.append(fname)
 
             self.curr_filenames = list_save_files[:MAX_HISTORY_ENTRIES]
@@ -597,13 +598,15 @@ class PylintWidget(PluginMainWidget):
         if self._is_running():
             self._kill_process()
 
+        filename = str(filename)
+        filename = osp.normpath(filename)  # Normalize path for Windows
+
         # Don't try to reload saved analysis for filename, if filename
         # is the one currently displayed.
         # Fixes spyder-ide/spyder#13347
         if self.get_filename() == filename:
             return
 
-        filename = str(filename)
         index, _data = self.get_data(filename)
 
         if filename not in self.curr_filenames:
