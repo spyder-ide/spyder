@@ -43,6 +43,23 @@ class Plots(SpyderPluginWidget):
         layout = QGridLayout(self)
         layout.addWidget(self.stack)
 
+    def connect_ipyconsole(self, ipyconsole):
+        """Connect to ipyconsole plugin."""
+        ipyconsole.sig_new_shellwidget.connect(
+            self.handle_new_shellwiget)
+        ipyconsole.sig_del_shellwidget.connect(
+            self.remove_shellwidget)
+        ipyconsole.sig_switch_shellwidget.connect(
+            self.set_shellwidget_from_id)
+
+    def handle_new_shellwiget(self, shellwidget, external):
+        """Add a new shellwidget if it is a spyder kernels."""
+        if external:
+            shellwidget.sig_is_spykernel.connect(
+                lambda sw=shellwidget: self.add_shellwidget(sw))
+        else:
+            self.add_shellwidget(shellwidget)
+
     def get_settings(self):
         """Retrieve all Plots configuration settings."""
         return {name: self.get_option(name) for name in

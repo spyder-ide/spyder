@@ -56,7 +56,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
-    sig_is_spykernel = Signal(object)
+    sig_is_spykernel = Signal()
     sig_kernel_restarted_message = Signal(str)
     sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
@@ -117,6 +117,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
 
+        # Internal kernel are always spyder kernels
+        self._is_spyder_kernel = not external_kernel
+
     def __del__(self):
         """Avoid destroying shutdown_thread."""
         if (self.shutdown_thread is not None
@@ -124,6 +127,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.shutdown_thread.wait()
 
     # ---- Public API ---------------------------------------------------------
+    def is_spyder_kernel(self):
+        """Is the widget a spyder kernel."""
+        return self._is_spyder_kernel
+
     def shutdown(self):
         """Shutdown kernel"""
         self.shutdown_called = True
@@ -238,7 +245,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             return False
 
-    def is_spyder_kernel(self):
+    def check_spyder_kernel(self):
         """Determine if the kernel is from Spyder."""
         code = u"getattr(get_ipython().kernel, 'set_value', False)"
         if self._reading:
@@ -567,7 +574,8 @@ the sympy module (e.g. plot)
                     if data is not None and 'text/plain' in data:
                         is_spyder_kernel = data['text/plain']
                         if 'SpyderKernel' in is_spyder_kernel:
-                            self.sig_is_spykernel.emit(self)
+                            self._is_spyder_kernel = True
+                            self.sig_is_spykernel.emit()
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)

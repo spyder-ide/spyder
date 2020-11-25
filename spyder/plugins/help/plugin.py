@@ -53,6 +53,7 @@ class Help(SpyderPluginWidget):
     def __init__(self, parent=None, css_path=CSS_PATH):
         SpyderPluginWidget.__init__(self, parent)
 
+        self.shellwidgets_dict = {}
         self.internal_shell = None
         self.console = None
         self.css_path = css_path
@@ -187,6 +188,51 @@ class Help(SpyderPluginWidget):
         view.linkClicked.connect(self.handle_link_clicks)
 
         self._starting_up = True
+
+    # Shellwidget connection handling
+    def connect_ipyconsole(self, ipyconsole):
+        """Connect to ipyconsole plugin."""
+        ipyconsole.sig_new_shellwidget.connect(
+            self.handle_new_shellwiget)
+        ipyconsole.sig_del_shellwidget.connect(
+            self.remove_shellwidget)
+        ipyconsole.sig_switch_shellwidget.connect(
+            self.set_shellwidget_from_id)
+        ipyconsole.sig_help_text.connect(
+            self.show_help_text)
+
+    def handle_new_shellwiget(self, shellwidget, external):
+        """Add a new shellwidget if it is a spyder kernels."""
+        if external:
+            shellwidget.sig_is_spykernel.connect(
+                lambda sw=shellwidget: self.add_shellwidget(sw))
+        else:
+            self.add_shellwidget(shellwidget)
+
+    def add_shellwidget(self, shellwidget):
+        """Add a new shellwidget."""
+        self.shellwidgets_dict[id(shellwidget)] = shellwidget
+        self.set_shell(shellwidget)
+        control = shellwidget._control
+        control.set_help(self)
+        control.set_help_enabled(self.get_option('connect/ipython_console'))
+
+    def set_shellwidget_from_id(self, sid):
+        """Set current shellwidget."""
+        if sid in self.shellwidgets_dict:
+            self.set_shell(self.shellwidgets_dict[sid])
+
+    def remove_shellwidget(self, sid):
+        """Remove shellwidget."""
+        if sid in self.shellwidgets_dict:
+            del self.shellwidgets_dict[sid]
+
+    def show_help_text(self, rich, text, collapse):
+        """Show given help text."""
+        if rich:
+            self.show_rich_text(text, collapse)
+        else:
+            self.show_plain_text(text)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def on_first_registration(self):

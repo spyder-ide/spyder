@@ -78,6 +78,10 @@ class IPythonConsole(SpyderPluginWidget):
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_pdb_state = Signal(bool, dict)
+    sig_new_shellwidget = Signal(object, bool)
+    sig_del_shellwidget = Signal(object)
+    sig_switch_shellwidget = Signal(object)
+    sig_help_text = Signal(bool, str, bool)
 
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
@@ -294,9 +298,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         if client:
             sw = client.shellwidget
-            self.main.variableexplorer.set_shellwidget_from_id(id(sw))
-            self.main.plots.set_shellwidget_from_id(id(sw))
-            self.main.help.set_shell(sw)
+            self.sig_switch_shellwidget.emit(id(sw))
             self.sig_pdb_state.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
         self.update_tabs_text()
@@ -464,9 +466,8 @@ class IPythonConsole(SpyderPluginWidget):
                 is_new_client = True
 
         if client is not None:
-            # Internal kernels, use runfile
-            if (client.get_kernel() is not None or
-                    client.shellwidget.is_spyder_kernel()):
+            # If spyder-kernels, use runfile
+            if client.shellwidget.is_spyder_kernel():
                 line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                                     norm(filename))
                 if args:
@@ -952,11 +953,6 @@ class IPythonConsole(SpyderPluginWidget):
                 # Syncronice cwd with explorer and cwd widget
                 shellwidget.update_cwd()
 
-        # Connect text widget to Help
-        if self.main.help is not None:
-            control.set_help(self.main.help)
-            control.set_help_enabled(CONF.get('help', 'connect/ipython_console'))
-
         # Connect client to our history log
         if self.main.historylog is not None:
             self.main.historylog.add_history(client.history_filename)
@@ -1268,20 +1264,11 @@ class IPythonConsole(SpyderPluginWidget):
         Connect an external kernel to the Variable Explorer, Help and
         Plots, but only if it is a Spyder kernel.
         """
-        sw = shellwidget
+        self.sig_new_shellwidget.emit(shellwidget, True)
         kc = shellwidget.kernel_client
-        if self.main.help is not None:
-            self.main.help.set_shell(sw)
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.add_shellwidget(sw)
-            sw.set_namespace_view_settings()
-            sw.refresh_namespacebrowser()
-            kc.stopped_channels.connect(lambda :
-                self.main.variableexplorer.remove_shellwidget(id(sw)))
-        if self.main.plots is not None:
-            self.main.plots.add_shellwidget(sw)
-            kc.stopped_channels.connect(lambda :
-                self.main.plots.remove_shellwidget(id(sw)))
+        kc.stopped_channels.connect(
+            lambda sid=id(shellwidget):
+                self.sig_del_shellwidget.emit(sid))
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
@@ -1383,19 +1370,19 @@ class IPythonConsole(SpyderPluginWidget):
     def show_intro(self):
         """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
-        self.main.help.show_rich_text(interactive_usage)
+        self.sig_help_text.emit(True, interactive_usage, False)
 
     @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
         from qtconsole.usage import gui_reference
-        self.main.help.show_rich_text(gui_reference, collapse=True)
+        self.sig_help_text.emit(True, gui_reference, True)
 
     @Slot()
     def show_quickref(self):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
-        self.main.help.show_plain_text(quick_reference)
+        self.sig_help_text.emit(False, quick_reference, False)
 
     #------ Private API -------------------------------------------------------
     def _init_asyncio_patch(self):
@@ -1453,19 +1440,12 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def process_started(self, client):
-        if self.main.help is not None:
-            self.main.help.set_shell(client.shellwidget)
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.add_shellwidget(client.shellwidget)
-        if self.main.plots is not None:
-            self.main.plots.add_shellwidget(client.shellwidget)
+        """Process started."""
+        self.sig_new_shellwidget.emit(client.shellwidget, False)
 
     def process_finished(self, client):
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.remove_shellwidget(
-                id(client.shellwidget))
-        if self.main.plots is not None:
-            self.main.plots.remove_shellwidget(id(client.shellwidget))
+        """Process finished."""
+        self.sig_del_shellwidget.emit(id(client.shellwidget))
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
@@ -1579,9 +1559,8 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_exception_occurred.connect(
             self.main.console.exception_occurred)
         if external_kernel:
-            shellwidget.sig_is_spykernel.connect(
-                self.connect_external_kernel)
-            shellwidget.is_spyder_kernel()
+            self.connect_external_kernel(shellwidget)
+            shellwidget.check_spyder_kernel()
 
         # Set elapsed time, if possible
         if not external_kernel:

@@ -43,6 +43,27 @@ class VariableExplorer(SpyderPluginWidget):
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
+    def connect_ipyconsole(self, ipyconsole):
+        """Connect to ipyconsole plugin."""
+        ipyconsole.sig_new_shellwidget.connect(
+            self.handle_new_shellwiget)
+        ipyconsole.sig_del_shellwidget.connect(
+            self.remove_shellwidget)
+        ipyconsole.sig_switch_shellwidget.connect(
+            self.set_shellwidget_from_id)
+
+    def handle_new_shellwiget(self, shellwidget, external):
+        """Add a new shellwidget if it is a spyder kernels."""
+        if external:
+            shellwidget.sig_is_spykernel.connect(
+                lambda sw=shellwidget: self.add_shellwidget(sw))
+            shellwidget.sig_is_spykernel.connect(
+                shellwidget.set_namespace_view_settings)
+            shellwidget.sig_is_spykernel.connect(
+                shellwidget.refresh_namespacebrowser)
+        else:
+            self.add_shellwidget(shellwidget)
+
     def get_settings(self):
         """
         Retrieve all Variable Explorer configuration settings.

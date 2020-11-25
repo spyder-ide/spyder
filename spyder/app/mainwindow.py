@@ -890,6 +890,12 @@ class MainWindow(QMainWindow):
         self.ipyconsole = IPythonConsole(self, css_path=css_path)
         self.ipyconsole.register_plugin()
 
+        self.variableexplorer.connect_ipyconsole(self.ipyconsole)
+        self.plots.connect_ipyconsole(self.ipyconsole)
+        if self.help:
+            self.help.connect_ipyconsole(self.ipyconsole)
+
+
         # Explorer
         if CONF.get('explorer', 'enable'):
             self.set_splash(_("Loading file explorer..."))
