@@ -143,9 +143,9 @@ class CompletionPlugin(SpyderPluginV2):
                 provider_info['instance'].shutdown()
 
     def on_close(self, cancelable=False) -> bool:
-        """Check if any completion provider has any pending task before closing."""
+        """Check if any provider has any pending task before closing."""
         can_close = False
-        for provider_name in self._providers
+        for provider_name in self._providers:
             provider_info = self._providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 provider = provider_info['instance']
