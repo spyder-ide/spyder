@@ -893,10 +893,10 @@ def test_connection_to_external_kernel(main_window, qtbot):
         assert spykm._restarter.poll() is not None
     if km._restarter:
         assert km._restarter.poll() is not None
-    assert not spykc.shell_channel.is_alive()
-    assert not kc.shell_channel.is_alive()
-    assert not spykc.ioloop_thread.is_alive()
-    assert not kc.ioloop_thread.is_alive()
+
+    # Close the channels
+    spykc.stop_channels()
+    kc.stop_channels()
 
 
 @pytest.mark.slow
