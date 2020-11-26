@@ -16,13 +16,14 @@ from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.menus import ApplicationMenus
-from spyder.api.translations import get_translation
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.utils.programs import is_module_installed
+from spyder.api.translations import get_translation
+from spyder.config.base import _
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import (PylintWidget,
                                                PylintWidgetActions)
-
+from spyder.plugins.pylint.rule_ignorer import RuleIgnorer
+from spyder.utils.programs import is_module_installed
 
 # Localization
 _ = get_translation("spyder")
@@ -75,6 +76,8 @@ class Pylint(SpyderDockablePlugin):
             self.sig_redirect_stdio_requested)
         widget.sig_start_analysis_requested.connect(
             lambda: self.start_code_analysis())
+
+        widget.sig_edit_ignore_rule.connect(self.ignore_rule)
 
         # Connect to Editor
         widget.sig_edit_goto_requested.connect(editor.load)
@@ -154,3 +157,25 @@ class Pylint(SpyderDockablePlugin):
         Stop the code analysis process.
         """
         self.get_widget().stop_code_analysis()
+
+    def ignore_rule(self, filename, lineno, ruleid):
+        """ Ignoring a pylint rule will:
+            -> load the file
+            -> add the pylint ignore comment
+            -> save the file
+            -> rerun the code analysis
+
+            Some considerations to have in mind:
+                - If the last code analysis run does not match with what is on the file, there are chances that the
+                pylint ignore comment is being added in a line that does not match the intention of the user.
+                So is responsibility of the user to rerun the code analysis if they change the code, before adding
+                a ignore rule.
+                - When the user re-run a code analysis we are not blocking the widget, so they can still use the ignore
+                feature when a code analysis is running. This means that for big files the code analysis could take
+                some time and if the user successively use the feature without waiting for the code analysis to finish
+                this could cause the same that is described in the previous item
+        """
+        self.main.editor.load(filename)
+        RuleIgnorer(self.main.editor.get_current_editor()).ignore_rule_in_line(ruleid, lineno)
+        self.main.editor.save()
+        self.pylint.start()
