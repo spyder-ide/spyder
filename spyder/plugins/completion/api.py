@@ -454,7 +454,7 @@ class LSPEventTypes:
     CODE_LENS = 'codeLens'
 
 
-class LSPRequestTypes:
+class CompletionRequestTypes:
     """Language Server Protocol request/response types."""
     # General requests
     INITIALIZE = 'initialize'
