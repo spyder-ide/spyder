@@ -154,7 +154,7 @@ class RichText(QWidget):
         else:
             self.webview.web_widget.setStyleSheet(
                 "background:{}".format(MAIN_BG_COLOR))
-            self.viewview.page().setLinkDelegationPolicy(
+            self.webview.page().setLinkDelegationPolicy(
                 QWebEnginePage.DelegateAllLinks)
 
         self.find_widget = FindReplace(self)
