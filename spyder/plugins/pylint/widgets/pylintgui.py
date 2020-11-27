@@ -13,6 +13,7 @@
 
 # Standard library imports
 from __future__ import print_function, with_statement
+import os
 import os.path as osp
 import re
 import sys
@@ -26,7 +27,8 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_conf_path, get_translation
+from spyder.config.base import (get_conf_path, get_translation,
+                                running_in_mac_app)
 from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton
@@ -441,6 +443,12 @@ class PylintWidget(QWidget):
         pylint_args.append(filename)
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
+
+        # resolve spyder-ide/spyder#14262
+        if running_in_mac_app():
+            pyhome = os.environ.get("PYTHONHOME")
+            processEnvironment.insert("PYTHONHOME", pyhome)
+
         self.process.setProcessEnvironment(processEnvironment)
 
         self.process.start(sys.executable, pylint_args)
