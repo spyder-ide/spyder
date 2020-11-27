@@ -97,7 +97,9 @@ class KernelComm(CommBase, QObject):
 
     def _set_call_return_value(self, call_dict, data, is_error=False):
         """Override to use the comm_channel for all replies."""
-        with self.comm_channel_manager(self.calling_comm_id):
+        # Avoid crash if comm channel not connected
+        queue_message = not self.comm_channel_connected()
+        with self.comm_channel_manager(self.calling_comm_id, queue_message):
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 

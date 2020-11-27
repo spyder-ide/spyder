@@ -655,9 +655,8 @@ class IPythonConsole(SpyderPluginWidget):
                 is_new_client = True
 
         if client is not None:
-            # Internal kernels, use runfile
-            if (client.get_kernel() is not None or
-                    client.shellwidget.is_spyder_kernel()):
+            # If spyder-kernels, use runfile
+            if client.shellwidget.is_spyder_kernel():
                 line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                                     norm(filename))
                 if args:
@@ -1774,7 +1773,7 @@ class IPythonConsole(SpyderPluginWidget):
         if external_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_kernel)
-            shellwidget.is_spyder_kernel()
+            shellwidget.check_spyder_kernel()
 
         # Set elapsed time, if possible
         if not external_kernel:

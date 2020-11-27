@@ -267,7 +267,7 @@ class PylintWidget(QWidget):
     def set_filename(self, filename):
         """Set filename without performing code analysis."""
         filename = to_text_string(filename)  # filename is a QString instance
-
+        filename = osp.normpath(filename)  # Normalize path for Windows
         # Don't try to reload saved analysis for filename, if filename
         # is the one currently displayed.
         # Fixes spyder-ide/spyder#13347
@@ -323,6 +323,7 @@ class PylintWidget(QWidget):
             list_save_files = []
             for f in self.curr_filenames:
                 if _('untitled') not in f:
+                    filename = osp.normpath(f)
                     list_save_files.append(f)
             self.curr_filenames = list_save_files[:self.top_max_entries]
             self.parent.set_option('history_filenames', self.curr_filenames)
