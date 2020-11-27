@@ -16,7 +16,6 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'windows'
-      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     strategy:
       fail-fast: false 
       matrix:
