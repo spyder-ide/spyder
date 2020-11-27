@@ -19,6 +19,7 @@ import threading
 # Third-party imports
 import ipykernel
 from ipykernel.ipkernel import IPythonKernel
+from ipykernel.zmqshell import ZMQInteractiveShell
 
 # Local imports
 from spyder_kernels.py3compat import TEXT_TYPES, to_text_string
@@ -33,8 +34,31 @@ from spyder_kernels.utils.misc import (
 EXCLUDED_NAMES = ['In', 'Out', 'exit', 'get_ipython', 'quit']
 
 
+class SpyderShell(ZMQInteractiveShell):
+    """Spyder shell."""
+
+    def ask_exit(self):
+        """Engage the exit actions."""
+        self.kernel.frontend_comm.close_thread()
+        return super(SpyderShell, self).ask_exit()
+
+    def get_local_scope(self, stack_depth):
+        """Get local scope at given frame depth."""
+        frame = sys._getframe(stack_depth + 1)
+        if self.kernel._pdb_frame is frame:
+            # we also give the globals because they might not be in
+            # self.user_ns
+            namespace = frame.f_globals.copy()
+            namespace.update(self.kernel._pdb_locals)
+            return namespace
+        else:
+            return frame.f_locals
+
+
 class SpyderKernel(IPythonKernel):
     """Spyder kernel for Jupyter."""
+
+    shell_class = SpyderShell
 
     def __init__(self, *args, **kwargs):
         super(SpyderKernel, self).__init__(*args, **kwargs)
@@ -85,26 +109,12 @@ class SpyderKernel(IPythonKernel):
                 call_id, handlers[call_id])
 
         self.namespace_view_settings = {}
-
         self._pdb_obj = None
         self._pdb_step = None
         self._do_publish_pdb_state = True
         self._mpl_backend_error = None
         self._running_namespace = None
         self._pdb_input_line = None
-        self.shell.get_local_scope = self.get_local_scope
-
-    def get_local_scope(self, stack_depth):
-        """Get local scope at given frame depth."""
-        frame = sys._getframe(stack_depth + 1)
-        if self._pdb_frame is frame:
-            # we also give the globals because they might not be in
-            # self.shell.user_ns
-            namespace = frame.f_globals.copy()
-            namespace.update(self._pdb_locals)
-            return namespace
-        else:
-            return frame.f_locals
 
     # -- Public API -----------------------------------------------------------
     def frontend_call(self, blocking=False, broadcast=True,
@@ -355,12 +365,20 @@ class SpyderKernel(IPythonKernel):
             is_main_thread = isinstance(
                 threading.current_thread(), threading._MainThread)
 
+        # Get input by running eventloop
         if is_main_thread and self.eventloop:
             while self._pdb_input_line is None:
-                self.eventloop(self)
-        else:
+                eventloop = self.eventloop
+                if eventloop:
+                    eventloop(self)
+                else:
+                    break
+
+        # Get input by blocking
+        if self._pdb_input_line is None:
             self.frontend_comm.wait_until(
                 lambda: self._pdb_input_line is not None)
+
         return self._pdb_input_line
 
     def _interrupt_eventloop(self):
