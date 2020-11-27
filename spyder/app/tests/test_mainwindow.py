@@ -856,6 +856,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
     qtbot.wait(500)
     assert nsb.editor.source_model.rowCount() == 0
 
+    python_shell = shell
+
     # Test with a kernel from Spyder
     spykm, spykc = start_new_kernel(spykernel=True)
     main_window.ipyconsole._create_client_for_kernel(spykc.connection_file, None,
@@ -871,11 +873,38 @@ def test_connection_to_external_kernel(main_window, qtbot):
     qtbot.wait(500)
     assert nsb.editor.source_model.rowCount() == 1
 
-    # Shutdown the kernels
-    spykm.stop_restarter()
-    km.stop_restarter()
-    spykm.shutdown_kernel(now=True)
-    km.shutdown_kernel(now=True)
+    # Test runfile in external_kernel
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(
+        "print(2 + 1)"
+    )
+
+    # Start running
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(run_button, Qt.LeftButton)
+
+    assert "runfile" in shell._control.toPlainText()
+    assert "3" in shell._control.toPlainText()
+
+    # Try quitting the kernels
+    shell.execute('quit()')
+    python_shell.execute('quit()')
+    qtbot.wait(1000)
+
+    # Make sure everything quit properly
+    assert km.kernel.poll() is not None
+    assert spykm.kernel.poll() is not None
+    if spykm._restarter:
+        assert spykm._restarter.poll() is not None
+    if km._restarter:
+        assert km._restarter.poll() is not None
+
+    # Close the channels
     spykc.stop_channels()
     kc.stop_channels()
 
