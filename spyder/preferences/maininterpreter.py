@@ -25,7 +25,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
-from spyder.utils.programs import get_list_pyenv_envs
+from spyder.utils.pyenv import get_list_pyenv_envs
 
 
 class MainInterpreterConfigPage(GeneralConfigPage):
