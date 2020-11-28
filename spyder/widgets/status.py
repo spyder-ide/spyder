@@ -23,6 +23,7 @@ from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_list_pyenv_envs, get_interpreter_info
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_waitspinner)
+from spyder.utils.workers import WorkerManager
 
 
 class StatusBarWidget(QWidget):
@@ -234,33 +235,58 @@ class InterpreterStatus(BaseTimerStatus):
         super(InterpreterStatus, self).__init__(parent, statusbar, icon=icon)
 
         self.main = parent
+        self._first_time = True
         self.env_actions = []
         self.path_to_env = {}
         self.envs = {}
+        self.value = ''
 
         self.menu = QMenu(self)
         self.sig_clicked.connect(self.show_menu)
 
-        self.set_interval(5000)
+        # Worker to compute envs in a thread
+        self._worker_manager = WorkerManager(max_threads=1)
+
+        # Set initial update interval to a small value to start the
+        # worker very quickly.
+        self.set_interval(100)
 
     def import_test(self):
         pass
 
     def get_value(self):
-        self.update_envs()
-        return self._get_env_info(self._interpreter)
+        # Adjust update interval after the first time this was triggered
+        if self._first_time:
+            self.set_interval(10000)
+            self._first_time = False
 
-    def update_envs(self):
-        """Update the list of environments in the system."""
+        # Recompute envs to check if the current env is still present.
+        self._worker_manager.terminate_all()
+        worker = self._worker_manager.create_python_worker(self.get_envs)
+        worker.sig_finished.connect(self.update_envs)
+        worker.start()
+
+        # Return current value to not make the widget appear empty
+        # while the worker is running.
+        return self.value
+
+    def get_envs(self):
+        """Get the list of environments in the system."""
         conda_env = get_list_conda_envs()
         pyenv_env = get_list_pyenv_envs()
-        self.envs = {**conda_env, **pyenv_env}
+        return {**conda_env, **pyenv_env}
+
+    def update_envs(self, worker, output, error):
+        """Update the list of environments in the system."""
+        self.envs = output
         for env in list(self.envs.keys()):
             path, version = self.envs[env]
             # Save paths in lowercase on Windows to avoid issues with
             # capitalization.
             path = path.lower() if os.name == 'nt' else path
             self.path_to_env[path] = env
+
+        self.update_interpreter()
 
     def show_menu(self):
         """Display a menu when clicking on the widget."""
@@ -310,11 +336,12 @@ class InterpreterStatus(BaseTimerStatus):
         """Override api method."""
         return self._interpreter if self._interpreter else ''
 
-    def update_interpreter(self, interpreter):
+    def update_interpreter(self, interpreter=None):
         """Set main interpreter and update information."""
-        self._interpreter = interpreter
-        text = self._get_env_info(interpreter)
-        self.set_value(text)
+        if interpreter:
+            self._interpreter = interpreter
+        self.value = self._get_env_info(self._interpreter)
+        self.set_value(self.value)
         self.update_tooltip()
 
 
