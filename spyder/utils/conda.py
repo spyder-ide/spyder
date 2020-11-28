@@ -19,6 +19,7 @@ from spyder.utils.programs import (find_program, run_program,
 
 
 WINDOWS = os.name == 'nt'
+CONDA_ENV_LIST_CACHE = {}
 
 
 def add_quotes(path):
@@ -106,6 +107,8 @@ def get_conda_env_path(pyexec, quote=False):
 
 def get_list_conda_envs():
     """Return the list of all conda envs found in the system."""
+    global CONDA_ENV_LIST_CACHE
+
     env_list = {}
     conda_exec = 'conda.bat' if WINDOWS else 'conda'
     conda = find_program(conda_exec)
@@ -121,6 +124,7 @@ def get_list_conda_envs():
     except Exception:
         out = {'envs': []}
         err = ''
+
     for env in out['envs']:
         name = env.split(osp.sep)[-1]
         try:
@@ -136,4 +140,11 @@ def get_list_conda_envs():
                 name.lower().startswith('miniconda') else name)
         name = 'conda: {}'.format(name)
         env_list[name] = (path, version.strip())
+
+    CONDA_ENV_LIST_CACHE = env_list
     return env_list
+
+
+def get_list_conda_envs_cache():
+    """Return a cache of envs to avoid computing them again."""
+    return CONDA_ENV_LIST_CACHE
