@@ -325,6 +325,8 @@ class InterpreterStatus(BaseTimerStatus):
                 name = 'internal'
             elif 'conda' in path:
                 name = 'conda'
+            elif 'pyenv' in path:
+                name = 'pyenv'
             else:
                 name = 'custom'
             version = get_interpreter_info(path)

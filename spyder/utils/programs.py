@@ -86,7 +86,10 @@ def is_program_installed(basename):
         if basename.endswith('.app') and osp.exists(basename):
             return basename
 
-        pyenv = [osp.join('/usr', 'local', 'bin')]
+        pyenv = [
+            osp.join('/usr', 'local', 'bin'),
+            osp.join(home, '.pyenv', 'bin')
+        ]
 
         # Prioritize Anaconda before Miniconda; local before global.
         a = [osp.join(home, 'opt'), '/opt']
@@ -96,7 +99,10 @@ def is_program_installed(basename):
         req_paths.extend(pyenv + conda)
 
     elif sys.platform.startswith('linux'):
-        pyenv = [osp.join('/usr', 'local', 'bin')]
+        pyenv = [
+            osp.join('/usr', 'local', 'bin'),
+            osp.join(home, '.pyenv', 'bin')
+        ]
 
         a = [home, '/opt']
         b = ['anacona3', 'miniconda3']
