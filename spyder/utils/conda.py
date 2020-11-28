@@ -117,25 +117,22 @@ def get_list_conda_envs():
 
     cmdstr = ' '.join([conda, 'env', 'list', '--json'])
     try:
-        out, err = run_shell_command(cmdstr, env={}).communicate()
+        out, __ = run_shell_command(cmdstr, env={}).communicate()
         out = out.decode()
-        err = err.decode()
         out = json.loads(out)
     except Exception:
         out = {'envs': []}
-        err = ''
 
     for env in out['envs']:
         name = env.split(osp.sep)[-1]
         try:
             path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
                 env, 'bin', 'python')
-            version, err = run_program(path, ['--version']).communicate()
+            version, __ = run_program(path, ['--version']).communicate()
             version = version.decode()
-            err = err.decode()
         except Exception:
             version = ''
-            err = ''
+
         name = ('base' if name.lower().startswith('anaconda') or
                 name.lower().startswith('miniconda') else name)
         name = 'conda: {}'.format(name)
