@@ -285,7 +285,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             except:
                 pass
         elif column == 2:
-            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes, reverse=reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys,
+                                                        self.sizes,
+                                                        reverse=reverse)
             self.types = sort_against(self.types, self.sizes, reverse=reverse)
             try:
                 self.sizes.sort(reverse=reverse)
