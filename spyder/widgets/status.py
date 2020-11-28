@@ -225,16 +225,33 @@ class CPUStatus(BaseTimerStatus):
         return QIcon()
 
 
-class InterpreterStatus(StatusBarWidget):
+class InterpreterStatus(BaseTimerStatus):
     """Status bar widget for displaying the current conda environment."""
 
     def __init__(self, parent, statusbar, icon=None):
         """Status bar widget for displaying the current conda environment."""
         self._interpreter = None
         super(InterpreterStatus, self).__init__(parent, statusbar, icon=icon)
+
         self.main = parent
         self.env_actions = []
         self.path_to_env = {}
+        self.envs = {}
+
+        self.menu = QMenu(self)
+        self.sig_clicked.connect(self.show_menu)
+
+        self.set_interval(5000)
+
+    def import_test(self):
+        pass
+
+    def get_value(self):
+        self.update_envs()
+        return self._get_env_info(self._interpreter)
+
+    def update_envs(self):
+        """Update the list of environments in the system."""
         conda_env = get_list_conda_envs()
         pyenv_env = get_list_pyenv_envs()
         self.envs = {**conda_env, **pyenv_env}
@@ -244,8 +261,6 @@ class InterpreterStatus(StatusBarWidget):
             # capitalization.
             path = path.lower() if os.name == 'nt' else path
             self.path_to_env[path] = env
-        self.menu = QMenu(self)
-        self.sig_clicked.connect(self.show_menu)
 
     def show_menu(self):
         """Display a menu when clicking on the widget."""
