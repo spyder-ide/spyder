@@ -15,6 +15,9 @@ from spyder.config.base import get_home_dir, running_in_mac_app
 from spyder.utils.programs import find_program, run_shell_command
 
 
+PYENV_ENV_LIST_CACHE = {}
+
+
 def get_pyenv_path(name):
     """Return the complete path of the pyenv."""
     home = get_home_dir()
@@ -30,6 +33,8 @@ def get_pyenv_path(name):
 
 def get_list_pyenv_envs():
     """Return the list of all pyenv envs found in the system."""
+    global PYENV_ENV_LIST_CACHE
+
     env_list = {}
     pyenv = find_program('pyenv')
     if pyenv is None:
@@ -54,4 +59,10 @@ def get_list_pyenv_envs():
             'Python 2.7' if data[-1] == '' else 'Python {}'.format(data[0]))
         env_list[name] = (path, version)
 
+    PYENV_ENV_LIST_CACHE = env_list
     return env_list
+
+
+def get_list_pyenv_envs_cache():
+    """Return a cache of envs to avoid computing them again."""
+    return PYENV_ENV_LIST_CACHE

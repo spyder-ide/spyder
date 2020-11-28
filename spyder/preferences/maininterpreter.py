@@ -25,7 +25,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
-from spyder.utils.pyenv import get_list_pyenv_envs
+from spyder.utils.pyenv import get_list_pyenv_envs_cache
 
 
 class MainInterpreterConfigPage(GeneralConfigPage):
@@ -40,7 +40,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         self.cus_exec_combo = None
 
         conda_env = get_list_conda_envs_cache()
-        pyenv_env = get_list_pyenv_envs()
+        pyenv_env = get_list_pyenv_envs_cache()
         envs = {**conda_env, **pyenv_env}
         valid_custom_list = []
         for env in envs.keys():
