@@ -37,12 +37,13 @@ jobs:
           if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
               INSTALL_FLAGS+=(${SPK_REPO} ${PLS_REPO})
           fi
-          pip3 install -c req-const.txt -r req-build.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
-          pip3 uninstall -q -y spyder
+          brew link python@3.9
+          python3.9 -m pip install -c req-const.txt -r req-build.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
+          python3.9 -m pip uninstall -q -y spyder
       - name: Build Application Bundle
-        run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
+        run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Build Disk Image
-        run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
+        run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
