@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-29 09:48\n"
+"PO-Revision-Date: 2020-11-29 09:54\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -924,7 +924,7 @@ msgstr ""
 
 #: spyder/dependencies.py:177
 msgid "Spyder plugin for the Python Language Server"
-msgstr ""
+msgstr "Wtyczka Spydera dla Python Language Server"
 
 #: spyder/dependencies.py:181
 msgid "Parse desktop files on Linux"
@@ -956,7 +956,7 @@ msgstr ""
 
 #: spyder/dependencies.py:211
 msgid "Determine package version"
-msgstr ""
+msgstr "Określ wersję pakietu"
 
 #: spyder/dependencies.py:215
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
