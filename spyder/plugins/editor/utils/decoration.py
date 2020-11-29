@@ -123,6 +123,9 @@ class TextDecorationsManager(Manager, QObject):
                 need_update_sel = False
                 cursor = decoration.cursor
                 sel_start = cursor.selectionStart()
+                # This is required to update extra selections from the point
+                # an initial selection was made.
+                # Fixes spyder-ide/spyder#14282
                 if sel_start is not None:
                     doc = cursor.document()
                     block_nb_start = doc.findBlock(sel_start).blockNumber()
