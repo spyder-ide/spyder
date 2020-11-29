@@ -18,9 +18,9 @@ Original file:
 
 # Standard library imports
 from math import ceil
+import logging
 
 # Third party imports
-import logging
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 from qtpy.QtCore import Qt, QRect
