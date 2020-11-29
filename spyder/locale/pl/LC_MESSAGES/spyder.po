@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-20 07:19\n"
+"PO-Revision-Date: 2020-11-29 09:48\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -680,11 +680,11 @@ msgstr ""
 
 #: spyder/app/tour.py:271
 msgid "The end"
-msgstr ""
+msgstr "Koniec"
 
 #: spyder/app/tour.py:272
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
-msgstr ""
+msgstr "Dotarłeś do końca naszej wycieczki i jesteś gotowy do korzystania ze Spydera! Aby uzyskać więcej informacji, sprawdź naszą <a href=\"{}\">dokumentację</a>.<br><br>"
 
 #: spyder/app/tour.py:324
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -692,7 +692,7 @@ msgstr "<b>Spyder</b> jest interaktywnym środowiskiem deweloperskim (IDE) bazuj
 
 #: spyder/app/tour.py:328
 msgid "Welcome to Spyder introduction tour"
-msgstr ""
+msgstr "Witaj we wprowadzeniu do Spydera"
 
 #: spyder/app/tour.py:329
 msgid "Spyder is an interactive development environment based on bla"
@@ -724,11 +724,11 @@ msgstr ""
 
 #: spyder/app/tour.py:1422
 msgid "Welcome to Spyder!<br><br>Check out our interactive tour to explore some of Spyder's panes and features."
-msgstr ""
+msgstr "Witaj w Spyderze!<br><br>Sprawdź nasz interaktywny przewodnik, aby odkryć możliwości i funkcje Spydera."
 
 #: spyder/app/tour.py:1428
 msgid "Start tour"
-msgstr ""
+msgstr "Rozpocznij"
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -840,15 +840,15 @@ msgstr "Wspierane pliki tekstowe"
 
 #: spyder/dependencies.py:87
 msgid "Notify macOS that Spyder can open Python files"
-msgstr ""
+msgstr "Powiadom macOS, że Spyder może otwierać pliki Python"
 
 #: spyder/dependencies.py:92
 msgid "Atomic file writes in the Editor"
-msgstr ""
+msgstr "Atomowe zapisy plików w Edytorze"
 
 #: spyder/dependencies.py:96
 msgid "Character encoding auto-detection for the Editor"
-msgstr ""
+msgstr "Automatyczne wykrywanie kodowania znaków w edytorze"
 
 #: spyder/dependencies.py:100
 msgid "Handle communications between kernel and frontend"
@@ -872,7 +872,7 @@ msgstr "Główny backend dla Python Language Server"
 
 #: spyder/dependencies.py:120
 msgid "Verify if snippets files are valid"
-msgstr ""
+msgstr "Sprawdź, czy pliki snippetów są prawidłowe"
 
 #: spyder/dependencies.py:124
 msgid "Save Github credentials to report internal errors securely"
@@ -904,11 +904,11 @@ msgstr "Buforuj listę zainstalowanych modułów Pythona"
 
 #: spyder/dependencies.py:156
 msgid "CPU and memory usage info in the status bar"
-msgstr ""
+msgstr "Informacje o użyciu procesora i pamięci na pasku stanu"
 
 #: spyder/dependencies.py:160
 msgid "Syntax highlighting for a lot of file types in the Editor"
-msgstr ""
+msgstr "Podświetlanie składni wielu typów plików w Edytorze"
 
 #: spyder/dependencies.py:164
 msgid "Static code analysis"
@@ -916,7 +916,7 @@ msgstr "Analiza statyczna kodu"
 
 #: spyder/dependencies.py:168
 msgid "Code completion and linting for the Editor"
-msgstr ""
+msgstr "Uzupełnianie kodu i linting dla edytora"
 
 #: spyder/dependencies.py:172
 msgid "Autoformat Python files in the Editor with the Black package"
