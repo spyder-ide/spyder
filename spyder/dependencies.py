@@ -14,7 +14,6 @@ import sys
 from spyder.utils import programs
 from spyder.config.base import _, is_pynsist
 from spyder.config.utils import is_anaconda
-from spyder.py3compat import PY2
 
 
 # =============================================================================
@@ -38,7 +37,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
+IPYTHON_REQVER = ">=7.6.0"
 JEDI_REQVER = '=0.17.2'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
@@ -133,8 +132,7 @@ DESCRIPTIONS = [
      'package_name': "keyring",
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
-     'required_version': KEYRING_REQVER,
-     'display': sys.platform.startswith('linux') and not PY2},
+     'required_version': KEYRING_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
