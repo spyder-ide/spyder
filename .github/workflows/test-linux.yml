@@ -91,7 +91,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: test
-          auto-update-conda: true
+          auto-update-conda: false
           auto-activate-base: false
           python-version: ${{ matrix.PYTHON_VERSION }}
           use-only-tar-bz2: true
