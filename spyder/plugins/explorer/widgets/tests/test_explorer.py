@@ -17,7 +17,8 @@ import sys
 import pytest
 from qtpy.QtCore import QEvent, QPoint, Qt, QTimer
 from qtpy.QtGui import QMouseEvent
-from qtpy.QtWidgets import QApplication, QInputDialog, QMenu, QMessageBox
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QInputDialog, QMenu, QMessageBox, QTextEdit)
 
 # Local imports
 from spyder.plugins.explorer.widgets.explorer import (FileExplorerTest,
@@ -27,10 +28,14 @@ from spyder.plugins.projects.widgets.explorer import (
 from spyder.py3compat import PY2
 
 
+HERE = osp.abspath(osp.dirname(__file__))
+
+
 @pytest.fixture
 def file_explorer(qtbot):
     """Set up FileExplorerTest."""
     widget = FileExplorerTest()
+    widget.show()
     qtbot.addWidget(widget)
     return widget
 
@@ -259,7 +264,6 @@ def test_get_file_associations(qtbot, file_explorer_associations):
 
 
 @pytest.mark.first
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_create_file_manage_actions(qtbot, file_explorer_associations,
                                     tmp_path):
     widget = widget = file_explorer_associations.explorer.treewidget
@@ -290,7 +294,6 @@ def test_create_file_manage_actions(qtbot, file_explorer_associations,
 
 
 @pytest.mark.first
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_clicked(qtbot, file_explorer_associations, tmp_path):
     widget = file_explorer_associations.explorer.treewidget
     some_dir = tmp_path / 'some_dir'
@@ -323,7 +326,6 @@ def test_clicked(qtbot, file_explorer_associations, tmp_path):
 
 
 @pytest.mark.first
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_check_launch_error_codes(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
 
@@ -355,7 +357,6 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
 
 
 @pytest.mark.first
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_open_association(qtbot, file_explorer_associations, tmp_path):
     widget = file_explorer_associations.explorer.treewidget
     some_dir = tmp_path / 'some_dir'
@@ -373,6 +374,53 @@ def test_open_association(qtbot, file_explorer_associations, tmp_path):
 
     _ = create_timer(interact)
     widget.open_association('some-app')
+
+
+@pytest.mark.first
+def test_update_filters(file_explorer, qtbot):
+    """
+    Test that view is updated if the filter button is activated and
+    filters are changed.
+
+    This is a regression test for spyder-ide/spyder#14328
+    """
+    explorer = file_explorer.explorer
+    widget = file_explorer.explorer.treewidget
+
+    # Assert explorer.py is present (in case we rename it)
+    explorer_file = osp.join(osp.dirname(HERE), 'explorer.py')
+    assert osp.isfile(explorer_file)
+
+    # Assert explorer.py is in view before applying the new filters
+    idx0 = widget.get_index(explorer_file)
+    assert idx0.isValid()
+
+    # Activate filters
+    explorer.filter_button.clicked.emit()
+
+    # Auxiliary function to interact with the filters dialog.
+    def interact():
+        dlg = widget.findChild(QDialog)
+        assert dlg
+
+        # Change filters
+        filters = dlg.findChild(QTextEdit)
+        filters.setPlainText('*.png')
+
+        # Apply settings
+        button_box = dlg.findChild(QDialogButtonBox)
+        button_box.button(QDialogButtonBox.Ok).clicked.emit()
+
+    # Edit filters
+    _ = create_timer(interact)
+    widget.edit_filter()
+
+    # Wait for filters to be applied
+    qtbot.wait(1000)
+
+    # Assert explorer.py is not view.
+    idx1 = widget.get_index(explorer_file)
+    assert not idx1.isValid()
 
 
 if __name__ == "__main__":
