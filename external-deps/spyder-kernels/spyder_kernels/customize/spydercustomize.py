@@ -13,7 +13,6 @@
 
 import bdb
 import cmd
-from distutils.version import LooseVersion
 import io
 import logging
 import os
@@ -32,7 +31,7 @@ from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
 from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
 
-if LooseVersion(ipy_version) > LooseVersion('7.0.0'):
+if not PY2:
     from IPython.core.inputtransformer2 import (
         TransformerManager, leading_indent, leading_empty_lines)
 else:
@@ -402,11 +401,11 @@ def count_leading_empty_lines(cell):
 
 
 def transform_cell(code, indent_only=False):
-    """Transform ipython code to python code."""
+    """Transform IPython code to Python code."""
     number_empty_lines = count_leading_empty_lines(code)
     if indent_only:
         # Not implemented for PY2
-        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
+        if PY2:
             return code
         if not code.endswith('\n'):
             code += '\n'  # Ensure the cell has a trailing newline
@@ -414,7 +413,7 @@ def transform_cell(code, indent_only=False):
         lines = leading_indent(leading_empty_lines(lines))
         code = ''.join(lines)
     else:
-        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
+        if PY2:
             tm = IPythonInputSplitter()
             return tm.transform_cell(code)
         else:
