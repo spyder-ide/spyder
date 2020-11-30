@@ -154,6 +154,7 @@ class DirView(QTreeView):
     sig_new_file = Signal(str)
     sig_open_interpreter = Signal(str)
     redirect_stdio = Signal(bool)
+    sig_update_filters = Signal()
 
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
@@ -416,6 +417,7 @@ class DirView(QTreeView):
             self.parent_widget.sig_option_changed.emit(
                 'name_filters', filter_text)
             self.set_name_filters(filter_text)
+            self.sig_update_filters.emit()
             dialog.accept()
 
         def handle_reset():
@@ -1814,6 +1816,7 @@ class ExplorerWidget(QWidget):
         self.treewidget.set_previous_enabled.connect(
                                                previous_action.setEnabled)
         self.treewidget.set_next_enabled.connect(next_action.setEnabled)
+        self.treewidget.sig_update_filters.connect(self.filter_files)
         self.sig_option_changed.connect(self.refresh_actions)
 
     def change_filter_state(self):
@@ -1824,6 +1827,11 @@ class ExplorerWidget(QWidget):
             _("Deactivate filename filters") if self.filter_on else _(
                 "Activate filename filters"))
         self.filter_button.setToolTip(tip_message)
+        self.filter_files()
+
+    @Slot()
+    def filter_files(self):
+        """Update filters in the tree widget."""
         self.treewidget.filter_files(self.filter_on)
 
     def refresh_actions(self, option, value):
