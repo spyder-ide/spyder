@@ -96,19 +96,19 @@ class CompletionManager(SpyderCompletionPlugin):
                 plugin_client = Plugin(self.main)
                 self.register_completion_plugin(plugin_client)
 
-    def register_completion_plugin(self, plugin):
-        logger.debug("Completion plugin: Registering {0}".format(
-            plugin.COMPLETION_CLIENT_NAME))
-        plugin_name = plugin.COMPLETION_CLIENT_NAME
-        self.clients[plugin_name] = {
-            'plugin': plugin,
-            'status': self.STOPPED
-        }
-        plugin.sig_response_ready.connect(self.receive_response)
-        plugin.sig_plugin_ready.connect(self.client_available)
-        for language in self.language_status:
-            server_status = self.language_status[language]
-            server_status[plugin_name] = False
+    # def register_completion_plugin(self, plugin):
+    #     logger.debug("Completion plugin: Registering {0}".format(
+    #         plugin.COMPLETION_CLIENT_NAME))
+    #     plugin_name = plugin.COMPLETION_CLIENT_NAME
+    #     self.clients[plugin_name] = {
+    #         'plugin': plugin,
+    #         'status': self.STOPPED
+    #     }
+    #     plugin.sig_response_ready.connect(self.receive_response)
+    #     plugin.sig_plugin_ready.connect(self.client_available)
+    #     for language in self.language_status:
+    #         server_status = self.language_status[language]
+    #         server_status[plugin_name] = False
 
     @Slot(str, int, dict)
     def receive_response(self, completion_source, req_id, resp):

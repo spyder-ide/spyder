@@ -643,4 +643,4 @@ SYMBOL_KIND_ICON = {
 
 
 # ---------------- OTHER GENERAL PURPOSE CONSTANTS ------------------
-COMPLETION_ENTRYPOINT = 'spyder_completions'
+COMPLETION_ENTRYPOINT = 'spyder.completions'

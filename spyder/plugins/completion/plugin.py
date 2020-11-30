@@ -23,9 +23,8 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.plugins import SpyderPluginV2
 from spyder.config.base import _
-from spyder.plugins.completion.api import (LSPRequestTypes,
+from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            COMPLETION_ENTRYPOINT)
-from spyder.utils import icon_manager as ima
 
 logger = logging.getLogger(__name__)
 
@@ -45,15 +44,16 @@ class CompletionPlugin(SpyderPluginV2):
     completion providers are available, since they are included as part of
     Spyder.
 
-    TODO: Decide if Kite will be stripped from the core and moved into its
-    own separate package.
+    TODO: Kite will be stripped from the Spyder core into its own completion
+    provider.
     """
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
     CONF_DEFAULTS = [
-        ('enabled_plugins': {}),
-        ('provider_configuration': {})
+        ('enabled_providers': {}),
+        ('provider_configuration': {}),
+        ('request_priorities', {})
     ]
     CONF_VERSION = '0.1.0'
 
@@ -77,6 +77,10 @@ class CompletionPlugin(SpyderPluginV2):
     RUNNING = 'running'
     STOPPED = 'stopped'
 
+    SKIP_INTERMEDIATE_REQUESTS = {
+        CompletionRequestTypes.DOCUMENT_COMPLETION
+    }
+
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
 
@@ -99,6 +103,9 @@ class CompletionPlugin(SpyderPluginV2):
 
         # Lock to prevent concurrent access to requests mapping
         self.collection_mutex = QMutex(QMutex.Recursive)
+
+        # Completion request priority
+        self.request_priorities = {}
 
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf_option('completions_wait_for_ms',
@@ -124,7 +131,7 @@ class CompletionPlugin(SpyderPluginV2):
                  'requests sent to multiple providers.')
 
     def get_icon(self):
-        return ima.get_icon('lspserver')
+        return self.create_icon('lspserver')
 
     def register(self):
         """Start all available completion providers."""
@@ -158,7 +165,7 @@ class CompletionPlugin(SpyderPluginV2):
     # ---------- Completion provider registering/start/stop methods -----------
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
-        enabled_plugins = self.get_conf_option('enabled_plugins')
+        enabled_plugins = self.get_conf_option('enabled_providers')
         provider_configurations = self.get_conf_option(
             'provider_configuration')
 
@@ -232,6 +239,10 @@ class CompletionPlugin(SpyderPluginV2):
             'status': self.STOPPED
         }
 
+        for language in self.language_status:
+            server_status = self.language_status[language]
+            server_status[provider_name] = False
+
     @Slot(str)
     def provider_available(self, provider_name: str):
         """Indicate that the completion provider `provider_name` is running."""
@@ -263,6 +274,15 @@ class CompletionPlugin(SpyderPluginV2):
     def get_provider(self, name: str) -> SpyderCompletionProvider:
         """Get the :class:`SpyderCompletionProvider` identified with `name`."""
         return self._providers[name]['instance']
+
+    def is_provider_running(self, name: str):
+        # TODO: Let LSP server emit sig_provider_ready
+        if name == LanguageServerPlugin.COMPLETION_CLIENT_NAME:
+            # The LSP plugin does not emit a plugin ready signal
+            return name in self.clients
+
+        status = self.clients.get(name, {}).get('status', self.STOPPED)
+        return status == self.RUNNING
 
     # --------------- Public completion API request methods -------------------
     def send_request(self, language: str, req_type: str, req: dict):
@@ -332,10 +352,10 @@ class CompletionPlugin(SpyderPluginV2):
                 **kwargs: notification-specific parameters
             }
         """
-        for client_name in self.clients:
-            client_info = self.clients[client_name]
-            if client_info['status'] == self.RUNNING:
-                client_info['plugin'].send_notification(
+        for provider_name in self._providers:
+            provider_info = self._providers[provider_name]
+            if provider_info['status'] == self.RUNNING:
+                provider_info['instance'].send_notification(
                     language, notification_type, notification)
 
     def broadcast_notification(self, req_type: str, req: dict):
@@ -355,11 +375,62 @@ class CompletionPlugin(SpyderPluginV2):
                 **kwargs: notification-specific parameters
             }
         """
-        for client_name in self.clients:
-            client_info = self.clients[client_name]
-            if client_info['status'] == self.RUNNING:
-                client_info['plugin'].broadcast_notification(
+        for provider_name in self._providers:
+            provider_info = self._providers[provider_name]
+            if provider_info['status'] == self.RUNNING:
+                provider_info['instance'].broadcast_notification(
                     req_type, req)
+
+    def project_path_update(self, project_path: str, update_kind='addition'):
+        """
+        Handle project path updates on Spyder.
+
+        Parameters
+        ----------
+        project_path: str
+            Path to the project folder modified
+        update_kind: str
+            Path update kind, one of
+            :class:`spyder.plugins.completion.WorkspaceUpdateKind`
+        """
+        for provider_name in self._providers:
+            provider_info = self._providers[provider_name]
+            if provider_info['status'] == self.RUNNING:
+                provider_info['instance'].project_path_update(
+                    project_path, update_kind
+                )
+
+    def register_file(self, language: str, filename: str, codeeditor):
+        """
+        Register file to perform completions.
+        If a language client is not available for a given file, then this
+        method should keep a queue, such that files can be initialized once
+        a server is available.
+
+        Parameters
+        ----------
+        language: str
+            Programming language of the given file
+        filename: str
+            Filename to register
+        codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+            Codeeditor to send the client configurations
+        """
+        for provider_name in self._providers:
+            provider_info = self._providers[provider_name]
+            if provider_info['status'] == self.RUNNING:
+                provider_info['instance'].register_file(
+                    language, filename, codeeditor
+                )
+
+    def update_configuration(self):
+        """Handle completion option configuration updates."""
+        self.wait_for_ms = self.get_option('completions_wait_for_ms',
+                                           section='editor')
+        for provider_name in self._providers:
+            provider_info = self._providers[provider_name]
+            if provider_info['status'] == self.RUNNING:
+                provider_info['instance'].update_configuration()
 
     # ----------------- Completion result processing methods ------------------
     @Slot(str, int, dict)
@@ -391,7 +462,7 @@ class CompletionPlugin(SpyderPluginV2):
             request_responses['timed_out'] = True
             self.match_and_reply(req_id)
 
-    def match_and_reply(self, req_id):
+    def match_and_reply(self, req_id: int):
         """
         Decide how to send the responses corresponding to req_id to
         the instance that requested them.
@@ -437,7 +508,7 @@ class CompletionPlugin(SpyderPluginV2):
             if all_returned or any_nonempty:
                 self.skip_and_reply(req_id)
 
-    def skip_and_reply(self, req_id):
+    def skip_and_reply(self, req_id: int):
         """
         Skip intermediate responses coming from the same CodeEditor
         instance for some types of requests, and send the last one to
@@ -463,4 +534,61 @@ class CompletionPlugin(SpyderPluginV2):
 
         # Send only recent responses
         if do_send:
-            self.gather_and_send_to_codeeditor(request_responses)
+            self.gather_and_reply(request_responses)
+
+    def gather_and_reply(self, request_responses: dict):
+        """
+        Gather request responses from all plugins and send them to the
+        CodeEditor instance that requested them.
+        """
+        req_type = request_responses['req_type']
+        req_id_responses = request_responses['sources']
+        response_instance = request_responses['response_instance']
+        logger.debug('Gather responses for {0}'.format(req_type))
+
+        if req_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
+            responses = self.gather_completions(req_id_responses)
+        else:
+            responses = self.gather_responses(req_type, req_id_responses)
+
+        try:
+            response_instance.handle_response(req_type, responses)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            pass
+
+
+    def gather_completions(self, req_id_responses: dict):
+        """Gather completion responses from plugins."""
+        priorities = self.SOURCE_PRIORITY[LSPRequestTypes.DOCUMENT_COMPLETION]
+
+        merge_stats = {source: 0 for source in req_id_responses}
+        responses = []
+        dedupe_set = set()
+        for priority, source in enumerate(priorities):
+            if source not in req_id_responses:
+                continue
+            for response in req_id_responses[source].get('params', []):
+                dedupe_key = response['label'].strip()
+                if dedupe_key in dedupe_set:
+                    continue
+                dedupe_set.add(dedupe_key)
+
+                response['sortText'] = (priority, response['sortText'])
+                responses.append(response)
+                merge_stats[source] += 1
+
+        logger.debug('Responses statistics: {0}'.format(merge_stats))
+        responses = {'params': responses}
+        return responses
+
+    def gather_responses(self, req_type: int, responses: dict):
+        """Gather responses other than completions from plugins."""
+        response = None
+        for source in self.SOURCE_PRIORITY[req_type]:
+            if source in responses:
+                response = responses[source].get('params', None)
+                if response:
+                    break
+        return {'params': response}
