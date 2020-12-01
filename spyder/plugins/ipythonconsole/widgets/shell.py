@@ -350,23 +350,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_mpl_inline_figure_format(self, figure_format):
         """Set matplotlib inline figure format."""
-        self.call_kernel(
-            interrupt=True).set_mpl_inline_figure_format(figure_format)
+        self.call_kernel().set_mpl_inline_figure_format(figure_format)
 
     def set_mpl_inline_resolution(self, resolution):
         """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        self.call_kernel(
-            interrupt=True).set_mpl_inline_resolution(resolution)
+        self.call_kernel().set_mpl_inline_resolution(resolution)
 
     def set_mpl_inline_figure_size(self, width, height):
         """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        self.call_kernel(
-            interrupt=True).set_mpl_inline_figure_size(width, height)
+        self.call_kernel().set_mpl_inline_figure_size(width, height)
 
     def set_mpl_inline_bbox_inches(self, bbox_inches):
         """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
-        self.call_kernel(
-            interrupt=True).set_mpl_inline_bbox_inches(bbox_inches)
+        self.call_kernel().set_mpl_inline_bbox_inches(bbox_inches)
 
     def set_jedi_completer(self, use_jedi):
         """Set if jedi completions should be used."""
