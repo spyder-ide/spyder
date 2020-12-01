@@ -213,7 +213,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             tip=_("Default is 79"))
 
         vertical_line_box = newcb(
-            _("Show vertical line at maximum allowed length"), 'edge_line',
+            _("Show vertical line at that length"), 'edge_line',
             section='editor')
 
         # Code style layout
@@ -244,7 +244,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_group.setLayout(code_style_layout)
 
         # Maximum allowed line length layout
-        line_length_group = QGroupBox(_("Maximum allowed line length"))
+        line_length_group = QGroupBox(_("Line length"))
         line_length_layout = QVBoxLayout()
         line_length_layout.addWidget(self.code_style_max_line_length)
         line_length_layout.addWidget(vertical_line_box)
