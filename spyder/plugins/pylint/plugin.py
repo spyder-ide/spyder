@@ -30,7 +30,6 @@ _ = get_translation("spyder")
 
 
 class Pylint(SpyderDockablePlugin):
-
     NAME = "pylint"
     WIDGET_CLASS = PylintWidget
     CONF_SECTION = NAME
@@ -166,16 +165,22 @@ class Pylint(SpyderDockablePlugin):
             -> rerun the code analysis
 
             Some considerations to have in mind:
-                - If the last code analysis run does not match with what is on the file, there are chances that the
-                pylint ignore comment is being added in a line that does not match the intention of the user.
-                So is responsibility of the user to rerun the code analysis if they change the code, before adding
-                a ignore rule.
-                - When the user re-run a code analysis we are not blocking the widget, so they can still use the ignore
-                feature when a code analysis is running. This means that for big files the code analysis could take
-                some time and if the user successively use the feature without waiting for the code analysis to finish
-                this could cause the same that is described in the previous item
+                - If the last code analysis run does not match with what is on
+                the file, there are chances that the pylint ignore comment is
+                being added in a line that does not match the intention of the
+                user. So is responsibility of the user to rerun the code
+                analysis if they change the code, before adding a ignore rule.
+
+                - When the user re-run a code analysis we are not blocking the
+                widget, so they can still use the ignore feature when a code
+                analysis is running. This means that for big files the code
+                analysis could take some time and if the user successively use
+                the feature without waiting for the code analysis to finish
+                this could cause the same that is described in the previous
+                item.
         """
         self.main.editor.load(filename)
-        RuleIgnorer(self.main.editor.get_current_editor()).ignore_rule_in_line(ruleid, lineno)
+        RuleIgnorer(self.main.editor.get_current_editor()).ignore_rule_in_line(
+            ruleid, lineno)
         self.main.editor.save()
-        self.pylint.start()
+        self.get_widget().start_code_analysis()

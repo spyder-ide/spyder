@@ -14,11 +14,13 @@ class RuleIgnorer(object):
 
     def __is_function_or_class_definition(self):
         text_at_line = self.__code_editor.get_text('sol', 'eol').strip()
-        return text_at_line.startswith('def') or text_at_line.startswith('class')
+        return text_at_line.startswith('def') or text_at_line.startswith(
+            'class')
 
     def __exist_other_ignored_rules(self, line_number):
         self.__code_editor.go_to_line(line_number)
-        return self.__code_editor.get_text('sol', 'eol').strip().startswith(self.__base_ignore_comment)
+        return self.__code_editor.get_text('sol', 'eol').strip().startswith(
+            self.__base_ignore_comment)
 
     def __calculate_line_number_for_comment(self, line_number):
         self.__code_editor.go_to_line(line_number)
@@ -31,8 +33,10 @@ class RuleIgnorer(object):
                 return line_number
 
     def __add_new_rule(self, rule_id):
-        indentation = self.__get_text_indentation(self.__code_editor.get_text('sol', 'eol'))
-        ignore_comment = f"{indentation}{self.__base_ignore_comment} {rule_id}\n"
+        indentation = self.__get_text_indentation(
+            self.__code_editor.get_text('sol', 'eol'))
+        ignore_comment = \
+            f"{indentation}{self.__base_ignore_comment} {rule_id}\n"
         self.__code_editor.insert_text(ignore_comment)
 
     def __add_rule_to_existent(self, rule_id):
@@ -46,8 +50,12 @@ class RuleIgnorer(object):
         return re.match(r'(\s*)', text).group(1)
 
     def ignore_rule_in_line(self, rule_id, line_number):
-        """Write the ignored rule id in the line number or add it if there are existent rules"""
-        if self.__exist_other_ignored_rules(self.__calculate_line_number_for_comment(line_number)):
+        """
+        Write the ignored rule id in the line number or add it if there are
+        existent rules
+        """
+        if self.__exist_other_ignored_rules(
+                self.__calculate_line_number_for_comment(line_number)):
             self.__add_rule_to_existent(rule_id)
         else:
             self.__add_new_rule(rule_id)

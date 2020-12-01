@@ -21,11 +21,11 @@ import time
 
 # Third party imports
 import pylint
-from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Qt,
                          Signal, Slot)
-from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QMessageBox,
-                            QSizePolicy, QTreeWidgetItem, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox,
+                            QTreeWidgetItem, QVBoxLayout)
+from qtpy.compat import getopenfilename
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -38,11 +38,11 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
-from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
+from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions, \
+    OneColumnTreeContextMenuSections
 
 # Localization
 _ = get_translation("spyder")
-
 
 # --- Constants
 # ----------------------------------------------------------------------------
@@ -52,7 +52,6 @@ MAX_HISTORY_ENTRIES = 100
 DANGER_COLOR = "#FF0000"
 WARNING_COLOR = "#EE5500"
 SUCCESS_COLOR = "#22AA22"
-
 
 # TODO: There should be some palette from the appearance plugin so this
 # is easier to use
@@ -85,7 +84,6 @@ class PylintWidgetMainToolBarSections:
 # ----------------------------------------------------------------------------
 # TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
-
     sig_edit_goto_requested = Signal(str, int, str)
     """
     This signal will request to open a file in a given row and column
@@ -101,18 +99,64 @@ class ResultsTree(OneColumnTree):
         Word to select on given row.
     """
 
+    sig_edit_ignore_rule = Signal(str, int, str)
+    """
+    This signal will be fired when the user request to ignore a pylint rule
+    in a given file and row.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Line number in the file specified in "path".
+    word: str
+        Rule id to add in the ignore comment.
+    """
+
+    IgnoreRuleAction = "ignore_rule_action"
+
     def __init__(self, parent):
         super().__init__(parent)
         self.filename = None
         self.results = None
         self.data = None
         self.set_title("")
+        self.__ignore_rule_action_connections = []
+        self.__ignore_rule_action = self.create_action(
+            self.IgnoreRuleAction,
+            text=_("Ignore"),
+            tip=_("Add a pylint ignore comment for this issue"),
+            register_shortcut=False,
+            triggered=(lambda: None)
+        )
+        self.add_item_to_menu(
+            self.__ignore_rule_action,
+            self.menu,
+            section=OneColumnTreeContextMenuSections.Global,
+        )
+
+    def __clear_ignore_rule_action_connections(self):
+        [self.__ignore_rule_action.triggered.disconnect(
+            ignore_rule_action_connection) for ignore_rule_action_connection in
+            self.__ignore_rule_action_connections]
+        self.__ignore_rule_action_connections = []
+
+    def __connect_item_to_ignore_rule_action(self, item):
+        self.__clear_ignore_rule_action_connections()
+        def action(): return self.ignore_lint_rule(item)
+        self.__ignore_rule_action_connections.append(action)
+        self.__ignore_rule_action.triggered.connect(action)
+
+    def ignore_lint_rule(self, item):
+        fname, lineno, ruleid = self.data.get(id(item))
+        self.sig_edit_ignore_rule.emit(fname, lineno, ruleid)
 
     def activated(self, item):
         """Double-click event"""
         data = self.data.get(id(item))
         if data is not None:
-            fname, lineno = data
+            fname, lineno, _ = data
             self.sig_edit_goto_requested.emit(fname, lineno, "")
 
     def clicked(self, item):
@@ -129,7 +173,7 @@ class ResultsTree(OneColumnTree):
         self.refresh()
 
     def refresh(self):
-        title = _("Results for ")+self.filename
+        title = _("Results for ") + self.filename
         self.set_title(title)
         self.clear()
         self.data = {}
@@ -173,7 +217,7 @@ class ResultsTree(OneColumnTree):
                     modname = osp.join(modname, "__init__")
 
                 for ext in (".py", ".pyw"):
-                    if osp.isfile(modname+ext):
+                    if osp.isfile(modname + ext):
                         modname = modname + ext
                         break
 
@@ -201,7 +245,16 @@ class ResultsTree(OneColumnTree):
                 msg_item = QTreeWidgetItem(
                     parent, [message_string], QTreeWidgetItem.Type)
                 msg_item.setIcon(0, ima.icon("arrow"))
-                self.data[id(msg_item)] = (modname, lineno)
+                self.data[id(msg_item)] = (modname, lineno, msg_id)
+
+    def contextMenuEvent(self, event):
+        current_item = self.currentItem()
+        if id(current_item) in self.data:
+            self.__ignore_rule_action.setVisible(True)
+            self.__connect_item_to_ignore_rule_action(current_item)
+        else:
+            self.__ignore_rule_action.setVisible(False)
+        return super(ResultsTree, self).contextMenuEvent(event)
 
 
 class PylintWidget(PluginMainWidget):
@@ -239,6 +292,21 @@ class PylintWidget(PluginMainWidget):
     This signal will request the plugin to start the analysis. This is to be
     able to interact with other plugins, which can only be done at the plugin
     level.
+    """
+
+    sig_edit_ignore_rule = Signal(str, int, str)
+    """
+    This signal will be fired when the user request to ignore a pylint rule
+    in a given file and row.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Line number in the file specified in "path".
+    word: str
+        Rule id to add in the ignore comment.
     """
 
     def __init__(self, name=None, plugin=None, parent=None,
@@ -285,6 +353,9 @@ class PylintWidget(PluginMainWidget):
         self.filecombo.valid.connect(self._check_new_file)
         self.treewidget.sig_edit_goto_requested.connect(
             self.sig_edit_goto_requested)
+
+        self.treewidget.sig_edit_ignore_rule.connect(
+            self.sig_edit_ignore_rule)
 
     # --- Private API
     # ------------------------------------------------------------------------
@@ -883,7 +954,7 @@ class PylintWidget(PluginMainWidget):
         if i_rate > 0:
             i_rate_end = output.find("/10", i_rate)
             if i_rate_end > 0:
-                rate = output[i_rate+len(txt_rate):i_rate_end]
+                rate = output[i_rate + len(txt_rate):i_rate_end]
 
         # Previous run
         previous = ""
@@ -892,7 +963,7 @@ class PylintWidget(PluginMainWidget):
             i_prun = output.find(txt_prun, i_rate_end)
             if i_prun > 0:
                 i_prun_end = output.find("/10", i_prun)
-                previous = output[i_prun+len(txt_prun):i_prun_end]
+                previous = output[i_prun + len(txt_prun):i_prun_end]
 
         return rate, previous, results
 
