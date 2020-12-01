@@ -10,11 +10,14 @@ rope
 yapf
 
 # Scientific packages (for Same as Spyder)
-numpy
+# Ping NumPy version to 1.19.3 do message error on Windows
+numpy==1.19.3
 scipy
 pandas
 matplotlib
 cython
 sympy
 
-
+# Dependencies without wheels in PyPI
+# Rtree
+./installers/Windows/assets/rtree/Rtree-0.9.4-cp37-cp37m-win_amd64.whl

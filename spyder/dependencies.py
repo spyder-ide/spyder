@@ -14,7 +14,6 @@ import sys
 from spyder.utils import programs
 from spyder.config.base import _, is_pynsist
 from spyder.config.utils import is_anaconda
-from spyder.py3compat import PY2
 
 
 # =============================================================================
@@ -37,7 +36,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
+IPYTHON_REQVER = ">=7.6.0"
 JEDI_REQVER = '=0.17.2'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
@@ -63,6 +62,7 @@ RTREE_REQVER = '>=0.8.3'
 SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=1.10.0;<1.11.0'
+TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
@@ -127,8 +127,7 @@ DESCRIPTIONS = [
      'package_name': "keyring",
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
-     'required_version': KEYRING_REQVER,
-     'display': sys.platform.startswith('linux') and not PY2},
+     'required_version': KEYRING_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
@@ -209,7 +208,7 @@ DESCRIPTIONS = [
      'package_name': "rtree",
      'features': _("Fast access to code snippets regions"),
      'required_version': RTREE_REQVER,
-     'display': is_anaconda()},
+     'display': is_anaconda() or is_pynsist()},
     {'modname': "setuptools",
      'package_name': "setuptools",
      'features': _("Determine package version"),
@@ -222,6 +221,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': 'textdistance',
+     'package_name': "textdistance",
+     'features': _('Compute distances between strings'),
+     'required_version': TEXTDISTANCE_REQVER},
     {'modname': "three_merge",
      'package_name': "three-merge",
      'features': _("3-way merge algorithm to merge document changes"),
@@ -388,7 +391,7 @@ def missing_dependencies():
     """Return the status of missing dependencies (if any)"""
     missing_deps = []
     for dependency in DEPENDENCIES:
-        if not dependency.check() and dependency.kind != OPTIONAL:
+        if dependency.kind != OPTIONAL and not dependency.check():
             missing_deps.append(dependency)
 
     if missing_deps:

@@ -19,6 +19,11 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
+    if [ "$OS" = "win" ]; then
+        # Install Pyzmq 19 because our tests are failing with version 20
+        conda install pyzmq=19
+    fi
+
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
     conda remove python-language-server --force -q -y

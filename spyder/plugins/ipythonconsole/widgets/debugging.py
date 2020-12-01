@@ -9,16 +9,12 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
-from distutils.version import LooseVersion
 import pdb
 import re
 
 from IPython.core.history import HistoryManager
 from IPython import __version__ as ipy_version
-if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
-    from IPython.core.inputsplitter import IPythonInputSplitter
-else:
-    from IPython.core.inputtransformer2 import TransformerManager
+from IPython.core.inputtransformer2 import TransformerManager
 from IPython.lib.lexers import IPythonLexer, IPython3Lexer
 from pygments.lexer import bygroups
 from pygments.token import Keyword, Operator, Text
@@ -481,10 +477,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
         """
         if source and source[0] == '!':
             source = source[1:]
-        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
-            tm = IPythonInputSplitter()
-        else:
-            tm = TransformerManager()
+        tm = TransformerManager()
         complete, indent = tm.check_complete(source)
         if indent is not None:
             indent = indent * ' '

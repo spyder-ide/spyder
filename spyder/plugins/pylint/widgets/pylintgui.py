@@ -13,6 +13,7 @@
 
 # Standard library imports
 from __future__ import print_function, with_statement
+import os
 import os.path as osp
 import re
 import sys
@@ -26,7 +27,8 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_conf_path, get_translation
+from spyder.config.base import (get_conf_path, get_translation,
+                                running_in_mac_app)
 from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton
@@ -265,7 +267,7 @@ class PylintWidget(QWidget):
     def set_filename(self, filename):
         """Set filename without performing code analysis."""
         filename = to_text_string(filename)  # filename is a QString instance
-
+        filename = osp.normpath(filename)  # Normalize path for Windows
         # Don't try to reload saved analysis for filename, if filename
         # is the one currently displayed.
         # Fixes spyder-ide/spyder#13347
@@ -321,6 +323,7 @@ class PylintWidget(QWidget):
             list_save_files = []
             for f in self.curr_filenames:
                 if _('untitled') not in f:
+                    filename = osp.normpath(f)
                     list_save_files.append(f)
             self.curr_filenames = list_save_files[:self.top_max_entries]
             self.parent.set_option('history_filenames', self.curr_filenames)
@@ -441,6 +444,12 @@ class PylintWidget(QWidget):
         pylint_args.append(filename)
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
+
+        # resolve spyder-ide/spyder#14262
+        if running_in_mac_app():
+            pyhome = os.environ.get("PYTHONHOME")
+            processEnvironment.insert("PYTHONHOME", pyhome)
+
         self.process.setProcessEnvironment(processEnvironment)
 
         self.process.start(sys.executable, pylint_args)

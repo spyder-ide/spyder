@@ -8,7 +8,7 @@ chardet >=2.0.0
 cloudpickle >=0.5.0
 diff-match-patch >=20181111
 intervaltree >=3.0.2
-IPython >=4.0
+IPython >=7.6.0
 jedi =0.17.2
 jsonschema >=3.2.0
 keyring >=17.0.0
@@ -39,5 +39,6 @@ sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
 # here because we're using a subrepo for it to run our tests.
 spyder-kernels
+textdistance >=4.2.0
 three-merge >=0.1.1
 watchdog >=0.10.3

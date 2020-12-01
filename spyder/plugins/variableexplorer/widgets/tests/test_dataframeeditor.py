@@ -83,6 +83,22 @@ def generate_pandas_indexes():
 # =============================================================================
 # Tests
 # =============================================================================
+def test_dataframemodel_index_sort(qtbot):
+    """Validate the data in the model for index when sorting."""
+    ds = Series(numpy.arange(10))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(ds)
+    index = editor.table_index.model()
+
+    index.sort(-1, order=Qt.AscendingOrder)
+    assert data_index(index, 0, 0, Qt.DisplayRole) == '0'
+    assert data_index(index, 9, 0, Qt.DisplayRole) == '9'
+
+    index.sort(-1, order=Qt.DescendingOrder)
+    assert data_index(index, 0, 0, Qt.DisplayRole) == '9'
+    assert data_index(index, 9, 0, Qt.DisplayRole) == '0'
+
+
 def test_dataframe_to_type(qtbot):
     """Regression test for spyder-ide/spyder#12296"""
     # Setup editor

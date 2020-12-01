@@ -595,3 +595,40 @@ class ClientConstants:
 class WorkspaceUpdateKind:
     ADDITION = 'addition'
     DELETION = 'deletion'
+
+
+# ----------------------- Symbol kind icon names --------------------
+# Additional symbol constants (non-standard)
+BLOCK_COMMENT = 224
+CELL = 225
+
+SYMBOL_KIND_ICON = {
+    SymbolKind.FILE: 'file',
+    SymbolKind.MODULE: 'module',
+    SymbolKind.NAMESPACE: 'namespace',
+    SymbolKind.PACKAGE: 'package',
+    SymbolKind.CLASS: 'class',
+    SymbolKind.METHOD: 'method',
+    SymbolKind.PROPERTY: 'property',
+    SymbolKind.FIELD: 'field',
+    SymbolKind.CONSTRUCTOR: 'constructor',
+    SymbolKind.ENUM: 'enum',
+    SymbolKind.INTERFACE: 'interface',
+    SymbolKind.FUNCTION: 'function',
+    SymbolKind.VARIABLE: 'variable',
+    SymbolKind.CONSTANT: 'constant',
+    SymbolKind.STRING: 'string',
+    SymbolKind.NUMBER: 'number',
+    SymbolKind.BOOLEAN: 'boolean',
+    SymbolKind.ARRAY: 'array',
+    SymbolKind.OBJECT: 'object',
+    SymbolKind.KEY: 'key',
+    SymbolKind.NULL: 'null',
+    SymbolKind.ENUM_MEMBER: 'enum_member',
+    SymbolKind.STRUCT: 'struct',
+    SymbolKind.EVENT: 'event',
+    SymbolKind.OPERATOR: 'operator',
+    SymbolKind.TYPE_PARAMETER: 'type_parameter',
+    BLOCK_COMMENT: 'blockcomment',
+    CELL: 'cell'
+}

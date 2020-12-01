@@ -114,6 +114,8 @@ def main():
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
     if sys.platform == 'darwin':
+        # Fixes launching issues with Big Sur (spyder-ide/spyder#14222)
+        os.environ['QT_MAC_WANTS_LAYER'] = '1'
         # Prevent Spyder from crashing in macOS if locale is not defined
         LANG = os.environ.get('LANG')
         LC_ALL = os.environ.get('LC_ALL')

@@ -66,8 +66,8 @@ class FrontendComm(CommBase):
         # self.kernel.parent is IPKernelApp unless we are in tests
         if self.kernel.parent:
             # Create a new socket
-            context = zmq.Context()
-            self.comm_socket = context.socket(zmq.ROUTER)
+            self.context = zmq.Context()
+            self.comm_socket = self.context.socket(zmq.ROUTER)
             self.comm_socket.linger = 1000
 
             self.comm_port = get_free_port()
@@ -90,12 +90,17 @@ class FrontendComm(CommBase):
 
                 def close():
                     """Close comm_socket_thread."""
-                    self.comm_thread_close.set()
-                    context.term()
-                    self.comm_socket_thread.join()
+                    self.close_thread()
                     parent_close()
 
                 self.kernel.parent.close = close
+
+    def close_thread(self):
+        """Close comm."""
+        self.comm_thread_close.set()
+        self.comm_socket.close()
+        self.context.term()
+        self.comm_socket_thread.join()
 
     def poll_thread(self):
         """Receive messages from comm socket."""
@@ -114,6 +119,8 @@ class FrontendComm(CommBase):
             out_stream = self.kernel.shell_streams[0]
         try:
             ident, msg = self.kernel.session.recv(self.comm_socket, 0)
+        except zmq.error.ContextTerminated:
+            return
         except Exception:
             self.kernel.log.warning("Invalid Message:", exc_info=True)
             return

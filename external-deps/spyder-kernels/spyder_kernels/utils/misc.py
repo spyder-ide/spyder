@@ -35,8 +35,13 @@ def is_module_installed(module_name):
     Simpler version of spyder.utils.programs.is_module_installed.
     """
     try:
-        __import__(module_name)
-        return True
+        mod = __import__(module_name)
+        # This is necessary to not report that the module is installed
+        # when only its __pycache__ directory is present.
+        if getattr(mod, '__file__', None):
+            return True
+        else:
+            return False
     except Exception:
         # Module is not installed
         return False

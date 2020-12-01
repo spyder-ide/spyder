@@ -12,7 +12,7 @@ dependencies:
 - cloudpickle >=0.5.0
 - diff-match-patch >=20181111
 - intervaltree >=3.0.2
-- ipython >=4.0
+- ipython >=7.6.0
 - jedi =0.17.2
 - jsonschema >=3.2.0
 - keyring >=17.0.0
@@ -43,6 +43,7 @@ dependencies:
 # NOTE: There's no need to set constraints for spyder-kernels here
 # because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
+- textdistance >=4.2.0
 - three-merge >=0.1.1
 - watchdog >=0.10.3
 
@@ -51,16 +52,15 @@ dependencies:
 # the contents of this requirements/tests.txt to this file.yml.
 # Please *DO NOT* make changes directly just to here - make changes
 # to requirements/tests.txt, and copy it here.
-- coverage <5.0
+- coverage
 - cython
 - flaky
 - matplotlib
 - mock
 - pandas
 - pillow
-- pytest <5.0
+- pytest <6.0
 - pytest-cov
-- pytest-faulthandler <2.0
 - pytest-lazy-fixture
 - pytest-mock
 - pytest-ordering

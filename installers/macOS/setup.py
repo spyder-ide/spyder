@@ -101,6 +101,9 @@ def make_app_bundle(dist_dir, make_lite=False):
         Note: only applicable to not-Lite build
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
+    pylint :
+        No module named pylint.__main__; 'pylint' is a package and cannot be
+        directly executed
     pyls :
         <path>/Contents/MacOS/python: No module named pyls
         Note: still occurs in alias mode
@@ -126,8 +129,8 @@ def make_app_bundle(dist_dir, make_lite=False):
     logger.info('Creating %s app bundle...', build_type)
 
     PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'ipykernel', 'IPython',
-                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pyls',
-                'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
+                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
+                'pyls', 'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
                 'sphinx', 'spyder', 'spyder_kernels']
 
     if make_lite:
