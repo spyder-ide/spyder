@@ -637,8 +637,8 @@ SYMBOL_KIND_ICON = {
     SymbolKind.EVENT: 'event',
     SymbolKind.OPERATOR: 'operator',
     SymbolKind.TYPE_PARAMETER: 'type_parameter',
-    BLOCK_COMMENT: 'blockcomment',
-    CELL: 'cell'
+    SymbolKind.BLOCK_COMMENT: 'blockcomment',
+    SymbolKind.CELL: 'cell'
 }
 
 
