@@ -184,7 +184,6 @@ class IPythonConsole(SpyderPluginWidget):
         reset_namespace_n = 'show_reset_namespace_warning'
         ask_before_restart_n = 'ask_before_restart'
         ask_before_closing_n = 'ask_before_closing'
-        use_pager_n = 'use_pager'
         show_calltips_n = 'show_calltips'
         buffer_size_n = 'buffer_size'
         completion_type_n = 'completion_type'
@@ -221,9 +220,6 @@ class IPythonConsole(SpyderPluginWidget):
         if show_calltips_n in options:
             show_calltips_o = self.get_option(show_calltips_n)
             sw.set_show_calltips(show_calltips_o)
-        if use_pager_n in options:
-            use_pager_o = self.get_option(use_pager_n)
-            sw.set_paging(use_pager_o)
         if buffer_size_n in options:
             buffer_size_o = self.get_option(buffer_size_n)
             sw.set_buffer_size(buffer_size_o)

@@ -318,10 +318,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.call_kernel(
             interrupt=True, callback=self.sig_show_env.emit).get_env()
 
-    def set_paging(self, use_pager):
-        """Set pager option."""
-        self.paging = 'inside' if use_pager else 'none'
-
     def set_show_calltips(self, show_calltips):
         """Enable/Disable showing calltips."""
         self.enable_calltips = show_calltips
