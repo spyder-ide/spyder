@@ -169,7 +169,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         linting_check.toggled.connect(underline_errors_box.setEnabled)
 
-        # --- Code style tab ---
+        # --- Code style and formatting tab ---
         # Code style label
         pep_url = (
             '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>')
@@ -236,17 +236,20 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.code_style_check.toggled.connect(code_style_g_widget.setEnabled)
 
         # Code style layout
+        code_style_group = QGroupBox(_("Code style"))
         code_style_layout = QVBoxLayout()
         code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(self.code_style_check)
         code_style_layout.addWidget(code_style_g_widget)
-        code_style_layout.addWidget(self.code_style_max_line_length)
-        code_style_layout.addWidget(vertical_line_box)
+        code_style_group.setLayout(code_style_layout)
 
-        code_style_widget = QWidget()
-        code_style_widget.setLayout(code_style_layout)
+        # Maximum allowed line length layout
+        line_length_group = QGroupBox(_("Maximum allowed line length"))
+        line_length_layout = QVBoxLayout()
+        line_length_layout.addWidget(self.code_style_max_line_length)
+        line_length_layout.addWidget(vertical_line_box)
+        line_length_group.setLayout(line_length_layout)
 
-        # --- Code formatting tab ---
         # Code formatting label
         autopep8_url = (
             "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
@@ -279,13 +282,19 @@ class LanguageServerConfigPage(GeneralConfigPage):
                   "saving a file"))
 
         # Code formatting layout
+        code_fmt_group = QGroupBox(_("Code formatting"))
         code_fmt_layout = QVBoxLayout()
         code_fmt_layout.addWidget(code_fmt_label)
         code_fmt_layout.addWidget(code_fmt_provider)
         code_fmt_layout.addWidget(format_on_save_box)
+        code_fmt_group.setLayout(code_fmt_layout)
 
-        code_fmt_widget = QWidget()
-        code_fmt_widget.setLayout(code_fmt_layout)
+        code_style_widget = QWidget()
+        code_style_fmt_layout = QVBoxLayout()
+        code_style_fmt_layout.addWidget(code_style_group)
+        code_style_fmt_layout.addWidget(code_fmt_group)
+        code_style_fmt_layout.addWidget(line_length_group)
+        code_style_widget.setLayout(code_style_fmt_layout)
 
         # --- Docstring tab ---
         # Docstring style label
@@ -620,11 +629,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
-        self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        self.tabs.addTab(self.create_tab(code_style_widget),
+                         _('Code style and formatting'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
-        self.tabs.addTab(self.create_tab(code_fmt_widget),
-                         _('Code formatting'))
         self.tabs.addTab(self.create_tab(snippets_widget), _('Snippets'))
         self.tabs.addTab(self.create_tab(clients_group,
                                          lsp_advanced_group,
