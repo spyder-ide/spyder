@@ -473,12 +473,14 @@ class CompletionPlugin(SpyderPluginV2):
 
     def update_configuration(self):
         """Handle completion option configuration updates."""
-        self.wait_for_ms = self.get_option('completions_wait_for_ms',
-                                           section='editor')
+        self.wait_for_ms = self.get_conf_option('completions_wait_for_ms',
+                                                section='editor')
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
-                provider_info['instance'].update_configuration()
+                # TODO: Obtain individual provider settings
+                conf = {}
+                provider_info['instance'].update_configuration(conf)
 
     # ----------------- Completion result processing methods ------------------
     @Slot(str, int, dict)
@@ -520,21 +522,6 @@ class CompletionPlugin(SpyderPluginV2):
         request_responses = self.requests[req_id]
         language = request_responses['language'].lower()
         req_type = request_responses['req_type']
-        # Skip the waiting logic below when fallback is the only
-        # client that works for language
-        # TODO: Remove references to fallback and snippets
-        # if self.is_fallback_only(language):
-        #     # Only send response when fallback is among its sources
-        #     if 'fallback' in request_responses['sources']:
-        #         self.gather_and_reply(request_responses)
-        #         return
-
-        #     if 'snippets' in request_responses['sources']:
-        #         self.gather_and_reply(request_responses)
-        #         return
-
-        #     # This drops responses that don't contain fallback
-        #     return
 
         # Wait only for the available providers for the given request
         available_providers = self.available_providers_for_language(language)

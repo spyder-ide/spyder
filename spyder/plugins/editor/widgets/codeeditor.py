@@ -64,8 +64,8 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
 # from spyder.plugins.completion.kite.widgets.calltoaction import (
 #     KiteCallToAction)
 from spyder.plugins.completion.api import (CompletionRequestTypes,
-                                                   TextDocumentSyncKind,
-                                                   DiagnosticSeverity)
+                                           TextDocumentSyncKind,
+                                           DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -76,7 +76,7 @@ from spyder.plugins.editor.utils.debugger import DebuggerManager
 # from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.completion.manager.decorators import (
+from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM

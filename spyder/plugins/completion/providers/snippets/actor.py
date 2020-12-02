@@ -19,9 +19,9 @@ import logging
 from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 
 # Local imports
-from spyder.plugins.completion.manager.api import CompletionItemKind
-from spyder.plugins.completion.manager.api import LSPRequestTypes
-from spyder.plugins.completion.snippets.trie import Trie
+from spyder.plugins.completion.api import CompletionItemKind
+from spyder.plugins.completion.api import CompletionRequestTypes
+from spyder.plugins.completion.providers.snippets.trie import Trie
 
 
 SNIPPETS_COMPLETION = "Snippets"
@@ -82,7 +82,7 @@ class SnippetsActor(QObject):
         msg_type, _id, file, msg = [
             message[k] for k in ('type', 'id', 'file', 'msg')]
         logger.debug(u'Perform request {0} with id {1}'.format(msg_type, _id))
-        if msg_type == LSPRequestTypes.DOCUMENT_COMPLETION:
+        if msg_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
             language = msg['language']
             current_word = msg['current_word']
             snippets = []

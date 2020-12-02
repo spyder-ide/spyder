@@ -42,7 +42,7 @@ from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, FileChangeType, WorkspaceUpdateKind)
-from spyder.plugins.completion.manager.decorators import (
+from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
 

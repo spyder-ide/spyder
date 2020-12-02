@@ -287,7 +287,9 @@ spyder_plugins_entry_points = [
 
 spyder_completions_entry_points = [
     ('fallback = spyder.plugins.completion.providers.fallback.provider:'
-     'FallbackProvider')
+     'FallbackProvider'),
+    ('snippets = spyder.plugins.completion.providers.snippets.provider:'
+     'SnippetsProvider')
 ]
 
 

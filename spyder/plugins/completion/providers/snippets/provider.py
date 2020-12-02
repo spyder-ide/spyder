@@ -11,51 +11,54 @@ import bisect
 import logging
 
 # Local imports
-from spyder.plugins.completion.manager.api import (SpyderCompletionPlugin,
-                                                   LSP_LANGUAGES)
-from spyder.plugins.completion.snippets.actor import SnippetsActor
+from spyder.plugins.completion.api import (SpyderCompletionProvider,
+                                           SUPPORTED_LANGUAGES)
+from spyder.plugins.completion.providers.snippets.actor import SnippetsActor
+from spyder.plugins.completion.providers.snippets.config import SNIPPETS
 
-PYTHON_POS = bisect.bisect_left(LSP_LANGUAGES, 'Python')
-LSP_LANGUAGES_PY = list(LSP_LANGUAGES)
-LSP_LANGUAGES_PY.insert(PYTHON_POS, 'Python')
-LSP_LANGUAGES_PY = {x.lower() for x in LSP_LANGUAGES_PY}
+PYTHON_POS = bisect.bisect_left(SUPPORTED_LANGUAGES, 'Python')
+SUPPORTED_LANGUAGES_PY = list(SUPPORTED_LANGUAGES)
+SUPPORTED_LANGUAGES_PY.insert(PYTHON_POS, 'Python')
+SUPPORTED_LANGUAGES_PY = {x.lower() for x in SUPPORTED_LANGUAGES_PY}
 
 logger = logging.getLogger(__name__)
 
 
-class SnippetsPlugin(SpyderCompletionPlugin):
-    CONF_SECTION = 'snippet-completions'
-    CONF_FILE = False
+class SnippetsProvider(SpyderCompletionProvider):
     COMPLETION_CLIENT_NAME = 'snippets'
+    DEFAULT_ORDER = 2
+    CONF_DEFAULTS = [('snippets', SNIPPETS)]
+    CONF_VERSION = "0.1.0"
 
-    def __init__(self, parent):
-        SpyderCompletionPlugin.__init__(self, parent)
+    def __init__(self, parent, config):
+        SpyderCompletionProvider.__init__(self, parent)
         self.snippets_actor = SnippetsActor(self)
         self.snippets_actor.sig_snippets_ready.connect(
-            lambda: self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME))
+            self.signal_provider_ready)
         self.snippets_actor.sig_snippets_response.connect(
             lambda _id, resp: self.sig_response_ready.emit(
                 self.COMPLETION_CLIENT_NAME, _id, resp))
         self.started = False
         self.requests = {}
-        self.update_configuration()
+        self.config = config.get('values', {})
 
-    def start_client(self, language):
+    def start_provider(self, language):
         return self.started
 
     def start(self):
-        if not self.started and self.enabled:
+        if not self.started:
             self.snippets_actor.start()
             self.started = True
+
+    def signal_provider_ready(self):
+        self.update_configuration(self.config)
+        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
 
     def shutdown(self):
         if self.started:
             self.snippets_actor.stop()
 
     def send_request(self, language, req_type, req, req_id=None):
-        if not self.enabled:
-            return
-
         request = {
             'type': req_type,
             'file': req['file'],
@@ -65,9 +68,9 @@ class SnippetsPlugin(SpyderCompletionPlugin):
         req['language'] = language
         self.snippets_actor.sig_mailbox.emit(request)
 
-    def update_configuration(self):
-        self.enabled = self.get_option('enable')
+    def update_configuration(self, config):
         snippet_info = {}
-        for language in LSP_LANGUAGES_PY:
-            snippet_info[language] = self.get_option(language, {})
+        snippets = config.get('snippets', {})
+        for language in SUPPORTED_LANGUAGES_PY:
+            snippet_info[language] = snippets.get(language, {})
         self.snippets_actor.sig_update_snippets.emit(snippet_info)

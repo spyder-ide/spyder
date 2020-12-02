@@ -17,7 +17,7 @@ from qtpy.QtCore import Signal, QObject
 
 
 # Supported LSP programming languages
-LSP_LANGUAGES = [
+SUPPORTED_LANGUAGES = [
     'Bash', 'C#', 'Cpp', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Elixir',
     'Erlang', 'Fortran', 'Haxe', 'HTML', 'Java', 'JavaScript', 'JSON',
     'Julia', 'Kotlin', 'OCaml', 'PHP', 'R', 'Rust', 'Scala', 'Swift',
@@ -801,8 +801,15 @@ class SpyderCompletionProvider(QObject):
         """
         pass
 
-    def update_configuration(self):
-        """Handle completion option configuration updates."""
+    def update_configuration(self, conf: dict):
+        """
+        Handle completion option configuration updates.
+
+        Parameters
+        ----------
+        conf: dict
+            Dictionary containing the new provider configuration
+        """
         pass
 
     def project_path_update(self, project_path: str, update_kind: str):
