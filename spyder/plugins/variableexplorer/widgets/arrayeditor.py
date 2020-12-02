@@ -392,7 +392,10 @@ class ArrayDelegate(QItemDelegate):
         """Create editor widget"""
         model = index.model()
         value = model.get_value(index)
-        if model._data.dtype.name == "bool":
+        if type(value) == np.ndarray or model.readonly:
+            # The editor currently cannot properly handle this case
+            return
+        elif model._data.dtype.name == "bool":
             value = not value
             model.setData(index, to_qvariant(value))
             return
