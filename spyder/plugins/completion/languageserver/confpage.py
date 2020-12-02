@@ -170,7 +170,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         linting_check.toggled.connect(underline_errors_box.setEnabled)
 
-        # --- Code style tab ---
+        # --- Code style and formatting tab ---
         # Code style label
         pep_url = (
             '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>')
@@ -214,7 +214,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             tip=_("Default is 79"))
 
         vertical_line_box = newcb(
-            _("Show vertical line at maximum allowed length"), 'edge_line',
+            _("Show vertical line at that length"), 'edge_line',
             section='editor')
 
         # Code style layout
@@ -229,10 +229,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
         code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
         code_style_g_layout.addWidget(code_style_ignore.textbox, 4, 1)
-        code_style_g_layout.addWidget(
-            self.code_style_max_line_length.plabel, 5, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_max_line_length.spinbox, 5, 1)
 
         # Set Code style options enabled/disabled
         code_style_g_widget = QWidget()
@@ -241,16 +237,20 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.code_style_check.toggled.connect(code_style_g_widget.setEnabled)
 
         # Code style layout
+        code_style_group = QGroupBox(_("Code style"))
         code_style_layout = QVBoxLayout()
         code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(self.code_style_check)
         code_style_layout.addWidget(code_style_g_widget)
-        code_style_layout.addWidget(vertical_line_box)
+        code_style_group.setLayout(code_style_layout)
 
-        code_style_widget = QWidget()
-        code_style_widget.setLayout(code_style_layout)
+        # Maximum allowed line length layout
+        line_length_group = QGroupBox(_("Line length"))
+        line_length_layout = QVBoxLayout()
+        line_length_layout.addWidget(self.code_style_max_line_length)
+        line_length_layout.addWidget(vertical_line_box)
+        line_length_group.setLayout(line_length_layout)
 
-        # --- Code formatting tab ---
         # Code formatting label
         autopep8_url = (
             "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
@@ -283,13 +283,19 @@ class LanguageServerConfigPage(GeneralConfigPage):
                   "saving a file"))
 
         # Code formatting layout
+        code_fmt_group = QGroupBox(_("Code formatting"))
         code_fmt_layout = QVBoxLayout()
         code_fmt_layout.addWidget(code_fmt_label)
         code_fmt_layout.addWidget(code_fmt_provider)
         code_fmt_layout.addWidget(format_on_save_box)
+        code_fmt_group.setLayout(code_fmt_layout)
 
-        code_fmt_widget = QWidget()
-        code_fmt_widget.setLayout(code_fmt_layout)
+        code_style_widget = QWidget()
+        code_style_fmt_layout = QVBoxLayout()
+        code_style_fmt_layout.addWidget(code_style_group)
+        code_style_fmt_layout.addWidget(code_fmt_group)
+        code_style_fmt_layout.addWidget(line_length_group)
+        code_style_widget.setLayout(code_style_fmt_layout)
 
         # --- Docstring tab ---
         # Docstring style label
@@ -624,11 +630,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
-        self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        self.tabs.addTab(self.create_tab(code_style_widget),
+                         _('Code style and formatting'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
-        self.tabs.addTab(self.create_tab(code_fmt_widget),
-                         _('Code formatting'))
         self.tabs.addTab(self.create_tab(snippets_widget), _('Snippets'))
         self.tabs.addTab(self.create_tab(clients_group,
                                          lsp_advanced_group,
@@ -938,16 +943,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         self.table.save_servers()
         self.snippets_proxy.save_snippets()
-
-        if(self.get_option('formatting') == 'black' and
-                self.get_option('pycodestyle/max_line_length') == 79):
-            self.set_option('pycodestyle/max_line_length', 88)
-            self.code_style_max_line_length.spinbox.setValue(88)
-
-        if(self.get_option('formatting') != 'black' and
-                self.get_option('pycodestyle/max_line_length') == 88):
-            self.set_option('pycodestyle/max_line_length', 79)
-            self.code_style_max_line_length.spinbox.setValue(79)
 
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
