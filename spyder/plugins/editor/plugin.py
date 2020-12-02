@@ -310,7 +310,7 @@ class Editor(SpyderPluginWidget):
         language = options['language']
         codeeditor = options['codeeditor']
 
-        status = self.main.completions.start_client(language.lower())
+        status = self.main.completions.start_provider(language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
@@ -320,10 +320,10 @@ class Editor(SpyderPluginWidget):
                 codeeditor.register_completion_capabilities(
                     self.completion_capabilities[language.lower()])
                 codeeditor.start_completion_services()
-            elif self.main.completions.is_fallback_only(language.lower()):
-                # This is required to use fallback completions for files
-                # without a language server.
-                codeeditor.start_completion_services()
+            # elif self.main.completions.is_fallback_only(language.lower()):
+            # This is required to use fallback completions for files
+            # without a language server.
+            codeeditor.start_completion_services()
         else:
             if codeeditor.language == language.lower():
                 logger.debug('Setting {0} completions off'.format(filename))

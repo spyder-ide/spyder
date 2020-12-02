@@ -1032,15 +1032,15 @@ class MainWindow(QMainWindow):
                             "(i.e. for all sessions)"),
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
-        from spyder.plugins.completion.kite.utils.install import (
-            check_if_kite_installed)
-        is_kite_installed, kite_path = check_if_kite_installed()
-        if not is_kite_installed:
-            install_kite_action = create_action(
-                self, _("Install Kite completion engine"),
-                icon=get_icon('kite', adjust_for_interface=True),
-                triggered=self.show_kite_installation)
-            self.tools_menu_actions.append(install_kite_action)
+        # from spyder.plugins.completion.kite.utils.install import (
+        #     check_if_kite_installed)
+        # is_kite_installed, kite_path = check_if_kite_installed()
+        # if not is_kite_installed:
+        #     install_kite_action = create_action(
+        #         self, _("Install Kite completion engine"),
+        #         icon=get_icon('kite', adjust_for_interface=True),
+        #         triggered=self.show_kite_installation)
+        #     self.tools_menu_actions.append(install_kite_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
         if get_debug_level() >= 3:
             self.menu_lsp_logs = QMenu(_("LSP logs"))
@@ -1182,10 +1182,16 @@ class MainWindow(QMainWindow):
         self.register_plugin(self.appearance)
 
         # Code completion client initialization
-        self.set_splash(_("Starting code completion manager..."))
-        from spyder.plugins.completion.manager.plugin import CompletionManager
-        self.completions = CompletionManager(self)
-        self.completions.start()
+        if CONF.get('completions', 'enable'):
+            from spyder.plugins.completion.plugin import CompletionPlugin
+            self.completions = CompletionPlugin(self, configuration=CONF)
+            self.register_plugin(self.completions)
+            # self.thirdparty_plugins.append(self.completions)
+
+        # self.set_splash(_("Starting code completion manager..."))
+        # from spyder.plugins.completion.manager.plugin import CompletionManager
+        # self.completions = CompletionManager(self)
+        # self.completions.start()
 
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
@@ -1737,7 +1743,7 @@ class MainWindow(QMainWindow):
                 self.editor.setup_open_files(close_previous_files=False)
 
         # Connect Editor to Kite completions plugin status
-        self.editor.kite_completions_file_status()
+        # self.editor.kite_completions_file_status()
 
         # Connect Editor debug action with Console
         self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
@@ -2919,8 +2925,8 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
 
-        if not self.completions.closing_plugin(cancelable):
-            return False
+        # if not self.completions.closing_plugin(cancelable):
+        #     return False
 
         # Internal plugins
         for plugin in (self.widgetlist + self.thirdparty_plugins):
@@ -2963,7 +2969,7 @@ class MainWindow(QMainWindow):
         if self.toolbars_visible:
             self.save_visible_toolbars()
 
-        self.completions.shutdown()
+        # self.completions.shutdown()
 
         self.already_closed = True
         return True

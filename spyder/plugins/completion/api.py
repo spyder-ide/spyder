@@ -12,6 +12,9 @@ those used by the Language Server Protocol (LSP), available at:
 https://microsoft.github.io/language-server-protocol/specifications/specification-current/
 """
 
+# Third party imports
+from qtpy.QtCore import Signal, QObject
+
 
 # Supported LSP programming languages
 LSP_LANGUAGES = [
@@ -20,6 +23,76 @@ LSP_LANGUAGES = [
     'Julia', 'Kotlin', 'OCaml', 'PHP', 'R', 'Rust', 'Scala', 'Swift',
     'TypeScript'
 ]
+
+# ------------------ WORKSPACE SYMBOLS CONSTANTS --------------------
+
+
+class SymbolKind:
+    """LSP workspace symbol constants."""
+    FILE = 1
+    MODULE = 2
+    NAMESPACE = 3
+    PACKAGE = 4
+    CLASS = 5
+    METHOD = 6
+    PROPERTY = 7
+    FIELD = 8
+    CONSTRUCTOR = 9
+    ENUM = 10
+    INTERFACE = 11
+    FUNCTION = 12
+    VARIABLE = 13
+    CONSTANT = 14
+    STRING = 15
+    NUMBER = 16
+    BOOLEAN = 17
+    ARRAY = 18
+    OBJECT = 19
+    KEY = 20
+    NULL = 21
+    ENUM_MEMBER = 22
+    STRUCT = 23
+    EVENT = 24
+    OPERATOR = 25
+    TYPE_PARAMETER = 26
+
+    # Additional symbol constants (non-standard)
+    BLOCK_COMMENT = 224
+    CELL = 225
+
+
+# Mapping between symbol enum and icons
+SYMBOL_KIND_ICON = {
+    SymbolKind.FILE: 'file',
+    SymbolKind.MODULE: 'module',
+    SymbolKind.NAMESPACE: 'namespace',
+    SymbolKind.PACKAGE: 'package',
+    SymbolKind.CLASS: 'class',
+    SymbolKind.METHOD: 'method',
+    SymbolKind.PROPERTY: 'property',
+    SymbolKind.FIELD: 'field',
+    SymbolKind.CONSTRUCTOR: 'constructor',
+    SymbolKind.ENUM: 'enum',
+    SymbolKind.INTERFACE: 'interface',
+    SymbolKind.FUNCTION: 'function',
+    SymbolKind.VARIABLE: 'variable',
+    SymbolKind.CONSTANT: 'constant',
+    SymbolKind.STRING: 'string',
+    SymbolKind.NUMBER: 'number',
+    SymbolKind.BOOLEAN: 'boolean',
+    SymbolKind.ARRAY: 'array',
+    SymbolKind.OBJECT: 'object',
+    SymbolKind.KEY: 'key',
+    SymbolKind.NULL: 'null',
+    SymbolKind.ENUM_MEMBER: 'enum_member',
+    SymbolKind.STRUCT: 'struct',
+    SymbolKind.EVENT: 'event',
+    SymbolKind.OPERATOR: 'operator',
+    SymbolKind.TYPE_PARAMETER: 'type_parameter',
+    SymbolKind.BLOCK_COMMENT: 'blockcomment',
+    SymbolKind.CELL: 'cell'
+}
+
 
 # -------------------- WORKSPACE CONFIGURATION CONSTANTS ----------------------
 
@@ -572,75 +645,215 @@ class WorkspaceUpdateKind:
     DELETION = 'deletion'
 
 
-# ------------------ WORKSPACE SYMBOLS CONSTANTS --------------------
-
-
-class SymbolKind:
-    """LSP workspace symbol constants."""
-    FILE = 1
-    MODULE = 2
-    NAMESPACE = 3
-    PACKAGE = 4
-    CLASS = 5
-    METHOD = 6
-    PROPERTY = 7
-    FIELD = 8
-    CONSTRUCTOR = 9
-    ENUM = 10
-    INTERFACE = 11
-    FUNCTION = 12
-    VARIABLE = 13
-    CONSTANT = 14
-    STRING = 15
-    NUMBER = 16
-    BOOLEAN = 17
-    ARRAY = 18
-    OBJECT = 19
-    KEY = 20
-    NULL = 21
-    ENUM_MEMBER = 22
-    STRUCT = 23
-    EVENT = 24
-    OPERATOR = 25
-    TYPE_PARAMETER = 26
-
-    # Additional symbol constants (non-standard)
-    BLOCK_COMMENT = 224
-    CELL = 225
-
-
-# Mapping between symbol enum and icons
-SYMBOL_KIND_ICON = {
-    SymbolKind.FILE: 'file',
-    SymbolKind.MODULE: 'module',
-    SymbolKind.NAMESPACE: 'namespace',
-    SymbolKind.PACKAGE: 'package',
-    SymbolKind.CLASS: 'class',
-    SymbolKind.METHOD: 'method',
-    SymbolKind.PROPERTY: 'property',
-    SymbolKind.FIELD: 'field',
-    SymbolKind.CONSTRUCTOR: 'constructor',
-    SymbolKind.ENUM: 'enum',
-    SymbolKind.INTERFACE: 'interface',
-    SymbolKind.FUNCTION: 'function',
-    SymbolKind.VARIABLE: 'variable',
-    SymbolKind.CONSTANT: 'constant',
-    SymbolKind.STRING: 'string',
-    SymbolKind.NUMBER: 'number',
-    SymbolKind.BOOLEAN: 'boolean',
-    SymbolKind.ARRAY: 'array',
-    SymbolKind.OBJECT: 'object',
-    SymbolKind.KEY: 'key',
-    SymbolKind.NULL: 'null',
-    SymbolKind.ENUM_MEMBER: 'enum_member',
-    SymbolKind.STRUCT: 'struct',
-    SymbolKind.EVENT: 'event',
-    SymbolKind.OPERATOR: 'operator',
-    SymbolKind.TYPE_PARAMETER: 'type_parameter',
-    SymbolKind.BLOCK_COMMENT: 'blockcomment',
-    SymbolKind.CELL: 'cell'
-}
-
-
 # ---------------- OTHER GENERAL PURPOSE CONSTANTS ------------------
 COMPLETION_ENTRYPOINT = 'spyder.completions'
+
+# -------------- SPYDER COMPLETION PROVIDER INTERFACE ---------------
+
+class SpyderCompletionProvider(QObject):
+    """
+    Spyder plugin API for completion providers.
+
+    All completion providers must implement this interface in order to interact
+    with Spyder CodeEditor and Projects manager.
+    """
+
+    # Use this signal to send a response back to the completion manager
+    # str: Completion client name
+    # int: Request sequence identifier
+    # dict: Response dictionary
+    sig_response_ready = Signal(str, int, dict)
+
+    # Use this signal to indicate that the plugin is ready
+    sig_provider_ready = Signal(str)
+
+    # ---------------------------- ATTRIBUTES ---------------------------------
+
+    # Name of the completion service
+    # Status: Required
+    COMPLETION_CLIENT_NAME = None
+
+    # Define the priority of this provider, with 1 being the highest one
+    # Status: Required
+    DEFAULT_ORDER = -1
+
+    # Define configuration defaults if using a separate file.
+    # List of tuples, with the first item in the tuple being the section
+    # name and the second item being the default options dictionary.
+    #
+    # CONF_DEFAULTS_EXAMPLE = [
+    #     ('section-name', {'option-1': 'some-value',
+    #                       'option-2': True,}),
+    #     ('another-section-name', {'option-3': 'some-other-value',
+    #                               'option-4': [1, 2, 3],}),
+    # ]
+    CONF_DEFAULTS = []
+
+    # IMPORTANT NOTES:
+    # 1. If you want to *change* the default value of a current option, you
+    #    need to do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+    # 2. If you want to *remove* options that are no longer needed or if you
+    #    want to *rename* options, then you need to do a MAJOR update in
+    #    version, e.g. from 3.0.0 to 4.0.0
+    # 3. You don't need to touch this value if you're just adding a new option
+    CONF_VERSION = "0.1.0"
+
+    def __init__(self, parent):
+        QObject.__init__(self, parent)
+        self.main = parent
+
+    def register_file(self, language: str, filename: str, codeeditor):
+        """
+        Register file to perform completions.
+        If a language client is not available for a given file, then this
+        method should keep a queue, such that files can be initialized once
+        a server is available.
+
+        Parameters
+        ----------
+        language: str
+            Programming language of the given file
+        filename: str
+            Filename to register
+        codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+            Codeeditor to send the client configurations
+        """
+        pass
+
+    def send_request(
+            self, language: str, req_type: str, req: dict, req_id: int):
+        """
+        Process completion/introspection request from Spyder.
+        The completion request `req_type` needs to have a response.
+
+        Parameters
+        ----------
+        language: str
+            Programming language for the incoming request
+        req_type: str
+            Type of request, one of
+            :class:`spyder.plugins.completion.api.CompletionRequestTypes`
+        req: dict
+            Request body
+            {
+                'filename': str,
+                **kwargs: request-specific parameters
+            }
+        req_id: int
+            Request identifier for response
+        """
+        pass
+
+    def send_notification(
+            self, language: str, notification_type: str, notification: dict):
+        """
+        Send notification to completion server based on Spyder changes.
+
+        Parameters
+        ----------
+        language: str
+            Programming language for the incoming request
+        notification_type: str
+            Type of request, one of
+            :class:`spyder.plugins.completion.api.CompletionRequestTypes`
+        notification: dict
+            Request body
+            {
+                'filename': str,
+                **kwargs: request-specific parameters
+            }
+        """
+        pass
+
+    def broadcast_notification(
+            self, notification_type: str, notification: dict):
+        """
+        Send a broadcast notification across all programming languages.
+
+        Parameters
+        ----------
+        req_type: str
+            Type of request, one of
+            :class:`spyder.plugins.completion.CompletionTypes`
+        req: dict
+            Request body
+            {
+                **kwargs: notification-specific parameters
+            }
+        req_id: int
+            Request identifier for response, None if notification
+        """
+        pass
+
+    def send_response(self, response: dict, resp_id: int):
+        """
+        Send response for server request.
+
+        Parameters
+        ----------
+        response: dict
+            Response body for server
+            {
+                **kwargs: response-specific keys
+            }
+        resp_id: int
+            Request identifier for response
+        """
+        pass
+
+    def update_configuration(self):
+        """Handle completion option configuration updates."""
+        pass
+
+    def project_path_update(self, project_path: str, update_kind: str):
+        """
+        Handle project path updates on Spyder.
+
+        Parameters
+        ----------
+        project_path: str
+            Path to the project folder modified
+        update_kind: str
+            Path update kind, one of
+            :class:`spyder.plugins.completion.api.WorkspaceUpdateKind`
+        """
+        pass
+
+    def start_provider(self, language: str):
+        """
+        Start completions/introspection services for a given language.
+
+        Parameters
+        ----------
+        language: str
+            Programming language to start analyzing
+
+        Returns
+        -------
+        bool
+            True if language client could be started, otherwise False.
+        """
+        return False
+
+    def stop_provider(self, language: str):
+        """
+        Stop completions/introspection services for a given language.
+
+        Parameters
+        ----------
+        language: str
+            Programming language to stop analyzing
+        """
+        pass
+
+    def start(self):
+        """Start completion plugin."""
+        self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
+
+    def shutdown(self):
+        """Stop completion plugin."""
+        pass
+
+    def can_close(self) -> bool:
+        """Establish if the current completion provider can be stopped."""
+        return True

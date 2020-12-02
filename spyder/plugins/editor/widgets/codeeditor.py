@@ -61,9 +61,9 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.kite.widgets.calltoaction import (
-    KiteCallToAction)
-from spyder.plugins.completion.manager.api import (LSPRequestTypes,
+# from spyder.plugins.completion.kite.widgets.calltoaction import (
+#     KiteCallToAction)
+from spyder.plugins.completion.api import (CompletionRequestTypes,
                                                    TextDocumentSyncKind,
                                                    DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
@@ -646,7 +646,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # re-use parent of completion_widget (usually the main window)
         completion_parent = self.completion_widget.parent()
-        self.kite_call_to_action = KiteCallToAction(self, completion_parent)
+        # self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
         # Some events should not be triggered during undo/redo
         # such as line stripping
@@ -1177,7 +1177,7 @@ class CodeEditor(TextEditBaseWidget):
         logger.debug('Stopping completion services for %s' % self.filename)
         self.completions_available = False
 
-    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
         cursor = self.textCursor()
@@ -1194,7 +1194,7 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     # ------------- LSP: Symbols ---------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
+    @request(method=CompletionRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
         """Request document symbols."""
         if not self.document_symbols_enabled:
@@ -1204,7 +1204,7 @@ class CodeEditor(TextEditBaseWidget):
         params = {'file': self.filename}
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
+    @handles(CompletionRequestTypes.DOCUMENT_SYMBOL)
     def process_symbols(self, params):
         """Handle symbols response."""
         try:
@@ -1222,7 +1222,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Linting ---------------------------------------
     @request(
-        method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
+        method=CompletionRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
@@ -1241,7 +1241,7 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    @handles(CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
         """Handle linting response."""
         try:
@@ -1266,7 +1266,7 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing linting")
 
     # ------------- LSP: Completion ---------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
+    @request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion."""
         cursor = self.textCursor()
@@ -1287,7 +1287,7 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_args = (self.textCursor().position(), automatic)
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
+    @handles(CompletionRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
         args = self.completion_args
@@ -1371,17 +1371,17 @@ class CodeEditor(TextEditBaseWidget):
             self.completion_widget.show_list(
                 completion_list, position, automatic)
 
-            self.kite_call_to_action.handle_processed_completions(completions)
+            # self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
-            self.kite_call_to_action.hide_coverage_cta()
+            # self.kite_call_to_action.hide_coverage_cta()
             return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
     # ------------- LSP: Signature Hints ------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self):
         """Ask for signature."""
         self.document_did_change('')
@@ -1395,7 +1395,7 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def process_signatures(self, params):
         """Handle signature response."""
         try:
@@ -1435,7 +1435,7 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover/Mouse ---------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
+    @request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
     def request_cursor_event(self):
         text = self.toPlainText()
         cursor = self.textCursor()
@@ -1449,7 +1449,7 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.DOCUMENT_HOVER)
+    @request(method=CompletionRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
@@ -1462,7 +1462,7 @@ class CodeEditor(TextEditBaseWidget):
         self._request_hover_clicked = clicked
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_HOVER)
+    @handles(CompletionRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         """Handle hover response."""
         if running_under_pytest():
@@ -1500,7 +1500,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Go To Definition ----------------------------
     @Slot()
-    @request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
+    @request(method=CompletionRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)."""
         if (not self.go_to_definition_enabled or
@@ -1525,7 +1525,7 @@ class CodeEditor(TextEditBaseWidget):
             }
             return params
 
-    @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
+    @handles(CompletionRequestTypes.DOCUMENT_DEFINITION)
     def handle_go_to_definition(self, position):
         """Handle go to definition response."""
         try:
@@ -1557,7 +1557,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.format_document()
 
-    @request(method=LSPRequestTypes.DOCUMENT_FORMATTING)
+    @request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):
         if not self.formatting_enabled:
             return
@@ -1585,7 +1585,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return params
 
-    @request(method=LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def format_document_range(self):
         if not self.range_formatting_enabled or not self.has_selected_text():
             return
@@ -1628,7 +1628,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
+    @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
     def handle_document_formatting(self, edits):
         try:
             self._apply_document_edits(edits)
@@ -1647,7 +1647,7 @@ class CodeEditor(TextEditBaseWidget):
             self.sig_stop_operation_in_progress.emit()
             self.operation_in_progress = False
 
-    @handles(LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def handle_document_range_formatting(self, edits):
         try:
             self._apply_document_edits(edits)
@@ -1743,7 +1743,7 @@ class CodeEditor(TextEditBaseWidget):
         folding_panel = self.panels.get(FoldingPanel)
         folding_panel.folding_regions = {}
 
-    @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @request(method=CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
@@ -1751,7 +1751,7 @@ class CodeEditor(TextEditBaseWidget):
         params = {'file': self.filename}
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @handles(CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
         try:
@@ -1788,7 +1788,7 @@ class CodeEditor(TextEditBaseWidget):
             self.request_symbols()
 
     # ------------- LSP: Save/close file -----------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
              requires_response=False)
     def notify_save(self):
         """Send save request."""
@@ -1797,7 +1797,7 @@ class CodeEditor(TextEditBaseWidget):
             params['text'] = self.toPlainText()
         return params
 
-    @request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
     def notify_close(self):
         """Send close request."""
@@ -4230,7 +4230,7 @@ class CodeEditor(TextEditBaseWidget):
         event.ignore()
         self.sig_key_pressed.emit(event)
 
-        self.kite_call_to_action.handle_key_press(event)
+        # self.kite_call_to_action.handle_key_press(event)
 
         key = event.key()
         text = to_text_string(event.text())
@@ -4925,7 +4925,7 @@ class CodeEditor(TextEditBaseWidget):
     def mousePressEvent(self, event):
         """Override Qt method."""
         self.hide_tooltip()
-        self.kite_call_to_action.handle_mouse_press(event)
+        # self.kite_call_to_action.handle_mouse_press(event)
 
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier

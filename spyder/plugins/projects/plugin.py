@@ -40,8 +40,8 @@ from spyder.plugins.projects.api import (BaseProjectType, EmptyProject,
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
-from spyder.plugins.completion.manager.api import (
-    LSPRequestTypes, FileChangeType, WorkspaceUpdateKind)
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes, FileChangeType, WorkspaceUpdateKind)
 from spyder.plugins.completion.manager.decorators import (
     request, handles, class_register)
 
@@ -67,10 +67,10 @@ class Projects(SpyderPluginWidget):
     ----------
     project_path: str
         Location of project.
-    project_type: str	
-        Type of project as defined by project types.	
-    project_packages: object	
-        Package to install. Currently not in use.	
+    project_type: str
+        Type of project as defined by project types.
+    project_packages: object
+        Package to install. Currently not in use.
     """
 
     sig_project_loaded = Signal(object)
@@ -645,7 +645,7 @@ class Projects(SpyderPluginWidget):
             handler(params)
 
     @Slot(str, str, bool)
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     def file_moved(self, src_file, dest_file, is_dir):
         """Notify LSP server about a file that is moved."""
@@ -669,7 +669,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
@@ -685,7 +685,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
@@ -701,7 +701,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
@@ -717,7 +717,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+    @request(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE,
              requires_response=False)
     def notify_project_open(self, path):
         """Notify LSP server about project path availability."""
@@ -728,7 +728,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+    @request(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE,
              requires_response=False)
     def notify_project_close(self, path):
         """Notify LSP server to unregister project path."""
@@ -739,8 +739,8 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
-    @request(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT,
+    @handles(CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
+    @request(method=CompletionRequestTypes.WORKSPACE_APPLY_EDIT,
              requires_response=False)
     def handle_workspace_edit(self, params):
         """Apply edits to multiple files and notify server about success."""

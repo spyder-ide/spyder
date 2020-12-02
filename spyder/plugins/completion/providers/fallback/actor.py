@@ -24,9 +24,9 @@ from pygments.lexers import get_lexer_by_name
 from diff_match_patch import diff_match_patch
 
 # Local imports
-from spyder.plugins.completion.manager.api import CompletionItemKind
-from spyder.plugins.completion.manager.api import LSPRequestTypes
-from spyder.plugins.completion.fallback.utils import (
+from spyder.plugins.completion.api import CompletionItemKind
+from spyder.plugins.completion.api import CompletionRequestTypes
+from spyder.plugins.completion.providers.fallback.utils import (
     get_keywords, get_words, is_prefix_valid)
 
 
@@ -122,13 +122,13 @@ class FallbackActor(QObject):
         msg_type, _id, file, msg = [
             message[k] for k in ('type', 'id', 'file', 'msg')]
         logger.debug(u'Perform request {0} with id {1}'.format(msg_type, _id))
-        if msg_type == LSPRequestTypes.DOCUMENT_DID_OPEN:
+        if msg_type == CompletionRequestTypes.DOCUMENT_DID_OPEN:
             self.file_tokens[file] = {
                 'text': msg['text'],
                 'offset': msg['offset'],
                 'language': msg['language'],
             }
-        elif msg_type == LSPRequestTypes.DOCUMENT_DID_CHANGE:
+        elif msg_type == CompletionRequestTypes.DOCUMENT_DID_CHANGE:
             if file not in self.file_tokens:
                 self.file_tokens[file] = {
                     'text': '',
@@ -141,9 +141,9 @@ class FallbackActor(QObject):
             text, _ = self.diff_patch.patch_apply(
                 diff, text['text'])
             self.file_tokens[file]['text'] = text
-        elif msg_type == LSPRequestTypes.DOCUMENT_DID_CLOSE:
+        elif msg_type == CompletionRequestTypes.DOCUMENT_DID_CLOSE:
             self.file_tokens.pop(file, {})
-        elif msg_type == LSPRequestTypes.DOCUMENT_COMPLETION:
+        elif msg_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
             tokens = []
             if file in self.file_tokens:
                 text_info = self.file_tokens[file]

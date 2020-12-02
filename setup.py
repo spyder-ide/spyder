@@ -232,7 +232,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.10.0,<1.11.0',
+    'spyder-kernels>=2.0.0.dev0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -265,32 +265,29 @@ extras_require = {
 spyder_plugins_entry_points = [
     'appearance = spyder.plugins.appearance.plugin:Appearance',
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
-    ('code_completion = spyder.plugins.completion.manager.plugin:'
-     'CompletionManager'),
+    'completions = spyder.plugins.completion.plugin:CompletionPlugin',
     'core = spyder.plugins.core.plugin:Core',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
-    ('fallback_completion = spyder.plugins.completion.fallback.plugin:'
-     'FallbackPlugin'),
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
     'historylog = spyder.plugins.history.plugin:HistoryLog',
     'ipython_console = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
-    ('kite_completion = spyder.plugins.completion.kite.plugin:'
-     'KiteCompletionPlugin'),
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
     'outline_explorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
     'plots = spyder.plugins.plots.plugin:Plots',
     'profiler = spyder.plugins.profiler.plugin:Profiler',
     'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
-    ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
-     'LanguageServerPlugin'),
-    'python = spyder.plugins.python.plugin:Python',
     ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
      'VariableExplorer'),
     ('workingdir = spyder.plugins.workingdirectory.plugin:'
      'WorkingDirectory'),
+]
+
+spyder_completions_entry_points = [
+    ('fallback = spyder.plugins.completion.providers.fallback.provider:'
+     'FallbackProvider')
 ]
 
 
@@ -301,6 +298,7 @@ setup_args['entry_points'] = {
             'spyder = spyder.app.start:main'
     ],
     'spyder.plugins': spyder_plugins_entry_points,
+    'spyder.completions': spyder_completions_entry_points
 }
 setup_args.pop('scripts', None)
 

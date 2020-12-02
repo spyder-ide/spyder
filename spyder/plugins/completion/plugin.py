@@ -13,21 +13,24 @@ introspection clients.
 
 # Standard library imports
 from collections import defaultdict
-from pkg_resources import parse_version, iter_entry_points
 import logging
+from pkg_resources import parse_version, iter_entry_points
+from typing import List
 
 # Third-party imports
-from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot
+from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2
 from spyder.config.base import _
 from spyder.plugins.completion.api import (CompletionRequestTypes,
+                                           SpyderCompletionProvider,
                                            COMPLETION_ENTRYPOINT)
 
 logger = logging.getLogger(__name__)
-COMPLETION_REQUESTS = [c for c in dir(CompletionRequestTypes) if c.isupper()]
+COMPLETION_REQUESTS = [getattr(CompletionRequestTypes, c)
+                       for c in dir(CompletionRequestTypes) if c.isupper()]
 
 
 class CompletionPlugin(SpyderPluginV2):
@@ -52,11 +55,12 @@ class CompletionPlugin(SpyderPluginV2):
     NAME = 'completions'
     CONF_SECTION = 'completions'
     CONF_DEFAULTS = [
-        ('enabled_providers': {}),
-        ('provider_configuration': {}),
+        ('enabled_providers', {}),
+        ('provider_configuration', {}),
         ('request_priorities', {})
     ]
     CONF_VERSION = '0.1.0'
+    CONF_FILE = False
 
     # TODO: This should be implemented in order to have all completion plugins'
     # configuration pages under "Completion & Linting"
@@ -116,11 +120,13 @@ class CompletionPlugin(SpyderPluginV2):
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
             try:
-                Provider = entry_point.load()
+                logger.debug(f'Loading entry point: {entry_point}')
+                Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
             except ImportError as e:
                 logger.warning('Failed to load completion provider from entry '
                                f'point {entry_point}')
+                raise e
 
     # ---------------- Public Spyder API required methods ---------------------
     def get_name(self) -> str:
@@ -164,8 +170,12 @@ class CompletionPlugin(SpyderPluginV2):
         return can_close
 
     # ---------- Completion provider registering/start/stop methods -----------
-    def _merge_default_configurations(self, Provider, provider_configurations):
+    def _merge_default_configurations(self,
+                                      Provider: SpyderCompletionProvider,
+                                      provider_name: str,
+                                      provider_configurations: dict):
         provider_defaults = dict(Provider.CONF_DEFAULTS)
+        provider_conf_version = Provider.CONF_VERSION
         if provider_name not in provider_configurations:
             # Pick completion provider default configuration options
             provider_config = {
@@ -176,7 +186,7 @@ class CompletionPlugin(SpyderPluginV2):
 
             provider_configurations[provider_name] = provider_config
 
-        # Check if there was any version changes between configurations
+        # Check if there were any version changes between configurations
         provider_config = provider_configurations[provider_name]
         provider_conf_version = parse_version(Provider.CONF_VERSION)
         current_conf_version = parse_version(provider_config['version'])
@@ -207,7 +217,7 @@ class CompletionPlugin(SpyderPluginV2):
                     current_defaults.pop(key)
                     current_conf_values.pop(key)
 
-        return provider_conf_version, current_conf_values, provider_defaults
+        return str(provider_conf_version), current_conf_values, provider_defaults
 
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
@@ -231,7 +241,7 @@ class CompletionPlugin(SpyderPluginV2):
         (provider_conf_version,
          current_conf_values,
          provider_defaults) = self._merge_default_configurations(
-             Provider, provider_configurations)
+             Provider, provider_name, provider_configurations)
 
         new_provider_config = {
             'version': provider_conf_version,
@@ -269,17 +279,16 @@ class CompletionPlugin(SpyderPluginV2):
             server_status = self.language_status[language]
             server_status[provider_name] = False
 
-
     @Slot(str)
     def provider_available(self, provider_name: str):
         """Indicate that the completion provider `provider_name` is running."""
-        client_info = self.clients[provider_name]
-        client_info['status'] = self.RUNNING
+        provider_info = self.providers[provider_name]
+        provider_info['status'] = self.RUNNING
 
     def start_provider(self, language: str) -> bool:
         """Start completion providers for a given programming language."""
         started = False
-        language_clients = self.language_status.get(language, {})
+        language_providers = self.language_status.get(language, {})
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
@@ -302,14 +311,26 @@ class CompletionPlugin(SpyderPluginV2):
         """Get the :class:`SpyderCompletionProvider` identified with `name`."""
         return self.providers[name]['instance']
 
-    def is_provider_running(self, name: str):
+    def is_provider_running(self, name: str) -> bool:
         # TODO: Let LSP server emit sig_provider_ready
-        if name == LanguageServerPlugin.COMPLETION_CLIENT_NAME:
-            # The LSP plugin does not emit a plugin ready signal
-            return name in self.clients
+        # if name == LanguageServerPlugin.COMPLETION_CLIENT_NAME:
+        #     # The LSP plugin does not emit a plugin ready signal
+        #     return name in self.clients
 
         status = self.clients.get(name, {}).get('status', self.STOPPED)
         return status == self.RUNNING
+
+    def available_providers_for_language(self, language: str) -> List[str]:
+        providers = []
+        if language in self.language_status:
+            provider_status = self.language_status[language]
+            providers = [p for p in provider_status if provider_status[p]]
+        return providers
+
+    def sort_providers_for_request(
+            self, providers: List[str], req_type: str) -> List[str]:
+        request_order = self.source_priority[req_type]
+        return sorted(providers, key=lambda p: request_order[p])
 
     # --------------- Public completion API request methods -------------------
     def send_request(self, language: str, req_type: str, req: dict):
@@ -497,32 +518,31 @@ class CompletionPlugin(SpyderPluginV2):
         if req_id not in self.requests:
             return
         request_responses = self.requests[req_id]
-        language = request_responses['language']
-
+        language = request_responses['language'].lower()
+        req_type = request_responses['req_type']
         # Skip the waiting logic below when fallback is the only
         # client that works for language
         # TODO: Remove references to fallback and snippets
-        if self.is_fallback_only(language):
-            # Only send response when fallback is among its sources
-            if 'fallback' in request_responses['sources']:
-                self.gather_and_reply(request_responses)
-                return
+        # if self.is_fallback_only(language):
+        #     # Only send response when fallback is among its sources
+        #     if 'fallback' in request_responses['sources']:
+        #         self.gather_and_reply(request_responses)
+        #         return
 
-            if 'snippets' in request_responses['sources']:
-                self.gather_and_reply(request_responses)
-                return
+        #     if 'snippets' in request_responses['sources']:
+        #         self.gather_and_reply(request_responses)
+        #         return
 
-            # This drops responses that don't contain fallback
-            return
+        #     # This drops responses that don't contain fallback
+        #     return
 
-        # Wait between the LSP and Kite to return responses. This favors
-        # Kite when the LSP takes too much time to respond.
-        wait_for = set(source for source
-                       in self.WAIT_FOR_SOURCE[request_responses['req_type']]
-                       if self.is_client_running(source))
+        # Wait only for the available providers for the given request
+        available_providers = self.available_providers_for_language(language)
+        sorted_providers = self.sort_providers_for_request(
+            available_providers, req_type)
         timed_out = request_responses['timed_out']
         all_returned = all(source in request_responses['sources']
-                           for source in wait_for)
+                           for source in sorted_providers)
 
         if not timed_out:
             # Before the timeout
@@ -531,7 +551,7 @@ class CompletionPlugin(SpyderPluginV2):
         else:
             # After the timeout
             any_nonempty = any(request_responses['sources'].get(source)
-                               for source in wait_for)
+                               for source in sorted_providers)
             if all_returned or any_nonempty:
                 self.skip_and_reply(req_id)
 
@@ -590,6 +610,8 @@ class CompletionPlugin(SpyderPluginV2):
         """Gather completion responses from plugins."""
         priorities = self.source_priority[
             CompletionRequestTypes.DOCUMENT_COMPLETION]
+        priorities = sorted(list(priorities.keys()),
+                            key=lambda p: priorities[p])
 
         merge_stats = {source: 0 for source in req_id_responses}
         responses = []

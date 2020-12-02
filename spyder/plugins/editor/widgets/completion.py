@@ -18,8 +18,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 
 # Local imports
 from spyder.utils import icon_manager as ima
-from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
-from spyder.plugins.completion.manager.api import CompletionItemKind
+# from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
+from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate
 
@@ -221,12 +221,13 @@ class CompletionWidget(QListWidget):
         img_height = height - 2
         img_width = img_height * 0.8
 
-        if item_provider == KITE_COMPLETION:
-            kite_height = img_height
-            kite_width = (416.14/526.8) * kite_height
-            icon_provider = ima.get_icon('kite', adjust_for_interface=True)
-            icon_provider = ima.base64_from_icon_obj(
-                icon_provider, kite_width, kite_height)
+        # TODO: Define a way to set a completion icon
+        # if item_provider == KITE_COMPLETION:
+        #     kite_height = img_height
+        #     kite_width = (416.14/526.8) * kite_height
+        #     icon_provider = ima.get_icon('kite', adjust_for_interface=True)
+        #     icon_provider = ima.base64_from_icon_obj(
+        #         icon_provider, kite_width, kite_height)
 
         item_text = self.get_html_item_representation(
             item_label, item_type, icon_provider=icon_provider,
