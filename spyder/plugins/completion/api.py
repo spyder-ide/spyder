@@ -698,7 +698,20 @@ class SpyderCompletionProvider(QObject):
     # 3. You don't need to touch this value if you're just adding a new option
     CONF_VERSION = "0.1.0"
 
-    def __init__(self, parent):
+    def __init__(self, parent, config):
+        """
+        Main completion provider constructor.
+
+        Parameters
+        ----------
+        parent: spyder.plugins.completion.plugin.CompletionPlugin
+            Instance of the completion plugin that manages this provider
+
+        config: dict
+            Current provider configuration values, whose keys correspond to
+            the ones defined on `CONF_DEFAULTS` and the values correspond to
+            the current values according to the Spyder configuration.
+        """
         QObject.__init__(self, parent)
         self.main = parent
 

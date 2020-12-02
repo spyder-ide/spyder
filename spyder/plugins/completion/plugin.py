@@ -266,7 +266,7 @@ class CompletionPlugin(SpyderPluginV2):
         self.source_priority = source_priorities
         self.set_conf_option('request_priorities', source_priorities)
 
-        provider_instance = Provider(self, new_provider_config)
+        provider_instance = Provider(self, new_provider_config['values'])
         provider_instance.sig_provider_ready.connect(self.provider_available)
         provider_instance.sig_response_ready.connect(self.receive_response)
 

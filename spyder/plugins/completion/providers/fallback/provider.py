@@ -26,7 +26,7 @@ class FallbackProvider(SpyderCompletionProvider):
     DEFAULT_ORDER = 3
 
     def __init__(self, parent, config):
-        SpyderCompletionProvider.__init__(self, parent)
+        SpyderCompletionProvider.__init__(self, parent, config)
         self.fallback_actor = FallbackActor(self)
         self.fallback_actor.sig_fallback_ready.connect(
             lambda: self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME))

@@ -31,7 +31,7 @@ class SnippetsProvider(SpyderCompletionProvider):
     CONF_VERSION = "0.1.0"
 
     def __init__(self, parent, config):
-        SpyderCompletionProvider.__init__(self, parent)
+        SpyderCompletionProvider.__init__(self, parent, config)
         self.snippets_actor = SnippetsActor(self)
         self.snippets_actor.sig_snippets_ready.connect(
             self.signal_provider_ready)
@@ -40,7 +40,7 @@ class SnippetsProvider(SpyderCompletionProvider):
                 self.COMPLETION_CLIENT_NAME, _id, resp))
         self.started = False
         self.requests = {}
-        self.config = config.get('values', {})
+        self.config = config
 
     def start_provider(self, language):
         return self.started
