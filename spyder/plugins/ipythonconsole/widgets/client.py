@@ -96,6 +96,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  show_elapsed_time=False,
                  reset_warning=True,
                  ask_before_restart=True,
+                 ask_before_closing=False,
                  css_path=None):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
@@ -112,6 +113,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
         self.ask_before_restart = ask_before_restart
+        self.ask_before_closing = ask_before_closing
 
         # --- Other attrs
         self.options_button = options_button
