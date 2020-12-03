@@ -2420,7 +2420,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     # Get the correct tab pages inside the Completion preferences page
     tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
     tab_widgets = {
-        tnames.index('code style'): page.code_style_check,
+        tnames.index('code style and formatting'): page.code_style_check,
         tnames.index('docstring style'): page.docstring_style_check,
     }
     for idx, check in tab_widgets.items():
