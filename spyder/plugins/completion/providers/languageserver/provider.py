@@ -26,29 +26,74 @@ from spyder.config.base import (_, get_conf_path, running_under_pytest,
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.utils.misc import check_connection_port
-from spyder.plugins.completion.manager.api import (LSP_LANGUAGES,
-                                                   SpyderCompletionPlugin)
-from spyder.plugins.completion.languageserver.client import LSPClient
-from spyder.plugins.completion.languageserver.confpage import (
-    LanguageServerConfigPage)
-from spyder.plugins.completion.languageserver.widgets.status import (
-    ClientStatus, LSPStatusWidget)
+from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
+                                           SpyderCompletionProvider)
+from spyder.plugins.completion.providers.languageserver.client import LSPClient
+# TODO: Define config page behaviour
+# from spyder.plugins.completion.providers.languageserver.confpage import (
+#     LanguageServerConfigPage)
+# TODO: Define status widget behaviour
+# from spyder.plugins.completion.providers.languageserver.widgets.status import (
+#     ClientStatus, LSPStatusWidget)
 from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
+# Modules to be preloaded for Rope and Jedi
+PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
 
 logger = logging.getLogger(__name__)
 
 
-class LanguageServerPlugin(SpyderCompletionPlugin):
+class LanguageServerProvider(SpyderCompletionProvider):
     """Language Server Protocol manager."""
-    CONF_SECTION = 'lsp-server'
-    CONF_FILE = False
-
     COMPLETION_CLIENT_NAME = 'lsp'
+    DEFAULT_ORDER = 1
+    CONF_DEFAULTS = [
+        ('show_lsp_down_warning', True),
+        ('code_completion', True),
+        ('code_snippets', True),
+        ('jedi_definition', True),
+        ('jedi_definition/follow_imports', True),
+        ('jedi_signature_help', True),
+        ('preload_modules', PRELOAD_MDOULES),
+        ('pyflakes', True),
+        ('mccabe', False),
+        ('formatting', 'autopep8'),
+        ('format_on_save', False),
+        ('pycodestyle', False),
+        ('pycodestyle/filename', ''),
+        ('pycodestyle/exclude', ''),
+        ('pycodestyle/select', ''),
+        ('pycodestyle/ignore', ''),
+        ('pycodestyle/max_line_length', 79),
+        ('pydocstyle', False),
+        ('pydocstyle/convention', 'numpy'),
+        ('pydocstyle/select', ''),
+        ('pydocstyle/ignore', ''),
+        ('pydocstyle/match', '(?!test_).*\\.py'),
+        ('pydocstyle/match_dir', '[^\\.].*'),
+        ('advanced/enabled', False),
+        ('advanced/module', 'pyls'),
+        ('advanced/host', '127.0.0.1'),
+        ('advanced/port', 2087),
+        ('advanced/external', False),
+        ('advanced/stdio', False)
+    ]
+
+    # IMPORTANT NOTES:
+    # 1. If you want to *change* the default value of a current option, you
+    #    need to do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+    # 2. If you want to *remove* options that are no longer needed or if you
+    #    want to *rename* options, then you need to do a MAJOR update in
+    #    version, e.g. from 3.0.0 to 4.0.0
+    # 3. You don't need to touch this value if you're just adding a new option
+    CONF_VERSION = "0.1.0"
+
     STOPPED = 'stopped'
     RUNNING = 'running'
     LOCALHOST = ['127.0.0.1', 'localhost']
-    CONFIGWIDGET_CLASS = LanguageServerConfigPage
+    # TODO: Define config page interaction
+    # CONFIGWIDGET_CLASS = LanguageServerConfigPage
     MAX_RESTART_ATTEMPTS = 5
     TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
@@ -77,8 +122,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     `title` indicates how the error data should customize the report dialog.
     """
 
-    def __init__(self, parent):
-        SpyderCompletionPlugin.__init__(self, parent)
+    def __init__(self, parent, config):
+        SpyderCompletionProvider.__init__(self, parent, config)
 
         self.clients = {}
         self.clients_restart_count = {}
@@ -88,18 +133,18 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.clients_statusbar = {}
         self.requests = set({})
         self.register_queue = {}
-        self.update_configuration()
+        self.update_lsp_configuration()
         self.show_no_external_server_warning = True
 
         # Status bar widget
-        if parent is not None:
-            statusbar = parent.statusBar()
-            self.status_widget = LSPStatusWidget(
-                None, statusbar, plugin=self)
+        # if parent is not None:
+        #     statusbar = parent.statusBar()
+        #     self.status_widget = LSPStatusWidget(
+        #         None, statusbar, plugin=self)
 
         # TODO: Move to register in the new API
-        self.sig_exception_occurred.connect(
-            self.main.console.handle_exception)
+        # self.sig_exception_occurred.connect(
+        #     self.main.console.handle_exception)
 
     def __del__(self):
         """Stop all heartbeats"""
@@ -110,7 +155,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 pass
 
     # --- Status bar widget handling
-    def restart_lsp(self, language, force=False):
+    def restart_lsp(self, language: str, force=False):
         """Restart language server on failure."""
         client_config = {
             'status': self.STOPPED,
@@ -241,7 +286,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         languages = ['python']
         all_options = CONF.options(self.CONF_SECTION)
         for option in all_options:
-            if option in [l.lower() for l in LSP_LANGUAGES]:
+            if option in [l.lower() for l in SUPPORTED_LANGUAGES]:
                 languages.append(option)
         return languages
 
@@ -474,7 +519,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         if self.main:
             self.main.sig_pythonpath_changed.connect(self.update_syspath)
             self.main.sig_main_interpreter_changed.connect(
-                functools.partial(self.update_configuration, python_only=True))
+                functools.partial(self.update_lsp_configuration, python_only=True))
             instance.sig_went_down.connect(self.handle_lsp_down)
             instance.sig_initialize.connect(self.on_initialize)
 
@@ -517,9 +562,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
         if update:
             logger.debug("Update server's sys.path")
-            self.update_configuration(python_only=True)
+            self.update_lsp_configuration(python_only=True)
 
-    def update_configuration(self, python_only=False):
+    def update_configuration(self, config):
+        self.config = config
+        self.update_lsp_configuration()
+
+    def update_lsp_configuration(self, python_only=False):
         """
         Update server configuration after changes done by the user
         through Spyder's Preferences.

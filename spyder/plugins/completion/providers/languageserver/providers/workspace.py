@@ -8,18 +8,18 @@
 
 import logging
 
-from spyder.plugins.completion.languageserver.providers.utils import (
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri, process_uri, match_path_to_folder)
-from spyder.plugins.completion.manager.api import (
-    LSPRequestTypes, ClientConstants, WorkspaceUpdateKind)
-from spyder.plugins.completion.languageserver.decorators import (
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes, ClientConstants, WorkspaceUpdateKind)
+from spyder.plugins.completion.providers.languageserver.decorators import (
     handles, send_request, send_response, send_notification)
 
 logger = logging.getLogger(__name__)
 
 
 class WorkspaceProvider:
-    @send_notification(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE)
+    @send_notification(method=CompletionRequestTypes.WORKSPACE_CONFIGURATION_CHANGE)
     def send_configurations(self, configurations, *args):
         self.configurations = configurations
         params = {
@@ -28,7 +28,7 @@ class WorkspaceProvider:
         return params
 
     @send_response
-    @handles(LSPRequestTypes.WORKSPACE_FOLDERS)
+    @handles(CompletionRequestTypes.WORKSPACE_FOLDERS)
     def send_workspace_folders(self, response):
         workspace_folders = []
         for folder_name in self.watched_folders:
@@ -39,7 +39,7 @@ class WorkspaceProvider:
             })
         return workspace_folders
 
-    @send_notification(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE)
+    @send_notification(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE)
     def send_workspace_folders_change(self, params):
         folder = params['folder']
         workspace_watcher = params['instance']
@@ -83,12 +83,12 @@ class WorkspaceProvider:
         return request_params
 
     @send_response
-    @handles(LSPRequestTypes.WORKSPACE_CONFIGURATION)
+    @handles(CompletionRequestTypes.WORKSPACE_CONFIGURATION)
     def send_workspace_configuration(self, params):
         logger.debug(params)
         return self.configurations
 
-    @send_notification(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE)
+    @send_notification(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE)
     def send_watched_files_change(self, params):
         changes = []
         entries = params.get('params', [])
@@ -102,14 +102,14 @@ class WorkspaceProvider:
         }
         return params
 
-    @send_request(method=LSPRequestTypes.WORKSPACE_SYMBOL)
+    @send_request(method=CompletionRequestTypes.WORKSPACE_SYMBOL)
     def send_symbol_request(self, params):
         params = {
             'query': params['query']
         }
         return params
 
-    @handles(LSPRequestTypes.WORKSPACE_SYMBOL)
+    @handles(CompletionRequestTypes.WORKSPACE_SYMBOL)
     def handle_symbol_response(self, response):
         folders = list(self.watched_folders.keys())
         assigned_symbols = {folder: [] for folder in self.watched_folders}
@@ -124,10 +124,10 @@ class WorkspaceProvider:
             workspace_edits = assigned_symbols[workspace]
             workspace_instance = self.watched_folders[workspace]['instance']
             workspace_instance.handle_response(
-                LSPRequestTypes.WORKSPACE_SYMBOL,
+                CompletionRequestTypes.WORKSPACE_SYMBOL,
                 {'params': workspace_edits})
 
-    @send_request(method=LSPRequestTypes.WORKSPACE_EXECUTE_COMMAND)
+    @send_request(method=CompletionRequestTypes.WORKSPACE_EXECUTE_COMMAND)
     def send_execute_command(self, params):
         # It is not clear how this call is invoked
         params = {
@@ -136,7 +136,7 @@ class WorkspaceProvider:
         }
         return params
 
-    @send_response(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT)
+    @send_response(method=CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
     def send_edit_response(self, edits):
         params = {
             'applied': edits['applied']
@@ -145,7 +145,7 @@ class WorkspaceProvider:
             params['failureReason'] = edits['error']
         return params
 
-    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
+    @handles(CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
     def apply_edit(self, response):
         logger.debug("Editing: {0}".format(response['label']))
         response = response['edit']
@@ -184,6 +184,6 @@ class WorkspaceProvider:
             workspace_edits = assigned_files[workspace]
             workspace_instance = self.watched_folders[workspace]['instance']
             workspace_instance.handle_response(
-                LSPRequestTypes.WORKSPACE_APPLY_EDIT,
+                CompletionRequestTypes.WORKSPACE_APPLY_EDIT,
                 {'params': {'edits': workspace_edits,
                             'language': self.language}})

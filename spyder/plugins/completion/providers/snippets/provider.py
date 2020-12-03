@@ -11,10 +11,10 @@ import bisect
 import logging
 
 # Local imports
+from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.api import (SpyderCompletionProvider,
                                            SUPPORTED_LANGUAGES)
 from spyder.plugins.completion.providers.snippets.actor import SnippetsActor
-from spyder.plugins.completion.providers.snippets.config import SNIPPETS
 
 PYTHON_POS = bisect.bisect_left(SUPPORTED_LANGUAGES, 'Python')
 SUPPORTED_LANGUAGES_PY = list(SUPPORTED_LANGUAGES)
@@ -69,6 +69,7 @@ class SnippetsProvider(SpyderCompletionProvider):
         self.snippets_actor.sig_mailbox.emit(request)
 
     def update_configuration(self, config):
+        self.config = config
         snippet_info = {}
         snippets = config.get('snippets', {})
         for language in SUPPORTED_LANGUAGES_PY:

@@ -15,7 +15,7 @@ introspection clients.
 from collections import defaultdict
 import logging
 from pkg_resources import parse_version, iter_entry_points
-from typing import List
+from typing import List, Any
 
 # Third-party imports
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
@@ -481,6 +481,28 @@ class CompletionPlugin(SpyderPluginV2):
                 # TODO: Obtain individual provider settings
                 conf = {}
                 provider_info['instance'].update_configuration(conf)
+
+    def get_global_option(
+            self, option: str, default: Any = None, section: str) -> Any:
+        """
+        Retrieve an option value from the global Spyder configurations.
+
+        Parameters
+        ----------
+        option: str
+            Option name to lookup for in global Spyder configurations.
+        default: Any
+            Default value to return if `option_name` was not found.
+        section: str
+            Name of the configuration section in Spyder
+
+        Returns
+        -------
+        Any
+            Either the default value if `option_name` was not found on the
+            settings or the actual value stored.
+        """
+        return self.get_conf_option(option, default=default, section=section)
 
     # ----------------- Completion result processing methods ------------------
     @Slot(str, int, dict)

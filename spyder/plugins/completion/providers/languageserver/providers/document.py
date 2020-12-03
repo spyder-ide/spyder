@@ -10,8 +10,8 @@
 import logging
 
 # Local imports
-from spyder.plugins.completion.manager.api import (
-    LSPRequestTypes, InsertTextFormat, CompletionItemKind,
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)
 from spyder.plugins.completion.languageserver.providers.utils import (
     path_as_uri, process_uri, snake_to_camel)
@@ -31,7 +31,7 @@ class DocumentProvider:
             self.watched_files[filename] = []
         self.watched_files[filename].append(codeeditor)
 
-    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    @handles(CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_document_diagnostics(self, response, *args):
         uri = response['uri']
         diagnostics = response['diagnostics']
@@ -39,12 +39,12 @@ class DocumentProvider:
             callbacks = self.watched_files[uri]
             for callback in callbacks:
                 callback.handle_response(
-                    LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
+                    CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                     {'params': diagnostics})
         else:
             logger.debug("Received diagnotics for file not open: " + uri)
 
-    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
+    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_CHANGE)
     def document_changed(self, params):
         params = {
             'textDocument': {
@@ -57,7 +57,7 @@ class DocumentProvider:
         }
         return params
 
-    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
+    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_OPEN)
     def document_open(self, editor_params):
         uri = path_as_uri(editor_params['file'])
         if uri not in self.watched_files:
@@ -74,7 +74,7 @@ class DocumentProvider:
 
         return params
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
     def document_completion_request(self, params):
         params = {
             'textDocument': {
@@ -88,7 +88,7 @@ class DocumentProvider:
 
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
+    @handles(CompletionRequestTypes.DOCUMENT_COMPLETION)
     def process_document_completion(self, response, req_id):
         if isinstance(response, dict):
             response = response['items']
@@ -106,9 +106,9 @@ class DocumentProvider:
 
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                LSPRequestTypes.DOCUMENT_COMPLETION, {'params': response})
+                CompletionRequestTypes.DOCUMENT_COMPLETION, {'params': response})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def signature_help_request(self, params):
         params = {
             'textDocument': {
@@ -122,7 +122,7 @@ class DocumentProvider:
 
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def process_signature_completion(self, response, req_id):
         if len(response['signatures']) > 0:
             response['signatures'] = response['signatures'][
@@ -132,10 +132,10 @@ class DocumentProvider:
             response = None
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                LSPRequestTypes.DOCUMENT_SIGNATURE,
+                CompletionRequestTypes.DOCUMENT_SIGNATURE,
                 {'params': response})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_HOVER)
     def hover_request(self, params):
         params = {
             'textDocument': {
@@ -149,7 +149,7 @@ class DocumentProvider:
 
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_HOVER)
+    @handles(CompletionRequestTypes.DOCUMENT_HOVER)
     def process_hover_result(self, result, req_id):
         contents = result['contents']
         if isinstance(contents, dict):
@@ -165,10 +165,10 @@ class DocumentProvider:
             contents = '\n\n'.join(text)
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                LSPRequestTypes.DOCUMENT_HOVER,
+                CompletionRequestTypes.DOCUMENT_HOVER,
                 {'params': contents})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_SYMBOL)
     def document_symbol_request(self, params):
         params = {
             'textDocument': {
@@ -177,13 +177,13 @@ class DocumentProvider:
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
+    @handles(CompletionRequestTypes.DOCUMENT_SYMBOL)
     def process_document_symbol_request(self, result, req_id):
         if req_id in self.req_reply:
-            self.req_reply[req_id](LSPRequestTypes.DOCUMENT_SYMBOL,
+            self.req_reply[req_id](CompletionRequestTypes.DOCUMENT_SYMBOL,
                                    {'params': result})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_request(self, params):
         params = {
             'textDocument': {
@@ -197,7 +197,7 @@ class DocumentProvider:
 
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
+    @handles(CompletionRequestTypes.DOCUMENT_DEFINITION)
     def process_go_to_definition(self, result, req_id):
         if isinstance(result, list):
             if len(result) > 0:
@@ -209,10 +209,10 @@ class DocumentProvider:
             result['file'] = process_uri(result['uri'])
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                LSPRequestTypes.DOCUMENT_DEFINITION,
+                CompletionRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def folding_range_request(self, params):
         params = {
             'textDocument': {
@@ -221,7 +221,7 @@ class DocumentProvider:
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @handles(CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def process_folding_range(self, result, req_id):
         results = []
         for folding_range in result:
@@ -230,10 +230,10 @@ class DocumentProvider:
             results.append((start_line, end_line))
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                LSPRequestTypes.DOCUMENT_FOLDING_RANGE,
+                CompletionRequestTypes.DOCUMENT_FOLDING_RANGE,
                 {'params': results})
 
-    @send_notification(method=LSPRequestTypes.DOCUMENT_WILL_SAVE)
+    @send_notification(method=CompletionRequestTypes.DOCUMENT_WILL_SAVE)
     def document_will_save_notification(self, params):
         params = {
             'textDocument': {
@@ -243,7 +243,7 @@ class DocumentProvider:
         }
         return params
 
-    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_SAVE)
+    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_SAVE)
     def document_did_save_notification(self, params):
         """
         Handle the textDocument/didSave message received from an LSP server.
@@ -260,7 +260,7 @@ class DocumentProvider:
             params['text'] = text
         return params
 
-    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_CLOSE)
+    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE)
     def document_did_close(self, params):
         codeeditor = params['codeeditor']
         filename = path_as_uri(params['file'])
@@ -289,7 +289,7 @@ class DocumentProvider:
 
         return params
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_FORMATTING)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def document_formatting_request(self, params):
         options = params['options']
         options = {
@@ -305,14 +305,14 @@ class DocumentProvider:
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
+    @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
     def process_document_formatting(self, result, req_id):
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                LSPRequestTypes.DOCUMENT_FORMATTING,
+                CompletionRequestTypes.DOCUMENT_FORMATTING,
                 {'params': result})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def document_range_formatting_request(self, params):
         options = params['options']
         options = {
@@ -328,9 +328,9 @@ class DocumentProvider:
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def process_document_range_formatting(self, result, req_id):
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                LSPRequestTypes.DOCUMENT_RANGE_FORMATTING,
+                CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING,
                 {'params': result})

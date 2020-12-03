@@ -21,9 +21,9 @@ import socket
 import time
 
 # Local imports
-from spyder.plugins.completion.languageserver.transport.tcp.consumer import (
+from spyder.plugins.completion.providers.languageserver.transport.tcp.consumer import (
     TCPIncomingMessageThread)
-from spyder.plugins.completion.languageserver.transport.common.producer import (
+from spyder.plugins.completion.providers.languageserver.transport.common.producer import (
     LanguageServerClient)
 from spyder.py3compat import ConnectionError, BrokenPipeError
 

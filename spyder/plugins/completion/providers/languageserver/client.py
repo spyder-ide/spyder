@@ -30,12 +30,12 @@ from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.completion.manager.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
-    TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
+    TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
     ClientConstants)
-from spyder.plugins.completion.languageserver.decorators import (
+from spyder.plugins.completion.providers.languageserver.decorators import (
     send_request, send_notification, class_register, handles)
-from spyder.plugins.completion.languageserver.transport import MessageKind
-from spyder.plugins.completion.languageserver.providers import (
+from spyder.plugins.completion.providers.languageserver.transport import MessageKind
+from spyder.plugins.completion.providers.languageserver.providers import (
     LSPMethodProviderMixIn)
 from spyder.py3compat import PY2
 from spyder.utils.misc import getcwd_or_home, select_port
@@ -552,7 +552,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     # ------ LSP initialization methods --------------------------------
     @handles(SERVER_READY)
-    @send_request(method=LSPRequestTypes.INITIALIZE)
+    @send_request(method=CompletionRequestTypes.INITIALIZE)
     def initialize(self, params, *args, **kwargs):
         self.stdio_pid = params['pid']
         pid = self.transport.processId() if not self.external_server else None
@@ -564,21 +564,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         }
         return params
 
-    @send_request(method=LSPRequestTypes.SHUTDOWN)
+    @send_request(method=CompletionRequestTypes.SHUTDOWN)
     def shutdown(self):
         params = {}
         return params
 
-    @handles(LSPRequestTypes.SHUTDOWN)
+    @handles(CompletionRequestTypes.SHUTDOWN)
     def handle_shutdown(self, response, *args):
         self.ready_to_close = True
 
-    @send_notification(method=LSPRequestTypes.EXIT)
+    @send_notification(method=CompletionRequestTypes.EXIT)
     def exit(self):
         params = {}
         return params
 
-    @handles(LSPRequestTypes.INITIALIZE)
+    @handles(CompletionRequestTypes.INITIALIZE)
     def process_server_capabilities(self, server_capabilites, *args):
         """
         Register server capabilities and inform other plugins that it's
@@ -608,7 +608,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # Inform other plugins that the server is up.
         self.sig_initialize.emit(self.server_capabilites, self.language)
 
-    @send_notification(method=LSPRequestTypes.INITIALIZED)
+    @send_notification(method=CompletionRequestTypes.INITIALIZED)
     def initialized_call(self):
         params = {}
         return params

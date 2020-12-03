@@ -12,6 +12,9 @@ those used by the Language Server Protocol (LSP), available at:
 https://microsoft.github.io/language-server-protocol/specifications/specification-current/
 """
 
+# Standard library imports
+from typing import Any
+
 # Third party imports
 from qtpy.QtCore import Signal, QObject
 
@@ -706,7 +709,6 @@ class SpyderCompletionProvider(QObject):
         ----------
         parent: spyder.plugins.completion.plugin.CompletionPlugin
             Instance of the completion plugin that manages this provider
-
         config: dict
             Current provider configuration values, whose keys correspond to
             the ones defined on `CONF_DEFAULTS` and the values correspond to
@@ -714,6 +716,7 @@ class SpyderCompletionProvider(QObject):
         """
         QObject.__init__(self, parent)
         self.main = parent
+        self.config = config
 
     def register_file(self, language: str, filename: str, codeeditor):
         """
@@ -814,7 +817,7 @@ class SpyderCompletionProvider(QObject):
         """
         pass
 
-    def update_configuration(self, conf: dict):
+    def update_configuration(self, config: dict):
         """
         Handle completion option configuration updates.
 
@@ -877,3 +880,35 @@ class SpyderCompletionProvider(QObject):
     def can_close(self) -> bool:
         """Establish if the current completion provider can be stopped."""
         return True
+
+    def get_option(self,
+                   option_name: str,
+                   default: Any = None,
+                   section: Optional[str] = None) -> Any:
+        """
+        Retrieve an option value from the provider settings dictionary or
+        from the global Spyder configurations.
+
+        Parameters
+        ----------
+        option_name: str
+            Option name to lookup for in the provider settings
+            dictionary/global Spyder configurations.
+        default: Any
+            Default value to return if `option_name` was not found.
+        section: Optional[str]
+            If None, then the option is retrieved from the local provider
+            configurations. Otherwise, lookup on the global Spyder
+            configurations.
+
+        Returns
+        -------
+        Any
+            Either the default value if `option_name` was not found on the
+            settings or the actual value stored.
+        """
+        if section is None:
+            return self.config.get(option_name, default)
+        else:
+            return self.main.get_global_option(
+                option_name, default, section=section)
