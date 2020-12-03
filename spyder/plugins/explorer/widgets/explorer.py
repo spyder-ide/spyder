@@ -1795,10 +1795,7 @@ class ExplorerWidget(QWidget):
         """Handle the change of the filter state."""
         self.filter_on = not self.filter_on
         self.filter_button.setChecked(self.filter_on)
-        tip_message = (
-            _("Deactivate filename filters") if self.filter_on else _(
-                "Activate filename filters"))
-        self.filter_button.setToolTip(tip_message)
+        self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
 
     @Slot()
