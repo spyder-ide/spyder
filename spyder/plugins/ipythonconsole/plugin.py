@@ -390,11 +390,20 @@ class IPythonConsole(SpyderPluginWidget):
             if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
                 if sw._executing or sw.is_debugging():
-                    signal = client.shellwidget.sig_prompt_ready
-                    signal.connect(
+                    # Apply settings when the next prompt is available
+                    sw.sig_prompt_ready.connect(
                         lambda o=options, c=client:
                             self.apply_plugin_settings_to_client(
-                                o, c, disconnect_ready_signal=True))
+                                o, c, disconnect_ready_signal=True)
+                        )
+
+                    # Show a message while debugging
+                    if sw.is_debugging():
+                        if sw._executing:
+                            sw.sig_pdb_prompt_ready.connect(
+                                sw.show_settings_pdb_message)
+                        else:
+                            sw.show_settings_pdb_message()
                 else:
                     self.apply_plugin_settings_to_client(options, client)
             elif restart and restart_all:
