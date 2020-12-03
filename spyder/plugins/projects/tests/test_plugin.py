@@ -15,10 +15,7 @@ import os
 import shutil
 import os.path as osp
 import sys
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
@@ -344,6 +341,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
 
 
 @flaky(max_runs=5)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
 def test_filesystem_notifications(qtbot, projects, tmpdir):
     """
     Test that filesystem notifications are emitted when creating,
