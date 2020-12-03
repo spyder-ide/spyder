@@ -22,7 +22,7 @@ from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import Qt
 
-from spyder.config.base import get_conf_path
+from spyder.config.base import _, get_conf_path
 from spyder.config.manager import CONF
 
 
@@ -399,6 +399,22 @@ class DebuggingWidget(DebuggingHistoryWidget):
         # If the comm is not open, self._pdb_in_loop can not be set
         return self.is_debugging() and self._waiting_pdb_input
 
+    def show_settings_pdb_message(self):
+        """
+        Show a message when applying settings while debugging.
+        """
+        self._append_html(
+            _("<br><b>Note</b>: New preferences will be applied once you "
+              "finish debugging.<br>"),
+            before_prompt=True
+        )
+
+        # This signal cannot be necessarily connected.
+        try:
+            self.sig_pdb_prompt_ready.disconnect()
+        except TypeError:
+            pass
+
     # ---- Public API (overrode by us) ----------------------------
     def reset(self, clear=False):
         """
@@ -552,8 +568,8 @@ class DebuggingWidget(DebuggingHistoryWidget):
             self._highlighter.highlighting_on = True
             # The previous code finished executing
             self.executed.emit(self._pdb_prompt)
-            self.sig_pdb_state.emit(
-                True, self.get_pdb_last_step())
+            self.sig_pdb_prompt_ready.emit()
+            self.sig_pdb_state.emit(True, self.get_pdb_last_step())
 
         self._pdb_input_ready = True
 
