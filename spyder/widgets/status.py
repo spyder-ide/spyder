@@ -332,7 +332,7 @@ class InterpreterStatus(BaseTimerStatus):
             version = get_interpreter_info(path)
             self.path_to_env[path] = name
             self.envs[name] = (path, version)
-        _, version = self.envs[name]
+        __, version = self.envs[name]
         return '{env} ({version})'.format(env=name, version=version)
 
     def get_tooltip(self):

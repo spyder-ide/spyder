@@ -93,7 +93,7 @@ def is_program_installed(basename):
 
         # Prioritize Anaconda before Miniconda; local before global.
         a = [osp.join(home, 'opt'), '/opt']
-        b = ['anaconda3', 'miniconda3']
+        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
@@ -105,7 +105,7 @@ def is_program_installed(basename):
         ]
 
         a = [home, '/opt']
-        b = ['anacona3', 'miniconda3']
+        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
@@ -114,7 +114,7 @@ def is_program_installed(basename):
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
         a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
-        b = ['Anaconda3', 'Miniconda3']
+        b = ['Anaconda', 'Miniconda', 'Anaconda3', 'Miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
@@ -226,8 +226,12 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
     else:
         subprocess_kwargs['shell'] = True
 
-    if 'executable' not in subprocess_kwargs:
-        subprocess_kwargs['executable'] = os.getenv('SHELL')
+    # Don't pass SHELL to subprocess on Windows because it makes this
+    # fumction fail in Git Bash (where SHELL is declared; other Windows
+    # shells don't set it).
+    if not os.name == 'nt':
+        if 'executable' not in subprocess_kwargs:
+            subprocess_kwargs['executable'] = os.getenv('SHELL')
 
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
