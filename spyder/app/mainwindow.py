@@ -3404,7 +3404,15 @@ class MainWindow(QMainWindow):
         if CONF.get('main_interpreter', 'default'):
             return sys.executable
         else:
-            return CONF.get('main_interpreter', 'custom_interpreter')
+            custom = CONF.get('main_interpreter', 'custom_interpreter')
+
+            # Check if custom interpreter is stil present
+            if osp.isfile(custom):
+                return custom
+            else:
+                CONF.set('main_interpreter', 'custom', False)
+                CONF.set('main_interpreter', 'default', True)
+                return sys.executable
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
