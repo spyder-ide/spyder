@@ -11,6 +11,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QPoint, QSize, QTimer, Signal
@@ -19,6 +20,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QMenu, QWidget
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.manager import CONF
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
@@ -236,7 +238,6 @@ class InterpreterStatus(BaseTimerStatus):
         super(InterpreterStatus, self).__init__(parent, statusbar, icon=icon)
 
         self.main = parent
-        self._first_time = True
         self.env_actions = []
         self.path_to_env = {}
         self.envs = {}
@@ -248,34 +249,47 @@ class InterpreterStatus(BaseTimerStatus):
         # Worker to compute envs in a thread
         self._worker_manager = WorkerManager(max_threads=1)
 
-        # Set initial update interval to a small value to start the
-        # worker very quickly.
-        self.set_interval(100)
+        # Timer to get envs every certain time
+        self._get_envs_timer = QTimer(self)
+        self._get_envs_timer.setInterval(60000)
+        self._get_envs_timer.timeout.connect(self.get_envs)
+
+        # Update the list of envs at startup
+        self.get_envs()
 
     def import_test(self):
         pass
 
     def get_value(self):
-        # Adjust update interval after the first time this was triggered
-        if self._first_time:
-            self.set_interval(10000)
-            self._first_time = False
-
-        # Recompute envs to check if the current env is still present.
-        self._worker_manager.terminate_all()
-        worker = self._worker_manager.create_python_worker(self.get_envs)
-        worker.sig_finished.connect(self.update_envs)
-        worker.start()
-
-        # Return current value to not make the widget appear empty
-        # while the worker is running.
+        # Switch to default interpreter if current one was removed
+        if not osp.isfile(self._interpreter):
+            CONF.set('main_interpreter', 'custom', False)
+            CONF.set('main_interpreter', 'default', True)
+            self.update_interpreter(sys.executable)
         return self.value
 
-    def get_envs(self):
+    def _get_envs(self):
         """Get the list of environments in the system."""
+        # Compute info of default interpreter to have it available in
+        # case we need to switch to it. This will avoid lags when
+        # doing that in get_value.
+        if sys.executable not in self.path_to_env:
+            self._get_env_info(sys.executable)
+
+        # Get envs
         conda_env = get_list_conda_envs()
         pyenv_env = get_list_pyenv_envs()
         return {**conda_env, **pyenv_env}
+
+    def get_envs(self):
+        """
+        Get the list of environments in a thread to keep them up to
+        date.
+        """
+        self._worker_manager.terminate_all()
+        worker = self._worker_manager.create_python_worker(self._get_envs)
+        worker.sig_finished.connect(self.update_envs)
+        worker.start()
 
     def update_envs(self, worker, output, error):
         """Update the list of environments in the system."""
