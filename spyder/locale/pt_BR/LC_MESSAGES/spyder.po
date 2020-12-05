@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 02:59\n"
+"PO-Revision-Date: 2020-12-05 03:12\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -646,7 +646,7 @@ msgstr "Arquivos"
 
 #: spyder/app/tour.py:228
 msgid "This pane lets you browse the files and directories on your computer.<br><br>You can open any file in its corresponding application by double-clicking it, and supported file types will be opened right inside of Spyder.<br><br>The Files pane also allows you to copy one or many absolute or relative paths, automatically formatted as Python strings or lists, and perform a variety of other file operations."
-msgstr ""
+msgstr "Esse painel deixa você vasculhar os arquivos e diretórios no seu computador.<br><br> Você pode abrir qualquer arquivo na sua aplicação correspondente clicando duas vez nele, e tipos de arquivos suportados serão abertos dentro do Spyder.<br><br> O painel de arquivos também permite a você copiar um ou muitos caminhos absolutos ou relativos, automaticamente formatados como strings ou listas Python, e executar a variedade de outras operações de arquivos."
 
 #: spyder/app/tour.py:241
 msgid "History Log"
@@ -1346,11 +1346,11 @@ msgstr "Escolha o fornecedor de formatação de código: "
 
 #: spyder/plugins/completion/languageserver/confpage.py:274
 msgid "Autoformat files on save"
-msgstr ""
+msgstr "Autoformatar arquivos ao salvar"
 
 #: spyder/plugins/completion/languageserver/confpage.py:276
 msgid "If enabled, autoformatting will take place when saving a file"
-msgstr ""
+msgstr "Se ativada, auto formatação tomará lugar quando salvar um arquivo"
 
 #: spyder/plugins/completion/languageserver/confpage.py:295
 msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
@@ -1398,11 +1398,11 @@ msgstr "Ignorar diretórios iniciando com ponto: [^\\.].*"
 
 #: spyder/plugins/completion/languageserver/confpage.py:385
 msgid "the LSP grammar"
-msgstr ""
+msgstr "a gramática LSP"
 
 #: spyder/plugins/completion/languageserver/confpage.py:387
 msgid "Spyder allows to define custom completion snippets to use in addition to the ones offered by the Language Server Protocol (LSP). Each snippet should follow {}.<br><br> <b>Note:</b> All changes will be effective only when applying the settings"
-msgstr ""
+msgstr "Spyder permite definir snippets de complementação customizados para usar em adição aos oferecidos pela Linguagem de Protocolo se servidor (do inglês LSP). Cada snippet deverá seguir {} <br><br> <b>Atenção:</b> Todas as mudanças serão efetivas somente quando aplicar as configurações"
 
 #: spyder/plugins/completion/languageserver/confpage.py:398 spyder/plugins/completion/languageserver/widgets/serversconfig.py:162
 msgid "Programming language provided by the LSP server"
@@ -1414,7 +1414,7 @@ msgstr "Língua"
 
 #: spyder/plugins/completion/languageserver/confpage.py:414
 msgid "Available snippets"
-msgstr ""
+msgstr "Snippets disponíveis"
 
 #: spyder/plugins/completion/languageserver/confpage.py:420 spyder/plugins/completion/languageserver/confpage.py:585 spyder/plugins/explorer/confpage.py:59 spyder/preferences/shortcuts.py:857
 msgid "Reset to default values"
@@ -1422,19 +1422,19 @@ msgstr "Restaurar os valores padrões"
 
 #: spyder/plugins/completion/languageserver/confpage.py:421
 msgid "Create a new snippet"
-msgstr ""
+msgstr "Criar um novo snippet"
 
 #: spyder/plugins/completion/languageserver/confpage.py:423
 msgid "Delete currently selected snippet"
-msgstr ""
+msgstr "Deletar snippet atualmente selecionado"
 
 #: spyder/plugins/completion/languageserver/confpage.py:425
 msgid "Export snippets to JSON"
-msgstr ""
+msgstr "Exportar snipptes para JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:426
 msgid "Import snippets from JSON"
-msgstr ""
+msgstr "Importar snippets do JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:460
 msgid "Providers"
@@ -1530,11 +1530,11 @@ msgstr "Estilo da docstring"
 
 #: spyder/plugins/completion/languageserver/confpage.py:625
 msgid "Code formatting"
-msgstr ""
+msgstr "Formatação de código"
 
 #: spyder/plugins/completion/languageserver/confpage.py:626
 msgid "Snippets"
-msgstr ""
+msgstr "Snipptes"
 
 #: spyder/plugins/completion/languageserver/confpage.py:631
 msgid "Other languages"
@@ -1554,39 +1554,39 @@ msgstr "<b>A modificação dessas opções pode interromper o preenchimento de c
 
 #: spyder/plugins/completion/languageserver/confpage.py:759
 msgid "Save snippets"
-msgstr ""
+msgstr "Salvar snipptes"
 
 #: spyder/plugins/completion/languageserver/confpage.py:772
 msgid "Load snippets"
-msgstr ""
+msgstr "Carregar snipptes"
 
 #: spyder/plugins/completion/languageserver/confpage.py:786
 msgid "All snippets imported"
-msgstr ""
+msgstr "Todos os snipptes importados"
 
 #: spyder/plugins/completion/languageserver/confpage.py:787
 msgid "{0} snippets were loaded successfully"
-msgstr ""
+msgstr "{0} snippets foram carregados com sucesso"
 
 #: spyder/plugins/completion/languageserver/confpage.py:794
 msgid "JSON malformed"
-msgstr ""
+msgstr "JSON mal formado"
 
 #: spyder/plugins/completion/languageserver/confpage.py:795
 msgid "There was an error when trying to load the provided JSON file: <tt>{0}</tt>"
-msgstr ""
+msgstr "Houve um erro quando ao tentar carregar o arquivo JSON fornecido: <tt>{0}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:804
 msgid "Invalid snippet file"
-msgstr ""
+msgstr "Arquivo snippte inválido"
 
 #: spyder/plugins/completion/languageserver/confpage.py:805
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "O arquivo snippet fornecido não cumpre com as especificações dos snippets JSON do Spyder e, portanto, não podem ser carregador.<br><br><tt>{}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:822
 msgid "Incorrect snippet format"
-msgstr ""
+msgstr "Formato de snippet incorreto"
 
 #: spyder/plugins/completion/languageserver/confpage.py:823
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
