@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 03:12\n"
+"PO-Revision-Date: 2020-12-05 03:17\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -1590,7 +1590,7 @@ msgstr "Formato de snippet incorreto"
 
 #: spyder/plugins/completion/languageserver/confpage.py:823
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
-msgstr ""
+msgstr "Spyder não foi capaz de carregar {0}/{1} snippets corretamente, por favor, verifique os snippets seguintes para quaiquer erros de sintaxe:<br><br>{2}"
 
 #: spyder/plugins/completion/languageserver/confpage.py:839
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -1726,35 +1726,35 @@ msgstr "Comando para executar"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:210
 msgid "Valid snippet"
-msgstr ""
+msgstr "Snippe válido"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:211
 msgid "Invalid snippet"
-msgstr ""
+msgstr "Snippet inválido"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:223
 msgid "To add a new text snippet, you need to define the text that triggers it, a short description (two words maximum) of the snippet and if it should delete the trigger text when inserted. Finally, you need to define the snippet body to insert."
-msgstr ""
+msgstr "Para adicionar um novo snippet de texto, você precisa definir o texto que engatilha-o, uma curta descrição (duas palavras no máximo) do snippet, e, se deveria deleta o texto gatilho quando inserido. Finalmente, você precisa definir o corpo do snippet para inserir."
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:246
 msgid "Trigger text:"
-msgstr ""
+msgstr "Texto gatilho:"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:251
 msgid "Description:"
-msgstr ""
+msgstr "Descrição:"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:256
 msgid "Remove trigger text on insertion"
-msgstr ""
+msgstr "Remover texto gatilho na inserção"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:257
 msgid "Check if the text that triggers this snippet should be removed when inserting it"
-msgstr ""
+msgstr "Verificar se o texto que engatilha o snippet deveria ser removido quando inseri-lo"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:263
 msgid "<b>Snippet text:</b>"
-msgstr ""
+msgstr "<b>Texto snippet:</b>"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:274
 msgid "Snippet editor"
