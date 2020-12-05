@@ -365,7 +365,7 @@ class IPythonConsole(SpyderPluginWidget):
             sw.set_greedy_completer(greedy_completer_o)
         if jedi_completer_n in options:
             jedi_completer_o = self.get_option(jedi_completer_n)
-            sw.set_greedy_completer(jedi_completer_o)
+            sw.set_jedi_completer(jedi_completer_o)
         if autocall_n in options:
             autocall_o = self.get_option(autocall_n)
             sw.set_autocall(autocall_o)
@@ -406,7 +406,7 @@ class IPythonConsole(SpyderPluginWidget):
         self._apply_pdb_plugin_settings(options, client)
 
         if disconnect_ready_signal:
-            client.shellwidget.sig_prompt_ready.disconnect()
+            client.shellwidget.sig_pdb_prompt_ready.disconnect()
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings."""
@@ -463,21 +463,13 @@ class IPythonConsole(SpyderPluginWidget):
                        restart_needed)
             if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
-                if sw._executing or sw.is_debugging():
-                    # Apply settings when the next prompt is available
-                    sw.sig_prompt_ready.connect(
+                if sw.is_debugging() and sw._executing:
+                    # Apply settings when the next Pdb prompt is available
+                    sw.sig_pdb_prompt_ready.connect(
                         lambda o=options, c=client:
                             self.apply_plugin_settings_to_client(
                                 o, c, disconnect_ready_signal=True)
                         )
-
-                    # Show a message while debugging
-                    if sw.is_debugging():
-                        if sw._executing:
-                            sw.sig_pdb_prompt_ready.connect(
-                                sw.show_settings_pdb_message)
-                        else:
-                            sw.show_settings_pdb_message()
                 else:
                     self.apply_plugin_settings_to_client(options, client)
             elif restart and restart_all:
