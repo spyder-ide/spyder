@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 01:47\n"
+"PO-Revision-Date: 2020-12-05 02:59\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -622,7 +622,7 @@ msgstr "Explorador de variáveis"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr ""
+msgstr "Neste painel você pode ver e editar as variáveis geradas durante a execução de um programa, ou aqueles digitados diretamente no console IPhyton. <br><br> Se você rodou o código no passo anterior, o Explorador de Variável mostrará os objetos lista e dicionário gerados. Clicando duas vezes em qualquer variável, uma numa janela será aberta onde você pode inspecionar e modificar seus componentes."
 
 #: spyder/app/tour.py:209 spyder/plugins/console/widgets/internalshell.py:269 spyder/plugins/help/plugin.py:198 spyder/plugins/help/plugin.py:693 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
@@ -630,7 +630,7 @@ msgstr "Ajuda"
 
 #: spyder/app/tour.py:210
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the IPython Console.<br><br>To use it, press <b>Ctrl+I</b> (<b>Cmd-I</b> on macOS) with the text cursor in or next to the object you want help on."
-msgstr ""
+msgstr "Este painel mostra a documentação das funções, classes, métodos ou módulos que você está atualmente utilizando no Editor ou no console IPhython.<br><br> Para usá-lo, pressione<b>Ctrl+l</b> (<b>Cmd+l</b> no MacOS) com o cursor de texto em ou próximo ao objeto sobre o qual você quer ajuda."
 
 #: spyder/app/tour.py:220 spyder/plugins/plots/plugin.py:133
 msgid "Plots"
@@ -638,7 +638,7 @@ msgstr "Figuras"
 
 #: spyder/app/tour.py:221
 msgid "This pane shows the figures and images created during your code execution. It allows you to browse, zoom, copy, and save the generated plots."
-msgstr ""
+msgstr "Esse painel mostra as figuras e imagens criadas durante sua execução de código. Ele permite a você navegar, aproximar, copiar e salvar as plotagens geradas."
 
 #: spyder/app/tour.py:227 spyder/plugins/explorer/plugin.py:64
 msgid "Files"
