@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 03:17\n"
+"PO-Revision-Date: 2020-12-05 03:27\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -1758,35 +1758,35 @@ msgstr "<b>Texto snippet:</b>"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:274
 msgid "Snippet editor"
-msgstr ""
+msgstr "Editor de snippet"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:278
 msgid "Trigger text for the current snippet"
-msgstr ""
+msgstr "Texto gatilho para o snippet atual"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:307
 msgid "Snippet text completion to insert"
-msgstr ""
+msgstr "Conclulsão de Texto snippet para inserir"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:314
 msgid "Trigger information"
-msgstr ""
+msgstr "Informação de gatilho"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:456
 msgid "Double-click to view or edit"
-msgstr ""
+msgstr "Clique duplo para ver ou editar"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:468
 msgid "Trigger text"
-msgstr ""
+msgstr "Texto gatilho"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:470
 msgid "Description"
-msgstr ""
+msgstr "Descrição"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
-msgstr ""
+msgstr "iniciando"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:37
 msgid "ready"
@@ -1794,7 +1794,7 @@ msgstr "pronto"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:38
 msgid "restarting"
-msgstr ""
+msgstr "reiniciando"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:39
 msgid "down"
@@ -2088,7 +2088,7 @@ msgstr "Remover automaticamente espaços em branco ao salvar arquivos"
 
 #: spyder/plugins/editor/confpage.py:142
 msgid "Insert a newline at the end if one does not exist when saving a file"
-msgstr ""
+msgstr "Inserir uma nova linha no fim se não não exite quando salvar o arquivo"
 
 #: spyder/plugins/editor/confpage.py:147
 msgid "Trim all newlines after the final one when saving a file"
@@ -3028,7 +3028,7 @@ msgstr "Permissões de arquivo"
 
 #: spyder/plugins/editor/widgets/status.py:45
 msgid "File EOL Status"
-msgstr ""
+msgstr "Estatus EQL arquivo"
 
 #: spyder/plugins/editor/widgets/status.py:58
 msgid "Encoding"
@@ -3044,11 +3044,11 @@ msgstr "Branch Git"
 
 #: spyder/plugins/explorer/confpage.py:32
 msgid "General options"
-msgstr ""
+msgstr "Opções gerais"
 
 #: spyder/plugins/explorer/confpage.py:33 spyder/plugins/explorer/widgets/explorer.py:334
 msgid "Show hidden files"
-msgstr ""
+msgstr "Mostrar arquivos ocultos"
 
 #: spyder/plugins/explorer/confpage.py:34
 msgid "Single click to open files"
@@ -3060,7 +3060,7 @@ msgstr "Configuração de filtro"
 
 #: spyder/plugins/explorer/confpage.py:44 spyder/plugins/explorer/widgets/explorer.py:401
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
-msgstr ""
+msgstr "Filtrar arquivo por nome, extensão, ou mair usando <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\"> padrões globais.</a> Por favor, digite os padrões globais dos arquivos que você quer mostrar, separados por vírgulas."
 
 #: spyder/plugins/explorer/confpage.py:91 spyder/preferences/general.py:42 spyder/preferences/general.py:49
 msgid "General"
