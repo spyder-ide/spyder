@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 01:19\n"
+"PO-Revision-Date: 2020-12-05 01:27\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -83,7 +83,7 @@ msgstr "Pesquisador de símbolos...."
 
 #: spyder/app/mainwindow.py:638
 msgid "Fast symbol search in file"
-msgstr "Pesquisa rápida de símbolos no arquivo"
+msgstr "Busca de símbolo rápida no arquivo"
 
 #: spyder/app/mainwindow.py:657 spyder/plugins/editor/widgets/codeeditor.py:4019
 msgid "Undo"
@@ -199,7 +199,7 @@ msgstr "Variáveis de ambiente do usuário atual..."
 
 #: spyder/app/mainwindow.py:749
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
-msgstr "Mostrar e editar as variáveis de ambiente do usuário atual no registro do Windows (para todas as sessões)"
+msgstr "Mostrar e editar as variáveis de ambiente do usuário atual no registro do Windows (ou seja, para todas as sessões)"
 
 #: spyder/app/mainwindow.py:759
 msgid "Install Kite completion engine"
@@ -4539,11 +4539,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:94
 msgid "Cell"
-msgstr ""
+msgstr "Célula"
 
 #: spyder/plugins/outlineexplorer/widgets.py:95
 msgid "Block comment"
-msgstr ""
+msgstr "Bloquear comentário"
 
 #: spyder/plugins/outlineexplorer/widgets.py:275
 msgid "Line %s"
@@ -4571,11 +4571,11 @@ msgstr "Agrupar células de código"
 
 #: spyder/plugins/outlineexplorer/widgets.py:363
 msgid "Display variables and attributes"
-msgstr ""
+msgstr "Mostrar variáveis e atributos"
 
 #: spyder/plugins/outlineexplorer/widgets.py:369
 msgid "Follow cursor position"
-msgstr ""
+msgstr "Seguir a posição do cursor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:374
 msgid "Sort files alphabetically"
@@ -4639,7 +4639,7 @@ msgstr "Ajustar figuras automaticamente ao tamanho do painel."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:627
 msgid "The image is broken, please try to generate it again"
-msgstr ""
+msgstr "A imagem está danificada. Por favor, tente gerá-la novamente"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:1118
 msgid "Copy Image"
@@ -4945,7 +4945,7 @@ msgstr "Os resultados são armazenados aqui:"
 
 #: spyder/plugins/pylint/plugin.py:113
 msgid "Run code analysis"
-msgstr ""
+msgstr "Executar análise de código"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:81
 msgid "Results for "
@@ -5151,7 +5151,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not found in your Spyder environment. Please install this package in this environment.<br>"
-msgstr ""
+msgstr "Spyder é incapaz de mostrar a variável que você está tentando visualizar por conta que o módulo <tt>{module}</tt> não é encontrado em seu ambiente Sypder. Por favor, instale este pacote em seu ambiente.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:155
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br>%s"
@@ -5199,7 +5199,7 @@ msgstr "elementos"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:203
 msgid "element"
-msgstr ""
+msgstr "elemento"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:444
 msgid "Value"
