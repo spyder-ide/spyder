@@ -291,7 +291,7 @@ class IPythonConsole(SpyderPluginWidget):
             sw.set_greedy_completer(greedy_completer_o)
         if jedi_completer_n in options:
             jedi_completer_o = self.get_option(jedi_completer_n)
-            sw.set_greedy_completer(jedi_completer_o)
+            sw.set_jedi_completer(jedi_completer_o)
         if autocall_n in options:
             autocall_o = self.get_option(autocall_n)
             sw.set_autocall(autocall_o)
