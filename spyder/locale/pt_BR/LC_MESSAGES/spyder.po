@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-11-21 22:17\n"
+"PO-Revision-Date: 2020-12-05 00:57\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -650,11 +650,11 @@ msgstr ""
 
 #: spyder/app/tour.py:241
 msgid "History Log"
-msgstr ""
+msgstr "Registro do Histórico"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
-msgstr ""
+msgstr "Esse painel registra todos os comando e execução de código em qualquer console Python, permitindo a você facilmente rastrear seus passos para pesquisa reproduzível."
 
 #: spyder/app/tour.py:249 spyder/plugins/findinfiles/plugin.py:155
 msgid "Find"
