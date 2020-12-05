@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 00:57\n"
+"PO-Revision-Date: 2020-12-05 01:02\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -662,7 +662,7 @@ msgstr "Procurar"
 
 #: spyder/app/tour.py:250
 msgid "The Find pane allows you to search for text in a given directory and navigate through all the found occurrences."
-msgstr ""
+msgstr "O painel Encontra permite a você buscar por texto em um dado diretório e navegar através de todas as ocorrências encontradas."
 
 #: spyder/app/tour.py:256 spyder/plugins/profiler/plugin.py:55
 msgid "Profiler"
@@ -670,7 +670,7 @@ msgstr "Profiler"
 
 #: spyder/app/tour.py:257
 msgid "The Profiler helps you optimize your code by determining the run time and number of calls for every function and method used in a file. It also allows you to save and compare your results between runs."
-msgstr ""
+msgstr "O Perfil ajuda você a otimizar seu código determinando o tempo de execução e o número de chamadas para cada função e método usado em um arquivo. Ele também possibilita a você salvar e comparar seus resultados entre execuções."
 
 #: spyder/app/tour.py:264 spyder/plugins/pylint/plugin.py:83
 msgid "Code Analysis"
@@ -678,15 +678,15 @@ msgstr "Análise de código"
 
 #: spyder/app/tour.py:265
 msgid "The Code Analysis helps you improve the quality of your programs by detecting style issues, bad practices and potential bugs."
-msgstr ""
+msgstr "A Análise de Código ajuda você a melhorar a qualidade de seus programas detectando problemas de estilo, práticas ruins e bugs potenciais."
 
 #: spyder/app/tour.py:271
 msgid "The end"
-msgstr ""
+msgstr "O fim"
 
 #: spyder/app/tour.py:272
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
-msgstr ""
+msgstr "Você alcançou o fim do nosso passeio e está pronto para iniciar o uso do Spyder. Para mais informação, dê uma olhada em nossa <a href=\"{}\">documentação</a><br><br>"
 
 #: spyder/app/tour.py:324
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -718,7 +718,7 @@ msgstr "Vá para a etapa: "
 
 #: spyder/app/tour.py:1256
 msgid "Request"
-msgstr ""
+msgstr "Pedido"
 
 #: spyder/app/tour.py:1257
 msgid "To run the tour, please press the green button on the left of the Spyder window's title bar to take it out of fullscreen mode."
