@@ -399,22 +399,6 @@ class DebuggingWidget(DebuggingHistoryWidget):
         # If the comm is not open, self._pdb_in_loop can not be set
         return self.is_debugging() and self._waiting_pdb_input
 
-    def show_settings_pdb_message(self):
-        """
-        Show a message when applying settings while debugging.
-        """
-        self._append_html(
-            _("<br><b>Note</b>: New preferences will be applied once you "
-              "finish debugging.<br>"),
-            before_prompt=True
-        )
-
-        # This signal cannot be necessarily connected.
-        try:
-            self.sig_pdb_prompt_ready.disconnect()
-        except TypeError:
-            pass
-
     # ---- Public API (overrode by us) ----------------------------
     def reset(self, clear=False):
         """
