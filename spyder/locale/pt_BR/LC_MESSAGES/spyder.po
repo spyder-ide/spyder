@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 01:27\n"
+"PO-Revision-Date: 2020-12-05 01:47\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -3056,7 +3056,7 @@ msgstr "Clique único para abrir arquivos"
 
 #: spyder/plugins/explorer/confpage.py:42
 msgid "Filter settings"
-msgstr ""
+msgstr "Configuração de filtro"
 
 #: spyder/plugins/explorer/confpage.py:44 spyder/plugins/explorer/widgets/explorer.py:401
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
@@ -3084,7 +3084,7 @@ msgstr "Data modificada"
 
 #: spyder/plugins/explorer/widgets/explorer.py:339
 msgid "Edit filter settings..."
-msgstr ""
+msgstr "Editar configurações de filtro..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:346
 msgid "Single click to open"
@@ -3092,7 +3092,7 @@ msgstr "Clique único para abrir"
 
 #: spyder/plugins/explorer/widgets/explorer.py:397
 msgid "Edit filter settings"
-msgstr ""
+msgstr "Editar configurações de filtro"
 
 #: spyder/plugins/explorer/widgets/explorer.py:456
 msgid "File..."
@@ -3100,7 +3100,7 @@ msgstr "Arquivo..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:460
 msgid "Python file..."
-msgstr ""
+msgstr "Arquivo Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:464
 msgid "Folder..."
@@ -3108,7 +3108,7 @@ msgstr "Pasta..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:468
 msgid "Python Package..."
-msgstr ""
+msgstr "Pacote Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:489
 msgid "Open in Spyder"
@@ -3356,11 +3356,11 @@ msgstr "Exibir data de modificação"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Activate filename filters"
-msgstr ""
+msgstr "Ativar filtros de nome de arquivos"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Deactivate filename filters"
-msgstr ""
+msgstr "Desativar filtros de nomes de arquivos"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
@@ -3941,15 +3941,15 @@ msgstr "Use o seguinte arquivo:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:235
 msgid "Run code while debugging"
-msgstr ""
+msgstr "Executar código enquanto depurar"
 
 #: spyder/plugins/ipythonconsole/confpage.py:236
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt</i>"
-msgstr ""
+msgstr "Você pode rodar muitas linhas de código em cada nova solicitação enquanto depura. Por favor, introduzir cada um separadamente por ponto e vírgula e um espaço, por exemplo:<br><i>importar matplotlib.pyplot como ptl</i>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:252
 msgid "Debug"
-msgstr ""
+msgstr "Depurar"
 
 #: spyder/plugins/ipythonconsole/confpage.py:256
 msgid "Prevent editor from closing files while debugging"
@@ -4105,7 +4105,7 @@ msgstr "Inicialização"
 
 #: spyder/plugins/ipythonconsole/confpage.py:432
 msgid "Debugger"
-msgstr ""
+msgstr "Depurado"
 
 #: spyder/plugins/ipythonconsole/plugin.py:83
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4435,7 +4435,7 @@ msgstr ""
 
 #: spyder/plugins/onlinehelp/widgets.py:161
 msgid "Package:"
-msgstr ""
+msgstr "Pacote:"
 
 #: spyder/plugins/outlineexplorer/api.py:240
 msgid "Unnamed Cell"
@@ -4451,23 +4451,23 @@ msgstr "Módulo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:70
 msgid "Namespace"
-msgstr ""
+msgstr "Espaço nominal"
 
 #: spyder/plugins/outlineexplorer/widgets.py:71
 msgid "Package"
-msgstr ""
+msgstr "Pacote"
 
 #: spyder/plugins/outlineexplorer/widgets.py:72
 msgid "Class"
-msgstr ""
+msgstr "Classe"
 
 #: spyder/plugins/outlineexplorer/widgets.py:73
 msgid "Method"
-msgstr ""
+msgstr "Método"
 
 #: spyder/plugins/outlineexplorer/widgets.py:74
 msgid "Property"
-msgstr ""
+msgstr "Propriedade"
 
 #: spyder/plugins/outlineexplorer/widgets.py:75 spyder/plugins/variableexplorer/widgets/collectionseditor.py:198
 msgid "Attribute"
@@ -4475,39 +4475,39 @@ msgstr "Atributo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:76
 msgid "constructor"
-msgstr ""
+msgstr "eonstrutor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:77
 msgid "Enum"
-msgstr ""
+msgstr "Enum"
 
 #: spyder/plugins/outlineexplorer/widgets.py:79
 msgid "Function"
-msgstr ""
+msgstr "Função"
 
 #: spyder/plugins/outlineexplorer/widgets.py:80
 msgid "Variable"
-msgstr ""
+msgstr "Variável"
 
 #: spyder/plugins/outlineexplorer/widgets.py:81
 msgid "Constant"
-msgstr ""
+msgstr "Constante"
 
 #: spyder/plugins/outlineexplorer/widgets.py:82
 msgid "String"
-msgstr ""
+msgstr "String"
 
 #: spyder/plugins/outlineexplorer/widgets.py:83
 msgid "Number"
-msgstr ""
+msgstr "Número"
 
 #: spyder/plugins/outlineexplorer/widgets.py:84
 msgid "Boolean"
-msgstr ""
+msgstr "Boleano"
 
 #: spyder/plugins/outlineexplorer/widgets.py:85
 msgid "Array"
-msgstr ""
+msgstr "Array"
 
 #: spyder/plugins/outlineexplorer/widgets.py:87 spyder/plugins/variableexplorer/widgets/collectionseditor.py:193
 msgid "Key"
@@ -4515,27 +4515,27 @@ msgstr "Chave"
 
 #: spyder/plugins/outlineexplorer/widgets.py:88
 msgid "Null"
-msgstr ""
+msgstr "Nulo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:89
 msgid "Enum member"
-msgstr ""
+msgstr "Membro Enum"
 
 #: spyder/plugins/outlineexplorer/widgets.py:90
 msgid "Struct"
-msgstr ""
+msgstr "Struct"
 
 #: spyder/plugins/outlineexplorer/widgets.py:91
 msgid "Event"
-msgstr ""
+msgstr "Evento"
 
 #: spyder/plugins/outlineexplorer/widgets.py:92
 msgid "Operator"
-msgstr ""
+msgstr "Operador"
 
 #: spyder/plugins/outlineexplorer/widgets.py:93
 msgid "Type parameter"
-msgstr ""
+msgstr "Digitar parâmetro"
 
 #: spyder/plugins/outlineexplorer/widgets.py:94
 msgid "Cell"
@@ -5135,19 +5135,19 @@ msgstr "Abrir essa variável pode ser um processo lento\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:124
 msgid "Spyder is unable to show the {val_type} or object you're trying to view because <tt>{module}</tt> is not installed. "
-msgstr ""
+msgstr "Spyder é incapaz de mostrar o {val_type} ou objeto que você está tentando visualizar por conta que <tt>{module}</tt> não está instalado. "
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:128
 msgid "Please consider using the full version of the Spyder MacOS application.<br>"
-msgstr ""
+msgstr "Por favor, considere usar a versão completa da aplicação MacOS do Spyder.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:131
 msgid "Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "Por favor, instale este pacote em seu ambiente Spyder<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:139
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not supported in the Spyder Lite application.<br>"
-msgstr ""
+msgstr "Spyder é incapaz de mostrar o variável que você está tentando ver por conta que o módulo <tt>{module}</tt> não é suportado na aplicação Lite do Spyder.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not found in your Spyder environment. Please install this package in this environment.<br>"
