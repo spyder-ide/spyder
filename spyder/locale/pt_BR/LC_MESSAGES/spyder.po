@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 01:08\n"
+"PO-Revision-Date: 2020-12-05 01:19\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -926,7 +926,7 @@ msgstr "Formatar automaticamente arquivos Python no Editor com o pacote Preto"
 
 #: spyder/dependencies.py:177
 msgid "Spyder plugin for the Python Language Server"
-msgstr ""
+msgstr "Plugin Spyder para servidor da Linguagem Python"
 
 #: spyder/dependencies.py:181
 msgid "Parse desktop files on Linux"
@@ -958,7 +958,7 @@ msgstr "Acesso rápido à snippets de código"
 
 #: spyder/dependencies.py:211
 msgid "Determine package version"
-msgstr ""
+msgstr "Determinar a versão do pacote"
 
 #: spyder/dependencies.py:215
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -970,7 +970,7 @@ msgstr "Kernels do Jupyter para o console Spyder"
 
 #: spyder/dependencies.py:223
 msgid "3-way merge algorithm to merge document changes"
-msgstr ""
+msgstr "Algoritmo de junção de 3 vias para mesclar mudanças do documento"
 
 #: spyder/dependencies.py:227
 msgid "Watch file changes on project directories"
@@ -1074,15 +1074,15 @@ msgstr "Não mostrar novamente."
 
 #: spyder/plugins/completion/kite/plugin.py:162
 msgid "It seems that your Kite installation is faulty. If you want to use Kite, please remove the directory that appears bellow, and try a reinstallation:<br><br><code>{kite_dir}</code>"
-msgstr ""
+msgstr "Parece que sua instalação do Kite está defeituosa. Se você quer usar o Kite, por favor, remova o diretório que aparece abaixo, e tente a reinstalação:<br><br><code>{kite_dir}</code>"
 
 #: spyder/plugins/completion/kite/plugin.py:231
 msgid "Kite error"
-msgstr ""
+msgstr "Erro do Kite"
 
 #: spyder/plugins/completion/kite/plugin.py:232
 msgid "The Kite completion engine returned an unexpected result for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Please make sure that your Kite installation is correct. In the meantime, Spyder will disable the Kite client to prevent further errors. For more information, please visit the <a href='https://help.kite.com/'>Kite help center</a>"
-msgstr ""
+msgstr "O motor complementação Kite devolveu um resultado inesperado para o pedido <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br> Por favor, certifique-se que sua instalação Kite está correta. Nesse meio tempo, o Spyder desabilitará o cliente Kite para prevenir de mais erros. Para mais informação, por favo visite o centro de ajuda Kite <a href='https://help.kite.com/'></a>"
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
@@ -1338,11 +1338,11 @@ msgstr "O padrão é 79"
 
 #: spyder/plugins/completion/languageserver/confpage.py:258
 msgid "Spyder can use {0}, {1} or {2} to format your code for conformance to the {3} convention."
-msgstr ""
+msgstr "Spyder pode usar {0},{1} ou {2} para formatar seu código por conformidade a convenção {3}."
 
 #: spyder/plugins/completion/languageserver/confpage.py:266
 msgid "Choose the code formatting provider: "
-msgstr ""
+msgstr "Escolha o fornecedor de formatação de código: "
 
 #: spyder/plugins/completion/languageserver/confpage.py:274
 msgid "Autoformat files on save"
