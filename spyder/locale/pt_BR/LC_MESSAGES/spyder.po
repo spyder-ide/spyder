@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 01:02\n"
+"PO-Revision-Date: 2020-12-05 01:08\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -722,15 +722,15 @@ msgstr "Pedido"
 
 #: spyder/app/tour.py:1257
 msgid "To run the tour, please press the green button on the left of the Spyder window's title bar to take it out of fullscreen mode."
-msgstr ""
+msgstr "Para executar o passeio, por favor pressione o botão verde à esquerda na barra de título da janela do Spyder para tirá-lo do modo tela cheia."
 
 #: spyder/app/tour.py:1422
 msgid "Welcome to Spyder!<br><br>Check out our interactive tour to explore some of Spyder's panes and features."
-msgstr ""
+msgstr "Bem-vindo ao Spyder<br><br>Dê uma olhada no nosso passeio interativo para explorar alguns dos painéis e recursos do Spyder."
 
 #: spyder/app/tour.py:1428
 msgid "Start tour"
-msgstr ""
+msgstr "Iniciar passeio"
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -874,7 +874,7 @@ msgstr "Módulo principal para o servidor de linguagem Python"
 
 #: spyder/dependencies.py:120
 msgid "Verify if snippets files are valid"
-msgstr ""
+msgstr "Verificar se arquivos snippets são válidos"
 
 #: spyder/dependencies.py:124
 msgid "Save Github credentials to report internal errors securely"
@@ -922,7 +922,7 @@ msgstr "Preenchimento de código e sugestões para o Editor"
 
 #: spyder/dependencies.py:172
 msgid "Autoformat Python files in the Editor with the Black package"
-msgstr ""
+msgstr "Formatar automaticamente arquivos Python no Editor com o pacote Preto"
 
 #: spyder/dependencies.py:177
 msgid "Spyder plugin for the Python Language Server"
