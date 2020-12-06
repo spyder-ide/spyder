@@ -278,43 +278,33 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Unhighlight current cell"""
         self.clear_extra_selections('current_cell')
 
-    #------Brace matching
     def find_brace_match(self, position, brace, forward):
+        """Match a brace forwards or backwards from a given position"""
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
-            bracemap = {'(': ')', '[': ']', '{': '}'}
+            closing_brace = {'(': ')', '[': ']', '{': '}'}[brace]
             text = self.get_text(position, end_pos)
-            i_start_open = 1
-            i_start_close = 1
         else:
-            bracemap = {')': '(', ']': '[', '}': '{'}
-            text = self.get_text(start_pos, position)
-            i_start_open = len(text)-1
-            i_start_close = len(text)-1
-
+            closing_brace = {')': '(', ']': '[', '}': '{'}[brace]
+            text = self.get_text(start_pos, position+1)
+            text = text[-1::-1] # reverse
+        # local function to compute editor position from search index
+        def ind2pos(index):
+            return position+index if forward else position-index
+        # search starts at the first position after the given one
+        # (which is already known to contain brace)
+        i_start_close = 1
+        i_start_open = 1
         while True:
-            if forward:
-                i_close = text.find(bracemap[brace], i_start_close)
-            else:
-                i_close = text.rfind(bracemap[brace], 0, i_start_close+1)
+            i_close = text.find(closing_brace, i_start_close)
             if i_close > -1:
-                if forward:
-                    i_start_close = i_close+1
-                    i_open = text.find(brace, i_start_open, i_close)
-                else:
-                    i_start_close = i_close-1
-                    i_open = text.rfind(brace, i_close, i_start_open+1)
+                i_start_close = i_close+1
+                i_open = text.find(brace, i_start_open, i_close)
                 if i_open > -1:
-                    if forward:
-                        i_start_open = i_open+1
-                    else:
-                        i_start_open = i_open-1
+                    i_start_open = i_open+1
                 else:
                     # found matching brace
-                    if forward:
-                        return position+i_close
-                    else:
-                        return position-(len(text)-i_close)
+                    return ind2pos(i_close)
             else:
                 # no matching brace
                 return
