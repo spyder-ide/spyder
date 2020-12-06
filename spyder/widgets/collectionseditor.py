@@ -1723,7 +1723,7 @@ def get_test_data():
     try:
         import pandas as pd
     except (ModuleNotFoundError, ImportError):
-        test_timestamp, test_pd_td, test_dtindex, test_series, test_df = None
+        test_timestamp = test_pd_td = test_dtindex = test_series = test_df = None
     else:
         test_timestamp = pd.Timestamp("1945-05-08T23:01:00.12345")
         test_pd_td = pd.Timedelta(days=2193, hours=12)

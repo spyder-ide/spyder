@@ -381,7 +381,6 @@ class CollectionsDelegate(QItemDelegate):
                                          self.get_value(index),
                                          ignore_errors=False)
             except Exception as msg:
-                raise
                 QMessageBox.critical(editor, _("Edit item"),
                                      _("<b>Unable to assign data to item.</b>"
                                        "<br><br>Error message:<br>%s"

@@ -504,8 +504,7 @@ class ArrayView(QTableView):
                     bottom_right = self.model().index(bottom, right)
                     part = QItemSelectionRange(top_left, bottom_right)
                     new_selection.append(part)
-                self.selectionModel().select
-                (new_selection, self.selectionModel().ClearAndSelect)
+                self.selectionModel().select(new_selection, self.selectionModel().ClearAndSelect)
         except NameError:
             # Needed to handle a NameError while fetching data when closing
             # See isue 7880
