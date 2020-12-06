@@ -23,8 +23,10 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 
 # Constants
+SHORTCUTS_SUMMARY_TITLE = _("Spyder Keyboard ShortCuts")
 MAX_FONT_SIZE = 16
 MIN_FONT_SIZE = 8
+
 
 class ShortcutsSummaryDialog(QDialog):
     """
@@ -38,10 +40,10 @@ class ShortcutsSummaryDialog(QDialog):
     """
     def __init__(self, parent=None):
         QDialog.__init__(self, parent=parent)
+        self._shortcuts_summary_title = SHORTCUTS_SUMMARY_TITLE
 
-        self._shortcuts_summary_title = _("Spyder Keyboard ShortCuts")
-
-        # Calculate font and amount of elements in each column according screen size
+        # Calculate font and amount of elements in each column according screen
+        # size
         width, height = self.get_screen_resolution()
         font_size = height / 80
         font_size = max(min(font_size, MAX_FONT_SIZE), MIN_FONT_SIZE)
