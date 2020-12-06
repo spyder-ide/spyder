@@ -131,9 +131,10 @@ def get_list_conda_envs():
 
     for env in out['envs']:
         name = env.split(osp.sep)[-1]
+        path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
+            env, 'bin', 'python')
+
         try:
-            path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
-                env, 'bin', 'python')
             version, __ = run_program(path, ['--version']).communicate()
             version = version.decode()
         except Exception:

@@ -274,7 +274,7 @@ class InterpreterStatus(BaseTimerStatus):
             # need to get all envs again
             self.get_envs()
         else:
-            # We need to do this is in case the Python version was
+            # We need to do this in case the Python version was
             # changed in the env
             if self._interpreter in self.path_to_env:
                 self.update_interpreter()

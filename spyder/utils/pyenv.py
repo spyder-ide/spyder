@@ -51,6 +51,7 @@ def get_list_pyenv_envs():
     for env in out:
         data = env.split(osp.sep)
         path = get_pyenv_path(data[-1])
+
         if data[-1] == '':
             name = 'internal' if running_in_mac_app(path) else 'system'
         else:

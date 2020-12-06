@@ -236,7 +236,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         custom_list = self.get_option('custom_interpreters_list')
         valid_custom_list = []
         for value in custom_list:
-            if osp.isfile(value) and programs.is_python_interpreter(value):
+            if osp.isfile(value):
                 valid_custom_list.append(value)
         self.set_option('custom_interpreters_list', valid_custom_list)
 

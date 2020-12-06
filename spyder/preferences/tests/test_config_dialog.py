@@ -10,7 +10,6 @@ Tests for configdialog.py
 """
 
 # Standard library imports
-import os
 import time
 
 # Local imports
@@ -66,6 +65,6 @@ def test_maininterpreter_page(qtbot):
     # directly. This means we're using the cached envs instead
     assert load_time < GET_ENVS_TIME
 
-    # Load time should be small in our CIs because we have few envs.
-    if bool(os.getenv('CI')):
-        assert load_time < 1
+    # Load time should be small too because we perform simple validations
+    # on the page.
+    assert load_time < 0.5
