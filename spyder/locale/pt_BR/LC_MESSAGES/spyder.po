@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-11-05 21:29-0500\n"
-"PO-Revision-Date: 2020-12-05 23:56\n"
+"PO-Revision-Date: 2020-12-06 00:06\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -3973,7 +3973,7 @@ msgstr "Ignorar bibliotecas Python durante a depuração"
 
 #: spyder/plugins/ipythonconsole/confpage.py:272
 msgid "This option lets you decide if the debugger should ignore the system libraries while debugging."
-msgstr ""
+msgstr "Esse opção deixa você decidir se o depurador deveria ignorar as bibliotecas do sistema enquanto depura."
 
 #: spyder/plugins/ipythonconsole/confpage.py:277
 msgid "Process execute events while debugging"
@@ -3981,15 +3981,15 @@ msgstr "Processo executa eventos durante depuração"
 
 #: spyder/plugins/ipythonconsole/confpage.py:278
 msgid "This option lets you decide if the debugger should process the 'execute events' after each prompt, such as matplotlib 'show' command."
-msgstr ""
+msgstr "Esta opção deixa você decidir se o depurador deveria processar os 'eventos de execução' após cada pedido, tais como comando 'mostrar' do matplotlib."
 
 #: spyder/plugins/ipythonconsole/confpage.py:284
 msgid "Use exclamation mark prefix for Pdb commands"
-msgstr ""
+msgstr "Usar prefixo exclamação para comandos Pdb"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "This option lets you decide if the Pdb commands should be prefixed by an exclamation mark. This helps in separating Pdb commands from Python code."
-msgstr ""
+msgstr "Essa opção deixa você decidir se os comandos Pdb deveriam ser prefixados por uma exclamação. Isso auxilia na separação de comandos Pdb do código Pyhton."
 
 #: spyder/plugins/ipythonconsole/confpage.py:295
 msgid "Jedi completion"
@@ -4165,7 +4165,7 @@ msgstr "Não existe um console IPython para ser executado <b>{}</b>.<br><br>Por 
 
 #: spyder/plugins/ipythonconsole/plugin.py:718
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.9.4 and < 1.10.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
-msgstr ""
+msgstr "Seu ambiente ou instalação Python não possui o módulo <tt>spyder-kernels</tt> ou a versão correta dele (>= 1.9.4 e < 1.10.0). Sem esse módulo, o Spyder não poderá criar um console para você.<br><br>Você pode instalá-lo executando um terminal do sistema:<br><br><tt>conda install spyder-kernels</tt><br><br>ou<br><br><tt> pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1014
 msgid "Do you want to close this console?"
@@ -4207,7 +4207,9 @@ msgstr "Não foi possível criar um túnel ssh. O erro foi:\n\n"
 msgid "<br><hr>\n"
 "The current file cannot be closed because it is in debug mode. \n"
 "<hr><br>"
-msgstr ""
+msgstr "<br><hr>\n"
+"O arquivo atual não pode ser fechado porque está no modo de depuração. \n"
+"<hr><br>"
 
 #: spyder/plugins/ipythonconsole/utils/ssh.py:65
 msgid "The authenticity of host <b>%s</b> can't be established. Are you sure you want to continue connecting?"
@@ -4281,7 +4283,7 @@ msgstr "Conectando ao kernel..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:844
 msgid "Your Python environment or installation doesn't have the <tt>{missing_dependency}</tt> module installed or it occurred a problem importing it. Due to that, it is not possible for Spyder to create this special console for you."
-msgstr ""
+msgstr "Seu ambiente Python ou instalação não tem o módulo <tt>{missing_dependency}</tt> instalado ou ocorreu um problema ao importá-lo. Devido a isso, não é possível que o Spyder crie este console especial para você."
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:63
 msgid "<br><hr>\n"
@@ -4361,11 +4363,11 @@ msgstr "A variável não é selecionável"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:92
 msgid "The kernel is dead"
-msgstr ""
+msgstr "O núcleo está morto"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:93
 msgid "An error occured, see the console."
-msgstr ""
+msgstr "Um erro ocorreu, veja o console."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:94
 msgid "%s.<br><br>Note: Please don't report this problem on Github, there's nothing to do about it."
@@ -4381,7 +4383,7 @@ msgstr "Carregando dados"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:158
 msgid "Spyder is unable to open the file you're trying to load because <tt>{module}</tt> is not installed. Please install this package in your working environment.<br>"
-msgstr ""
+msgstr "Spyder é incapaz de abrir o arquivo que você está tentando carregar porque o <tt>{module}</tt> não está instalado. Por favor, instale este pacote em seu ambiente de trabalho<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:165
 msgid "Data is too big to be loaded"
@@ -4419,19 +4421,19 @@ msgstr "Ajuda online"
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:802
 msgid "There was an error while retrieving documentation for the object you requested: Object could not be found"
-msgstr ""
+msgstr "Houve um erro ao recuperar a documentação do objeto que você solicitou: o objeto não pôde ser encontrado"
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:853
 msgid "There was an error while retrieving documentation for the object you requested: Bad URL %s"
-msgstr ""
+msgstr "Houve um erro ao recuperar a documentação para o objeto que você solicitou: URL inválida %s"
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:873
 msgid "There was an error while retrieving documentation for the object you requested: unknown content type %r for url %s"
-msgstr ""
+msgstr "Ocorreu um erro ao recuperar a documentação do objeto solicitado: tipo de conteúdo desconhecido %r para a url %s"
 
 #: spyder/plugins/onlinehelp/widgets.py:118
 msgid "Write a package name here, e.g. pandas"
-msgstr ""
+msgstr "Escrever um nome de pacote aqui, por exemplo, pandas"
 
 #: spyder/plugins/onlinehelp/widgets.py:161
 msgid "Package:"
