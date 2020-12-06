@@ -261,12 +261,20 @@ class InterpreterStatus(BaseTimerStatus):
         pass
 
     def get_value(self):
-        # Switch to default interpreter if current one was removed
-        if not osp.isfile(self._interpreter):
+        """Switch to default interpreter if current env was removed."""
+        env_dir = self._get_env_dir(self._interpreter)
+        if not osp.isdir(env_dir):
             CONF.set('main_interpreter', 'custom', False)
             CONF.set('main_interpreter', 'default', True)
             self.update_interpreter(sys.executable)
         return self.value
+
+    def _get_env_dir(self, interpreter):
+        """Get env directory from interpreter executable."""
+        if os.name == 'nt':
+            return osp.dirname(interpreter)
+        else:
+            return osp.dirname(osp.dirname(interpreter))
 
     def _get_envs(self):
         """Get the list of environments in the system."""
