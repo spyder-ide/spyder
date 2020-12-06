@@ -232,9 +232,9 @@ class CPUStatus(BaseTimerStatus):
 class InterpreterStatus(BaseTimerStatus):
     """Status bar widget for displaying the current conda environment."""
 
-    def __init__(self, parent, statusbar, icon=None):
+    def __init__(self, parent, statusbar, icon=None, interpreter=None):
         """Status bar widget for displaying the current conda environment."""
-        self._interpreter = None
+        self._interpreter = interpreter
         super(InterpreterStatus, self).__init__(parent, statusbar, icon=icon)
 
         self.main = parent

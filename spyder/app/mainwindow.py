@@ -830,8 +830,8 @@ class MainWindow(QMainWindow):
             self,
             status,
             icon=ima.icon('environment'),
+            interpreter=self.get_main_interpreter()
         )
-        self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
