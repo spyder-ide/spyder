@@ -897,14 +897,18 @@ class BaseEditMixin(object):
         start_cursor.setPosition(end_position, mode=QTextCursor.KeepAnchor)
         return self.get_selected_text(start_cursor)
 
-    def get_text(self, position_from, position_to):
+    def get_text(self, position_from, position_to, all_text=None):
         """
         Return text between *position_from* and *position_to*
         Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
+        
+        The *all_text* parameter is a, possibly temporary, workaround for
+        spyder-ide/spyder#14374
         """
         cursor = self.__select_text(position_from, position_to)
         text = to_text_string(cursor.selectedText())
-        all_text = position_from == 'sof' and position_to == 'eof'
+        if all_text == None:
+            all_text = position_from == 'sof' and position_to == 'eof'
         if text and not all_text:
             while text.endswith("\n"):
                 text = text[:-1]

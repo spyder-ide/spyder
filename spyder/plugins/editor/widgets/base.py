@@ -283,10 +283,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
             closing_brace = {'(': ')', '[': ']', '{': '}'}[brace]
-            text = self.get_text(position, end_pos)
+            text = self.get_text(position, end_pos, all_text=True)
         else:
             closing_brace = {')': '(', ']': '[', '}': '{'}[brace]
-            text = self.get_text(start_pos, position+1)
+            text = self.get_text(start_pos, position+1, all_text=True)
             text = text[-1::-1] # reverse
         # local function to compute editor position from search index
         def ind2pos(index):
