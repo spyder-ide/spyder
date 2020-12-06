@@ -639,6 +639,9 @@ class CodeEditor(TextEditBaseWidget):
         self.is_undoing = False
         self.is_redoing = False
 
+        # Override base class behaviour
+        self.ignore_brace_func = lambda pos: self.in_comment_or_string(position=pos)
+
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -3917,13 +3920,18 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return None
 
-    def in_comment_or_string(self, cursor=None):
-        """Is the cursor inside or next to a comment or string?"""
+    def in_comment_or_string(self, cursor=None, position=None):
+        """Is the cursor or position inside or next to a comment or string?
+
+        If *cursor* is None, *position* is used instead. If *position* is also
+        None, then the current cursor position is used.
+        """
         if self.highlighter:
             if cursor is None:
-                current_color = self.__get_current_color()
-            else:
-                current_color = self.__get_current_color(cursor=cursor)
+                cursor = self.textCursor()
+                if position != None:
+                    cursor.setPosition(position)
+            current_color = self.__get_current_color(cursor=cursor)
 
             comment_color = self.highlighter.get_color_name('comment')
             string_color = self.highlighter.get_color_name('string')

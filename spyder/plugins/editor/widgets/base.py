@@ -111,6 +111,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.textChanged.connect(reset_current_cell)
 
+        # Can be overridden by subclasses
+        self.ignore_brace_func = lambda pos: False
+
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()
@@ -278,7 +281,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Unhighlight current cell"""
         self.clear_extra_selections('current_cell')
 
-    def find_brace_match(self, position, brace, forward):
+    def find_brace_match(self, position, brace, forward,
+                         ignore_brace=lambda pos: False):
         """Match a brace forwards or backwards from a given position"""
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
@@ -290,24 +294,25 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             text = text[-1::-1] # reverse
         # local function to compute editor position from search index
         def ind2pos(index):
-            return position+index if forward else position-index
+            return (position + index) if forward else (position - index)
         # search starts at the first position after the given one
         # (which is already known to contain brace)
         i_start_close = 1
         i_start_open = 1
         while True:
             i_close = text.find(closing_brace, i_start_close)
-            if i_close > -1:
-                i_start_close = i_close+1
-                i_open = text.find(brace, i_start_open, i_close)
-                if i_open > -1:
-                    i_start_open = i_open+1
-                else:
-                    # found matching brace
-                    return ind2pos(i_close)
-            else:
-                # no matching brace
-                return
+            i_start_close = i_close+1 # next potential start
+            if i_close == -1:
+                return # no matching brace exists
+            elif not ignore_brace(ind2pos(i_close)):
+                while True:
+                    i_open = text.find(brace, i_start_open, i_close)
+                    i_start_open = i_open+1 # next potential start
+                    if i_open == -1:
+                        # found matching brace
+                        return ind2pos(i_close)
+                    elif not ignore_brace(ind2pos(i_open)):
+                        break # must find new closing brace
 
     def __highlight(self, positions, color=None, cancel=False):
         if cancel:
@@ -340,9 +345,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         text = to_text_string(cursor.selectedText())
         pos1 = cursor.position()
         if text in (')', ']', '}'):
-            pos2 = self.find_brace_match(pos1, text, forward=False)
+            pos2 = self.find_brace_match(
+                pos1, text, forward=False,
+                ignore_brace=self.ignore_brace_func)
         elif text in ('(', '[', '{'):
-            pos2 = self.find_brace_match(pos1, text, forward=True)
+            pos2 = self.find_brace_match(
+                pos1, text, forward=True,
+                ignore_brace=self.ignore_brace_func)
         else:
             return
         if pos2 is not None:
