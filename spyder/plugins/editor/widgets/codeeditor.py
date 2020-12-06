@@ -3979,6 +3979,19 @@ class CodeEditor(TextEditBaseWidget):
                 return True
         return False
 
+    def __has_unmatched_opening_bracket(self):
+        """
+        Checks if there are any unmatched opening brackets before the current
+        cursor position.
+        """
+        position = self.textCursor().position()
+        for brace in [']', ')', '}']:
+            match = self.find_brace_match(position, brace, forward=False,
+                                  ignore_brace=self.ignore_brace_func)
+            if match != None:
+                return True
+        return False
+
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
         bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
@@ -3995,6 +4008,8 @@ class CodeEditor(TextEditBaseWidget):
         elif bracket_ext.unmatched_brackets_in_line(line_text):
             return False
         elif self.__has_colon_not_in_brackets(line_text):
+            return False
+        elif self.__has_unmatched_opening_bracket():
             return False
         else:
             return True
