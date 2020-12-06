@@ -640,7 +640,8 @@ class CodeEditor(TextEditBaseWidget):
         self.is_redoing = False
 
         # Override base class behaviour
-        self.ignore_brace_func = lambda pos: self.in_comment_or_string(position=pos)
+        self.ignore_brace_func = lambda pos: self.in_comment_or_string(
+            position=pos)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -3929,7 +3930,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.highlighter:
             if cursor is None:
                 cursor = self.textCursor()
-                if position != None:
+                if position:
                     cursor.setPosition(position)
             current_color = self.__get_current_color(cursor=cursor)
 
@@ -3986,9 +3987,10 @@ class CodeEditor(TextEditBaseWidget):
         """
         position = self.textCursor().position()
         for brace in [']', ')', '}']:
-            match = self.find_brace_match(position, brace, forward=False,
-                                  ignore_brace=self.ignore_brace_func)
-            if match != None:
+            match = self.find_brace_match(
+                    position, brace, forward=False,
+                    ignore_brace=self.ignore_brace_func)
+            if match:
                 return True
         return False
 

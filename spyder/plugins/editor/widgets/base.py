@@ -291,8 +291,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             closing_brace = {')': '(', ']': '[', '}': '{'}[brace]
             text = self.get_text(start_pos, position+1, all_text=True)
-            text = text[-1::-1] # reverse
+            text = text[-1::-1]  # reverse
         # local function to compute editor position from search index
+
         def ind2pos(index):
             return (position + index) if forward else (position - index)
         # search starts at the first position after the given one
@@ -301,18 +302,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         i_start_open = 1
         while True:
             i_close = text.find(closing_brace, i_start_close)
-            i_start_close = i_close+1 # next potential start
+            i_start_close = i_close+1  # next potential start
             if i_close == -1:
-                return # no matching brace exists
+                return  # no matching brace exists
             elif not ignore_brace(ind2pos(i_close)):
                 while True:
                     i_open = text.find(brace, i_start_open, i_close)
-                    i_start_open = i_open+1 # next potential start
+                    i_start_open = i_open+1  # next potential start
                     if i_open == -1:
                         # found matching brace
                         return ind2pos(i_close)
                     elif not ignore_brace(ind2pos(i_open)):
-                        break # must find new closing brace
+                        break  # must find new closing brace
 
     def __highlight(self, positions, color=None, cancel=False):
         if cancel:

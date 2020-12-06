@@ -901,13 +901,13 @@ class BaseEditMixin(object):
         """
         Return text between *position_from* and *position_to*
         Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
-        
+
         The *all_text* parameter is a, possibly temporary, workaround for
         spyder-ide/spyder#14374
         """
         cursor = self.__select_text(position_from, position_to)
         text = to_text_string(cursor.selectedText())
-        if all_text == None:
+        if all_text is None:
             all_text = position_from == 'sof' and position_to == 'eof'
         if text and not all_text:
             while text.endswith("\n"):
