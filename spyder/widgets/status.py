@@ -249,10 +249,11 @@ class InterpreterStatus(BaseTimerStatus):
         # Worker to compute envs in a thread
         self._worker_manager = WorkerManager(max_threads=1)
 
-        # Timer to get envs every certain time
+        # Timer to get envs every minute
         self._get_envs_timer = QTimer(self)
         self._get_envs_timer.setInterval(60000)
         self._get_envs_timer.timeout.connect(self.get_envs)
+        self._get_envs_timer.start()
 
         # Update the list of envs at startup
         self.get_envs()
@@ -264,9 +265,20 @@ class InterpreterStatus(BaseTimerStatus):
         """Switch to default interpreter if current env was removed."""
         env_dir = self._get_env_dir(self._interpreter)
         if not osp.isdir(env_dir):
+            # Env was removed
             CONF.set('main_interpreter', 'custom', False)
             CONF.set('main_interpreter', 'default', True)
             self.update_interpreter(sys.executable)
+        elif not osp.isfile(self._interpreter):
+            # This happens when Python is updated on Windows, so we
+            # need to get all envs again
+            self.get_envs()
+        else:
+            # We need to do this is in case the Python version was
+            # changed in the env
+            if self._interpreter in self.path_to_env:
+                self.update_interpreter()
+
         return self.value
 
     def _get_env_dir(self, interpreter):
