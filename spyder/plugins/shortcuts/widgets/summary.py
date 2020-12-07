@@ -42,8 +42,8 @@ class ShortcutsSummaryDialog(QDialog):
         QDialog.__init__(self, parent=parent)
         self._shortcuts_summary_title = SHORTCUTS_SUMMARY_TITLE
 
-        # Calculate font and amount of elements in each column according screen
-        # size
+        # Calculate font and amount of elements in each column
+        # according screen size
         width, height = self.get_screen_resolution()
         font_size = height / 80
         font_size = max(min(font_size, MAX_FONT_SIZE), MIN_FONT_SIZE)
