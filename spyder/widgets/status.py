@@ -262,17 +262,29 @@ class InterpreterStatus(BaseTimerStatus):
         pass
 
     def get_value(self):
-        """Switch to default interpreter if current env was removed."""
+        """
+        Switch to default interpreter if current env was removed or
+        update Python version of current one.
+        """
         env_dir = self._get_env_dir(self._interpreter)
+
         if not osp.isdir(env_dir):
-            # Env was removed
+            # Env was removed on Mac or Linux
             CONF.set('main_interpreter', 'custom', False)
             CONF.set('main_interpreter', 'default', True)
             self.update_interpreter(sys.executable)
         elif not osp.isfile(self._interpreter):
-            # This happens when Python is updated on Windows, so we
-            # need to get all envs again
-            self.get_envs()
+            # This can happen on Windows because the interpreter was
+            # renamed to .conda_trash
+            if not osp.isdir(osp.join(env_dir, 'conda-meta')):
+                # If conda-meta is missing, it means the env was removed
+                CONF.set('main_interpreter', 'custom', False)
+                CONF.set('main_interpreter', 'default', True)
+                self.update_interpreter(sys.executable)
+            else:
+                # If not, it means the interpreter is being updated so
+                # we need to update its version
+                self.get_envs()
         else:
             # We need to do this in case the Python version was
             # changed in the env
