@@ -21,6 +21,7 @@ from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import Qt
+from qtpy import QtGui
 
 from spyder.config.base import _, get_conf_path
 from spyder.config.manager import CONF
@@ -227,7 +228,8 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def _pdb_cmd_prefix(self):
         """Return the command prefix"""
         prefix = ''
-        if self.is_pdb_using_exclamantion_mark():
+        if (self.spyder_kernel_comm.is_open() and
+                self.is_pdb_using_exclamantion_mark()):
             prefix = '!'
         return prefix
 
@@ -238,6 +240,21 @@ class DebuggingWidget(DebuggingHistoryWidget):
         self.pdb_execute(
             self._pdb_cmd_prefix() + command, hidden=False,
             echo_stack_entry=False, add_history=False)
+
+    def _handle_input_request(self, msg):
+        """Process an input request."""
+        if (not self.spyder_kernel_comm.is_open() and
+                msg['content']['prompt'] == "ipdb> "):
+            # Check if we can guess a path from the shell content:
+            self._flush_pending_stream()
+            cursor = self._get_end_cursor()
+            cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
+            text = cursor.selection().toPlainText()
+            match = re.search(r"> (.*\.py)\((\d+)\)", text)
+            if match:
+                fname, lineno = match.groups()
+                self.sig_pdb_step.emit(fname, int(lineno))
+        return super(DebuggingWidget, self)._handle_input_request(msg)
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
                     add_history=True):
@@ -258,6 +275,14 @@ class DebuggingWidget(DebuggingHistoryWidget):
         add_history: bool
             If not hidden, wether the line should be added to history
         """
+        # Send line to input if no comm
+        if not self.spyder_kernel_comm.is_open():
+            if not hidden:
+                self._append_plain_text(line + '\n')
+            self._finalize_input_request()
+            self.kernel_client.input(line)
+            return
+
         if not self.is_debugging():
             return
 
@@ -324,6 +349,13 @@ class DebuggingWidget(DebuggingHistoryWidget):
         }
 
     # --- To Sort --------------------------------------------------
+    def stop_debugging(self):
+        """Stop debugging."""
+        if (self.spyder_kernel_comm.is_open() and
+                not self.is_waiting_pdb_input()):
+            self.interrupt_kernel()
+        self.pdb_execute_command("exit")
+
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into a debugging session"""
         self.call_kernel(interrupt=True).set_breakpoints(
