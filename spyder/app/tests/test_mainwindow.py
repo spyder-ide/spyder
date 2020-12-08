@@ -3803,6 +3803,7 @@ def test_outline_no_init(main_window, qtbot):
     assert len(treewidget.editor_tree_cache[editor_id]) > 0
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_pdb_without_comm(main_window, qtbot):
     """Check if pdb works without comm."""
@@ -3824,11 +3825,11 @@ def test_pdb_without_comm(main_window, qtbot):
 
     assert "Two: 2" in control.toPlainText()
 
-    # Press step button
+    # Press step button and expect a sig_pdb_step signal
     with qtbot.waitSignal(shell.sig_pdb_step):
         main_window.editor.debug_command("step")
 
-    # Stop debugging
+    # Stop debugging and expect an executed signal
     with qtbot.waitSignal(shell.executed):
         main_window.editor.stop_debugging()
 
