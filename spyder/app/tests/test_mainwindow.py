@@ -2452,7 +2452,7 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.skipif(
-    sys.platform == 'darwin',
+    not sys.platform.startswith('linux'),
     reason="Changes of Shitf+Return shortcut cause an ambiguos shortcut")
 def test_preferences_empty_shortcut_regression(main_window, qtbot):
     """
