@@ -285,7 +285,7 @@ class Projects(SpyderPluginWidget):
         self.open_project(path=path)
 
     def open_project(self, path=None, restart_consoles=True,
-                     save_previous_files=True):
+                     save_previous_files=True, workdir=None):
         """Open the project located in `path`"""
         self.unmaximize()
         if path is None:
@@ -329,7 +329,10 @@ class Projects(SpyderPluginWidget):
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()
-        self.sig_project_loaded.emit(path)
+        if workdir and osp.isdir(workdir):
+            self.sig_project_loaded.emit(workdir)
+        else:
+            self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
 

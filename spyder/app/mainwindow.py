@@ -1293,7 +1293,9 @@ class MainWindow(QMainWindow):
 
         if self.open_project:
             if not running_in_mac_app():
-                self.projects.open_project(self.open_project)
+                self.projects.open_project(
+                    self.open_project, workdir=self.init_workdir
+                )
         else:
             # Load last project if a project was active when Spyder
             # was closed
