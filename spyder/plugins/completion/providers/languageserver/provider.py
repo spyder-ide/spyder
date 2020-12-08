@@ -231,7 +231,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Update status for the current file.
         """
         self.clients_statusbar[language] = status
-        self.status_widget.update_status(language, status)
+        # self.status_widget.update_status(language, status)
 
     def on_initialize(self, options, language):
         """

@@ -112,6 +112,9 @@ class CompletionPlugin(SpyderPluginV2):
         # Completion request priority
         self.source_priority = {}
 
+        # Projects plugin reference
+        self.projects = None
+
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf_option('completions_wait_for_ms',
                                                 section='editor')
