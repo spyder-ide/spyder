@@ -27,7 +27,7 @@ _ = get_translation('spyder')
 # --- Constants
 # ----------------------------------------------------------------------------
 class FindInFilesActions:
-    FindInFiles = 'find_in_files_action'
+    FindInFiles = 'find in files'
 
 
 # --- Plugin
@@ -79,13 +79,13 @@ class FindInFiles(SpyderDockablePlugin):
             tip=_("Search text in multiple files"),
             triggered=self.find,
             register_shortcut=True,
+            context=Qt.WindowShortcut
         )
         menu = self.get_application_menu(ApplicationMenus.Search)
         self.add_item_to_application_menu(
             findinfiles_action,
             menu=menu,
         )
-        findinfiles_action.triggered.connect(lambda: self.switch_to_plugin())
 
         search_toolbar = self.get_application_toolbar(
             ApplicationToolBars.Search)
