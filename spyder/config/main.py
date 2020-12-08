@@ -495,6 +495,8 @@ DEFAULTS = [
               'explorer/paste file': 'Ctrl+V',
               'explorer/copy absolute path': 'Ctrl+Alt+C',
               'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
+              # ---- In plugins/findinfiles/plugin ----
+              'find_in_files/find in files': 'Ctrl+Alt+F',
               }),
             ('appearance', APPEARANCE),
             ('lsp-server',
