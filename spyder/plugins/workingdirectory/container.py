@@ -237,7 +237,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         browsing_history: bool, optional
             Add the new `directory` to the browsing history. Default is False.
         emit: bool, optional
-            Emit a signal when changing the working directpory.
+            Emit a signal when changing the working directory.
             Default is True.
         """
         if directory:

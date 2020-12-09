@@ -1285,6 +1285,12 @@ class MainWindow(QMainWindow):
             self.onlinehelp = OnlineHelp(self, configuration=CONF)
             self.register_plugin(self.onlinehelp)
 
+        # Working directory plugin
+        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
+        CONF.set('workingdir', 'init_workdir', self.init_workdir)
+        self.workingdirectory = WorkingDirectory(self, configuration=CONF)
+        self.register_plugin(self.workingdirectory)
+
         # Project explorer widget
         self.set_splash(_("Loading project explorer..."))
         from spyder.plugins.projects.plugin import Projects
@@ -1292,12 +1298,6 @@ class MainWindow(QMainWindow):
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
         self.add_plugin(self.projects)
-
-        # Working directory plugin
-        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-        CONF.set('workingdir', 'init_workdir', self.init_workdir)
-        self.workingdirectory = WorkingDirectory(self, configuration=CONF)
-        self.register_plugin(self.workingdirectory)
 
         # Find in files
         if CONF.get('find_in_files', 'enable'):

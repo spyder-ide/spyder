@@ -182,7 +182,12 @@ class Projects(SpyderPluginWidget):
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
-            lambda v: self.main.workingdirectory.chdir(v))
+            lambda path:
+            self.main.workingdirectory.chdir(
+                directory=path,
+                sender_plugin=self
+            )
+        )
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
@@ -194,8 +199,12 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.connect(
             lambda v: self.main.outlineexplorer.update_all_editors())
         self.sig_project_closed[object].connect(
-            lambda v: self.main.workingdirectory.chdir(
-                self.get_last_working_dir()))
+            lambda path:
+            self.main.workingdirectory.chdir(
+                directory=self.get_last_working_dir(),
+                sender_plugin=self
+            )
+        )
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
