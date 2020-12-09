@@ -57,7 +57,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QStyleFactory, QWidget, QCheckBox)
+                            QStyleFactory, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -75,8 +75,7 @@ from qtawesome.iconic_font import FontError
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions,
-                    __docs_url__)
+                    __trouble_url__, get_versions, __docs_url__)
 from spyder import dependencies
 from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
@@ -85,7 +84,7 @@ from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_image_path, get_module_path,
                                 get_module_source_path, get_safe_mode,
-                                reset_config_files, running_in_mac_app,
+                                is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
@@ -1860,6 +1859,8 @@ class MainWindow(QMainWindow):
             title = u"Spyder %s (Python %s.%s)" % (__version__,
                                                    sys.version_info[0],
                                                    sys.version_info[1])
+        elif running_in_mac_app() or is_pynsist():
+            title = "Spyder"
         else:
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
                                                 sys.version_info[1])
@@ -4073,7 +4074,7 @@ def main(options, args):
                 mainwindow = create_window(app, splash, options, args)
         else:
             mainwindow = create_window(app, splash, options, args)
-    except FontError as fontError:
+    except FontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
                 "icon theme. That's why it's going to fallback to the "
