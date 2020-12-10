@@ -231,6 +231,7 @@ class TextHelper(object):
                 return
 
             fold_start_line = block.blockNumber()
+            text_cursor = self._move_cursor_to(fold_start_line + 1)
 
             # Find the innermost code folding region for the current position
             enclosing_regions = sorted(list(
@@ -246,6 +247,10 @@ class TextHelper(object):
                         fold_status = folding_status[fold_start_line]
                         if fold_status:
                             folding_panel.toggle_fold_trigger(block)
+
+            self._editor.setTextCursor(text_cursor)
+            if self._editor.isVisible():
+                self._editor.centerCursor()
 
     def selected_text(self):
         """Returns the selected text."""
