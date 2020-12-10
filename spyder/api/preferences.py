@@ -24,8 +24,8 @@ class PluginConfigPage(SpyderConfigPage):
     APPLY_CONF_PAGE_SETTINGS = False
 
     def __init__(self, plugin, parent):
-        self.CONF_SECTION = plugin.CONF_SECTION
         self.plugin = plugin
+        self.CONF_SECTION = plugin.CONF_SECTION
         self.main = parent.main
         self.get_font = plugin.get_font
 

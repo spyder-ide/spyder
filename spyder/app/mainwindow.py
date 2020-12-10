@@ -598,8 +598,7 @@ class MainWindow(QMainWindow):
 
         # Preferences
         from spyder.preferences.general import MainConfigPage
-        from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        self.general_prefs = [MainConfigPage, MainInterpreterConfigPage]
+        self.general_prefs = [MainConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -1180,6 +1179,11 @@ class MainWindow(QMainWindow):
         self.appearance = Appearance(self, configuration=CONF)
         self.register_plugin(self.appearance)
 
+        # Main interpreter
+        from spyder.plugins.maininterpreter.plugin import MainInterpreter
+        self.maininterpreter = MainInterpreter(self, configuration=CONF)
+        self.register_plugin(self.maininterpreter)
+
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.manager.plugin import CompletionManager
@@ -1199,7 +1203,7 @@ class MainWindow(QMainWindow):
             self,
             status,
             icon=ima.icon('environment'),
-            interpreter=self.get_main_interpreter()
+            interpreter=self.maininterpreter.get_interpreter()
         )
 
         # Editor plugin
@@ -3494,7 +3498,7 @@ class MainWindow(QMainWindow):
 
             # Update interpreter status widget
             if self.interpreter_status:
-                interpreter = self.get_main_interpreter()
+                interpreter = self.maininterpreter.get_interpreter()
                 self.interpreter_status.update_interpreter(interpreter)
         else:
             return
@@ -3535,6 +3539,7 @@ class MainWindow(QMainWindow):
 
             for plugin in [self.appearance,
                            self.run,
+                           self.maininterpreter,
                            self.shortcuts,
                            self.workingdirectory,
                            self.editor,
@@ -3858,22 +3863,6 @@ class MainWindow(QMainWindow):
         self.worker_updates.moveToThread(self.thread_updates)
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
-
-    # --- Main interpreter
-    # ------------------------------------------------------------------------
-    def get_main_interpreter(self):
-        if CONF.get('main_interpreter', 'default'):
-            return sys.executable
-        else:
-            custom = CONF.get('main_interpreter', 'custom_interpreter')
-
-            # Check if custom interpreter is stil present
-            if osp.isfile(custom):
-                return custom
-            else:
-                CONF.set('main_interpreter', 'custom', False)
-                CONF.set('main_interpreter', 'default', True)
-                return sys.executable
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
