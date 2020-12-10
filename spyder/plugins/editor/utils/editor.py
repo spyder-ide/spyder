@@ -229,8 +229,23 @@ class TextHelper(object):
         else:
             if block.isVisible():
                 return
-            block = folding_panel.find_parent_scope(block)
-            folding_panel.toggle_fold_trigger(block)
+
+            fold_start_line = block.blockNumber()
+
+            # Find the innermost code folding region for the current position
+            enclosing_regions = sorted(list(
+                folding_panel.current_tree[fold_start_line]))
+
+            folding_status = folding_panel.folding_status
+            if len(enclosing_regions) > 0:
+                for region in enclosing_regions:
+                    fold_start_line = region.begin
+                    block = self._editor.document().findBlockByNumber(
+                        fold_start_line)
+                    if fold_start_line in folding_status:
+                        fold_status = folding_status[fold_start_line]
+                        if fold_status:
+                            folding_panel.toggle_fold_trigger(block)
 
     def selected_text(self):
         """Returns the selected text."""
