@@ -7,6 +7,7 @@
 
 """Tests for the execution of pylint."""
 
+import os.path as osp
 # Standard library imports
 from io import open
 import os.path as osp
@@ -14,12 +15,12 @@ from unittest.mock import Mock, MagicMock
 
 # Third party imports
 import pytest
-from qtpy.QtCore import Signal, QObject
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.plugins.pylint.main_widget import PylintWidget
+from spyder.plugins.editor.plugin import Editor
 from spyder.plugins.pylint.plugin import Pylint
 from spyder.plugins.pylint.utils import get_pylintrc_path
 
@@ -55,6 +56,40 @@ good-names=e
 
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
+    register_shortcut = Mock()
+    file_menu_actions = []
+    file_toolbar_actions = []
+    edit_menu_actions = []
+    edit_toolbar_actions = []
+    run_menu_actions = []
+    run_toolbar_actions = []
+    debug_menu_actions = []
+    debug_toolbar_actions = []
+    source_menu_actions = []
+    source_toolbar_actions = []
+    all_actions_defined = Mock()
+    sig_pythonpath_changed = Mock()
+    plugin_focus_changed = Mock()
+    file_menu = Mock()
+    edit_menu = Mock()
+    search_menu = Mock()
+    source_menu = Mock()
+    run_menu = Mock()
+    debug_menu = Mock()
+    consoles_menu = Mock()
+    projects_menu = Mock()
+    tools_menu = Mock()
+    view_menu = Mock()
+    help_menu = Mock()
+    consoles_menu_actions = Mock()
+    projects_menu_actions = Mock()
+    tools_menu_actions = Mock()
+    view_menu_actions = Mock()
+    help_menu_actions = Mock()
+    ipyconsole = MagicMock()
+    get_spyder_pythonpath = Mock()
+    completions = Mock()
+
     _PLUGINS = {}
 
     def __init__(self):
@@ -62,9 +97,11 @@ class MainWindowMock(QMainWindow):
         self.editor = Mock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
         self.projects = MagicMock()
+        self.project_explorer = Mock()
 
         self._PLUGINS['editor'] = self.editor
         self._PLUGINS['projects'] = self.projects
+        self._PLUGINS['project_explorer'] = self.project_explorer
 
 
 @pytest.fixture
@@ -77,6 +114,17 @@ def pylint_plugin(mocker, qtbot):
     plugin.set_conf_option("history_filenames", [])
     widget = plugin.get_widget()
     widget.filecombo.clear()
+    qtbot.addWidget(widget)
+    yield plugin
+
+
+@pytest.fixture
+def pylint_plugin_with_real_editor(qtbot):
+    main_window = MainWindowMock()
+    main_window.editor = Editor(main_window)
+    plugin = Pylint(parent=main_window, configuration=CONF)
+    plugin.register()
+    widget = plugin.get_widget()
     qtbot.addWidget(widget)
     yield plugin
 
@@ -99,6 +147,36 @@ def pylint_test_script(pylintrc_search_paths):
         script_file.write(PYLINT_TEST_SCRIPT)
 
     return script_path
+
+
+class IgnoreRulesTestHelper(object):
+    bad_function_name = "C0103"
+
+    def __init__(self, file_path):
+        self.python_file_path = file_path
+
+    def add_function_with_bad_name(self):
+        with open(self.python_file_path, mode="a", encoding="utf-8",
+                  newline="\n") as file:
+            file.write("def a():\n    pass\n")
+
+    def ignore_first_item_that_matches_with(self, rule_to_find, pylint_widget):
+        item = \
+            [item for item in pylint_widget.get_focus_widget().get_items() if
+             rule_to_find in item.text(0)][0]
+        pylint_widget.get_focus_widget().ignore_lint_rule(item)
+        return rule_to_find
+
+    def assert_that_rule_is_being_ignored(self, ignored_rule, pylint_widget):
+        assert ignored_rule not in \
+               [item.text(0) for item in
+                pylint_widget.get_focus_widget().get_items()]
+
+
+@pytest.fixture
+def ignore_rules_test_helper(pylintrc_search_paths):
+    script_path = osp.join(pylintrc_search_paths[SCRIPT_DIR], "test_script.py")
+    return IgnoreRulesTestHelper(script_path)
 
 
 @pytest.fixture
@@ -173,7 +251,7 @@ def test_get_pylintrc_path(pylintrc_files, mocker):
     actual_path = get_pylintrc_path(
         search_paths=list(search_paths.values()),
         home_path=search_paths[HOME_DIR],
-        )
+    )
     assert actual_path == expected_path
 
 
@@ -257,6 +335,36 @@ def test_pylint_max_history_conf(pylint_plugin, pylint_test_scripts):
 
     assert pylint_widget.filecombo.count() == 1
     assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
+
+
+def test_pylint_ignore_issue_in_a_function_definition(
+        ignore_rules_test_helper, qtbot, pylint_plugin_with_real_editor):
+    ignore_rules_test_helper.add_function_with_bad_name()
+    pylint_widget = pylint_plugin_with_real_editor.get_widget()
+    pylint_widget.set_filename(ignore_rules_test_helper.python_file_path)
+
+    pylint_plugin_with_real_editor.start_code_analysis(
+        filename=ignore_rules_test_helper.python_file_path)
+    wait_until_code_analysis_finish(pylint_widget, qtbot)
+
+    ignored_rule = ignore_rules_test_helper.\
+        ignore_first_item_that_matches_with(
+            ignore_rules_test_helper.bad_function_name, pylint_widget
+        )
+
+    wait_until_code_analysis_finish(pylint_widget, qtbot)
+
+    with open(ignore_rules_test_helper.python_file_path, mode="r") as file:
+        print(file.read(100))
+
+    ignore_rules_test_helper. \
+        assert_that_rule_is_being_ignored(ignored_rule, pylint_widget)
+
+
+def wait_until_code_analysis_finish(widget, qtbot):
+    qtbot.waitUntil(
+        lambda: not widget._is_running(),
+        timeout=5000)
 
 
 if __name__ == "__main__":
