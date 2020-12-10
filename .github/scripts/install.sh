@@ -70,5 +70,11 @@ conda list -n jedi-test-env
 conda create -n spytest-ž -q -y python=3.6 spyder-kernels
 conda list -n spytest-ž
 
+# Install pyenv
+if [ "$OS" != "win" ]; then
+    curl https://pyenv.run | bash
+    $HOME/.pyenv/bin/pyenv install 3.8.1
+fi
+
 # Coverage
 pip install codecov
