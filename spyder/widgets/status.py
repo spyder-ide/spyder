@@ -364,6 +364,7 @@ class InterpreterStatus(BaseTimerStatus):
         path = path.lower() if os.name == 'nt' else path
         try:
             name = self.path_to_env[path]
+            __, version = self.envs[name]
         except KeyError:
             win_app_path = osp.join(
                 'AppData', 'Local', 'Programs', 'spyder')
@@ -378,7 +379,6 @@ class InterpreterStatus(BaseTimerStatus):
             version = get_interpreter_info(path)
             self.path_to_env[path] = name
             self.envs[name] = (path, version)
-        __, version = self.envs[name]
         return f'{name} ({version})'
 
     def get_tooltip(self):
