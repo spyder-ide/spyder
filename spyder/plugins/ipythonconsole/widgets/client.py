@@ -419,7 +419,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
-        return self.shellwidget._control
+        # page_control is the widget used for paging
+        page_control = self.shellwidget._page_control
+        if page_control and page_control.isVisible():
+            return page_control
+        else:
+            return self.shellwidget._control
 
     def get_kernel(self):
         """Get kernel associated with this client"""
