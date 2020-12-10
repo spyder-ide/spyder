@@ -27,8 +27,8 @@ from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QMenu,
-                            QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QLabel,
+                            QMenu, QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
@@ -43,9 +43,9 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
-                                                   ConsoleRestartDialog,
-                                                   KernelConnectionDialog)
+from spyder.plugins.ipythonconsole.widgets import (
+    ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
+    PageControlWidget)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -112,6 +112,7 @@ class IPythonConsole(SpyderPluginWidget):
                 os.makedirs(osp.join(test_dir))
 
         layout = QVBoxLayout()
+        layout.setSpacing(0)
         self.tabwidget = Tabs(self, menu=self._options_menu,
                               actions=self.menu_actions,
                               rename_tabs=True,
@@ -151,6 +152,20 @@ class IPythonConsole(SpyderPluginWidget):
                 "background:{}".format(MAIN_BG_COLOR))
         self.set_infowidget_font()
         layout.addWidget(self.infowidget)
+
+        # Label to inform users how to get out of the pager
+        self.pager_label = QLabel(
+            _("You are in the pager now. Press <b>Q</b> to get out of it"),
+            self
+        )
+        self.pager_label.setStyleSheet(
+            "background-color: #3775A9;"
+            "margin: 0px 4px 4px 4px;"
+            "padding: 5px;"
+            "qproperty-alignment: AlignCenter;"
+        )
+        self.pager_label.hide()
+        layout.addWidget(self.pager_label)
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -470,6 +485,11 @@ class IPythonConsole(SpyderPluginWidget):
             # Give focus to the control widget of the selected tab
             control = client.get_control()
             control.setFocus()
+
+            if isinstance(control, PageControlWidget):
+                self.pager_label.show()
+            else:
+                self.pager_label.hide()
 
             # Create corner widgets
             buttons = [[b, -7] for b in client.get_toolbar_buttons()]
