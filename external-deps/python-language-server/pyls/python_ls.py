@@ -287,7 +287,7 @@ class PythonLanguageServer(MethodDispatcher):
         return self._hook('pyls_signature_help', doc_uri, position=position)
 
     def folding(self, doc_uri):
-        return self._hook('pyls_folding_range', doc_uri)
+        return flatten(self._hook('pyls_folding_range', doc_uri))
 
     def m_text_document__did_close(self, textDocument=None, **_kwargs):
         workspace = self._match_uri_to_workspace(textDocument['uri'])
