@@ -37,6 +37,7 @@ jobs:
           if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
               INSTALL_FLAGS+=(${SPK_REPO} ${PLS_REPO})
           fi
+          brew install spatialindex
           brew link python@3.9
           python3.9 -m pip install -c req-const.txt -r req-build.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
           python3.9 -m pip uninstall -q -y spyder

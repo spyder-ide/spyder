@@ -149,6 +149,9 @@ def make_app_bundle(dist_dir, make_lite=False):
 
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
+    FRAMEWORKS = ['/usr/local/lib/libspatialindex.dylib',
+                  '/usr/local/lib/libspatialindex_c.dylib']  # for rtree
+
     OPTIONS = {
         'optimize': 0,
         'packages': PACKAGES,
@@ -156,6 +159,7 @@ def make_app_bundle(dist_dir, make_lite=False):
         'excludes': EXCLUDES,
         'iconfile': ICONFILE,
         'dist_dir': dist_dir,
+        'frameworks': FRAMEWORKS,
         'plist': {
             'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
                                        'CFBundleTypeName': 'Text File',
