@@ -21,7 +21,7 @@ from spyder.utils.pyenv import (
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_get_list_pyenv_envs():
     output = get_list_pyenv_envs()
-    expected_envs = ['pyenv: 3.8.1', 'system']
+    expected_envs = ['pyenv: 3.8.1']
     assert set(expected_envs) == set(output.keys())
 
 

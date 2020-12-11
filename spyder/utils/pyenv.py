@@ -43,21 +43,17 @@ def get_list_pyenv_envs():
     cmdstr = ' '.join([pyenv, 'versions', '--bare', '--skip-aliases'])
     try:
         out, __ = run_shell_command(cmdstr, env={}).communicate()
-        out = out.decode()
+        out = out.decode().strip()
     except Exception:
-        out = ''
+        return env_list
 
-    out = out.split('\n')
+    out = out.split('\n') if out else []
     for env in out:
         data = env.split(osp.sep)
         path = get_pyenv_path(data[-1])
 
-        if data[-1] == '':
-            name = 'internal' if running_in_mac_app(path) else 'system'
-        else:
-            name = 'pyenv: {}'.format(data[-1])
-        version = (
-            'Python 2.7' if data[-1] == '' else 'Python {}'.format(data[0]))
+        name = f'pyenv: {data[-1]}'
+        version = f'Python {data[0]}'
         env_list[name] = (path, version)
 
     PYENV_ENV_LIST_CACHE = env_list
