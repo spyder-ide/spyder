@@ -205,7 +205,7 @@ class TextHelper(object):
                                      end_column)
         if move:
             block = text_cursor.block()
-            self.unfold_if_colapsed(block)
+            self.unfold_if_colapsed(text_cursor)
             self._editor.setTextCursor(text_cursor)
 
             if self._editor.isVisible():
@@ -217,11 +217,12 @@ class TextHelper(object):
                 self._editor.find(word, QTextDocument.FindCaseSensitively)
         return text_cursor
 
-    def unfold_if_colapsed(self, block):
+    def unfold_if_colapsed(self, cursor):
         """Unfold parent fold trigger if the block is collapsed.
 
         :param block: Block to unfold.
         """
+        block = cursor.block()
         try:
             folding_panel = self._editor.panels.get('FoldingPanel')
         except KeyError:
@@ -248,7 +249,7 @@ class TextHelper(object):
                         if fold_status:
                             folding_panel.toggle_fold_trigger(block)
 
-            self._editor.setTextCursor(text_cursor)
+            self._editor.setTextCursor(cursor)
             if self._editor.isVisible():
                 self._editor.centerCursor()
 
