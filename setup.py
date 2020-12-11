@@ -194,7 +194,7 @@ install_requires = [
     'cloudpickle>=0.5.0',
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
-    'ipython>=7.6.0',
+    'ipython>=7.19.0',
     'jedi==0.17.2',
     'jsonschema>=3.2.0',
     'keyring>=17.0.0',

@@ -664,19 +664,6 @@ the sympy module (e.g. plot)
             self._append_plain_text(message + '\n')
             self.silent_execute("%gui inline\n%gui qt")
 
-    def change_mpl_backend(self, command):
-        """
-        If the user is trying to change Matplotlib backends with
-        %matplotlib, send the same command again to the kernel to
-        correctly change it.
-
-        Fixes spyder-ide/spyder#4002.
-        """
-        if command.startswith('%matplotlib') and \
-          len(command.splitlines()) == 1:
-            if not 'inline' in command:
-                self.silent_execute(command)
-
     # ---- Spyder-kernels methods ---------------------------------------------
     def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""

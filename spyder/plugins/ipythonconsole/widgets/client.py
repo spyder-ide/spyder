@@ -302,10 +302,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_kernel_restarted.connect(
             self._finalise_restart)
 
-        # To correctly change Matplotlib backend interactively
-        self.shellwidget.executing.connect(
-            self.shellwidget.change_mpl_backend)
-
         # To show env and sys.path contents
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
