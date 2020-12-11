@@ -123,15 +123,17 @@ def make_app_bundle(dist_dir, make_lite=False):
         python38.zip/spyder/app/mac_stylesheet.qss'
     spyder_kernels :
         No module named spyder_kernels.console.__main__
-
-   """
+    textdistance :
+        NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
+        python39.zip/textdistance/libraries.json'
+    """
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
     PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'ipykernel', 'IPython',
                 'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
                 'pyls', 'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
-                'sphinx', 'spyder', 'spyder_kernels']
+                'sphinx', 'spyder', 'spyder_kernels', 'textdistance']
 
     if make_lite:
         INCLUDES = []
