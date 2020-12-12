@@ -639,10 +639,6 @@ class CodeEditor(TextEditBaseWidget):
         self.is_undoing = False
         self.is_redoing = False
 
-        # Override base class behaviour
-        self.ignore_brace_func = lambda pos: self.in_comment_or_string(
-            position=pos)
-
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -3987,9 +3983,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         position = self.textCursor().position()
         for brace in [']', ')', '}']:
-            match = self.find_brace_match(
-                    position, brace, forward=False,
-                    ignore_brace=self.ignore_brace_func)
+            match = self.find_brace_match(position, brace, forward=False)
             if match:
                 return True
         return False
@@ -4023,8 +4017,21 @@ class CodeEditor(TextEditBaseWidget):
         next_char = to_text_string(cursor.selectedText())
         return next_char
 
-    def in_comment(self, cursor=None):
+    def in_comment(self, cursor=None, position=None):
+        """Returns true if the given position is inside a comment
+
+        Overrides TextEditBaseWidget.in_comment
+
+        Argument priority:
+            1. cursor
+            2. position
+            3. self.textCursor()
+        """
         if self.highlighter:
+            if cursor is None:
+                cursor = self.textCursor()
+                if position:
+                    cursor.setPosition(position)
             current_color = self.__get_current_color(cursor)
             comment_color = self.highlighter.get_color_name('comment')
             if current_color == comment_color:
@@ -4034,8 +4041,21 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def in_string(self, cursor=None):
+    def in_string(self, cursor=None, position=None):
+        """Returns true if the given position is inside a string
+
+        Overrides TextEditBaseWidget.in_string
+
+        Argument priority:
+            1. cursor
+            2. position
+            3. self.textCursor()
+        """
         if self.highlighter:
+            if cursor is None:
+                cursor = self.textCursor()
+                if position:
+                    cursor.setPosition(position)
             current_color = self.__get_current_color(cursor)
             string_color = self.highlighter.get_color_name('string')
             if current_color == string_color:
