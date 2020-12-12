@@ -346,12 +346,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
             closing_brace = {'(': ')', '[': ']', '{': '}'}[brace]
-            text = self.get_text(position, end_pos, all_text=True)
+            text = self.get_text(position, end_pos, remove_newlines=False)
         else:
             # Handle backwards search with the same code as forwards
             # by reversing the search string.
             closing_brace = {')': '(', ']': '[', '}': '{'}[brace]
-            text = self.get_text(start_pos, position+1, all_text=True)
+            text = self.get_text(start_pos, position+1, remove_newlines=False)
             text = text[-1::-1]  # reverse
 
         def ind2pos(index):

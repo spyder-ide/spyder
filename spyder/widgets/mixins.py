@@ -897,19 +897,25 @@ class BaseEditMixin(object):
         start_cursor.setPosition(end_position, mode=QTextCursor.KeepAnchor)
         return self.get_selected_text(start_cursor)
 
-    def get_text(self, position_from, position_to, all_text=None):
+    def get_text(self, position_from, position_to, remove_newlines=None):
         """
         Return text between *position_from* and *position_to*
         Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
 
-        The *all_text* parameter is a, possibly temporary, workaround for
-        spyder-ide/spyder#14374
+        Unless position_from='sof' and position_to='eof' any trailing newlines
+        in the string are removed. This was added as a workaround for
+        spyder-ide/spyder#1546 and later caused spyder-ide/spyder#14374
+        The behaviour can be overridden by setting the optional parameter
+        *remove_newlines* to False or True.
+
+        TODO: Evaluate if this is still a problem and if the workaround can
+              be moved closer to where the problem occurs.
         """
         cursor = self.__select_text(position_from, position_to)
         text = to_text_string(cursor.selectedText())
-        if all_text is None:
-            all_text = position_from == 'sof' and position_to == 'eof'
-        if text and not all_text:
+        if remove_newlines is None:
+            remove_newlines = position_from != 'sof' or position_to != 'eof'
+        if text and remove_newlines:
             while text.endswith("\n"):
                 text = text[:-1]
             while text.endswith(u"\u2029"):
