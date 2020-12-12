@@ -13,13 +13,8 @@ $ python setup.py
 
 import os
 import sys
-import shutil
-import argparse
-import pkg_resources
 from logging import getLogger, StreamHandler, Formatter
 from setuptools import setup
-from dmgbuild import build_dmg
-from dmgbuild.core import DMGError
 
 # Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -29,18 +24,14 @@ logger = getLogger('spyder-macOS')
 logger.addHandler(h)
 logger.setLevel('INFO')
 
-# Setup paths
+# Define paths
 HERE = os.path.abspath(__file__)
 THISDIR = os.path.dirname(HERE)
 SPYREPO = os.path.realpath(os.path.join(THISDIR, '..', '..'))
 ICONFILE = os.path.join(SPYREPO, 'img_src', 'spyder.icns')
-
 SPYLINK = os.path.join(THISDIR, 'spyder')
-os.symlink(os.path.join(SPYREPO, 'spyder'), SPYLINK)
 
-from spyder import __version__ as SPYVER                         # noqa
-from spyder.config.utils import EDIT_FILETYPES, _get_extensions  # noqa
-from spyder.config.base import MAC_APP_NAME                      # noqa
+sys.path.append(SPYREPO)
 
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
@@ -127,6 +118,13 @@ def make_app_bundle(dist_dir, make_lite=False):
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python39.zip/textdistance/libraries.json'
     """
+    import shutil
+    import pkg_resources
+
+    from spyder import __version__ as SPYVER
+    from spyder.config.utils import EDIT_FILETYPES, _get_extensions
+    from spyder.config.base import MAC_APP_NAME
+
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
@@ -175,9 +173,11 @@ def make_app_bundle(dist_dir, make_lite=False):
     shutil.copy2(os.path.join(SPYREPO, 'scripts', 'spyder'), app_script_path)
 
     try:
+        os.symlink(os.path.join(SPYREPO, 'spyder'), SPYLINK)
         setup(app=[app_script_path], options={'py2app': OPTIONS})
     finally:
         os.remove(app_script_path)
+        os.remove(SPYLINK)
 
     # Copy egg info from site-packages: fixes pkg_resources issue for pyls
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
@@ -210,6 +210,11 @@ def make_disk_image(dist_dir, make_lite=False):
     """
     logger.info('Creating disk image...')
 
+    from dmgbuild import build_dmg
+    from dmgbuild.core import DMGError
+    from spyder import __version__ as SPYVER
+    from spyder.config.base import MAC_APP_NAME
+
     volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)
     dmgfile = os.path.join(dist_dir, 'Spyder')
     if make_lite:
@@ -240,6 +245,7 @@ def make_disk_image(dist_dir, make_lite=False):
 
 
 if __name__ == '__main__':
+    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--no-app', dest='make_app',
                         action='store_false', default=True,
@@ -259,15 +265,12 @@ if __name__ == '__main__':
 
     dist_dir = os.path.abspath(args.dist_dir)
 
-    try:
-        if args.make_app:
-            make_app_bundle(dist_dir, make_lite=args.make_lite)
-        else:
-            logger.info('Skipping app bundle.')
+    if args.make_app:
+        make_app_bundle(dist_dir, make_lite=args.make_lite)
+    else:
+        logger.info('Skipping app bundle.')
 
-        if args.make_dmg:
-            make_disk_image(dist_dir, make_lite=args.make_lite)
-        else:
-            logger.info('Skipping disk image.')
-    finally:
-        os.remove(SPYLINK)
+    if args.make_dmg:
+        make_disk_image(dist_dir, make_lite=args.make_lite)
+    else:
+        logger.info('Skipping disk image.')
