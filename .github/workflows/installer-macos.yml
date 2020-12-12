@@ -32,14 +32,14 @@ jobs:
           PLS_REPO=${GITHUB_WORKSPACE}/external-deps/python-language-server
           INSTALL_FLAGS=()
           if [[ -z ${LITE_FLAG} ]]; then
-              INSTALL_FLAGS+=('-r' 'req-extras.txt')
+              INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
           if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
               INSTALL_FLAGS+=(${SPK_REPO} ${PLS_REPO})
           fi
           brew install spatialindex
           brew link python@3.9
-          python3.9 -m pip install -c req-const.txt -r req-build.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
+          python3.9 -m pip install -c req-const.txt -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
           python3.9 -m pip uninstall -q -y spyder
       - name: Build Application Bundle
         run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
