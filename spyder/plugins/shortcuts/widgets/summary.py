@@ -82,7 +82,7 @@ class ShortcutsSummaryDialog(QDialog):
         # group shortcuts by context
         shortcuts = groupby(sorted(CONF.iter_shortcuts()), key=itemgetter(0))
 
-        for _, group_shortcuts in shortcuts:
+        for __, group_shortcuts in shortcuts:
             for i, (context, name, keystr) in enumerate(group_shortcuts):
                 # start of every column
                 if added_shortcuts == 0:

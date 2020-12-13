@@ -74,7 +74,7 @@ def test_umr_run(user_module):
 
     from foo1.bar import square
     umr.run()
-    assert umr.modnames_to_reload == ['foo', 'foo.bar']
+    umr.modnames_to_reload == ['foo', 'foo.bar']
 
 
 def test_umr_previous_modules(user_module):
