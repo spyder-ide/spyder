@@ -325,7 +325,7 @@ class InterpreterStatus(BaseTimerStatus):
 
     def update_envs(self, worker, output, error):
         """Update the list of environments in the system."""
-        self.envs = output
+        self.envs.update(**output)
         for env in list(self.envs.keys()):
             path, version = self.envs[env]
             # Save paths in lowercase on Windows to avoid issues with
@@ -379,7 +379,7 @@ class InterpreterStatus(BaseTimerStatus):
             self.path_to_env[path] = name
             self.envs[name] = (path, version)
         __, version = self.envs[name]
-        return '{env} ({version})'.format(env=name, version=version)
+        return f'{name} ({version})'
 
     def get_tooltip(self):
         """Override api method."""
