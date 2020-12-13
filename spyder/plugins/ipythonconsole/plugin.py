@@ -1660,19 +1660,22 @@ class IPythonConsole(SpyderPluginWidget):
     #------ Private API -------------------------------------------------------
     def _init_asyncio_patch(self):
         """
-        Same workaround fix as https://github.com/ipython/ipykernel/pull/456
-        Set default asyncio policy to be compatible with tornado
-        Tornado 6 (at least) is not compatible with the default
-        asyncio implementation on Windows
-        Pick the older SelectorEventLoopPolicy on Windows
-        if the known-incompatible default policy is in use.
-        Do this as early as possible to make it a low priority and overrideable
-        ref: https://github.com/tornadoweb/tornado/issues/2608
-        FIXME: if/when tornado supports the defaults in asyncio,
-               remove and bump tornado requirement for py38
-        Based on: jupyter/qtconsole#406
+        - This was fixed in Tornado 6.1!
+        - Same workaround fix as ipython/ipykernel#564
+        - ref: tornadoweb/tornado#2608
+        - On Python 3.8+, Tornado 6.0 is not compatible with the default
+          asyncio implementation on Windows. Pick the older
+          SelectorEventLoopPolicy if the known-incompatible default policy is
+          in use.
+        - Do this as early as possible to make it a low priority and
+          overrideable.
         """
         if os.name == 'nt' and PY38_OR_MORE:
+            # Tests on Linux hang if we don't leave this import here.
+            import tornado
+            if tornado.version_info >= (6, 1):
+                return
+
             import asyncio
             try:
                 from asyncio import (
