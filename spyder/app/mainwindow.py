@@ -56,7 +56,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QStyleFactory, QWidget, QCheckBox)
+                            QStyleFactory, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -74,8 +74,7 @@ from qtawesome.iconic_font import FontError
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions,
-                    __docs_url__)
+                    __trouble_url__, get_versions, __docs_url__)
 from spyder import dependencies
 from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
@@ -84,7 +83,7 @@ from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_image_path, get_module_path,
                                 get_module_source_path, get_safe_mode,
-                                reset_config_files, running_in_mac_app,
+                                is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
@@ -830,8 +829,8 @@ class MainWindow(QMainWindow):
             self,
             status,
             icon=ima.icon('environment'),
+            interpreter=self.get_main_interpreter()
         )
-        self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -1291,9 +1290,11 @@ class MainWindow(QMainWindow):
         if self.splash is not None:
             self.splash.hide()
 
-        if (self.open_project and
-                (running_in_mac_app() and not self.first_spyder_run)):
-            self.projects.open_project(self.open_project)
+        if self.open_project:
+            if not running_in_mac_app():
+                self.projects.open_project(
+                    self.open_project, workdir=self.init_workdir
+                )
         else:
             # Load last project if a project was active when Spyder
             # was closed
@@ -1425,6 +1426,8 @@ class MainWindow(QMainWindow):
             title = u"Spyder %s (Python %s.%s)" % (__version__,
                                                    sys.version_info[0],
                                                    sys.version_info[1])
+        elif running_in_mac_app() or is_pynsist():
+            title = "Spyder"
         else:
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
                                                 sys.version_info[1])
@@ -3403,7 +3406,15 @@ class MainWindow(QMainWindow):
         if CONF.get('main_interpreter', 'default'):
             return sys.executable
         else:
-            return CONF.get('main_interpreter', 'custom_interpreter')
+            custom = CONF.get('main_interpreter', 'custom_interpreter')
+
+            # Check if custom interpreter is stil present
+            if osp.isfile(custom):
+                return custom
+            else:
+                CONF.set('main_interpreter', 'custom', False)
+                CONF.set('main_interpreter', 'default', True)
+                return sys.executable
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
@@ -3611,7 +3622,7 @@ def main(options, args):
                 mainwindow = create_window(app, splash, options, args)
         else:
             mainwindow = create_window(app, splash, options, args)
-    except FontError as fontError:
+    except FontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
                 "icon theme. That's why it's going to fallback to the "

@@ -7,12 +7,5 @@ pydocstyle
 pyflakes
 pyxdg
 rope
+rtree
 yapf
-
-# Scientific packages (for Same as Spyder)
-numpy
-scipy
-pandas
-matplotlib
-cython
-sympy

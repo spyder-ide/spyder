@@ -434,8 +434,8 @@ class FindReplace(QWidget):
             self.search_text.setToolTip(tooltip)
 
             if self.is_code_editor and found:
-                block = self.editor.textCursor().block()
-                TextHelper(self.editor).unfold_if_colapsed(block)
+                cursor = QTextCursor(self.editor.textCursor())
+                TextHelper(self.editor).unfold_if_colapsed(cursor)
 
                 if rehighlight or not self.editor.found_results:
                     self.highlight_timer.stop()

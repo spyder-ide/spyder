@@ -19,6 +19,7 @@ from spyder.utils.programs import (find_program, run_program,
 
 
 WINDOWS = os.name == 'nt'
+CONDA_ENV_LIST_CACHE = {}
 
 
 def add_quotes(path):
@@ -104,36 +105,50 @@ def get_conda_env_path(pyexec, quote=False):
     return conda_env
 
 
-def get_list_conda_envs():
-    """Return the list of all conda envs found in the system."""
-    env_list = {}
+def find_conda():
+    """Find conda executable."""
     conda_exec = 'conda.bat' if WINDOWS else 'conda'
     conda = find_program(conda_exec)
+    return conda
+
+
+def get_list_conda_envs():
+    """Return the list of all conda envs found in the system."""
+    global CONDA_ENV_LIST_CACHE
+
+    env_list = {}
+    conda = find_conda()
     if conda is None:
         return env_list
 
     cmdstr = ' '.join([conda, 'env', 'list', '--json'])
     try:
-        out, err = run_shell_command(cmdstr, env={}).communicate()
+        out, __ = run_shell_command(cmdstr, env={}).communicate()
         out = out.decode()
-        err = err.decode()
         out = json.loads(out)
     except Exception:
         out = {'envs': []}
-        err = ''
+
     for env in out['envs']:
         name = env.split(osp.sep)[-1]
+        path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
+            env, 'bin', 'python')
+
         try:
-            path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
-                env, 'bin', 'python')
-            version, err = run_program(path, ['--version']).communicate()
+            version, __ = run_program(path, ['--version']).communicate()
             version = version.decode()
-            err = err.decode()
         except Exception:
             version = ''
-            err = ''
+
         name = ('base' if name.lower().startswith('anaconda') or
                 name.lower().startswith('miniconda') else name)
         name = 'conda: {}'.format(name)
         env_list[name] = (path, version.strip())
+
+    CONDA_ENV_LIST_CACHE = env_list
     return env_list
+
+
+def get_list_conda_envs_cache():
+    """Return a cache of envs to avoid computing them again."""
+    return CONDA_ENV_LIST_CACHE

@@ -9,7 +9,7 @@ Utilities needed by the fallback completion engine.
 """
 
 # Standard imports
-import imp
+import importlib
 import os
 import os.path as osp
 import re
@@ -151,24 +151,21 @@ def get_parent_until(path):
     """
     Given a file path, determine the full module path.
 
-    e.g. '/usr/lib/python2.7/dist-packages/numpy/core/__init__.pyc' yields
-    'numpy.core'
+    e.g. '/usr/lib/python3.7/dist-packages/numpy/core/__init__.pyc' yields
+    'numpy.core.__init__'
     """
     dirname = osp.dirname(path)
-    try:
-        mod = osp.basename(path)
-        mod = osp.splitext(mod)[0]
-        imp.find_module(mod, [dirname])
-    except ImportError:
+    mod = osp.basename(path)
+    mod = osp.splitext(mod)[0]
+    spec = importlib.machinery.PathFinder.find_spec(mod, [dirname])
+    if not spec:
         return
     items = [mod]
-    while 1:
+    while spec:
         items.append(osp.basename(dirname))
-        try:
-            dirname = osp.dirname(dirname)
-            imp.find_module('__init__', [dirname + os.sep])
-        except ImportError:
-            break
+        dirname = osp.dirname(dirname)
+        spec = importlib.machinery.PathFinder.find_spec('__init__',
+                                                        [dirname + os.sep])
     return '.'.join(reversed(items))
 
 
