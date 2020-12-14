@@ -9,7 +9,7 @@ Introspection utilities used by Spyder
 """
 
 from __future__ import print_function
-import imp
+import importlib
 import os
 import os.path as osp
 import re
@@ -162,9 +162,10 @@ def python_like_mod_finder(import_line, alt_path=None,
     tokens = re.split(r'\W', import_line)
     if tokens[0] in ['from', 'import']:
         # find the base location
-        try:
-            _, path, _ = imp.find_module(tokens[1])
-        except ImportError:
+        spec = importlib.util.find_spec(tokens[1])
+        if spec:
+            path = spec.origin
+        else:
             if alt_path:
                 path = osp.join(alt_path, tokens[1])
             else:

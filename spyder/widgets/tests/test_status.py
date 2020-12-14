@@ -30,6 +30,7 @@ def status_bar(qtbot):
     win.setWindowTitle("Status widgets test")
     win.resize(900, 300)
     statusbar = win.statusBar()
+    win.show()
     qtbot.addWidget(win)
     return (win, statusbar)
 
@@ -64,14 +65,20 @@ def test_status_bar_widget_signal(status_bar, qtbot):
     assert w.get_icon() == 'icon'
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on win")
+@pytest.mark.skipif(not bool(os.environ.get('CI')),
+                    reason="Only meant for CIs")
 def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
     """Test status bar message with conda interpreter."""
     # We patch where the method is used not where it is imported from
     win, statusbar = status_bar
     w = InterpreterStatus(win, statusbar)
+    w._interpreter = ''
+
     name_base = 'conda: base'
     name_test = 'conda: test'
+
+    # Wait until envs are computed
+    qtbot.wait(4000)
 
     # Update to the base conda environment
     path_base, version = w.envs[name_base]

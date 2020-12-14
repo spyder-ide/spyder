@@ -12,6 +12,7 @@ import logging
 import traceback
 from collections import namedtuple
 
+from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.getipython import get_ipython
 from IPython.core.debugger import Pdb as ipyPdb
 
@@ -93,7 +94,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     def print_exclamation_warning(self):
         """Print pdb warning for exclamation mark."""
         if not self._exclamation_warning_printed:
-            print("Warning: The exclamation mark option is enabled."
+            print("Warning: The exclamation mark option is enabled. "
                   "Please use '!' as a prefix for Pdb commands.")
             self._exclamation_warning_printed = True
 
@@ -136,6 +137,11 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             if cmd:
                 cmd_in_namespace = (
                     cmd in ns or cmd in builtins.__dict__)
+                # Special case for quit and exit
+                if cmd in ("quit", "exit"):
+                    if cmd in ns and isinstance(ns[cmd], ZMQExitAutocall):
+                        # Use the pdb call
+                        cmd_in_namespace = False
                 cmd_func = getattr(self, 'do_' + cmd, None)
                 is_pdb_cmd = cmd_func is not None
                 is_assignment = arg and arg[0] == "="

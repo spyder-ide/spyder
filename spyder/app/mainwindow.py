@@ -57,7 +57,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QStyleFactory, QWidget, QCheckBox)
+                            QStyleFactory, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -75,8 +75,7 @@ from qtawesome.iconic_font import FontError
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions,
-                    __docs_url__)
+                    __trouble_url__, get_versions, __docs_url__)
 from spyder import dependencies
 from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
@@ -85,7 +84,7 @@ from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_image_path, get_module_path,
                                 get_module_source_path, get_safe_mode,
-                                reset_config_files, running_in_mac_app,
+                                is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
@@ -599,8 +598,7 @@ class MainWindow(QMainWindow):
 
         # Preferences
         from spyder.preferences.general import MainConfigPage
-        from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        self.general_prefs = [MainConfigPage, MainInterpreterConfigPage]
+        self.general_prefs = [MainConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -1181,6 +1179,11 @@ class MainWindow(QMainWindow):
         self.appearance = Appearance(self, configuration=CONF)
         self.register_plugin(self.appearance)
 
+        # Main interpreter
+        from spyder.plugins.maininterpreter.plugin import MainInterpreter
+        self.maininterpreter = MainInterpreter(self, configuration=CONF)
+        self.register_plugin(self.maininterpreter)
+
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.manager.plugin import CompletionManager
@@ -1200,8 +1203,8 @@ class MainWindow(QMainWindow):
             self,
             status,
             icon=ima.icon('environment'),
+            interpreter=self.maininterpreter.get_interpreter()
         )
-        self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -1285,6 +1288,12 @@ class MainWindow(QMainWindow):
             self.onlinehelp = OnlineHelp(self, configuration=CONF)
             self.register_plugin(self.onlinehelp)
 
+        # Working directory plugin
+        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
+        CONF.set('workingdir', 'init_workdir', self.init_workdir)
+        self.workingdirectory = WorkingDirectory(self, configuration=CONF)
+        self.register_plugin(self.workingdirectory)
+
         # Project explorer widget
         self.set_splash(_("Loading project explorer..."))
         from spyder.plugins.projects.plugin import Projects
@@ -1292,12 +1301,6 @@ class MainWindow(QMainWindow):
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
         self.add_plugin(self.projects)
-
-        # Working directory plugin
-        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-        CONF.set('workingdir', 'init_workdir', self.init_workdir)
-        self.workingdirectory = WorkingDirectory(self, configuration=CONF)
-        self.register_plugin(self.workingdirectory)
 
         # Find in files
         if CONF.get('find_in_files', 'enable'):
@@ -1724,9 +1727,11 @@ class MainWindow(QMainWindow):
         if self.splash is not None:
             self.splash.hide()
 
-        if (self.open_project and
-                (running_in_mac_app() and not self.first_spyder_run)):
-            self.projects.open_project(self.open_project)
+        if self.open_project:
+            if not running_in_mac_app():
+                self.projects.open_project(
+                    self.open_project, workdir=self.init_workdir
+                )
         else:
             # Load last project if a project was active when Spyder
             # was closed
@@ -1858,6 +1863,8 @@ class MainWindow(QMainWindow):
             title = u"Spyder %s (Python %s.%s)" % (__version__,
                                                    sys.version_info[0],
                                                    sys.version_info[1])
+        elif running_in_mac_app() or is_pynsist():
+            title = "Spyder"
         else:
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
                                                 sys.version_info[1])
@@ -3491,7 +3498,7 @@ class MainWindow(QMainWindow):
 
             # Update interpreter status widget
             if self.interpreter_status:
-                interpreter = self.get_main_interpreter()
+                interpreter = self.maininterpreter.get_interpreter()
                 self.interpreter_status.update_interpreter(interpreter)
         else:
             return
@@ -3532,6 +3539,7 @@ class MainWindow(QMainWindow):
 
             for plugin in [self.appearance,
                            self.run,
+                           self.maininterpreter,
                            self.shortcuts,
                            self.workingdirectory,
                            self.editor,
@@ -3856,14 +3864,6 @@ class MainWindow(QMainWindow):
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
 
-    # --- Main interpreter
-    # ------------------------------------------------------------------------
-    def get_main_interpreter(self):
-        if CONF.get('main_interpreter', 'default'):
-            return sys.executable
-        else:
-            return CONF.get('main_interpreter', 'custom_interpreter')
-
     # --- For OpenGL
     def _test_setting_opengl(self, option):
         """Get the current OpenGL implementation in use"""
@@ -4071,7 +4071,7 @@ def main(options, args):
                 mainwindow = create_window(app, splash, options, args)
         else:
             mainwindow = create_window(app, splash, options, args)
-    except FontError as fontError:
+    except FontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
                 "icon theme. That's why it's going to fallback to the "

@@ -162,7 +162,9 @@ To release a new version of Spyder you need to follow these steps:
 
   **Notes**:
 
-  - Don't forget to add new dependencis and update constraints on the rest of them. For that, you need to compare line by line the contents of the `recipe/meta.yaml` file in the feedstock with
+  - Don't forget to add new dependencies and update constraints on the rest of them. For that, you need to compare line by line the contents of the `recipe/meta.yaml` file in the feedstock with
 
     https://github.com/spyder-ide/spyder/blob/4.x/requirements/conda.txt
   - After merging, give a ping to `@anaconda-pkg-build` about the new release.
+
+* Don't forget to yank 4.2.0 in PyPI after 4.2.1 was released (and remove this instruction). That's to avoid people installing 4.2.0 in Python 2 envs.

@@ -22,7 +22,7 @@ from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import Qt
 
-from spyder.config.base import get_conf_path
+from spyder.config.base import _, get_conf_path
 from spyder.config.manager import CONF
 
 
@@ -552,8 +552,8 @@ class DebuggingWidget(DebuggingHistoryWidget):
             self._highlighter.highlighting_on = True
             # The previous code finished executing
             self.executed.emit(self._pdb_prompt)
-            self.sig_pdb_state.emit(
-                True, self.get_pdb_last_step())
+            self.sig_pdb_prompt_ready.emit()
+            self.sig_pdb_state.emit(True, self.get_pdb_last_step())
 
         self._pdb_input_ready = True
 

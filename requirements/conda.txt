@@ -23,7 +23,7 @@ psutil >=5.3
 pygments >=2.0
 pylint >=1.0
 pyls-black >=0.4.6
-pyls-spyder >=0.1.1
+pyls-spyder >=0.3.0
 pyqt <5.13
 # There's no need to set a version for python-language-server
 # because we install it from master for our tests.
@@ -32,7 +32,7 @@ pyxdg >=0.26
 pyzmq >=17
 qdarkstyle >=2.8
 qtawesome >=0.5.7
-qtconsole >=4.7.7
+qtconsole >=5.0.1
 qtpy >=1.5.0
 rtree >=0.8.3
 setuptools >=39.0.0
