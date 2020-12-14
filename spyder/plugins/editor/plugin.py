@@ -1655,7 +1655,7 @@ class Editor(SpyderPluginWidget):
         # Refresh Python file dependent actions:
         editor = self.get_current_editor()
         if editor:
-            python_enable = editor.is_python()
+            python_enable = editor.is_python_or_ipython()
             cython_enable = python_enable or (
                 programs.is_module_installed('Cython') and editor.is_cython())
             for action in self.pythonfile_dependent_actions:
