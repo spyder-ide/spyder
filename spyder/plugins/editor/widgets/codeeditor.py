@@ -20,7 +20,6 @@ Editor widget based on QtGui.QPlainTextEdit
 # Standard library imports
 from __future__ import division, print_function
 
-from distutils.version import LooseVersion
 from unicodedata import category
 import logging
 import os.path as osp
@@ -31,9 +30,8 @@ import textwrap
 import time
 
 # Third party imports
-from IPython import __version__ as ipy_version
-from three_merge import merge
 from diff_match_patch import diff_match_patch
+from IPython.core.inputtransformer2 import TransformerManager
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QPoint, QRegExp, Qt, QTimer, QThread, QUrl,
                          Signal, Slot)
@@ -48,6 +46,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
+from three_merge import merge
 
 # %% This line is for cell execution testing
 
@@ -94,12 +93,6 @@ from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
 from spyder.widgets.helperwidgets import MessageCheckBox
 
-if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
-    from IPython.core.inputsplitter import IPythonInputSplitter as \
-        TransformerManager
-else:
-    from IPython.core.inputtransformer2 import TransformerManager
-    
 
 try:
     import nbformat as nbformat
@@ -221,10 +214,7 @@ def get_file_language(filename, text=None):
 
 def count_leading_empty_lines(cell):
     """Count the number of leading empty cells."""
-    if PY2:
-        lines = cell.splitlines(True)
-    else:
-        lines = cell.splitlines(keepends=True)
+    lines = cell.splitlines(keepends=True)
     if not lines:
         return 0
     for i, line in enumerate(lines):
@@ -240,8 +230,6 @@ def ipython_to_python(code):
     try:
         code = tm.transform_cell(code)
     except SyntaxError:
-        return code
-    if PY2:
         return code
     return '\n' * number_empty_lines + code
 
@@ -2782,7 +2770,7 @@ class CodeEditor(TextEditBaseWidget):
         for diagnostic in self._diagnostics:
             if self.is_ipython() and (
                     diagnostic["message"] == "undefined name 'get_ipython'"):
-                # get_ipython is defined in ipython files
+                # get_ipython is defined in IPython files
                 continue
             source = diagnostic.get('source', '')
             msg_range = diagnostic['range']

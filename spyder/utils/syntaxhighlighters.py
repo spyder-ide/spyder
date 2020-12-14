@@ -696,6 +696,8 @@ class IPythonSH(PythonSH):
     """IPython Syntax Highlighter"""
     add_kw = ['async', 'await']
     PROG = re.compile(make_ipython_patterns(additional_keywords=add_kw), re.S)
+
+
 #==============================================================================
 # Cython syntax highlighter
 #==============================================================================
