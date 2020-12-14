@@ -69,7 +69,7 @@ class DefaultsConfig(cp.ConfigParser, object):
             fp.write('[{}]\n'.format(cp.DEFAULTSECT))
             for (key, value) in self._defaults.items():
                 value_plus_end_of_line = str(value).replace('\n', '\n\t')
-                fp.write('{} = {}\n'.format((key, value_plus_end_of_line)))
+                fp.write('{} = {}\n'.format(key, value_plus_end_of_line))
 
             fp.write('\n')
 

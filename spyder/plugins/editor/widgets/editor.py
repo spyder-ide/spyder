@@ -3283,12 +3283,12 @@ class EditorSplitter(QSplitter):
             return
         splitter = self
         editor = None
-        for index, (is_vertical, cfname, clines) in enumerate(splitsettings):
-            if index > 0:
+        for i, (is_vertical, cfname, clines) in enumerate(splitsettings):
+            if i > 0:
                 splitter.split(Qt.Vertical if is_vertical else Qt.Horizontal)
                 splitter = splitter.widget(1)
             editorstack = splitter.widget(0)
-            for index, finfo in enumerate(editorstack.data):
+            for j, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
                 # TODO: go_to_line is not working properly (the line it jumps
                 # to is not the corresponding to that file). This will be fixed
@@ -3298,7 +3298,7 @@ class EditorSplitter(QSplitter):
                     pass
                 else:
                     try:
-                        editor.go_to_line(clines[index])
+                        editor.go_to_line(clines[j])
                     except IndexError:
                         pass
         hexstate = settings.get('hexstate')

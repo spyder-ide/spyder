@@ -1136,10 +1136,9 @@ class BaseTableView(QTableView):
         # Check if data is a dict
         if not hasattr(data, "keys"):
             return
-        editor = ImportWizard(self, text, title=title,
-                              contents_title=_("Clipboard contents"),
-                              varname=fix_reference_name("data",
-                                                         blacklist=list(data.keys())))
+        editor = ImportWizard(
+            self, text, title=title, contents_title=_("Clipboard contents"),
+            varname=fix_reference_name("data", blacklist=list(data.keys())))
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
@@ -1723,7 +1722,8 @@ def get_test_data():
     try:
         import pandas as pd
     except (ModuleNotFoundError, ImportError):
-        test_timestamp, test_pd_td, test_dtindex, test_series, test_df = None
+        test_df = None
+        test_timestamp = test_pd_td = test_dtindex = test_series = None
     else:
         test_timestamp = pd.Timestamp("1945-05-08T23:01:00.12345")
         test_pd_td = pd.Timedelta(days=2193, hours=12)

@@ -704,7 +704,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
             interface.
         """
         if toolbar_id in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" already exists!'.format(name))
+            raise SpyderAPIError('Toolbar "{}" already exists!'.format(
+                toolbar_id))
 
         toolbar = MainWidgetToolbar(parent=self)
         toolbar.ID = toolbar_id

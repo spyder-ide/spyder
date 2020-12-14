@@ -152,7 +152,7 @@ def test_load_files(editorstack, outlineexplorer, test_files):
     for index, file in enumerate(test_files):
         editorstack.load(file)
         assert editorstack.get_current_filename() == file
-        editorstack.get_stack_index() == index
+        assert editorstack.get_stack_index() == index
 
         results = [item.text(0) for item in treewidget.get_visible_items()]
         assert results == expected_result[index]
