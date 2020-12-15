@@ -944,9 +944,14 @@ def is_module_installed(module_name, version=None, interpreter=None):
             # Module is not installed
             return False
 
-        # This can happen if a package was not uninstalled correctly
-        if module_version is None:
-            return False
+        # This can happen if a package was not uninstalled correctly. For
+        # instance, if it's __pycache__ main directory is left behind.
+        try:
+            mod = __import__(module_name)
+            if not getattr(mod, '__file__', None):
+                return False
+        except Exception:
+            pass
 
     if version is None:
         return True
