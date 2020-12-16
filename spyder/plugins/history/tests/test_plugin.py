@@ -76,27 +76,6 @@ def historylog_with_tab(historylog, mocker, monkeypatch):
 #==============================================================================
 # Tests
 #==============================================================================
-def test_max_entries(historylog, tmpdir):
-    """Test that history is truncated at max_entries."""
-    max_entries = historylog.get_option('max_entries')
-
-    # Write more than max entries in a test file
-    history = ''
-    for i in range(max_entries + 1):
-        history = history + '{}\n'.format(i)
-
-    history_file = tmpdir.join('history.py')
-    history_file.write(history)
-
-    # Load test file in plugin
-    historylog.add_history(to_text_string(history_file))
-
-    # Assert that we have max_entries after loading history and
-    # that there's no 0 in the first line
-    assert len(history_file.readlines()) == max_entries
-    assert '0' not in history_file.readlines()[0]
-
-
 def test_init(historylog):
     """Test HistoryLog.__init__.
 
@@ -106,8 +85,8 @@ def test_init(historylog):
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
-    assert len(hl._plugin_actions) == 5
-    assert len(hl.tabwidget.cornerWidget().menu().actions()) == 5
+    assert len(hl._plugin_actions) == 4
+    assert len(hl.tabwidget.cornerWidget().menu().actions()) == 4
 
 
 def test_add_history(historylog, mocker, monkeypatch):
@@ -209,30 +188,6 @@ def test_append_to_history(historylog_with_tab, mocker):
     assert hl.editors[0].toPlainText() == 'import re\na = r"[a-z]"\n'
     # Cursor not at end.
     assert not hl.editors[0].is_cursor_at_end()
-
-
-def test_change_history_depth(historylog_with_tab, mocker):
-    """Test the change_history_depth method.
-
-    Modify the 'Maximum history entries' values to test the config action.
-    """
-    hl = historylog_with_tab
-    action = hl.history_action
-    # Mock dialog.
-    mocker.patch.object(history.QInputDialog, 'getInt')
-
-    # Starts with default.
-    assert hl.get_option('max_entries') == 100
-
-    # Invalid data.
-    history.QInputDialog.getInt.return_value = (10, False)
-    action.trigger()
-    assert hl.get_option('max_entries') == 100  # No change.
-
-    # Valid data.
-    history.QInputDialog.getInt.return_value = (475, True)
-    action.trigger()
-    assert hl.get_option('max_entries') == 475
 
 
 def test_toggle_wrap_mode(historylog_with_tab):
