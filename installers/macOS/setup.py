@@ -124,11 +124,14 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'textdistance',
                 ]
 
+    EXCLUDE_EGG = ['py2app']
+
     if make_lite:
         INCLUDES = []
         EXCLUDES = [
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy', 'PIL'
         ]
+        EXCLUDE_EGG.append('pillow')
     else:
         INCLUDES = [
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
@@ -136,6 +139,7 @@ def make_app_bundle(dist_dir, make_lite=False):
         EXCLUDES = []
         PACKAGES.append('PIL')
 
+    EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
     FRAMEWORKS = ['/usr/local/lib/libspatialindex.dylib',
@@ -170,11 +174,13 @@ def make_app_bundle(dist_dir, make_lite=False):
         os.remove(app_script_path)
         os.remove(SPYLINK)
 
-    # Copy egg info from site-packages: fixes pkg_resources issue for pyls
+    # Copy egg info from site-packages: fixes several pkg_resources issues
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
                             'lib', f'python{PYVER[0]}.{PYVER[1]}')
     for dist in pkg_resources.working_set:
-        if dist.egg_info is None:
+        if (dist.egg_info is None or dist.key.startswith('pyobjc')
+                or dist.key in EXCLUDE_EGG):
+            logger.info(f'Skipping egg {dist.key}')
             continue
         egg = os.path.basename(dist.egg_info)
         dest = os.path.join(dest_dir, egg)
