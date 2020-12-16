@@ -127,7 +127,7 @@ def make_app_bundle(dist_dir, make_lite=False):
     if make_lite:
         INCLUDES = []
         EXCLUDES = [
-            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
+            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy', 'PIL'
         ]
     else:
         INCLUDES = [
