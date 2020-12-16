@@ -258,7 +258,9 @@ class CodeEditor(TextEditBaseWidget):
         'None': (sh.TextSH, '', None),
     }
 
-    TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'ipy', 'c', 'cpp', 'cl', 'h')
+    TAB_ALWAYS_INDENTS = (
+        'py', 'pyw', 'python', 'ipy', 'c', 'cpp', 'cl', 'h', 'pyt', 'pyi'
+    )
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
