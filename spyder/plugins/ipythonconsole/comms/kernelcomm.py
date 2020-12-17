@@ -51,7 +51,7 @@ class KernelComm(CommBase, QObject):
         if os.name == 'nt':
             return zmqtunnel.paramiko_tunnel(*args, **kwargs)
         else:
-            return openssh_tunnel(self, *args, **kwargs)
+            return openssh_tunnel(None, *args, **kwargs)
 
     def _set_comm_port(self, port):
         """Set comm port."""
