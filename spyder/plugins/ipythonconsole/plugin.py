@@ -941,7 +941,7 @@ class IPythonConsole(SpyderPluginWidget):
                                       is_pylab=is_pylab, is_sympy=is_sympy)
         if client.shellwidget.kernel_manager is None:
             return
-        self.register_client(client)
+        self.register_client(client, give_focus=give_focus)
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
@@ -1127,7 +1127,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Local vars
         shellwidget = client.shellwidget
         control = shellwidget._control
-        page_control = shellwidget._page_control
 
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)
@@ -1176,18 +1175,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Set font for client
         client.set_font(self.get_font())
 
-        # Connect focus signal to client's control widget
-        control.focus_changed.connect(lambda: self.focus_changed.emit())
-
-        shellwidget.sig_change_cwd.connect(self.set_working_directory)
-
         # Set editor for the find widget
         self.find_widget.set_editor(control)
 
-        page_control.focus_changed.connect(lambda: self.focus_changed.emit())
-        control.visibility_changed.connect(self.refresh_plugin)
-        page_control.visibility_changed.connect(self.refresh_plugin)
-        page_control.show_find_widget.connect(self.find_widget.show)
+        # Connect to working directory
+        shellwidget.sig_change_cwd.connect(self.set_working_directory)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
