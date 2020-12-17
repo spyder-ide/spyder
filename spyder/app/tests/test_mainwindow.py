@@ -43,10 +43,9 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 # Local imports
 from spyder import __trouble_url__, __project_url__
 from spyder.app import start
-from spyder.app.mainwindow import MainWindow  # Tests fail without this import
+from spyder.app.mainwindow import MainWindow
 from spyder.config.base import get_home_dir, get_conf_path, get_module_path
 from spyder.config.manager import CONF
-from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -724,6 +723,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on windows!')
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
+    from spyder.preferences.runconfig import RunConfiguration
     CONF.set('run', 'configurations', [])
 
     # ---- Load test file ----
@@ -780,6 +780,8 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
                     reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
+    from spyder.preferences.runconfig import RunConfiguration
+
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
