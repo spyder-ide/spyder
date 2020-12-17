@@ -125,6 +125,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stderr_dir = None
         self.is_error_shown = False
         self.restart_thread = None
+        self.give_focus = True
 
         if css_path is None:
             self.css_path = CSS_PATH
@@ -267,11 +268,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
+        self.give_focus = give_focus
+
         # Make sure the kernel sends the comm config over
         self.shellwidget.call_kernel()._send_comm_config()
-
-        if give_focus:
-            self.get_control().setFocus()
 
         # Set exit callback
         self.shellwidget.set_exit_callback()
@@ -347,6 +347,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_remote_execute.disconnect(
             self._when_prompt_is_ready)
 
+        # It's necessary to do this at this point to avoid giving
+        # focus to _control at startup.
+        self._connect_control_signals()
+
+        if self.give_focus:
+            self.shellwidget._control.setFocus()
+
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
 
@@ -419,7 +426,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
-        return self.shellwidget._control
+        # page_control is the widget used for paging
+        page_control = self.shellwidget._page_control
+        if page_control and page_control.isVisible():
+            return page_control
+        else:
+            return self.shellwidget._control
 
     def get_kernel(self):
         """Get kernel associated with this client"""
@@ -864,3 +876,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             return True
         else:
             return False
+
+    def _connect_control_signals(self):
+        """Connect signals of control widgets."""
+        control = self.shellwidget._control
+        page_control = self.shellwidget._page_control
+
+        control.focus_changed.connect(
+            lambda: self.plugin.focus_changed.emit())
+        page_control.focus_changed.connect(
+            lambda: self.plugin.focus_changed.emit())
+        control.visibility_changed.connect(self.plugin.refresh_plugin)
+        page_control.visibility_changed.connect(self.plugin.refresh_plugin)
+        page_control.show_find_widget.connect(self.plugin.find_widget.show)
