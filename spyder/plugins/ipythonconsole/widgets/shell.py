@@ -267,11 +267,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._cwd = dirname
 
     def update_cwd(self):
-        """Update current working directory.
-
-        Retrieve the cwd and emit a signal connected to the working directory
-        widget. (see: handle_exec_method())
-        """
+        """Update current working directory in the kernel."""
         if self.kernel_client is None:
             return
         self.call_kernel(callback=self.remote_set_cwd).get_cwd()
