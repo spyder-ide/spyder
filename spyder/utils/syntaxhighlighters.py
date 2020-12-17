@@ -75,6 +75,26 @@ COLOR_SCHEME_KEYS = {
     "magic":          _("Magic:"),
 }
 
+COLOR_SCHEME_DEFAULT_VALUES = {
+    "background":  "#19232D",
+    "currentline": "#3a424a",
+    "currentcell": "#292d3e",
+    "occurrence":  "#4734b3",
+    "ctrlclick":   "#179ae0",
+    "sideareas":   "#222b35",
+    "matched_p":   "#0bbe0b",
+    "unmatched_p": "#ff4340",
+    "normal":     ("#ffffff", False, False),
+    "keyword":    ("#c670e0", False, False),
+    "builtin":    ("#fab16c", False, False),
+    "definition": ("#57d6e4", True, False),
+    "comment":    ("#999999", False, False),
+    "string":     ("#b0e686", False, True),
+    "number":     ("#faed5c", False, False),
+    "instance":   ("#ee6772", False, True),
+    "magic":      ("#c670e0", False, False),
+}
+
 COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
 
 # Mapping for file extensions that use Pygments highlighting but should use
