@@ -51,7 +51,6 @@ from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
-from spyder.plugins.run.widgets import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
 from spyder.widgets.dock import DockTitleBar
@@ -734,7 +733,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on windows!')
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
-    from spyder.preferences.runconfig import RunConfiguration
+    from spyder.plugins.run.widgets import RunConfiguration
     CONF.set('run', 'configurations', [])
 
     # ---- Load test file ----
@@ -791,7 +790,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
                     reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
-    from spyder.preferences.runconfig import RunConfiguration
+    from spyder.plugins.run.widgets import RunConfiguration
 
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
