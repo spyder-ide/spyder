@@ -9,7 +9,7 @@ Language utilities
 """
 
 ALL_LANGUAGES = {
-    'Python': ('py', 'pyw', 'python'),
+    'Python': ('py', 'pyw', 'python', 'pyt', 'pyi'),
     'IPython': ('ipy', 'ipython'),
     'Cython': ('pyx', 'pxi', 'pxd'),
     'Enaml': ('enaml',),
