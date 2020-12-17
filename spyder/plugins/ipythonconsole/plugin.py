@@ -154,10 +154,7 @@ class IPythonConsole(SpyderPluginWidget):
         layout.addWidget(self.infowidget)
 
         # Label to inform users how to get out of the pager
-        self.pager_label = QLabel(
-            _("You are in the pager now. Press <b>Q</b> to get out of it"),
-            self
-        )
+        self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         self.pager_label.setStyleSheet(
             "background-color: #3775A9;"
             "margin: 0px 4px 4px 4px;"
