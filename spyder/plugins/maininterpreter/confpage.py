@@ -42,10 +42,11 @@ class MainInterpreterConfigPage(PluginConfigPage):
         conda_env = get_list_conda_envs_cache()
         pyenv_env = get_list_pyenv_envs_cache()
         envs = {**conda_env, **pyenv_env}
-        valid_custom_list = []
+        valid_custom_list = self.get_option('custom_interpreters_list')
         for env in envs.keys():
             path, _ = envs[env]
-            valid_custom_list.append(path)
+            if path not in valid_custom_list:
+                valid_custom_list.append(path)
         self.set_option('custom_interpreters_list', valid_custom_list)
 
         # Python executable selection (initializing default values as well)
