@@ -546,6 +546,7 @@ DEFAULTS = [
               'show_installation_dialog': True,
               'show_onboarding': True,
               'show_installation_error_message': True,
+              'spyder_runs': 1
              }),
             ]
 
