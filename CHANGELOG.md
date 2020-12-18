@@ -12,6 +12,7 @@
 * IPython Console preferences are applied on the fly.
 * IPython files (`*.ipy`) are better support in the Editor.
 * Reduce time to show Preferences dialog.
+* Support for macOS Big Sur.
 
 ### Issues Closed
 
