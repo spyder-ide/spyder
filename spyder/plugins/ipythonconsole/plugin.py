@@ -157,6 +157,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         self.pager_label.setStyleSheet(
             "background-color: #3775A9;"
+            "color: white;"
             "margin: 0px 4px 4px 4px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"
