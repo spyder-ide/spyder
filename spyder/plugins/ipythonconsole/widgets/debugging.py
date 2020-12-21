@@ -471,6 +471,10 @@ class DebuggingWidget(DebuggingHistoryWidget):
             password = self._pdb_prompt[1]
         self._pdb_prompt = (prompt, password)
 
+        # Update continuation prompt to reflect (possibly) new prompt length.
+        self._set_continuation_prompt(
+            self._make_continuation_prompt(prompt), html=True)
+
     def _is_pdb_complete(self, source):
         """
         Check if the pdb input is ready to be executed.
@@ -505,7 +509,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
                     self.input_buffer = source
 
             if interactive:
-                # Add a continuation propt if not complete
+                # Add a continuation prompt if not complete
                 complete, indent = self._is_pdb_complete(source)
                 if not complete:
                     self.do_execute(source, complete, indent)
