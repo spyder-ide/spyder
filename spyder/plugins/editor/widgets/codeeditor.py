@@ -670,6 +670,7 @@ class CodeEditor(TextEditBaseWidget):
         self._document_did_change_timer = QTimer(self)
         self._document_did_change_timer.setSingleShot(True)
         self._document_did_change_timer.timeout.connect(self._document_did_change)
+        self._LSP_document_needs_updating = False
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -1243,8 +1244,15 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing symbols")
 
     # ------------- LSP: Linting ---------------------------------------
+    def update_LSP_document(self):
+        """Update document now."""
+        if self._LSP_document_needs_updating:
+            self._document_did_change_timer.stop()
+            self._document_did_change()
+
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server with a limit on rate."""
+        self._LSP_document_needs_updating = True
         if not self._document_did_change_timer.isActive():
             self._document_did_change_timer.start(1000)
 
@@ -1252,6 +1260,7 @@ class CodeEditor(TextEditBaseWidget):
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def _document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
+        self._LSP_document_needs_updating = False
         self.text_version += 1
         text = self.toPlainText()
         if self.is_ipython():
@@ -1299,7 +1308,7 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion."""
-        self._document_did_change()
+        self.update_LSP_document()
         cursor = self.textCursor()
         current_word = self.get_current_word(
             completion=True,
@@ -1415,7 +1424,7 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self):
         """Ask for signature."""
-        self._document_did_change()
+        self.update_LSP_document()
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
         offset = self.get_position('cursor')
@@ -1469,7 +1478,7 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Hover/Mouse ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
     def request_cursor_event(self):
-        self._document_did_change()
+        self.update_LSP_document()
         text = self.toPlainText()
         cursor = self.textCursor()
         params = {
@@ -1485,7 +1494,7 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
-        self._document_did_change()
+        self.update_LSP_document()
         params = {
             'file': self.filename,
             'line': line,
@@ -1540,7 +1549,7 @@ class CodeEditor(TextEditBaseWidget):
         if (not self.go_to_definition_enabled or
                 self.in_comment_or_string()):
             return
-        self._document_did_change()
+        self.update_LSP_document()
         if cursor is None:
             cursor = self.textCursor()
 
@@ -1595,7 +1604,7 @@ class CodeEditor(TextEditBaseWidget):
     def format_document(self):
         if not self.formatting_enabled:
             return
-        self._document_did_change()
+        self.update_LSP_document()
         using_spaces = self.indent_chars != '\t'
         tab_size = (len(self.indent_chars) if using_spaces else
                     self.tab_stop_width_spaces)
@@ -1623,7 +1632,7 @@ class CodeEditor(TextEditBaseWidget):
     def format_document_range(self):
         if not self.range_formatting_enabled or not self.has_selected_text():
             return
-        self._document_did_change()
+        self.update_LSP_document()
         start, end = self.get_selection_start_end()
         start_line, start_col = start
         end_line, end_col = end
@@ -1782,7 +1791,7 @@ class CodeEditor(TextEditBaseWidget):
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
             return
-        self._document_did_change()
+        self.update_LSP_document()
         params = {'file': self.filename}
         return params
 
@@ -1827,7 +1836,7 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def notify_save(self):
         """Send save request."""
-        self._document_did_change()
+        self.update_LSP_document()
         params = {'file': self.filename}
         if self.save_include_text:
             params['text'] = self.toPlainText()
@@ -1838,7 +1847,7 @@ class CodeEditor(TextEditBaseWidget):
     def notify_close(self):
         """Send close request."""
         if self.completions_available:
-            self._document_did_change()
+            self.update_LSP_document()
             params = {
                 'file': self.filename,
                 'codeeditor': self
