@@ -1532,7 +1532,7 @@ def test_pdb_multiline(ipyconsole, qtbot):
     qtbot.wait(500)
 
     assert shell.get_value('bb') == 10
-    assert "if True:\n   ...:     bb = 10\n" in control.toPlainText()
+    assert "if True:\n     ...:     bb = 10\n" in control.toPlainText()
 
 
 @flaky(max_runs=3)
