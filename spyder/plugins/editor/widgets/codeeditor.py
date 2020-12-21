@@ -666,6 +666,11 @@ class CodeEditor(TextEditBaseWidget):
         self.is_undoing = False
         self.is_redoing = False
 
+        # Rate limit document_did_change
+        self._document_did_change_timer = QTimer(self)
+        self._document_did_change_timer.setSingleShot(True)
+        self._document_did_change_timer.timeout.connect(self._document_did_change)
+
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -1238,9 +1243,14 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing symbols")
 
     # ------------- LSP: Linting ---------------------------------------
+    def document_did_change(self, text=None):
+        """Send textDocument/didChange request to the server with a limit on rate."""
+        if not self._document_did_change_timer.isActive():
+            self._document_did_change_timer.start(1000)
+
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
-    def document_did_change(self, text=None):
+    def _document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
         text = self.toPlainText()
