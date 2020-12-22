@@ -7,7 +7,13 @@
 """Status bar widgets."""
 
 # Standard library imports
+import os
 import os.path as osp
+from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
+
+# Qt-Imports to display Menus
+from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import QFileInfo, QTimer
 
 # Local imports
 from spyder.config.base import _
@@ -21,6 +27,13 @@ from spyder.widgets.status import StatusBarWidget
 class ReadWriteStatus(StatusBarWidget):
     """Status bar widget for current file read/write mode."""
 
+    def __init__(self, parent, statusbar):
+        super(ReadWriteStatus, self).__init__(parent, statusbar)
+        self.parent = parent
+        self.menu = QMenu(self)
+        # Signals
+        self.sig_clicked.connect(self.toggle_rw_r)
+
     def update_readonly(self, readonly):
         """Update read/write file status."""
         value = "R" if readonly else "RW"
@@ -29,6 +42,31 @@ class ReadWriteStatus(StatusBarWidget):
     def get_tooltip(self):
         """Return localized tool tip for widget."""
         return _("File permissions")
+
+    def toggle_rw_r(self):
+        """
+        Toggle the rw permission. Explicitily use the permission that
+        is displayed in the widget as basis for switch decision, to prevent
+        that the file permission has been changed in the background and not
+        been updated in Spyder (in which case it would be switched back again).
+        """
+        filename = self.parent.get_current_filename()
+        writeable = QFileInfo(filename).isWritable()
+        self.set_writable(not writeable)
+
+    def set_writable(self, writeable):
+        """set the current file to writeable or not writeable"""
+        filename = self.parent.get_current_filename()
+        editorstack = self.parent.get_current_editorstack()
+        try:
+            if writeable:
+                os.chmod(filename, S_IWUSR | S_IREAD)
+            else:
+                os.chmod(filename, S_IREAD | S_IRGRP | S_IROTH)
+            editorstack.refresh()
+        except PermissionError:
+            self.set_value("ERROR")
+            QTimer.singleShot(750, lambda: editorstack.refresh())
 
 
 class EOLStatus(StatusBarWidget):

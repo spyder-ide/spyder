@@ -66,6 +66,7 @@ class StatusBarWidget(QWidget):
         # Widget setup
         self.set_icon(icon)
 
+
         # See spyder-ide/spyder#9044.
         self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
         self.label_value.setAlignment(Qt.AlignRight)
