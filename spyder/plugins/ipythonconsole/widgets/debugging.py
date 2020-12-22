@@ -61,6 +61,7 @@ class DebuggingHistoryWidget(RichJupyterWidget):
     def __init__(self, *args, **kwargs):
         # History
         self._pdb_history_input_number = 0  # Input number for current session
+        self._saved_pdb_history_input_number = []  # for recursive debugging
         self._pdb_history_file = PdbHistory()
         self._pdb_history = [
             line[-1] for line in self._pdb_history_file.get_tail(
@@ -211,18 +212,27 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_debug_state(self, is_debugging):
         """Update the debug state."""
         if is_debugging:
+            # Start debugging
+            if self._pdb_in_loop > 0:
+                # Recursive debugging
+                self._saved_pdb_history_input_number.append(
+                    self._pdb_history_input_number)
+                self.end_history_session()
+            self.new_history_session()
             self._pdb_in_loop += 1
-        elif self.is_debugging():
+        elif self._pdb_in_loop > 0:
+            # Stop debugging
             self._pdb_in_loop -= 1
+            self.end_history_session()
+            if self._pdb_in_loop > 0:
+                # Still debugging
+                self.new_history_session()
+                self._pdb_history_input_number = (
+                    self._saved_pdb_history_input_number.pop())
+
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_frame_loc = (None, None)
-
-        # start/stop pdb history session
-        if self.is_debugging():
-            self.new_history_session()
-        else:
-            self.end_history_session()
 
     def _pdb_cmd_prefix(self):
         """Return the command prefix"""
