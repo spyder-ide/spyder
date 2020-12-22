@@ -6,6 +6,7 @@
 
 """Spyder debugger."""
 
+import ast
 import bdb
 import sys
 import logging
@@ -144,7 +145,16 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                         cmd_in_namespace = False
                 cmd_func = getattr(self, 'do_' + cmd, None)
                 is_pdb_cmd = cmd_func is not None
-                is_assignment = arg and arg[0] == "="
+                # Look for assignment
+                is_assignment = False
+                try:
+                    for node in ast.walk(ast.parse(line)):
+                        if isinstance(node, ast.Assign):
+                            is_assignment = True
+                            break
+                except SyntaxError:
+                    pass
+
                 if is_pdb_cmd:
                     if not cmd_in_namespace and not is_assignment:
                         # This is a pdb command without the '!' prefix.
