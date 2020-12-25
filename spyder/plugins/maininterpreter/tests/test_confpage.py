@@ -10,6 +10,7 @@
 import time
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.preferences.api import PreferencePages
 from spyder.plugins.maininterpreter.plugin import MainInterpreter
 from spyder.plugins.preferences.tests.conftest import MainWindowMock
@@ -35,7 +36,7 @@ def test_load_time(qtbot):
     main = MainWindowMock()
     preferences = main.preferences
     preferences.config_pages.pop(PreferencePages.General)
-    main_interpreter = MainInterpreter(main)
+    main_interpreter = MainInterpreter(main, configuration=CONF)
     main.register_plugin(main_interpreter)
 
     # Create page and measure time to do it

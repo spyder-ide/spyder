@@ -44,6 +44,7 @@ class MainWindowMock(QMainWindow):
         self._APPLICATION_TOOLBARS = MagicMock()
 
         self.console = Mock()
+        self.sig_main_interpreter_changed = Mock()
         self.preferences = Preferences(self, CONF)
         self.register_plugin(self.preferences)
 
@@ -55,7 +56,6 @@ class MainWindowMock(QMainWindow):
             mock_attr = Mock()
             setattr(mock_attr, 'toolTip', lambda: '')
             setattr(mock_attr, 'setToolTip', lambda x: '')
-            setattr(mock_attr, 'is_supported', lambda: True)
             setattr(mock_attr, 'prefs_dialog_instance', lambda: '')
             setattr(self, attr, mock_attr)
 

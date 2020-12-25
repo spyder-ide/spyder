@@ -16,14 +16,13 @@ from collections import OrderedDict
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMenu, QSizePolicy, QToolBar, QWidget
+from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+from spyder.utils.qthelpers import create_action, create_toolbutton
 
 
 class SpyderOptionMixin:
@@ -63,7 +62,7 @@ class SpyderOptionMixin:
         Helper method to check the options dictionary has been initialized.
         """
         options = getattr(self, '_options', None)
-        if options is None:
+        if not options:
             self._options = self.DEFAULT_OPTIONS
 
     def _check_options_exist(self, options):
@@ -93,10 +92,12 @@ class SpyderOptionMixin:
         self._check_options_dictionary_exist()
         if option in self.DEFAULT_OPTIONS:
             self._options[option] = value
-            self.on_option_update(option, value)
 
             if emit:
+                # This eventually calls on_option_update too.
                 self.sig_option_changed.emit(option, value)
+            else:
+                self.on_option_update(option, value)
         else:
             raise SpyderAPIError(
                 'Option "{}" has not been defined in the widget '

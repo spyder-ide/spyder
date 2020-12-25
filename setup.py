@@ -28,7 +28,6 @@ import os
 import os.path as osp
 import subprocess
 import sys
-import shutil
 
 # Third party imports
 from setuptools import setup, find_packages
@@ -269,7 +268,6 @@ spyder_plugins_entry_points = [
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
     ('code_completion = spyder.plugins.completion.manager.plugin:'
      'CompletionManager'),
-    'core = spyder.plugins.core.plugin:Core',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
     ('fallback_completion = spyder.plugins.completion.fallback.plugin:'
@@ -290,6 +288,7 @@ spyder_plugins_entry_points = [
     ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
      'LanguageServerPlugin'),
     'python = spyder.plugins.python.plugin:Python',
+    'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
     ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
      'VariableExplorer'),
     ('workingdir = spyder.plugins.workingdirectory.plugin:'

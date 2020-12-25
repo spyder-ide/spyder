@@ -570,7 +570,7 @@ def test_max_history(searchin_combobox, mocker):
 def test_max_results(findinfiles, qtbot):
     """Test max results correspond to expected results."""
     value = 2
-    findinfiles.set_max_results(value)
+    findinfiles.change_option('max_results', value)
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
 

@@ -108,7 +108,8 @@ class PluginConfigPage(SpyderConfigPage):
         return icon
 
     def setup_page(self):
-        """Setup configuration page widget
+        """
+        Setup configuration page widget
 
         You should implement this method and set the layout of the
         preferences page.
