@@ -496,7 +496,7 @@ def get_file_code(filename, save_all=True):
 
 
 def runfile(filename=None, args=None, wdir=None, namespace=None,
-            post_mortem=False, current_namespace=False):
+            post_mortem=False, current_namespace=False, file_dir=True):
     """
     Run filename
     args: command line arguments (string)
@@ -504,6 +504,7 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
     namespace: namespace for execution
     post_mortem: boolean, whether to enter post-mortem mode on error
     current_namespace: if true, run the file in the current namespace
+    file_dir: if wdir is None, should the file directory be used?
     """
     # Tell IPython to hide this frame (>7.16)
     __tracebackhide__ = True
@@ -549,27 +550,27 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
         if args is not None:
             for arg in shlex.split(args):
                 sys.argv.append(arg)
-        if wdir is None:
+        if wdir is None and file_dir:
             wdir = os.path.dirname(filename)
-        else:
-            if PY2:
-                try:
-                    wdir = wdir.decode('utf-8')
-                except (UnicodeError, TypeError):
-                    # UnicodeError, TypeError --> eventually raised in Python 2
-                    pass
-        if os.path.isdir(wdir):
-            os.chdir(wdir)
-            # See https://github.com/spyder-ide/spyder/issues/13632
-            if "multiprocessing.process" in sys.modules:
-                try:
-                    import multiprocessing.process
-                    multiprocessing.process.ORIGINAL_DIR = os.path.abspath(
-                        wdir)
-                except Exception:
-                    pass
-        else:
-            _print("Working directory {} doesn't exist.\n".format(wdir))
+        elif PY2 and wdir is not None:
+            try:
+                wdir = wdir.decode('utf-8')
+            except (UnicodeError, TypeError):
+                # UnicodeError, TypeError --> eventually raised in Python 2
+                pass
+        if wdir is not None:
+            if os.path.isdir(wdir):
+                os.chdir(wdir)
+                # See https://github.com/spyder-ide/spyder/issues/13632
+                if "multiprocessing.process" in sys.modules:
+                    try:
+                        import multiprocessing.process
+                        multiprocessing.process.ORIGINAL_DIR = os.path.abspath(
+                            wdir)
+                    except Exception:
+                        pass
+            else:
+                _print("Working directory {} doesn't exist.\n".format(wdir))
 
         if __umr__.has_cython:
             # Cython files
