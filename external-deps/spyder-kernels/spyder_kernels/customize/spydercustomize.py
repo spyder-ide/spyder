@@ -549,25 +549,27 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
         if args is not None:
             for arg in shlex.split(args):
                 sys.argv.append(arg)
-        if wdir is not None:
+        if wdir is None:
+            wdir = os.path.dirname(filename)
+        else:
             if PY2:
                 try:
                     wdir = wdir.decode('utf-8')
                 except (UnicodeError, TypeError):
                     # UnicodeError, TypeError --> eventually raised in Python 2
                     pass
-            if os.path.isdir(wdir):
-                os.chdir(wdir)
-                # See https://github.com/spyder-ide/spyder/issues/13632
-                if "multiprocessing.process" in sys.modules:
-                    try:
-                        import multiprocessing.process
-                        multiprocessing.process.ORIGINAL_DIR = os.path.abspath(
-                            wdir)
-                    except Exception:
-                        pass
-            else:
-                _print("Working directory {} doesn't exist.\n".format(wdir))
+        if os.path.isdir(wdir):
+            os.chdir(wdir)
+            # See https://github.com/spyder-ide/spyder/issues/13632
+            if "multiprocessing.process" in sys.modules:
+                try:
+                    import multiprocessing.process
+                    multiprocessing.process.ORIGINAL_DIR = os.path.abspath(
+                        wdir)
+                except Exception:
+                    pass
+        else:
+            _print("Working directory {} doesn't exist.\n".format(wdir))
 
         if __umr__.has_cython:
             # Cython files
