@@ -676,7 +676,7 @@ class IPythonConsole(SpyderPluginWidget):
                                     norm(filename))
                 if args:
                     line += ", args='%s'" % norm(args)
-                if wdir:
+                if wdir and wdir != os.path.dirname(filename):
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
                     line += ", post_mortem=True"
