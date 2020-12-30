@@ -99,12 +99,9 @@ from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
-                                    add_shortcut_to_tooltip,
-                                    create_module_bookmark_actions,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
-                                    MENU_SEPARATOR, qapplication,
-                                    set_menu_icons)
+                                    MENU_SEPARATOR, qapplication, start_file)
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 from spyder.app.solver import find_external_plugins, solve_plugin_dependencies
@@ -158,24 +155,6 @@ class MainWindow(QMainWindow):
     )
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
-    BOOKMARKS = (
-         ('Python2', "https://docs.python.org/2/index.html",
-          _("Python2 documentation")),
-         ('Python3', "https://docs.python.org/3/index.html",
-          _("Python3 documentation")),
-         ('numpy', "https://docs.scipy.org/doc/",
-          _("Numpy and Scipy documentation")),
-         ('matplotlib', "https://matplotlib.org/contents.html",
-          _("Matplotlib documentation")),
-         ('PyQt5',
-          "https://www.riverbankcomputing.com/static/Docs/PyQt5/",
-          _("PyQt5 Reference Guide")),
-         ('PyQt5',
-          "https://www.riverbankcomputing.com/static/Docs/PyQt5/module_index.html",
-          _("PyQt5 API Reference")),
-         ('winpython', "https://winpython.github.io/",
-          _("WinPython"))
-                )
     DEFAULT_LAYOUTS = 4
 
     # Signals
@@ -589,13 +568,6 @@ class MainWindow(QMainWindow):
         # File switcher
         self.switcher = None
 
-        # Check for updates Thread and Worker, refereces needed to prevent
-        # segfaulting
-        self.check_updates_action = None
-        self.thread_updates = None
-        self.worker_updates = None
-        self.give_updates_feedback = True
-
         # Preferences
         from spyder.preferences.general import MainConfigPage
         self.general_prefs = [MainConfigPage]
@@ -642,15 +614,10 @@ class MainWindow(QMainWindow):
         self.projects_menu_actions = []
         self.tools_menu = None
         self.tools_menu_actions = []
-        self.external_tools_menu = None # We must keep a reference to this,
-        # otherwise the external tools menu is lost after leaving setup method
-        self.external_tools_menu_actions = []
-        self.view_menu = None
+
         self.plugins_menu = None
         self.plugins_menu_actions = []
         self.toolbars_menu = None
-        self.help_menu = None
-        self.help_menu_actions = []
 
         # Status bar widgets
         self.interpreter_status = None
@@ -822,66 +789,11 @@ class MainWindow(QMainWindow):
                 action.setShortcut(shortcut)
 
     def setup(self):
-        """Setup main window"""
+        """Setup main window."""
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
-
-        logger.info("Creating toolbars...")
-        # File menu/toolbar
-        self.file_menu = self.menuBar().addMenu(_("&File"))
-        self.file_toolbar = self.create_toolbar(_("File toolbar"),
-                                                "file_toolbar")
-        # Edit menu/toolbar
-        self.edit_menu = self.menuBar().addMenu(_("&Edit"))
-        self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
-                                                "edit_toolbar")
-        # Search menu/toolbar
-        self.search_menu = self.menuBar().addMenu(_("&Search"))
-        self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-                                                  "search_toolbar")
-        # Source menu/toolbar
-        self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
-        self.source_toolbar = self.create_toolbar(_("Source toolbar"),
-                                                  "source_toolbar")
-        # Run menu/toolbar
-        self.run_menu = self.menuBar().addMenu(_("&Run"))
-        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
-                                               "run_toolbar")
-
-        # Debug menu/toolbar
-        self.debug_menu = self.menuBar().addMenu(_("&Debug"))
-        self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
-                                                 "debug_toolbar")
-
-        # Consoles menu/toolbar
-        self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
-        self.consoles_menu.aboutToShow.connect(
-                self.update_execution_state_kernel)
-
-        # Projects menu
-        self.projects_menu = self.menuBar().addMenu(_("&Projects"))
-        self.projects_menu.aboutToShow.connect(self.valid_project)
-
-        # Tools menu
-        self.tools_menu = self.menuBar().addMenu(_("&Tools"))
-
-        # View menu
-        self.view_menu = self.menuBar().addMenu(_("&View"))
-        self.view_menu.aboutToShow.connect(
-            lambda: self._update_shortcuts_in_panes_menu(True))
-        self.view_menu.aboutToHide.connect(
-            lambda: self._update_shortcuts_in_panes_menu(False))
-
-        # Help menu
-        self.help_menu = self.menuBar().addMenu(_("&Help"))
-
-        # Status bar
-        status = self.statusBar()
-        status.setObjectName("StatusBar")
-        status.showMessage(_("Welcome to Spyder!"), 5000)
-
         logger.info("Updating PYTHONPATH")
         path_dict = self.get_spyder_pythonpath_dict()
         self.update_python_path(path_dict)
@@ -914,12 +826,21 @@ class MainWindow(QMainWindow):
         else:
             css_path = CSS_PATH
 
+        # Main menu plugin
+        from spyder.api.widgets.menus import SpyderMenu
+        from spyder.plugins.mainmenu.plugin import MainMenu
+        from spyder.plugins.mainmenu.api import (
+            ApplicationMenus, HelpMenuSections, ViewMenuSections)
+        self.mainmenu = MainMenu(self, configuration=CONF)
+        self.register_plugin(self.mainmenu)
+
         # Shortcuts plugin
         from spyder.plugins.shortcuts.plugin import Shortcuts
         self.shortcuts = Shortcuts(self, configuration=CONF)
         self.register_plugin(self.shortcuts)
 
         logger.info("Creating core actions...")
+        # TODO: Change registration to use MainMenus
         self.close_dockwidget_action = create_action(
             self, icon=ima.icon('close_pane'),
             text=_("Close current pane"),
@@ -1001,6 +922,60 @@ class MainWindow(QMainWindow):
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
 
+        message = _(
+            "Spyder Internal Console\n\n"
+            "This console is used to report application\n"
+            "internal errors and to inspect Spyder\n"
+            "internals with the following commands:\n"
+            "  spy.app, spy.window, dir(spy)\n\n"
+            "Please don't use it to run your code\n\n"
+        )
+        CONF.set('internal_console', 'message', message)
+        CONF.set('internal_console', 'multithreaded', self.multithreaded)
+        CONF.set('internal_console', 'profile', self.profile)
+        CONF.set('internal_console', 'commands', [])
+        CONF.set('internal_console', 'namespace', {})
+        CONF.set('internal_console', 'show_internal_errors', True)
+
+        # Internal console plugin
+        from spyder.plugins.console.plugin import Console
+        self.console = Console(self, configuration=CONF)
+        self.register_plugin(self.console)
+
+        # Menus
+        # TODO: Remove when all menus are migrated to use the Main Menu Plugin
+        mainmenu = self.mainmenu
+        self.file_menu = mainmenu.get_application_menu("file_menu")
+        self.edit_menu = mainmenu.get_application_menu("edit_menu")
+        self.search_menu = mainmenu.get_application_menu("search_menu")
+        self.source_menu = mainmenu.get_application_menu("source_menu")
+        self.run_menu = mainmenu.get_application_menu("run_menu")
+        self.debug_menu = mainmenu.get_application_menu("debug_menu")
+        self.consoles_menu = mainmenu.get_application_menu("consoles_menu")
+        self.consoles_menu.aboutToShow.connect(
+                self.update_execution_state_kernel)
+        self.projects_menu = mainmenu.get_application_menu("projects_menu")
+        self.projects_menu.aboutToShow.connect(self.valid_project)
+        self.tools_menu = mainmenu.get_application_menu("tools_menu")
+
+        logger.info("Creating toolbars...")
+        # Toolbars
+        self.file_toolbar = self.create_toolbar(_("File toolbar"),
+                                                "file_toolbar")
+        self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
+                                                "edit_toolbar")
+        self.search_toolbar = self.create_toolbar(_("Search toolbar"),
+                                                  "search_toolbar")
+        self.source_toolbar = self.create_toolbar(_("Source toolbar"),
+                                                  "source_toolbar")
+        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
+                                               "run_toolbar")
+        self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
+                                                 "debug_toolbar")
+        # Status bar
+        status = self.statusBar()
+        status.setObjectName("StatusBar")
+        status.showMessage(_("Welcome to Spyder!"), 5000)
         self.source_menu.aboutToShow.connect(self.update_source_menu)
 
         logger.info("Creating Tools menu...")
@@ -1044,70 +1019,6 @@ class MainWindow(QMainWindow):
             self.menu_lsp_logs = QMenu(_("LSP logs"))
             self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
             self.tools_menu_actions += [self.menu_lsp_logs]
-        # External Tools submenu
-        self.external_tools_menu = QMenu(_("External Tools"))
-        self.external_tools_menu_actions = []
-
-        # WinPython control panel
-        self.wp_action = create_action(self, _("WinPython control panel"),
-                    icon=get_icon('winpython.svg'),
-                    triggered=lambda:
-                    programs.run_python_script('winpython', 'controlpanel'))
-        if os.name == 'nt' and is_module_installed('winpython'):
-            self.external_tools_menu_actions.append(self.wp_action)
-
-        # Qt-related tools
-        additact = []
-        for name in ("designer-qt4", "designer"):
-            qtdact = create_program_action(self, _("Qt Designer"), name)
-            if qtdact:
-                break
-        for name in ("linguist-qt4", "linguist"):
-            qtlact = create_program_action(self, _("Qt Linguist"), "linguist")
-            if qtlact:
-                break
-        args = ['-no-opengl'] if os.name == 'nt' else []
-        for act in (qtdact, qtlact):
-            if act:
-                additact.append(act)
-        if additact and is_module_installed('winpython'):
-            self.external_tools_menu_actions += [None] + additact
-
-        # Guidata and Sift
-        logger.info("Creating guidata and sift entries...")
-        gdgq_act = []
-        # Guidata and Guiqwt don't support PyQt5 yet and they fail
-        # with an AssertionError when imported using those bindings
-        # (see spyder-ide/spyder#2274)
-        try:
-            from guidata import configtools
-            from guidata import config       # analysis:ignore
-            guidata_icon = configtools.get_icon('guidata.svg')
-            guidata_act = create_python_script_action(self,
-                                    _("guidata examples"), guidata_icon,
-                                    "guidata",
-                                    osp.join("tests", "__init__"))
-            gdgq_act += [guidata_act]
-        except:
-            pass
-        try:
-            from guidata import configtools
-            from guiqwt import config  # analysis:ignore
-            guiqwt_icon = configtools.get_icon('guiqwt.svg')
-            guiqwt_act = create_python_script_action(self,
-                            _("guiqwt examples"), guiqwt_icon, "guiqwt",
-                            osp.join("tests", "__init__"))
-            if guiqwt_act:
-                gdgq_act += [guiqwt_act]
-            sift_icon = configtools.get_icon('sift.svg')
-            sift_act = create_python_script_action(self, _("Sift"),
-                        sift_icon, "guiqwt", osp.join("tests", "sift"))
-            if sift_act:
-                gdgq_act += [sift_act]
-        except:
-            pass
-        if gdgq_act:
-            self.external_tools_menu_actions += [None] + gdgq_act
 
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
@@ -1145,29 +1056,6 @@ class MainWindow(QMainWindow):
         # Switcher instance
         logger.info("Loading switcher...")
         self.create_switcher()
-
-        # Internal console plugin
-        message = _(
-            "Spyder Internal Console\n\n"
-            "This console is used to report application\n"
-            "internal errors and to inspect Spyder\n"
-            "internals with the following commands:\n"
-            "  spy.app, spy.window, dir(spy)\n\n"
-            "Please don't use it to run your code\n\n"
-        )
-        CONF.set('internal_console', 'message', message)
-        CONF.set('internal_console', 'multithreaded', self.multithreaded)
-        CONF.set('internal_console', 'profile', self.profile)
-        CONF.set('internal_console', 'commands', [])
-        CONF.set('internal_console', 'namespace', {})
-        CONF.set('internal_console', 'show_internal_errors', True)
-
-        from spyder.plugins.console.plugin import Console
-        self.console = Console(self, configuration=CONF)
-        self.console.set_exit_function(self.closing)
-        self.register_plugin(self.console)
-
-        # TODO: Load and register the rest of the plugins using new API
 
         # Run plugin
         from spyder.plugins.run.plugin import Run
@@ -1390,39 +1278,10 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Setting up main window..."))
 
         # Help menu
-        trouble_action = create_action(self,
-                                        _("Troubleshooting..."),
-                                        triggered=self.trouble_guide)
-        dep_action = create_action(self, _("Dependencies..."),
-                                    triggered=self.show_dependencies,
-                                    icon=ima.icon('advanced'))
-        report_action = create_action(self,
-                                        _("Report issue..."),
-                                        icon=ima.icon('bug'),
-                                        triggered=self.report_issue)
-        support_action = create_action(self,
-                                        _("Spyder support..."),
-                                        triggered=self.google_group)
-        self.check_updates_action = create_action(self,
-                                                _("Check for updates..."),
-                                                triggered=self.check_updates)
-
-        # Spyder documentation
-        doc_action = create_action(self, _("Spyder documentation"),
-                                   icon=ima.icon('DialogHelpButton'),
-                                   triggered=lambda:
-                                   programs.start_file(__docs_url__))
-        self.register_shortcut(doc_action, "_",
-                               "spyder documentation")
-
-        spyder_vid = ("https://www.youtube.com/playlist"
-                      "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
-        vid_action = create_action(self, _("Tutorial videos"),
-                                   icon=ima.icon('VideoIcon'),
-                                   triggered=lambda:
-                                   programs.start_file(spyder_vid))
-
+        # TODO: Once all the related plugins are migrated, and they add
+        # their own actions, this can be removed.
         #----- Tours
+        # TODO: Move to plugin
         self.tour = tour.AnimatedTour(self)
         # self.tours_menu = QMenu(_("Interactive tours"), self)
         # self.tour_menu_actions = []
@@ -1443,93 +1302,40 @@ class MainWindow(QMainWindow):
 
         # self.tours_menu.addActions(self.tour_menu_actions)
         self.tour_action = create_action(
-            self, self.tours_available[DEFAULT_TOUR]['name'],
+            self,
+            self.tours_available[DEFAULT_TOUR]['name'],
             tip=_("Interactive tour introducing Spyder's panes and features"),
             triggered=lambda: self.show_tour(DEFAULT_TOUR))
-
-        self.help_menu_actions = [
-            doc_action,
-            vid_action,
-            # shortcuts_action,
+        self.mainmenu.add_item_to_application_menu(
             self.tour_action,
-            MENU_SEPARATOR,
-            trouble_action,
-            report_action, dep_action,
-            self.check_updates_action,
-            support_action,
-            MENU_SEPARATOR,
-        ]
-        # Python documentation
-        if get_python_doc_path() is not None:
-            pydoc_act = create_action(self, _("Python documentation"),
-                                triggered=lambda:
-                                programs.start_file(get_python_doc_path()))
-            self.help_menu_actions.append(pydoc_act)
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.Documentation)
+
+        # TODO: Move to plugin
         # IPython documentation
         if self.help is not None:
-            ipython_menu = QMenu(_("IPython documentation"), self)
-            intro_action = create_action(self, _("Intro to IPython"),
-                                        triggered=self.ipyconsole.show_intro)
-            quickref_action = create_action(self, _("Quick reference"),
-                                    triggered=self.ipyconsole.show_quickref)
-            guiref_action = create_action(self, _("Console help"),
-                                        triggered=self.ipyconsole.show_guiref)
-            add_actions(ipython_menu, (intro_action, guiref_action,
-                                        quickref_action))
-            self.help_menu_actions.append(ipython_menu)
-        # Windows-only: documentation located in sys.prefix/Doc
-        ipm_actions = []
-        def add_ipm_action(text, path):
-            """Add installed Python module doc action to help submenu"""
-            # QAction.triggered works differently for PySide and PyQt
-            path = file_uri(path)
-            if not API == 'pyside':
-                slot=lambda _checked, path=path: programs.start_file(path)
-            else:
-                slot=lambda path=path: programs.start_file(path)
-            action = create_action(self, text,
-                    icon='%s.png' % osp.splitext(path)[1][1:],
-                    triggered=slot)
-            ipm_actions.append(action)
-        sysdocpth = osp.join(sys.prefix, 'Doc')
-        if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
-            for docfn in os.listdir(sysdocpth):
-                pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
-                match = re.match(pt, docfn)
-                if match is not None:
-                    pname = match.groups()[0]
-                    if pname not in ('Python', ):
-                        add_ipm_action(pname, osp.join(sysdocpth, docfn))
-        # Installed Python modules submenu (Windows only)
-        if ipm_actions:
-            pymods_menu = QMenu(_("Installed Python modules"), self)
-            add_actions(pymods_menu, ipm_actions)
-            self.help_menu_actions.append(pymods_menu)
-        # Online documentation
-        web_resources = QMenu(_("Online documentation"), self)
-        webres_actions = create_module_bookmark_actions(self,
-                                                        self.BOOKMARKS)
-        webres_actions.insert(2, None)
-        webres_actions.insert(5, None)
-        webres_actions.insert(8, None)
-        add_actions(web_resources, webres_actions)
-        self.help_menu_actions.append(web_resources)
-        # Qt assistant link
-        if sys.platform.startswith('linux') and not PYQT5:
-            qta_exe = "assistant-qt4"
-        else:
-            qta_exe = "assistant"
-        qta_act = create_program_action(self, _("Qt documentation"),
-                                        qta_exe)
-        if qta_act:
-            self.help_menu_actions += [qta_act, None]
-
-        # About Spyder
-        about_action = create_action(self,
-                                _("About %s...") % "Spyder",
-                                icon=ima.icon('MessageBoxInformation'),
-                                triggered=self.show_about)
-        self.help_menu_actions += [MENU_SEPARATOR, about_action]
+            self.ipython_menu = SpyderMenu(
+                parent=self,
+                title=_("IPython documentation"))
+            intro_action = create_action(
+                self,
+                _("Intro to IPython"),
+                triggered=self.ipyconsole.show_intro)
+            quickref_action = create_action(
+                self,
+                _("Quick reference"),
+                triggered=self.ipyconsole.show_quickref)
+            guiref_action = create_action(
+                self,
+                _("Console help"),
+                triggered=self.ipyconsole.show_guiref)
+            add_actions(
+                self.ipython_menu,
+                (intro_action, guiref_action, quickref_action))
+            self.mainmenu.add_item_to_application_menu(
+                self.ipython_menu,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.ExternalDocumentation)
 
         # Status bar widgets
         from spyder.widgets.status import MemoryStatus, CPUStatus, ClockStatus
@@ -1540,44 +1346,67 @@ class MainWindow(QMainWindow):
 
         # ----- View
         # View menu
-        self.plugins_menu = QMenu(_("Panes"), self)
-
-        self.toolbars_menu = QMenu(_("Toolbars"), self)
-        self.quick_layout_menu = QMenu(_("Window layouts"), self)
+        # Menus
+        self.plugins_menu = SpyderMenu(parent=self, title=_("Panes"))
+        self.toolbars_menu = SpyderMenu(parent=self, title=_("Toolbars"))
+        self.quick_layout_menu = SpyderMenu(
+            parent=self,
+            title=_("Window layouts"))
         self.quick_layout_set_menu()
-
-        self.view_menu.addMenu(self.plugins_menu)  # Panes
-        add_actions(self.view_menu, (self.lock_interface_action,
-                                     self.close_dockwidget_action,
-                                     self.maximize_action,
-                                     MENU_SEPARATOR))
-        self.show_toolbars_action = create_action(self,
-                                _("Show toolbars"),
-                                triggered=self.show_toolbars,
-                                context=Qt.ApplicationShortcut)
+        self.show_toolbars_action = create_action(
+            self,
+            _("Show toolbars"),
+            triggered=self.show_toolbars,
+            context=Qt.ApplicationShortcut)
         self.register_shortcut(self.show_toolbars_action, "_",
                                "Show toolbars")
-        self.view_menu.addMenu(self.toolbars_menu)
-        self.view_menu.addAction(self.show_toolbars_action)
-        add_actions(self.view_menu, (MENU_SEPARATOR,
-                                     self.quick_layout_menu,
-                                     self.toggle_previous_layout_action,
-                                     self.toggle_next_layout_action,
-                                     MENU_SEPARATOR,
-                                     self.fullscreen_action))
-        if set_attached_console_visible is not None:
-            cmd_act = create_action(self,
-                                _("Attached console window (debugging)"),
-                                toggled=set_attached_console_visible)
-            cmd_act.setChecked(is_attached_console_visible())
-            add_actions(self.view_menu, (MENU_SEPARATOR, cmd_act))
 
-        # Adding external tools action to "Tools" menu
-        if self.external_tools_menu_actions:
-            external_tools_act = create_action(self, _("External Tools"))
-            external_tools_act.setMenu(self.external_tools_menu)
-            self.tools_menu_actions += [None, external_tools_act]
+        # Panes section
+        self.mainmenu.add_item_to_application_menu(
+                self.plugins_menu,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Pane)
+        self.mainmenu.add_item_to_application_menu(
+                self.lock_interface_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Pane)
+        self.mainmenu.add_item_to_application_menu(
+                self.close_dockwidget_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Pane)
+        self.mainmenu.add_item_to_application_menu(
+                self.maximize_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Pane)
+        # Toolbar section
+        self.mainmenu.add_item_to_application_menu(
+                self.toolbars_menu,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.ToolBar)
+        self.mainmenu.add_item_to_application_menu(
+                self.show_toolbars_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.ToolBar)
+        # Layout section
+        self.mainmenu.add_item_to_application_menu(
+                self.quick_layout_menu,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Layout)
+        self.mainmenu.add_item_to_application_menu(
+                self.toggle_previous_layout_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Layout)
+        self.mainmenu.add_item_to_application_menu(
+                self.toggle_next_layout_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Layout)
+        # Bottom section
+        self.mainmenu.add_item_to_application_menu(
+                self.fullscreen_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Bottom)
 
+        # TODO: Migrate to use the MainMenu Plugin instead of list of actions
         # Filling out menu/toolbar entries:
         add_actions(self.file_menu, self.file_menu_actions)
         add_actions(self.edit_menu, self.edit_menu_actions)
@@ -1588,9 +1417,6 @@ class MainWindow(QMainWindow):
         add_actions(self.consoles_menu, self.consoles_menu_actions)
         add_actions(self.projects_menu, self.projects_menu_actions)
         add_actions(self.tools_menu, self.tools_menu_actions)
-        add_actions(self.external_tools_menu,
-                    self.external_tools_menu_actions)
-        add_actions(self.help_menu, self.help_menu_actions)
 
         add_actions(self.main_toolbar, self.main_toolbar_actions)
         add_actions(self.file_toolbar, self.file_toolbar_actions)
@@ -1625,27 +1451,6 @@ class MainWindow(QMainWindow):
                 self.tabify_plugin(plugin_instance)
                 plugin_instance.toggle_view(False)
 
-    def setup_menus(self):
-        """Setup menus."""
-        # Update menus list
-        default_menus = [self.file_menu, self.edit_menu, self.search_menu,
-                         self.source_menu, self.run_menu, self.debug_menu,
-                         self.consoles_menu, self.projects_menu,
-                         self.tools_menu, self.view_menu, self.help_menu]
-        self.menus = self.menus + default_menus
-
-        # Show and hide shortcuts and icons in menus for macOS
-        if sys.platform == 'darwin':
-            for menu in self.menus:
-                if menu is not None:
-                    menu.aboutToShow.connect(
-                        lambda menu=menu: self.show_shortcuts(menu))
-                    menu.aboutToHide.connect(
-                        lambda menu=menu: self.hide_shortcuts(menu))
-                    menu.aboutToShow.connect(
-                        lambda menu=menu: set_menu_icons(menu, False))
-                    menu.aboutToShow.connect(self.hide_options_menus)
-
     def update_lsp_logs(self):
         """Create an action for each lsp log file."""
         self.menu_lsp_logs.clear()
@@ -1661,7 +1466,7 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
-        for plugin_id, plugin in self._PLUGINS.items():
+        for __, plugin in self._PLUGINS.items():
             try:
                 plugin.on_mainwindow_visible()
             except AttributeError:
@@ -1746,14 +1551,6 @@ class MainWindow(QMainWindow):
 
         # Connect Editor debug action with Console
         self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
-
-        # Setup menus
-        self.setup_menus()
-
-        # Check for spyder updates
-        if DEV is None and CONF.get('main', 'check_updates_on_startup'):
-            self.give_updates_feedback = False
-            self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
         if not running_under_pytest():
@@ -2838,11 +2635,7 @@ class MainWindow(QMainWindow):
         add_actions(self.toolbars_menu, order)
 
     def createPopupMenu(self):
-        menu = QMenu('', self)
-        actions = self.help_menu_actions[:3] + \
-                    [None, self.help_menu_actions[-1]]
-        add_actions(menu, actions)
-        return menu
+        return self.mainmenu.get_application_context_menu(parent=self)
 
     def set_splash(self, message):
         """Set splash message"""
@@ -3195,41 +2988,6 @@ class MainWindow(QMainWindow):
             add_actions(toolbar, actions)
 
     @Slot()
-    def show_about(self):
-        """Show About Spyder dialog box"""
-        from spyder.widgets.about import AboutDialog
-        abt = AboutDialog(self)
-        abt.show()
-
-    @Slot()
-    def show_dependencies(self):
-        """Show Spyder's Dependencies dialog box"""
-        from spyder.widgets.dependencies import DependenciesDialog
-        dlg = DependenciesDialog(self)
-        dlg.set_data(dependencies.DEPENDENCIES)
-        dlg.show()
-
-    @Slot()
-    def report_issue(self):
-        """Report a Spyder issue to github."""
-        from spyder.widgets.reporterror import SpyderErrorDialog
-        self._report_dlg = SpyderErrorDialog(self, is_report=True)
-        self._report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
-        self._report_dlg.show()
-
-    @Slot()
-    def trouble_guide(self):
-        """Open Spyder troubleshooting guide in a web browser."""
-        url = QUrl(__trouble_url__)
-        QDesktopServices.openUrl(url)
-
-    @Slot()
-    def google_group(self):
-        """Open Spyder Google Group in a web browser."""
-        url = QUrl(__forum_url__)
-        QDesktopServices.openUrl(url)
-
-    @Slot()
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()
@@ -3293,7 +3051,7 @@ class MainWindow(QMainWindow):
             self.variableexplorer.import_data(fname)
         elif not external:
             fname = file_uri(fname)
-            programs.start_file(fname)
+            start_file(fname)
 
     def open_external_file(self, fname):
         """
@@ -3747,89 +3505,6 @@ class MainWindow(QMainWindow):
 
         return self.switcher
 
-    # ---- Check for Spyder Updates
-    def _check_updates_ready(self):
-        """Called by WorkerUpdates when ready"""
-        from spyder.widgets.helperwidgets import MessageCheckBox
-
-        # `feedback` = False is used on startup, so only positive feedback is
-        # given. `feedback` = True is used when after startup (when using the
-        # menu action, and gives feeback if updates are, or are not found.
-        feedback = self.give_updates_feedback
-
-        # Get results from worker
-        update_available = self.worker_updates.update_available
-        latest_release = self.worker_updates.latest_release
-        error_msg = self.worker_updates.error
-
-        # Release url
-        url_r = __project_url__ + '/releases/tag/v{}'.format(latest_release)
-        url_i = 'https://docs.spyder-ide.org/installation.html'
-
-        # Define the custom QMessageBox
-        box = MessageCheckBox(icon=QMessageBox.Information,
-                              parent=self)
-        box.setWindowTitle(_("New Spyder version"))
-        box.set_checkbox_text(_("Check for updates at startup"))
-        box.setStandardButtons(QMessageBox.Ok)
-        box.setDefaultButton(QMessageBox.Ok)
-
-        # Adjust the checkbox depending on the stored configuration
-        section, option = 'main', 'check_updates_on_startup'
-        check_updates = CONF.get(section, option)
-        box.set_checked(check_updates)
-
-        if error_msg is not None:
-            msg = error_msg
-            box.setText(msg)
-            box.set_check_visible(False)
-            box.exec_()
-            check_updates = box.is_checked()
-        else:
-            if update_available:
-                header = _("<b>Spyder {} is available!</b><br><br>").format(
-                    latest_release)
-                footer = _(
-                    "For more information visit our "
-                    "<a href=\"{}\">installation guide</a>."
-                ).format(url_i)
-                if is_anaconda():
-                    content = _(
-                        "<b>Important note:</b> Since you installed "
-                        "Spyder with Anaconda, please <b>don't</b> use "
-                        "<code>pip</code> to update it as that will break "
-                        "your installation.<br><br>"
-                        "Instead, run the following commands in a "
-                        "terminal:<br>"
-                        "<code>conda update anaconda</code><br>"
-                        "<code>conda install spyder={}</code><br><br>"
-                    ).format(latest_release)
-                else:
-                    content = _(
-                        "Please go to <a href=\"{}\">this page</a> to "
-                        "download it.<br><br>"
-                    ).format(url_r)
-                msg = header + content + footer
-                box.setText(msg)
-                box.set_check_visible(True)
-                box.exec_()
-                check_updates = box.is_checked()
-            elif feedback:
-                msg = _("Spyder is up to date.")
-                box.setText(msg)
-                box.set_check_visible(False)
-                box.exec_()
-                check_updates = box.is_checked()
-
-        # Update checkbox based on user interaction
-        CONF.set(section, option, check_updates)
-
-        # Enable check_updates_action after the thread has finished
-        self.check_updates_action.setDisabled(False)
-
-        # Provide feeback when clicking menu if check on startup is on
-        self.give_updates_feedback = True
-
     @Slot()
     def show_tour_message(self, force=False):
         """
@@ -3842,27 +3517,6 @@ class MainWindow(QMainWindow):
             self.tour_dialog = tour.OpenTourDialog(
                 self, lambda: self.show_tour(DEFAULT_TOUR))
             self.tour_dialog.show()
-
-    @Slot()
-    def check_updates(self, startup=False):
-        """
-        Check for spyder updates on github releases using a QThread.
-        """
-        from spyder.workers.updates import WorkerUpdates
-
-        # Disable check_updates_action while the thread is working
-        self.check_updates_action.setDisabled(True)
-
-        if self.thread_updates is not None:
-            self.thread_updates.terminate()
-
-        self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self, startup=startup)
-        self.worker_updates.sig_ready.connect(self._check_updates_ready)
-        self.worker_updates.sig_ready.connect(self.thread_updates.quit)
-        self.worker_updates.moveToThread(self.thread_updates)
-        self.thread_updates.started.connect(self.worker_updates.start)
-        self.thread_updates.start()
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):

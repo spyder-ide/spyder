@@ -55,6 +55,8 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration,
                                         RunConfigDialog, RunConfigOneDialog)
+from spyder.plugins.mainmenu.api import ApplicationMenus
+
 
 
 logger = logging.getLogger(__name__)
@@ -1493,6 +1495,10 @@ class Editor(SpyderPluginWidget):
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
+        # TODO: All the actions here should be taken from
+        # the MainMenus plugin
+        help_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Help).get_actions()
 
         self.toolbar_list = ((_("File toolbar"), "file_toolbar",
                               self.main.file_toolbar_actions),
@@ -1506,6 +1512,7 @@ class Editor(SpyderPluginWidget):
                               self.main.debug_toolbar_actions),
                              (_("Edit toolbar"), "edit_toolbar",
                               self.main.edit_toolbar_actions))
+
         self.menu_list = ((_("&File"), self.main.file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
@@ -1513,7 +1520,7 @@ class Editor(SpyderPluginWidget):
                           (_("&Run"), self.main.run_menu_actions),
                           (_("&Tools"), self.main.tools_menu_actions),
                           (_("&View"), []),
-                          (_("&Help"), self.main.help_menu_actions))
+                          (_("&Help"), help_menu_actions))
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()

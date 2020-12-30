@@ -34,11 +34,9 @@ from qtpy.QtWidgets import QApplication, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.menus import ApplicationMenus
 from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
-from spyder.api.widgets.menus import ApplicationMenu
 from spyder.api.widgets.mixins import (SpyderActionMixin, SpyderOptionMixin,
                                        SpyderWidgetMixin)
 from spyder.api.widgets.toolbars import ApplicationToolBar
@@ -590,6 +588,7 @@ class Plugins:
     Help = 'help'
     History = 'historylog'
     IPythonConsole = 'ipython_console'
+    MainMenu = 'mainmenu'
     OnlineHelp = 'online_help'
     OutlineExplorer = 'outline_explorer'
     Plots = 'plots'
@@ -929,13 +928,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             deps.append(dependency)
 
         PLUGINS = self._main._PLUGINS
-        if plugin_name in PLUGINS:
+        if plugin_name in deps:
             for name, plugin_instance in PLUGINS.items():
                 if name == plugin_name and name in deps:
                     return plugin_instance
             else:
-                raise SpyderAPIError(
-                    'Plugin "{}" not found!'.format(plugin_name))
+                if plugin_name in requires:
+                    raise SpyderAPIError(
+                        'Required Plugin "{}" not found!'.format(plugin_name))
+                else:
+                    return None
         else:
             raise SpyderAPIError(
                 'Plugin "{}" not part of REQUIRES or '
@@ -1197,9 +1199,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         Return action defined in any of the child widgets by name.
         """
-        container = self.get_container()
-        if container is not None:
-            actions = container.get_actions()
+        actions = self.get_actions()
 
         if name in actions:
             return actions[name]
@@ -1337,87 +1337,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         this method will be called for all plugins.
         """
         pass
-
-    # --- API Application Menus
-    # ------------------------------------------------------------------------
-    def add_application_menu(self, name, menu):
-        """
-        Add menu to the application.
-        """
-        if name in self._main._APPLICATION_MENUS:
-            raise SpyderAPIError(
-                'Menu with name "{}" already added!'.format(name))
-
-        self._main._APPLICATION_MENUS[name] = menu
-        self._main.menuBar().addMenu(menu)
-
-    def add_item_to_application_menu(self, item, menu, section=None,
-                                     before=None):
-        """
-        Add action or widget `item` to given application menu `section`.
-        """
-        # FIXME: Enable when new API is activated
-        # Check that menu is an ApplicationMenu
-        # if not isinstance(menu, ApplicationMenu):
-        #     raise SpyderAPIError('Not an ApplicationMenu!')
-
-        # TODO: For now just add the item to the bottom.
-        #       Temporal solution while API for managing app menus is created
-        app_menu_actions = {
-            ApplicationMenus.File: self._main.file_menu_actions,
-            ApplicationMenus.Edit: self._main.edit_menu_actions,
-            ApplicationMenus.Search: self._main.search_menu_actions,
-            ApplicationMenus.Source: self._main.source_menu_actions,
-            ApplicationMenus.Run: self._main.run_menu_actions,
-            ApplicationMenus.Debug: self._main.debug_menu_actions,
-            ApplicationMenus.Consoles: self._main.consoles_menu_actions,
-            ApplicationMenus.Projects: self._main.projects_menu_actions,
-            ApplicationMenus.Tools: self._main.tools_menu_actions,
-            # ApplicationMenus.View: self._main.view_menu_actions,
-            ApplicationMenus.Help: self._main.help_menu_actions,
-        }
-        actions = app_menu_actions[menu.name]
-        actions.append(None)
-        actions.append(item)
-
-    def get_application_menu(self, name):
-        """
-        Return an application menu by name.
-        """
-        # TODO: Temporal solution while API for managing app menus is created
-        self._main.file_menu.name = ApplicationMenus.File
-        self._main.edit_menu.name = ApplicationMenus.Edit
-        self._main.search_menu.name = ApplicationMenus.Search
-        self._main.source_menu.name = ApplicationMenus.Source
-        self._main.run_menu.name = ApplicationMenus.Run
-        self._main.debug_menu.name = ApplicationMenus.Debug
-        self._main.consoles_menu.name = ApplicationMenus.Consoles
-        self._main.projects_menu.name = ApplicationMenus.Projects
-        self._main.tools_menu.name = ApplicationMenus.Tools
-        self._main.view_menu.name = ApplicationMenus.View
-        self._main.help_menu.name = ApplicationMenus.Help
-
-        app_menus = {
-            ApplicationMenus.File: self._main.file_menu,
-            ApplicationMenus.Edit: self._main.edit_menu,
-            ApplicationMenus.Search: self._main.search_menu,
-            ApplicationMenus.Source: self._main.source_menu,
-            ApplicationMenus.Run: self._main.run_menu,
-            ApplicationMenus.Debug: self._main.debug_menu,
-            ApplicationMenus.Consoles: self._main.consoles_menu,
-            ApplicationMenus.Projects: self._main.projects_menu,
-            ApplicationMenus.Tools: self._main.tools_menu,
-            ApplicationMenus.View: self._main.view_menu,
-            ApplicationMenus.Help: self._main.help_menu,
-        }
-
-        if name in app_menus:
-            return app_menus[name]
-        else:
-            raise SpyderAPIError(
-                'Application menu "{0}" not found! Available '
-                'menus are: {1}'.format(name, list(app_menus.keys()))
-            )
 
     # --- API Application Toolbars
     # ------------------------------------------------------------------------

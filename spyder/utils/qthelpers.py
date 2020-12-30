@@ -17,8 +17,9 @@ import sys
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
-                         QTranslator, Signal, Slot)
-from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
+                         QTranslator, QUrl, Signal, Slot)
+from qtpy.QtGui import (
+    QDesktopServices, QIcon, QKeyEvent, QKeySequence, QPixmap)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
                             QProxyStyle, QPushButton, QStyle, QToolBar,
@@ -56,6 +57,24 @@ else:
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 logger = logging.getLogger(__name__)
 MENU_SEPARATOR = None
+
+
+def start_file(filename):
+    """
+    Generalized os.startfile for all platforms supported by Qt
+
+    This function is simply wrapping QDesktopServices.openUrl
+
+    Returns True if successful, otherwise returns False.
+    """
+
+    # We need to use setUrl instead of setPath because this is the only
+    # cross-platform way to open external files. setPath fails completely on
+    # Mac and doesn't open non-ascii files on Linux.
+    # Fixes spyder-ide/spyder#740.
+    url = QUrl()
+    url.setUrl(filename)
+    return QDesktopServices.openUrl(url)
 
 
 def get_image_label(name, default="not_found.png"):
@@ -393,7 +412,7 @@ def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
 
     @Slot()
     def open_url():
-        return programs.start_file(url)
+        return start_file(url)
 
     return create_action( parent, title, shortcut=shortcut, icon=icon,
                           triggered=open_url)

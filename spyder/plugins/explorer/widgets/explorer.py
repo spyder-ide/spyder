@@ -44,7 +44,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, create_toolbutton,
                                     file_uri, MENU_SEPARATOR,
-                                    QInputDialogMultiline)
+                                    QInputDialogMultiline, start_file)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -844,7 +844,7 @@ class DirView(QTreeView):
         If this does not work, opening unknown file in Spyder, as text file"""
         for path in sorted(fnames):
             path = file_uri(path)
-            ok = programs.start_file(path)
+            ok = start_file(path)
             if not ok:
                 self.sig_edit.emit(path)
 
