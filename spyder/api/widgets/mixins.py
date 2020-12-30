@@ -516,6 +516,7 @@ class SpyderActionMixin:
         action.text_beside_icon = bool(icon_text)
         action.shortcut_context = shortcut_context
         action.register_shortcut = register_shortcut
+        action.tip = tip
 
         if initial is not None:
             if toggled:

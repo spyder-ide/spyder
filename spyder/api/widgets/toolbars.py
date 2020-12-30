@@ -51,7 +51,8 @@ class ToolTipFilter(QObject):
         event_type = event.type()
         action = obj.defaultAction() if isinstance(obj, QToolButton) else None
         if event_type == QEvent.ToolTip and action is not None:
-            return action.text_beside_icon
+            if action.tip is None:
+                return action.text_beside_icon
 
         return QObject.eventFilter(self, obj, event)
 
