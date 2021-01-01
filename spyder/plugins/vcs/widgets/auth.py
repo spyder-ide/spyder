@@ -131,7 +131,7 @@ class AuthComponent(BaseComponent):
                     manager.VCSNAME)),
             )
 
-        manager = self.get_plugin().vcs_manager
+        manager = self.manager
         credentials = ex.credentials
 
         # UNSAFE: Use backend credentials if error credentials are not given.

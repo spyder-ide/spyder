@@ -9,7 +9,7 @@
 """Common widgets for the VCS UI."""
 
 # Standard library imports
-import typing
+from typing import Dict, Tuple, Union, Callable, Iterator, Optional
 
 # Third party imports
 from qtpy.QtCore import Slot, Signal, QObject, QThread
@@ -22,8 +22,8 @@ from qtpy.QtWidgets import (
     QDialogButtonBox
 )
 
-from spyder.utils.qthelpers import action2button as spy_action2button
 # Local imports
+from spyder.utils.qthelpers import action2button as spy_action2button
 from spyder.api.translations import get_translation
 
 _ = get_translation('spyder')
@@ -35,8 +35,8 @@ __all__ = ("THREAD_ENABLED", "PAUSE_CYCLE", "SLOT", "LoginDialog",
 THREAD_ENABLED = True
 PAUSE_CYCLE = 16
 
-SLOT = typing.Union[(
-    typing.Callable[..., typing.Optional[object]],
+SLOT = Union[(
+    Callable[..., Optional[object]],
     Signal,
     Slot,
 )]
@@ -65,8 +65,8 @@ class LoginDialog(QDialog):
         super().__init__(parent=parent)
 
         rootlayout = QFormLayout(self)
-        self._old_credentials: typing.Dict[str, object] = credentials
-        self.credentials_edit: typing.Dict[str, QLineEdit] = {}
+        self._old_credentials: Dict[str, object] = credentials
+        self.credentials_edit: Dict[str, QLineEdit] = {}
 
         for key in ("username", "email", "token"):
             if key in credentials:
@@ -98,7 +98,7 @@ class LoginDialog(QDialog):
             for key, val in self._old_credentials.items():
                 self.credentials_edit[key].setText(val if val else "")
 
-    def to_credentials(self) -> typing.Dict[str, object]:
+    def to_credentials(self) -> Dict[str, object]:
         """
         Get credentials from the dialog.
 
@@ -113,12 +113,10 @@ class LoginDialog(QDialog):
 
         return credentials
 
-    def _create_credentials_field(
-        self,
-        key: str,
-        default: typing.Optional[object] = None,
-        hide: bool = False,
-    ) -> typing.Tuple[str, QWidget]:
+    def _create_credentials_field(self,
+                                  key: str,
+                                  default: Optional[object] = None,
+                                  hide: bool = False) -> Tuple[str, QWidget]:
         if not default:
             default = ""
         label = _(key.capitalize()) + ":"
@@ -180,9 +178,9 @@ class ThreadWrapper(QThread):
     """
     def __init__(self,
                  parent: QObject,
-                 func: typing.Callable[..., None],
-                 result_slots: typing.Iterable[SLOT] = (),
-                 error_slots: typing.Iterable[SLOT] = (),
+                 func: Callable[..., None],
+                 result_slots: Iterator[SLOT] = (),
+                 error_slots: Iterator[SLOT] = (),
                  pass_self: bool = False,
                  nothread: bool = False):
         super().__init__(parent)

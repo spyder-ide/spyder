@@ -3,10 +3,9 @@
 """Common stuff for VCS UI components."""
 
 # Standard library imports
-import typing
+from typing import Union, Optional, Sequence
 from functools import partial
 from contextlib import contextmanager
-from collections.abc import Sequence
 
 # Third party imports
 from qtpy.QtCore import Slot, QTimer, Signal
@@ -17,7 +16,7 @@ from ..backend.api import VCSBackendManager
 from ..backend.errors import VCSError
 
 # Singleton
-NO_VALUE = type("NO_VALUE", (), {})
+NO_VALUE = type("NO_VALUE", (), {})()
 
 
 class BaseComponent(object):
@@ -47,7 +46,7 @@ class BaseComponent(object):
     """
 
     # TODO: Add it to config
-    REFRESH_TIME: typing.Optional[int] = None
+    REFRESH_TIME: Optional[int] = None
     """
     The interval (in ms) when an automatic refresh is done.
 
@@ -58,7 +57,8 @@ class BaseComponent(object):
         super().__init__(*args, **kwargs)
         self.manager = manager
 
-        if self.REFRESH_TIME is not None and self.refresh != BaseComponent.refresh:
+        if (self.REFRESH_TIME is not None
+                and self.refresh != BaseComponent.refresh):
             self.timer = QTimer(self)
             self.timer.setInterval(self.REFRESH_TIME)
             self.timer.timeout.connect(self.refresh)
@@ -83,10 +83,10 @@ class BaseComponent(object):
 
     # Utilities
     def do_call(self,
-                feature_name: typing.Union[str, typing.Sequence[str]],
+                feature_name: Union[str, Sequence[str]],
                 *args,
-                result_slots: typing.Sequence[SLOT] = (),
-                **kwargs) -> typing.Optional[ThreadWrapper]:
+                result_slots: Sequence[SLOT] = (),
+                **kwargs) -> Optional[ThreadWrapper]:
         """
         Call a backend method.
 
@@ -153,9 +153,8 @@ class BaseComponent(object):
         if isinstance(ex, VCSError):
             self.sig_vcs_error.emit(ex)
             return True
-        else:
-            if raise_:
-                raise ex
+        if raise_:
+            raise ex
         return False
 
     @contextmanager

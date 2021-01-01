@@ -11,10 +11,10 @@
 import os
 import re
 import shutil
-import typing
 import os.path as osp
 import platform
 import subprocess
+from typing import Dict, Tuple, Union, Optional, Sequence
 from pathlib import Path
 from datetime import datetime, timezone
 from urllib.parse import urlparse
@@ -94,11 +94,10 @@ class GitBackend(*_git_bases):
     # VCSBackendBase implementation
     @classmethod
     @feature()
-    def create(
-            cls,
-            path: typing.Union[str, Path],
-            from_: str = None,
-            credentials: typing.Dict[str, object] = None) -> "VCSBackendBase":
+    def create(cls,
+               path: Union[str, Path],
+               from_: str = None,
+               credentials: Dict[str, object] = None) -> "VCSBackendBase":
         def _restore():
             if basepath is None:
                 with ThreadPoolExecutor() as pool:
@@ -202,9 +201,19 @@ class GitBackend(*_git_bases):
             ["checkout", "-b", branch, "origin/" + branch],
             cwd=strpath,
         )
+
         # If remote has no branches, this command always fails
-        # if retcode or not branch:
-        #     _raise(err)
+        if retcode or not branch:
+            # _raise(err)
+            pass
+        elif branch:
+            # retcode, _, err = run_helper(
+            # If this command fail, push won't work
+            run_helper(
+                git,
+                ["branch", "-u", "origin/{}".format(branch)],
+                cwd=strpath,
+            )
 
         # Clone done!
         return inst
@@ -285,7 +294,7 @@ class GitBackend(*_git_bases):
 
     @property
     @feature(extra={"states": ("path", "kind", "staged")})
-    def changes(self) -> typing.Sequence[typing.Dict[str, object]]:
+    def changes(self) -> Sequence[Dict[str, object]]:
         self._run(["status"], dry_run=True)
         filestates = get_git_status(self.repodir, nobranch=True)[2]
         if filestates is None:
@@ -302,7 +311,7 @@ class GitBackend(*_git_bases):
     @feature(extra={"states": ("path", "kind", "staged")})
     def change(self,
                path: str,
-               prefer_unstaged: bool = False) -> typing.Dict[str, object]:
+               prefer_unstaged: bool = False) -> Dict[str, object]:
         filestates = get_git_status(self.repodir, path, nobranch=True)[2]
         if filestates is None:
             raise VCSFeatureError(
@@ -385,11 +394,7 @@ class GitBackend(*_git_bases):
         return self._remote_operation("push")
 
     @feature()
-    def undo_commit(
-        self,
-        commits: int = 1,
-    ) -> typing.Optional[typing.Dict[str, object]]:
-
+    def undo_commit(self, commits: int = 1) -> Optional[Dict[str, object]]:
         commit = None
 
         # prevent any float
@@ -459,9 +464,13 @@ class GitBackend(*_git_bases):
 
     @feature()
     def undo_change(self, path: str) -> bool:
-        retcode = self._run(["checkout", "--", path])[0]
-        if retcode == 0:
-            change = self.change(path, prefer_unstaged=True)
+        retcode, _, err = self._run(["checkout", "--", path])
+        change = self.change(path, prefer_unstaged=True)
+        if retcode:
+            if change and change["kind"] == ChangedStatus.ADDED:
+                # Probably it's not tracked, will remove
+                os.remove(osp.join(self.repodir, path))
+        else:
             if not change or change["staged"]:
                 return True
         return False
@@ -475,10 +484,8 @@ class GitBackend(*_git_bases):
             "attrs": ("id", "title", "description", "content",
                       "author_username", "author_email", "commit_date")
         })
-    def get_last_commits(
-        self,
-        commits: int = 1,
-    ) -> typing.Sequence[typing.Dict[str, object]]:
+    def get_last_commits(self,
+                         commits: int = 1) -> Sequence[Dict[str, object]]:
         commits = int(commits)
         if commits < 1:
             raise ValueError(
@@ -496,6 +503,7 @@ class GitBackend(*_git_bases):
             "description:%n%b%x00",
         ])
         if retcode != 0:
+            raw_err = err.decode()
             raise VCSFeatureError(
                 feature=self.get_last_commits,
                 error="Failed to get git history",
@@ -507,7 +515,7 @@ class GitBackend(*_git_bases):
                           for record in output.split(b"\x00"))))
 
     @feature(extra={"branch": True})
-    def tags(self) -> typing.Sequence[str]:
+    def tags(self) -> Sequence[str]:
         tags = git_get_branches(self.repodir, tag=True, branch=False)
         if tags:
             return tags["tag"]
@@ -617,14 +625,15 @@ class GitBackend(*_git_bases):
 
         raise VCSFeatureError(
             feature=getattr(self, operation),
-            error="Failed to {} from remote".format(operation),
+            error="Failed to {} {} remote".format(
+                operation, "to" if operation == "push" else "from"),
         )
 
     def _run(self,
-             args: typing.Sequence[str],
-             env: typing.Optional[typing.Dict[str, str]] = None,
-             git: typing.Optional[str] = None,
-             dry_run: bool = False) -> typing.Tuple[int, bytes, bytes]:
+             args: Sequence[str],
+             env: Optional[Dict[str, str]] = None,
+             git: Optional[str] = None,
+             dry_run: bool = False) -> Tuple[int, bytes, bytes]:
         if git is None:
             git = programs.find_program("git")
 
@@ -669,10 +678,7 @@ _GIT_STATUS_MAP = {
 
 
 # Internal helpers
-def run_helper(program,
-               args,
-               cwd=None,
-               env=None) -> typing.Tuple[int, bytes, bytes]:
+def run_helper(program, args, cwd=None, env=None) -> Tuple[int, bytes, bytes]:
     if program:
         try:
             proc = programs.run_program(program, args, cwd=cwd, env=env)
@@ -759,17 +765,26 @@ def get_git_status(repopath, pathspec=".", nobranch: bool = False):
                             elif group.startswith("ahead"):
                                 ahead = int(group.rsplit(" ", 1)[-1])
 
+                extra_line = False
                 # get branch and changes
                 for line in lines:
-                    if line.startswith("??"):
+                    if extra_line:
+                        extra_line = False
+                        changes[-1] = changes[-1] + (line,)
+                    elif line.startswith("??"):
                         changes.append((
                             line[3:],
                             "UNCHANGED",
                             _GIT_STATUS_MAP["??"],
                         ))
-                    elif "R" in line[:2] or "C" in line[:2]:
-                        # FIXME: skipped until I know how to manage it
-                        pass
+
+                    elif "C" in line[:2] or "R" in line[:2]:
+                        extra_line = True
+                        changes.append((
+                            line[3:],
+                            _GIT_STATUS_MAP.get(line[0], "UNKNOWN"),
+                            _GIT_STATUS_MAP.get(line[1], "UNKNOWN"),
+                        ))
                     elif line:
                         changes.append((
                             line[3:],

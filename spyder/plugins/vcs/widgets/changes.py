@@ -9,7 +9,7 @@
 """Widgets for change areas."""
 
 # Standard library imports
-import typing
+from typing import Dict, Iterator, Optional
 from functools import partial
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
@@ -110,7 +110,7 @@ else:
 
 _STATE_LIST = tuple(STATE_TO_ICON.keys())
 
-CHANGE = typing.Dict[str, object]
+CHANGE = Dict[str, object]
 
 
 class ChangeItem(QTreeWidgetItem):
@@ -123,7 +123,7 @@ class ChangeItem(QTreeWidgetItem):
     """
     def __init__(self, repodir: str, *args: object):
         super().__init__(*args)
-        self.state: typing.Optional[int] = None
+        self.state: Optional[int] = None
         self.repodir: str = repodir
 
     def __eq__(self, other: QTreeWidgetItem) -> bool:
@@ -168,7 +168,7 @@ class ChangeItem(QTreeWidgetItem):
             self.setText(0, "")
 
     @property
-    def path(self) -> typing.Optional[str]:
+    def path(self) -> Optional[str]:
         """Return a path suitable for backend calls."""
         text = self.text(0)
         if text:
@@ -213,7 +213,7 @@ class ChangesTreeComponent(BaseComponent, QTreeWidget):
 
     REFRESH_TIME = 1500
 
-    def __init__(self, *args, staged: typing.Optional[bool], **kwargs):
+    def __init__(self, *args, staged: Optional[bool], **kwargs):
         super().__init__(*args, **kwargs)
         self._staged = staged
 
@@ -281,10 +281,7 @@ class ChangesTreeComponent(BaseComponent, QTreeWidget):
     # Refreshes
     @Slot()
     @Slot(list)
-    def refresh(
-        self,
-        changes: typing.Optional[typing.Iterator[CHANGE]] = None,
-    ) -> None:
+    def refresh(self, changes: Optional[Iterator[CHANGE]] = None) -> None:
         """
         Clear and add given changes as items.
 
@@ -327,7 +324,7 @@ class ChangesTreeComponent(BaseComponent, QTreeWidget):
                 #           if they will not be added to self.
                 with ThreadPoolExecutor() as pool:
                     old_items = set(
-                        pool.map(lambda i: self.topLevelItem(i),
+                        pool.map(self.topLevelItem,
                                  range(self.topLevelItemCount())))
                     items = set(pool.map(_task, result))
 
@@ -501,7 +498,7 @@ class ChangesComponent(BaseComponent, QWidget):
     """
     def __init__(self,
                  *args,
-                 staged: typing.Optional[bool],
+                 staged: Optional[bool],
                  stage_all_action: QAction = None,
                  **kwargs):
         super().__init__(*args, **kwargs)

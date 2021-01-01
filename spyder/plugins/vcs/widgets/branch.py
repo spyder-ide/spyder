@@ -9,7 +9,7 @@
 """Widgets for branch management."""
 
 # Standard library imports
-import typing
+from typing import Set, Union
 from functools import partial
 
 # Third party imports
@@ -61,7 +61,7 @@ class BranchesComponent(BaseComponent, QComboBox):
         super().__init__(*args, **kwargs)
         self.setEditable(True)
         # branches cache
-        self._branches: typing.Set[str] = set()
+        self._branches: Set[str] = set()
 
         self.sig_branch_changed.connect(self.refresh)
         self.currentIndexChanged.connect(self.select)
@@ -150,7 +150,7 @@ class BranchesComponent(BaseComponent, QComboBox):
     @Slot()
     @Slot(str)
     @Slot(int)
-    def select(self, branchname: typing.Union[str, int] = None) -> None:
+    def select(self, branchname: Union[str, int] = None) -> None:
         """
         Select a branch given its name.
 

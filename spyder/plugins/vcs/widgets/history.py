@@ -76,6 +76,7 @@ class CommitHistoryComponent(BaseComponent, QTreeWidget):
             if result is None:
                 if self._old_commits is not None:
                     self.clear()
+
             elif result != self._old_commits:
                 self.clear()
                 undo_enabled = bool(self.manager.undo_commit.enabled)

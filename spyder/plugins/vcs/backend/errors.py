@@ -9,7 +9,7 @@
 """A collection of VCS exceptions."""
 
 # Standard library imports
-import typing
+from typing import Dict, Callable, Optional, Sequence
 
 
 class VCSError(Exception):
@@ -29,8 +29,8 @@ class VCSError(Exception):
     __slots__ = ("error", "raw_error")
 
     def __init__(self,
-                 error: typing.Optional[str] = None,
-                 raw_error: typing.Optional[str] = None):
+                 error: Optional[str] = None,
+                 raw_error: Optional[str] = None):
         args = []
         if error:
             args.append(error)
@@ -61,8 +61,8 @@ class VCSFeatureError(VCSError):
 
     __slots__ = ("feature", )
 
-    def __init__(self, *args: object, feature: typing.Callable[..., object],
-                 **kwargs: typing.Optional[str]):
+    def __init__(self, *args: object, feature: Callable[..., object],
+                 **kwargs: Optional[str]):
         super().__init__(*args, **kwargs)
         self.feature = feature
 
@@ -99,7 +99,7 @@ class VCSPropertyError(VCSError):
     __slots__ = ("name", "operation")
 
     def __init__(self, name: str, operation: str, *args: object,
-                 **kwargs: typing.Optional[str]):
+                 **kwargs: Optional[str]):
         super().__init__(*args, **kwargs)
         self.name = name
         operation = operation.lstrip("f")
@@ -140,10 +140,10 @@ class VCSBackendFail(VCSError):
                  directory: str,
                  backend_type: type,
                  *args: object,
-                 programs: typing.Iterable[str] = (),
-                 modules: typing.Iterable[str] = (),
+                 programs: Sequence[str] = (),
+                 modules: Sequence[str] = (),
                  is_valid_repository: bool = True,
-                 **kwargs: typing.Optional[str]):
+                 **kwargs: Optional[str]):
 
         super().__init__(*args, **kwargs)
         self.directory = directory
@@ -178,11 +178,11 @@ class VCSAuthError(VCSError):
                  "_credentials_callback")
 
     def __init__(self,
-                 required_credentials: typing.Sequence[str],
-                 credentials_callback: typing.Callable[..., None],
+                 required_credentials: Sequence[str],
+                 credentials_callback: Callable[..., None],
                  *args: object,
-                 credentials: typing.Optional[typing.Dict[str, object]] = None,
-                 **kwargs: typing.Optional[str]):
+                 credentials: Optional[Dict[str, object]] = None,
+                 **kwargs: Optional[str]):
 
         super().__init__(*args, **kwargs)
         self.required_credentials = required_credentials
@@ -190,7 +190,7 @@ class VCSAuthError(VCSError):
         self._credentials_callback = credentials_callback
 
     @property
-    def credentials(self) -> typing.Dict[str, object]:
+    def credentials(self) -> Dict[str, object]:
         """
         A proxy for required backend credentials.
 
@@ -212,7 +212,7 @@ class VCSAuthError(VCSError):
         }
 
     @credentials.setter
-    def credentials(self, credentials: typing.Dict[str, object]) -> None:
+    def credentials(self, credentials: Dict[str, object]) -> None:
         new_cred = {}
         for key in self.required_credentials:
             if credentials.get(key) is None:

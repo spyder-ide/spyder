@@ -8,10 +8,13 @@
 # -----------------------------------------------------------------------------
 """Backend specifications and utilities for VCSs."""
 
-# Standard library imports
+# pylint: disable=C0302
+
 import typing
+# Standard library imports
 import builtins
 import itertools
+from typing import Dict, Tuple, Union, Callable, Optional, Sequence
 from functools import partial
 
 # Local imports
@@ -19,10 +22,9 @@ from .errors import VCSError, VCSAuthError, VCSBackendFail
 
 
 def feature(
-    name: str = None,
-    enabled: bool = True,
-    extra: typing.Optional[typing.Dict[object, object]] = None
-) -> typing.Callable[..., object]:
+        name: str = None,
+        enabled: bool = True,
+        extra: Optional[Dict[object, object]] = None) -> Callable[..., object]:
     """
     Decorate a function to become a feature.
 
@@ -91,7 +93,7 @@ def feature(
     if extra is None:
         extra = {}
 
-    def _decorator(func: typing.Callable[..., object]):
+    def _decorator(func: Callable[..., object]):
         if name is not None:
             # Set the new function name
             func.__name__ = name
@@ -178,7 +180,7 @@ class ChangedStatus(object):
 
 
 # TODO: Complete backend detailed description
-class VCSBackendBase(object):
+class VCSBackendBase(object):  # pylint: disable=R0904
     """
     Uniforms VCS fundamental operations across different VCSs.
 
@@ -224,40 +226,37 @@ class VCSBackendBase(object):
     """
 
     # Defined groups with associated members
-    GROUPS_MAPPING: typing.Dict[str, typing.Sequence[typing.Union[typing.Tuple[
-        str, str], str]]] = {
-            "create": ("create", ),
-            "status": (
-                ("branch", "fget"),
-                "change",
-                ("changes", "fget"),
-            ),
-            "branches": (
-                ("branch", "fget"),
-                ("branch", "fset"),
-                ("remote_branch", "fget"),
-                ("branches", "fget"),
-                ("editable_branches", "fget"),
-                "create_branch",
-                "delete_branch",
-            ),
-            "diff": (),
-            "stage-unstage": (
-                "stage",
-                "unstage",
-                "stage_all",
-                "unstage_all",
-            ),
-            "commit": ("commit", "undo_commit"),
-            "remote": ("fetch", "push", "pull"),
-            "undo":
-            ("unstage", "undo_commit", "undo_change", "undo_change_all"),
-            "history": (
-                ("tags", "fget"),
-                "get_last_commits",
-            ),
-            "merge": (),
-        }
+    GROUPS_MAPPING: Dict[str, Sequence[Union[Tuple[str, str], str]]] = {
+        "create": ("create", ),
+        "status": (
+            ("branch", "fget"),
+            "change",
+            ("changes", "fget"),
+        ),
+        "branches": (
+            ("branch", "fget"),
+            ("branch", "fset"),
+            ("remote_branch", "fget"),
+            ("branches", "fget"),
+            ("editable_branches", "fget"),
+            "delete_branch",
+        ),
+        "diff": (),
+        "stage-unstage": (
+            "stage",
+            "unstage",
+            "stage_all",
+            "unstage_all",
+        ),
+        "commit": ("commit", "undo_commit"),
+        "remote": ("fetch", "push", "pull"),
+        "undo": ("unstage", "undo_commit", "undo_change", "undo_change_all"),
+        "history": (
+            ("tags", "fget"),
+            "get_last_commits",
+        ),
+        "merge": (),
+    }
     """
     VCS features groups mapping.
 
@@ -371,7 +370,7 @@ class VCSBackendBase(object):
     - merge: WIP specification.
     """
 
-    REQUIRED_CREDENTIALS: typing.Sequence[str] = None
+    REQUIRED_CREDENTIALS: Sequence[str] = None
     """
     The required keys for credentials.
 
@@ -388,7 +387,11 @@ class VCSBackendBase(object):
 
     # --- Non-features ---
     @classmethod
-    def check(cls, group: str, all: bool = False) -> typing.Union[int, bool]:
+    def check(
+            cls,
+            group: str,
+            all: bool = False,  # pylint: disable=W0622
+    ) -> Union[int, bool]:
         """
         Check if features in the group are enabled.
 
@@ -414,8 +417,7 @@ class VCSBackendBase(object):
             True if all the features are enabled, False otherwise.
         """
         def _name_to_feature(
-                featurename: typing.Union[typing.Tuple[str, str],
-                                          str]) -> object:
+                featurename: Union[Tuple[str, str], str]) -> object:
             if isinstance(featurename, str):
                 feature_func = getattr(cls, featurename, None)
             elif len(featurename) > 1:
@@ -499,7 +501,7 @@ class VCSBackendBase(object):
         return type(self)
 
     @property
-    def credentials(self) -> typing.Dict[str, object]:
+    def credentials(self) -> Dict[str, object]:
         """
         The required credentials to do operation on VCS remotes.
 
@@ -535,7 +537,7 @@ class VCSBackendBase(object):
         raise NotImplementedError("Credential property is not implemented")
 
     @credentials.setter
-    def credentials(self, credentials: typing.Dict[str, object]) -> None:
+    def credentials(self, credentials: Dict[str, object]) -> None:
         raise NotImplementedError("Credential property is not implemented")
 
     @credentials.deleter
@@ -547,11 +549,10 @@ class VCSBackendBase(object):
     # Create group
     @classmethod
     @feature(enabled=False)
-    def create(
-            cls,
-            path: str,
-            from_: str = None,
-            credentials: typing.Dict[str, object] = None) -> "VCSBackendBase":
+    def create(cls,
+               path: str,
+               from_: str = None,
+               credentials: Dict[str, object] = None) -> "VCSBackendBase":
         """
         Create a new repository in the given path.
 
@@ -601,7 +602,7 @@ class VCSBackendBase(object):
     # Status group
     @property
     @feature(enabled=False, extra={"states": ()})
-    def changes(self) -> typing.Sequence[typing.Dict[str, object]]:
+    def changes(self) -> Sequence[Dict[str, object]]:
         """
         A list of changed files and its states.
 
@@ -627,11 +628,9 @@ class VCSBackendBase(object):
         """
 
     @feature(enabled=False, extra={"states": ()})
-    def change(
-        self,
-        path: str,
-        prefer_unstaged: bool = False
-    ) -> typing.Optional[typing.Dict[str, object]]:
+    def change(self,
+               path: str,
+               prefer_unstaged: bool = False) -> Optional[Dict[str, object]]:
         """
         Get the state dict associated of path.
 
@@ -702,7 +701,7 @@ class VCSBackendBase(object):
 
     @property
     @feature(enabled=False)
-    def branches(self) -> typing.Sequence[str]:
+    def branches(self) -> Sequence[str]:
         """
         A list of branch names.
 
@@ -725,7 +724,7 @@ class VCSBackendBase(object):
 
     @property
     @feature(enabled=False)
-    def editable_branches(self) -> typing.Sequence[str]:
+    def editable_branches(self) -> Sequence[str]:
         """
         A list of editable branch names.
 
@@ -851,9 +850,7 @@ class VCSBackendBase(object):
 
     # Remote group
     @feature(enabled=False)
-    def commit(self,
-               message: str,
-               is_path: typing.Optional[bool] = None) -> bool:
+    def commit(self, message: str, is_path: Optional[bool] = None) -> bool:
         """
         Commit current changes.
 
@@ -881,7 +878,7 @@ class VCSBackendBase(object):
         """
 
     @feature(enabled=False)
-    def fetch(self, sync: bool = False) -> typing.Tuple[int, int]:
+    def fetch(self, sync: bool = False) -> Tuple[int, int]:
         """
         Scan the current local branch to get commit status.
 
@@ -958,9 +955,7 @@ class VCSBackendBase(object):
     # Undo group
 
     @feature(enabled=False)
-    def undo_commit(
-            self,
-            commits: int = 1) -> typing.Optional[typing.Dict[str, object]]:
+    def undo_commit(self, commits: int = 1) -> Optional[Dict[str, object]]:
         """
         Undo a commit or some of them.
 
@@ -1030,9 +1025,8 @@ class VCSBackendBase(object):
 
     # history group
     @feature(enabled=False, extra={"attrs": ()})
-    def get_last_commits(
-            self,
-            commits: int = 1) -> typing.Sequence[typing.Dict[str, object]]:
+    def get_last_commits(self,
+                         commits: int = 1) -> Sequence[Dict[str, object]]:
         """
         Get a list of old commits and its attributes.
 
@@ -1098,7 +1092,7 @@ class VCSBackendBase(object):
 
     @property
     @feature(enabled=False, extra={"branch": False})
-    def tags(self) -> typing.Sequence[str]:
+    def tags(self) -> Sequence[str]:
         """
         A list of revision labels.
 
@@ -1160,12 +1154,12 @@ class VCSBackendManager(object):
             delattr(self, name)
 
     @property
-    def vcs_types(self) -> typing.Sequence[str]:
+    def vcs_types(self) -> Sequence[str]:
         """A list of available VCS types."""
         return tuple(self._backends)
 
     @property
-    def create_vcs_types(self) -> typing.Sequence[str]:
+    def create_vcs_types(self) -> Sequence[str]:
         """
         A list of available VCS types that have at least one backend
         that supports :meth:`~VCSBackendBase.clone`.
@@ -1177,7 +1171,7 @@ class VCSBackendManager(object):
         return types
 
     @property
-    def repodir(self) -> typing.Optional[str]:
+    def repodir(self) -> Optional[str]:
         """
         The current managed repository directory.
 
@@ -1295,8 +1289,8 @@ class VCSBackendManager(object):
                 self._backends[vcsname] = [backend]
 
     def safe_check(
-        self, feature_name: typing.Union[str, typing.Sequence[str]]
-    ) -> typing.Optional[typing.Callable[..., object]]:
+        self, feature_name: Union[str, Sequence[str]]
+    ) -> Optional[Callable[..., object]]:
         """
         Check in a safe manner if a feature is enabled.
 

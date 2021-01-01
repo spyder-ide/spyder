@@ -9,7 +9,7 @@
 """Some mixins for the backends."""
 
 # Standard library imports
-import typing
+from typing import Dict, Optional
 
 # Third party imports
 import keyring
@@ -51,7 +51,7 @@ class CredentialsKeyringMixin(object):
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
-        self.__internal_credentials: typing.Dict[str, object] = {}
+        self.__internal_credentials: Dict[str, object] = {}
 
     @property
     def credential_context(self) -> str:
@@ -65,13 +65,13 @@ class CredentialsKeyringMixin(object):
         raise NotImplementedError("Credential context must be defined")
 
     @property
-    def credentials(self) -> typing.Dict[str, object]:
+    def credentials(self) -> Dict[str, object]:
         if self.__internal_credentials:
             return self.__internal_credentials.copy()
         return {}
 
     @credentials.setter
-    def credentials(self, credentials: typing.Dict[str, object]) -> None:
+    def credentials(self, credentials: Dict[str, object]) -> None:
         if not credentials:
             self.__internal_credentials = {}
             return
@@ -162,10 +162,9 @@ class CredentialsKeyringMixin(object):
         self.__internal_credentials = {}
 
     # utils
-    def get_user_credentials(
-            self,
-            username: typing.Optional[str] = None,
-            email: typing.Optional[str] = None) -> typing.Dict[str, object]:
+    def get_user_credentials(self,
+                             username: Optional[str] = None,
+                             email: Optional[str] = None) -> Dict[str, object]:
         """
         A shorthand for username and email credentials initialization.
 
@@ -186,7 +185,7 @@ class CredentialsKeyringMixin(object):
         self.credentials = dict(username=username, email=email)
         return self.credentials
 
-    def get_token(self) -> typing.Dict[str, object]:
+    def get_token(self) -> Dict[str, object]:
         """
         A shorthand for token credentials initialization.
 

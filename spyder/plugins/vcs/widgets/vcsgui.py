@@ -11,7 +11,7 @@
 # pylint: disable = W0201
 
 # Standard library imports
-import typing
+from typing import Optional
 from functools import partial
 
 # Third party imports
@@ -58,7 +58,7 @@ class VCSWidget(PluginMainWidget):
 
         self.setLayout(QVBoxLayout())
 
-    # Reimplemented APIs
+    # Overriden methods
     def get_title(self):
         return self.get_plugin().get_name()
 
@@ -73,7 +73,6 @@ class VCSWidget(PluginMainWidget):
     def setup(self, options=DEFAULT_OPTIONS) -> None:
         """Initialize components and slots."""
         plugin = self.get_plugin()
-        parent = self.parent()
         manager = plugin.vcs_manager
 
         # HACK: Should be called in the plugin and not here.
@@ -81,49 +80,49 @@ class VCSWidget(PluginMainWidget):
 
         # Widgets
         toolbar = QHBoxLayout()
-        self.branch_list = BranchesComponent(manager, parent=parent)
+        self.branch_list = BranchesComponent(manager, parent=self)
         self.branch_list.setSizePolicy(
             QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred))
 
-        refresh_button = action2button(plugin.refresh_action, parent=parent)
+        refresh_button = action2button(plugin.refresh_action, parent=self)
 
         self.changes = ChangesComponent(
             manager,
             staged=None,
-            parent=parent,
+            parent=self,
         )
         self.unstaged_changes = ChangesComponent(
             manager,
             staged=False,
             stage_all_action=plugin.stage_all_action,
-            parent=parent,
+            parent=self,
         )
         self.staged_changes = ChangesComponent(
             manager,
             staged=True,
             stage_all_action=plugin.unstage_all_action,
-            parent=parent,
+            parent=self,
         )
 
         self.commit = CommitComponent(
             manager,
             commit_action=plugin.commit_action,
-            parent=parent,
+            parent=self,
         )
 
-        self.history = CommitHistoryComponent(manager, parent=parent)
+        self.history = CommitHistoryComponent(manager, parent=self)
 
         self.remote = RemoteComponent(
             manager,
             fetch_action=plugin.fetch_action,
             pull_action=plugin.pull_action,
             push_action=plugin.push_action,
-            parent=parent,
+            parent=self,
         )
         self.repo_not_found = RepoNotFoundComponent(
             manager,
             create_vcs_action=plugin.create_vcs_action,
-            parent=parent,
+            parent=self,
         )
 
         # Layout
@@ -278,11 +277,7 @@ class VCSWidget(PluginMainWidget):
     # Private slots
     @Slot(bool)
     @Slot(bool, str)
-    def _post_stage(
-        self,
-        staged: bool,
-        path: typing.Optional[str] = None,
-    ) -> None:
+    def _post_stage(self, staged: bool, path: Optional[str] = None) -> None:
         """
         Refresh changes after a successful stage/unstage operation.
 
@@ -353,5 +348,4 @@ class RepoNotFoundComponent(BaseComponent, QWidget):
     def show_create_dialog(self) -> None:
         """Show a :class:`~CreateDialog` for creating a repository."""
         self.create_button.setEnabled(False)
-        self.create_dialog.show()
         self.create_dialog.show()
