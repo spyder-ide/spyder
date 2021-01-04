@@ -355,7 +355,9 @@ class InterpreterStatus(BaseTimerStatus):
     def open_interpreter_preferences(self):
         """Open the Preferences dialog in the Python interpreter section."""
         self.main.show_preferences()
-        dlg = self.main.prefs_dialog_instance
+        preferences = main_window.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
         index = dlg.get_index_by_name("main_interpreter")
         dlg.set_current_index(index)
 

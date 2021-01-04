@@ -34,7 +34,7 @@ class Pylint(SpyderDockablePlugin):
     WIDGET_CLASS = PylintWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = PylintConfigPage
-    REQUIRES = [Plugins.Editor]
+    REQUIRES = [Plugins.Preferences, Plugins.Editor]
     OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
@@ -69,6 +69,9 @@ class Pylint(SpyderDockablePlugin):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
         mainmenu = self.get_plugin(Plugins.MainMenu)
+        preferences = self.get_plugin(Plugins.Preferences)
+
+        preferences.register_plugin_preferences(self)
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)

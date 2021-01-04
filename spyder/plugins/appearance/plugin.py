@@ -11,7 +11,7 @@ Appearance Plugin.
 """
 
 # Local imports
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.plugins.appearance.confpage import AppearanceConfigPage
 
@@ -28,7 +28,7 @@ class Appearance(SpyderPluginV2):
 
     NAME = "appearance"
     # TODO: Fix requires to reflect the desired order in the preferences
-    REQUIRES = []
+    REQUIRES = [Plugins.Preferences]
     CONTAINER_CLASS = None
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = AppearanceConfigPage
@@ -46,4 +46,5 @@ class Appearance(SpyderPluginV2):
         return self.create_icon('eyedropper')
 
     def register(self):
-        pass
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)

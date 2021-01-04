@@ -27,7 +27,7 @@ class HistoryLog(SpyderDockablePlugin):
     """
 
     NAME = 'historylog'
-    REQUIRES = [Plugins.Editor, Plugins.Console]
+    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Console]
     TABIFY = Plugins.IPythonConsole
     WIDGET_CLASS = HistoryWidget
     CONF_SECTION = NAME
@@ -57,6 +57,9 @@ class HistoryLog(SpyderDockablePlugin):
         return self.create_icon('history')
 
     def register(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
         widget = self.get_widget()
         widget.sig_focus_changed.connect(self.sig_focus_changed)
 

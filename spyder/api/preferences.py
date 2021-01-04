@@ -8,8 +8,37 @@
 API to create an entry in Spyder Preferences associated to a given plugin.
 """
 
+# Third party imports
+from qtpy.QtWidgets import QWidget
+
 # Local imports
-from spyder.preferences.configdialog import SpyderConfigPage
+from spyder.plugins.preferences.api import SpyderConfigPage
+
+
+class SpyderPreferencesTab(QWidget):
+    """
+    Widget that represents a tab on a preference page.
+
+    All calls to :class:`SpyderConfigPage` attributes are resolved
+    via delegation.
+    """
+
+    # Name of the tab to display on the configuration page.
+    TITLE = None
+
+    def __init__(self, parent: SpyderConfigPage):
+        super().__init__(parent)
+        self.parent = parent
+
+        if self.TITLE is None or not isinstance(self.TITLE, str):
+            raise ValueError("TITLE must be a str")
+
+    def __getattr__(self, attr):
+        this_class_dir = dir(self)
+        if attr not in this_class_dir:
+            return getattr(self.parent, attr)
+        else:
+            return super().__getattr__(attr)
 
 
 class PluginConfigPage(SpyderConfigPage):

@@ -591,6 +591,7 @@ class Plugins:
     OnlineHelp = 'online_help'
     OutlineExplorer = 'outline_explorer'
     Plots = 'plots'
+    Preferences = 'preferences'
     Profiler = 'profiler'
     Projects = 'project_explorer'
     Pylint = 'pylint'
@@ -684,6 +685,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     # CONF_FROM_OPTIONS = {'widget_option': ('section', 'option'), ...}
     # See:  spyder/plugins/console/plugin.py
     CONF_FROM_OPTIONS = None
+
+    # Some plugins may add configuration options for other plugins.
+    # Example:
+    # ADDITIONAL_CONF_OPTIONS = {'section': <new value to add>}
+    ADDITIONAL_CONF_OPTIONS = None
+
+    # Define additional configurable options (via a tab) to
+    # another's plugin configuration page. All configuration tabs should
+    # inherit from `SpyderPreferencesTab`.
+    # Example:
+    # ADDITIONAL_CONF_TABS = {'plugin_name': [<SpyderPreferencesTab classes>]}
+    ADDITIONAL_CONF_TABS = None
 
     # Path for images relative to the plugin path
     # A Python package can include one or several Spyder plugins. In this case

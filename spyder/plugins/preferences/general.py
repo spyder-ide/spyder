@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 running_in_mac_app, save_lang_conf)
-from spyder.preferences.configdialog import GeneralConfigPage
+from spyder.plugins.preferences.api import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
 from spyder.utils.qthelpers import (register_app_launchservices,
@@ -276,7 +276,8 @@ class MainConfigPage(GeneralConfigPage):
         screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
         screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
         screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
-        screen_resolution_inner_layout.addWidget(self.custom_scaling_edit, 2, 1)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_edit, 2, 1)
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
@@ -287,13 +288,13 @@ class MainConfigPage(GeneralConfigPage):
             interface_tab = self.create_tab(screen_resolution_group,
                                             interface_group)
 
-        tabs = QTabWidget()
-        tabs.addTab(interface_tab, _("Interface"))
-        tabs.addTab(self.create_tab(general_group, sbar_group),
-                    _("Advanced settings"))
+        self.tabs = QTabWidget()
+        self.tabs.addTab(interface_tab, _("Interface"))
+        self.tabs.addTab(self.create_tab(general_group, sbar_group),
+                         _("Advanced settings"))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
     def apply_settings(self, options):

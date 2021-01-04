@@ -14,7 +14,7 @@ Main interpreter Plugin.
 import os.path as osp
 
 # Local imports
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.utils.misc import get_python_executable
@@ -30,7 +30,7 @@ class MainInterpreter(SpyderPluginV2):
 
     NAME = "main_interpreter"
     # TODO: Fix requires to reflect the desired order in the preferences
-    REQUIRES = []
+    REQUIRES = [Plugins.Preferences]
     CONTAINER_CLASS = None
     CONF_WIDGET_CLASS = MainInterpreterConfigPage
     CONF_SECTION = NAME
@@ -48,6 +48,9 @@ class MainInterpreter(SpyderPluginV2):
         return self.create_icon('python')
 
     def register(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
         # Validate that the custom interpreter from the previous session
         # still exists
         if self.get_conf_option('custom'):
