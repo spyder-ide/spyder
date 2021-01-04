@@ -725,6 +725,7 @@ def test_set_nonsettable_objects(nonsettable_objects_data):
     """
     for test_obj, expected_obj, keys in nonsettable_objects_data:
         col_model = CollectionsModel(None, test_obj)
+        col_model.load_all()
         indicies = [col_model.get_index_from_key(key) for key in keys]
         for idx in indicies:
             assert not col_model.set_value(idx, "2")
