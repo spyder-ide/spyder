@@ -68,13 +68,6 @@ def make_app_bundle(dist_dir, make_lite=False):
         File "<frozen zipimport>", line 177, in get_data
         KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
         Grammar3.8.6.final.0.pickle'
-    ipykernel :
-        ModuleNotFoundError: No module named 'ipykernel.datapub'
-    ipython :
-        [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
-        Source file
-        <path>/Resources/lib/python38.zip/IPython/core/profile/README_STARTUP
-        does not exist
     jedi :
         jedi.api.environment.InvalidPythonEnvironment: Could not get version
         information for '<path>/Contents/MacOS/python': InternalError("The
@@ -84,17 +77,18 @@ def make_app_bundle(dist_dir, make_lite=False):
         No module named 'jinja2.ext'
     keyring :
         ModuleNotFoundError: No module named 'keyring.backends.<mod>'
+    pandas :
+        From Variable explorer: KeyError('pandas._libs.interval')
     parso :
-        NotADirectoryError: [Errno 20] Not a directory:
-        '<path>/Resources/lib/python38.zip/parso/python/grammar38.txt'
+        jedi.api.environment.InvalidPythonEnvironment: Could not get version
+        information for '/Users/rclary/opt/miniconda3/envs/c2w_37/bin/python':
+        InternalError("The subprocess /Users/rclary/opt/miniconda3/envs/c2w_37/
+        bin/python has crashed (EOFError('Ran out of input'), stderr=).")
     PIL :
         Library not loaded: @loader_path/.dylibs/libjpeg.9.dylib
         Note: only applicable to not-Lite build
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
-    pylint :
-        No module named pylint.__main__; 'pylint' is a package and cannot be
-        directly executed
     pyls :
         <path>/Contents/MacOS/python: No module named pyls
         Note: still occurs in alias mode
@@ -112,8 +106,6 @@ def make_app_bundle(dist_dir, make_lite=False):
     spyder :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python38.zip/spyder/app/mac_stylesheet.qss'
-    spyder_kernels :
-        No module named spyder_kernels.console.__main__
     textdistance :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python39.zip/textdistance/libraries.json'
@@ -128,23 +120,28 @@ def make_app_bundle(dist_dir, make_lite=False):
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'ipykernel', 'IPython',
-                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
-                'pyls', 'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
-                'sphinx', 'spyder', 'spyder_kernels', 'textdistance']
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'jedi', 'jinja2',
+                'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
+                'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
+                'textdistance',
+                ]
+
+    EXCLUDE_EGG = ['py2app']
 
     if make_lite:
         INCLUDES = []
         EXCLUDES = [
-            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
+            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy', 'PIL'
         ]
+        EXCLUDE_EGG.append('pillow')
     else:
         INCLUDES = [
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
         ]
         EXCLUDES = []
-        PACKAGES.append('PIL')
+        PACKAGES.extend(['pandas', 'PIL'])
 
+    EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
     FRAMEWORKS = ['/usr/local/lib/libspatialindex.dylib',
@@ -179,11 +176,13 @@ def make_app_bundle(dist_dir, make_lite=False):
         os.remove(app_script_path)
         os.remove(SPYLINK)
 
-    # Copy egg info from site-packages: fixes pkg_resources issue for pyls
+    # Copy egg info from site-packages: fixes several pkg_resources issues
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
                             'lib', f'python{PYVER[0]}.{PYVER[1]}')
     for dist in pkg_resources.working_set:
-        if dist.egg_info is None:
+        if (dist.egg_info is None or dist.key.startswith('pyobjc')
+                or dist.key in EXCLUDE_EGG):
+            logger.info(f'Skipping egg {dist.key}')
             continue
         egg = os.path.basename(dist.egg_info)
         dest = os.path.join(dest_dir, egg)
