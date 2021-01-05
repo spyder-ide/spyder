@@ -77,6 +77,8 @@ def make_app_bundle(dist_dir, make_lite=False):
         No module named 'jinja2.ext'
     keyring :
         ModuleNotFoundError: No module named 'keyring.backends.<mod>'
+    pandas :
+        From Variable explorer: KeyError('pandas._libs.interval')
     parso :
         jedi.api.environment.InvalidPythonEnvironment: Could not get version
         information for '/Users/rclary/opt/miniconda3/envs/c2w_37/bin/python':
@@ -137,7 +139,7 @@ def make_app_bundle(dist_dir, make_lite=False):
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
         ]
         EXCLUDES = []
-        PACKAGES.append('PIL')
+        PACKAGES.extend(['pandas', 'PIL'])
 
     EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
