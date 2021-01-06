@@ -50,7 +50,7 @@ class PlotsWidgetActions:
     ToggleAutoFitPlotting = 'toggle_auto_fit_plotting_action'
 
 
-class PlotsWidgetMainToolBarSections:
+class PlotsWidgetMainToolbarSections:
     Edit = 'edit_section'
     Move = 'move_section'
     Zoom = 'zoom_section'
@@ -308,7 +308,7 @@ class PlotsWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
-                section=PlotsWidgetMainToolBarSections.Edit,
+                section=PlotsWidgetMainToolbarSections.Edit,
             )
 
         # Context menu

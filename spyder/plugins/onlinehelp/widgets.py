@@ -46,7 +46,7 @@ class PydocBrowserActions:
     Find = 'find_action'
 
 
-class PydocBrowserMainToolBarSections:
+class PydocBrowserMainToolbarSections:
     Main = 'main_section'
 
 
@@ -225,7 +225,7 @@ class PydocBrowser(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
-                section=PydocBrowserMainToolBarSections.Main,
+                section=PydocBrowserMainToolbarSections.Main,
             )
 
         # Signals

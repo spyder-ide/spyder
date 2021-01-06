@@ -915,6 +915,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     kc.stop_channels()
 
 
+@pytest.mark.first
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")

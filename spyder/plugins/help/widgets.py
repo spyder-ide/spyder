@@ -69,7 +69,7 @@ class HelpWidgetOptionsMenuSections:
     Other = 'other_section'
 
 
-class HelpWidgetMainToolBarSections:
+class HelpWidgetMainToolbarSections:
     Main = 'main_section'
 
 
@@ -462,7 +462,7 @@ class HelpWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
-                section=HelpWidgetMainToolBarSections.Main,
+                section=HelpWidgetMainToolbarSections.Main,
             )
 
         self.source_changed()

@@ -19,7 +19,7 @@ from qtpy.QtCore import Signal, Slot
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
-from spyder.api.widgets.toolbars import ApplicationToolBar
+from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.config.base import get_home_dir
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PathComboBox
@@ -38,8 +38,14 @@ class WorkingDirectoryActions:
     Parent = "parent_action"
 
 
-class WorkingDirectoryToolBarSections:
+class WorkingDirectoryToolbarSections:
     Main = "main_section"
+
+
+# --- Widgets
+# ----------------------------------------------------------------------------
+class WorkingDirectoryToolbar(ApplicationToolbar):
+    ID = 'working_directory_toolbar'
 
 
 # --- Container
@@ -79,7 +85,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
         # Widgets
         title = _('Current working directory')
-        self.toolbar = ApplicationToolBar(self, title)
+        self.toolbar = WorkingDirectoryToolbar(self, title)
         self.pathedit = PathComboBox(
             self,
             adjust_to_contents=self.get_option('working_dir_adjusttocontents'),
@@ -141,7 +147,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
             self.add_item_to_toolbar(
                 item,
                 self.toolbar,
-                section=WorkingDirectoryToolBarSections.Main,
+                section=WorkingDirectoryToolbarSections.Main,
             )
 
     def update_actions(self):

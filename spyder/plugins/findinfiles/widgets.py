@@ -76,20 +76,20 @@ class FindInFilesWidgetActions:
     ToggleSearchRegex = 'toggle_use_regex_on_search_action'
 
 
-class FindInFilesWidgetToolBars:
+class FindInFilesWidgetToolbars:
     Exclude = 'exclude_toolbar'
     Location = 'location_toolbar'
 
 
-class FindInFilesWidgetMainToolBarSections:
+class FindInFilesWidgetMainToolbarSections:
     Main = 'main_section'
 
 
-class FindInFilesWidgetExcludeToolBarSections:
+class FindInFilesWidgetExcludeToolbarSections:
     Main = 'main_section'
 
 
-class FindInFilesWidgetLocationToolBarSections:
+class FindInFilesWidgetLocationToolbarSections:
     Main = 'main_section'
 
 
@@ -994,28 +994,28 @@ class FindInFilesWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
-                section=FindInFilesWidgetMainToolBarSections.Main,
+                section=FindInFilesWidgetMainToolbarSections.Main,
             )
 
         # Exclude Toolbar
         self.extras_toolbar = self.create_toolbar(
-            FindInFilesWidgetToolBars.Exclude)
+            FindInFilesWidgetToolbars.Exclude)
         for item in [self.exclude_label, self.exclude_pattern_edit,
                      self.exclude_regexp_action, self.create_stretcher()]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=self.extras_toolbar,
-                section=FindInFilesWidgetExcludeToolBarSections.Main,
+                section=FindInFilesWidgetExcludeToolbarSections.Main,
             )
 
         # Location toolbar
         location_toolbar = self.create_toolbar(
-            FindInFilesWidgetToolBars.Location)
+            FindInFilesWidgetToolbars.Location)
         for item in [self.search_in_label, self.path_selection_combo]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=location_toolbar,
-                section=FindInFilesWidgetLocationToolBarSections.Main,
+                section=FindInFilesWidgetLocationToolbarSections.Main,
             )
 
         menu = self.get_options_menu()

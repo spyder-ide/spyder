@@ -34,12 +34,11 @@ from qtpy.QtWidgets import QApplication, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
 from spyder.api.widgets.mixins import (SpyderActionMixin, SpyderOptionMixin,
                                        SpyderWidgetMixin)
-from spyder.api.widgets.toolbars import ApplicationToolBar
+from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault
@@ -596,6 +595,7 @@ class Plugins:
     Projects = 'project_explorer'
     Pylint = 'pylint'
     Shortcuts = 'shortcuts'
+    Toolbar = "toolbar"
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 
@@ -1338,70 +1338,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         pass
 
-    # --- API Application Toolbars
-    # ------------------------------------------------------------------------
-    def add_application_toolbar(self, name, toolbar):
-        """
-        Add toolbar to application toolbars.
-        """
-        if name in self._main._APPLICATION_TOOLBARS:
-            raise SpyderAPIError(
-                'Toolbar with name "{}" already added!'.format(name))
-
-        # TODO: Make the icon size adjustable in Preferences later on.
-        iconsize = 24
-        toolbar.setIconSize(QSize(iconsize, iconsize))
-        self._main._APPLICATION_TOOLBARS[name] = toolbar
-        self._added_toolbars[name] = toolbar
-        self.main.addToolBar(toolbar)
-
-    def add_item_to_application_toolbar(self, item, toolbar, section=None,
-                                        before=None):
-        """
-        Add action or widget `item` to given application toolbar section.
-        """
-        # TODO: Restrict to application toolbar types
-        if not isinstance(toolbar, (ApplicationToolBar, QToolBar)):
-            raise SpyderAPIError('Not an ApplicationToolBar!')
-
-        toolbar.addAction(item)
-
-    def get_application_toolbar(self, name):
-        """
-        Return an application toolbar by name.
-        """
-        # TODO: Temporal solution while API for managing app menus is created
-        app_toolbars = {
-            ApplicationToolBars.File: self._main.file_toolbar,
-            ApplicationToolBars.Run: self._main.run_toolbar,
-            ApplicationToolBars.Debug: self._main.debug_toolbar,
-            ApplicationToolBars.Main: self._main.main_toolbar,
-            ApplicationToolBars.Search: self._main.search_toolbar,
-            ApplicationToolBars.Edit: self._main.edit_toolbar,
-            ApplicationToolBars.Source: self._main.source_toolbar,
-        }
-        if name in app_toolbars:
-            return app_toolbars[name]
-        else:
-            raise SpyderAPIError(
-                'Application toolbar "{0}" not found! '
-                'Available toolbars are: {1}'.format(
-                    name,
-                    list(app_toolbars.keys())
-                )
-            )
-
-    def get_application_toolbars(self):
-        """
-        Return all created application toolbars.
-        """
-        return self._main._APPLICATION_TOOLBARS
-
-    def get_registered_application_toolbars(self):
-        """
-        Return all created application toolbars.
-        """
-        return self._added_toolbars
 
     # --- API Application Status Widgets
     # ------------------------------------------------------------------------

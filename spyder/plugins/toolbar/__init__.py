@@ -5,8 +5,5 @@
 # (see spyder/__init__.py for details)
 
 """
-Plots Plugin API.
+Toolbar plugin.
 """
-
-from spyder.plugins.plots.widgets.main_widget import (
-    PlotsWidgetActions, PlotsWidgetMainToolbarSections)

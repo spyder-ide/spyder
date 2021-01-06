@@ -88,7 +88,7 @@ class ToolsMenuSections:
 class ViewMenuSections:
     Top = 'top_section'
     Pane = 'pane_section'
-    ToolBar = 'toolbar_section'
+    Toolbar = 'toolbar_section'
     Layout = 'layout_section'
     Bottom = 'bottom_section'
 
