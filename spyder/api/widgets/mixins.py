@@ -269,7 +269,7 @@ class SpyderToolButtonMixin:
         return self._toolbuttons
 
 
-class SpyderToolBarMixin:
+class SpyderToolbarMixin:
     """
     Provide methods to create, add and get toolbars.
     """

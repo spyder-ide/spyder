@@ -69,15 +69,15 @@ class ProfilerWidgetActions:
     ShowOutput = 'show_output_action'
 
 
-class ProfilerWidgetToolBars:
+class ProfilerWidgetToolbars:
     Information = 'information_toolbar'
 
 
-class ProfilerWidgetMainToolBarSections:
+class ProfilerWidgetMainToolbarSections:
     Main = 'main_section'
 
 
-class ProfilerWidgetInformationToolBarSections:
+class ProfilerWidgetInformationToolbarSections:
     Main = 'main_section'
 
 
@@ -267,13 +267,13 @@ class ProfilerWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
-                section=ProfilerWidgetMainToolBarSections.Main,
+                section=ProfilerWidgetMainToolbarSections.Main,
             )
         toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         # Secondary Toolbar
         secondary_toolbar = self.create_toolbar(
-            ProfilerWidgetToolBars.Information)
+            ProfilerWidgetToolbars.Information)
         for item in [self.collapse_action, self.expand_action,
                      self.create_stretcher(), self.datelabel,
                      self.create_stretcher(), self.log_action,
@@ -281,7 +281,7 @@ class ProfilerWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=secondary_toolbar,
-                section=ProfilerWidgetInformationToolBarSections.Main,
+                section=ProfilerWidgetInformationToolbarSections.Main,
             )
 
         # Setup

@@ -288,12 +288,6 @@ class MainWindow(QMainWindow):
             self.register_shortcut(sc, context, name)
             self.register_shortcut(plugin.toggle_view_action, context, name)
 
-        toolbars = plugin.get_registered_application_toolbars()
-        for __, toolbar in toolbars.items():
-            # TODO: To update this render call
-            toolbar._render()
-            self.toolbarslist.append(toolbar)
-
     def unregister_plugin(self, plugin):
         """
         Unregister a plugin from the Spyder Main Window.
@@ -584,7 +578,6 @@ class MainWindow(QMainWindow):
 
         # Actions
         self.lock_interface_action = None
-        self.show_toolbars_action = None
         self.close_dockwidget_action = None
         self.undo_action = None
         self.redo_action = None
@@ -617,7 +610,6 @@ class MainWindow(QMainWindow):
 
         self.plugins_menu = None
         self.plugins_menu_actions = []
-        self.toolbars_menu = None
 
         # Status bar widgets
         self.interpreter_status = None
@@ -625,9 +617,7 @@ class MainWindow(QMainWindow):
         self.cpu_status = None
         self.clock_status = None
 
-        # Toolbars
-        self.visible_toolbars = []
-        self.toolbarslist = []
+        # TODO: Move to corresponding Plugins
         self.main_toolbar = None
         self.main_toolbar_actions = []
         self.file_toolbar = None
@@ -642,8 +632,6 @@ class MainWindow(QMainWindow):
         self.run_toolbar_actions = []
         self.debug_toolbar = None
         self.debug_toolbar_actions = []
-        self.layout_toolbar = None
-        self.layout_toolbar_actions = []
 
         self.menus = []
 
@@ -742,15 +730,7 @@ class MainWindow(QMainWindow):
 
         logger.info("End of MainWindow constructor")
 
-    #---- Window setup
-    def create_toolbar(self, title, object_name, iconsize=24):
-        """Create and return toolbar with *title* and *object_name*"""
-        toolbar = self.addToolBar(title)
-        toolbar.setObjectName(object_name)
-        toolbar.setIconSize(QSize(iconsize, iconsize))
-        self.toolbarslist.append(toolbar)
-        return toolbar
-
+    # --- Window setup
     def _update_shortcuts_in_panes_menu(self, show=True):
         """
         Display the shortcut for the "Switch to plugin..." on the toggle view
@@ -839,6 +819,11 @@ class MainWindow(QMainWindow):
         self.shortcuts = Shortcuts(self, configuration=CONF)
         self.register_plugin(self.shortcuts)
 
+        # Toolbar plugin
+        from spyder.plugins.toolbar.plugin import Toolbar
+        self.toolbar = Toolbar(self, configuration=CONF)
+        self.register_plugin(self.toolbar)
+
         logger.info("Creating core actions...")
         # TODO: Change registration to use MainMenus
         self.close_dockwidget_action = create_action(
@@ -922,33 +907,15 @@ class MainWindow(QMainWindow):
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
 
-        message = _(
-            "Spyder Internal Console\n\n"
-            "This console is used to report application\n"
-            "internal errors and to inspect Spyder\n"
-            "internals with the following commands:\n"
-            "  spy.app, spy.window, dir(spy)\n\n"
-            "Please don't use it to run your code\n\n"
-        )
-        CONF.set('internal_console', 'message', message)
-        CONF.set('internal_console', 'multithreaded', self.multithreaded)
-        CONF.set('internal_console', 'profile', self.profile)
-        CONF.set('internal_console', 'commands', [])
-        CONF.set('internal_console', 'namespace', {})
-        CONF.set('internal_console', 'show_internal_errors', True)
-
-        # Internal console plugin
-        from spyder.plugins.console.plugin import Console
-        self.console = Console(self, configuration=CONF)
-        self.register_plugin(self.console)
-
         # Menus
         # TODO: Remove when all menus are migrated to use the Main Menu Plugin
+        logger.info("Creating Menus...")
         mainmenu = self.mainmenu
         self.file_menu = mainmenu.get_application_menu("file_menu")
         self.edit_menu = mainmenu.get_application_menu("edit_menu")
         self.search_menu = mainmenu.get_application_menu("search_menu")
         self.source_menu = mainmenu.get_application_menu("source_menu")
+        self.source_menu.aboutToShow.connect(self.update_source_menu)
         self.run_menu = mainmenu.get_application_menu("run_menu")
         self.debug_menu = mainmenu.get_application_menu("debug_menu")
         self.consoles_menu = mainmenu.get_application_menu("consoles_menu")
@@ -958,25 +925,23 @@ class MainWindow(QMainWindow):
         self.projects_menu.aboutToShow.connect(self.valid_project)
         self.tools_menu = mainmenu.get_application_menu("tools_menu")
 
-        logger.info("Creating toolbars...")
         # Toolbars
-        self.file_toolbar = self.create_toolbar(_("File toolbar"),
-                                                "file_toolbar")
-        self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
-                                                "edit_toolbar")
-        self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-                                                  "search_toolbar")
-        self.source_toolbar = self.create_toolbar(_("Source toolbar"),
-                                                  "source_toolbar")
-        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
-                                               "run_toolbar")
-        self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
-                                                 "debug_toolbar")
+        logger.info("Creating toolbars...")
+        toolbar = self.toolbar
+        self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
+        self.edit_toolbar = toolbar.get_application_toolbar("edit_toolbar")
+        self.search_toolbar = toolbar.get_application_toolbar(
+            "search_toolbar")
+        self.source_toolbar = toolbar.get_application_toolbar(
+            "source_toolbar")
+        self.run_toolbar = toolbar.get_application_toolbar("run_toolbar")
+        self.debug_toolbar = toolbar.get_application_toolbar("debug_toolbar")
+        self.main_toolbar = toolbar.get_application_toolbar("main_toolbar")
+
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
-        self.source_menu.aboutToShow.connect(self.update_source_menu)
 
         logger.info("Creating Tools menu...")
         # Tools + External Tools
@@ -1050,12 +1015,29 @@ class MainWindow(QMainWindow):
                                      None,
                                      prefs_action, spyder_path_action]
 
-        self.main_toolbar = self.create_toolbar(_("Main toolbar"),
-                                                "main_toolbar")
-
         # Switcher instance
         logger.info("Loading switcher...")
         self.create_switcher()
+
+        message = _(
+            "Spyder Internal Console\n\n"
+            "This console is used to report application\n"
+            "internal errors and to inspect Spyder\n"
+            "internals with the following commands:\n"
+            "  spy.app, spy.window, dir(spy)\n\n"
+            "Please don't use it to run your code\n\n"
+        )
+        CONF.set('internal_console', 'message', message)
+        CONF.set('internal_console', 'multithreaded', self.multithreaded)
+        CONF.set('internal_console', 'profile', self.profile)
+        CONF.set('internal_console', 'commands', [])
+        CONF.set('internal_console', 'namespace', {})
+        CONF.set('internal_console', 'show_internal_errors', True)
+
+        # Internal console plugin
+        from spyder.plugins.console.plugin import Console
+        self.console = Console(self, configuration=CONF)
+        self.register_plugin(self.console)
 
         # Run plugin
         from spyder.plugins.run.plugin import Run
@@ -1348,18 +1330,10 @@ class MainWindow(QMainWindow):
         # View menu
         # Menus
         self.plugins_menu = SpyderMenu(parent=self, title=_("Panes"))
-        self.toolbars_menu = SpyderMenu(parent=self, title=_("Toolbars"))
         self.quick_layout_menu = SpyderMenu(
             parent=self,
             title=_("Window layouts"))
         self.quick_layout_set_menu()
-        self.show_toolbars_action = create_action(
-            self,
-            _("Show toolbars"),
-            triggered=self.show_toolbars,
-            context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.show_toolbars_action, "_",
-                               "Show toolbars")
 
         # Panes section
         self.mainmenu.add_item_to_application_menu(
@@ -1380,13 +1354,13 @@ class MainWindow(QMainWindow):
                 section=ViewMenuSections.Pane)
         # Toolbar section
         self.mainmenu.add_item_to_application_menu(
-                self.toolbars_menu,
+                self.toolbar.toolbars_menu,
                 menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.ToolBar)
+                section=ViewMenuSections.Toolbar)
         self.mainmenu.add_item_to_application_menu(
-                self.show_toolbars_action,
+                self.toolbar.show_toolbars_action,
                 menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.ToolBar)
+                section=ViewMenuSections.Toolbar)
         # Layout section
         self.mainmenu.add_item_to_application_menu(
                 self.quick_layout_menu,
@@ -1417,14 +1391,6 @@ class MainWindow(QMainWindow):
         add_actions(self.consoles_menu, self.consoles_menu_actions)
         add_actions(self.projects_menu, self.projects_menu_actions)
         add_actions(self.tools_menu, self.tools_menu_actions)
-
-        add_actions(self.main_toolbar, self.main_toolbar_actions)
-        add_actions(self.file_toolbar, self.file_toolbar_actions)
-        add_actions(self.edit_toolbar, self.edit_toolbar_actions)
-        add_actions(self.search_toolbar, self.search_toolbar_actions)
-        add_actions(self.source_toolbar, self.source_toolbar_actions)
-        add_actions(self.debug_toolbar, self.debug_toolbar_actions)
-        add_actions(self.run_toolbar, self.run_toolbar_actions)
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -1499,11 +1465,6 @@ class MainWindow(QMainWindow):
 
         # Create Plugins and toolbars submenus
         self.create_plugins_menu()
-        self.create_toolbars_menu()
-
-        # Update toolbar visibility status
-        self.toolbars_visible = CONF.get('main', 'toolbars_visible')
-        self.load_last_visible_toolbars()
 
         # Update lock status
         self.toggle_lock(self.interface_locked)
@@ -2353,68 +2314,6 @@ class MainWindow(QMainWindow):
             plugin_name=plugin_name,
         )
 
-    # --- Show/Hide toolbars
-    def _update_show_toolbars_action(self):
-        """Update the text displayed in the menu entry."""
-        if self.toolbars_visible:
-            text = _("Hide toolbars")
-            tip = _("Hide toolbars")
-        else:
-            text = _("Show toolbars")
-            tip = _("Show toolbars")
-        self.show_toolbars_action.setText(text)
-        self.show_toolbars_action.setToolTip(tip)
-
-    def save_visible_toolbars(self):
-        """Saves the name of the visible toolbars in the .ini file."""
-        toolbars = []
-        for toolbar in self.visible_toolbars:
-            toolbars.append(toolbar.objectName())
-        CONF.set('main', 'last_visible_toolbars', toolbars)
-
-    def get_visible_toolbars(self):
-        """Collects the visible toolbars."""
-        toolbars = []
-        for toolbar in self.toolbarslist:
-            if toolbar.toggleViewAction().isChecked():
-                toolbars.append(toolbar)
-        self.visible_toolbars = toolbars
-
-    def load_last_visible_toolbars(self):
-        """Loads the last visible toolbars from the .ini file."""
-        toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
-
-        if toolbars_names:
-            dic = {}
-            for toolbar in self.toolbarslist:
-                dic[toolbar.objectName()] = toolbar
-
-            toolbars = []
-            for name in toolbars_names:
-                if name in dic:
-                    toolbars.append(dic[name])
-            self.visible_toolbars = toolbars
-        else:
-            self.get_visible_toolbars()
-        self._update_show_toolbars_action()
-
-    @Slot()
-    def show_toolbars(self):
-        """Show/Hides toolbars."""
-        value = not self.toolbars_visible
-        CONF.set('main', 'toolbars_visible', value)
-        if value:
-            self.save_visible_toolbars()
-        else:
-            self.get_visible_toolbars()
-
-        for toolbar in self.visible_toolbars:
-            toolbar.toggleViewAction().setChecked(value)
-            toolbar.setVisible(value)
-
-        self.toolbars_visible = value
-        self._update_show_toolbars_action()
-
     # --- Other
     def update_execution_state_kernel(self):
         """Handle execution state of the current console."""
@@ -2617,23 +2516,6 @@ class MainWindow(QMainWindow):
         self.plugins_menu_actions = actions
         add_actions(self.plugins_menu, actions)
 
-    def create_toolbars_menu(self):
-        order = ['file_toolbar', 'run_toolbar', 'debug_toolbar',
-                 'main_toolbar', 'Global working directory', None,
-                 'search_toolbar', 'edit_toolbar', 'source_toolbar']
-        for toolbar in self.toolbarslist:
-            action = toolbar.toggleViewAction()
-            name = toolbar.objectName()
-            try:
-                pos = order.index(name)
-            except ValueError:
-                pos = None
-            if pos is not None:
-                order[pos] = action
-            else:
-                order.append(action)
-        add_actions(self.toolbars_menu, order)
-
     def createPopupMenu(self):
         return self.mainmenu.get_application_context_menu(parent=self)
 
@@ -2760,9 +2642,6 @@ class MainWindow(QMainWindow):
 
         self.dialog_manager.close_all()
 
-        if self.toolbars_visible:
-            self.save_visible_toolbars()
-
         self.completions.shutdown()
 
         self.already_closed = True
@@ -2822,7 +2701,9 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.set_title_bar()
 
         # Apply lock to toolbars
-        for toolbar in self.toolbarslist:
+        # TODO: Move to layouts plugin (which will depend on Toolbar
+        # and MainMenu)
+        for toolbar in self.toolbar.toolbarslist:
             if self.interface_locked:
                 toolbar.setMovable(False)
             else:
@@ -3489,8 +3370,10 @@ class MainWindow(QMainWindow):
         self.switcher.show()
 
         # Note: The +6 pixel on the top makes it look better
-        delta_top = (self.toolbars_menu.geometry().height() +
+        # FIXME: Why is this using the toolbars menu?
+        delta_top = (self.toolbar.toolbars_menu.geometry().height() +
                      self.menuBar().geometry().height() + 6)
+
         self.switcher.set_position(delta_top)
 
     def open_symbolfinder(self):

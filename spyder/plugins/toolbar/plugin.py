@@ -1,0 +1,185 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
+"""
+Toolbar Plugin.
+"""
+
+# Local imports
+from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import SpyderPluginV2
+from spyder.api.translations import get_translation
+from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.plugins.toolbar.container import ToolbarContainer
+
+# Localization
+_ = get_translation('spyder')
+
+
+class Toolbar(SpyderPluginV2):
+    """
+    Docstrings viewer widget.
+    """
+    NAME = 'toolbar'
+    CONF_SECTION = NAME
+    CONF_FILE = False
+    CONTAINER_CLASS = ToolbarContainer
+
+    # --- SpyderDocakblePlugin API
+    #  -----------------------------------------------------------------------
+    def get_name(self):
+        return _('Toolbar')
+
+    def get_description(self):
+        return _('Application toolbars management.')
+
+    def get_icon(self):
+        return self.create_icon('help')
+
+    def register(self):
+        create_app_toolbar = self.create_application_toolbar
+        create_app_toolbar(ApplicationToolbars.File, _("File toolbar"))
+        create_app_toolbar(ApplicationToolbars.Edit, _("Edit toolbar"))
+        create_app_toolbar(ApplicationToolbars.Search, _("Search toolbar"))
+        create_app_toolbar(ApplicationToolbars.Source, _("Source toolbar"))
+        create_app_toolbar(ApplicationToolbars.Run, _("Run toolbar"))
+        create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
+        create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
+
+    def on_mainwindow_visible(self):
+        container = self.get_container()
+
+        # TODO: Until all core plugins are migrated, this is needed.
+        ACTION_MAP = {
+            ApplicationToolbars.Main: self.main.main_toolbar_actions,
+            ApplicationToolbars.File: self.main.file_toolbar_actions,
+            ApplicationToolbars.Edit: self.main.edit_toolbar_actions,
+            ApplicationToolbars.Search: self.main.search_toolbar_actions,
+            ApplicationToolbars.Source: self.main.source_toolbar_actions,
+            ApplicationToolbars.Debug: self.main.debug_toolbar_actions,
+            ApplicationToolbars.Run: self.main.run_toolbar_actions,
+        }
+        for toolbar in container.get_application_toolbars():
+            toolbar_id = toolbar.ID
+            if toolbar_id in ACTION_MAP:
+                section = 0
+                for item in ACTION_MAP[toolbar_id]:
+                    if item is None:
+                        section += 1
+                        continue
+
+                    self.add_item_to_application_toolbar(
+                        item,
+                        toolbar_id=toolbar_id,
+                        section=str(section),
+                    )
+
+            toolbar._render()
+
+        container.create_toolbars_menu()
+        container.load_last_visible_toolbars()
+
+    def on_close(self):
+        container = self.get_container()
+        if container._toolbars_visible:
+            self.save_visible_toolbars()
+
+    # --- Public API
+    # ------------------------------------------------------------------------
+    def create_application_toolbar(self, toolbar_id, title):
+        """
+        Create a Spyder application toolbar.
+
+        Paramaters
+        ----------
+        toolbar_id: str
+            The toolbar unique identifier string.
+        title: str
+            The localized toolbar title to be displayed.
+
+        Returns
+        -------
+        spyder.api.widgets.toolbar.ApplicationToolbar
+            The created application toolbar.
+        """
+        toolbar = self.get_container().create_application_toolbar(
+            toolbar_id, title)
+        self.add_application_toolbar(toolbar)
+        return toolbar
+
+    def add_application_toolbar(self, toolbar):
+        """
+        Add toolbar to application toolbars.
+
+        This can be used to add a custom toolbar. The `WorkingDirectory`
+        plugin is an example of this.
+
+        Parameters
+        ----------
+        toolbar: spyder.api.widgets.toolbars.ApplicationToolbar
+            The application toolbar to add to the main window.
+        """
+        self.get_container().add_application_toolbar(toolbar, self.main)
+
+    def add_item_to_application_toolbar(self, item, toolbar=None,
+                                        toolbar_id=None, section=None,
+                                        before=None):
+        """
+        Add action or widget `item` to given application menu `section`.
+
+        Parameters
+        ----------
+        item: SpyderAction or QWidget
+            The item to add to the `toolbar`.
+        toolbar: ApplicationToolbar or None
+            Instance of a Spyder application toolbar.
+        toolbar_id: str or None
+            The application toolbar unique string identifier.
+        section: str or None
+            The section id in which to insert the `item` on the `toolbar`.
+        before: str or None
+            Make the item appear before another given item.
+
+        Notes
+        -----
+        Must provide a `toolbar` or a `toolbar_id`.
+        """
+        return self.get_container().add_item_to_application_toolbar(
+                item,
+                toolbar=toolbar,
+                toolbar_id=toolbar_id,
+                section=section,
+                before=before,
+            )
+
+    def get_application_toolbar(self, toolbar_id):
+        """
+        Return an application toolbar by toolbar_id.
+
+        Parameters
+        ----------
+        toolbar_id: str
+            The toolbar unique string identifier.
+
+        Returns
+        -------
+        spyder.api.widgets.toolbars.ApplicationToolbar
+            The application toolbar.
+        """
+        return self.get_container().get_application_toolbar(toolbar_id)
+
+    # --- Convenience properties, while all plugins migrate.
+    @property
+    def toolbars_menu(self):
+        return self.get_container().get_menu("toolbars_menu")
+
+    @property
+    def show_toolbars_action(self):
+        return self.get_action("show toolbars")
+
+    @property
+    def toolbarslist(self):
+        return self.get_container()._toolbarslist

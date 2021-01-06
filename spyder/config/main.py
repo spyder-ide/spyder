@@ -88,12 +88,17 @@ DEFAULTS = [
               'use_custom_cursor_blinking': False,
               'show_internal_errors': True,
               'check_updates_on_startup': True,
-              'toolbars_visible': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,
               'show_tour_message': True,
               }),
+            ('toolbar',
+             {
+              'enable': True,
+              'toolbars_visible': True,
+              'last_visible_toolbars': [],
+             }),
             ('quick_layouts',
              {
               'place_holder': '',
@@ -568,12 +573,15 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
-            'last_visible_toolbars',
             'spyder_pythonpath',
             'window/position',
             'window/prefs_dialog_size',
             'window/size',
             'window/state',
+            ]
+         ),
+        ('toolbar', [
+            'last_visible_toolbars',
             ]
          ),
         ('appearance', [
@@ -651,4 +659,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '63.0.0'
+CONF_VERSION = '64.0.0'

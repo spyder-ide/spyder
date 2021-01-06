@@ -13,11 +13,10 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
-from spyder.plugins.findinfiles.widgets import (FindInFilesWidget,
-                                                FindInFilesWidgetActions)
+from spyder.plugins.findinfiles.widgets import FindInFilesWidget
 from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.misc import getcwd_or_home
 
 # Localization
@@ -39,7 +38,7 @@ class FindInFiles(SpyderDockablePlugin):
     NAME = 'find_in_files'
     REQUIRES = []
     OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.WorkingDirectory,
-                Plugins.MainMenu]
+                Plugins.MainMenu, Plugins.Toolbar]
     TABIFY = [Plugins.VariableExplorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
@@ -59,6 +58,7 @@ class FindInFiles(SpyderDockablePlugin):
     def register(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+        toolbar = self.get_plugin(Plugins.Toolbar)
         editor = self.get_plugin(Plugins.Editor)
         projects = self.get_plugin(Plugins.Projects)
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
@@ -84,6 +84,7 @@ class FindInFiles(SpyderDockablePlugin):
             register_shortcut=True,
             context=Qt.WindowShortcut
         )
+
         if mainmenu:
             menu = mainmenu.get_application_menu(ApplicationMenus.Search)
             mainmenu.add_item_to_application_menu(
@@ -91,12 +92,14 @@ class FindInFiles(SpyderDockablePlugin):
                 menu=menu,
             )
 
-        search_toolbar = self.get_application_toolbar(
-            ApplicationToolBars.Search)
-        self.add_item_to_application_toolbar(
-            findinfiles_action,
-            search_toolbar,
-        )
+        if toolbar:
+            search_toolbar = toolbar.get_application_toolbar(
+                ApplicationToolbars.Search)
+            toolbar.add_item_to_application_toolbar(
+                findinfiles_action,
+                search_toolbar,
+            )
+
         self.refresh_search_directory()
 
     def on_close(self, cancelable=False):
