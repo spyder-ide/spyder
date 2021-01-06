@@ -77,7 +77,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             self.set_status)
         self.status_widget.sig_clicked.connect(
             self.show_installation_dialog)
-        # self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
+        self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
 
         # Config
         self.update_configuration()
@@ -92,16 +92,22 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     @Slot()
     def mainwindow_setup_finished(self):
         """
-        This is called after the main window setup finishes to show Kite's
-        installation dialog and onboarding if necessary.
+        This is called after the main window setup finishes, and the
+        third time Spyder is started, to show Kite's installation dialog
+        and onboarding if necessary.
         """
-        self._kite_onboarding()
+        spyder_runs = self.get_option('spyder_runs')
+        if spyder_runs == 3:
+            self._kite_onboarding()
 
-        show_dialog = self.get_option('show_installation_dialog')
-        if show_dialog:
-            # Only show the dialog once at startup
-            self.set_option('show_installation_dialog', False)
-            self.show_installation_dialog()
+            show_dialog = self.get_option('show_installation_dialog')
+            if show_dialog:
+                # Only show the dialog once at startup
+                self.set_option('show_installation_dialog', False)
+                self.show_installation_dialog()
+        else:
+            if spyder_runs < 3:
+                self.set_option('spyder_runs', spyder_runs + 1)
 
     @Slot(str)
     @Slot(dict)

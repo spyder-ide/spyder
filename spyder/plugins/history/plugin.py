@@ -29,7 +29,10 @@ from spyder.plugins.editor.widgets import codeeditor
 from spyder.widgets.findreplace import FindReplace
 
 from spyder.plugins.history.confpage import HistoryConfigPage
-#from spyder.plugins.history.widgets import History
+
+
+# Maximum number of lines to show
+MAX_LINES = 1000
 
 
 class HistoryLog(SpyderPluginWidget):
@@ -105,10 +108,6 @@ class HistoryLog(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        self.history_action = create_action(self, _("History..."),
-                                       None, ima.icon('history'),
-                                       _("Set history maximum entries"),
-                                       triggered=self.change_history_depth)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked( self.get_option('wrap') )
@@ -116,8 +115,7 @@ class HistoryLog(SpyderPluginWidget):
                 self, _("Show line numbers"), toggled=self.toggle_line_numbers)
         self.linenumbers_action.setChecked(self.get_option('line_numbers'))
 
-        menu_actions = [self.history_action, self.wrap_action,
-                        self.linenumbers_action]
+        menu_actions = [self.wrap_action, self.linenumbers_action]
         return menu_actions
 
     def on_first_registration(self):
@@ -201,9 +199,8 @@ class HistoryLog(SpyderPluginWidget):
             text = "# Previous history could not be read from disk, sorry\n\n"
         text = normalize_eols(text)
         linebreaks = [m.start() for m in re.finditer('\n', text)]
-        maxNline = self.get_option('max_entries')
-        if len(linebreaks) > maxNline:
-            text = text[linebreaks[-maxNline - 1] + 1:]
+        if len(linebreaks) > MAX_LINES:
+            text = text[linebreaks[-MAX_LINES - 1] + 1:]
             # Avoid an error when trying to write the trimmed text to
             # disk.
             # See spyder-ide/spyder#9093.
@@ -235,16 +232,6 @@ class HistoryLog(SpyderPluginWidget):
         if self.get_option('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
-
-    @Slot()
-    def change_history_depth(self):
-        "Change history max entries"""
-        depth, valid = QInputDialog.getInt(self, _('History'),
-                                       _('Maximum entries'),
-                                       self.get_option('max_entries'),
-                                       10, 10000)
-        if valid:
-            self.set_option('max_entries', depth)
 
     @Slot(bool)
     def toggle_wrap_mode(self, checked):

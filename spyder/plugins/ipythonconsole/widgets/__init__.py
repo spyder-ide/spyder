@@ -11,7 +11,7 @@
 Widgets for the IPython Console.
 """
 
-from .control import ControlWidget
+from .control import ControlWidget, PageControlWidget
 from .debugging import DebuggingWidget
 from .help import HelpWidget
 from .namespacebrowser import NamepaceBrowserWidget

@@ -1437,16 +1437,14 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        if is_dark_interface():
-            start_tour_color = '#3775A9'
-            dismiss_tour_color = '#60798B'
-        else:
-            start_tour_color = '#9DA9B5'
-            dismiss_tour_color = '#CBCACA'
+        start_tour_color = '#3775A9'
+        dismiss_tour_color = '#60798B'
+        font_color = 'white'
         self.launch_tour_button = QPushButton(_('Start tour'))
         self.launch_tour_button.setStyleSheet(
           f"background-color: {start_tour_color};"
           f"font-size: {self.BUTTONS_FONT_SIZE};"
+          f"color: {font_color};"
           f"padding: {self.BUTTONS_PADDING}"
         )
         self.launch_tour_button.setAutoDefault(False)
@@ -1454,6 +1452,7 @@ class OpenTourDialog(QDialog):
         self.dismiss_button.setStyleSheet(
           f"background-color: {dismiss_tour_color};"
           f"font-size: {self.BUTTONS_FONT_SIZE};"
+          f"color: {font_color};"
           f"padding: {self.BUTTONS_PADDING}"
         )
         self.dismiss_button.setAutoDefault(False)

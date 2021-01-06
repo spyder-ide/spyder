@@ -67,6 +67,11 @@ def path_is_library(path, initial_pathlist=None):
         # We don't want to consider paths that belong to the standard
         # library or installed to site-packages.
         return True
+    elif os.name == 'nt':
+        if re.search(r'.*/pkgs/.*', path):
+            return True
+        else:
+            return False
     elif not os.name == 'nt':
         # Paths containing the strings below can be part of the default
         # Linux installation, Homebrew or the user site-packages in a
