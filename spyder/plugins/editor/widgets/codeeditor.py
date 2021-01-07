@@ -4032,7 +4032,7 @@ class CodeEditor(TextEditBaseWidget):
         position = self.textCursor().position()
         for brace in [']', ')', '}']:
             match = self.find_brace_match(position, brace, forward=False)
-            if match:
+            if match is not None:
                 return True
         return False
 
@@ -4066,50 +4066,52 @@ class CodeEditor(TextEditBaseWidget):
         return next_char
 
     def in_comment(self, cursor=None, position=None):
-        """Returns true if the given position is inside a comment
+        """Returns True if the given position is inside a comment.
 
-        Overrides TextEditBaseWidget.in_comment
+        Parameters
+        ----------
+        cursor : QTextCursor, optional
+            The position to check.
+        position : int, optional
+            The position to check if *cursor* is None. This parameter
+            is ignored when *cursor* is not None.
 
-        Argument priority:
-            1. cursor
-            2. position
-            3. self.textCursor()
+        If both *cursor* and *position* are none, then the position returned
+        by self.textCursor() is used instead.
         """
         if self.highlighter:
             if cursor is None:
                 cursor = self.textCursor()
-                if position:
+                if position is not None:
                     cursor.setPosition(position)
             current_color = self.__get_current_color(cursor)
             comment_color = self.highlighter.get_color_name('comment')
-            if current_color == comment_color:
-                return True
-            else:
-                return False
+            return (current_color == comment_color)
         else:
             return False
 
     def in_string(self, cursor=None, position=None):
-        """Returns true if the given position is inside a string
+        """Returns True if the given position is inside a string.
 
-        Overrides TextEditBaseWidget.in_string
+        Parameters
+        ----------
+        cursor : QTextCursor, optional
+            The position to check.
+        position : int, optional
+            The position to check if *cursor* is None. This parameter
+            is ignored when *cursor* is not None.
 
-        Argument priority:
-            1. cursor
-            2. position
-            3. self.textCursor()
+        If both *cursor* and *position* are none, then the position returned
+        by self.textCursor() is used instead.
         """
         if self.highlighter:
             if cursor is None:
                 cursor = self.textCursor()
-                if position:
+                if position is not None:
                     cursor.setPosition(position)
             current_color = self.__get_current_color(cursor)
             string_color = self.highlighter.get_color_name('string')
-            if current_color == string_color:
-                return True
-            else:
-                return False
+            return (current_color == string_color)
         else:
             return False
 

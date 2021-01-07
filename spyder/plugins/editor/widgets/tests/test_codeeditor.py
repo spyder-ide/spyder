@@ -270,10 +270,10 @@ def test_undo_return(editorbot):
     assert editor.toPlainText() == text
 
 
-def test_brace_match():
-    """Tests for the highlighting of matching parenthesis, braces and brackets
+def test_brace_match(editorbot):
+    """Tests for the highlighting of matching parenthesis, braces and brackets.
 
-    Specifically provides regresion tests for issues
+    Specifically provides regression tests for issues
      * spyder-ide/spyder#2965
      * spyder-ide/spyder#9179
      * spyder-ide/spyder#14374
@@ -290,21 +290,26 @@ def test_brace_match():
      * CodeEditor.in_comment
      * CodeEditor.in_string
     """
-    # Create editor with contents from assets/brackets.py
-    app = qapplication()
-    editor = codeeditor.CodeEditor(parent=None)
+    # Create editor with contents loaded from assets/brackets.py
+    qtbot, editor = editorbot
     editor.setup_editor(language='Python')
     with open(osp.join(ASSETS, 'braces.py'), 'r') as file:
         editor.set_text(file.read())
 
-    # I chose to put all tset cases inside the function instead of
-    # using @pytest.mark.parametrize because the test runs much faster
-    # when the editor is only constructed once instead of once per test
-    # case.
-
-    # Position, Expected detected brace positions
-    # If the position does not contain a brace then None
-    # If it contains an unmatched brace then a one element tuple
+    # Each element of *positions* is a two element list:
+    #  [position, expected]
+    # Here *position* is the position at which to place the cursor and
+    # *expected* is what editor.bracepos should be at that location if
+    # the brace matching works correctly. Specifically if at *position* ...
+    # a) ... there is no brace, then *expected* should be None.
+    # b) ... there is an unmatched brace, then *expected* should be a
+    #        1-tuple containing position-1
+    # c) ... there is a matched brace then *expected* should be a
+    #        2-tuple with the first element being position-1 and the
+    #        second element being the position of the mathing brace.
+    # At the end of each row, a comment has been added that attempts to
+    # illustrate in what part of 'braces.py' the cursor is placed in
+    # that test case.
     positions = [
         [0, None],       # b
         [5,  (4, 55)],   # b = [
@@ -324,7 +329,7 @@ def test_brace_match():
         [53, (52, 46)],  # 8]
         [63, (62, 143)],  # a = [
         [144, (143, 62)],  # ]
-        [69, (68, )],  # """(
+        [69, (68, )],    # """(
         [70, (69, 78)],  # (
         [71, (70, 77)],  # (
         [72, (71, 76)],  # (

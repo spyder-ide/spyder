@@ -279,26 +279,26 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.clear_extra_selections('current_cell')
 
     def in_comment(self, cursor=None, position=None):
-        """Returns true if the given position is inside a comment
+        """Returns True if the given position is inside a comment.
 
         Trivial default implementation. To be overridden by subclass.
-        This function is used to define the default behaciour of
+        This function is used to define the default behaviour of
         self.find_brace_match.
         """
         return False
 
     def in_string(self, cursor=None, position=None):
-        """Returns true if the given position is inside a string
+        """Returns True if the given position is inside a string.
 
         Trivial default implementation. To be overridden by subclass.
-        This function is used to define the default behaciour of
+        This function is used to define the default behaviour of
         self.find_brace_match.
         """
         return False
 
     def find_brace_match(self, position, brace, forward,
                          ignore_brace=None, stop=None):
-        """Returns position of matching brace
+        """Returns position of matching brace.
 
         Parameters
         ----------
@@ -314,14 +314,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         stop : callable taking int returning boolean, optional
             Whether to stop the search early (as function of position).
 
-        If both ignore_brace and brace are None, the default behaviour
-        then brace matching is handled differently depending on whether
-        the starting position cursor is inside a string, comment or
-        regular code. The member functions self.in_comment and
-        self.in_string are used.
+        If both *ignore_brace* and *stop* are None, then brace matching
+        is handled differently depending on whether *position* is
+        inside a string, comment or regular code. If in regular code,
+        then any braces inside strings and comments are ignored. If in a
+        string/comment, then only braces in the same string/comment are
+        considered potential matches. The functions self.in_comment and
+        self.in_string are used to determine string/comment/code status
+        of characters in this case.
 
-        If exactly one of ignore_brace and brace is None, it is
-        replaced by function returning False for every position. I.e.:
+        If exactly one of *ignore_brace* and *stop* is None, then it is
+        replaced by a function returning False for every position. I.e.:
             lambda pos: False
 
         Returns
@@ -333,14 +336,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if ignore_brace is None and stop is None:
             if self.in_string(position=position):
                 # Only search inside the current string
-                def stop(pos): return not self.in_string(position=pos)
+                def stop(pos):
+                    return not self.in_string(position=pos)
             elif self.in_comment(position=position):
                 # Only search inside the current comment
-                def stop(pos): return not self.in_comment(position=pos)
+                def stop(pos):
+                    return not self.in_comment(position=pos)
             else:
                 # Ignore braces inside strings and comments
-                def ignore_brace(pos): return self.in_string(position=pos) \
-                    or self.in_comment(position=pos)
+                def ignore_brace(pos):
+                    return (self.in_string(position=pos) or
+                            self.in_comment(position=pos))
 
         # Deal with search range and direction
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
@@ -349,13 +355,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             text = self.get_text(position, end_pos, remove_newlines=False)
         else:
             # Handle backwards search with the same code as forwards
-            # by reversing the search string.
+            # by reversing the string to be searched.
             closing_brace = {')': '(', ']': '[', '}': '{'}[brace]
             text = self.get_text(start_pos, position+1, remove_newlines=False)
             text = text[-1::-1]  # reverse
 
         def ind2pos(index):
-            """Compute editor position from search index"""
+            """Computes editor position from search index."""
             return (position + index) if forward else (position - index)
 
         # Search starts at the first position after the given one
@@ -380,8 +386,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                 if stop(ind2pos(i)):
                                     return
                         return ind2pos(i_close)
-                    elif ignore_brace is None \
-                            or not ignore_brace(ind2pos(i_open)):
+                    elif (ignore_brace is None or
+                          not ignore_brace(ind2pos(i_open))):
                         break  # must find new closing brace
 
     def __highlight(self, positions, color=None, cancel=False):
@@ -403,14 +409,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.update_extra_selections()
 
     def cursor_position_changed(self):
-        """Brace matching"""
+        """Handle brace matching."""
         # Clear last brace highlight (if any)
         if self.bracepos is not None:
             self.__highlight(self.bracepos, cancel=True)
             self.bracepos = None
 
-        # Get the current cursor position, check if it is at a brace
-        # and, if so, determine the search direction.
+        # Get the current cursor position, check if it is at a brace,
+        # and, if so, determine the direction in which to search for able
+        # matching brace.
         cursor = self.textCursor()
         if cursor.position() == 0:
             return
