@@ -1,5 +1,37 @@
 # History of changes
 
+## Version 5.0alpha3 (2021-01-08)
+
+### Issues Closed
+
+* [Issue 13698](https://github.com/spyder-ide/spyder/issues/13698) - Profiler pane issues and details ([PR 13711](https://github.com/spyder-ide/spyder/pull/13711) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13657](https://github.com/spyder-ide/spyder/issues/13657) - Find pane issues and details ([PR 13675](https://github.com/spyder-ide/spyder/pull/13675) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 13103](https://github.com/spyder-ide/spyder/issues/13103) - Move Main Interpreter preferences to new Plugin API ([PR 13104](https://github.com/spyder-ide/spyder/pull/13104) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 12183](https://github.com/spyder-ide/spyder/issues/12183) - Move Pylint plugin to use new API ([PR 12160](https://github.com/spyder-ide/spyder/pull/12160) by [@goanpeca](https://github.com/goanpeca))
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 14498](https://github.com/spyder-ide/spyder/pull/14498) - PR: Fix two typos in Contributing guide, by [@real-yfprojects](https://github.com/real-yfprojects)
+* [PR 14449](https://github.com/spyder-ide/spyder/pull/14449) - PR: Fix wrong import (Testing), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14388](https://github.com/spyder-ide/spyder/pull/14388) - PR: Fix changing directory when opening and closing projects, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14370](https://github.com/spyder-ide/spyder/pull/14370) - PR: Fix some real and some potential bugs, by [@novaya](https://github.com/novaya)
+* [PR 14319](https://github.com/spyder-ide/spyder/pull/14319) - PR: Fix typo in variable name, by [@novaya](https://github.com/novaya)
+* [PR 14283](https://github.com/spyder-ide/spyder/pull/14283) - PR: Fix wrong import (Code analysis), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13711](https://github.com/spyder-ide/spyder/pull/13711) - PR: Fix some issues with the profiler, by [@goanpeca](https://github.com/goanpeca) ([13698](https://github.com/spyder-ide/spyder/issues/13698))
+* [PR 13675](https://github.com/spyder-ide/spyder/pull/13675) - PR: Fix some issues with the Find in files plugin, by [@goanpeca](https://github.com/goanpeca) ([13657](https://github.com/spyder-ide/spyder/issues/13657))
+* [PR 13547](https://github.com/spyder-ide/spyder/pull/13547) - PR: Add new toolbar plugin, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13542](https://github.com/spyder-ide/spyder/pull/13542) - PR: Create new MainMenu plugin, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13104](https://github.com/spyder-ide/spyder/pull/13104) - PR: Migrate Main interpreter to new plugin API, by [@goanpeca](https://github.com/goanpeca) ([13103](https://github.com/spyder-ide/spyder/issues/13103))
+* [PR 12160](https://github.com/spyder-ide/spyder/pull/12160) - PR: Move Pylint plugin to new API, by [@goanpeca](https://github.com/goanpeca) ([12183](https://github.com/spyder-ide/spyder/issues/12183))
+
+In this release 12 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0alpha2 (2020-11-12)
 
 ### Issues Closed
