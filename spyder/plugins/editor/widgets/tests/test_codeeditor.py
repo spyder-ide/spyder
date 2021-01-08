@@ -4,6 +4,9 @@
 # Licensed under the terms of the MIT License
 #
 
+# Standard library imports
+import os.path as osp
+
 # Third party imports
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
@@ -11,9 +14,12 @@ from pytestqt import qtbot
 import pytest
 
 # Local imports
+from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.editor import codeeditor
 from spyder.py3compat import PY2, PY3
 
+HERE = osp.dirname(osp.abspath(__file__))
+ASSETS = osp.join(HERE, 'assets')
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
@@ -262,6 +268,102 @@ def test_undo_return(editorbot):
     assert editor.toPlainText() == returned_text
     qtbot.keyPress(editor, "z", modifier=Qt.ControlModifier)
     assert editor.toPlainText() == text
+
+
+def test_brace_match(editorbot):
+    """Tests for the highlighting of matching parenthesis, braces and brackets.
+
+    Specifically provides regression tests for issues
+     * spyder-ide/spyder#2965
+     * spyder-ide/spyder#9179
+     * spyder-ide/spyder#14374
+
+    If this test fails the best way to investigate is probably to open
+    assets/braces.py in Spyder, step through the file and visually
+    observe brace matching.
+
+    Some caveats for brace matching can be found in pull request
+    spyder-ide/spyder#14376
+
+    The functions being tested are essentially:
+     * TextEditBaseWidget.find_brace_match
+     * CodeEditor.in_comment
+     * CodeEditor.in_string
+    """
+    # Create editor with contents loaded from assets/brackets.py
+    qtbot, editor = editorbot
+    editor.setup_editor(language='Python')
+    with open(osp.join(ASSETS, 'braces.py'), 'r') as file:
+        editor.set_text(file.read())
+
+    # Each element of *positions* is a two element list:
+    #  [position, expected]
+    # Here *position* is the position at which to place the cursor and
+    # *expected* is what editor.bracepos should be at that location if
+    # the brace matching works correctly. Specifically if at *position* ...
+    # a) ... there is no brace, then *expected* should be None.
+    # b) ... there is an unmatched brace, then *expected* should be a
+    #        1-tuple containing position-1
+    # c) ... there is a matched brace then *expected* should be a
+    #        2-tuple with the first element being position-1 and the
+    #        second element being the position of the mathing brace.
+    # At the end of each row, a comment has been added that attempts to
+    # illustrate in what part of 'braces.py' the cursor is placed in
+    # that test case.
+    positions = [
+        [0, None],       # b
+        [5,  (4, 55)],   # b = [
+        [56, (55,  4)],  # ]
+        [7,  (6, 12)],   # [x
+        [13, (12,  6)],  # x*2]
+        [29, (28, 54)],  # [1
+        [55, (54, 28)],  # ]
+        [32, (31, 35)],  # [2
+        [36, (35, 31)],  # 3]
+        [38, (37, 53)],  # [4
+        [54, (53, 37)],  # ]
+        [41, (40, 42)],  # [5
+        [42, None],      # 5
+        [43, (42, 40)],  # 5]
+        [47, (46, 52)],  # [7
+        [53, (52, 46)],  # 8]
+        [63, (62, 143)],  # a = [
+        [144, (143, 62)],  # ]
+        [69, (68, )],    # """(
+        [70, (69, 78)],  # (
+        [71, (70, 77)],  # (
+        [72, (71, 76)],  # (
+        [73, (72, 75)],  # (
+        [74, (73, 74)],  # (
+        [75, (74, 73)],  # )
+        [76, (75, 72)],  # )
+        [77, (76, 71)],  # )
+        [78, (77, 70)],  # )
+        [79, (78, 69)],  # )
+        [82, (81, 88)],  # [
+        [83, (82, 87)],  # [
+        [84, (83, 86)],  # [
+        [85, (84, 85)],  # [
+        [86, (85, 84)],  # ]
+        [87, (86, 83)],  # ]
+        [88, (87, 82)],  # ]
+        [89, (88, 81)],  # ]
+        [90, (89, )],    # ]"""
+        [99, (98, )],    # 'x)'
+        [105, (104, )],  # 'b('
+        [111, (110, )],  # # )
+        [112, (111, 128)],  # {[
+        [129, (128, 111)],  # ]}
+        [113, (112, 127)],  # [(
+        [128, (127, 112)],  # )]
+        [114, (113, 126)],  # (
+        [127, (126, 113)],  # )
+    ]
+    cursor = editor.textCursor()
+    for position, expected in positions:
+        cursor.setPosition(position)
+        editor.setTextCursor(cursor)
+        assert editor.bracepos == expected
 
 
 if __name__ == '__main__':
