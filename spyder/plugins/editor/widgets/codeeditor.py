@@ -3965,13 +3965,18 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return None
 
-    def in_comment_or_string(self, cursor=None):
-        """Is the cursor inside or next to a comment or string?"""
+    def in_comment_or_string(self, cursor=None, position=None):
+        """Is the cursor or position inside or next to a comment or string?
+
+        If *cursor* is None, *position* is used instead. If *position* is also
+        None, then the current cursor position is used.
+        """
         if self.highlighter:
             if cursor is None:
-                current_color = self.__get_current_color()
-            else:
-                current_color = self.__get_current_color(cursor=cursor)
+                cursor = self.textCursor()
+                if position:
+                    cursor.setPosition(position)
+            current_color = self.__get_current_color(cursor=cursor)
 
             comment_color = self.highlighter.get_color_name('comment')
             string_color = self.highlighter.get_color_name('string')
@@ -4019,6 +4024,18 @@ class CodeEditor(TextEditBaseWidget):
                 return True
         return False
 
+    def __has_unmatched_opening_bracket(self):
+        """
+        Checks if there are any unmatched opening brackets before the current
+        cursor position.
+        """
+        position = self.textCursor().position()
+        for brace in [']', ')', '}']:
+            match = self.find_brace_match(position, brace, forward=False)
+            if match is not None:
+                return True
+        return False
+
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
         bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
@@ -4036,6 +4053,8 @@ class CodeEditor(TextEditBaseWidget):
             return False
         elif self.__has_colon_not_in_brackets(line_text):
             return False
+        elif self.__has_unmatched_opening_bracket():
+            return False
         else:
             return True
 
@@ -4046,25 +4065,53 @@ class CodeEditor(TextEditBaseWidget):
         next_char = to_text_string(cursor.selectedText())
         return next_char
 
-    def in_comment(self, cursor=None):
+    def in_comment(self, cursor=None, position=None):
+        """Returns True if the given position is inside a comment.
+
+        Parameters
+        ----------
+        cursor : QTextCursor, optional
+            The position to check.
+        position : int, optional
+            The position to check if *cursor* is None. This parameter
+            is ignored when *cursor* is not None.
+
+        If both *cursor* and *position* are none, then the position returned
+        by self.textCursor() is used instead.
+        """
         if self.highlighter:
+            if cursor is None:
+                cursor = self.textCursor()
+                if position is not None:
+                    cursor.setPosition(position)
             current_color = self.__get_current_color(cursor)
             comment_color = self.highlighter.get_color_name('comment')
-            if current_color == comment_color:
-                return True
-            else:
-                return False
+            return (current_color == comment_color)
         else:
             return False
 
-    def in_string(self, cursor=None):
+    def in_string(self, cursor=None, position=None):
+        """Returns True if the given position is inside a string.
+
+        Parameters
+        ----------
+        cursor : QTextCursor, optional
+            The position to check.
+        position : int, optional
+            The position to check if *cursor* is None. This parameter
+            is ignored when *cursor* is not None.
+
+        If both *cursor* and *position* are none, then the position returned
+        by self.textCursor() is used instead.
+        """
         if self.highlighter:
+            if cursor is None:
+                cursor = self.textCursor()
+                if position is not None:
+                    cursor.setPosition(position)
             current_color = self.__get_current_color(cursor)
             string_color = self.highlighter.get_color_name('string')
-            if current_color == string_color:
-                return True
-            else:
-                return False
+            return (current_color == string_color)
         else:
             return False
 
