@@ -2225,13 +2225,6 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.setPosition(position + 1, QTextCursor.KeepAnchor)
             self.setTextCursor(cursor)
         self.remove_selected_text()
-        # The following is a workaround for a quirk of QTextEdit.
-        # Without these lines, the cursor would move sideways if the
-        # next key event after this function returns is Up or Down.
-        # For details, refer to the issue spyder-ide/spyder#12663.
-        cursor = self.textCursor()
-        cursor.setPosition(cursor.position())
-        self.setTextCursor(cursor)
 
     #------Find occurrences
     def __find_first(self, text):
@@ -4413,6 +4406,9 @@ class CodeEditor(TextEditBaseWidget):
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             if has_selection or not self.intelligent_backspace:
+                # See spyder-ide/spyder#12663 for why redefining this
+                # action is necessary. Also see
+                # https://bugreports.qt.io/browse/QTBUG-35861
                 self.stdkey_backspace()
                 self.document_did_change()
             else:
@@ -4426,6 +4422,7 @@ class CodeEditor(TextEditBaseWidget):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
+                        # See comment above
                         self.stdkey_backspace()
                         self.document_did_change()
                 elif trailing_spaces and not trailing_text.strip():
@@ -4439,6 +4436,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                     self.document_did_change()
                 else:
+                    # See comment above
                     self.stdkey_backspace()
                     self.document_did_change()
         elif key == Qt.Key_Home:

@@ -365,7 +365,7 @@ def test_brace_match(editorbot):
         assert editor.bracepos == expected
 
 
-def test_editor_backspace(editorbot):
+def test_editor_backspace_char(editorbot):
     """Regression test for issue spyder-ide/spyder#12663."""
     qtbot, editor = editorbot
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
@@ -387,6 +387,34 @@ def test_editor_backspace(editorbot):
         assert editor.textCursor().columnNumber() == expectedCol
         qtbot.keyPress(editor, Qt.Key_Up)
         assert editor.textCursor().columnNumber() == expectedCol
+
+
+def test_editor_backspace_selection(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663."""
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expectedCol = 5
+    cursor = editor.textCursor()
+    cursor.setPosition(expectedCol)
+    editor.setTextCursor(cursor)
+
+    # This first subtest does not trigger the original bug
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Left, Qt.ShiftModifier)
+    expectedCol -= 3
+    qtbot.keyPress(editor, Qt.Key_Backspace)
+    assert editor.textCursor().columnNumber() == expectedCol
+    qtbot.keyPress(editor, Qt.Key_Down)
+    assert editor.textCursor().columnNumber() == expectedCol
+
+    # However, this second subtest does trigger the original bug
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
+    qtbot.keyPress(editor, Qt.Key_Backspace)
+    assert editor.textCursor().columnNumber() == expectedCol
+    qtbot.keyPress(editor, Qt.Key_Down)
+    assert editor.textCursor().columnNumber() == expectedCol
 
 
 def test_editor_delete_char(editorbot):
@@ -420,26 +448,21 @@ def test_editor_delete_selection(editorbot):
     qtbot, editor = editorbot
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
-    expectedCol = 2
+    expectedCol = 5
     cursor = editor.textCursor()
     cursor.setPosition(expectedCol)
     editor.setTextCursor(cursor)
 
-    # Note that the original bug is not triggered when the selected
-    # text is anchored to the right of the cursor. So that case is not
-    # tested.
-
-    # Using Delete key
+    # This first subtest does not trigger the original bug
     for press in range(3):
-        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
+        qtbot.keyPress(editor, Qt.Key_Left, Qt.ShiftModifier)
+    expectedCol -= 3
     qtbot.keyPress(editor, Qt.Key_Delete)
     assert editor.textCursor().columnNumber() == expectedCol
     qtbot.keyPress(editor, Qt.Key_Down)
     assert editor.textCursor().columnNumber() == expectedCol
 
-    # Using Backspace key
-    qtbot.keyPress(editor, Qt.Key_Down)
-    qtbot.keyPress(editor, Qt.Key_Down)
+    # However, this second subtest does trigger the original bug
     for press in range(3):
         qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
     qtbot.keyPress(editor, Qt.Key_Delete)
