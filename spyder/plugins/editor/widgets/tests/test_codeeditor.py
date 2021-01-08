@@ -292,7 +292,6 @@ def test_brace_match(editorbot):
     """
     # Create editor with contents loaded from assets/brackets.py
     qtbot, editor = editorbot
-    editor.setup_editor(language='Python')
     with open(osp.join(ASSETS, 'braces.py'), 'r') as file:
         editor.set_text(file.read())
 
@@ -364,6 +363,89 @@ def test_brace_match(editorbot):
         cursor.setPosition(position)
         editor.setTextCursor(cursor)
         assert editor.bracepos == expected
+
+
+def test_editor_backspace(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663."""
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expectedCol = 7
+    cursor = editor.textCursor()
+    cursor.setPosition(expectedCol)
+    editor.setTextCursor(cursor)
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Backspace)
+        expectedCol -= 1
+        assert editor.textCursor().columnNumber() == expectedCol
+        qtbot.keyPress(editor, Qt.Key_Down)
+        assert editor.textCursor().columnNumber() == expectedCol
+
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Backspace)
+        expectedCol -= 1
+        assert editor.textCursor().columnNumber() == expectedCol
+        qtbot.keyPress(editor, Qt.Key_Up)
+        assert editor.textCursor().columnNumber() == expectedCol
+
+
+def test_editor_delete_char(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663."""
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expectedCol = 2
+    cursor = editor.textCursor()
+    cursor.setPosition(expectedCol)
+    editor.setTextCursor(cursor)
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Delete)
+        assert editor.textCursor().columnNumber() == expectedCol
+        qtbot.keyPress(editor, Qt.Key_Down)
+        assert editor.textCursor().columnNumber() == expectedCol
+
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Delete)
+        assert editor.textCursor().columnNumber() == expectedCol
+        qtbot.keyPress(editor, Qt.Key_Up)
+        assert editor.textCursor().columnNumber() == expectedCol
+
+
+def test_editor_delete_selection(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663.
+
+    This test will fail if the "delete" shortcut is not bound to the
+    Delete key. Refer to issue spyder-ide/spyder#12663 for details.
+    """
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expectedCol = 2
+    cursor = editor.textCursor()
+    cursor.setPosition(expectedCol)
+    editor.setTextCursor(cursor)
+
+    # Note that the original bug is not triggered when the selected
+    # text is anchored to the right of the cursor. So that case is not
+    # tested.
+
+    # Using Delete key
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
+    qtbot.keyPress(editor, Qt.Key_Delete)
+    assert editor.textCursor().columnNumber() == expectedCol
+    qtbot.keyPress(editor, Qt.Key_Down)
+    assert editor.textCursor().columnNumber() == expectedCol
+
+    # Using Backspace key
+    qtbot.keyPress(editor, Qt.Key_Down)
+    qtbot.keyPress(editor, Qt.Key_Down)
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
+    qtbot.keyPress(editor, Qt.Key_Delete)
+    assert editor.textCursor().columnNumber() == expectedCol
+    qtbot.keyPress(editor, Qt.Key_Up)
+    assert editor.textCursor().columnNumber() == expectedCol
 
 
 if __name__ == '__main__':
