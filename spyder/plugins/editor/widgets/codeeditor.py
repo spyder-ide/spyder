@@ -4316,6 +4316,7 @@ class CodeEditor(TextEditBaseWidget):
         key = event.key()
         text = to_text_string(event.text())
         has_selection = self.has_selected_text()
+        alt = event.modifiers() & Qt.AltModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
 
@@ -4404,7 +4405,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
-        elif key == Qt.Key_Backspace and not shift and not ctrl:
+        elif key == Qt.Key_Backspace and not shift and not ctrl and not alt:
             if has_selection or not self.intelligent_backspace:
                 # See spyder-ide/spyder#12663 for why redefining this
                 # action is necessary. Also see
