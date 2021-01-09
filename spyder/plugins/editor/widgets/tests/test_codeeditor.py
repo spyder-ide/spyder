@@ -10,6 +10,7 @@ import os.path as osp
 # Third party imports
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
+from qtpy.QtWidgets import QTextEdit
 from pytestqt import qtbot
 import pytest
 
@@ -469,6 +470,43 @@ def test_editor_delete_selection(editorbot):
     assert editor.textCursor().columnNumber() == expectedCol
     qtbot.keyPress(editor, Qt.Key_Up)
     assert editor.textCursor().columnNumber() == expectedCol
+
+
+def test_qtbug35861(qtbot):
+    """This test will detect if upstream QTBUG-35861 is fixed.
+
+    If that happens, then the workarounds for spyder-ide/spyder#12663
+    can be removed. Such a fix would probably only happen in the most
+    recent Qt version however...
+
+    See also https://bugreports.qt.io/browse/QTBUG-35861
+    """
+    widget = QTextEdit()
+    qtbot.addWidget(widget)
+    widget.show()
+
+    cursor = widget.textCursor()
+    cursor.setPosition(0)
+    # Build the text from a single character since a non-fixed width
+    # font is used by default.
+    cursor.insertText("0000000000\n"*5)
+
+    expectedCol = 5
+    cursor.setPosition(expectedCol)
+    widget.setTextCursor(cursor)
+
+    assert widget.textCursor().columnNumber() == expectedCol
+    for line in range(4):
+        qtbot.keyClick(widget, Qt.Key_Backspace)
+        assert widget.textCursor().columnNumber() == (expectedCol - 1)
+        qtbot.keyClick(widget, Qt.Key_Down)
+        assert widget.textCursor().columnNumber() == expectedCol
+
+    for line in range(4):
+        qtbot.keyClick(widget, Qt.Key_Backspace)
+        assert widget.textCursor().columnNumber() == (expectedCol - 1)
+        qtbot.keyClick(widget, Qt.Key_Up)
+        assert widget.textCursor().columnNumber() == expectedCol
 
 
 if __name__ == '__main__':
