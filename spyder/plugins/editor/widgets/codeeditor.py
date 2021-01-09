@@ -257,7 +257,11 @@ class CodeEditor(TextEditBaseWidget):
     # Timeout to update decorations (through a QTimer) when a position
     # changed is detected in the vertical scrollbar or when releasing
     # the up/down arrow keys.
-    UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
+    UPDATE_DECORATIONS_TIMEOUT = 500  # milliseconds
+
+    # Timeout to sychronize symbols and folding after linting results
+    # arrive
+    SYNC_SYMBOLS_AND_FOLDING_TIMEOUT = 500  # milliseconds
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -413,6 +417,15 @@ class CodeEditor(TextEditBaseWidget):
             self._set_completions_hint_idle)
         self.completion_widget.sig_completion_hint.connect(
             self.show_hint_for_completion)
+
+        # Request symbols and folding after a timeout.
+        # See: process_diagnostics
+        self._timer_sync_symbols_and_folding = QTimer(self)
+        self._timer_sync_symbols_and_folding.setSingleShot(True)
+        self._timer_sync_symbols_and_folding.setInterval(
+            self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUT)
+        self._timer_sync_symbols_and_folding.timeout.connect(
+            self.sync_symbols_and_folding)
 
         # Goto uri
         self._last_hover_pattern_key = None
@@ -1267,14 +1280,12 @@ class CodeEditor(TextEditBaseWidget):
             # are treated in the same way as linting, i.e. to be
             # recomputed on didChange, didOpen and didSave. However,
             # we think that's necessary to maintain accurate folding
-            # and symbols all the time. Therefore, we decided to add
-            # these requests here.
-            self.request_folding()
+            # and symbols all the time. Therefore, we decided to call
+            # those requests here, but after a certain timeout to
+            # avoid performance issues.
+            self._timer_sync_symbols_and_folding.start()
 
-            # Tests don't pass with this request here.
-            if not running_under_pytest():
-                self.request_symbols()
-
+            # Process results
             self.process_code_analysis(params['params'])
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
@@ -1282,6 +1293,16 @@ class CodeEditor(TextEditBaseWidget):
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing linting")
+
+    def sync_symbols_and_folding(self):
+        """
+        Synchronize symbols and folding after linting results arrive.
+        """
+        self.request_folding()
+
+        # Tests don't pass with this request here.
+        if not running_under_pytest():
+            self.request_symbols()
 
     # ------------- LSP: Completion ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
