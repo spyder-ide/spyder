@@ -35,7 +35,9 @@ jobs:
         run: conda install --file requirements/windows.txt -y -q
       - name: Install test dependencies
         shell: bash -l {0}
-        run: conda install --file requirements/tests.txt -y -q
+        run: |
+          conda install --file requirements/tests.txt -y -q
+          if [ "$PYTHON_VERSION" != "2.7" ]; then conda install -q -y jedi=0.17.2; fi
       - name: Install Package
         shell: bash -l {0}
         run: pip install -e .
