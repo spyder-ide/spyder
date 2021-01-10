@@ -1177,7 +1177,8 @@ class BaseEditMixin(object):
         """Delete selected text."""
         self.textCursor().removeSelectedText()
         # The next three lines are a workaround for a quirk of
-        # QTextEdit. See spyder-ide/spyder#12663.
+        # QTextEdit. See spyder-ide/spyder#12663 and
+        # https://bugreports.qt.io/browse/QTBUG-35861
         cursor = self.textCursor()
         cursor.setPosition(cursor.position())
         self.setTextCursor(cursor)

@@ -4295,6 +4295,12 @@ class CodeEditor(TextEditBaseWidget):
         # a text change.
         text = to_text_string(event.text())
         if text:
+            # The next three lines are a workaround for a quirk of
+            # QTextEdit. See spyder-ide/spyder#12663 and
+            # https://bugreports.qt.io/browse/QTBUG-35861
+            cursor = self.textCursor()
+            cursor.setPosition(cursor.position())
+            self.setTextCursor(cursor)
             self.document_did_change()
             self.sig_text_was_inserted.emit()
 
@@ -4316,7 +4322,6 @@ class CodeEditor(TextEditBaseWidget):
         key = event.key()
         text = to_text_string(event.text())
         has_selection = self.has_selected_text()
-        alt = event.modifiers() & Qt.AltModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
 
@@ -4405,13 +4410,9 @@ class CodeEditor(TextEditBaseWidget):
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
-        elif key == Qt.Key_Backspace and not shift and not ctrl and not alt:
+        elif key == Qt.Key_Backspace and not shift and not ctrl:
             if has_selection or not self.intelligent_backspace:
-                # See spyder-ide/spyder#12663 for why redefining this
-                # action is necessary. Also see
-                # https://bugreports.qt.io/browse/QTBUG-35861
-                self.stdkey_backspace()
-                self.document_did_change()
+                self._handle_keypress_event(event)
             else:
                 leading_text = self.get_text('sol', 'cursor')
                 leading_length = len(leading_text)
@@ -4423,9 +4424,7 @@ class CodeEditor(TextEditBaseWidget):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
-                        # See comment above
-                        self.stdkey_backspace()
-                        self.document_did_change()
+                        self._handle_keypress_event(event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
                 elif (leading_text and trailing_text and
@@ -4437,9 +4436,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                     self.document_did_change()
                 else:
-                    # See comment above
-                    self.stdkey_backspace()
-                    self.document_did_change()
+                    self._handle_keypress_event(event)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
