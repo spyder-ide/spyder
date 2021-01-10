@@ -441,11 +441,7 @@ def test_editor_delete_char(editorbot):
 
 
 def test_editor_delete_selection(editorbot):
-    """Regression test for issue spyder-ide/spyder#12663.
-
-    This test will fail if the "delete" shortcut is not bound to the
-    Delete key. Refer to issue spyder-ide/spyder#12663 for details.
-    """
+    """Regression test for issue spyder-ide/spyder#12663."""
     qtbot, editor = editorbot
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
