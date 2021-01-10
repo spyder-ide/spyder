@@ -189,10 +189,15 @@ class SpyderKernelSpec(KernelSpec):
             env_vars['SPY_SYMPY_O'] = False
             env_vars['SPY_RUN_CYTHON'] = True
 
-        # macOS app considerations
+        # App considerations
         if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
             env_vars.pop('PYTHONHOME', None)
             env_vars.pop('PYTHONPATH', None)
+
+        # Remove this variable because it prevents starting kernels for
+        # external interpreters when present.
+        # Fixes spyder-ide/spyder#13252
+        env_vars.pop('PYTHONEXECUTABLE', None)
 
         # Making all env_vars strings
         clean_env_vars = clean_env(env_vars)
