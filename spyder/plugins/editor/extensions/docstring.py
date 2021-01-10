@@ -48,6 +48,41 @@ def get_indent(text):
     return indent
 
 
+def is_in_scope_forward(text):
+    """Check if the next empty line could be part of the definition."""
+    text = text.replace(r"\"", "").replace(r"\'", "")
+    scopes = ["'''", '"""', "'", '"']
+    indices = [10**6]*4  # Limits function def length to 10**6
+    for i in range(len(scopes)):
+        if scopes[i] in text:
+            indices[i] = text.index(scopes[i])
+    if min(indices) == 10**6:
+        return (text.count(")") != text.count("(") or
+                text.count("]") != text.count("["))
+    s = scopes[indices.index(min(indices))]
+    p = indices[indices.index(min(indices))]
+    if indices.index(min(indices)) < 2:
+        if s in text[p+3:]:
+            text = text[:p] + text[text[p+3:].index(s)+3:]
+            return is_in_scope_forward(text)
+        else:
+            text = text[:p]
+            return (text.count(")") != text.count("(") or
+                    text.count("]") != text.count("["))
+    else:
+        if s in text[p+1:]:
+            text = text[:p] + text[p+1:][text[p+1:].index(s)+1:]
+            return is_in_scope_forward(text)
+        else:
+            return False
+
+
+def is_in_scope_backward(text):
+    """Check if the next empty line could be part of the definition."""
+    return is_in_scope_forward(
+        text.replace(r"\"", "").replace(r"\'", "")[::-1])
+
+
 class DocstringWriterExtension(object):
     """Class for insert docstring template automatically."""
 
@@ -66,6 +101,39 @@ class DocstringWriterExtension(object):
             return True
 
         return False
+
+    def is_end_of_function_definition(self, text, lineNumber):
+        """Return True if text is the end of the function definition."""
+        textWithoutWhitespace = "".join(text.split())
+        if (textWithoutWhitespace.endswith("):") or
+            textWithoutWhitespace.endswith("]:") or
+            (textWithoutWhitespace.endswith(":") and
+             "->" in textWithoutWhitespace)):
+            return True
+        elif textWithoutWhitespace.endswith(":") and lineNumber > 1:
+            completeText = textWithoutWhitespace
+            document = self.code_editor.document()
+            cursor = QTextCursor(
+                document.findBlockByNumber(lineNumber - 2))  # previous line
+            for i in range(lineNumber - 2, -1, -1):
+                txt = "".join(to_text_string(cursor.block().text()).split())
+                if (txt.endswith("\\") or is_in_scope_backward(completeText)):
+                    if txt.endswith("\\"):
+                        txt = txt[:-1]
+                    completeText = txt+completeText
+                else:
+                    break
+                if i != 0:
+                    cursor.movePosition(QTextCursor.PreviousBlock)
+            if is_start_of_function(completeText):
+                return (completeText.endswith("):") or
+                        completeText.endswith("]:") or
+                        (completeText.endswith(":") and
+                         "->" in completeText))
+            else:
+                return False
+        else:
+            return False
 
     def get_function_definition_from_first_line(self):
         """Get func def when the cursor is located on the first def line."""
@@ -94,20 +162,22 @@ class DocstringWriterExtension(object):
                 is_first_line = False
             else:
                 cur_indent = get_indent(cur_text)
-                if cur_indent <= func_indent:
+                if cur_indent <= func_indent and cur_text.strip() != '':
                     return None
                 if is_start_of_function(cur_text):
                     return None
-                if cur_text.strip == '':
+                if (cur_text.strip() == '' and
+                        not is_in_scope_forward(func_text)):
                     return None
 
-            if cur_text[-1] == '\\':
+            if len(cur_text) > 0 and cur_text[-1] == '\\':
                 cur_text = cur_text[:-1]
 
             func_text += cur_text
             number_of_lines_of_function += 1
 
-            if cur_text.endswith(':'):
+            if self.is_end_of_function_definition(
+                    cur_text, line_number + number_of_lines_of_function - 1):
                 return func_text, number_of_lines_of_function
 
             cursor.movePosition(QTextCursor.NextBlock)
@@ -130,13 +200,15 @@ class DocstringWriterExtension(object):
             prev_text = to_text_string(cursor.block().text()).rstrip()
 
             if is_first_line:
-                if not prev_text.endswith(':'):
+                if not self.is_end_of_function_definition(
+                        prev_text, line_number - 1):
                     return None
                 is_first_line = False
-            elif prev_text.endswith(':') or prev_text == '':
+            elif self.is_end_of_function_definition(
+                    prev_text, line_number - number_of_lines_of_function - 1):
                 return None
 
-            if prev_text[-1] == '\\':
+            if len(prev_text) > 0 and prev_text[-1] == '\\':
                 prev_text = prev_text[:-1]
 
             func_text = prev_text + func_text
@@ -773,7 +845,7 @@ class FunctionInfo(object):
         """Split the text including multiple arguments to list.
 
         This function uses a comma to separate arguments and ignores a comma in
-        brackets ans quotes.
+        brackets and quotes.
         """
         args_list = []
         idx_find_start = 0
@@ -824,10 +896,12 @@ class FunctionInfo(object):
         text = text.strip()
         text = text.replace('\r\n', '')
         text = text.replace('\n', '')
+        text = text.replace("\\", "")
 
-        return_type_re = re.search(r'->[ ]*([a-zA-Z0-9_,()\[\] ]*):$', text)
+        return_type_re = re.search(
+            r'->[ ]*([\"\'a-zA-Z0-9_,()\[\] ]*):$', text)
         if return_type_re:
-            self.return_type_annotated = return_type_re.group(1)
+            self.return_type_annotated = return_type_re.group(1).strip(" ()\\")
             text_end = text.rfind(return_type_re.group(0))
         else:
             self.return_type_annotated = None
