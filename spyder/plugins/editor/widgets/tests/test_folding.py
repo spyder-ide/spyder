@@ -72,7 +72,7 @@ def test_folding(lsp_codeeditor, qtbot):
         code_editor.request_folding()
 
     # Wait for the update thread to finish
-    qtbot.wait(2000)
+    qtbot.wait(3000)
 
     folding_regions = folding_panel.folding_regions
     folding_levels = folding_panel.folding_levels

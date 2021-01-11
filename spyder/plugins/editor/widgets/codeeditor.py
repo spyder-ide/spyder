@@ -1827,6 +1827,8 @@ class CodeEditor(TextEditBaseWidget):
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
             return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing folding")
 
     def finish_code_folding(self):
         self.update_folding = None
