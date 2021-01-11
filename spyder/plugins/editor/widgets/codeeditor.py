@@ -1807,20 +1807,26 @@ class CodeEditor(TextEditBaseWidget):
             self.request_symbols()
 
     def update_and_merge_folding(self, ranges):
-        text = self.toPlainText()
-        folding_panel = self.panels.get(FoldingPanel)
+        try:
+            text = self.toPlainText()
+            folding_panel = self.panels.get(FoldingPanel)
 
-        self.text_diff = (self.differ.diff_main(self.previous_text, text),
-                          self.previous_text)
-        extended_ranges = []
-        for start, end in ranges:
-            text_region = self.get_text_region(start, end)
-            extended_ranges.append((start, end, text_region))
+            self.text_diff = (self.differ.diff_main(self.previous_text, text),
+                            self.previous_text)
+            extended_ranges = []
+            for start, end in ranges:
+                    text_region = self.get_text_region(start, end)
+                    extended_ranges.append((start, end, text_region))
 
-        current_tree, root = merge_folding(
-            extended_ranges, folding_panel.current_tree, folding_panel.root)
+            current_tree, root = merge_folding(
+                extended_ranges, folding_panel.current_tree,
+                folding_panel.root)
 
-        self.folding_info = collect_folding_regions(root)
+            self.folding_info = collect_folding_regions(root)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
 
     def finish_code_folding(self):
         self.update_folding = None
