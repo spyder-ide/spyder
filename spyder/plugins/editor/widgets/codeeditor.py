@@ -578,6 +578,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code Folding
         self.code_folding = True
+        self.update_folding = None
 
         # Completions hint
         self.completions_hint = True
@@ -1817,7 +1818,7 @@ class CodeEditor(TextEditBaseWidget):
             extended_ranges.append((start, end, text_region))
 
         current_tree, root = merge_folding(
-            ranges, folding_panel.current_tree, folding_panel.root)
+            extended_ranges, folding_panel.current_tree, folding_panel.root)
 
         self.folding_info = collect_folding_regions(root)
 
