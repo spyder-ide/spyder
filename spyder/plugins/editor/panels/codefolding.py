@@ -194,6 +194,9 @@ class FoldingPanel(Panel):
 
     def update_folding(self, folding_info):
         """Update folding panel folding ranges."""
+        if folding_info is None:
+            return
+
         (self.folding_regions, self.folding_nesting,
          self.folding_levels, self.folding_status) = folding_info
         self.update()
