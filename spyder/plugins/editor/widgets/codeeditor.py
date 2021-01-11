@@ -1812,11 +1812,11 @@ class CodeEditor(TextEditBaseWidget):
             folding_panel = self.panels.get(FoldingPanel)
 
             self.text_diff = (self.differ.diff_main(self.previous_text, text),
-                            self.previous_text)
+                              self.previous_text)
             extended_ranges = []
             for start, end in ranges:
-                    text_region = self.get_text_region(start, end)
-                    extended_ranges.append((start, end, text_region))
+                text_region = self.get_text_region(start, end)
+                extended_ranges.append((start, end, text_region))
 
             current_tree, root = merge_folding(
                 extended_ranges, folding_panel.current_tree,
