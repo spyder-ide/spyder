@@ -22,6 +22,7 @@ from __future__ import division, print_function
 
 from unicodedata import category
 import logging
+import functools
 import os.path as osp
 import re
 import sre_constants
@@ -77,6 +78,8 @@ from spyder.plugins.editor.utils.debugger import DebuggerManager
 # from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.plugins.editor.panels.utils import (
+    merge_folding, collect_folding_regions)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
@@ -1782,20 +1785,15 @@ class CodeEditor(TextEditBaseWidget):
             folding_panel = self.panels.get(FoldingPanel)
 
             # Update folding
-            text = self.toPlainText()
-            self.text_diff = (self.differ.diff_main(self.previous_text, text),
-                              self.previous_text)
-            extended_ranges = []
-            for start, end in ranges:
-                text_region = self.get_text_region(start, end)
-                extended_ranges.append((start, end, text_region))
+            if self.update_folding is not None:
+                self.update_folding.terminate()
 
-            folding_panel.update_folding(extended_ranges)
-
-            # Update indent guides, which depend on folding
-            if self.indent_guides._enabled and len(self.patch) > 0:
-                line, column = self.get_cursor_line_column()
-                self.update_whitespace_count(line, column)
+            self.update_folding = QThread()
+            self.update_folding.run = functools.partial(
+                self.update_and_merge_folding, ranges)
+            self.update_folding.finished.connect(self.finish_code_folding)
+            self.update_folding.start()
+            # folding_panel.update_folding(extended_ranges)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1806,6 +1804,32 @@ class CodeEditor(TextEditBaseWidget):
         # Tests for the class function selector need this.
         if running_under_pytest():
             self.request_symbols()
+
+    def update_and_merge_folding(self, ranges):
+        text = self.toPlainText()
+        folding_panel = self.panels.get(FoldingPanel)
+
+        self.text_diff = (self.differ.diff_main(self.previous_text, text),
+                          self.previous_text)
+        extended_ranges = []
+        for start, end in ranges:
+            text_region = self.get_text_region(start, end)
+            extended_ranges.append((start, end, text_region))
+
+        current_tree, root = merge_folding(
+            ranges, folding_panel.current_tree, folding_panel.root)
+
+        self.folding_info = collect_folding_regions(root)
+
+    def finish_code_folding(self):
+        self.update_folding = None
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.update_folding(self.folding_info)
+
+        # Update indent guides, which depend on folding
+        if self.indent_guides._enabled and len(self.patch) > 0:
+            line, column = self.get_cursor_line_column()
+            self.update_whitespace_count(line, column)
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
