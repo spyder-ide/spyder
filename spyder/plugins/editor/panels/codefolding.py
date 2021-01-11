@@ -192,16 +192,8 @@ class FoldingPanel(Panel):
             offset += len(line)
         return line_start_offset
 
-    def update_folding(self, ranges):
+    def update_folding(self, folding_info):
         """Update folding panel folding ranges."""
-        if ranges is None:
-            return
-
-        self.current_tree, self.root = merge_folding(
-            ranges, self.current_tree, self.root)
-
-        folding_info = collect_folding_regions(self.root)
-
         (self.folding_regions, self.folding_nesting,
          self.folding_levels, self.folding_status) = folding_info
         self.update()
