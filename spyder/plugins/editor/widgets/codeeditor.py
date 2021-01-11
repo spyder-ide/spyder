@@ -4295,6 +4295,12 @@ class CodeEditor(TextEditBaseWidget):
         # a text change.
         text = to_text_string(event.text())
         if text:
+            # The next three lines are a workaround for a quirk of
+            # QTextEdit. See spyder-ide/spyder#12663 and
+            # https://bugreports.qt.io/browse/QTBUG-35861
+            cursor = self.textCursor()
+            cursor.setPosition(cursor.position())
+            self.setTextCursor(cursor)
             self.document_did_change()
             self.sig_text_was_inserted.emit()
 
@@ -4405,12 +4411,12 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
-            leading_text = self.get_text('sol', 'cursor')
-            leading_length = len(leading_text)
-            trailing_spaces = leading_length - len(leading_text.rstrip())
             if has_selection or not self.intelligent_backspace:
                 self._handle_keypress_event(event)
             else:
+                leading_text = self.get_text('sol', 'cursor')
+                leading_length = len(leading_text)
+                trailing_spaces = leading_length - len(leading_text.rstrip())
                 trailing_text = self.get_text('cursor', 'eol')
                 matches = ('()', '[]', '{}', '\'\'', '""')
                 if (not leading_text.strip() and
