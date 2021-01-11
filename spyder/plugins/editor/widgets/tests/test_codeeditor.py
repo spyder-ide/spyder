@@ -6,10 +6,12 @@
 
 # Standard library imports
 import os.path as osp
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
+from qtpy.QtWidgets import QTextEdit
 from pytestqt import qtbot
 import pytest
 
@@ -292,7 +294,6 @@ def test_brace_match(editorbot):
     """
     # Create editor with contents loaded from assets/brackets.py
     qtbot, editor = editorbot
-    editor.setup_editor(language='Python')
     with open(osp.join(ASSETS, 'braces.py'), 'r') as file:
         editor.set_text(file.read())
 
@@ -364,6 +365,147 @@ def test_brace_match(editorbot):
         cursor.setPosition(position)
         editor.setTextCursor(cursor)
         assert editor.bracepos == expected
+
+
+def test_editor_backspace_char(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663."""
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expected_column = 7
+    cursor = editor.textCursor()
+    cursor.setPosition(expected_column)
+    editor.setTextCursor(cursor)
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Backspace)
+        expected_column -= 1
+        assert editor.textCursor().columnNumber() == expected_column
+        qtbot.keyPress(editor, Qt.Key_Down)
+        assert editor.textCursor().columnNumber() == expected_column
+
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Backspace)
+        expected_column -= 1
+        assert editor.textCursor().columnNumber() == expected_column
+        qtbot.keyPress(editor, Qt.Key_Up)
+        assert editor.textCursor().columnNumber() == expected_column
+
+
+def test_editor_backspace_selection(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663."""
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expected_column = 5
+    cursor = editor.textCursor()
+    cursor.setPosition(expected_column)
+    editor.setTextCursor(cursor)
+
+    # This first subtest does not trigger the original bug
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Left, Qt.ShiftModifier)
+    expected_column -= 3
+    qtbot.keyPress(editor, Qt.Key_Backspace)
+    assert editor.textCursor().columnNumber() == expected_column
+    qtbot.keyPress(editor, Qt.Key_Down)
+    assert editor.textCursor().columnNumber() == expected_column
+
+    # However, this second subtest does trigger the original bug
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
+    qtbot.keyPress(editor, Qt.Key_Backspace)
+    assert editor.textCursor().columnNumber() == expected_column
+    qtbot.keyPress(editor, Qt.Key_Down)
+    assert editor.textCursor().columnNumber() == expected_column
+
+
+def test_editor_delete_char(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663."""
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expected_column = 2
+    cursor = editor.textCursor()
+    cursor.setPosition(expected_column)
+    editor.setTextCursor(cursor)
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Delete)
+        assert editor.textCursor().columnNumber() == expected_column
+        qtbot.keyPress(editor, Qt.Key_Down)
+        assert editor.textCursor().columnNumber() == expected_column
+
+    for line in range(3):
+        qtbot.keyPress(editor, Qt.Key_Delete)
+        assert editor.textCursor().columnNumber() == expected_column
+        qtbot.keyPress(editor, Qt.Key_Up)
+        assert editor.textCursor().columnNumber() == expected_column
+
+
+# Fails in CI Linux tests, but not necessarily on all Linux installations
+@pytest.mark.skipif(sys.platform.startswith('linux'), reason='Fail on Linux')
+def test_editor_delete_selection(editorbot):
+    """Regression test for issue spyder-ide/spyder#12663."""
+    qtbot, editor = editorbot
+    text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
+    editor.set_text(text)
+    expected_column = 5
+    cursor = editor.textCursor()
+    cursor.setPosition(expected_column)
+    editor.setTextCursor(cursor)
+
+    # This first subtest does not trigger the original bug
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Left, Qt.ShiftModifier)
+    expected_column -= 3
+    qtbot.keyPress(editor, Qt.Key_Delete)
+    assert editor.textCursor().columnNumber() == expected_column
+    qtbot.keyPress(editor, Qt.Key_Down)
+    assert editor.textCursor().columnNumber() == expected_column
+
+    # However, this second subtest does trigger the original bug
+    for press in range(3):
+        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
+    qtbot.keyPress(editor, Qt.Key_Delete)
+    assert editor.textCursor().columnNumber() == expected_column
+    qtbot.keyPress(editor, Qt.Key_Up)
+    assert editor.textCursor().columnNumber() == expected_column
+
+
+def test_qtbug35861(qtbot):
+    """This test will detect if upstream QTBUG-35861 is fixed.
+
+    If that happens, then the workarounds for spyder-ide/spyder#12663
+    can be removed. Such a fix would probably only happen in the most
+    recent Qt version however...
+
+    See also https://bugreports.qt.io/browse/QTBUG-35861
+    """
+    widget = QTextEdit()
+    qtbot.addWidget(widget)
+    widget.show()
+
+    cursor = widget.textCursor()
+    cursor.setPosition(0)
+    # Build the text from a single character since a non-fixed width
+    # font is used by default.
+    cursor.insertText("0000000000\n"*5)
+
+    expected_column = 5
+    cursor.setPosition(expected_column)
+    widget.setTextCursor(cursor)
+
+    assert widget.textCursor().columnNumber() == expected_column
+    for line in range(4):
+        qtbot.keyClick(widget, Qt.Key_Backspace)
+        assert widget.textCursor().columnNumber() == (expected_column - 1)
+        qtbot.keyClick(widget, Qt.Key_Down)
+        assert widget.textCursor().columnNumber() == expected_column
+
+    for line in range(4):
+        qtbot.keyClick(widget, Qt.Key_Backspace)
+        assert widget.textCursor().columnNumber() == (expected_column - 1)
+        qtbot.keyClick(widget, Qt.Key_Up)
+        assert widget.textCursor().columnNumber() == expected_column
 
 
 if __name__ == '__main__':

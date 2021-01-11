@@ -1176,6 +1176,12 @@ class BaseEditMixin(object):
     def remove_selected_text(self):
         """Delete selected text."""
         self.textCursor().removeSelectedText()
+        # The next three lines are a workaround for a quirk of
+        # QTextEdit. See spyder-ide/spyder#12663 and
+        # https://bugreports.qt.io/browse/QTBUG-35861
+        cursor = self.textCursor()
+        cursor.setPosition(cursor.position())
+        self.setTextCursor(cursor)
         self.document_did_change()
 
     def replace(self, text, pattern=None):
