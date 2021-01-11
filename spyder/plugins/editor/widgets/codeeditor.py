@@ -1822,7 +1822,8 @@ class CodeEditor(TextEditBaseWidget):
                 extended_ranges, folding_panel.current_tree,
                 folding_panel.root)
 
-            self.folding_info = collect_folding_regions(root)
+            folding_info = collect_folding_regions(root)
+            self.folding_info = (current_tree, root, *folding_info)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.

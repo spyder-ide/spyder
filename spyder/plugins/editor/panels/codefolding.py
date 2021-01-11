@@ -197,7 +197,8 @@ class FoldingPanel(Panel):
         if folding_info is None:
             return
 
-        (self.folding_regions, self.folding_nesting,
+        (self.current_tree, self.root,
+         self.folding_regions, self.folding_nesting,
          self.folding_levels, self.folding_status) = folding_info
         self.update()
 
