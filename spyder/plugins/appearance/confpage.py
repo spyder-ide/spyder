@@ -6,6 +6,8 @@
 
 """Appearance entry in Preferences."""
 
+import configparser as cp
+
 import os.path as osp
 
 from qtpy.compat import getsavefilename, getopenfilename
@@ -392,7 +394,8 @@ class AppearanceConfigPage(PluginConfigPage):
             self.load_from_conf()
 
             if dlg.exec_():
-                # This is needed to have the custom name updated on the combobox
+                # This is needed to have the custom name
+                # updated on the combobox
                 name = dlg.get_scheme_name()
                 self.set_option('{0}/name'.format(custom_name), name)
 
@@ -424,7 +427,8 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def delete_scheme(self):
         """Deletes the currently selected custom color scheme."""
-        scheme_name = self.current_scheme
+        custom_name = self.current_scheme
+        scheme_name = self.current_scheme_name
 
         answer = QMessageBox.warning(self, _("Warning"),
                                      _("Are you sure you want to delete "
@@ -439,19 +443,22 @@ class AppearanceConfigPage(PluginConfigPage):
 
             # Delete from custom_names
             custom_names = self.get_option('custom_names', [])
-            if scheme_name in custom_names:
-                custom_names.remove(scheme_name)
+            if custom_name in custom_names:
+                custom_names.remove(custom_name)
             self.set_option('custom_names', custom_names)
 
             # Delete config options
             for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
-                option = "{0}/{1}".format(scheme_name, key)
+                option = "{0}/{1}".format(custom_name, key)
                 CONF.remove_option(self.CONF_SECTION, option)
+
             CONF.remove_option(self.CONF_SECTION,
-                               "{0}/name".format(scheme_name))
+                               "{0}/name".format(custom_name))
 
             self.update_combobox()
             self.update_preview()
+            if scheme_name in self.scheme_choices_dict:
+                del self.scheme_choices_dict[scheme_name]
 
     def import_scheme(self):
         """
@@ -476,8 +483,7 @@ class AppearanceConfigPage(PluginConfigPage):
             valid = True
             try:
                 scheme_name = cfg.get(SYNTAX_HIGHLIGHTING_CONF_NAME, "name")
-            except Exception as ex:
-                print("ex", repr(ex))
+            except (cp.NoOptionError, cp.NoSectionError):
                 valid = False
 
             if scheme_name in self.scheme_choices_dict:
@@ -485,7 +491,7 @@ class AppearanceConfigPage(PluginConfigPage):
                     valid = QMessageBox.warning(
                         self,
                         _("Scheme replace"),
-                        _("The scheme {} already exists.\n"
+                        _("The scheme {0} already exists.\n"
                           "Would you like to replace it?").format(scheme_name),
                         QMessageBox.Yes | QMessageBox.No,
                     ) == QMessageBox.Yes
@@ -502,12 +508,10 @@ class AppearanceConfigPage(PluginConfigPage):
                             key,
                             default=syntaxhighlighters.COLOR_SCHEME_DEFAULT_VALUES[key]
                         )
-                except Exception as ex:
-                    print("ex", repr(ex))
+                except (cp.NoOptionError, cp.NoSectionError):
                     valid = False
 
             if valid:
-                print("scheme", color_scheme)
                 custom_name = self.create_new_scheme(dialog=False)
                 self.set_option('{0}/name'.format(custom_name), scheme_name)
                 for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
@@ -516,7 +520,9 @@ class AppearanceConfigPage(PluginConfigPage):
                         color_scheme[key],
                     )
 
-                self.scheme_editor_dialog.add_color_scheme_stack(custom_name, True)
+                self.scheme_editor_dialog.add_color_scheme_stack(
+                    custom_name, True
+                )
                 self.set_scheme(custom_name)
 
                 self.update_combobox()
@@ -527,7 +533,8 @@ class AppearanceConfigPage(PluginConfigPage):
                 QMessageBox.error(
                     self,
                     _("Malformed scheme"),
-                    _("Failed to load scheme from {}: Malformed file.").format(path)
+                    _("Failed to load scheme from {0}: "
+                      "Malformed file.").format(path)
                 )
 
     def export_scheme(self):
@@ -538,7 +545,7 @@ class AppearanceConfigPage(PluginConfigPage):
         path, __ = getsavefilename(
             self,
             _("Export scheme"),
-            osp.join(getcwd_or_home(), "{}.ini".format(scheme_name)),
+            osp.join(getcwd_or_home(), "{0}.ini".format(scheme_name)),
             _("Spyder highlighting scheme") + " (*.ini)"
         )
         if path:
@@ -552,7 +559,6 @@ class AppearanceConfigPage(PluginConfigPage):
             cfg.set(SYNTAX_HIGHLIGHTING_CONF_NAME, "name", scheme_name)
             for key, val in scheme.items():
                 cfg.set(SYNTAX_HIGHLIGHTING_CONF_NAME, key, val)
-
 
     def set_scheme(self, scheme_name):
         """
