@@ -6,24 +6,32 @@
 
 """Appearance entry in Preferences."""
 
+import os.path as osp
+
+from qtpy.compat import getsavefilename, getopenfilename
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import (QApplication, QDialog, QFontComboBox,
+from qtpy.QtWidgets import (QApplication, QFontComboBox,
                             QGridLayout, QGroupBox, QMessageBox,
                             QPushButton, QStackedWidget, QStyleFactory,
                             QVBoxLayout)
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
+from spyder.config.user import UserConfig
 from spyder.config.gui import (get_font, is_dark_font_color, is_dark_interface,
-                               set_font)
+                               set_font, get_color_scheme)
 from spyder.config.manager import CONF
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 # Localization
 _ = get_translation('spyder')
+
+SYNTAX_HIGHLIGHTING_CONF_NAME = "spyder-syntax-highlighting"
+SYNTAX_HIGHLIGHTING_CONF_VERSION = "1.0.0"
 
 
 class AppearanceConfigPage(PluginConfigPage):
@@ -85,6 +93,8 @@ class AppearanceConfigPage(PluginConfigPage):
         edit_button = QPushButton(_("Edit selected scheme"))
         create_button = QPushButton(_("Create new scheme"))
         self.delete_button = QPushButton(_("Delete scheme"))
+        self.import_button = QPushButton(_("Import scheme"))
+        self.export_button = QPushButton(_("Export scheme"))
         self.reset_button = QPushButton(_("Reset to defaults"))
 
         self.preview_editor = SimpleCodeEditor(self)
@@ -100,7 +110,8 @@ class AppearanceConfigPage(PluginConfigPage):
         # Syntax layout
         syntax_layout = QGridLayout(syntax_group)
         btns = [self.schemes_combobox, edit_button, self.reset_button,
-                create_button, self.delete_button]
+                create_button, self.delete_button,
+                self.import_button, self.export_button]
         for i, btn in enumerate(btns):
             syntax_layout.addWidget(btn, i, 1)
         syntax_layout.setColumnStretch(0, 1)
@@ -160,6 +171,8 @@ class AppearanceConfigPage(PluginConfigPage):
         edit_button.clicked.connect(self.edit_scheme)
         self.reset_button.clicked.connect(self.reset_to_default)
         self.delete_button.clicked.connect(self.delete_scheme)
+        self.import_button.clicked.connect(self.import_scheme)
+        self.export_button.clicked.connect(self.export_scheme)
         self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
 
@@ -311,9 +324,10 @@ class AppearanceConfigPage(PluginConfigPage):
             names.pop(names.index(u'Custom'))
         except ValueError:
             pass
-        delete_enabled = current_scheme not in names
-        self.delete_button.setEnabled(delete_enabled)
-        self.reset_button.setEnabled(not delete_enabled)
+        is_custom = current_scheme not in names
+        self.delete_button.setEnabled(is_custom)
+        self.export_button.setEnabled(is_custom)
+        self.reset_button.setEnabled(not is_custom)
 
     def update_preview(self, index=None, scheme_name=None):
         """
@@ -346,7 +360,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
     # Actions
     # -------------------------------------------------------------------------
-    def create_new_scheme(self):
+    def create_new_scheme(self, dialog=True):
         """Creates a new color scheme with a custom name."""
         names = self.get_option('names')
         custom_names = self.get_option('custom_names', [])
@@ -370,26 +384,29 @@ class AppearanceConfigPage(PluginConfigPage):
             self.set_option(name, option)
         self.set_option('{0}/name'.format(custom_name), custom_name)
 
-        # Now they need to be loaded! how to make a partial load_from_conf?
-        dlg = self.scheme_editor_dialog
-        dlg.add_color_scheme_stack(custom_name, custom=True)
-        dlg.set_scheme(custom_name)
-        self.load_from_conf()
+        if dialog:
+            # Now they need to be loaded! how to make a partial load_from_conf?
+            dlg = self.scheme_editor_dialog
+            dlg.add_color_scheme_stack(custom_name, custom=True)
+            dlg.set_scheme(custom_name)
+            self.load_from_conf()
 
-        if dlg.exec_():
-            # This is needed to have the custom name updated on the combobox
-            name = dlg.get_scheme_name()
-            self.set_option('{0}/name'.format(custom_name), name)
+            if dlg.exec_():
+                # This is needed to have the custom name updated on the combobox
+                name = dlg.get_scheme_name()
+                self.set_option('{0}/name'.format(custom_name), name)
 
-            # The +1 is needed because of the separator in the combobox
-            index = (names + custom_names).index(custom_name) + 1
-            self.update_combobox()
-            self.schemes_combobox.setCurrentIndex(index)
-        else:
-            # Delete the config ....
-            custom_names.remove(custom_name)
-            self.set_option('custom_names', custom_names)
-            dlg.delete_color_scheme_stack(custom_name)
+                # The +1 is needed because of the separator in the combobox
+                index = (names + custom_names).index(custom_name) + 1
+                self.update_combobox()
+                self.schemes_combobox.setCurrentIndex(index)
+            else:
+                # Delete the config ....
+                custom_names.remove(custom_name)
+                self.set_option('custom_names', custom_names)
+                dlg.delete_color_scheme_stack(custom_name)
+
+        return custom_name
 
     def edit_scheme(self):
         """Edit current scheme."""
@@ -435,6 +452,107 @@ class AppearanceConfigPage(PluginConfigPage):
 
             self.update_combobox()
             self.update_preview()
+
+    def import_scheme(self):
+        """
+        Import the given scheme from a scheme file and set it to current.
+        """
+        path, __ = getopenfilename(
+            self,
+            _("Export scheme"),
+            getcwd_or_home(),
+            _("Spyder highlighting scheme") + " (*.ini)"
+        )
+        if path:
+            cfg = UserConfig(
+                osp.splitext(osp.basename(path))[0],
+                osp.dirname(path),
+                version=SYNTAX_HIGHLIGHTING_CONF_VERSION,
+                defaults=[
+                    (SYNTAX_HIGHLIGHTING_CONF_NAME,
+                     syntaxhighlighters.COLOR_SCHEME_DEFAULT_VALUES)
+                ],
+            )
+            valid = True
+            try:
+                scheme_name = cfg.get(SYNTAX_HIGHLIGHTING_CONF_NAME, "name")
+            except Exception as ex:
+                print("ex", repr(ex))
+                valid = False
+
+            if scheme_name in self.scheme_choices_dict:
+                if self.scheme_choices_dict[scheme_name].startswith("custom-"):
+                    valid = QMessageBox.warning(
+                        self,
+                        _("Scheme replace"),
+                        _("The scheme {} already exists.\n"
+                          "Would you like to replace it?").format(scheme_name),
+                        QMessageBox.Yes | QMessageBox.No,
+                    ) == QMessageBox.Yes
+                else:
+                    # Can't replace builtin schemes
+                    valid = False
+
+            if valid:
+                color_scheme = {}
+                try:
+                    for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+                        color_scheme[key] = cfg.get(
+                            SYNTAX_HIGHLIGHTING_CONF_NAME,
+                            key,
+                            default=syntaxhighlighters.COLOR_SCHEME_DEFAULT_VALUES[key]
+                        )
+                except Exception as ex:
+                    print("ex", repr(ex))
+                    valid = False
+
+            if valid:
+                print("scheme", color_scheme)
+                custom_name = self.create_new_scheme(dialog=False)
+                self.set_option('{0}/name'.format(custom_name), scheme_name)
+                for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+                    self.set_option(
+                        "{0}/{1}".format(custom_name, key),
+                        color_scheme[key],
+                    )
+
+                self.scheme_editor_dialog.add_color_scheme_stack(custom_name, True)
+                self.set_scheme(custom_name)
+
+                self.update_combobox()
+                self.update_preview()
+                self.update_qt_style_combobox()
+                self.schemes_combobox.setCurrentText(scheme_name)
+            else:
+                QMessageBox.error(
+                    self,
+                    _("Malformed scheme"),
+                    _("Failed to load scheme from {}: Malformed file.").format(path)
+                )
+
+    def export_scheme(self):
+        """
+        Export the current scheme in a scheme file.
+        """
+        scheme_name = self.current_scheme_name
+        path, __ = getsavefilename(
+            self,
+            _("Export scheme"),
+            osp.join(getcwd_or_home(), "{}.ini".format(scheme_name)),
+            _("Spyder highlighting scheme") + " (*.ini)"
+        )
+        if path:
+            scheme = get_color_scheme(self.current_scheme)
+            cfg = UserConfig(
+                osp.splitext(osp.basename(path))[0],
+                osp.dirname(path),
+                load=False,
+                version=SYNTAX_HIGHLIGHTING_CONF_VERSION,
+            )
+            cfg.set(SYNTAX_HIGHLIGHTING_CONF_NAME, "name", scheme_name)
+            for key, val in scheme.items():
+                cfg.set(SYNTAX_HIGHLIGHTING_CONF_NAME, key, val)
+
 
     def set_scheme(self, scheme_name):
         """
