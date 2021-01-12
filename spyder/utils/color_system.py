@@ -4,7 +4,10 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-# Color scales used for the default dark palette
+"""
+Extra colors used for the dark and light palettes in Spyder.
+"""
+
 class Green:
     B0 = '#000000'
     B10 = '#064738'
@@ -63,8 +66,11 @@ class Orange:
 
 
 class GroupDark:
-    """ Group colors for dark mode
-    Does not start with B0 because it doesn't use black """
+    """
+    Group colors for the dark palette.
+
+    It does not start with B0 because it doesn't use black.
+    """
 
     B10 = '#E11C1C'
     B20 = '#FF8A00'
