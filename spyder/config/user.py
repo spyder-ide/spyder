@@ -36,6 +36,45 @@ class NoDefault:
     pass
 
 
+class TypedConfig(cp.ConfigParser):
+    """
+    A wrapper around cp.ConfigParser that support types.
+    """
+
+    def get(self, section, option, type_=str, default=NoDefault, **kwargs):
+        """
+        Get an option value that is converted to the desired type.
+        """
+        try:
+            value = super().get(section, option, **kwargs)
+        except cp.NoOptionError:
+            if default is NoDefault:
+                raise
+            value = default
+        if issubclass(type_, bool):
+            value = ast.literal_eval(value)
+        elif issubclass(type_, float):
+            value = float(value)
+        elif issubclass(type_, int):
+            value = int(value)
+        elif issubclass(type_, str):
+            # Do nothing
+            pass
+        else:
+            try:
+                # Lists, tuples, ...
+                value = ast.literal_eval(value)
+            except (SyntaxError, ValueError):
+                pass
+
+        return value
+
+    def set(self, section, option, value):
+        if not isinstance(value, str):
+            value = repr(value)
+        super().set(section, option, value)
+
+
 # ============================================================================
 # Defaults class
 # ============================================================================

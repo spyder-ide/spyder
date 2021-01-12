@@ -19,10 +19,10 @@ from qtpy.QtWidgets import (QApplication, QFontComboBox,
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
-from spyder.config.user import UserConfig
 from spyder.config.gui import (get_font, is_dark_font_color, is_dark_interface,
                                set_font, get_color_scheme)
 from spyder.config.manager import CONF
+from spyder.config.user import TypedConfig
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
@@ -33,7 +33,6 @@ from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 _ = get_translation('spyder')
 
 SYNTAX_HIGHLIGHTING_CONF_NAME = "spyder-syntax-highlighting"
-SYNTAX_HIGHLIGHTING_CONF_VERSION = "1.0.0"
 
 
 class AppearanceConfigPage(PluginConfigPage):
@@ -415,7 +414,6 @@ class AppearanceConfigPage(PluginConfigPage):
         """Edit current scheme."""
         dlg = self.scheme_editor_dialog
         dlg.set_scheme(self.current_scheme)
-
         if dlg.exec_():
             # Update temp scheme to reflect instant edits on the preview
             temporal_color_scheme = dlg.get_edited_color_scheme()
@@ -455,6 +453,9 @@ class AppearanceConfigPage(PluginConfigPage):
             CONF.remove_option(self.CONF_SECTION,
                                "{0}/name".format(custom_name))
 
+            # Delete from scheme editor
+            self.scheme_editor_dialog.delete_color_scheme_stack(custom_name)
+
             self.update_combobox()
             self.update_preview()
             if scheme_name in self.scheme_choices_dict:
@@ -471,22 +472,16 @@ class AppearanceConfigPage(PluginConfigPage):
             _("Spyder highlighting scheme") + " (*.ini)"
         )
         if path:
-            cfg = UserConfig(
-                osp.splitext(osp.basename(path))[0],
-                osp.dirname(path),
-                version=SYNTAX_HIGHLIGHTING_CONF_VERSION,
-                defaults=[
-                    (SYNTAX_HIGHLIGHTING_CONF_NAME,
-                     syntaxhighlighters.COLOR_SCHEME_DEFAULT_VALUES)
-                ],
-            )
+            cfg = TypedConfig()
+            cfg.read(path)
+
             valid = True
             try:
                 scheme_name = cfg.get(SYNTAX_HIGHLIGHTING_CONF_NAME, "name")
             except (cp.NoOptionError, cp.NoSectionError):
                 valid = False
 
-            if scheme_name in self.scheme_choices_dict:
+            if valid and scheme_name in self.scheme_choices_dict:
                 if self.scheme_choices_dict[scheme_name].startswith("custom-"):
                     valid = QMessageBox.warning(
                         self,
@@ -503,10 +498,12 @@ class AppearanceConfigPage(PluginConfigPage):
                 color_scheme = {}
                 try:
                     for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+                        default = syntaxhighlighters.COLOR_SCHEME_DEFAULT_VALUES[key]
                         color_scheme[key] = cfg.get(
                             SYNTAX_HIGHLIGHTING_CONF_NAME,
                             key,
-                            default=syntaxhighlighters.COLOR_SCHEME_DEFAULT_VALUES[key]
+                            type_=type(default),
+                            default=default,
                         )
                 except (cp.NoOptionError, cp.NoSectionError):
                     valid = False
@@ -519,11 +516,9 @@ class AppearanceConfigPage(PluginConfigPage):
                         "{0}/{1}".format(custom_name, key),
                         color_scheme[key],
                     )
-
                 self.scheme_editor_dialog.add_color_scheme_stack(
                     custom_name, True
                 )
-                self.set_scheme(custom_name)
 
                 self.update_combobox()
                 self.update_preview()
@@ -550,15 +545,14 @@ class AppearanceConfigPage(PluginConfigPage):
         )
         if path:
             scheme = get_color_scheme(self.current_scheme)
-            cfg = UserConfig(
-                osp.splitext(osp.basename(path))[0],
-                osp.dirname(path),
-                load=False,
-                version=SYNTAX_HIGHLIGHTING_CONF_VERSION,
-            )
+            cfg = TypedConfig()
+            cfg.add_section(SYNTAX_HIGHLIGHTING_CONF_NAME)
             cfg.set(SYNTAX_HIGHLIGHTING_CONF_NAME, "name", scheme_name)
             for key, val in scheme.items():
                 cfg.set(SYNTAX_HIGHLIGHTING_CONF_NAME, key, val)
+
+            with open(path, "w") as stream:
+                cfg.write(stream)
 
     def set_scheme(self, scheme_name):
         """
