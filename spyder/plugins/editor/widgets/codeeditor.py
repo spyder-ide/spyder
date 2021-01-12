@@ -1991,6 +1991,7 @@ class CodeEditor(TextEditBaseWidget):
             self.unhighlight_current_cell()
 
     def set_language(self, language, filename=None):
+        extra_supported_languages = {'stil': 'STIL'}
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         self.language = 'Text'
@@ -2025,6 +2026,11 @@ class CodeEditor(TextEditBaseWidget):
                     self.language = 'R'
                 else:
                     self.language = sh_class._lexer.name
+            else:
+                _, ext = osp.splitext(filename)
+                ext = ext.lower()
+                if ext in extra_supported_languages:
+                    self.language = extra_supported_languages[ext]
 
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)
