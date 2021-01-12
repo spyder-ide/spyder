@@ -87,8 +87,11 @@ class GroupDark:
 
 
 class GroupLight:
-    """ Group colors for light mode
-    Does not start with B0 because it doesn't use black """
+    """
+    Group colors for light palette.
+
+    It does not start with B0 because it doesn't use black.
+    """
 
     B10 = '#FF6700'
     B20 = '#FFB000'
