@@ -954,29 +954,70 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-        file_menu_actions = [
+        from spyder.plugins.mainmenu.api import (
+            ApplicationMenus, FileMenuSections)
+        # New Section
+        self.main.mainmenu.add_item_to_application_menu(
             self.new_action,
-            MENU_SEPARATOR,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.New,
+            before_section=FileMenuSections.Restart)
+        # Open section
+        open_actions = [
             self.open_action,
             self.open_last_closed_action,
             self.recent_file_menu,
-            MENU_SEPARATOR,
-            MENU_SEPARATOR,
+        ]
+        for open_action in open_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                open_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Open,
+                before_section=FileMenuSections.Restart)
+        # Save section
+        save_actions = [
             self.save_action,
             self.save_all_action,
             save_as_action,
             save_copy_as_action,
             self.revert_action,
-            MENU_SEPARATOR,
+        ]
+        for save_action in save_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                save_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Save,
+                before_section=FileMenuSections.Restart)
+        # Print
+        print_actions = [
             print_preview_action,
             self.print_action,
-            MENU_SEPARATOR,
-            self.close_action,
-            self.close_all_action,
-            MENU_SEPARATOR,
         ]
+        for print_action in print_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                print_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Print,
+                before_section=FileMenuSections.Restart)
+        # Close
+        close_actions = [
+            self.close_action,
+            self.close_all_action
+        ]
+        for close_action in close_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                close_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Close,
+                before_section=FileMenuSections.Restart)
+        # Navigation
+        if sys.platform == 'darwin':
+            self.main.mainmenu.add_item_to_application_menu(
+                self.tab_navigation_actions,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Navigation,
+                before_section=FileMenuSections.Restart)
 
-        self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +
                                 self.main.file_toolbar_actions)
@@ -1482,6 +1523,10 @@ class Editor(SpyderPluginWidget):
         """Setup toolbars and menus for 'New window' instances"""
         # TODO: All the actions here should be taken from
         # the MainMenus plugin
+        file_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.File).get_actions()
+        tools_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Tools).get_actions()
         help_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
 
@@ -1492,12 +1537,12 @@ class Editor(SpyderPluginWidget):
                              (_("Debug toolbar"), "debug_toolbar",
                               self.main.debug_toolbar_actions))
 
-        self.menu_list = ((_("&File"), self.main.file_menu_actions),
+        self.menu_list = ((_("&File"), file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
                           (_("Sour&ce"), self.main.source_menu_actions),
                           (_("&Run"), self.main.run_menu_actions),
-                          (_("&Tools"), self.main.tools_menu_actions),
+                          (_("&Tools"), tools_menu_actions),
                           (_("&View"), []),
                           (_("&Help"), help_menu_actions))
         # Create pending new windows:
