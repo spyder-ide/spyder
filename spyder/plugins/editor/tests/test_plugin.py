@@ -251,7 +251,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
 
     # Navigate to previous and next cursor positions.
 
-    # The last entry in the cursor position history is overriden by the
+    # The last entry in the cursor position history is overridden by the
     # current cursor position when going to previous or next cursor position,
     # so we need to update the last item of the expected_cursor_pos_history.
     expected_cursor_pos_history[-1] = (filenames[2], 5, 0, 5)

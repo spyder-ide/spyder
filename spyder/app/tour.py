@@ -1015,7 +1015,7 @@ class AnimatedTour(QWidget):
 
     def _clear_canvas(self):
         """ """
-        # TODO: Add option to also make it white... might be usefull?
+        # TODO: Add option to also make it white... might be useful?
         # Make canvas black before transitions
         self.canvas.update_widgets(None)
         self.canvas.update_decoration(None)
@@ -1139,7 +1139,7 @@ class AnimatedTour(QWidget):
             self._set_modal(True, [self.tips])
 
         if 'run' in frame:
-            # Asume that the first widget is the console
+            # Assume that the first widget is the console
             run = frame['run']
             self.run = run
 

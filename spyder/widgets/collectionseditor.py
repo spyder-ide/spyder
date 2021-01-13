@@ -397,7 +397,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return to_qvariant()
         value = self.get_value(index)
         if index.column() == 4 and role == Qt.DisplayRole:
-            # TODO: Check the effect of not hidding the column
+            # TODO: Check the effect of not hiding the column
             # Treating search scores as a table column simplifies the
             # sorting once a score for a specific string in the finder
             # has been defined. This column however should always remain

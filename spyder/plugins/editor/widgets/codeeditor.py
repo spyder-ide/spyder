@@ -333,15 +333,15 @@ class CodeEditor(TextEditBaseWidget):
     # TODO: Remove it!
     sig_signature_invoked = Signal(dict)
 
-    #: Signal emmited when processing code analysis warnings is finished
+    #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
     # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
-    # a URI is found, this signal is emmited
+    # a URI is found, this signal is emitted
     sig_uri_found = Signal(str)
 
     # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
-    # the mouse left button is pressed, this signal is emmited
+    # the mouse left button is pressed, this signal is emitted
     sig_go_to_uri = Signal(str)
 
     sig_file_uri_preprocessed = Signal(str)

@@ -1502,7 +1502,7 @@ def test_issue_4066(main_window, qtbot):
 
     1. Open an object present in the Variable Explorer (e.g. a list).
     2. Delete that object in its corresponding console while its
-       editor is still opem.
+       editor is still open.
     3. Closing that editor by pressing its *Ok* button.
     """
     # Create the object
@@ -2459,12 +2459,12 @@ def test_preferences_change_font_regression(main_window, qtbot):
 @pytest.mark.slow
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
-    reason="Changes of Shitf+Return shortcut cause an ambiguos shortcut")
+    reason="Changes of Shitf+Return shortcut cause an ambiguous shortcut")
 def test_preferences_empty_shortcut_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#12992 regression.
 
-    Overwritting shortcuts results in a shortcuts conflict.
+    Overwriting shortcuts results in a shortcuts conflict.
     """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -3655,7 +3655,7 @@ def test_update_outline(main_window, qtbot, tmpdir):
     editorstack.sig_split_vertically.emit()
     qtbot.wait(1000)
 
-    # Select file with no outline in splitted editorstack
+    # Select file with no outline in split editorstack
     editorstack = main_window.editor.get_current_editorstack()
     editorstack.set_stack_index(2)
     editor = editorstack.get_current_editor()

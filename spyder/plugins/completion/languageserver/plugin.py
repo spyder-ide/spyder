@@ -470,7 +470,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         return started
 
     def register_client_instance(self, instance):
-        """Register signals emmited by a client instance."""
+        """Register signals emitted by a client instance."""
         if self.main:
             self.main.sig_pythonpath_changed.connect(self.update_syspath)
             self.main.sig_main_interpreter_changed.connect(
