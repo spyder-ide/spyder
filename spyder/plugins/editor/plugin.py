@@ -1825,6 +1825,7 @@ class Editor(SpyderPluginWidget):
                 VARS = {
                     'date': time.ctime(),
                     'username': username,
+                    'section': '%%',
                 }
                 try:
                     text = text % VARS
