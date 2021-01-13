@@ -1778,29 +1778,22 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
-        try:
-            ranges = response['params']
-            if ranges is None:
-                return
-
-            folding_panel = self.panels.get(FoldingPanel)
-
-            # Update folding
-            if self.update_folding_thread is not None:
-                self.update_folding_thread.terminate()
-
-            self.update_folding_thread = QThread()
-            self.update_folding_thread.run = functools.partial(
-                self.update_and_merge_folding, ranges)
-            self.update_folding_thread.finished.connect(
-                self.finish_code_folding)
-            self.update_folding_thread.start()
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
+        ranges = response['params']
+        if ranges is None:
             return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing folding")
+
+        folding_panel = self.panels.get(FoldingPanel)
+
+        # Update folding
+        if self.update_folding_thread is not None:
+            self.update_folding_thread.terminate()
+
+        self.update_folding_thread = QThread()
+        self.update_folding_thread.run = functools.partial(
+            self.update_and_merge_folding, ranges)
+        self.update_folding_thread.finished.connect(
+            self.finish_code_folding)
+        self.update_folding_thread.start()
 
         # Tests for the class function selector need this.
         if running_under_pytest():
