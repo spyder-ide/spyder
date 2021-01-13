@@ -578,7 +578,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code Folding
         self.code_folding = True
-        self.update_folding = None
+        self.update_folding_thread = None
 
         # Completions hint
         self.completions_hint = True
@@ -1786,15 +1786,15 @@ class CodeEditor(TextEditBaseWidget):
             folding_panel = self.panels.get(FoldingPanel)
 
             # Update folding
-            if self.update_folding is not None:
-                self.update_folding.terminate()
+            if self.update_folding_thread is not None:
+                self.update_folding_thread.terminate()
 
-            self.update_folding = QThread()
-            self.update_folding.run = functools.partial(
+            self.update_folding_thread = QThread()
+            self.update_folding_thread.run = functools.partial(
                 self.update_and_merge_folding, ranges)
-            self.update_folding.finished.connect(self.finish_code_folding)
-            self.update_folding.start()
-            # folding_panel.update_folding(extended_ranges)
+            self.update_folding_thread.finished.connect(
+                self.finish_code_folding)
+            self.update_folding_thread.start()
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1823,7 +1823,7 @@ class CodeEditor(TextEditBaseWidget):
                 folding_panel.root)
 
             folding_info = collect_folding_regions(root)
-            self.folding_info = (current_tree, root, *folding_info)
+            self._folding_info = (current_tree, root, *folding_info)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1832,9 +1832,9 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing folding")
 
     def finish_code_folding(self):
-        self.update_folding = None
+        self.update_folding_thread = None
         folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.update_folding(self.folding_info)
+        folding_panel.update_folding(self._folding_info)
 
         # Update indent guides, which depend on folding
         if self.indent_guides._enabled and len(self.patch) > 0:
