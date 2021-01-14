@@ -35,7 +35,7 @@ def windows_memory_usage():
                     ('ullAvailVirtual', c_uint64),
                     ('ullAvailExtendedVirtual', c_uint64),]
     memorystatus = MemoryStatus()
-    # MSDN documetation states that dwLength must be set to MemoryStatus
+    # MSDN documentation states that dwLength must be set to MemoryStatus
     # size before calling GlobalMemoryStatusEx
     # https://msdn.microsoft.com/en-us/library/aa366770(v=vs.85)
     memorystatus.dwLength = sizeof(memorystatus)

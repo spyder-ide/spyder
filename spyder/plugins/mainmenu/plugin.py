@@ -195,7 +195,7 @@ class MainMenu(SpyderPluginV2):
         """
         Create a Spyder application menu.
 
-        Paramaters
+        Parameters
         ----------
         menu_id: str
             The menu unique identifier string.

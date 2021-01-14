@@ -170,7 +170,7 @@ def test_find_program():
 
 
 def test_shell_split():
-    """Test if the text can be split using shell-like sintax."""
+    """Test if the text can be split using shell-like syntax."""
     assert shell_split('-q -o -a') == ['-q', '-o', '-a']
     assert shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a') == \
            ['-q', 'd:\\Python de xxxx\\t.txt', '-o', '-a']

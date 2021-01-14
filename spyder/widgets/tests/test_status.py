@@ -11,7 +11,7 @@
 import os
 import sys
 
-# Thrid party imports
+# Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMainWindow
 import pytest

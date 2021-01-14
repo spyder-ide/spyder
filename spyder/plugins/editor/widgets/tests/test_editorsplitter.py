@@ -158,7 +158,7 @@ def test_init(editor_splitter_bot):
 
 
 def test_close(editor_splitter_bot, qtbot):
-    """Test the inteface for closing the editor splitters."""
+    """Test the interface for closing the editor splitters."""
     # Split the main editorspliter once, than split the second editorsplitter
     # twice.
     es = editor_splitter_bot

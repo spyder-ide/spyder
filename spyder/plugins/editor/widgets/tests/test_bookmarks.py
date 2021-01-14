@@ -125,7 +125,7 @@ def test_clear_bookmarks(code_editor_bookmarks):
     editor.clear_bookmarks()
     assert editor.get_bookmarks() == {}
     # Even though there is a 'del data' that would pop the item from the
-    # list, the __del__ funcion isn't called.
+    # list, the __del__ function isn't called.
     assert len(list(editor.blockuserdata_list())) == 3
     for data in editor.blockuserdata_list():
         assert not data.bookmarks

@@ -67,7 +67,7 @@ def data_index(dfi, i, j, role=Qt.DisplayRole):
     return dfi.data(dfi.createIndex(i, j), role)
 
 def generate_pandas_indexes():
-    """ Creates a dictionnary of many possible pandas indexes """
+    """ Creates a dictionary of many possible pandas indexes """
     return {
         'Index': Index(list('ABCDEFGHIJKLMNOPQRST')),
         'RangeIndex': RangeIndex(0, 20),

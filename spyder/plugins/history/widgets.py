@@ -283,7 +283,7 @@ class HistoryWidget(PluginMainWidget):
         filename: str
             History file.
         command: str
-            Command to append to histroy file.
+            Command to append to history file.
         """
         if not is_text_string(filename):  # filename is a QString
             filename = to_text_string(filename.toUtf8(), 'utf-8')

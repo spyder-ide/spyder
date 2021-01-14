@@ -413,7 +413,7 @@ class PathManager(QDialog):
         self.listwidget.setCurrentRow(row)
 
     def row_check_state(self, row):
-        """Retunr the checked state for item in row."""
+        """Return the checked state for item in row."""
         item = self.listwidget.item(row)
         return item.checkState()
 

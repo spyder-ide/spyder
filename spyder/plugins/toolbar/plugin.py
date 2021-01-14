@@ -93,7 +93,7 @@ class Toolbar(SpyderPluginV2):
         """
         Create a Spyder application toolbar.
 
-        Paramaters
+        Parameters
         ----------
         toolbar_id: str
             The toolbar unique identifier string.

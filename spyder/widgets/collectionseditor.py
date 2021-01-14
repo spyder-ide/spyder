@@ -1337,7 +1337,7 @@ class CollectionsEditor(BaseDialog):
               icon=None, parent=None):
         """Setup editor."""
         if isinstance(data, (dict, set)):
-            # dictionnary, set
+            # dictionary, set
             self.data_copy = data.copy()
             datalen = len(data)
         elif isinstance(data, (tuple, list)):

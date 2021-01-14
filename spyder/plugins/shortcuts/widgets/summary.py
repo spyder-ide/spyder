@@ -32,7 +32,7 @@ class ShortcutsSummaryDialog(QDialog):
     """
     Dialog window listing the spyder and plugins shortcuts.
 
-    It contains all the shortcuts avalaible through iter_shortcuts
+    It contains all the shortcuts available through iter_shortcuts
     function
 
     The shortcuts are dysplayed in different columns, and grouped by

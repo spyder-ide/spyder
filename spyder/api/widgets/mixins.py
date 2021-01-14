@@ -34,7 +34,7 @@ class SpyderOptionMixin:
     These options will usually be tied to configuration options in the Spyder
     configuration files (e.g. spyder.ini). Some options might not be connected
     to configuration options, and in this case using DEFAULT_OPTIONS is
-    prefered instead of using class attributes.
+    preferred instead of using class attributes.
     """
     # EXAMPLE: {'option_1': value_1, 'option_2': value_2, ...}
     DEFAULT_OPTIONS = {}

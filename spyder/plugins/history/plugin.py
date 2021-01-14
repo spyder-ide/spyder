@@ -96,6 +96,6 @@ class HistoryLog(SpyderDockablePlugin):
         filename: str
             History file.
         command: str
-            Command to append to histroy file.
+            Command to append to history file.
         """
         self.get_widget().append_to_history(filename, command)

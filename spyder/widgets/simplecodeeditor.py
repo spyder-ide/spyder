@@ -253,7 +253,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         Set current syntax highlighting to use `language`.
 
-        Paramaters
+        Parameters
         ----------
         language: str or None
             Language name or known extensions.
@@ -275,7 +275,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         Set visibility of line number area
 
-        Paramaters
+        Parameters
         ----------
         state: bool
             Visible state of the line number area.
@@ -289,7 +289,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         Set scroll past end state.
 
-        Paramaters
+        Parameters
         ----------
         state: bool
             Scroll past end state.
@@ -302,7 +302,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         Set line wrap..
 
-        Paramaters
+        Parameters
         ----------
         state: bool
             Wrap state.
@@ -343,7 +343,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         Show blank spaces.
 
-        Paramaters
+        Parameters
         ----------
         state: bool
             Blank spaces visibility.

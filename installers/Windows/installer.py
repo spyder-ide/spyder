@@ -43,7 +43,7 @@ UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', '').split()
 
 SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
 
-# Packages to be added to the packages section regardles wheel checks or
+# Packages to be added to the packages section regardless wheel checks or
 # packages skipped, for example external direct dependencies
 # (spyder-kernels python-language-server)
 
@@ -195,7 +195,7 @@ def pypi_wheels_in(requirements, skip_packages):
 
 def package_name(requirement):
     """
-    Return the name component of a `name==version` formated requirement.
+    Return the name component of a `name==version` formatted requirement.
     """
     requirement_name = requirement.partition("==")[0].split("@")[0].strip()
     return requirement_name

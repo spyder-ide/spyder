@@ -22,7 +22,7 @@ def find_returning_function_path(text, cursor, line_start='\n'):
     :param text: Python source to analyze
     :param cursor: The starting cursor in the source
     :param line_start: line_start used in the source
-    :return: a string representing the defintion value or None
+    :return: a string representing the definition value or None
 
     Finds the (syntactic) path of the function that
     returned the value of the name before the cursor.

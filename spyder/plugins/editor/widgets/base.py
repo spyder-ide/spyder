@@ -169,7 +169,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Set extra selections for a key.
 
         Also assign draw orders to leave current_cell and current_line
-        in the backgrund (and avoid them to cover other decorations)
+        in the background (and avoid them to cover other decorations)
 
         NOTE: This will remove previous decorations added to the same key.
 

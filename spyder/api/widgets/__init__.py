@@ -231,7 +231,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     left of the corner menu widget (Hamburguer menu).
 
     Plugins that provide actions that take time should make this `True` and
-    use accoringly with the `start_spinner`/`stop_spinner` methods.
+    use accordingly with the `start_spinner`/`stop_spinner` methods.
 
     The Find in files plugin is an example of a core plugin that uses it.
 
@@ -920,7 +920,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         Create a QMainWindow instance containing this SpyderWidget.
         """
-        # Wigdets
+        # Widgets
         self.windowwidget = window = SpyderWindowWidget(self)
 
         # If the close corner button is used

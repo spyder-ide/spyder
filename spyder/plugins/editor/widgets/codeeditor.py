@@ -105,7 +105,7 @@ logger = logging.getLogger(__name__)
 # Timeout to update decorations (through a QTimer) when a position
 # changed is detected in the vertical scrollbar or when releasing
 # the up/down arrow keys.
-UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
+UPDATE_DECORATIONS_TIMEOUT = 500  # milliseconds
 
 # %% This line is for cell execution testing
 def is_letter_or_number(char):
@@ -2124,7 +2124,7 @@ class CodeEditor(TextEditBaseWidget):
             self.indent_or_replace()
 
     def intelligent_backtab(self):
-        """Provide intelligent behavoir for Shift+Tab key press"""
+        """Provide intelligent behavior for Shift+Tab key press"""
         leading_text = self.get_text('sol', 'cursor')
         if not leading_text.strip():
             # blank line
@@ -2784,7 +2784,7 @@ class CodeEditor(TextEditBaseWidget):
         underline: bool
             Determines if errors and warnings are going to be set in
             the line number area or underlined. It's better to separate
-            these two processes for perfomance reasons. That's because
+            these two processes for performance reasons. That's because
             setting errors can be done in a thread whereas underlining
             them can't.
         """
@@ -3580,7 +3580,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @Slot()
     def clear_all_output(self):
-        """Removes all ouput in the ipynb format (Json only)"""
+        """Removes all output in the ipynb format (Json only)"""
         try:
             nb = nbformat.reads(self.toPlainText(), as_version=4)
             if nb.cells:

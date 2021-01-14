@@ -59,7 +59,7 @@ class EncodingStatus(StatusBarWidget):
 
 
 class CursorPositionStatus(StatusBarWidget):
-    """Status bar widget for the current file cursor postion."""
+    """Status bar widget for the current file cursor position."""
 
     def update_cursor_position(self, line, index):
         """Update cursor position."""
