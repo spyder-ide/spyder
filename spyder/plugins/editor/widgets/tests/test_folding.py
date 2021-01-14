@@ -68,11 +68,11 @@ def test_folding(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
-    while folding_panel.folding_regions == {}:
-        # This fixes the race condition on the PyLS with the
-        # document_did_change() event
-        with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-            code_editor.request_folding()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_folding()
+
+    # Wait for the update thread to finish
+    qtbot.wait(3000)
 
     folding_regions = folding_panel.folding_regions
     folding_levels = folding_panel.folding_levels
@@ -100,11 +100,11 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
-    while folding_panel.folding_regions == {}:
-        # This fixes the race condition on the PyLS with the
-        # document_did_change() event
-        with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-            editor.request_folding()
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.request_folding()
+
+    # Wait for the update thread to finish
+    qtbot.wait(3000)
 
     line_search = editor.document().findBlockByLineNumber(3)
 
@@ -134,11 +134,11 @@ def test_unfold_goto(search_codeeditor, qtbot):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
-    while folding_panel.folding_regions == {}:
-        # This fixes the race condition on the PyLS with the
-        # document_did_change() event
-        with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-            editor.request_folding()
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.request_folding()
+
+    # Wait for the update thread to finish
+    qtbot.wait(3000)
 
     line_goto = editor.document().findBlockByLineNumber(5)
 
