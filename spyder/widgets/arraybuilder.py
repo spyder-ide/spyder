@@ -306,7 +306,7 @@ class ArrayBuilderDialog(QDialog):
         """
         Override Qt method.
 
-        Usefull when in line edit mode.
+        Useful when in line edit mode.
         """
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
             return False

@@ -602,7 +602,7 @@ class ThumbnailScrollBar(QFrame):
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setMinimumWidth(self._min_scrollbar_width)
 
-        # Set the vertical scrollbar explicitely.
+        # Set the vertical scrollbar explicitly.
         # This is required to avoid a "RuntimeError: no access to protected
         # functions or signals for objects not created from Python" in Linux.
         self.scrollarea.setVerticalScrollBar(QScrollBar())

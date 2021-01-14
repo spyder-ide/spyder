@@ -8,7 +8,7 @@
 Spyder, the Scientific Python Development Environment
 =====================================================
 
-Developped and maintained by the Spyder Project
+Developed and maintained by the Spyder Project
 Contributors
 
 Copyright © Spyder Project Contributors
@@ -436,7 +436,7 @@ class MainWindow(QMainWindow):
         """
         This method will call the handle exception method of the Console
         plugin. It is provided as a signal on the Plugin API for convenience,
-        so that plugin do not need to explicitely call the Console plugin.
+        so that plugin do not need to explicitly call the Console plugin.
 
         Parameters
         ----------
@@ -1179,7 +1179,7 @@ class MainWindow(QMainWindow):
             self.register_plugin(self.findinfiles)
 
         # Load other plugins (former external plugins)
-        # TODO: Use this bucle to load all internall plugins and remove
+        # TODO: Use this bucle to load all internal plugins and remove
         # duplicated code
 
         # Breakpoints
@@ -1459,7 +1459,7 @@ class MainWindow(QMainWindow):
             t.setDaemon(True)
             t.start()
 
-            # Connect the window to the signal emmited by the previous server
+            # Connect the window to the signal emitted by the previous server
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
 
@@ -3545,7 +3545,7 @@ def main(options, args):
                                      or bool(get_debug_level()))
 
     # **** Set OpenGL implementation to use ****
-    # This attibute must be set before creating the application.
+    # This attribute must be set before creating the application.
     # See spyder-ide/spyder#11227
     if options.opengl_implementation:
         option = options.opengl_implementation

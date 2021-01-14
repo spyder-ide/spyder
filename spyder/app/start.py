@@ -99,7 +99,7 @@ def main():
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
 
     #==========================================================================
-    # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+    # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
     # be set before creating the application.
     #==========================================================================
     if CONF.get('main', 'high_dpi_custom_scale_factor'):

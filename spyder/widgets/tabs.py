@@ -378,7 +378,7 @@ class BaseTabs(QTabWidget):
             # The close button on tab is on the left
             point.setX(point.x() + 3)
         else:
-            # The close buttton on tab is on the right
+            # The close button on tab is on the right
             point.setX(point.x() - 30)
         return self.tabBar().tabAt(point)
 

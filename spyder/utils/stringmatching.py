@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-String search and match utilities usefull when filtering a list of texts.
+String search and match utilities useful when filtering a list of texts.
 """
 
 import re

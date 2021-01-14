@@ -14,7 +14,7 @@ echo "Searching recursively for all png files in:" `pwd`
 # fix all png files in the current directory (and sub-dirs) using ImageMagick:
 find . -type f -name "*.png" -exec convert {} -strip {} \;
 
-# optimize all images, can hold a 20-30% size reduction on avarage, no loss of
+# optimize all images, can hold a 20-30% size reduction on average, no loss of
 # image quality
 find . -type f -name "*.png" -exec optipng -o7 {} \;
 

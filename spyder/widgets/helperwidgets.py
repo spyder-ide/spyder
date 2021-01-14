@@ -116,7 +116,7 @@ class HTMLDelegate(QStyledItemDelegate):
         self._margin = margin
 
     def _prepare_text_document(self, option, index):
-        # This logic must be shared between paint and sizeHint for consitency
+        # This logic must be shared between paint and sizeHint for consistency
         options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
 
@@ -294,7 +294,7 @@ class IconLineEdit(QLineEdit):
             self._application_style = application_style
             self._refresh()
 
-        # Small hack to gurantee correct padding on Spyder start
+        # Small hack to guarantee correct padding on Spyder start
         if self._paint_count < 5:
             self._paint_count += 1
             self._refresh()
