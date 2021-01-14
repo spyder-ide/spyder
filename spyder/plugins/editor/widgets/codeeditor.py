@@ -578,7 +578,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code Folding
         self.code_folding = True
-        self.update_folding_thread = None
+        self.update_folding_thread = QThread()
 
         # Completions hint
         self.completions_hint = True
@@ -1785,10 +1785,9 @@ class CodeEditor(TextEditBaseWidget):
         folding_panel = self.panels.get(FoldingPanel)
 
         # Update folding
-        if self.update_folding_thread is not None:
+        if self.update_folding_thread.isRunning():
             self.update_folding_thread.terminate()
 
-        self.update_folding_thread = QThread()
         self.update_folding_thread.run = functools.partial(
             self.update_and_merge_folding, ranges)
         self.update_folding_thread.finished.connect(
@@ -1825,7 +1824,6 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing folding")
 
     def finish_code_folding(self):
-        self.update_folding_thread = None
         folding_panel = self.panels.get(FoldingPanel)
         folding_panel.update_folding(self._folding_info)
 
