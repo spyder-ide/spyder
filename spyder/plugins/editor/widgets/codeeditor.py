@@ -22,6 +22,7 @@ from __future__ import division, print_function
 
 from unicodedata import category
 import logging
+import functools
 import os.path as osp
 import re
 import sre_constants
@@ -77,6 +78,8 @@ from spyder.plugins.editor.utils.debugger import DebuggerManager
 # from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.plugins.editor.panels.utils import (
+    merge_folding, collect_folding_regions)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
@@ -575,6 +578,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code Folding
         self.code_folding = True
+        self.update_folding_thread = QThread()
 
         # Completions hint
         self.completions_hint = True
@@ -1774,15 +1778,31 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
-        try:
-            ranges = response['params']
-            if ranges is None:
-                return
+        ranges = response['params']
+        if ranges is None:
+            return
 
+        folding_panel = self.panels.get(FoldingPanel)
+
+        # Update folding
+        if self.update_folding_thread.isRunning():
+            self.update_folding_thread.terminate()
+
+        self.update_folding_thread.run = functools.partial(
+            self.update_and_merge_folding, ranges)
+        self.update_folding_thread.finished.connect(
+            self.finish_code_folding)
+        self.update_folding_thread.start()
+
+        # Tests for the class function selector need this.
+        if running_under_pytest():
+            self.request_symbols()
+
+    def update_and_merge_folding(self, ranges):
+        try:
+            text = self.toPlainText()
             folding_panel = self.panels.get(FoldingPanel)
 
-            # Update folding
-            text = self.toPlainText()
             self.text_diff = (self.differ.diff_main(self.previous_text, text),
                               self.previous_text)
             extended_ranges = []
@@ -1790,12 +1810,12 @@ class CodeEditor(TextEditBaseWidget):
                 text_region = self.get_text_region(start, end)
                 extended_ranges.append((start, end, text_region))
 
-            folding_panel.update_folding(extended_ranges)
+            current_tree, root = merge_folding(
+                extended_ranges, folding_panel.current_tree,
+                folding_panel.root)
 
-            # Update indent guides, which depend on folding
-            if self.indent_guides._enabled and len(self.patch) > 0:
-                line, column = self.get_cursor_line_column()
-                self.update_whitespace_count(line, column)
+            folding_info = collect_folding_regions(root)
+            self._folding_info = (current_tree, root, *folding_info)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1803,9 +1823,14 @@ class CodeEditor(TextEditBaseWidget):
         except Exception:
             self.log_lsp_handle_errors("Error when processing folding")
 
-        # Tests for the class function selector need this.
-        if running_under_pytest():
-            self.request_symbols()
+    def finish_code_folding(self):
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.update_folding(self._folding_info)
+
+        # Update indent guides, which depend on folding
+        if self.indent_guides._enabled and len(self.patch) > 0:
+            line, column = self.get_cursor_line_column()
+            self.update_whitespace_count(line, column)
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
