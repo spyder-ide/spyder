@@ -98,10 +98,6 @@ except Exception:
 
 logger = logging.getLogger(__name__)
 
-# Timeout to update decorations (through a QTimer) when a position
-# changed is detected in the vertical scrollbar or when releasing
-# the up/down arrow keys.
-UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
 
 def is_letter_or_number(char):
     """Returns whether the specified unicode character is a letter or a number.
@@ -257,6 +253,11 @@ class CodeEditor(TextEditBaseWidget):
     TAB_ALWAYS_INDENTS = (
         'py', 'pyw', 'python', 'ipy', 'c', 'cpp', 'cl', 'h', 'pyt', 'pyi'
     )
+
+    # Timeout to update decorations (through a QTimer) when a position
+    # changed is detected in the vertical scrollbar or when releasing
+    # the up/down arrow keys.
+    UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -540,7 +541,8 @@ class CodeEditor(TextEditBaseWidget):
         # Update decorations
         self.update_decorations_timer = QTimer(self)
         self.update_decorations_timer.setSingleShot(True)
-        self.update_decorations_timer.setInterval(UPDATE_DECORATIONS_TIMEOUT)
+        self.update_decorations_timer.setInterval(
+            self.UPDATE_DECORATIONS_TIMEOUT)
         self.update_decorations_timer.timeout.connect(
             self.update_decorations)
         self.verticalScrollBar().valueChanged.connect(
