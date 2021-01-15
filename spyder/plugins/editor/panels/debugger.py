@@ -63,7 +63,7 @@ class DebuggerPanel(Panel):
         try:
             icon = self.icons[icon_name]
         except KeyError as e:
-            debug_print("Breakpoint icon doen't exist, {}".format(e))
+            debug_print("Breakpoint icon doesn't exist, {}".format(e))
         else:
             icon.paint(painter, rect)
 

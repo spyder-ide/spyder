@@ -200,7 +200,7 @@ class Shortcuts(SpyderPluginV2):
         name: str
             Name of the shortcut.
         plugin_id: spyder.api.plugins.SpyderpluginV2 or None
-            The plugin for whcih the shortcut is registered. Default is None.
+            The plugin for which the shortcut is registered. Default is None.
 
         Returns
         -------
@@ -222,6 +222,6 @@ class Shortcuts(SpyderPluginV2):
         keystr: str
             Shortcut keys in string form.
         plugin_id: spyder.api.plugins.SpyderpluginV2 or None
-            The plugin for whcih the shortcut is registered. Default is None.
+            The plugin for which the shortcut is registered. Default is None.
         """
         self._conf.set_shortcut(context, name, keystr, plugin_name=plugin_id)

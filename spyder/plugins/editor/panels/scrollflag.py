@@ -72,7 +72,7 @@ class ScrollFlagArea(Panel):
         self._update_list_timer = QTimer(self)
         self._update_list_timer.setSingleShot(True)
         self._update_list_timer.timeout.connect(self.update_flags)
-        # Dictionnary with flag lists
+        # Dictionary with flag lists
         self._dict_flag_list = {}
 
     @property

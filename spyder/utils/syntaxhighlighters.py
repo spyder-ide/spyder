@@ -560,7 +560,7 @@ class PythonSH(BaseSH):
                 if text.lstrip().startswith(self.cell_separators):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
-                    # cell_head: string contaning the first group
+                    # cell_head: string containing the first group
                     # of '%'s in the cell header
                     cell_head = re.search(r"%+|$", text.lstrip()).group()
                     if cell_head == '':

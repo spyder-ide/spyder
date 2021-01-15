@@ -198,7 +198,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
         Notes
         -----
-        If directory is None, a get directorty dialog will be used.
+        If directory is None, a get directory dialog will be used.
         """
         if directory is None:
             self.sig_redirect_stdio_requested.emit(False)

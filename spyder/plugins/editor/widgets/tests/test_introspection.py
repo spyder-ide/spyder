@@ -804,7 +804,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
                      or not check_if_kite_running()),
                     reason="Only works if rtree is installed."
                            "It's not meant to be run without kite installed "
-                           "and runnning")
+                           "and running")
 def test_kite_code_snippets(kite_codeeditor, qtbot):
     """
     Test kite code snippets completions without initial placeholder.

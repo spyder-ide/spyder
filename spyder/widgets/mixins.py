@@ -980,7 +980,7 @@ class BaseEditMixin(object):
         current_word = self.get_current_word(help_req=True)
 
         # Get max position to the left of cursor until space or no more
-        # charaters are left
+        # characters are left
         cursor.movePosition(QTextCursor.PreviousCharacter)
         while self.get_character(cursor.position()).strip():
             cursor.movePosition(QTextCursor.PreviousCharacter)
@@ -989,7 +989,7 @@ class BaseEditMixin(object):
         cursor_pos_left = cursor.position()
 
         # Get max position to the right of cursor until space or no more
-        # charaters are left
+        # characters are left
         cursor.setPosition(cursor_pos)
         while self.get_character(cursor.position()).strip():
             cursor.movePosition(QTextCursor.NextCharacter)

@@ -126,7 +126,7 @@ class ClassFunctionDropdown(Panel):
             The combobox to populate
         data : list of :class:`dict`
             The data to populate with. There should be one list element per
-            class or function defintion in the file.
+            class or function definition in the file.
         add_parents : bool
             Add parents to name to create a fully qualified name.
 

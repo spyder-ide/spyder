@@ -738,7 +738,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     message: str
         The actual message to display.
     timeout: int
-        The timeout before the message dissapears.
+        The timeout before the message disappears.
     """
 
     sig_redirect_stdio_requested = Signal(bool)
@@ -1295,7 +1295,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             with PyQt4'). It will be shown at startup in a QMessageBox.
         """
         valid = True
-        message = ''  # Note: Remeber to use _('') to localize the string
+        message = ''  # Note: Remember to use _('') to localize the string
         return valid, message
 
     def on_first_registration(self):

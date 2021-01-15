@@ -57,7 +57,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     # ------------------------------------------------------------------------
     sig_exception_occurred = Signal(dict)
     """
-    This Signal is emitted to report that an exception has occured.
+    This Signal is emitted to report that an exception has occurred.
 
     Parameters
     ----------

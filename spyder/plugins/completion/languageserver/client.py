@@ -584,7 +584,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         Register server capabilities and inform other plugins that it's
         available.
         """
-        # Update server capabilities with the infor sent by the server.
+        # Update server capabilities with the info sent by the server.
         server_capabilites = server_capabilites['capabilities']
 
         if isinstance(server_capabilites['textDocumentSync'], int):

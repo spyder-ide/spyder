@@ -1811,7 +1811,7 @@ class MainWindow(QMainWindow):
                  not self.statusBar().isHidden())
 
     def tabify_plugins(self, first, second):
-        """Tabify plugin dockwigdets"""
+        """Tabify plugin dockwidgets"""
         self.tabifyDockWidget(first.dockwidget, second.dockwidget)
 
     # --- Layouts

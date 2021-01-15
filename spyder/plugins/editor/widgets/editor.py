@@ -966,7 +966,7 @@ class EditorStack(QWidget):
 
     @Slot()
     def update_fname_label(self):
-        """Upadte file name label."""
+        """Update file name label."""
         filename = to_text_string(self.get_current_filename())
         if len(filename) > 100:
             shorten_filename = u'...' + filename[-100:]

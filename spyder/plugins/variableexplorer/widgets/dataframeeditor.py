@@ -645,7 +645,7 @@ class DataFrameView(QTableView):
         try:
             obj.to_csv(output, sep='\t', index=index, header=header)
         except UnicodeEncodeError:
-            # Needed to handle enconding errors in Python 2
+            # Needed to handle encoding errors in Python 2
             # See spyder-ide/spyder#4833
             QMessageBox.critical(
                 self,

@@ -882,7 +882,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         if host not in ['127.0.0.1', 'localhost']:
             self.external_server.setChecked(True)
 
-        # Checks for extenal PyLS
+        # Checks for external PyLS
         if self.external_server.isChecked():
             port = int(self.advanced_port.spinbox.text())
 

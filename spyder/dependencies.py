@@ -352,7 +352,7 @@ def check(modname):
         if dependency.modname == modname:
             return dependency.check()
     else:
-        raise RuntimeError("Unkwown dependency %s" % modname)
+        raise RuntimeError("Unknown dependency %s" % modname)
 
 
 def status(deps=DEPENDENCIES, linesep=os.linesep):

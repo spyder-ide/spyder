@@ -8,7 +8,7 @@
 Tests for configdialog.py
 """
 
-# Standard librery imports
+# Standard library imports
 import os.path as osp
 import tempfile
 

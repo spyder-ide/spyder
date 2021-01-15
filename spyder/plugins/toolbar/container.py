@@ -129,7 +129,7 @@ class ToolbarContainer(PluginMainContainer):
         """
         Create an application toolbar and add it to the main window.
 
-        Paramaters
+        Parameters
         ----------
         toolbar_id: str
             The toolbar unique identifier string.

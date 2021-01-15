@@ -104,7 +104,7 @@ class RecoveryDialog(QDialog):
             Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint |
             Qt.WindowStaysOnTopHint)
 
-        # This is needed beause of an error in MacOS.
+        # This is needed because of an error in MacOS.
         # See https://bugreports.qt.io/browse/QTBUG-49576
         if parent and hasattr(parent, 'splash'):
             self.splash = parent.splash

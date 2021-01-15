@@ -35,7 +35,7 @@ def project_test(tmpdir_factory):
 
 
 def test_empty_project(project_test, qtbot):
-    """Test creation of an Empy project, and its configuration files."""
+    """Test creation of an Empty project, and its configuration files."""
     project_dir, project = project_test
     assert project.root_path == str(project_dir)
 

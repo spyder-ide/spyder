@@ -50,7 +50,7 @@ def editor_bot(qtbot):
 # ---- Tests
 def test_default_keybinding_values():
     """
-    Assert that the default Spyder keybindings for the keyboard shorcuts
+    Assert that the default Spyder keybindings for the keyboard shortcuts
     are as expected. This is required because we do not use the keybindings
     saved in Spyder's config to simulate the user keyboard action, due to
     the fact that it is complicated to convert and pass reliably a sequence
@@ -241,7 +241,7 @@ def test_transform_to_lowercase_shortcut(editor_bot):
 @pytest.mark.no_xvfb
 def test_transform_to_uppercase_shortcut(editor_bot):
     """
-    Test that the transform to uppercase shorcuts is working as expected with
+    Test that the transform to uppercase shortcuts is working as expected with
     the default Spyder keybindings.
     """
     editorstack, qtbot = editor_bot

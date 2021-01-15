@@ -1400,7 +1400,7 @@ class DirView(QTreeView):
     def restore_expanded_state(self):
         """Restore all items expanded state"""
         if self.__expanded_state is not None:
-            # In the old project explorer, the expanded state was a dictionnary:
+            # In the old project explorer, the expanded state was a dictionary:
             if isinstance(self.__expanded_state, list):
                 self.fsmodel.directoryLoaded.connect(
                                                   self.restore_directory_state)

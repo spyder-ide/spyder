@@ -11,7 +11,7 @@ Tests for status.py
 # Test library imports
 import pytest
 
-# Thrid party imports
+# Third party imports
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
