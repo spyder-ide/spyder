@@ -12,11 +12,13 @@ from qtpy.QtWidgets import (QTabWidget, QVBoxLayout, QWidget, QGroupBox,
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.config.main import NAME_FILTERS
-from spyder.py3compat import to_text_string
 from spyder.plugins.explorer.widgets.fileassociations import (
     FileAssociationsWidget)
+
+# Localization
+_ = get_translation("spyder")
 
 
 class ExplorerConfigPage(PluginConfigPage):
@@ -31,8 +33,8 @@ class ExplorerConfigPage(PluginConfigPage):
         # General options group
         basic_group = QGroupBox(_("General options"))
         check_show_hidden_files = newcb(_("Show hidden files"), 'show_hidden')
-        check_single_click = newcb(_("Single click to open files"),
-                                   'single_click_to_open')
+        check_single_click = newcb(
+            _("Single click to open files"), 'single_click_to_open')
         basic_layout = QVBoxLayout()
         basic_layout.addWidget(check_show_hidden_files)
         basic_layout.addWidget(check_single_click)
@@ -105,7 +107,7 @@ class ExplorerConfigPage(PluginConfigPage):
         Update the content of the text edit used to store the config data.
         """
         textedit = self.edit_file_associations.textbox
-        textedit.setPlainText(to_text_string(data))
+        textedit.setPlainText(str(data))
 
     def reset_to_default(self):
         """Reset the filter settings to default."""

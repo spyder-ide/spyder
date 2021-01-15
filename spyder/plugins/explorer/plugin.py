@@ -16,20 +16,27 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
-from spyder.config.base import _
-from spyder.api.plugins import SpyderPluginWidget
-from spyder.plugins.explorer.widgets.explorer import ExplorerWidget
+from spyder.api.translations import get_translation
+from spyder.api.plugins import SpyderDockablePlugin, Plugins
+from spyder.plugins.explorer.widgets.main_widget import ExplorerWidget
 from spyder.plugins.explorer.confpage import ExplorerConfigPage
 
+# Localization
+_ = get_translation('spyder')
 
-class Explorer(SpyderPluginWidget):
+
+class Explorer(SpyderDockablePlugin):
     """File and Directories Explorer DockWidget."""
 
-    CONF_SECTION = 'explorer'
-    CONFIGWIDGET_CLASS = ExplorerConfigPage
+    NAME = 'explorer'
+    OPTIONAL = [Plugins.IPythonConsole, Plugins.Editor]
+    REQUIRES = [Plugins.Preferences]
+    TABIFY = Plugins.VariableExplorer
+    WIDGET_CLASS = ExplorerWidget
+    CONF_SECTION = NAME
+    CONF_WIDGET_CLASS = ExplorerConfigPage
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
@@ -37,121 +44,169 @@ class Explorer(SpyderPluginWidget):
     # ------------------------------------------------------------------------
     sig_dir_opened = Signal(str)
     """
-    This signal is emitted when the current directory of the explorer tree
-    has changed.
+    This signal is emitted to indicate a folder has been opened.
 
     Parameters
     ----------
-    new_root_directory: str
-        The new root directory path.
+    directory: str
+        The opened path directory.
 
     Notes
     -----
-    This happens when clicking (or double clicking depending on the option)
-    a folder, turning this folder in the new root parent of the tree.
+    This will update the current working directory.
     """
 
-    def __init__(self, parent=None):
-        """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+    sig_file_created = Signal(str)
+    """
+    This signal is emitted to request creating a new file with Spyder.
 
-        visible_columns = self.get_option('visible_columns',
-                                          default=[0, 3])  # Name & Last Mod
-        self.fileexplorer = ExplorerWidget(
-            self,
-            name_filters=self.get_option('name_filters'),
-            show_hidden=self.get_option('show_hidden'),
-            options_button=self.options_button,
-            single_click_to_open=self.get_option('single_click_to_open'),
-            file_associations=self.get_option('file_associations',
-                                              default={}),
-            visible_columns=visible_columns,
-        )
-        layout = QVBoxLayout()
-        layout.addWidget(self.fileexplorer)
-        self.setLayout(layout)
-        self.fileexplorer.sig_option_changed.connect(
-            self._update_config_options)
+    Parameters
+    ----------
+    path: str
+        File path to run.
+    """
 
-    def _update_config_options(self, option, value):
-        """Update the config options of the explorer to make them permanent."""
-        self.set_option(option, value)
+    sig_file_removed = Signal(str)
+    """
+    This signal is emitted when a file is removed.
 
-    #------ SpyderPluginWidget API ---------------------------------------------
-    def get_plugin_title(self):
+    Parameters
+    ----------
+    path: str
+        File path removed.
+    """
+
+    sig_file_renamed = Signal(str, str)
+    """
+    This signal is emitted when a file is renamed.
+
+    Parameters
+    ----------
+    old_path: str
+        Old path for renamed file.
+    new_path: str
+        New path for renamed file.
+    """
+
+    sig_open_file_requested = Signal(str)
+    """
+    This signal is emitted to request opening a new file with Spyder.
+
+    Parameters
+    ----------
+    path: str
+        File path to run.
+    """
+
+    sig_folder_removed = Signal(str)
+    """
+    This signal is emitted when a folder is removed.
+
+    Parameters
+    ----------
+    path: str
+        Folder to remove.
+    """
+
+    sig_folder_renamed = Signal(str)
+    """
+    This signal is emitted when a folder is renamed.
+
+    Parameters
+    ----------
+    path: str
+        Folder to remove.
+    """
+
+    sig_interpreter_opened = Signal(str)
+    """
+    This signal is emitted to request opening an interpreter with the given
+    path as working directory.
+
+    Parameters
+    ----------
+    path: str
+        Path to use as working directory of interpreter.
+    """
+
+    sig_module_created = Signal(str)
+    """
+    This signal is emitted to indicate a module has been created.
+
+    Parameters
+    ----------
+    directory: str
+        The created path directory.
+    """
+
+    sig_run_requested = Signal(str)
+    """
+    This signal is emitted to request running a file.
+
+    Parameters
+    ----------
+    path: str
+        File path to run.
+    """
+
+    # ---- SpyderDockablePlugin API
+    # ------------------------------------------------------------------------
+    def get_name(self):
         """Return widget title"""
         return _("Files")
 
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.fileexplorer.treewidget
+    def get_description(self):
+        """Return the description of the explorer widget."""
+        return _("Explore files in the computer with a tree view.")
 
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return self.fileexplorer.treewidget.common_actions
+    def get_icon(self):
+        """Return the explorer icon."""
+        # TODO: Find a decent icon for the explorer
+        return self.create_icon('outline_explorer')
 
-    def register_plugin(self):
+    def register(self):
         """Register plugin in Spyder's main window"""
-        ipyconsole = self.main.ipyconsole
-        treewidget = self.fileexplorer.treewidget
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        preferences = self.get_plugin(Plugins.Preferences)
 
-        self.add_dockwidget()
-        self.fileexplorer.sig_open_file.connect(self.main.open_file)
-        self.register_widget_shortcuts(treewidget)
+        # Add preference config page
+        preferences.register_plugin_preferences(self)
 
-        treewidget.sig_edit.connect(self.main.editor.load)
-        treewidget.sig_removed.connect(self.main.editor.removed)
-        treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
-        treewidget.sig_renamed.connect(self.main.editor.renamed)
-        treewidget.sig_renamed_tree.connect(self.main.editor.renamed_tree)
-        treewidget.sig_create_module.connect(self.main.editor.new)
-        treewidget.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
-        treewidget.sig_open_interpreter.connect(
-            ipyconsole.create_client_from_path)
-        treewidget.redirect_stdio.connect(
-            self.main.redirect_internalshell_stdio)
-        treewidget.sig_run.connect(
-            lambda fname:
-            ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
-                                  False, True, False))
+        # Expose widget signals on the plugin
+        widget.sig_dir_opened.connect(self.sig_dir_opened)
+        widget.sig_file_created.connect(self.sig_file_created)
+        widget.sig_open_file_requested.connect(self.sig_open_file_requested)
+        widget.sig_open_interpreter_requested.connect(
+            self.sig_interpreter_opened)
+        widget.sig_module_created.connect(self.sig_module_created)
+        widget.sig_removed.connect(self.sig_file_removed)
+        widget.sig_renamed.connect(self.sig_file_renamed)
+        widget.sig_run_requested.connect(self.sig_run_requested)
+        widget.sig_tree_removed.connect(self.sig_folder_removed)
+        widget.sig_tree_renamed.connect(self.sig_folder_renamed)
 
-        treewidget.sig_dir_opened.connect(self.sig_dir_opened)
+        # Connect plugin signals with plugins slots
+        if editor:
+            editor.sig_dir_opened.connect(self.chdir)
+            self.sig_file_created.connect(lambda t: editor.new(text=t))
+            self.sig_file_removed.connect(editor.removed)
+            self.sig_file_renamed.connect(editor.renamed)
+            self.sig_folder_removed.connect(editor.removed_tree)
+            self.sig_folder_renamed.connect(editor.renamed_tree)
+            self.sig_module_created.connect(editor.new)
+            self.sig_open_file_requested.connect(editor.load)
 
-    def refresh_plugin(self, new_path=None, force_current=True):
-        """Refresh explorer widget"""
-        self.fileexplorer.treewidget.update_history(new_path)
-        self.fileexplorer.treewidget.refresh(new_path,
-                                             force_current=force_current)
+        if ipyconsole:
+            self.sig_interpreter_opened.connect(
+                ipyconsole.create_client_from_path)
+            self.sig_run_requested.connect(
+                lambda fname:
+                ipyconsole.run_script(fname, osp.dirname(fname), '', False,
+                                      False, False, True, False))
 
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration."""
-        # TODO: Remove this for spyder 5
-        # self.tabify(self.main.projects)
-        self.tabify(self.main.variableexplorer)
-
-    def apply_plugin_settings(self, options):
-        """Handle preference options update."""
-        method_map = {
-            'file_associations':
-                self.fileexplorer.treewidget.set_file_associations,
-            'single_click_to_open':
-                self.fileexplorer.treewidget.set_single_click_to_open,
-            'name_filters':
-                self.fileexplorer.treewidget.set_name_filters,
-            'show_hidden':
-                self.fileexplorer.treewidget.toggle_hidden
-        }
-        for option in options:
-            if option in method_map:
-                value = self.get_option(option)
-                method = method_map.get(option)
-                method(value)
-        self.fileexplorer.treewidget.update_common_actions()
-
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def chdir(self, directory, emit=True):
         """
@@ -165,4 +220,19 @@ class Explorer(SpyderPluginWidget):
             Emit a signal to indicate the working directory has changed.
             Default is True.
         """
-        self.fileexplorer.treewidget.chdir(directory, emit=emit)
+        self.get_widget().chdir(directory, emit=emit)
+
+    def refresh(self, new_path=None, force_current=True):
+        """
+        Refresh history.
+
+        Parameters
+        ----------
+        new_path: str, optional
+            Path to add to history. Default is None.
+        force_current: bool, optional
+            Default is True.
+        """
+        widget = self.get_widget()
+        widget.update_history(new_path)
+        widget.refresh(new_path, force_current=force_current)

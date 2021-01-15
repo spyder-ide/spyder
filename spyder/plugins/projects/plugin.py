@@ -67,10 +67,10 @@ class Projects(SpyderPluginWidget):
     ----------
     project_path: str
         Location of project.
-    project_type: str	
-        Type of project as defined by project types.	
-    project_packages: object	
-        Package to install. Currently not in use.	
+    project_type: str
+        Type of project as defined by project types.
+    project_packages: object
+        Package to install. Currently not in use.
     """
 
     sig_project_loaded = Signal(object)
@@ -159,23 +159,22 @@ class Projects(SpyderPluginWidget):
         lspmgr = self.main.completions
 
         self.add_dockwidget()
-        self.explorer.sig_open_file.connect(self.main.open_file)
-        self.register_widget_shortcuts(treewidget)
+        self.explorer.sig_open_file_requested.connect(self.main.open_file)
 
         treewidget.sig_delete_project.connect(self.delete_project)
-        treewidget.sig_edit.connect(self.main.editor.load)
+        treewidget.sig_open_file_requested.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)
-        treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
+        treewidget.sig_tree_removed.connect(self.main.editor.removed_tree)
         treewidget.sig_renamed.connect(self.main.editor.renamed)
-        treewidget.sig_renamed_tree.connect(self.main.editor.renamed_tree)
-        treewidget.sig_create_module.connect(self.main.editor.new)
-        treewidget.sig_new_file.connect(
+        treewidget.sig_tree_renamed.connect(self.main.editor.renamed_tree)
+        treewidget.sig_module_created.connect(self.main.editor.new)
+        treewidget.sig_file_created.connect(
             lambda t: self.main.editor.new(text=t))
-        treewidget.sig_open_interpreter.connect(
+        treewidget.sig_open_interpreter_requested.connect(
             ipyconsole.create_client_from_path)
-        treewidget.redirect_stdio.connect(
+        treewidget.sig_redirect_stdio_requested.connect(
             self.main.redirect_internalshell_stdio)
-        treewidget.sig_run.connect(
+        treewidget.sig_run_requested.connect(
             lambda fname:
             ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
                                   False, True, False))
@@ -227,7 +226,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.editor.set_current_project_path())
 
         # Connect to file explorer to keep single click to open files in sync
-        self.main.explorer.fileexplorer.sig_option_changed.connect(
+        self.main.explorer.sig_option_changed.connect(
             self.set_single_click_to_open
         )
 
@@ -355,7 +354,7 @@ class Projects(SpyderPluginWidget):
                     self,
                     _('Error'),
                     _("<b>{}</b> is not a registered Spyder project "
-                      "type!").format(project_type)
+                      "type!").format(project_type_id)
                 )
 
     def open_project(self, path=None, project=None, restart_consoles=True,
