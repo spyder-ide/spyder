@@ -563,8 +563,6 @@ class MainWindow(QMainWindow):
         self.switcher = None
 
         # Preferences
-        from spyder.preferences.general import MainConfigPage
-        self.general_prefs = [MainConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -805,6 +803,11 @@ class MainWindow(QMainWindow):
                 css_path = CSS_PATH
         else:
             css_path = CSS_PATH
+
+        # Preferences plugin
+        from spyder.plugins.preferences.plugin import Preferences
+        self.preferences = Preferences(self, configuration=CONF)
+        self.register_plugin(self.preferences)
 
         # Main menu plugin
         from spyder.api.widgets.menus import SpyderMenu
@@ -1060,6 +1063,12 @@ class MainWindow(QMainWindow):
         self.completions = CompletionManager(self)
         self.completions.start()
 
+        self.preferences.register_plugin_preferences(self.completions)
+
+        for completion_plugin in self.completions.clients.values():
+            completion_plugin = completion_plugin['plugin']
+            self.preferences.register_plugin_preferences(completion_plugin)
+
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
             self.set_splash(_("Loading outline explorer..."))
@@ -1082,6 +1091,8 @@ class MainWindow(QMainWindow):
         self.editor = Editor(self)
         self.editor.register_plugin()
         self.add_plugin(self.editor)
+
+        self.preferences.register_plugin_preferences(self.editor)
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -1115,6 +1126,7 @@ class MainWindow(QMainWindow):
         self.variableexplorer = VariableExplorer(self)
         self.variableexplorer.register_plugin()
         self.add_plugin(self.variableexplorer)
+        self.preferences.register_plugin_preferences(self.variableexplorer)
 
         # IPython console
         self.set_splash(_("Loading IPython console..."))
@@ -1122,6 +1134,7 @@ class MainWindow(QMainWindow):
         self.ipyconsole = IPythonConsole(self, css_path=css_path)
         self.ipyconsole.register_plugin()
         self.add_plugin(self.ipyconsole)
+        self.preferences.register_plugin_preferences(self.ipyconsole)
 
         # Help plugin
         # TODO: There is a circular dependency between help and ipython since
@@ -1151,6 +1164,7 @@ class MainWindow(QMainWindow):
             self.explorer = Explorer(self)
             self.explorer.register_plugin()
             self.add_plugin(self.explorer)
+            self.preferences.register_plugin_preferences(self.explorer)
 
         # Online help widget
         if CONF.get('onlinehelp', 'enable'):
@@ -1211,6 +1225,9 @@ class MainWindow(QMainWindow):
             try:
                 plugin = mod.PLUGIN_CLASS(self)
                 if plugin.check_compatibility()[0]:
+                    if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
+                        self.preferences.register_plugin_preferences(plugin)
+
                     if hasattr(plugin, 'COMPLETION_CLIENT_NAME'):
                         self.completions.register_completion_plugin(plugin)
                     else:
@@ -3151,92 +3168,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def show_preferences(self):
         """Edit Spyder preferences."""
-        from spyder.preferences.configdialog import ConfigDialog
-
-        def _dialog_finished(result_code):
-            """Restore preferences dialog instance variable."""
-            self.prefs_dialog_instance = None
-
-        if self.prefs_dialog_instance is None:
-            dlg = ConfigDialog(self)
-            dlg.setStyleSheet("QTabWidget::tab-bar {"
-                              "alignment: left;}")
-            self.prefs_dialog_instance = dlg
-
-            # Setup
-            if self.prefs_dialog_size is not None:
-                dlg.resize(self.prefs_dialog_size)
-
-            for PrefPageClass in self.general_prefs:
-                widget = PrefPageClass(dlg, main=self)
-                widget.initialize()
-                dlg.add_page(widget)
-
-            widget = self.completions._create_configwidget(dlg, self)
-            if widget is not None:
-                dlg.add_page(widget)
-
-            for completion_plugin in self.completions.clients.values():
-                completion_plugin = completion_plugin['plugin']
-                widget = completion_plugin._create_configwidget(dlg, self)
-                if widget is not None:
-                    dlg.add_page(widget)
-
-            for plugin in [self.appearance,
-                           self.run,
-                           self.maininterpreter,
-                           self.shortcuts,
-                           self.workingdirectory,
-                           self.editor,
-                           self.projects,
-                           self.ipyconsole,
-                           self.historylog,
-                           self.help,
-                           self.variableexplorer,
-                           self.onlinehelp,
-                           self.explorer,
-                           self.findinfiles] + self.thirdparty_plugins:
-                if plugin is not None:
-                    # New API
-                    if getattr(plugin, 'CONF_WIDGET_CLASS', None):
-                        try:
-                            widget = self.create_plugin_conf_widget(plugin)
-                            if widget is not None:
-                                dlg.add_page(widget)
-                        except Exception:
-                            # Avoid a crash at startup if a plugin's config
-                            # page fails to load.
-                            traceback.print_exc(file=sys.stderr)
-
-                    # Old API
-                    try:
-                        widget = plugin._create_configwidget(dlg, self)
-                        if widget is not None:
-                            dlg.add_page(widget)
-                    except AttributeError:
-                        pass
-                    except Exception:
-                        # Avoid a crash at startup if a plugin's config
-                        # page fails to load.
-                        traceback.print_exc(file=sys.stderr)
-
-            if self.prefs_index is not None:
-                dlg.set_current_index(self.prefs_index)
-
-            # Check settings and show dialog
-            dlg.show()
-            dlg.check_all_settings()
-
-            # Signals
-            dlg.finished.connect(_dialog_finished)
-            dlg.pages_widget.currentChanged.connect(
-                self.__preference_page_changed)
-            dlg.size_change.connect(self.set_prefs_size)
-        else:
-            self.prefs_dialog_instance.show()
-            self.prefs_dialog_instance.activateWindow()
-            self.prefs_dialog_instance.raise_()
-            self.prefs_dialog_instance.setFocus()
+        self.preferences.open_dialog(self.prefs_dialog_size)
 
     def __preference_page_changed(self, index):
         """Preference page index has changed."""

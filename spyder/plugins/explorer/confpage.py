@@ -87,13 +87,13 @@ class ExplorerConfigPage(PluginConfigPage):
         layout_file.addWidget(self.edit_file_associations)
         associations_widget.setLayout(layout_file)
 
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(general_widget), _("General"))
-        tabs.addTab(self.create_tab(associations_widget),
-                    _("File associations"))
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(general_widget), _("General"))
+        self.tabs.addTab(self.create_tab(associations_widget),
+                         _("File associations"))
 
         tab_layout = QVBoxLayout()
-        tab_layout.addWidget(tabs)
+        tab_layout.addWidget(self.tabs)
 
         self.setLayout(tab_layout)
 

@@ -33,7 +33,7 @@ class WorkingDirectory(SpyderPluginV2):
     """
 
     NAME = 'workingdir'
-    REQUIRES = [Plugins.Console, Plugins.Toolbar]
+    REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
     OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
                 Plugins.Projects]
     CONTAINER_CLASS = WorkingDirectoryContainer
@@ -71,6 +71,8 @@ class WorkingDirectory(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         explorer = self.get_plugin(Plugins.Explorer)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
 
         toolbar.add_application_toolbar(container.toolbar)
         container.sig_current_directory_changed.connect(

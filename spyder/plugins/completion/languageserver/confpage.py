@@ -31,7 +31,7 @@ from spyder.plugins.completion.languageserver.widgets.serversconfig import (
 from spyder.plugins.completion.languageserver.widgets.snippetsconfig import (
     SnippetModelsProxy, SnippetTable, LSP_LANGUAGES_PY, PYTHON_POS)
 from spyder.plugins.completion.manager.api import LSP_LANGUAGES
-from spyder.preferences.configdialog import GeneralConfigPage
+from spyder.plugins.preferences.api import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import check_connection_port
 

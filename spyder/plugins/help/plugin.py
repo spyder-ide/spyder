@@ -46,7 +46,7 @@ class Help(SpyderDockablePlugin):
     Docstrings viewer widget.
     """
     NAME = 'help'
-    REQUIRES = [Plugins.Console, Plugins.Editor]
+    REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Editor]
     OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts, Plugins.MainMenu]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = HelpWidget
@@ -90,6 +90,9 @@ class Help(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         shortcuts = self.get_plugin(Plugins.Shortcuts)
+        preferences = self.get_plugin(Plugins.Preferences)
+
+        preferences.register_plugin_preferences(self)
 
         # self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         widget.set_history(self.load_history())

@@ -13,13 +13,14 @@ except ImportError:
 
 # Test library imports
 import pytest
+from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.plugins.editor.plugin import Editor
-from spyder.preferences.tests.conftest import config_dialog
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock:
+class MainWindowMock(QMainWindow):
     register_shortcut = Mock()
     file_menu_actions = []
     file_toolbar_actions = []

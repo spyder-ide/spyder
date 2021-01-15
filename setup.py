@@ -283,6 +283,7 @@ spyder_plugins_entry_points = [
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
     'outline_explorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
     'plots = spyder.plugins.plots.plugin:Plots',
+    'preferences = spyder.plugins.preferences.plugin:Preferences',
     'profiler = spyder.plugins.profiler.plugin:Profiler',
     'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',

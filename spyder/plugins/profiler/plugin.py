@@ -42,7 +42,7 @@ class Profiler(SpyderDockablePlugin):
     """
 
     NAME = 'profiler'
-    REQUIRES = [Plugins.Editor, Plugins.VariableExplorer]
+    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.VariableExplorer]
     OPTIONAL = [Plugins.MainMenu]
     TABIFY = Plugins.Help
     WIDGET_CLASS = ProfilerWidget
@@ -74,7 +74,9 @@ class Profiler(SpyderDockablePlugin):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
         mainmenu = self.get_plugin(Plugins.MainMenu)
+        preferences = self.get_plugin(Plugins.Preferences)
 
+        preferences.register_plugin_preferences(self)
         widget.sig_edit_goto_requested.connect(editor.load)
         widget.sig_started.connect(self.sig_started)
         widget.sig_finished.connect(self.sig_finished)

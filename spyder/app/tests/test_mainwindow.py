@@ -2371,9 +2371,12 @@ def preferences_dialog_helper(qtbot, main_window, section):
     Open preferences dialog and select page with `section` (CONF_SECTION).
     """
     main_window.show_preferences()
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+    preferences = main_window.preferences
+    container = preferences.get_container()
+
+    qtbot.waitUntil(lambda: container.dialog is not None,
                     timeout=5000)
-    dlg = main_window.prefs_dialog_instance
+    dlg = container.dialog
     index = dlg.get_index_by_name(section)
     page = dlg.get_page(index)
     dlg.set_current_index(index)
@@ -2415,7 +2418,11 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         check.animateClick()
         qtbot.wait(500)
     dlg.ok_btn.animateClick()
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+
+    preferences = main_window.preferences
+    container = preferences.get_container()
+
+    qtbot.waitUntil(lambda: container.dialog is None,
                     timeout=5000)
 
     # Check the menus are correctly updated
@@ -2452,7 +2459,11 @@ def test_preferences_change_font_regression(main_window, qtbot):
         idx = fontbox.currentIndex()
         fontbox.setCurrentIndex(idx + 1)
     dlg.ok_btn.animateClick()
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+
+    preferences = main_window.preferences
+    container = preferences.get_container()
+
+    qtbot.waitUntil(lambda: container.dialog is None,
                     timeout=5000)
 
 
@@ -2521,7 +2532,10 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
                                                  'shortcuts')
     page.reset_to_default(force=True)
     dlg.ok_btn.animateClick()
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+
+    preferences = main_window.preferences
+    container = preferences.get_container()
+    qtbot.waitUntil(lambda: container.dialog is None,
                     timeout=5000)
 
 
@@ -2556,19 +2570,22 @@ def test_preferences_last_page_is_loaded(qtbot, main_window):
     # Test that the last page is updated on re open
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'main_interpreter')
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+    preferences = main_window.preferences
+    container = preferences.get_container()
+
+    qtbot.waitUntil(lambda: container.dialog is not None,
                     timeout=5000)
     dlg.ok_btn.animateClick()
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+    qtbot.waitUntil(lambda: container.dialog is None,
                     timeout=5000)
 
     main_window.show_preferences()
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+    qtbot.waitUntil(lambda: container.dialog is not None,
                     timeout=5000)
-    dlg = main_window.prefs_dialog_instance
+    dlg = container.dialog
     assert dlg.get_current_index() == index
     dlg.ok_btn.animateClick()
-    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+    qtbot.waitUntil(lambda: container.dialog is None,
                     timeout=5000)
 
 

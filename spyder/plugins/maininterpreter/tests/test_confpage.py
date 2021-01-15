@@ -10,9 +10,9 @@
 import time
 
 # Local imports
+from spyder.plugins.preferences.api import PreferencePages
 from spyder.plugins.maininterpreter.plugin import MainInterpreter
-from spyder.preferences.configdialog import ConfigDialog
-from spyder.preferences.tests.conftest import MainWindowMock
+from spyder.plugins.preferences.tests.conftest import MainWindowMock
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.pyenv import get_list_pyenv_envs
 
@@ -32,22 +32,20 @@ def test_load_time(qtbot):
         MainInterpreterConfigPage)
 
     # Create Preferences dialog
-    dlg = ConfigDialog()
-    dlg.main = MainWindowMock()
-    dlg.show()
-    qtbot.addWidget(dlg)
+    main = MainWindowMock()
+    preferences = main.preferences
+    preferences.config_pages.pop(PreferencePages.General)
+    main_interpreter = MainInterpreter(main)
+    main.register_plugin(main_interpreter)
 
     # Create page and measure time to do it
     t0 = time.time()
-    widget = MainInterpreterConfigPage(
-        plugin=MainInterpreter(None),
-        parent=dlg
-    )
-    widget.initialize()
+    preferences.open_dialog(None)
     load_time = time.time() - t0
 
-    # Add page to Preferences
-    dlg.add_page(widget)
+    container = preferences.get_container()
+    dlg = container.dialog
+    widget = dlg.get_page()
 
     # Assert the combobox is populated with the found envs
     assert widget.cus_exec_combo.combobox.count() > 0

@@ -421,20 +421,20 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         windows_group.setLayout(windows_layout)
 
         # --- Tabs organization ---
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(interface_group, comp_group,
-                                    source_code_group), _("Display"))
-        tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
-                    _("Graphics"))
-        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
-                    _("Startup"))
-        tabs.addTab(self.create_tab(debug_group, pdb_run_lines_group),
-                    _("Debugger"))
-        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group,
-                                    sympy_group, prompts_group,
-                                    windows_group),
-                    _("Advanced settings"))
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(interface_group, comp_group,
+                                         source_code_group), _("Display"))
+        self.tabs.addTab(self.create_tab(
+            pylab_group, backend_group, inline_group), _("Graphics"))
+        self.tabs.addTab(self.create_tab(
+            run_lines_group, run_file_group), _("Startup"))
+        self.tabs.addTab(self.create_tab(
+            debug_group, pdb_run_lines_group), _("Debugger"))
+        self.tabs.addTab(self.create_tab(
+            jedi_group, greedy_group, autocall_group,
+            sympy_group, prompts_group,
+            windows_group), _("Advanced settings"))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
