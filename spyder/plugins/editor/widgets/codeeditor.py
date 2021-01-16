@@ -658,7 +658,6 @@ class CodeEditor(TextEditBaseWidget):
         self.previous_text = ''
         self.word_tokens = []
         self.patch = []
-        self.text_diff = ([], '')
         self.leading_whitespaces = {}
 
         # re-use parent of completion_widget (usually the main window)
@@ -1782,14 +1781,27 @@ class CodeEditor(TextEditBaseWidget):
         if ranges is None:
             return
 
-        folding_panel = self.panels.get(FoldingPanel)
+        # Compute extended_ranges here because get_text_region ends up
+        # calling paintEvent and that method can't be called in a
+        # thread due to Qt restrictions.
+        try:
+            extended_ranges = []
+            for start, end in ranges:
+                text_region = self.get_text_region(start, end)
+                extended_ranges.append((start, end, text_region))
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing folding")
 
-        # Update folding
+        # Update folding in a thread
         if self.update_folding_thread.isRunning():
             self.update_folding_thread.terminate()
 
         self.update_folding_thread.run = functools.partial(
-            self.update_and_merge_folding, ranges)
+            self.update_and_merge_folding, extended_ranges)
         self.update_folding_thread.finished.connect(
             self.finish_code_folding)
         self.update_folding_thread.start()
@@ -1798,17 +1810,11 @@ class CodeEditor(TextEditBaseWidget):
         if running_under_pytest():
             self.request_symbols()
 
-    def update_and_merge_folding(self, ranges):
+    def update_and_merge_folding(self, extended_ranges):
+        """Update and merge new folding information."""
         try:
             text = self.toPlainText()
             folding_panel = self.panels.get(FoldingPanel)
-
-            self.text_diff = (self.differ.diff_main(self.previous_text, text),
-                              self.previous_text)
-            extended_ranges = []
-            for start, end in ranges:
-                text_region = self.get_text_region(start, end)
-                extended_ranges.append((start, end, text_region))
 
             current_tree, root = merge_folding(
                 extended_ranges, folding_panel.current_tree,
@@ -1824,6 +1830,7 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing folding")
 
     def finish_code_folding(self):
+        """Finish processing code folding."""
         folding_panel = self.panels.get(FoldingPanel)
         folding_panel.update_folding(self._folding_info)
 
