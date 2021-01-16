@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-12-11 12:38-0500\n"
-"PO-Revision-Date: 2020-12-12 13:02\n"
+"PO-Revision-Date: 2021-01-16 15:56\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -728,7 +728,7 @@ msgstr "Um die Tour zu starten, klicken Sie bitte auf den grüne Schaltfläche l
 
 #: spyder/app/tour.py:1432
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
-msgstr ""
+msgstr "Sehen Sie sich unsere interaktive Tour an, um einen Teil der Fenster und Funktionalitäten von Spyder zu erkunden."
 
 #: spyder/app/tour.py:1446
 msgid "Start tour"
@@ -972,7 +972,7 @@ msgstr "Jupyter-Kernel für die Spyder-Konsole"
 
 #: spyder/dependencies.py:226
 msgid "Compute distances between strings"
-msgstr ""
+msgstr "Distanzen zwischen Zeichenketten berechnen"
 
 #: spyder/dependencies.py:230
 msgid "3-way merge algorithm to merge document changes"
@@ -1344,7 +1344,7 @@ msgstr "Standard ist 79"
 
 #: spyder/plugins/completion/languageserver/confpage.py:216
 msgid "Show vertical line at that length"
-msgstr ""
+msgstr "Vertikale Linie mit dieser Länge anzeigen"
 
 #: spyder/plugins/completion/languageserver/confpage.py:239
 msgid "Code style"
@@ -4406,15 +4406,15 @@ msgstr "Die Daten sind zu groß, um gespeichert zu werden"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:36
 msgid "Keep Existing Kernels"
-msgstr ""
+msgstr "Vorhandene Kerne behalten"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:37
 msgid "Restart Current Kernel"
-msgstr ""
+msgstr "Aktuellen Kernel neu starten"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:38
 msgid "Restart All Kernels"
-msgstr ""
+msgstr "Alle Kernel neu starten"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:43
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
@@ -4422,11 +4422,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:54
 msgid "Apply to current console and restart kernel"
-msgstr ""
+msgstr "Auf die aktuelle Konsole anwenden und den Kernel neu starten"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:56
 msgid "Apply to all existing consoles and restart all kernels"
-msgstr ""
+msgstr "Auf alle vorhandenen Konsolen anwenden und alle Kernel neu starten"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:453
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
