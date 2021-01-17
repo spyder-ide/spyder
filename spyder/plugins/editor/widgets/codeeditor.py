@@ -1299,10 +1299,7 @@ class CodeEditor(TextEditBaseWidget):
         Synchronize symbols and folding after linting results arrive.
         """
         self.request_folding()
-
-        # Tests don't pass with this request here.
-        if not running_under_pytest():
-            self.request_symbols()
+        self.request_symbols()
 
     # ------------- LSP: Completion ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -1819,10 +1816,6 @@ class CodeEditor(TextEditBaseWidget):
         self.update_folding_thread.finished.connect(
             self.finish_code_folding)
         self.update_folding_thread.start()
-
-        # Tests for the class function selector need this.
-        if running_under_pytest():
-            self.request_symbols()
 
     def update_and_merge_folding(self, extended_ranges):
         """Update and merge new folding information."""
