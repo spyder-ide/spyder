@@ -1275,24 +1275,17 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
         """Handle linting response."""
-        try:
-            # The LSP spec doesn't require that folding and symbols
-            # are treated in the same way as linting, i.e. to be
-            # recomputed on didChange, didOpen and didSave. However,
-            # we think that's necessary to maintain accurate folding
-            # and symbols all the time. Therefore, we decided to call
-            # those requests here, but after a certain timeout to
-            # avoid performance issues.
-            self._timer_sync_symbols_and_folding.start()
+        # The LSP spec doesn't require that folding and symbols
+        # are treated in the same way as linting, i.e. to be
+        # recomputed on didChange, didOpen and didSave. However,
+        # we think that's necessary to maintain accurate folding
+        # and symbols all the time. Therefore, we decided to call
+        # those requests here, but after a certain timeout to
+        # avoid performance issues.
+        self._timer_sync_symbols_and_folding.start()
 
-            # Process results
-            self.process_code_analysis(params['params'])
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing linting")
+        # Process results (runs in a thread)
+        self.process_code_analysis(params['params'])
 
     def sync_symbols_and_folding(self):
         """
@@ -2850,11 +2843,25 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_errors(self):
         """Set errors and warnings in the line number area."""
-        self._process_code_analysis(underline=False)
+        try:
+            self._process_code_analysis(underline=False)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing linting")
 
     def underline_errors(self):
         """Underline errors and warnings."""
-        self._process_code_analysis(underline=True)
+        try:
+            self._process_code_analysis(underline=True)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing linting")
 
     def finish_code_analysis(self):
         """Finish processing code analysis results."""
