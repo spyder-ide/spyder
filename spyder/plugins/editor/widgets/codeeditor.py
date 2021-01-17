@@ -1294,6 +1294,117 @@ class CodeEditor(TextEditBaseWidget):
         self.request_folding()
         self.request_symbols()
 
+    def process_code_analysis(self, diagnostics):
+        """Process code analysis results in a thread."""
+        self.cleanup_code_analysis()
+        self._diagnostics = diagnostics
+
+        # Process diagnostics in a thread to improve performance.
+        self.update_diagnostics = QThread()
+        self.update_diagnostics.run = self.set_errors
+        self.update_diagnostics.finished.connect(self.finish_code_analysis)
+        self.update_diagnostics.start()
+
+    def cleanup_code_analysis(self):
+        """Remove all code analysis markers"""
+        self.setUpdatesEnabled(False)
+        self.clear_extra_selections('code_analysis_highlight')
+        self.clear_extra_selections('code_analysis_underline')
+        for data in self.blockuserdata_list():
+            data.code_analysis = []
+
+        self.setUpdatesEnabled(True)
+        # When the new code analysis results are empty, it is necessary
+        # to update manually the scrollflag and linenumber areas (otherwise,
+        # the old flags will still be displayed):
+        self.sig_flags_changed.emit()
+        self.linenumberarea.update()
+
+    def set_errors(self):
+        """Set errors and warnings in the line number area."""
+        try:
+            self._process_code_analysis(underline=False)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing linting")
+
+    def underline_errors(self):
+        """Underline errors and warnings."""
+        try:
+            self._process_code_analysis(underline=True)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing linting")
+
+    def finish_code_analysis(self):
+        """Finish processing code analysis results."""
+        self.linenumberarea.update()
+        self.underline_errors()
+        self.update_extra_selections()
+        self.sig_process_code_analysis.emit()
+        self.sig_flags_changed.emit()
+
+    def _process_code_analysis(self, underline):
+        """
+        Process all code analysis results.
+
+        Parameters
+        ----------
+        underline: bool
+            Determines if errors and warnings are going to be set in
+            the line number area or underlined. It's better to separate
+            these two processes for perfomance reasons. That's because
+            setting errors can be done in a thread whereas underlining
+            them can't.
+        """
+        document = self.document()
+        for diagnostic in self._diagnostics:
+            if self.is_ipython() and (
+                    diagnostic["message"] == "undefined name 'get_ipython'"):
+                # get_ipython is defined in IPython files
+                continue
+            source = diagnostic.get('source', '')
+            msg_range = diagnostic['range']
+            start = msg_range['start']
+            end = msg_range['end']
+            code = diagnostic.get('code', 'E')
+            message = diagnostic['message']
+            severity = diagnostic.get(
+                'severity', DiagnosticSeverity.ERROR)
+
+            block = document.findBlockByNumber(start['line'])
+            data = block.userData()
+            if not data:
+                data = BlockUserData(self)
+
+            if underline:
+                block_nb = block.blockNumber()
+                first, last = self.get_buffer_block_numbers()
+
+                if (self.underline_errors_enabled and
+                        first <= block_nb <= last):
+                    error = severity == DiagnosticSeverity.ERROR
+                    color = self.error_color if error else self.warning_color
+                    color = QColor(color)
+                    color.setAlpha(255)
+                    block.color = color
+
+                    data.selection_start = start
+                    data.selection_end = end
+
+                    self.highlight_selection('code_analysis_underline',
+                                             data._selection(),
+                                             underline_color=block.color)
+            else:
+                data.code_analysis.append((source, code, severity, message))
+                block.setUserData(data)
+
     # ------------- LSP: Completion ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
@@ -2770,117 +2881,6 @@ class CodeEditor(TextEditBaseWidget):
         dlg = GoToLineDialog(self)
         if dlg.exec_():
             self.go_to_line(dlg.get_line_number())
-
-    def cleanup_code_analysis(self):
-        """Remove all code analysis markers"""
-        self.setUpdatesEnabled(False)
-        self.clear_extra_selections('code_analysis_highlight')
-        self.clear_extra_selections('code_analysis_underline')
-        for data in self.blockuserdata_list():
-            data.code_analysis = []
-
-        self.setUpdatesEnabled(True)
-        # When the new code analysis results are empty, it is necessary
-        # to update manually the scrollflag and linenumber areas (otherwise,
-        # the old flags will still be displayed):
-        self.sig_flags_changed.emit()
-        self.linenumberarea.update()
-
-    def _process_code_analysis(self, underline):
-        """
-        Process all code analysis results.
-
-        Parameters
-        ----------
-        underline: bool
-            Determines if errors and warnings are going to be set in
-            the line number area or underlined. It's better to separate
-            these two processes for perfomance reasons. That's because
-            setting errors can be done in a thread whereas underlining
-            them can't.
-        """
-        document = self.document()
-        for diagnostic in self._diagnostics:
-            if self.is_ipython() and (
-                    diagnostic["message"] == "undefined name 'get_ipython'"):
-                # get_ipython is defined in IPython files
-                continue
-            source = diagnostic.get('source', '')
-            msg_range = diagnostic['range']
-            start = msg_range['start']
-            end = msg_range['end']
-            code = diagnostic.get('code', 'E')
-            message = diagnostic['message']
-            severity = diagnostic.get(
-                'severity', DiagnosticSeverity.ERROR)
-
-            block = document.findBlockByNumber(start['line'])
-            data = block.userData()
-            if not data:
-                data = BlockUserData(self)
-
-            if underline:
-                block_nb = block.blockNumber()
-                first, last = self.get_buffer_block_numbers()
-
-                if (self.underline_errors_enabled and
-                        first <= block_nb <= last):
-                    error = severity == DiagnosticSeverity.ERROR
-                    color = self.error_color if error else self.warning_color
-                    color = QColor(color)
-                    color.setAlpha(255)
-                    block.color = color
-
-                    data.selection_start = start
-                    data.selection_end = end
-
-                    self.highlight_selection('code_analysis_underline',
-                                             data._selection(),
-                                             underline_color=block.color)
-            else:
-                data.code_analysis.append((source, code, severity, message))
-                block.setUserData(data)
-
-    def set_errors(self):
-        """Set errors and warnings in the line number area."""
-        try:
-            self._process_code_analysis(underline=False)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing linting")
-
-    def underline_errors(self):
-        """Underline errors and warnings."""
-        try:
-            self._process_code_analysis(underline=True)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing linting")
-
-    def finish_code_analysis(self):
-        """Finish processing code analysis results."""
-        self.linenumberarea.update()
-        self.underline_errors()
-        self.update_extra_selections()
-        self.sig_process_code_analysis.emit()
-        self.sig_flags_changed.emit()
-
-    def process_code_analysis(self, diagnostics):
-        """Process all code analysis results."""
-        self.cleanup_code_analysis()
-        self._diagnostics = diagnostics
-
-        # Process diagnostics in a thread to improve performance.
-        self.update_diagnostics = QThread()
-        self.update_diagnostics.run = self.set_errors
-        self.update_diagnostics.finished.connect(self.finish_code_analysis)
-        self.update_diagnostics.start()
 
     def hide_tooltip(self):
         """
