@@ -1797,9 +1797,6 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing folding")
 
         # Update folding in a thread
-        if self.update_folding_thread.isRunning():
-            self.update_folding_thread.terminate()
-
         self.update_folding_thread.run = functools.partial(
             self.update_and_merge_folding, extended_ranges)
         self.update_folding_thread.finished.connect(
