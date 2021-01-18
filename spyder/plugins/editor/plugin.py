@@ -994,13 +994,9 @@ class Editor(SpyderPluginWidget):
                                   self.text_uppercase_action,
                                   self.text_lowercase_action]
         self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
-        edit_toolbar_actions = [self.toggle_comment_action,
-                                self.unindent_action, self.indent_action]
-        self.main.edit_toolbar_actions += edit_toolbar_actions
 
         # ---- Search menu/toolbar construction ----
         self.main.search_menu_actions += [gotoline_action]
-        self.main.search_toolbar_actions += [gotoline_action]
 
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
@@ -1072,29 +1068,13 @@ class Editor(SpyderPluginWidget):
         ]
         self.main.source_menu_actions += source_menu_actions
 
-        source_toolbar_actions = [
-            self.todo_list_action,
-            self.warning_list_action,
-            self.previous_warning_action,
-            self.next_warning_action,
-            MENU_SEPARATOR,
-            self.previous_edit_cursor_action,
-            self.previous_cursor_action,
-            self.next_cursor_action
-        ]
-        self.main.source_toolbar_actions += source_toolbar_actions
-
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
             file_toolbar_actions +
             [MENU_SEPARATOR] +
-            source_toolbar_actions +
-            [MENU_SEPARATOR] +
             run_toolbar_actions +
             [MENU_SEPARATOR] +
-            debug_toolbar_actions +
-            [MENU_SEPARATOR] +
-            edit_toolbar_actions
+            debug_toolbar_actions
         )
         self.pythonfile_dependent_actions = [
             run_action,
@@ -1502,16 +1482,10 @@ class Editor(SpyderPluginWidget):
 
         self.toolbar_list = ((_("File toolbar"), "file_toolbar",
                               self.main.file_toolbar_actions),
-                             (_("Search toolbar"), "search_toolbar",
-                              self.main.search_menu_actions),
-                             (_("Source toolbar"), "source_toolbar",
-                              self.main.source_toolbar_actions),
                              (_("Run toolbar"), "run_toolbar",
                               self.main.run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
-                              self.main.debug_toolbar_actions),
-                             (_("Edit toolbar"), "edit_toolbar",
-                              self.main.edit_toolbar_actions))
+                              self.main.debug_toolbar_actions))
 
         self.menu_list = ((_("&File"), self.main.file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),

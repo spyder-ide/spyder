@@ -92,14 +92,6 @@ class FindInFiles(SpyderDockablePlugin):
                 menu=menu,
             )
 
-        if toolbar:
-            search_toolbar = toolbar.get_application_toolbar(
-                ApplicationToolbars.Search)
-            toolbar.add_item_to_application_toolbar(
-                findinfiles_action,
-                search_toolbar,
-            )
-
         self.refresh_search_directory()
 
     def on_close(self, cancelable=False):

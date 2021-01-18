@@ -620,12 +620,6 @@ class MainWindow(QMainWindow):
         self.main_toolbar_actions = []
         self.file_toolbar = None
         self.file_toolbar_actions = []
-        self.edit_toolbar = None
-        self.edit_toolbar_actions = []
-        self.search_toolbar = None
-        self.search_toolbar_actions = []
-        self.source_toolbar = None
-        self.source_toolbar_actions = []
         self.run_toolbar = None
         self.run_toolbar_actions = []
         self.debug_toolbar = None
@@ -932,11 +926,6 @@ class MainWindow(QMainWindow):
         logger.info("Creating toolbars...")
         toolbar = self.toolbar
         self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
-        self.edit_toolbar = toolbar.get_application_toolbar("edit_toolbar")
-        self.search_toolbar = toolbar.get_application_toolbar(
-            "search_toolbar")
-        self.source_toolbar = toolbar.get_application_toolbar(
-            "source_toolbar")
         self.run_toolbar = toolbar.get_application_toolbar("run_toolbar")
         self.debug_toolbar = toolbar.get_application_toolbar("debug_toolbar")
         self.main_toolbar = toolbar.get_application_toolbar("main_toolbar")
@@ -1910,8 +1899,6 @@ class MainWindow(QMainWindow):
         # Stored for tests
         global_hidden_widgets = [finder, console_int, explorer_project,
                                  helper] + plugins
-        global_hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
-                                  self.search_toolbar]
         # Layout definition
         # --------------------------------------------------------------------
         # Layouts are organized by columns, each column is organized by rows.
@@ -2095,7 +2082,7 @@ class MainWindow(QMainWindow):
                 self.resizeDocks(_widgets, height_fractions[idx], Qt.Vertical)
 
         # Hide toolbars
-        hidden_toolbars = global_hidden_toolbars + layout['hidden toolbars']
+        hidden_toolbars = layout['hidden toolbars']
         for toolbar in hidden_toolbars:
             if toolbar is not None:
                 toolbar.close()
