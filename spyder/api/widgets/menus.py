@@ -8,8 +8,11 @@
 Spyder API menu widgets.
 """
 
+# Standard library imports
+import sys
+
 # Third party imports
-from qtpy.QtWidgets import QMenu
+from qtpy.QtWidgets import QAction, QMenu
 
 # Local imports
 from spyder.utils.qthelpers import add_actions
@@ -52,6 +55,11 @@ class SpyderMenu(QMenu):
             super().__init__(title, parent)
 
         self.MENUS.append((parent, title, self))
+        if sys.platform == 'darwin':
+            # Needed to enable the dynamic population of actions in menus
+            # in the aboutToShow signal
+            # See spyder-ide/spyder#14612
+            self.addAction(QAction(self))
         self.aboutToShow.connect(self._render)
 
     def add_action(self, action, section=None, before=None,

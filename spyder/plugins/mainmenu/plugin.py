@@ -178,15 +178,16 @@ class MainMenu(SpyderPluginV2):
         """Setup menus."""
         # Show and hide shortcuts and icons in menus for macOS
         if sys.platform == 'darwin':
-            for menu in self._APPLICATION_MENUS:
+            for menu_id in self._APPLICATION_MENUS:
+                menu = self._APPLICATION_MENUS[menu_id]
                 if menu is not None:
                     menu.aboutToShow.connect(
-                        lambda menu=menu: self.show_shortcuts(menu))
+                        lambda menu=menu: self._show_shortcuts(menu))
                     menu.aboutToHide.connect(
-                        lambda menu=menu: self.hide_shortcuts(menu))
+                        lambda menu=menu: self._hide_shortcuts(menu))
                     menu.aboutToShow.connect(
                         lambda menu=menu: set_menu_icons(menu, False))
-                    menu.aboutToShow.connect(self.hide_options_menus)
+                    menu.aboutToShow.connect(self._hide_options_menus)
         self._populate_help_menu()
 
     # --- Public API
