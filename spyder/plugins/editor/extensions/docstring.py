@@ -931,16 +931,15 @@ class FunctionInfo(object):
         self.func_indent = get_indent(text)
 
         text = text.strip()
-        text = text.replace('\r\n', '')
-        text = text.replace('\n', '')
-        text = text.replace("\\", "")
 
         return_type_re = re.search(
             r'->[ ]*([\"\'a-zA-Z0-9_,()\[\] ]*):$', text)
         if return_type_re:
             self.return_type_annotated = return_type_re.group(1).strip(" ()\\")
             if is_touple_strings(self.return_type_annotated):
-                self.return_type_annotated = "(" + self.return_type_annotated + ")"
+                self.return_type_annotated = ("("
+                                              + self.return_type_annotated
+                                              + ")")
             text_end = text.rfind(return_type_re.group(0))
         else:
             self.return_type_annotated = None
