@@ -58,23 +58,60 @@ def is_in_scope_forward(text):
             indices[i] = text.index(scopes[i])
     if min(indices) == 10**6:
         return (text.count(")") != text.count("(") or
-                text.count("]") != text.count("["))
+                text.count("]") != text.count("[") or
+                text.count("}") != text.count("{"))
     s = scopes[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
-    if indices.index(min(indices)) < 2:
-        if s in text[p+3:]:
-            text = text[:p] + text[text[p+3:].index(s)+3:]
-            return is_in_scope_forward(text)
-        else:
-            text = text[:p]
-            return (text.count(")") != text.count("(") or
-                    text.count("]") != text.count("["))
+    ls = len(s)
+    if s in text[p+ls:]:
+        text = text[:p] + text[p+ls:][text[p+ls:].index(s)+ls:]
+        return is_in_scope_forward(text)
+    elif ls == 3:
+        text = text[:p]
+        return (text.count(")") != text.count("(") or
+                text.count("]") != text.count("[") or
+                text.count("}") != text.count("{"))
     else:
-        if s in text[p+1:]:
-            text = text[:p] + text[p+1:][text[p+1:].index(s)+1:]
-            return is_in_scope_forward(text)
-        else:
-            return False
+        return False
+
+
+def is_touple_brackets(text):
+    """Check if the return type is a tuple."""
+    scopes = ["(", "[", "{"]
+    compliments = [")", "]", "}"]
+    indices = [10**6] * 4  # Limits return type length to 10**6
+    for i in range(len(scopes)):
+        if scopes[i] in text:
+            indices[i] = text.index(scopes[i])
+    if min(indices) == 10**6:
+        return "," in text
+    s = compliments[indices.index(min(indices))]
+    p = indices[indices.index(min(indices))]
+    if s in text[p+1:]:
+        text = text[:p] + text[p+1:][text[p+1:].index(s)+1:]
+        return is_touple_brackets(text)
+    else:
+        return False
+
+
+def is_touple_strings(text):
+    """Check if the return type is a tuple."""
+    text = text.replace(r"\"", "").replace(r"\'", "")
+    scopes = ["'''", '"""', "'", '"']
+    indices = [10**6] * 4  # Limits return type length to 10**6
+    for i in range(len(scopes)):
+        if scopes[i] in text:
+            indices[i] = text.index(scopes[i])
+    if min(indices) == 10**6:
+        return is_touple_brackets(text)
+    s = scopes[indices.index(min(indices))]
+    p = indices[indices.index(min(indices))]
+    ls = len(s)
+    if s in text[p+ls:]:
+        text = text[:p] + text[p+ls:][text[p+ls:].index(s)+ls:]
+        return is_touple_strings(text)
+    else:
+        return False
 
 
 def is_in_scope_backward(text):
@@ -902,6 +939,8 @@ class FunctionInfo(object):
             r'->[ ]*([\"\'a-zA-Z0-9_,()\[\] ]*):$', text)
         if return_type_re:
             self.return_type_annotated = return_type_re.group(1).strip(" ()\\")
+            if is_touple_strings(self.return_type_annotated):
+                self.return_type_annotated = "(" + self.return_type_annotated + ")"
             text_end = text.rfind(return_type_re.group(0))
         else:
             self.return_type_annotated = None
