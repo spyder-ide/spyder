@@ -52,7 +52,7 @@ def is_in_scope_forward(text):
     """Check if the next empty line could be part of the definition."""
     text = text.replace(r"\"", "").replace(r"\'", "")
     scopes = ["'''", '"""', "'", '"']
-    indices = [10**6]*4  # Limits function def length to 10**6
+    indices = [10**6] * 4  # Limits function def length to 10**6
     for i in range(len(scopes)):
         if scopes[i] in text:
             indices[i] = text.index(scopes[i])
@@ -102,34 +102,34 @@ class DocstringWriterExtension(object):
 
         return False
 
-    def is_end_of_function_definition(self, text, lineNumber):
+    def is_end_of_function_definition(self, text, line_number):
         """Return True if text is the end of the function definition."""
-        textWithoutWhitespace = "".join(text.split())
-        if (textWithoutWhitespace.endswith("):") or
-            textWithoutWhitespace.endswith("]:") or
-            (textWithoutWhitespace.endswith(":") and
-             "->" in textWithoutWhitespace)):
+        text_without_whitespace = "".join(text.split())
+        if (text_without_whitespace.endswith("):") or
+            text_without_whitespace.endswith("]:") or
+            (text_without_whitespace.endswith(":") and
+             "->" in text_without_whitespace)):
             return True
-        elif textWithoutWhitespace.endswith(":") and lineNumber > 1:
-            completeText = textWithoutWhitespace
+        elif text_without_whitespace.endswith(":") and line_number > 1:
+            complete_text = text_without_whitespace
             document = self.code_editor.document()
             cursor = QTextCursor(
-                document.findBlockByNumber(lineNumber - 2))  # previous line
-            for i in range(lineNumber - 2, -1, -1):
+                document.findBlockByNumber(line_number - 2))  # previous line
+            for i in range(line_number - 2, -1, -1):
                 txt = "".join(to_text_string(cursor.block().text()).split())
-                if (txt.endswith("\\") or is_in_scope_backward(completeText)):
+                if (txt.endswith("\\") or is_in_scope_backward(complete_text)):
                     if txt.endswith("\\"):
                         txt = txt[:-1]
-                    completeText = txt+completeText
+                    complete_text = txt + complete_text
                 else:
                     break
                 if i != 0:
                     cursor.movePosition(QTextCursor.PreviousBlock)
-            if is_start_of_function(completeText):
-                return (completeText.endswith("):") or
-                        completeText.endswith("]:") or
-                        (completeText.endswith(":") and
-                         "->" in completeText))
+            if is_start_of_function(complete_text):
+                return (complete_text.endswith("):") or
+                        complete_text.endswith("]:") or
+                        (complete_text.endswith(":") and
+                         "->" in complete_text))
             else:
                 return False
         else:
