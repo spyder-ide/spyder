@@ -16,7 +16,4 @@ class ApplicationToolbars:
     Run = 'run_toolbar'
     Debug = 'debug_toolbar'
     Main = 'main_toolbar'
-    Search = 'search_toolbar'
-    Edit = 'edit_toolbar'
-    Source = 'source_toolbar'
     WorkingDirectory = 'working_directory_toolbar'

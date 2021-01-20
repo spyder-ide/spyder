@@ -295,9 +295,6 @@ class ToolbarContainer(PluginMainContainer):
             ApplicationToolbars.Main,
             "working_directory_toolbar",
             None,
-            ApplicationToolbars.Search,
-            ApplicationToolbars.Edit,
-            ApplicationToolbars.Source,
         ]
 
         section = 0

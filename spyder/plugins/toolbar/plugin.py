@@ -42,9 +42,6 @@ class Toolbar(SpyderPluginV2):
     def register(self):
         create_app_toolbar = self.create_application_toolbar
         create_app_toolbar(ApplicationToolbars.File, _("File toolbar"))
-        create_app_toolbar(ApplicationToolbars.Edit, _("Edit toolbar"))
-        create_app_toolbar(ApplicationToolbars.Search, _("Search toolbar"))
-        create_app_toolbar(ApplicationToolbars.Source, _("Source toolbar"))
         create_app_toolbar(ApplicationToolbars.Run, _("Run toolbar"))
         create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
         create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
@@ -56,9 +53,6 @@ class Toolbar(SpyderPluginV2):
         ACTION_MAP = {
             ApplicationToolbars.Main: self.main.main_toolbar_actions,
             ApplicationToolbars.File: self.main.file_toolbar_actions,
-            ApplicationToolbars.Edit: self.main.edit_toolbar_actions,
-            ApplicationToolbars.Search: self.main.search_toolbar_actions,
-            ApplicationToolbars.Source: self.main.source_toolbar_actions,
             ApplicationToolbars.Debug: self.main.debug_toolbar_actions,
             ApplicationToolbars.Run: self.main.run_toolbar_actions,
         }
