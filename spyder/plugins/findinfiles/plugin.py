@@ -38,7 +38,7 @@ class FindInFiles(SpyderDockablePlugin):
     NAME = 'find_in_files'
     REQUIRES = []
     OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.WorkingDirectory,
-                Plugins.MainMenu, Plugins.Toolbar]
+                Plugins.MainMenu]
     TABIFY = [Plugins.VariableExplorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
@@ -58,7 +58,6 @@ class FindInFiles(SpyderDockablePlugin):
     def register(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        toolbar = self.get_plugin(Plugins.Toolbar)
         editor = self.get_plugin(Plugins.Editor)
         projects = self.get_plugin(Plugins.Projects)
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
