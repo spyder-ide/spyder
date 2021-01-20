@@ -106,6 +106,8 @@ def make_app_bundle(dist_dir, make_lite=False):
     spyder :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python38.zip/spyder/app/mac_stylesheet.qss'
+    spyder_kernels :
+        No module named spyder_kernels.console.__main__
     textdistance :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python39.zip/textdistance/libraries.json'
@@ -123,7 +125,7 @@ def make_app_bundle(dist_dir, make_lite=False):
     PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'jedi', 'jinja2',
                 'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
                 'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
-                'textdistance',
+                'spyder_kernels', 'textdistance',
                 ]
 
     EXCLUDE_EGG = ['py2app']
