@@ -9,7 +9,7 @@ name: Create macOS App Bundle and DMG
 jobs:
   build:
     name: macOS App Bundle
-    runs-on: macos-latest
+    runs-on: macos-11.0
     strategy:
       matrix:
         build_type: ['Lite', 'Full']
