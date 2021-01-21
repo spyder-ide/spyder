@@ -118,17 +118,11 @@ class FindReplace(QWidget):
         self.words_button.setCheckable(True)
         self.words_button.toggled.connect(lambda state: self.find())
 
-        self.highlight_button = create_toolbutton(self,
-                                              icon=get_icon("highlight.png"),
-                                              tip=_("Highlight matches"))
-        self.highlight_button.setCheckable(True)
-        self.highlight_button.toggled.connect(self.toggle_highlighting)
-
         hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.search_text,
                         self.number_matches_text, self.previous_button,
                         self.next_button, self.re_button, self.case_button,
-                        self.words_button, self.highlight_button]
+                        self.words_button]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
         glayout.addLayout(hlayout, 0, 1)
@@ -353,7 +347,6 @@ class FindReplace(QWidget):
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
         from spyder.plugins.editor.widgets.codeeditor import CodeEditor
         self.is_code_editor = isinstance(editor, CodeEditor)
-        self.highlight_button.setVisible(self.is_code_editor)
         if refresh:
             self.refresh()
         if self.isHidden() and editor is not None:
@@ -385,7 +378,7 @@ class FindReplace(QWidget):
 
     def highlight_matches(self):
         """Highlight found results"""
-        if self.is_code_editor and self.highlight_button.isChecked():
+        if self.is_code_editor:
             text = self.search_text.currentText()
             case = self.case_button.isChecked()
             word = self.words_button.isChecked()
