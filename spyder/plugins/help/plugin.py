@@ -94,12 +94,14 @@ class Help(SpyderDockablePlugin):
 
         preferences.register_plugin_preferences(self)
 
+        # Expose widget signals on the plugin
+        widget.sig_render_started.connect(self.sig_render_started)
+        widget.sig_render_finished.connect(self.sig_render_finished)
+
         # self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         widget.set_history(self.load_history())
         widget.set_internal_console(internal_console)
         widget.sig_item_found.connect(self.save_history)
-        widget.sig_render_started.connect(self.sig_render_started)
-        widget.sig_render_finished.connect(self.sig_render_finished)
 
         editor.sig_help_requested.connect(self.set_editor_doc)
         internal_console.sig_help_requested.connect(self.set_object_text)

@@ -10,34 +10,22 @@ Main menu Plugin.
 
 # Standard library imports
 from collections import OrderedDict
-import os
-import os.path as osp
-import re
 import sys
 
 # Third party imports
-from qtpy import API, PYQT5
-from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QMenu
 
 # Local imports
-from spyder import __docs_url__
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
-from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.translations import get_translation
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.app.utils import get_python_doc_path
 from spyder.plugins.mainmenu.api import (
-    ApplicationContextMenu, ApplicationMenu, ApplicationMenus,
-    HelpMenuSections)
+    ApplicationMenu, ApplicationMenus, HelpMenuSections)
 from spyder.plugins.mainmenu.container import (
-    MainMenuActions, MainMenuContainer)
-from spyder.utils import programs
-from spyder.utils.qthelpers import (
-    add_actions, create_module_bookmark_actions, create_program_action,
-    file_uri, set_menu_icons)
+    MainMenuContainer)
+from spyder.utils.qthelpers import add_actions, set_menu_icons
 
 # Localization
 _ = get_translation('spyder')

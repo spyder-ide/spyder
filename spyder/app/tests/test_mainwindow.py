@@ -2540,6 +2540,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.first
 def test_preferences_change_interpreter(qtbot, main_window):
     """Test that on main interpreter change signal is emitted."""
     # Check original pyls configuration

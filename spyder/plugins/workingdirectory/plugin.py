@@ -17,7 +17,7 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.translations import get_translation
-from spyder.config.base import get_conf_path, get_home_dir
+from spyder.config.base import get_conf_path
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
 from spyder.plugins.workingdirectory.container import (
     WorkingDirectoryContainer)

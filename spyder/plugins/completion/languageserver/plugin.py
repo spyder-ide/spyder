@@ -93,9 +93,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
         # Status bar widget
         if parent is not None:
-            statusbar = parent.statusBar()
-            self.status_widget = LSPStatusWidget(
-                None, statusbar, plugin=self)
+            self.status_widget = LSPStatusWidget(parent=None, plugin=self)
+            statusbar = self.main.statusbar
+            statusbar.add_status_widget(self.status_widget)
 
         # TODO: Move to register in the new API
         self.sig_exception_occurred.connect(

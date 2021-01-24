@@ -644,6 +644,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if tip is not None:
             combobox.setToolTip(tip)
         combobox.addItems(choices)
+        combobox.choices = choices
 
         msg = _('Invalid file path')
         self.validate_data[edit] = (

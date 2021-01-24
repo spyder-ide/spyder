@@ -3320,11 +3320,17 @@ class EditorWidget(QSplitter):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         statusbar = parent.statusBar() # Create a status bar
-        self.vcs_status = VCSStatus(self, statusbar)
-        self.cursorpos_status = CursorPositionStatus(self, statusbar)
-        self.encoding_status = EncodingStatus(self, statusbar)
-        self.eol_status = EOLStatus(self, statusbar)
-        self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.vcs_status = VCSStatus(self)
+        self.cursorpos_status = CursorPositionStatus(self)
+        self.encoding_status = EncodingStatus(self)
+        self.eol_status = EOLStatus(self)
+        self.readwrite_status = ReadWriteStatus(self)
+
+        statusbar.insertPermanentWidget(0, self.readwrite_status)
+        statusbar.insertPermanentWidget(0, self.eol_status)
+        statusbar.insertPermanentWidget(0, self.encoding_status)
+        statusbar.insertPermanentWidget(0, self.cursorpos_status)
+        statusbar.insertPermanentWidget(0, self.vcs_status)
 
         self.editorstacks = []
 

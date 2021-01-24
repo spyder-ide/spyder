@@ -609,12 +609,6 @@ class MainWindow(QMainWindow):
         self.plugins_menu = None
         self.plugins_menu_actions = []
 
-        # Status bar widgets
-        self.interpreter_status = None
-        self.mem_status = None
-        self.cpu_status = None
-        self.clock_status = None
-
         # TODO: Move to corresponding Plugins
         self.main_toolbar = None
         self.main_toolbar_actions = []
@@ -1031,6 +1025,11 @@ class MainWindow(QMainWindow):
         self.console = Console(self, configuration=CONF)
         self.register_plugin(self.console)
 
+        # StatusBar plugin
+        from spyder.plugins.statusbar.plugin import StatusBar
+        self.statusbar = StatusBar(self, configuration=CONF)
+        self.register_plugin(self.statusbar)
+
         # Run plugin
         from spyder.plugins.run.plugin import Run
         self.run = Run(self, configuration=CONF)
@@ -1065,14 +1064,6 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
             self.add_plugin(self.outlineexplorer)
-
-        from spyder.widgets.status import InterpreterStatus
-        self.interpreter_status = InterpreterStatus(
-            self,
-            status,
-            icon=ima.icon('environment'),
-            interpreter=self.maininterpreter.get_interpreter()
-        )
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -1300,6 +1291,7 @@ class MainWindow(QMainWindow):
             section=HelpMenuSections.Documentation)
 
         # TODO: Move to plugin
+
         # IPython documentation
         if self.help is not None:
             self.ipython_menu = SpyderMenu(
@@ -1324,13 +1316,6 @@ class MainWindow(QMainWindow):
                 self.ipython_menu,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.ExternalDocumentation)
-
-        # Status bar widgets
-        from spyder.widgets.status import MemoryStatus, CPUStatus, ClockStatus
-        self.mem_status = MemoryStatus(self, status)
-        self.cpu_status = CPUStatus(self, status)
-        self.clock_status = ClockStatus(self, status)
-        self.apply_statusbar_settings()
 
         # ----- View
         # View menu
@@ -3107,7 +3092,6 @@ class MainWindow(QMainWindow):
         self.setDockOptions(default)
 
         self.apply_panes_settings()
-        self.apply_statusbar_settings()
 
         if CONF.get('main', 'use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(
@@ -3131,26 +3115,6 @@ class MainWindow(QMainWindow):
             except AttributeError:
                 # Old API
                 plugin._update_margins()
-
-    def apply_statusbar_settings(self):
-        """Update status bar widgets settings"""
-        show_status_bar = CONF.get('main', 'show_status_bar')
-        self.statusBar().setVisible(show_status_bar)
-
-        if show_status_bar:
-            for widget, name in ((self.mem_status, 'memory_usage'),
-                                 (self.cpu_status, 'cpu_usage'),
-                                 (self.clock_status, 'clock')):
-                if widget is not None:
-                    widget.setVisible(CONF.get('main', '%s/enable' % name))
-                    widget.set_interval(CONF.get('main', '%s/timeout' % name))
-
-            # Update interpreter status widget
-            if self.interpreter_status:
-                interpreter = self.maininterpreter.get_interpreter()
-                self.interpreter_status.update_interpreter(interpreter)
-        else:
-            return
 
     @Slot()
     def show_preferences(self):

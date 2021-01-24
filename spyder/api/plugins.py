@@ -28,24 +28,22 @@ import logging
 import os
 
 # Third party imports
-from qtpy.QtCore import QObject, Qt, Signal, Slot, QSize
+from qtpy.QtCore import QObject, Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QToolBar, QWidget
+from qtpy.QtWidgets import QApplication, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
-from spyder.api.widgets.mixins import (SpyderActionMixin, SpyderOptionMixin,
-                                       SpyderWidgetMixin)
-from spyder.api.widgets.toolbars import ApplicationToolbar
+from spyder.api.widgets.mixins import SpyderActionMixin, SpyderOptionMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.py3compat import configparser as cp
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
 
 # Localization
 _ = get_translation('spyder')
@@ -596,6 +594,7 @@ class Plugins:
     Projects = 'project_explorer'
     Pylint = 'pylint'
     Shortcuts = 'shortcuts'
+    StatusBar = 'statusbar'
     Toolbar = "toolbar"
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
@@ -826,14 +825,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 options=options,
             )
 
-            # Widget setup
-            # ----------------------------------------------------------------
-            try:
-                container._setup(options=options)
-            except Exception as error:
-                logger.debug(
-                    "Running `_setup` on {0}: {1}".format(self, error))
-
             if isinstance(container, SpyderWidgetMixin):
                 container.setup(options=options)
                 container.update_actions()
@@ -854,6 +845,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                     self.sig_redirect_stdio_requested)
                 container.sig_restart_requested.connect(
                     self.sig_restart_requested)
+
+            self.after_container_creation()
+
+            # ---- Widget setup
+            container._setup(options=options)
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
@@ -1351,33 +1347,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         pass
 
+    def after_container_creation(self):
+        """
+        Perform necessary operations before setting up the container.
 
-    # --- API Application Status Widgets
-    # ------------------------------------------------------------------------
-    def add_application_status_widget(self, name, widget):
+        This must be reimplemented by plugins whose containers emit signals in
+        on_option_update that need to be connected before applying those
+        options to our config system.
         """
-        Add status widget to main application status bar.
-        """
-        # TODO: Check widget class
-        # TODO: Check existence
-        status_bar = self._main.statusBar()
-        status_bar.insertPermanentWidget(0, widget)
-        self._main._STATUS_WIDGETS[name] = widget
+        pass
 
-    def get_application_status_widget(self, name):
-        """
-        Return an application status widget by name.
-        """
-        if name in self._main._STATUS_WIDGETS:
-            return self._main._STATUS_WIDGETS[name]
-        else:
-            raise SpyderAPIError('Status widget "{}" not found!'.format(name))
-
-    def get_application_status_widgets(self):
-        """
-        Return all application status widgets created.
-        """
-        return self._main._STATUS_WIDGETS
 
 
 class SpyderDockablePlugin(SpyderPluginV2):

@@ -18,8 +18,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.preferences import PluginConfigPage
-from spyder.py3compat import PY2, is_text_string, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.py3compat import PY2, to_text_string
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
@@ -30,10 +29,10 @@ _ = get_translation('spyder')
 
 
 class MainInterpreterConfigPage(PluginConfigPage):
-    APPLY_CONF_PAGE_SETTINGS = True
 
     def __init__(self, plugin, parent):
         super().__init__(plugin, parent)
+        self.apply_callback = self.perform_adjustments
 
         self.cus_exec_radio = None
         self.pyexec_edit = None
@@ -71,7 +70,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             if not self.get_option('custom_interpreter'):
                 self.set_option('custom_interpreter', ' ')
 
-            self.set_custom_interpreters_list(executable)
+            plugin._add_to_custom_interpreters(executable)
             self.validate_custom_interpreters_list()
 
     def initialize(self):
@@ -259,13 +258,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
             self.set_option('umr/namelist', fixed_namelist)
 
-    def set_custom_interpreters_list(self, value):
-        """Update the list of interpreters used and the current one."""
-        custom_list = self.get_option('custom_interpreters_list')
-        if value not in custom_list:
-            custom_list.append(value)
-            self.set_option('custom_interpreters_list', custom_list)
-
     def validate_custom_interpreters_list(self):
         """Check that the used custom interpreters are still valid."""
         custom_list = self.get_option('custom_interpreters_list')
@@ -276,36 +268,22 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         self.set_option('custom_interpreters_list', valid_custom_list)
 
-    def apply_settings(self, options):
+    def perform_adjustments(self):
+        """Perform some adjustments to the page after applying preferences."""
         if not self.def_exec_radio.isChecked():
+            # Get current executable
             executable = self.pyexec_edit.text()
             executable = osp.normpath(executable)
             if executable.endswith('pythonw.exe'):
                 executable = executable.replace("pythonw.exe", "python.exe")
 
-            # Set new interpreter
-            self.set_custom_interpreters_list(executable)
-            self.set_option('executable', executable)
-            self.set_option('custom_interpreter', executable)
-
             # Update combobox items.
-            custom_list = self.get_option('custom_interpreters_list')
-            self.cus_exec_combo.combobox.clear()
-            self.cus_exec_combo.combobox.addItems(custom_list)
+            custom_list = self.cus_exec_combo.combobox.choices
+            if executable not in custom_list:
+                custom_list = custom_list + [executable]
+                self.cus_exec_combo.combobox.clear()
+                self.cus_exec_combo.combobox.addItems(custom_list)
             self.pyexec_edit.setText(executable)
 
             # Show warning compatibility message.
             self.warn_python_compatibility(executable)
-        if not self.pyexec_edit.text():
-            self.set_option('custom_interpreter', '')
-        else:
-            # This prevents showing an incorrect file name in the custom
-            # line edit.
-            if not programs.is_python_interpreter(self.pyexec_edit.text()):
-                self.pyexec_edit.clear()
-                self.set_option('custom_interpreter', '')
-        if ('default' in options or 'custom' in options
-                or 'custom_interpreter' in options):
-            self.main.sig_main_interpreter_changed.emit()
-
-        self.main.apply_statusbar_settings()

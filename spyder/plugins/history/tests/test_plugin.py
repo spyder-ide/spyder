@@ -182,18 +182,18 @@ def test_toggle_wrap_mode(historylog):
     hw.add_history(path)
 
     # Starts with wrap mode off.
-    hw.set_option('wrap', False)
+    hw.change_option('wrap', False)
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
     assert not hw.get_option('wrap')
 
     # Toggles wrap mode on.
-    hw.set_option('wrap', True)
+    hw.change_option('wrap', True)
     assert hw.editors[0].wordWrapMode() == (
         QTextOption.WrapAtWordBoundaryOrAnywhere)
     assert hw.get_option('wrap')
 
     # Toggles wrap mode off.
-    hw.set_option('wrap', False)
+    hw.change_option('wrap', False)
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
     assert not hw.get_option('wrap')
 
@@ -209,17 +209,17 @@ def test_toggle_line_numbers(historylog):
     hw.add_history(path)
 
     # Starts without line numbers.
-    hw.set_option('line_numbers', False)
+    hw.change_option('line_numbers', False)
     assert not hw.editors[0].linenumberarea.isVisible()
     assert not hw.get_option('line_numbers')
 
     # Toggles line numbers on.
-    hw.set_option('line_numbers', True)
+    hw.change_option('line_numbers', True)
     assert hw.editors[0].linenumberarea.isVisible()
     assert hw.get_option('line_numbers')
 
     # Toggles line numbers off.
-    hw.set_option('line_numbers', False)
+    hw.change_option('line_numbers', False)
     assert not hw.editors[0].linenumberarea.isVisible()
     assert not hw.get_option('line_numbers')
 

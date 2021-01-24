@@ -22,11 +22,9 @@ import sys
 # Third party imports
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 
 # Local imports
-from spyder.api.plugins import (SpyderPlugin, SpyderPluginV2,
-                                SpyderDockablePlugin)
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.app.solver import find_internal_plugins

@@ -27,7 +27,7 @@ class MainWindowMock(QMainWindow):
 
     def __init__(self):
         super(MainWindowMock, self).__init__(None)
-        self.statusBar = Mock()
+        self.statusbar = Mock()
         self.console = Mock()
 
 

@@ -10,16 +10,20 @@
 import os.path as osp
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.widgets.status import StatusBarWidget
+from spyder.api.translations import get_translation
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
 from spyder.utils.workers import WorkerManager
 from spyder.utils.vcs import get_git_refs
-from spyder.widgets.status import StatusBarWidget
+
+
+# Localization
+_ = get_translation("spyder")
 
 
 class ReadWriteStatus(StatusBarWidget):
     """Status bar widget for current file read/write mode."""
+    ID = "read_write_status"
 
     def update_readonly(self, readonly):
         """Update read/write file status."""
@@ -33,6 +37,7 @@ class ReadWriteStatus(StatusBarWidget):
 
 class EOLStatus(StatusBarWidget):
     """Status bar widget for the current file end of line."""
+    ID = "eol_status"
 
     def update_eol(self, os_name):
         """Update end of line status."""
@@ -47,6 +52,7 @@ class EOLStatus(StatusBarWidget):
 
 class EncodingStatus(StatusBarWidget):
     """Status bar widget for the current file encoding."""
+    ID = "encoding_status"
 
     def update_encoding(self, encoding):
         """Update encoding of current file."""
@@ -60,6 +66,7 @@ class EncodingStatus(StatusBarWidget):
 
 class CursorPositionStatus(StatusBarWidget):
     """Status bar widget for the current file cursor position."""
+    ID = "cursor_position_status"
 
     def update_cursor_position(self, line, index):
         """Update cursor position."""
@@ -73,10 +80,10 @@ class CursorPositionStatus(StatusBarWidget):
 
 class VCSStatus(StatusBarWidget):
     """Status bar widget for system vcs."""
+    ID = "vcs_status"
 
-    def __init__(self, parent, statusbar):
-        super(VCSStatus, self).__init__(parent, statusbar,
-                                        icon=ima.icon('code_fork'))
+    def __init__(self, parent):
+        super().__init__(parent)
         self._worker_manager = WorkerManager(max_threads=1)
         self._git_is_working = None
         self._git_job_queue = None
@@ -129,6 +136,9 @@ class VCSStatus(StatusBarWidget):
     def get_tooltip(self):
         """Return localized tool tip for widget."""
         return _("Git branch")
+
+    def get_icon(self):
+        return self.create_icon('code_fork')
 
 
 def test():

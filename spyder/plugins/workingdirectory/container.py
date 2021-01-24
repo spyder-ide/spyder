@@ -29,7 +29,7 @@ from spyder.widgets.comboboxes import PathComboBox
 _ = get_translation('spyder')
 
 
-# --- Constants
+# --- Constants
 # ----------------------------------------------------------------------------
 class WorkingDirectoryActions:
     Previous = 'previous_action'
@@ -51,8 +51,8 @@ class WorkingDirectoryToolbar(ApplicationToolbar):
 # --- Container
 # ----------------------------------------------------------------------------
 class WorkingDirectoryContainer(PluginMainContainer):
-    """
-    """
+    """Container for the working directory toolbar."""
+
     DEFAULT_OPTIONS = {
         'history': [],
         'console/fixed_directory': '',
@@ -76,8 +76,9 @@ class WorkingDirectoryContainer(PluginMainContainer):
         The new new working directory path.
     """
 
-    def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent=parent, options=options)
+    # ---- PluginMainContainer API
+    # ------------------------------------------------------------------------
+    def setup(self, options):
 
         # Variables
         self.history = self.get_option('history')
@@ -97,9 +98,8 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.setToolTip(
             _(
                 "This is the working directory for newly\n"
-                "opened consoles (Python/IPython consoles and\n"
-                "terminals), for the file explorer, for the\n"
-                "find in files plugin and for new files\n"
+                "opened IPython consoles, for the Files\n"
+                "and Find panes and for new files\n"
                 "created in the editor"
             )
         )
@@ -110,9 +110,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.open_dir.connect(self.chdir)
         self.pathedit.activated[str].connect(self.chdir)
 
-    # --- PluginWidget API
-    # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+        # Actions
         self.previous_action = self.create_action(
             WorkingDirectoryActions.Previous,
             text=_('Back'),

@@ -23,7 +23,6 @@ from collections import OrderedDict
 import os
 import sys
 import textwrap
-import uuid
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
@@ -38,12 +37,10 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
 from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
-                                      PluginMainWidgetMenus, SpyderMenu)
+                                      PluginMainWidgetMenus)
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
-from spyder.config.gui import is_dark_interface
-from spyder.utils.qthelpers import (add_actions, create_waitspinner,
-                                    set_menu_icons)
+from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -177,7 +174,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     # ------------------------------------------------------------------------
     def setup(self, options=DEFAULT_OPTIONS):
         """
-        Create actions, add to menu and other setup requirements.
+        Create actions, widgets, add to menu and other setup requirements.
         """
         raise NotImplementedError(
             'A PluginMainContainer subclass must define a `setup` method!')
@@ -200,6 +197,13 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         raise NotImplementedError(
             'A PluginMainContainer subclass must define a `on_option_update` '
             'method!')
+
+    # ---- Private methods
+    # ------------------------------------------------------------------------
+    def _setup(self, options=DEFAULT_OPTIONS):
+        """Apply options when instantiated by the plugin."""
+        for option, value in options.items():
+            self.on_option_update(option, value)
 
 
 class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
