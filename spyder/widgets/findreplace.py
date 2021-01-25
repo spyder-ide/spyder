@@ -91,10 +91,11 @@ class FindReplace(QWidget):
         self.number_matches_text = QLabel(self)
         self.replace_on = False
         self.replace_text_button = create_toolbutton(
-                                       self,
-                                       toggled=self.change_replace_state,
-                                       icon=ima.icon('replace'),
-                                       tip=_("Replace text"))
+            self,
+            toggled=self.change_replace_state,
+            icon=ima.icon('replace'),
+            tip=_("Replace text")
+        )
         self.previous_button = create_toolbutton(self,
                                                  triggered=self.find_previous,
                                                  icon=ima.icon('ArrowUp'),
