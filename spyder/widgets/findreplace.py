@@ -89,6 +89,13 @@ class FindReplace(QWidget):
                                                      self.text_has_been_edited)
 
         self.number_matches_text = QLabel(self)
+        self.replace_on = False
+        self.replace_text_button = create_toolbutton(
+            self,
+            toggled=self.change_replace_state,
+            icon=ima.icon('replace'),
+            tip=_("Replace text")
+        )
         self.previous_button = create_toolbutton(self,
                                                  triggered=self.find_previous,
                                                  icon=ima.icon('ArrowUp'),
@@ -126,8 +133,9 @@ class FindReplace(QWidget):
 
         hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.search_text,
-                        self.number_matches_text, self.previous_button,
-                        self.next_button, self.re_button, self.case_button,
+                        self.number_matches_text, self.replace_text_button,
+                        self.previous_button, self.next_button,
+                        self.re_button, self.case_button,
                         self.words_button, self.highlight_button]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
@@ -302,6 +310,19 @@ class FindReplace(QWidget):
             self.search_text.setFocus()
 
     @Slot()
+    def replace_widget(self, replace_on):
+        """Show and hide replace widget"""
+        if replace_on:
+            self.show_replace()
+        else:
+            self.hide_replace()
+
+    def change_replace_state(self):
+        """Handle the change of the replace state widget."""
+        self.replace_on = not self.replace_on
+        self.replace_text_button.setChecked(self.replace_on)
+        self.replace_widget(self.replace_on)
+
     def hide(self):
         """Overrides Qt Method"""
         for widget in self.replace_widgets:
