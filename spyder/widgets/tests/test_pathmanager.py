@@ -191,7 +191,7 @@ def test_remove_item_and_reply_yes(qtbot, pathmanager):
                          indirect=True)
 def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     """
-    Check behavior when an uncheked item that is already on the list is added.
+    Check behavior when an unchecked item that is already on the list is added.
     The checkbox should then be checked and if replying 'yes' to the question,
     then the item should be moved to the top.
     """

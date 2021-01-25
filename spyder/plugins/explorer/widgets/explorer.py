@@ -44,7 +44,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, create_toolbutton,
                                     file_uri, MENU_SEPARATOR,
-                                    QInputDialogMultiline)
+                                    QInputDialogMultiline, start_file)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -154,6 +154,7 @@ class DirView(QTreeView):
     sig_new_file = Signal(str)
     sig_open_interpreter = Signal(str)
     redirect_stdio = Signal(bool)
+    sig_update_filters = Signal()
 
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
@@ -416,6 +417,7 @@ class DirView(QTreeView):
             self.parent_widget.sig_option_changed.emit(
                 'name_filters', filter_text)
             self.set_name_filters(filter_text)
+            self.sig_update_filters.emit()
             dialog.accept()
 
         def handle_reset():
@@ -842,7 +844,7 @@ class DirView(QTreeView):
         If this does not work, opening unknown file in Spyder, as text file"""
         for path in sorted(fnames):
             path = file_uri(path)
-            ok = programs.start_file(path)
+            ok = start_file(path)
             if not ok:
                 self.sig_edit.emit(path)
 
@@ -1398,7 +1400,7 @@ class DirView(QTreeView):
     def restore_expanded_state(self):
         """Restore all items expanded state"""
         if self.__expanded_state is not None:
-            # In the old project explorer, the expanded state was a dictionnary:
+            # In the old project explorer, the expanded state was a dictionary:
             if isinstance(self.__expanded_state, list):
                 self.fsmodel.directoryLoaded.connect(
                                                   self.restore_directory_state)
@@ -1814,16 +1816,19 @@ class ExplorerWidget(QWidget):
         self.treewidget.set_previous_enabled.connect(
                                                previous_action.setEnabled)
         self.treewidget.set_next_enabled.connect(next_action.setEnabled)
+        self.treewidget.sig_update_filters.connect(self.filter_files)
         self.sig_option_changed.connect(self.refresh_actions)
 
     def change_filter_state(self):
         """Handle the change of the filter state."""
         self.filter_on = not self.filter_on
         self.filter_button.setChecked(self.filter_on)
-        tip_message = (
-            _("Deactivate filename filters") if self.filter_on else _(
-                "Activate filename filters"))
-        self.filter_button.setToolTip(tip_message)
+        self.filter_button.setToolTip(_("Filter filenames"))
+        self.filter_files()
+
+    @Slot()
+    def filter_files(self):
+        """Update filters in the tree widget."""
         self.treewidget.filter_files(self.filter_on)
 
     def refresh_actions(self, option, value):

@@ -252,7 +252,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             textfile.write(text)
     else:
         # Based in the solution at untitaker/python-atomicwrites#42.
-        # Needed to fix file permissions overwritting.
+        # Needed to fix file permissions overwriting.
         # See spyder-ide/spyder#9381.
         try:
             file_stat = os.stat(absolute_filename)

@@ -29,7 +29,7 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
 ])
 def test_dont_use(pattern, exclude_patterns, message):
     """
-    This test is used for discouraged using of some expresions that could
+    This test is used for discouraged using of some expressions that could
     introduce errors, and encourage use spyder function instead.
 
     If you want to skip some line from this test just use:

@@ -72,6 +72,27 @@ COLOR_SCHEME_KEYS = {
     "string":         _("String:"),
     "number":         _("Number:"),
     "instance":       _("Instance:"),
+    "magic":          _("Magic:"),
+}
+
+COLOR_SCHEME_DEFAULT_VALUES = {
+    "background":  "#19232D",
+    "currentline": "#3a424a",
+    "currentcell": "#292d3e",
+    "occurrence":  "#4734b3",
+    "ctrlclick":   "#179ae0",
+    "sideareas":   "#222b35",
+    "matched_p":   "#0bbe0b",
+    "unmatched_p": "#ff4340",
+    "normal":     ("#ffffff", False, False),
+    "keyword":    ("#c670e0", False, False),
+    "builtin":    ("#fab16c", False, False),
+    "definition": ("#57d6e4", True, False),
+    "comment":    ("#999999", False, False),
+    "string":     ("#b0e686", False, True),
+    "number":     ("#faed5c", False, False),
+    "instance":   ("#ee6772", False, True),
+    "magic":      ("#c670e0", False, False),
 }
 
 COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
@@ -470,6 +491,11 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                      ufstring6, string, number, any("SYNC", [r"\n"])])
 
 
+def make_ipython_patterns(additional_keywords=[], additional_builtins=[]):
+    return (make_python_patterns(additional_keywords, additional_builtins)
+            + r"|^\s*%%?(?P<magic>[^\s]*)")
+
+
 def get_code_cell_name(text):
     """Returns a code cell name from a code cell comment."""
     name = text.strip().lstrip("#% ")
@@ -534,7 +560,7 @@ class PythonSH(BaseSH):
                 if text.lstrip().startswith(self.cell_separators):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
-                    # cell_head: string contaning the first group
+                    # cell_head: string containing the first group
                     # of '%'s in the cell header
                     cell_head = re.search(r"%+|$", text.lstrip()).group()
                     if cell_head == '':
@@ -682,6 +708,15 @@ class PythonSH(BaseSH):
 
     def rehighlight(self):
         BaseSH.rehighlight(self)
+
+
+# =============================================================================
+# IPython syntax highlighter
+# =============================================================================
+class IPythonSH(PythonSH):
+    """IPython Syntax Highlighter"""
+    add_kw = ['async', 'await']
+    PROG = re.compile(make_ipython_patterns(additional_keywords=add_kw), re.S)
 
 
 #==============================================================================

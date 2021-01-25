@@ -253,7 +253,7 @@ class IndentFoldDetector(FoldDetector):
 
 class CharBasedFoldDetector(FoldDetector):
     """
-    Fold detector based on trigger charachters (e.g. a { increase fold level
+    Fold detector based on trigger characters (e.g. a { increase fold level
     and } decrease fold level).
     """
     def __init__(self, open_chars=('{'), close_chars=('}')):

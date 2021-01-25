@@ -76,7 +76,7 @@ def test_get_current_object(mixinsbot, test_object):
         if move is not None:
             widget.move_cursor(move)
         current_word = get_current_object()
-        current_word == match
+        assert current_word == match
 
 
 def test_get_current_word(mixinsbot):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#
+
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
@@ -13,7 +13,7 @@ https://microsoft.github.io/language-server-protocol/specifications/specificatio
 """
 
 # Standard library imports
-from typing import Any
+from typing import Any, Optional
 
 # Third party imports
 from qtpy.QtCore import Signal, QObject
@@ -911,4 +911,4 @@ class SpyderCompletionProvider(QObject):
             return self.config.get(option_name, default)
         else:
             return self.main.get_global_option(
-                option_name, default, section=section)
+                option_name, section, default)

@@ -1015,7 +1015,7 @@ class AnimatedTour(QWidget):
 
     def _clear_canvas(self):
         """ """
-        # TODO: Add option to also make it white... might be usefull?
+        # TODO: Add option to also make it white... might be useful?
         # Make canvas black before transitions
         self.canvas.update_widgets(None)
         self.canvas.update_decoration(None)
@@ -1139,7 +1139,7 @@ class AnimatedTour(QWidget):
             self._set_modal(True, [self.tips])
 
         if 'run' in frame:
-            # Asume that the first widget is the console
+            # Assume that the first widget is the console
             run = frame['run']
             self.run = run
 
@@ -1437,17 +1437,22 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
+        start_tour_color = '#3775A9'
+        dismiss_tour_color = '#60798B'
+        font_color = 'white'
         self.launch_tour_button = QPushButton(_('Start tour'))
         self.launch_tour_button.setStyleSheet(
-          "background-color: #3775A9;"
+          f"background-color: {start_tour_color};"
           f"font-size: {self.BUTTONS_FONT_SIZE};"
+          f"color: {font_color};"
           f"padding: {self.BUTTONS_PADDING}"
         )
         self.launch_tour_button.setAutoDefault(False)
         self.dismiss_button = QPushButton(_('Dismiss'))
         self.dismiss_button.setStyleSheet(
-          "background-color: #60798B;"
+          f"background-color: {dismiss_tour_color};"
           f"font-size: {self.BUTTONS_FONT_SIZE};"
+          f"color: {font_color};"
           f"padding: {self.BUTTONS_PADDING}"
         )
         self.dismiss_button.setAutoDefault(False)
@@ -1496,7 +1501,8 @@ class OpenTourDialog(QDialog):
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
-        self.setStyleSheet("background-color: #262E38")
+        if is_dark_interface():
+            self.setStyleSheet("background-color: #262E38")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(640, 280)

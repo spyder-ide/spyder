@@ -14,7 +14,6 @@ import sys
 from spyder.utils import programs
 from spyder.config.base import _, is_pynsist
 from spyder.config.utils import is_anaconda
-from spyder.py3compat import PY2
 
 
 # =============================================================================
@@ -38,7 +37,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
+IPYTHON_REQVER = ">=7.6.0"
 JEDI_REQVER = '=0.17.2'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
@@ -51,14 +50,14 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
-PYLS_REQVER = '>=0.36.1;<1.0.0'
+PYLS_REQVER = '>=0.36.2;<1.0.0'
 PYLS_BLACK_REQVER = '>=0.4.6'
-PYLS_SPYDER_REQVER = '>=0.1.1'
+PYLS_SPYDER_REQVER = '>=0.3.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
 QDARKSTYLE_REQVER = '>=2.8'
 QTAWESOME_REQVER = '>=0.5.7'
-QTCONSOLE_REQVER = '>=4.7.7'
+QTCONSOLE_REQVER = '>=5.0.1'
 QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
 SETUPTOOLS_REQVER = '>=39.0.0'
@@ -133,8 +132,7 @@ DESCRIPTIONS = [
      'package_name': "keyring",
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
-     'required_version': KEYRING_REQVER,
-     'display': sys.platform.startswith('linux') and not PY2},
+     'required_version': KEYRING_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
@@ -354,7 +352,7 @@ def check(modname):
         if dependency.modname == modname:
             return dependency.check()
     else:
-        raise RuntimeError("Unkwown dependency %s" % modname)
+        raise RuntimeError("Unknown dependency %s" % modname)
 
 
 def status(deps=DEPENDENCIES, linesep=os.linesep):

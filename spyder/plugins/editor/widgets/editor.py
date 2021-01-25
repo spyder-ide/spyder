@@ -216,7 +216,7 @@ class FileInfo(QObject):
 
     def run_todo_finder(self):
         """Run TODO finder"""
-        if self.editor.is_python():
+        if self.editor.is_python_or_ipython():
             self.threadmanager.add_thread(find_tasks,
                                           self.todo_finished,
                                           self.get_source_code(), self)
@@ -966,7 +966,7 @@ class EditorStack(QWidget):
 
     @Slot()
     def update_fname_label(self):
-        """Upadte file name label."""
+        """Update file name label."""
         filename = to_text_string(self.get_current_filename())
         if len(filename) > 100:
             shorten_filename = u'...' + filename[-100:]
@@ -1575,6 +1575,7 @@ class EditorStack(QWidget):
 
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
+        finfo.editor.filename = new_filename
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -3002,7 +3003,7 @@ class EditorStack(QWidget):
             The starting line number of the cell in the file.
         """
         (filename, cell_name) = cell_id
-        if editor.is_python():
+        if editor.is_python_or_ipython():
             args = (text, cell_name, filename, self.run_cell_copy)
             if debug:
                 self.debug_cell_in_ipyclient.emit(*args)
@@ -3283,12 +3284,12 @@ class EditorSplitter(QSplitter):
             return
         splitter = self
         editor = None
-        for index, (is_vertical, cfname, clines) in enumerate(splitsettings):
-            if index > 0:
+        for i, (is_vertical, cfname, clines) in enumerate(splitsettings):
+            if i > 0:
                 splitter.split(Qt.Vertical if is_vertical else Qt.Horizontal)
                 splitter = splitter.widget(1)
             editorstack = splitter.widget(0)
-            for index, finfo in enumerate(editorstack.data):
+            for j, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
                 # TODO: go_to_line is not working properly (the line it jumps
                 # to is not the corresponding to that file). This will be fixed
@@ -3298,7 +3299,7 @@ class EditorSplitter(QSplitter):
                     pass
                 else:
                     try:
-                        editor.go_to_line(clines[index])
+                        editor.go_to_line(clines[j])
                     except IndexError:
                         pass
         hexstate = settings.get('hexstate')
@@ -3319,11 +3320,17 @@ class EditorWidget(QSplitter):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         statusbar = parent.statusBar() # Create a status bar
-        self.vcs_status = VCSStatus(self, statusbar)
-        self.cursorpos_status = CursorPositionStatus(self, statusbar)
-        self.encoding_status = EncodingStatus(self, statusbar)
-        self.eol_status = EOLStatus(self, statusbar)
-        self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.vcs_status = VCSStatus(self)
+        self.cursorpos_status = CursorPositionStatus(self)
+        self.encoding_status = EncodingStatus(self)
+        self.eol_status = EOLStatus(self)
+        self.readwrite_status = ReadWriteStatus(self)
+
+        statusbar.insertPermanentWidget(0, self.readwrite_status)
+        statusbar.insertPermanentWidget(0, self.eol_status)
+        statusbar.insertPermanentWidget(0, self.encoding_status)
+        statusbar.insertPermanentWidget(0, self.cursorpos_status)
+        statusbar.insertPermanentWidget(0, self.vcs_status)
 
         self.editorstacks = []
 

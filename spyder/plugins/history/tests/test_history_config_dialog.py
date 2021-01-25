@@ -16,7 +16,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.history.plugin import HistoryLog
-from spyder.preferences.tests.conftest import config_dialog
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
 @pytest.mark.parametrize(

@@ -49,32 +49,6 @@ def historylog(qtbot, monkeypatch):
 # =============================================================================
 # Tests
 # =============================================================================
-def test_max_entries(historylog, tmpdir):
-    """
-    Test that history is truncated at max_entries.
-    """
-    hw = historylog.get_widget()
-    max_entries = hw.get_option('max_entries')
-
-    # Write more than max entries in a test file
-    history = ''
-    for i in range(max_entries + 1):
-        history = history + '{}\n'.format(i)
-
-    path = create_file('history.py', history)
-
-    # Load test file in plugin
-    hw.add_history(to_text_string(path))
-
-    # Assert that we have max_entries after loading history and
-    # that there's no 0 in the first line
-    with open(path) as fh:
-        lines = fh.readlines()
-
-    assert len(lines) == max_entries
-    assert '0' not in lines[0]
-
-
 def test_init(historylog):
     """
     Test HistoryLog
@@ -85,7 +59,7 @@ def test_init(historylog):
     hl = historylog
     assert hl.get_widget().editors == []
     assert hl.get_widget().filenames == []
-    assert len(hl.get_actions()) == 3
+    assert len(hl.get_actions()) == 2
 
 
 def test_add_history(historylog):
@@ -197,26 +171,6 @@ def test_append_to_history(qtbot, historylog):
     assert not hw.editors[0].is_cursor_at_end()
 
 
-def test_change_history_depth(historylog):
-    """
-    Test the change_history_depth method.
-
-    Modify the 'Maximum history entries' values to test the config action.
-    """
-    hw = historylog.get_widget()
-
-    # Starts with default.
-    assert hw.get_option('max_entries') == 100
-
-    # Invalid data.
-    hw.change_history_depth(100)
-    assert hw.get_option('max_entries') == 100  # No change.
-
-    # Valid data.
-    hw.change_history_depth(475)
-    assert hw.get_option('max_entries') == 475
-
-
 def test_toggle_wrap_mode(historylog):
     """
     Test the toggle_wrap_mode method.
@@ -228,18 +182,18 @@ def test_toggle_wrap_mode(historylog):
     hw.add_history(path)
 
     # Starts with wrap mode off.
-    hw.set_option('wrap', False)
+    hw.change_option('wrap', False)
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
     assert not hw.get_option('wrap')
 
     # Toggles wrap mode on.
-    hw.set_option('wrap', True)
+    hw.change_option('wrap', True)
     assert hw.editors[0].wordWrapMode() == (
         QTextOption.WrapAtWordBoundaryOrAnywhere)
     assert hw.get_option('wrap')
 
     # Toggles wrap mode off.
-    hw.set_option('wrap', False)
+    hw.change_option('wrap', False)
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
     assert not hw.get_option('wrap')
 
@@ -255,17 +209,17 @@ def test_toggle_line_numbers(historylog):
     hw.add_history(path)
 
     # Starts without line numbers.
-    hw.set_option('line_numbers', False)
+    hw.change_option('line_numbers', False)
     assert not hw.editors[0].linenumberarea.isVisible()
     assert not hw.get_option('line_numbers')
 
     # Toggles line numbers on.
-    hw.set_option('line_numbers', True)
+    hw.change_option('line_numbers', True)
     assert hw.editors[0].linenumberarea.isVisible()
     assert hw.get_option('line_numbers')
 
     # Toggles line numbers off.
-    hw.set_option('line_numbers', False)
+    hw.change_option('line_numbers', False)
     assert not hw.editors[0].linenumberarea.isVisible()
     assert not hw.get_option('line_numbers')
 

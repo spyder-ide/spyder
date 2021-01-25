@@ -166,7 +166,7 @@ def pylintrc_files(pylintrc_search_paths, request):
 
 
 def test_get_pylintrc_path(pylintrc_files, mocker):
-    """Test that get_pylintrc_path finds the expected one in the hiearchy."""
+    """Test that get_pylintrc_path finds the expected one in the hierarchy."""
     search_paths, expected_path, __ = pylintrc_files
     mocker.patch("pylint.config.os.path.expanduser",
                  return_value=search_paths[HOME_DIR])

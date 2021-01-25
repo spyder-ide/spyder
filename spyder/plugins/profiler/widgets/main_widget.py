@@ -69,15 +69,15 @@ class ProfilerWidgetActions:
     ShowOutput = 'show_output_action'
 
 
-class ProfilerWidgetToolBars:
+class ProfilerWidgetToolbars:
     Information = 'information_toolbar'
 
 
-class ProfilerWidgetMainToolBarSections:
+class ProfilerWidgetMainToolbarSections:
     Main = 'main_section'
 
 
-class ProfilerWidgetInformationToolBarSections:
+class ProfilerWidgetInformationToolbarSections:
     Main = 'main_section'
 
 
@@ -208,7 +208,7 @@ class ProfilerWidget(PluginMainWidget):
         )
         browse_action = self.create_action(
             ProfilerWidgetActions.Browse,
-            text=_('Browse'),
+            text='',
             tip=_('Select Python script'),
             icon=self.create_icon('fileopen'),
             triggered=lambda x: self.select_file(),
@@ -216,6 +216,7 @@ class ProfilerWidget(PluginMainWidget):
         self.log_action = self.create_action(
             ProfilerWidgetActions.ShowOutput,
             text=_("Output"),
+            icon_text=_("Output"),
             tip=_("Show program's output"),
             icon=self.create_icon('log'),
             triggered=self.show_log,
@@ -237,6 +238,7 @@ class ProfilerWidget(PluginMainWidget):
         self.save_action = self.create_action(
             ProfilerWidgetActions.SaveData,
             text=_("Save data"),
+            icon_text=_("Save data"),
             tip=_('Save profiling data'),
             icon=self.create_icon('filesave'),
             triggered=self.save_data,
@@ -244,6 +246,7 @@ class ProfilerWidget(PluginMainWidget):
         self.load_action = self.create_action(
             ProfilerWidgetActions.LoadData,
             text=_("Load data"),
+            icon_text=_("Load data"),
             tip=_('Load profiling data for comparison'),
             icon=self.create_icon('fileimport'),
             triggered=self.compare,
@@ -251,9 +254,12 @@ class ProfilerWidget(PluginMainWidget):
         self.clear_action = self.create_action(
             ProfilerWidgetActions.Clear,
             text=_("Clear comparison"),
+            icon_text=_("Clear comparison"),
+            tip=_("Clear comparison"),
             icon=self.create_icon('editdelete'),
             triggered=self.clear,
         )
+        self.clear_action.setEnabled(False)
 
         # Main Toolbar
         toolbar = self.get_main_toolbar()
@@ -261,13 +267,13 @@ class ProfilerWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
-                section=ProfilerWidgetMainToolBarSections.Main,
+                section=ProfilerWidgetMainToolbarSections.Main,
             )
         toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         # Secondary Toolbar
         secondary_toolbar = self.create_toolbar(
-            ProfilerWidgetToolBars.Information)
+            ProfilerWidgetToolbars.Information)
         for item in [self.collapse_action, self.expand_action,
                      self.create_stretcher(), self.datelabel,
                      self.create_stretcher(), self.log_action,
@@ -275,7 +281,7 @@ class ProfilerWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=secondary_toolbar,
-                section=ProfilerWidgetInformationToolBarSections.Main,
+                section=ProfilerWidgetInformationToolbarSections.Main,
             )
 
         # Setup

@@ -41,7 +41,7 @@ before adding content from an external project, and only do so when necessary.
 
 Add one entry per code repo, icon set or font face, or other cohesive
 unit within which the source material is organized and distributed as.
-New entires for icons should be in order of the number of icons used;
+New entries for icons should be in order of the number of icons used;
 other entries should be in order of inclusion.
 
 Pay careful attention to the number of blank lines before and after headings,
@@ -1072,7 +1072,7 @@ mod_pydoc is distributed under the MIT license.
 
 
 Use the core functionality of the project, mainly changing the code to set
-a font programatically and change the way handling of the errors is made as
+a font programmatically and change the way handling of the errors is made as
 well as the use of a custom CSS taking into account the current theme
 (light or dark).
 
@@ -4026,7 +4026,7 @@ subject to and limited by the following restrictions:
 UNLESS OTHERWISE MUTUALLY AGREED TO BY THE PARTIES IN WRITING, LICENSOR
 OFFERS THE WORK AS-IS AND MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY
 KIND CONCERNING THE WORK, EXPRESS, IMPLIED, STATUTORY OR OTHERWISE,
-INCLUDING, WITHOUT LIMITATION, WARRANTIES OF TITLE, MERCHANTIBILITY,
+INCLUDING, WITHOUT LIMITATION, WARRANTIES OF TITLE, MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE, NONINFRINGEMENT, OR THE ABSENCE OF
 LATENT OR OTHER DEFECTS, ACCURACY, OR THE PRESENCE OF ABSENCE OF ERRORS,
 WHETHER OR NOT DISCOVERABLE. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION

@@ -702,6 +702,9 @@ class ShortcutsTable(QTableView):
         self.resizeColumnsToContents()
         fm = self.horizontalHeader().fontMetrics()
         names = [fm.width(s.name + ' '*9) for s in self.source_model.shortcuts]
+        if len(names) == 0:
+            # This condition only applies during testing
+            names = [0]
         self.setColumnWidth(NAME, max(names))
         self.horizontalHeader().setStretchLastSection(True)
 

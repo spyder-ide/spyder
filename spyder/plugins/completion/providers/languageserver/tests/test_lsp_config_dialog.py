@@ -13,20 +13,21 @@ except ImportError:
     from mock import Mock
 
 # Test library imports
-from qtpy.QtCore import QObject, Signal
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QMainWindow
 import pytest
 
 # Local imports
 from spyder.plugins.completion.languageserver.plugin import LanguageServerPlugin
-from spyder.preferences.tests.conftest import config_dialog
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock(QObject):
+class MainWindowMock(QMainWindow):
     sig_setup_finished = Signal()
 
     def __init__(self):
         super(MainWindowMock, self).__init__(None)
-        self.statusBar = Mock()
+        self.statusbar = Mock()
         self.console = Mock()
 
 

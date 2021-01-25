@@ -2,7 +2,6 @@
 #
 # Copyright © 2020 Spyder Project Contributors.
 # Licensed under the terms of the GPL-3.0 License
-# (see spyder/__init__.py for details)
 #
 # Copyright © 2018 Nicholas H.Tollervey.
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Script to create a windows installer using pynsist.
+Script to create a Windows installer using pynsist.
 
 Based on the Mu's win_installer.py script
 https://github.com/mu-editor/mu/blob/master/win_installer.py
@@ -44,7 +43,7 @@ UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', '').split()
 
 SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
 
-# Packages to be added to the packages section regardles wheel checks or
+# Packages to be added to the packages section regardless wheel checks or
 # packages skipped, for example external direct dependencies
 # (spyder-kernels python-language-server)
 
@@ -196,7 +195,7 @@ def pypi_wheels_in(requirements, skip_packages):
 
 def package_name(requirement):
     """
-    Return the name component of a `name==version` formated requirement.
+    Return the name component of a `name==version` formatted requirement.
     """
     requirement_name = requirement.partition("==")[0].split("@")[0].strip()
     return requirement_name

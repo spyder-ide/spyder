@@ -23,14 +23,16 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 
 # Constants
+SHORTCUTS_SUMMARY_TITLE = _("Spyder Keyboard ShortCuts")
 MAX_FONT_SIZE = 16
 MIN_FONT_SIZE = 8
+
 
 class ShortcutsSummaryDialog(QDialog):
     """
     Dialog window listing the spyder and plugins shortcuts.
 
-    It contains all the shortcuts avalaible through iter_shortcuts
+    It contains all the shortcuts available through iter_shortcuts
     function
 
     The shortcuts are dysplayed in different columns, and grouped by
@@ -38,10 +40,10 @@ class ShortcutsSummaryDialog(QDialog):
     """
     def __init__(self, parent=None):
         QDialog.__init__(self, parent=parent)
+        self._shortcuts_summary_title = SHORTCUTS_SUMMARY_TITLE
 
-        self._shortcuts_summary_title = _("Spyder Keyboard ShortCuts")
-
-        # Calculate font and amount of elements in each column according screen size
+        # Calculate font and amount of elements in each column
+        # according screen size
         width, height = self.get_screen_resolution()
         font_size = height / 80
         font_size = max(min(font_size, MAX_FONT_SIZE), MIN_FONT_SIZE)
@@ -80,7 +82,7 @@ class ShortcutsSummaryDialog(QDialog):
         # group shortcuts by context
         shortcuts = groupby(sorted(CONF.iter_shortcuts()), key=itemgetter(0))
 
-        for context, group_shortcuts in shortcuts:
+        for __, group_shortcuts in shortcuts:
             for i, (context, name, keystr) in enumerate(group_shortcuts):
                 # start of every column
                 if added_shortcuts == 0:

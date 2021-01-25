@@ -72,7 +72,7 @@ class ScrollFlagArea(Panel):
         self._update_list_timer = QTimer(self)
         self._update_list_timer.setSingleShot(True)
         self._update_list_timer.timeout.connect(self.update_flags)
-        # Dictionnary with flag lists
+        # Dictionary with flag lists
         self._dict_flag_list = {}
 
     @property
@@ -191,11 +191,14 @@ class ScrollFlagArea(Panel):
 
         def compute_flag_ypos(block):
             line_number = block.firstLineNumber()
-            if last_line != 0:
+            if editor.verticalScrollBar().maximum() == 0:
+                geometry = editor.blockBoundingGeometry(block)
+                pos = geometry.y() + geometry.height() / 2 + self.FLAGS_DY / 2
+            elif last_line != 0:
                 frac = line_number / last_line
+                pos = first_y_pos + frac * (last_y_pos - first_y_pos)
             else:
-                frac = line_number
-            pos = first_y_pos + frac * (last_y_pos - first_y_pos)
+                pos = first_y_pos
             return ceil(pos)
 
         # All the lists of block numbers for flags

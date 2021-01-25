@@ -26,7 +26,7 @@ from spyder.api.manager import Manager
 
 # Timeout to avoid almost simultaneous calls to update decorations, which
 # introduces a lot of sluggishness in the editor.
-UPDATE_TIMEOUT = 15  # miliseconds
+UPDATE_TIMEOUT = 15  # milliseconds
 
 
 class TextDecorationsManager(Manager, QObject):
@@ -120,8 +120,19 @@ class TextDecorationsManager(Manager, QObject):
             # Update visible decorations
             visible_decorations = []
             for decoration in self._decorations:
+                need_update_sel = False
+                cursor = decoration.cursor
+                sel_start = cursor.selectionStart()
+                # This is required to update extra selections from the point
+                # an initial selection was made.
+                # Fixes spyder-ide/spyder#14282
+                if sel_start is not None:
+                    doc = cursor.document()
+                    block_nb_start = doc.findBlock(sel_start).blockNumber()
+                    need_update_sel = first <= block_nb_start <= last
+
                 block_nb = decoration.cursor.block().blockNumber()
-                if (first <= block_nb <= last or
+                if (first <= block_nb <= last or need_update_sel or
                         decoration.kind == 'current_cell'):
                     visible_decorations.append(decoration)
                     try:

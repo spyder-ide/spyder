@@ -182,7 +182,12 @@ class Projects(SpyderPluginWidget):
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
-            lambda v: self.main.workingdirectory.chdir(v))
+            lambda path:
+            self.main.workingdirectory.chdir(
+                directory=path,
+                sender_plugin=self
+            )
+        )
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
@@ -194,8 +199,12 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.connect(
             lambda v: self.main.outlineexplorer.update_all_editors())
         self.sig_project_closed[object].connect(
-            lambda v: self.main.workingdirectory.chdir(
-                self.get_last_working_dir()))
+            lambda path:
+            self.main.workingdirectory.chdir(
+                directory=self.get_last_working_dir(),
+                sender_plugin=self
+            )
+        )
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
@@ -350,7 +359,7 @@ class Projects(SpyderPluginWidget):
                 )
 
     def open_project(self, path=None, project=None, restart_consoles=True,
-                     save_previous_files=True):
+                     save_previous_files=True, workdir=None):
         """Open the project located in `path`."""
         self.unmaximize()
         if path is None:
@@ -405,7 +414,10 @@ class Projects(SpyderPluginWidget):
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()
-        self.sig_project_loaded.emit(path)
+        if workdir and osp.isdir(workdir):
+            self.sig_project_loaded.emit(workdir)
+        else:
+            self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
 

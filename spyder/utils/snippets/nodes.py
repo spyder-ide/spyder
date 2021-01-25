@@ -239,7 +239,7 @@ class FormatNode(ASTNode):
     """
     Base regex formatting node.
 
-    All regex formatting nodes shoudld extend this class.
+    All regex formatting nodes should extend this class.
     """
 
     def transform_regex(self, regex_result):

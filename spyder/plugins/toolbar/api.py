@@ -11,12 +11,9 @@ Spyder application toolbar constants.
 
 # --- Constants
 # ----------------------------------------------------------------------------
-class ApplicationToolBars:
+class ApplicationToolbars:
     File = 'file_toolbar'
     Run = 'run_toolbar'
-    Debug = 'defbug_toolbar'
+    Debug = 'debug_toolbar'
     Main = 'main_toolbar'
-    Search = 'search_toolbar'
-    Edit = 'edit_toolbar'
-    Source = 'source_toolbar'
     WorkingDirectory = 'working_directory_toolbar'

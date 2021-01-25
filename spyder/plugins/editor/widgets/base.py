@@ -169,7 +169,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Set extra selections for a key.
 
         Also assign draw orders to leave current_cell and current_line
-        in the backgrund (and avoid them to cover other decorations)
+        in the background (and avoid them to cover other decorations)
 
         NOTE: This will remove previous decorations added to the same key.
 
@@ -278,46 +278,117 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Unhighlight current cell"""
         self.clear_extra_selections('current_cell')
 
-    #------Brace matching
-    def find_brace_match(self, position, brace, forward):
+    def in_comment(self, cursor=None, position=None):
+        """Returns True if the given position is inside a comment.
+
+        Trivial default implementation. To be overridden by subclass.
+        This function is used to define the default behaviour of
+        self.find_brace_match.
+        """
+        return False
+
+    def in_string(self, cursor=None, position=None):
+        """Returns True if the given position is inside a string.
+
+        Trivial default implementation. To be overridden by subclass.
+        This function is used to define the default behaviour of
+        self.find_brace_match.
+        """
+        return False
+
+    def find_brace_match(self, position, brace, forward,
+                         ignore_brace=None, stop=None):
+        """Returns position of matching brace.
+
+        Parameters
+        ----------
+        position : int
+            The position of the brace to be matched.
+        brace : {'[', ']', '(', ')', '{', '}'}
+            The brace character to be matched.
+            [ <-> ], ( <-> ), { <-> }
+        forward : boolean
+            Whether to search forwards or backwards for a match.
+        ignore_brace : callable taking int returning boolean, optional
+            Whether to ignore a brace (as function of position).
+        stop : callable taking int returning boolean, optional
+            Whether to stop the search early (as function of position).
+
+        If both *ignore_brace* and *stop* are None, then brace matching
+        is handled differently depending on whether *position* is
+        inside a string, comment or regular code. If in regular code,
+        then any braces inside strings and comments are ignored. If in a
+        string/comment, then only braces in the same string/comment are
+        considered potential matches. The functions self.in_comment and
+        self.in_string are used to determine string/comment/code status
+        of characters in this case.
+
+        If exactly one of *ignore_brace* and *stop* is None, then it is
+        replaced by a function returning False for every position. I.e.:
+            lambda pos: False
+
+        Returns
+        -------
+        The position of the matching brace. If no matching brace
+        exists, then None is returned.
+        """
+
+        if ignore_brace is None and stop is None:
+            if self.in_string(position=position):
+                # Only search inside the current string
+                def stop(pos):
+                    return not self.in_string(position=pos)
+            elif self.in_comment(position=position):
+                # Only search inside the current comment
+                def stop(pos):
+                    return not self.in_comment(position=pos)
+            else:
+                # Ignore braces inside strings and comments
+                def ignore_brace(pos):
+                    return (self.in_string(position=pos) or
+                            self.in_comment(position=pos))
+
+        # Deal with search range and direction
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
-            bracemap = {'(': ')', '[': ']', '{': '}'}
-            text = self.get_text(position, end_pos)
-            i_start_open = 1
-            i_start_close = 1
+            closing_brace = {'(': ')', '[': ']', '{': '}'}[brace]
+            text = self.get_text(position, end_pos, remove_newlines=False)
         else:
-            bracemap = {')': '(', ']': '[', '}': '{'}
-            text = self.get_text(start_pos, position)
-            i_start_open = len(text)-1
-            i_start_close = len(text)-1
+            # Handle backwards search with the same code as forwards
+            # by reversing the string to be searched.
+            closing_brace = {')': '(', ']': '[', '}': '{'}[brace]
+            text = self.get_text(start_pos, position+1, remove_newlines=False)
+            text = text[-1::-1]  # reverse
 
+        def ind2pos(index):
+            """Computes editor position from search index."""
+            return (position + index) if forward else (position - index)
+
+        # Search starts at the first position after the given one
+        # (which is assumed to contain a brace).
+        i_start_close = 1
+        i_start_open = 1
         while True:
-            if forward:
-                i_close = text.find(bracemap[brace], i_start_close)
-            else:
-                i_close = text.rfind(bracemap[brace], 0, i_start_close+1)
-            if i_close > -1:
-                if forward:
-                    i_start_close = i_close+1
+            i_close = text.find(closing_brace, i_start_close)
+            i_start_close = i_close+1  # next potential start
+            if i_close == -1:
+                return  # no matching brace exists
+            elif ignore_brace is None or not ignore_brace(ind2pos(i_close)):
+                while True:
                     i_open = text.find(brace, i_start_open, i_close)
-                else:
-                    i_start_close = i_close-1
-                    i_open = text.rfind(brace, i_close, i_start_open+1)
-                if i_open > -1:
-                    if forward:
-                        i_start_open = i_open+1
-                    else:
-                        i_start_open = i_open-1
-                else:
-                    # found matching brace
-                    if forward:
-                        return position+i_close
-                    else:
-                        return position-(len(text)-i_close)
-            else:
-                # no matching brace
-                return
+                    i_start_open = i_open+1  # next potential start
+                    if i_open == -1:
+                        # found matching brace, but should we have
+                        # stopped before this point?
+                        if stop is not None:
+                            # There's room for optimization here...
+                            for i in range(1, i_close+1):
+                                if stop(ind2pos(i)):
+                                    return
+                        return ind2pos(i_close)
+                    elif (ignore_brace is None or
+                          not ignore_brace(ind2pos(i_open))):
+                        break  # must find new closing brace
 
     def __highlight(self, positions, color=None, cancel=False):
         if cancel:
@@ -338,23 +409,32 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.update_extra_selections()
 
     def cursor_position_changed(self):
-        """Brace matching"""
+        """Handle brace matching."""
+        # Clear last brace highlight (if any)
         if self.bracepos is not None:
             self.__highlight(self.bracepos, cancel=True)
             self.bracepos = None
+
+        # Get the current cursor position, check if it is at a brace,
+        # and, if so, determine the direction in which to search for able
+        # matching brace.
         cursor = self.textCursor()
         if cursor.position() == 0:
             return
         cursor.movePosition(QTextCursor.PreviousCharacter,
                             QTextCursor.KeepAnchor)
         text = to_text_string(cursor.selectedText())
-        pos1 = cursor.position()
         if text in (')', ']', '}'):
-            pos2 = self.find_brace_match(pos1, text, forward=False)
+            forward = False
         elif text in ('(', '[', '{'):
-            pos2 = self.find_brace_match(pos1, text, forward=True)
+            forward = True
         else:
             return
+
+        pos1 = cursor.position()
+        pos2 = self.find_brace_match(pos1, text, forward=forward)
+
+        # Set a new brace highlight
         if pos2 is not None:
             self.bracepos = (pos1, pos2)
             self.__highlight(self.bracepos, color=self.matched_p_color)
@@ -912,7 +992,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
-        return self.completion_widget.isVisible()
+        try:
+            return self.completion_widget.isVisible()
+        except RuntimeError:
+            # This is to avoid a RuntimeError exception when the widget is
+            # already been deleted. See spyder-ide/spyder#13248.
+            return False
 
     def hide_completion_widget(self, focus_to_parent=True):
         """Hide completion widget and tooltip."""

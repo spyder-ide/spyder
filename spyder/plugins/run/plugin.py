@@ -11,7 +11,7 @@ Run Plugin.
 """
 
 # Local imports
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.plugins.run.confpage import RunConfigPage
 
@@ -28,7 +28,7 @@ class Run(SpyderPluginV2):
 
     NAME = "run"
     # TODO: Fix requires to reflect the desired order in the preferences
-    REQUIRES = []
+    REQUIRES = [Plugins.Preferences]
     CONTAINER_CLASS = None
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = RunConfigPage
@@ -46,7 +46,8 @@ class Run(SpyderPluginV2):
         return self.create_icon('run')
 
     def register(self):
-        pass
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
 
     # --- Public API
     # ------------------------------------------------------------------------

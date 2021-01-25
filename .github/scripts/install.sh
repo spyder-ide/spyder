@@ -19,6 +19,11 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
+    if [ "$OS" = "win" ]; then
+        # Install Pyzmq 19 because our tests are failing with version 20
+        conda install pyzmq=19
+    fi
+
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
     conda remove python-language-server --force -q -y
@@ -64,6 +69,14 @@ conda list -n jedi-test-env
 # Create environment to test conda activation before launching a spyder kernel
 conda create -n spytest-ž -q -y python=3.6 spyder-kernels
 conda list -n spytest-ž
+
+# Install pyenv
+if [ "$RUN_SLOW" = "false" ]; then
+    if [ "$OS" != "win" ]; then
+        curl https://pyenv.run | bash
+        $HOME/.pyenv/bin/pyenv install 3.8.1
+    fi
+fi
 
 # Coverage
 pip install codecov

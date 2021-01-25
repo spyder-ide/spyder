@@ -10,7 +10,7 @@ Tests for configdialog.py
 """
 
 
-def test_config_dialog_save_to_conf(qtbot, global_config_dialog):
+def test_config_dialog_save_to_conf(global_config_dialog):
     for index in range(global_config_dialog.pages_widget.count()):
         configpage = global_config_dialog.get_page(index)
         configpage.save_to_conf()

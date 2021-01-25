@@ -306,7 +306,7 @@ class PathManager(QDialog):
         """
         Add path to list widget.
 
-        If `directory` is provided, the folder dialog is overriden.
+        If `directory` is provided, the folder dialog is overridden.
         """
         if directory is None:
             self.redirect_stdio.emit(False)
@@ -373,7 +373,7 @@ class PathManager(QDialog):
         """
         Remove path from list widget.
 
-        If `force` is True, the message box is overriden.
+        If `force` is True, the message box is overridden.
         """
         if self.listwidget.currentItem():
             if not force:
@@ -413,7 +413,7 @@ class PathManager(QDialog):
         self.listwidget.setCurrentRow(row)
 
     def row_check_state(self, row):
-        """Retunr the checked state for item in row."""
+        """Return the checked state for item in row."""
         item = self.listwidget.item(row)
         return item.checkState()
 

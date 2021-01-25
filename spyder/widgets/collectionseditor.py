@@ -285,7 +285,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             except:
                 pass
         elif column == 2:
-            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes)
+            self.keys[:self.rows_loaded] = sort_against(self.keys,
+                                                        self.sizes,
+                                                        reverse=reverse)
             self.types = sort_against(self.types, self.sizes, reverse=reverse)
             try:
                 self.sizes.sort(reverse=reverse)
@@ -395,7 +397,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return to_qvariant()
         value = self.get_value(index)
         if index.column() == 4 and role == Qt.DisplayRole:
-            # TODO: Check the effect of not hidding the column
+            # TODO: Check the effect of not hiding the column
             # Treating search scores as a table column simplifies the
             # sorting once a score for a specific string in the finder
             # has been defined. This column however should always remain
@@ -1134,10 +1136,9 @@ class BaseTableView(QTableView):
         # Check if data is a dict
         if not hasattr(data, "keys"):
             return
-        editor = ImportWizard(self, text, title=title,
-                              contents_title=_("Clipboard contents"),
-                              varname=fix_reference_name("data",
-                                                         blacklist=list(data.keys())))
+        editor = ImportWizard(
+            self, text, title=title, contents_title=_("Clipboard contents"),
+            varname=fix_reference_name("data", blacklist=list(data.keys())))
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
@@ -1336,7 +1337,7 @@ class CollectionsEditor(BaseDialog):
               icon=None, parent=None):
         """Setup editor."""
         if isinstance(data, (dict, set)):
-            # dictionnary, set
+            # dictionary, set
             self.data_copy = data.copy()
             datalen = len(data)
         elif isinstance(data, (tuple, list)):
@@ -1721,7 +1722,8 @@ def get_test_data():
     try:
         import pandas as pd
     except (ModuleNotFoundError, ImportError):
-        test_timestamp, test_pd_td, test_dtindex, test_series, test_df = None
+        test_df = None
+        test_timestamp = test_pd_td = test_dtindex = test_series = None
     else:
         test_timestamp = pd.Timestamp("1945-05-08T23:01:00.12345")
         test_pd_td = pd.Timedelta(days=2193, hours=12)

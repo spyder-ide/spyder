@@ -29,7 +29,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
-        HelpWidget, NamepaceBrowserWidget)
+        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -52,6 +52,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
     sig_pdb_state = Signal(bool, dict)
+    sig_pdb_prompt_ready = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
@@ -72,6 +73,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
+        self.custom_page_control = PageControlWidget
         self.custom_edit = True
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
@@ -117,6 +119,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
 
+        # Internal kernel are always spyder kernels
+        self._is_spyder_kernel = not external_kernel
+
     def __del__(self):
         """Avoid destroying shutdown_thread."""
         if (self.shutdown_thread is not None
@@ -124,6 +129,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.shutdown_thread.wait()
 
     # ---- Public API ---------------------------------------------------------
+    def is_spyder_kernel(self):
+        """Is the widget a spyder kernel."""
+        return self._is_spyder_kernel
+
     def shutdown(self):
         """Shutdown kernel"""
         self.shutdown_called = True
@@ -238,7 +247,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             return False
 
-    def is_spyder_kernel(self):
+    def check_spyder_kernel(self):
         """Determine if the kernel is from Spyder."""
         code = u"getattr(get_ipython().kernel, 'set_value', False)"
         if self._reading:
@@ -258,11 +267,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._cwd = dirname
 
     def update_cwd(self):
-        """Update current working directory.
-
-        Retrieve the cwd and emit a signal connected to the working directory
-        widget. (see: handle_exec_method())
-        """
+        """Update current working directory in the kernel."""
         if self.kernel_client is None:
             return
         self.call_kernel(callback=self.remote_set_cwd).get_cwd()
@@ -310,6 +315,72 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Ask the kernel for environment variables."""
         self.call_kernel(
             interrupt=True, callback=self.sig_show_env.emit).get_env()
+
+    def set_show_calltips(self, show_calltips):
+        """Enable/Disable showing calltips."""
+        self.enable_calltips = show_calltips
+
+    def set_buffer_size(self, buffer_size):
+        """Set buffer size for the shell."""
+        self.buffer_size = buffer_size
+
+    def set_completion_type(self, completion_type):
+        """Set completion type (Graphical, Terminal, Plain) for the shell."""
+        self.gui_completion = completion_type
+
+    def set_in_prompt(self, in_prompt):
+        """Set appereance of the In prompt."""
+        self.in_prompt = in_prompt
+
+    def set_out_prompt(self, out_prompt):
+        """Set appereance of the Out prompt."""
+        self.out_prompt = out_prompt
+
+    def get_matplotlib_backend(self):
+        """Call kernel to get current backend."""
+        return self.call_kernel(
+            interrupt=True,
+            blocking=True).get_matplotlib_backend()
+
+    def set_matplotlib_backend(self, backend_option, pylab=False):
+        """Set matplotlib backend given a backend name."""
+        cmd = "get_ipython().kernel.set_matplotlib_backend('{}', {})"
+        self.execute(cmd.format(backend_option, pylab), hidden=True)
+
+    def set_mpl_inline_figure_format(self, figure_format):
+        """Set matplotlib inline figure format."""
+        cmd = "get_ipython().kernel.set_mpl_inline_figure_format('{}')"
+        self.execute(cmd.format(figure_format), hidden=True)
+
+    def set_mpl_inline_resolution(self, resolution):
+        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
+        cmd = "get_ipython().kernel.set_mpl_inline_resolution({})"
+        self.execute(cmd.format(resolution), hidden=True)
+
+    def set_mpl_inline_figure_size(self, width, height):
+        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
+        cmd = "get_ipython().kernel.set_mpl_inline_figure_size({}, {})"
+        self.execute(cmd.format(width, height), hidden=True)
+
+    def set_mpl_inline_bbox_inches(self, bbox_inches):
+        """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
+        cmd = "get_ipython().kernel.set_mpl_inline_bbox_inches({})"
+        self.execute(cmd.format(bbox_inches), hidden=True)
+
+    def set_jedi_completer(self, use_jedi):
+        """Set if jedi completions should be used."""
+        cmd = "get_ipython().kernel.set_jedi_completer({})"
+        self.execute(cmd.format(use_jedi), hidden=True)
+
+    def set_greedy_completer(self, use_greedy):
+        """Set if greedy completions should be used."""
+        cmd = "get_ipython().kernel.set_greedy_completer({})"
+        self.execute(cmd.format(use_greedy), hidden=True)
+
+    def set_autocall(self, autocall):
+        """Set if autocall functionality is enabled or not."""
+        cmd = "get_ipython().kernel.set_autocall({})"
+        self.execute(cmd.format(autocall), hidden=True)
 
     # --- To handle the banner
     def long_banner(self):
@@ -567,6 +638,7 @@ the sympy module (e.g. plot)
                     if data is not None and 'text/plain' in data:
                         is_spyder_kernel = data['text/plain']
                         if 'SpyderKernel' in is_spyder_kernel:
+                            self._is_spyder_kernel = True
                             self.sig_is_spykernel.emit(self)
 
                 # Remove method after being processed

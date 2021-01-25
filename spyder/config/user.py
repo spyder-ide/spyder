@@ -69,7 +69,7 @@ class DefaultsConfig(cp.ConfigParser, object):
             fp.write('[{}]\n'.format(cp.DEFAULTSECT))
             for (key, value) in self._defaults.items():
                 value_plus_end_of_line = str(value).replace('\n', '\n\t')
-                fp.write('{} = {}\n'.format((key, value_plus_end_of_line)))
+                fp.write('{} = {}\n'.format(key, value_plus_end_of_line))
 
             fp.write('\n')
 
@@ -400,7 +400,7 @@ class UserConfig(DefaultsConfig):
         `old_version` can be used for checking compatibility whereas `version`
         relates to adding the version to the file name.
 
-        To be overriden if versions changed backup location.
+        To be overridden if versions changed backup location.
         """
         fpath = self.get_config_fpath()
         path = osp.join(osp.dirname(fpath), self._backup_folder)
@@ -416,7 +416,7 @@ class UserConfig(DefaultsConfig):
         """
         Get defaults location based on version.
 
-        To be overriden if versions changed defaults location.
+        To be overridden if versions changed defaults location.
         """
         version = old_version if old_version else self._version
         defaults_path = osp.join(osp.dirname(self.get_config_fpath()),
@@ -435,7 +435,7 @@ class UserConfig(DefaultsConfig):
         """
         Apply any patch to configuration values on version changes.
 
-        To be overriden if patches to configuration values are needed.
+        To be overridden if patches to configuration values are needed.
         """
         pass
 

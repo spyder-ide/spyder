@@ -308,15 +308,15 @@ class EditorConfigPage(PluginConfigPage):
         eol_group.setLayout(eol_layout)
 
         # --- Tabs ---
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(display_widget), _("Display"))
-        tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        tabs.addTab(self.create_tab(run_widget), _('Run code'))
-        tabs.addTab(self.create_tab(template_btn, autosave_group,
-                                    docstring_group, annotations_group,
-                                    eol_group),
-                    _("Advanced settings"))
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(display_widget), _("Display"))
+        self.tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
+        self.tabs.addTab(self.create_tab(run_widget), _('Run code'))
+        self.tabs.addTab(self.create_tab(template_btn, autosave_group,
+                                         docstring_group, annotations_group,
+                                         eol_group),
+                         _("Advanced settings"))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)

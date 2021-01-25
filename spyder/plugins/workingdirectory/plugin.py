@@ -17,7 +17,7 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.translations import get_translation
-from spyder.config.base import get_conf_path, get_home_dir
+from spyder.config.base import get_conf_path
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
 from spyder.plugins.workingdirectory.container import (
     WorkingDirectoryContainer)
@@ -33,7 +33,7 @@ class WorkingDirectory(SpyderPluginV2):
     """
 
     NAME = 'workingdir'
-    REQUIRES = [Plugins.Console]
+    REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
     OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
                 Plugins.Projects]
     CONTAINER_CLASS = WorkingDirectoryContainer
@@ -67,11 +67,14 @@ class WorkingDirectory(SpyderPluginV2):
 
     def register(self):
         container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
         editor = self.get_plugin(Plugins.Editor)
         explorer = self.get_plugin(Plugins.Explorer)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
 
-        self.add_application_toolbar(self.NAME, container.toolbar)
+        toolbar.add_application_toolbar(container.toolbar)
         container.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
         self.sig_current_directory_changed.connect(

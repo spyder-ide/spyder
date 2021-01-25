@@ -55,6 +55,8 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration,
                                         RunConfigDialog, RunConfigOneDialog)
+from spyder.plugins.mainmenu.api import ApplicationMenus
+
 
 
 logger = logging.getLogger(__name__)
@@ -177,14 +179,19 @@ class Editor(SpyderPluginWidget):
         # Configuration dialog size
         self.dialog_size = None
 
-        statusbar = parent.statusBar()  # Create a status bar
-        # Remove separator line
-        statusbar.setStyleSheet('QStatusBar::item {border: None;}')
-        self.vcs_status = VCSStatus(self, statusbar)
-        self.cursorpos_status = CursorPositionStatus(self, statusbar)
-        self.encoding_status = EncodingStatus(self, statusbar)
-        self.eol_status = EOLStatus(self, statusbar)
-        self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.vcs_status = VCSStatus(self)
+        self.cursorpos_status = CursorPositionStatus(self)
+        self.encoding_status = EncodingStatus(self)
+        self.eol_status = EOLStatus(self)
+        self.readwrite_status = ReadWriteStatus(self)
+
+        # TODO: temporal fix while editor uses new API
+        statusbar = self.main.statusbar
+        statusbar.add_status_widget(self.readwrite_status, 3)
+        statusbar.add_status_widget(self.eol_status, 3)
+        statusbar.add_status_widget(self.encoding_status, 3)
+        statusbar.add_status_widget(self.cursorpos_status, 3)
+        statusbar.add_status_widget(self.vcs_status, 3)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -992,13 +999,9 @@ class Editor(SpyderPluginWidget):
                                   self.text_uppercase_action,
                                   self.text_lowercase_action]
         self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
-        edit_toolbar_actions = [self.toggle_comment_action,
-                                self.unindent_action, self.indent_action]
-        self.main.edit_toolbar_actions += edit_toolbar_actions
 
         # ---- Search menu/toolbar construction ----
         self.main.search_menu_actions += [gotoline_action]
-        self.main.search_toolbar_actions += [gotoline_action]
 
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
@@ -1070,29 +1073,13 @@ class Editor(SpyderPluginWidget):
         ]
         self.main.source_menu_actions += source_menu_actions
 
-        source_toolbar_actions = [
-            self.todo_list_action,
-            self.warning_list_action,
-            self.previous_warning_action,
-            self.next_warning_action,
-            MENU_SEPARATOR,
-            self.previous_edit_cursor_action,
-            self.previous_cursor_action,
-            self.next_cursor_action
-        ]
-        self.main.source_toolbar_actions += source_toolbar_actions
-
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
             file_toolbar_actions +
             [MENU_SEPARATOR] +
-            source_toolbar_actions +
-            [MENU_SEPARATOR] +
             run_toolbar_actions +
             [MENU_SEPARATOR] +
-            debug_toolbar_actions +
-            [MENU_SEPARATOR] +
-            edit_toolbar_actions
+            debug_toolbar_actions
         )
         self.pythonfile_dependent_actions = [
             run_action,
@@ -1493,19 +1480,18 @@ class Editor(SpyderPluginWidget):
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
+        # TODO: All the actions here should be taken from
+        # the MainMenus plugin
+        help_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Help).get_actions()
 
         self.toolbar_list = ((_("File toolbar"), "file_toolbar",
                               self.main.file_toolbar_actions),
-                             (_("Search toolbar"), "search_toolbar",
-                              self.main.search_menu_actions),
-                             (_("Source toolbar"), "source_toolbar",
-                              self.main.source_toolbar_actions),
                              (_("Run toolbar"), "run_toolbar",
                               self.main.run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
-                              self.main.debug_toolbar_actions),
-                             (_("Edit toolbar"), "edit_toolbar",
-                              self.main.edit_toolbar_actions))
+                              self.main.debug_toolbar_actions))
+
         self.menu_list = ((_("&File"), self.main.file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
@@ -1513,7 +1499,7 @@ class Editor(SpyderPluginWidget):
                           (_("&Run"), self.main.run_menu_actions),
                           (_("&Tools"), self.main.tools_menu_actions),
                           (_("&View"), []),
-                          (_("&Help"), self.main.help_menu_actions))
+                          (_("&Help"), help_menu_actions))
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
@@ -1691,7 +1677,7 @@ class Editor(SpyderPluginWidget):
         # Refresh Python file dependent actions:
         editor = self.get_current_editor()
         if editor:
-            python_enable = editor.is_python()
+            python_enable = editor.is_python_or_ipython()
             cython_enable = python_enable or (
                 programs.is_module_installed('Cython') and editor.is_cython())
             for action in self.pythonfile_dependent_actions:

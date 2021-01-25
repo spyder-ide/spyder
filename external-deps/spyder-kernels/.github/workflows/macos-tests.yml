@@ -16,7 +16,6 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'macos'
-      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     strategy:
       fail-fast: false 
       matrix:
@@ -39,6 +38,7 @@ jobs:
         run: |
           conda install nomkl -y -q
           conda install --file requirements/tests.txt -y -q
+          if [ "$PYTHON_VERSION" != "2.7" ]; then conda install -y -q jedi=0.17.2; fi
       - name: Install Package
         shell: bash -l {0}
         run: pip install -e .

@@ -28,27 +28,22 @@ import logging
 import os
 
 # Third party imports
-from qtpy.QtCore import QObject, Qt, Signal, Slot, QSize
+from qtpy.QtCore import QObject, Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QToolBar, QWidget
+from qtpy.QtWidgets import QApplication, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.menus import ApplicationMenus
-from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
-from spyder.api.widgets.menus import ApplicationMenu
-from spyder.api.widgets.mixins import (SpyderActionMixin, SpyderOptionMixin,
-                                       SpyderWidgetMixin)
-from spyder.api.widgets.toolbars import ApplicationToolBar
+from spyder.api.widgets.mixins import SpyderActionMixin, SpyderOptionMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.py3compat import configparser as cp
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
 
 # Localization
 _ = get_translation('spyder')
@@ -590,13 +585,17 @@ class Plugins:
     Help = 'help'
     History = 'historylog'
     IPythonConsole = 'ipython_console'
+    MainMenu = 'mainmenu'
     OnlineHelp = 'online_help'
     OutlineExplorer = 'outline_explorer'
     Plots = 'plots'
+    Preferences = 'preferences'
     Profiler = 'profiler'
     Projects = 'project_explorer'
     Pylint = 'pylint'
     Shortcuts = 'shortcuts'
+    StatusBar = 'statusbar'
+    Toolbar = "toolbar"
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 
@@ -686,6 +685,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     # See:  spyder/plugins/console/plugin.py
     CONF_FROM_OPTIONS = None
 
+    # Some plugins may add configuration options for other plugins.
+    # Example:
+    # ADDITIONAL_CONF_OPTIONS = {'section': <new value to add>}
+    ADDITIONAL_CONF_OPTIONS = None
+
+    # Define additional configurable options (via a tab) to
+    # another's plugin configuration page. All configuration tabs should
+    # inherit from `SpyderPreferencesTab`.
+    # Example:
+    # ADDITIONAL_CONF_TABS = {'plugin_name': [<SpyderPreferencesTab classes>]}
+    ADDITIONAL_CONF_TABS = None
+
     # Path for images relative to the plugin path
     # A Python package can include one or several Spyder plugins. In this case
     # the package may be using images from a global folder outside the plugin
@@ -726,7 +737,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     message: str
         The actual message to display.
     timeout: int
-        The timeout before the message dissapears.
+        The timeout before the message disappears.
     """
 
     sig_redirect_stdio_requested = Signal(bool)
@@ -814,14 +825,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 options=options,
             )
 
-            # Widget setup
-            # ----------------------------------------------------------------
-            try:
-                container._setup(options=options)
-            except Exception as error:
-                logger.debug(
-                    "Running `_setup` on {0}: {1}".format(self, error))
-
             if isinstance(container, SpyderWidgetMixin):
                 container.setup(options=options)
                 container.update_actions()
@@ -842,6 +845,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                     self.sig_redirect_stdio_requested)
                 container.sig_restart_requested.connect(
                     self.sig_restart_requested)
+
+            self.after_container_creation()
+
+            # ---- Widget setup
+            container._setup(options=options)
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
@@ -929,13 +937,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             deps.append(dependency)
 
         PLUGINS = self._main._PLUGINS
-        if plugin_name in PLUGINS:
+        if plugin_name in deps:
             for name, plugin_instance in PLUGINS.items():
                 if name == plugin_name and name in deps:
                     return plugin_instance
             else:
-                raise SpyderAPIError(
-                    'Plugin "{}" not found!'.format(plugin_name))
+                if plugin_name in requires:
+                    raise SpyderAPIError(
+                        'Required Plugin "{}" not found!'.format(plugin_name))
+                else:
+                    return None
         else:
             raise SpyderAPIError(
                 'Plugin "{}" not part of REQUIRES or '
@@ -1197,9 +1208,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         Return action defined in any of the child widgets by name.
         """
-        container = self.get_container()
-        if container is not None:
-            actions = container.get_actions()
+        actions = self.get_actions()
 
         if name in actions:
             return actions[name]
@@ -1282,7 +1291,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             with PyQt4'). It will be shown at startup in a QMessageBox.
         """
         valid = True
-        message = ''  # Note: Remeber to use _('') to localize the string
+        message = ''  # Note: Remember to use _('') to localize the string
         return valid, message
 
     def on_first_registration(self):
@@ -1338,178 +1347,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         pass
 
-    # --- API Application Menus
-    # ------------------------------------------------------------------------
-    def add_application_menu(self, name, menu):
+    def after_container_creation(self):
         """
-        Add menu to the application.
-        """
-        if name in self._main._APPLICATION_MENUS:
-            raise SpyderAPIError(
-                'Menu with name "{}" already added!'.format(name))
+        Perform necessary operations before setting up the container.
 
-        self._main._APPLICATION_MENUS[name] = menu
-        self._main.menuBar().addMenu(menu)
+        This must be reimplemented by plugins whose containers emit signals in
+        on_option_update that need to be connected before applying those
+        options to our config system.
+        """
+        pass
 
-    def add_item_to_application_menu(self, item, menu, section=None,
-                                     before=None):
-        """
-        Add action or widget `item` to given application menu `section`.
-        """
-        # FIXME: Enable when new API is activated
-        # Check that menu is an ApplicationMenu
-        # if not isinstance(menu, ApplicationMenu):
-        #     raise SpyderAPIError('Not an ApplicationMenu!')
-
-        # TODO: For now just add the item to the bottom.
-        #       Temporal solution while API for managing app menus is created
-        app_menu_actions = {
-            ApplicationMenus.File: self._main.file_menu_actions,
-            ApplicationMenus.Edit: self._main.edit_menu_actions,
-            ApplicationMenus.Search: self._main.search_menu_actions,
-            ApplicationMenus.Source: self._main.source_menu_actions,
-            ApplicationMenus.Run: self._main.run_menu_actions,
-            ApplicationMenus.Debug: self._main.debug_menu_actions,
-            ApplicationMenus.Consoles: self._main.consoles_menu_actions,
-            ApplicationMenus.Projects: self._main.projects_menu_actions,
-            ApplicationMenus.Tools: self._main.tools_menu_actions,
-            # ApplicationMenus.View: self._main.view_menu_actions,
-            ApplicationMenus.Help: self._main.help_menu_actions,
-        }
-        actions = app_menu_actions[menu.name]
-        actions.append(None)
-        actions.append(item)
-
-    def get_application_menu(self, name):
-        """
-        Return an application menu by name.
-        """
-        # TODO: Temporal solution while API for managing app menus is created
-        self._main.file_menu.name = ApplicationMenus.File
-        self._main.edit_menu.name = ApplicationMenus.Edit
-        self._main.search_menu.name = ApplicationMenus.Search
-        self._main.source_menu.name = ApplicationMenus.Source
-        self._main.run_menu.name = ApplicationMenus.Run
-        self._main.debug_menu.name = ApplicationMenus.Debug
-        self._main.consoles_menu.name = ApplicationMenus.Consoles
-        self._main.projects_menu.name = ApplicationMenus.Projects
-        self._main.tools_menu.name = ApplicationMenus.Tools
-        self._main.view_menu.name = ApplicationMenus.View
-        self._main.help_menu.name = ApplicationMenus.Help
-
-        app_menus = {
-            ApplicationMenus.File: self._main.file_menu,
-            ApplicationMenus.Edit: self._main.edit_menu,
-            ApplicationMenus.Search: self._main.search_menu,
-            ApplicationMenus.Source: self._main.source_menu,
-            ApplicationMenus.Run: self._main.run_menu,
-            ApplicationMenus.Debug: self._main.debug_menu,
-            ApplicationMenus.Consoles: self._main.consoles_menu,
-            ApplicationMenus.Projects: self._main.projects_menu,
-            ApplicationMenus.Tools: self._main.tools_menu,
-            ApplicationMenus.View: self._main.view_menu,
-            ApplicationMenus.Help: self._main.help_menu,
-        }
-
-        if name in app_menus:
-            return app_menus[name]
-        else:
-            raise SpyderAPIError(
-                'Application menu "{0}" not found! Available '
-                'menus are: {1}'.format(name, list(app_menus.keys()))
-            )
-
-    # --- API Application Toolbars
-    # ------------------------------------------------------------------------
-    def add_application_toolbar(self, name, toolbar):
-        """
-        Add toolbar to application toolbars.
-        """
-        if name in self._main._APPLICATION_TOOLBARS:
-            raise SpyderAPIError(
-                'Toolbar with name "{}" already added!'.format(name))
-
-        # TODO: Make the icon size adjustable in Preferences later on.
-        iconsize = 24
-        toolbar.setIconSize(QSize(iconsize, iconsize))
-        self._main._APPLICATION_TOOLBARS[name] = toolbar
-        self._added_toolbars[name] = toolbar
-        self.main.addToolBar(toolbar)
-
-    def add_item_to_application_toolbar(self, item, toolbar, section=None,
-                                        before=None):
-        """
-        Add action or widget `item` to given application toolbar section.
-        """
-        # TODO: Restrict to application toolbar types
-        if not isinstance(toolbar, (ApplicationToolBar, QToolBar)):
-            raise SpyderAPIError('Not an ApplicationToolBar!')
-
-        toolbar.addAction(item)
-
-    def get_application_toolbar(self, name):
-        """
-        Return an application toolbar by name.
-        """
-        # TODO: Temporal solution while API for managing app menus is created
-        app_toolbars = {
-            ApplicationToolBars.File: self._main.file_toolbar,
-            ApplicationToolBars.Run: self._main.run_toolbar,
-            ApplicationToolBars.Debug: self._main.debug_toolbar,
-            ApplicationToolBars.Main: self._main.main_toolbar,
-            ApplicationToolBars.Search: self._main.search_toolbar,
-            ApplicationToolBars.Edit: self._main.edit_toolbar,
-            ApplicationToolBars.Source: self._main.source_toolbar,
-        }
-        if name in app_toolbars:
-            return app_toolbars[name]
-        else:
-            raise SpyderAPIError(
-                'Application toolbar "{0}" not found! '
-                'Available toolbars are: {1}'.format(
-                    name,
-                    list(app_toolbars.keys())
-                )
-            )
-
-    def get_application_toolbars(self):
-        """
-        Return all created application toolbars.
-        """
-        return self._main._APPLICATION_TOOLBARS
-
-    def get_registered_application_toolbars(self):
-        """
-        Return all created application toolbars.
-        """
-        return self._added_toolbars
-
-    # --- API Application Status Widgets
-    # ------------------------------------------------------------------------
-    def add_application_status_widget(self, name, widget):
-        """
-        Add status widget to main application status bar.
-        """
-        # TODO: Check widget class
-        # TODO: Check existence
-        status_bar = self._main.statusBar()
-        status_bar.insertPermanentWidget(0, widget)
-        self._main._STATUS_WIDGETS[name] = widget
-
-    def get_application_status_widget(self, name):
-        """
-        Return an application status widget by name.
-        """
-        if name in self._main._STATUS_WIDGETS:
-            return self._main._STATUS_WIDGETS[name]
-        else:
-            raise SpyderAPIError('Status widget "{}" not found!'.format(name))
-
-    def get_application_status_widgets(self):
-        """
-        Return all application status widgets created.
-        """
-        return self._main._STATUS_WIDGETS
 
 
 class SpyderDockablePlugin(SpyderPluginV2):

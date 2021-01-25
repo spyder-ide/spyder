@@ -57,7 +57,6 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/checkout@v2
       - name: Fetch branches
-        if: github.event_name == 'pull_request'
         run: git fetch --prune --unshallow
       - name: Check build skips
         if: github.event_name == 'pull_request'

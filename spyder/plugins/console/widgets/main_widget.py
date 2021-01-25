@@ -22,11 +22,9 @@ import sys
 # Third party imports
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 
 # Local imports
-from spyder.api.plugins import (SpyderPlugin, SpyderPluginV2,
-                                SpyderDockablePlugin)
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.app.solver import find_internal_plugins
@@ -334,6 +332,12 @@ class ConsoleWidget(PluginMainWidget):
         Bind help instance to this console.
         """
         self.shell.help = help_plugin
+
+    def report_issue(self):
+        """Report an issue with the SpyderErrorDialog."""
+        self._report_dlg = SpyderErrorDialog(self, is_report=True)
+        self._report_dlg.set_color_scheme(self.get_option('color_theme'))
+        self._report_dlg.show()
 
     @Slot(dict)
     def handle_exception(self, error_data, sender=None, internal_plugins=None):

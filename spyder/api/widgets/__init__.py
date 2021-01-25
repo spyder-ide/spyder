@@ -23,7 +23,6 @@ from collections import OrderedDict
 import os
 import sys
 import textwrap
-import uuid
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
@@ -38,12 +37,10 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
 from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
-                                      PluginMainWidgetMenus, SpyderMenu)
-from spyder.api.widgets.mixins import SpyderToolBarMixin, SpyderWidgetMixin
+                                      PluginMainWidgetMenus)
+from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
-from spyder.config.gui import is_dark_interface
-from spyder.utils.qthelpers import (add_actions, create_waitspinner,
-                                    set_menu_icons)
+from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -68,7 +65,7 @@ class PluginMainWidgetActions:
 
 # --- Spyder Widgets
 # ----------------------------------------------------------------------------
-class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
+class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
     Spyder plugin main container class.
 
@@ -163,11 +160,21 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
         self._plugin = plugin
         self._parent = parent
 
+        # Widget setup
+        # A PluginMainContainer inherits from QWidget so it can be a parent
+        # for the widgets it contains. Since it is a QWidget it will occupy a
+        # physical space on the screen and may cast "shadow" on the top left
+        # of the main window. To prevent this we ensure the widget has zero
+        # width and zero height.
+        # See: spyder-ide/spyder#13547
+        self.setMaximumWidth(0)
+        self.setMaximumHeight(0)
+
     # --- API: methods to define or override
     # ------------------------------------------------------------------------
     def setup(self, options=DEFAULT_OPTIONS):
         """
-        Create actions, add to menu and other setup requirements.
+        Create actions, widgets, add to menu and other setup requirements.
         """
         raise NotImplementedError(
             'A PluginMainContainer subclass must define a `setup` method!')
@@ -191,8 +198,15 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
             'A PluginMainContainer subclass must define a `on_option_update` '
             'method!')
 
+    # ---- Private methods
+    # ------------------------------------------------------------------------
+    def _setup(self, options=DEFAULT_OPTIONS):
+        """Apply options when instantiated by the plugin."""
+        for option, value in options.items():
+            self.on_option_update(option, value)
 
-class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
+
+class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
     Spyder plugin main widget class.
 
@@ -221,7 +235,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
     left of the corner menu widget (Hamburguer menu).
 
     Plugins that provide actions that take time should make this `True` and
-    use accoringly with the `start_spinner`/`stop_spinner` methods.
+    use accordingly with the `start_spinner`/`stop_spinner` methods.
 
     The Find in files plugin is an example of a core plugin that uses it.
 
@@ -434,7 +448,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
                 child.setCornerWidget(self._corner_widget)
 
                 # This is needed to ensure the corner ToolButton (hamburguer
-                # menu) is aligned with plugins that use ToolBars vs
+                # menu) is aligned with plugins that use Toolbars vs
                 # CornerWidgets
                 # See: spyder-ide/spyder#13600
                 # left, top, right, bottom
@@ -704,7 +718,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
             interface.
         """
         if toolbar_id in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" already exists!'.format(name))
+            raise SpyderAPIError('Toolbar "{}" already exists!'.format(
+                toolbar_id))
 
         toolbar = MainWidgetToolbar(parent=self)
         toolbar.ID = toolbar_id
@@ -909,7 +924,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         Create a QMainWindow instance containing this SpyderWidget.
         """
-        # Wigdets
+        # Widgets
         self.windowwidget = window = SpyderWindowWidget(self)
 
         # If the close corner button is used

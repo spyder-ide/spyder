@@ -29,6 +29,10 @@ from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
 
+
+HERE = osp.abspath(osp.dirname(__file__))
+
+
 # =============================================================================
 # ---- Qt Test Fixtures
 # =============================================================================
@@ -835,6 +839,71 @@ def test_remove_autosave_file(editor_bot, mocker, qtbot):
 
     assert not os.access(autosave_filename, os.R_OK)
     assert autosave.name_mapping == {}
+
+
+def test_ipython_files(base_editor_bot, qtbot):
+    """Test support for IPython files in the editor."""
+    # Load IPython file
+    editor_stack = base_editor_bot
+    editor_stack.load(osp.join(HERE, 'assets', 'ipython_file.ipy'))
+
+    editor = editor_stack.get_current_editor()
+    editor.completions_available = True
+
+    # Assert file is recognized as IPython
+    assert editor.is_ipython()
+
+    # Assert we transform IPython cells to valid Python code when opening
+    # the file
+    with qtbot.waitSignal(editor.sig_perform_completion_request) as blocker:
+        editor.document_did_open()
+
+    request_params = blocker.args[2]
+    assert 'get_ipython' in request_params['text']
+
+    # Assert we transform IPython cells to valid Python code when modifying
+    # the file
+    with qtbot.waitSignal(editor.sig_perform_completion_request) as blocker:
+        editor.document_did_change()
+
+    params = blocker.args[2]
+    assert 'get_ipython' in params['text']
+
+    # Mock linting results for this file. This is actually what's returned by
+    # Pyflakes.
+    editor._diagnostics = [
+        {
+            'source': 'pyflakes',
+            'range': {
+                'start': {'line': 8, 'character': 0},
+                'end': {'line': 8, 'character': 19}
+            },
+            'message': "'numpy as np' imported but unused", 'severity': 2
+        },
+        {
+            'source': 'pyflakes',
+            'range': {
+                'start': {'line': 11, 'character': 0},
+                'end': {'line': 11, 'character': 47}
+            },
+            'message': "undefined name 'get_ipython'", 'severity': 1
+        }
+    ]
+
+    # Setting them in the editor
+    editor.set_errors()
+
+    # Measure how many blocks have attached linting data to them
+    blocks_with_data = 0
+    block = editor.document().firstBlock()
+    while block.isValid():
+        data = block.userData()
+        if data and data.code_analysis:
+            blocks_with_data += 1
+        block = block.next()
+
+    # Assert we omitted the get_ipython message from linting
+    assert blocks_with_data == 1
 
 
 if __name__ == "__main__":

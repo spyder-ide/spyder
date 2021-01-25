@@ -42,7 +42,7 @@ class DocumentProvider:
                     CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                     {'params': diagnostics})
         else:
-            logger.debug("Received diagnotics for file not open: " + uri)
+            logger.debug("Received diagnostics for file not open: " + uri)
 
     @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_CHANGE)
     def document_changed(self, params):

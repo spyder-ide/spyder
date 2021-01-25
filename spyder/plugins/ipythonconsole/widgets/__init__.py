@@ -11,12 +11,13 @@
 Widgets for the IPython Console.
 """
 
-from .control import ControlWidget
+from .control import ControlWidget, PageControlWidget
 from .debugging import DebuggingWidget
 from .help import HelpWidget
 from .namespacebrowser import NamepaceBrowserWidget
 from .figurebrowser import FigureBrowserWidget
 from .kernelconnect import KernelConnectionDialog
+from .restartdialog import ConsoleRestartDialog
 
 # ShellWidget contains the other widgets and ClientWidget
 # contains it

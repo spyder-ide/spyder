@@ -41,7 +41,7 @@ class CookiecutterDialog(QtWidgets.QDialog):
 
     sig_validated = QtCore.Signal(int, str)
     """
-    This signal is emited after validation has been executed.
+    This signal is emitted after validation has been executed.
 
     It provides the process exit code and the output captured.
     """
@@ -108,7 +108,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
 
     sig_validated = QtCore.Signal(int, str)
     """
-    This signal is emited after validation has been executed.
+    This signal is emitted after validation has been executed.
 
     It provides the process exit code and the output captured.
     """

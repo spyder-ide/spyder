@@ -1,5 +1,32 @@
 # History of changes
 
+## Version 1.10.1 (2020-12-18)
+
+### Issues Closed
+
+* [Issue 269](https://github.com/spyder-ide/spyder-kernels/issues/269) - Mark Windows intaller pkgs path as a library to prevent reloading modules  ([PR 270](https://github.com/spyder-ide/spyder-kernels/pull/270) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 256](https://github.com/spyder-ide/spyder-kernels/issues/256) - ImportError: cannot import name 'leading_empty_lines' ([PR 264](https://github.com/spyder-ide/spyder-kernels/pull/264) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 270](https://github.com/spyder-ide/spyder-kernels/pull/270) - PR: Treat 'pkgs' path as a library, by [@dalthviz](https://github.com/dalthviz) ([269](https://github.com/spyder-ide/spyder-kernels/issues/269))
+* [PR 267](https://github.com/spyder-ide/spyder-kernels/pull/267) - PR: Remove handlers that require direct code execution, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 266](https://github.com/spyder-ide/spyder-kernels/pull/266) - PR: Add exception for quit and exit in SpyderPdb, by [@impact27](https://github.com/impact27)
+* [PR 265](https://github.com/spyder-ide/spyder-kernels/pull/265) - PR: Add space after dot in a message, by [@impact27](https://github.com/impact27)
+* [PR 264](https://github.com/spyder-ide/spyder-kernels/pull/264) - PR: Add explicit requirement on IPython and require version 7.6.0+, by [@ccordoba12](https://github.com/ccordoba12) ([256](https://github.com/spyder-ide/spyder-kernels/issues/256))
+* [PR 263](https://github.com/spyder-ide/spyder-kernels/pull/263) - PR: Add extra validation to is_module_installed, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 262](https://github.com/spyder-ide/spyder-kernels/pull/262) - PR: Avoid infinite hang when quitting external kernels, by [@impact27](https://github.com/impact27)
+* [PR 261](https://github.com/spyder-ide/spyder-kernels/pull/261) - PR: Fix get_cwd permission errors, by [@steff456](https://github.com/steff456)
+* [PR 260](https://github.com/spyder-ide/spyder-kernels/pull/260) - PR: Fix Github actions, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 9 pull requests were closed.
+
+
+----
+
+
 ## Version 1.10.0 (2020-11-08)
 
 ### New features

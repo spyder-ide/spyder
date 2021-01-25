@@ -9,14 +9,14 @@ Find in Files Plugin.
 
 # Third party imports
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.menus import ApplicationMenus
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
-from spyder.plugins.findinfiles.widgets import (FindInFilesWidget,
-                                                FindInFilesWidgetActions)
+from spyder.plugins.findinfiles.widgets import FindInFilesWidget
+from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.misc import getcwd_or_home
 
 # Localization
@@ -26,7 +26,7 @@ _ = get_translation('spyder')
 # --- Constants
 # ----------------------------------------------------------------------------
 class FindInFilesActions:
-    FindInFiles = 'find_in_files_action'
+    FindInFiles = 'find in files'
 
 
 # --- Plugin
@@ -36,7 +36,9 @@ class FindInFiles(SpyderDockablePlugin):
     Find in files DockWidget.
     """
     NAME = 'find_in_files'
-    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.WorkingDirectory]
+    REQUIRES = []
+    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.WorkingDirectory,
+                Plugins.MainMenu]
     TABIFY = [Plugins.VariableExplorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
@@ -55,6 +57,7 @@ class FindInFiles(SpyderDockablePlugin):
 
     def register(self):
         widget = self.get_widget()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
         editor = self.get_plugin(Plugins.Editor)
         projects = self.get_plugin(Plugins.Projects)
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
@@ -72,20 +75,22 @@ class FindInFiles(SpyderDockablePlugin):
             working_directory.sig_current_directory_changed.connect(
                 self.refresh_search_directory)
 
-        findinfiles_action = self.get_action(FindInFilesWidgetActions.Find)
-        menu = self.get_application_menu(ApplicationMenus.Search)
-        self.add_item_to_application_menu(
-            findinfiles_action,
-            menu=menu,
+        findinfiles_action = self.create_action(
+            FindInFilesActions.FindInFiles,
+            text=_("Find in files"),
+            tip=_("Search text in multiple files"),
+            triggered=self.find,
+            register_shortcut=True,
+            context=Qt.WindowShortcut
         )
-        findinfiles_action.triggered.connect(lambda: self.switch_to_plugin())
 
-        search_toolbar = self.get_application_toolbar(
-            ApplicationToolBars.Search)
-        self.add_item_to_application_toolbar(
-            findinfiles_action,
-            search_toolbar,
-        )
+        if mainmenu:
+            menu = mainmenu.get_application_menu(ApplicationMenus.Search)
+            mainmenu.add_item_to_application_menu(
+                findinfiles_action,
+                menu=menu,
+            )
+
         self.refresh_search_directory()
 
     def on_close(self, cancelable=False):
@@ -144,9 +149,27 @@ class FindInFiles(SpyderDockablePlugin):
     def find(self):
         """
         Search text in multiple files.
+
+        Notes
+        -----
+        Find in files using the currently selected text of the focused widget.
         """
+        focus_widget = QApplication.focusWidget()
+        text = ''
+        try:
+            if focus_widget.has_selected_text():
+                text = focus_widget.get_selected_text()
+        except AttributeError:
+            # This is not a text widget deriving from TextEditBaseWidget
+            pass
+
         self.switch_to_plugin()
-        self.get_widget().find()
+        widget = self.get_widget()
+
+        if text:
+            widget.set_search_text(text)
+
+        widget.find()
 
 
 def test():

@@ -486,7 +486,7 @@ class CompletionPlugin(SpyderPluginV2):
                 provider_info['instance'].update_configuration(conf)
 
     def get_global_option(
-            self, option: str, default: Any = None, section: str) -> Any:
+            self, option: str, section: str, default: Any = None) -> Any:
         """
         Retrieve an option value from the global Spyder configurations.
 

@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
-from spyder.preferences.configdialog import GeneralConfigPage
+from spyder.plugins.preferences.api import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton

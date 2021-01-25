@@ -392,7 +392,10 @@ class ArrayDelegate(QItemDelegate):
         """Create editor widget"""
         model = index.model()
         value = model.get_value(index)
-        if model._data.dtype.name == "bool":
+        if type(value) == np.ndarray or model.readonly:
+            # The editor currently cannot properly handle this case
+            return
+        elif model._data.dtype.name == "bool":
             value = not value
             model.setData(index, to_qvariant(value))
             return
@@ -501,8 +504,8 @@ class ArrayView(QTableView):
                     bottom_right = self.model().index(bottom, right)
                     part = QItemSelectionRange(top_left, bottom_right)
                     new_selection.append(part)
-                self.selectionModel().select
-                (new_selection, self.selectionModel().ClearAndSelect)
+                self.selectionModel().select(
+                    new_selection, self.selectionModel().ClearAndSelect)
         except NameError:
             # Needed to handle a NameError while fetching data when closing
             # See isue 7880
@@ -788,7 +791,8 @@ class ArrayEditor(BaseDialog):
                 ra_combo.addItems(names)
                 btn_layout.addWidget(ra_combo)
             if is_masked_array:
-                label = QLabel(_("<u>Warning</u>: changes are applied separately"))
+                label = QLabel(_(
+                    "<u>Warning</u>: changes are applied separately"))
                 label.setToolTip(_("For performance reasons, changes applied "\
                                    "to masked array won't be reflected in "\
                                    "array's data (and vice-versa)."))

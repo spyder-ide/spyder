@@ -102,7 +102,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     # ------------------------------------------------------------------------
     sig_exception_occurred = Signal(dict)
     """
-    This Signal is emitted to report that an exception has occured.
+    This Signal is emitted to report that an exception has occurred.
 
     Parameters
     ----------
@@ -137,10 +137,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
         self.show_no_external_server_warning = True
 
         # Status bar widget
-        # if parent is not None:
-        #     statusbar = parent.statusBar()
-        #     self.status_widget = LSPStatusWidget(
-        #         None, statusbar, plugin=self)
+        if parent is not None:
+            self.status_widget = LSPStatusWidget(parent=None, plugin=self)
+            statusbar = self.main.statusbar
+            statusbar.add_status_widget(self.status_widget)
 
         # TODO: Move to register in the new API
         # self.sig_exception_occurred.connect(
@@ -515,7 +515,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         return started
 
     def register_client_instance(self, instance):
-        """Register signals emmited by a client instance."""
+        """Register signals emitted by a client instance."""
         if self.main:
             self.main.sig_pythonpath_changed.connect(self.update_syspath)
             self.main.sig_main_interpreter_changed.connect(

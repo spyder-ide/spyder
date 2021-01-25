@@ -17,10 +17,9 @@ from qtpy.QtCore import QPoint, Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
+from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action
-from spyder.widgets.status import StatusBarWidget
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,7 @@ class ClientStatus:
 
 class LSPStatusWidget(StatusBarWidget):
     """Status bar widget for LSP  status."""
+    ID = 'lsp_status'
 
     BASE_TOOLTIP = _(
         "Completions, linting, code\n"
@@ -50,13 +50,9 @@ class LSPStatusWidget(StatusBarWidget):
 
     STATUS = "LSP {}: {}"
 
-    def __init__(self, parent, statusbar, plugin):
+    def __init__(self, parent, plugin):
         self.tooltip = self.BASE_TOOLTIP
-        super(LSPStatusWidget, self).__init__(
-            parent, statusbar,
-            icon=ima.icon('lspserver'),
-            spinner=True
-        )
+        super().__init__(parent, spinner=True)
 
         self.plugin = plugin
         self.menu = QMenu(self)
@@ -110,6 +106,9 @@ class LSPStatusWidget(StatusBarWidget):
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
         return self.tooltip
+
+    def get_icon(self):
+        return self.create_icon('lspserver')
 
     @Slot()
     def update_status(self, lsp_language=None, status=None):

@@ -9,16 +9,12 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
-from distutils.version import LooseVersion
 import pdb
 import re
 
 from IPython.core.history import HistoryManager
 from IPython import __version__ as ipy_version
-if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
-    from IPython.core.inputsplitter import IPythonInputSplitter
-else:
-    from IPython.core.inputtransformer2 import TransformerManager
+from IPython.core.inputtransformer2 import TransformerManager
 from IPython.lib.lexers import IPythonLexer, IPython3Lexer
 from pygments.lexer import bygroups
 from pygments.token import Keyword, Operator, Text
@@ -26,7 +22,7 @@ from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import Qt
 
-from spyder.config.base import get_conf_path
+from spyder.config.base import _, get_conf_path
 from spyder.config.manager import CONF
 
 
@@ -65,6 +61,7 @@ class DebuggingHistoryWidget(RichJupyterWidget):
     def __init__(self, *args, **kwargs):
         # History
         self._pdb_history_input_number = 0  # Input number for current session
+        self._saved_pdb_history_input_number = []  # for recursive debugging
         self._pdb_history_file = PdbHistory()
         self._pdb_history = [
             line[-1] for line in self._pdb_history_file.get_tail(
@@ -215,18 +212,27 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_debug_state(self, is_debugging):
         """Update the debug state."""
         if is_debugging:
+            # Start debugging
+            if self._pdb_in_loop > 0:
+                # Recursive debugging
+                self._saved_pdb_history_input_number.append(
+                    self._pdb_history_input_number)
+                self.end_history_session()
+            self.new_history_session()
             self._pdb_in_loop += 1
-        elif self.is_debugging():
+        elif self._pdb_in_loop > 0:
+            # Stop debugging
             self._pdb_in_loop -= 1
+            self.end_history_session()
+            if self._pdb_in_loop > 0:
+                # Still debugging
+                self.new_history_session()
+                self._pdb_history_input_number = (
+                    self._saved_pdb_history_input_number.pop())
+
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_frame_loc = (None, None)
-
-        # start/stop pdb history session
-        if self.is_debugging():
-            self.new_history_session()
-        else:
-            self.end_history_session()
 
     def _pdb_cmd_prefix(self):
         """Return the command prefix"""
@@ -475,16 +481,17 @@ class DebuggingWidget(DebuggingHistoryWidget):
             password = self._pdb_prompt[1]
         self._pdb_prompt = (prompt, password)
 
+        # Update continuation prompt to reflect (possibly) new prompt length.
+        self._set_continuation_prompt(
+            self._make_continuation_prompt(prompt), html=True)
+
     def _is_pdb_complete(self, source):
         """
         Check if the pdb input is ready to be executed.
         """
         if source and source[0] == '!':
             source = source[1:]
-        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
-            tm = IPythonInputSplitter()
-        else:
-            tm = TransformerManager()
+        tm = TransformerManager()
         complete, indent = tm.check_complete(source)
         if indent is not None:
             indent = indent * ' '
@@ -512,7 +519,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
                     self.input_buffer = source
 
             if interactive:
-                # Add a continuation propt if not complete
+                # Add a continuation prompt if not complete
                 complete, indent = self._is_pdb_complete(source)
                 if not complete:
                     self.do_execute(source, complete, indent)
@@ -559,8 +566,8 @@ class DebuggingWidget(DebuggingHistoryWidget):
             self._highlighter.highlighting_on = True
             # The previous code finished executing
             self.executed.emit(self._pdb_prompt)
-            self.sig_pdb_state.emit(
-                True, self.get_pdb_last_step())
+            self.sig_pdb_prompt_ready.emit()
+            self.sig_pdb_state.emit(True, self.get_pdb_last_step())
 
         self._pdb_input_ready = True
 

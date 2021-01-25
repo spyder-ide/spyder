@@ -83,7 +83,7 @@ def test_is_valid_w_interpreter():
 def test_run_python_script_in_terminal(scriptpath, qtbot):
     """
     Test running a Python script in an external terminal when specifying
-    explicitely the working directory.
+    explicitly the working directory.
     """
     # Run the script
     outfilepath = osp.join(scriptpath.dirname, 'out.txt')
@@ -106,7 +106,7 @@ def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
                                                   qtbot):
     """
     Test running a Python script in an external terminal when specifying
-    explicitely the working directory.
+    explicitly the working directory.
     """
     # Run the script
     outfilepath = osp.join(scriptpath_with_blanks.dirname, 'out.txt')
@@ -170,7 +170,7 @@ def test_find_program():
 
 
 def test_shell_split():
-    """Test if the text can be split using shell-like sintax."""
+    """Test if the text can be split using shell-like syntax."""
     assert shell_split('-q -o -a') == ['-q', '-o', '-a']
     assert shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a') == \
            ['-q', 'd:\\Python de xxxx\\t.txt', '-o', '-a']

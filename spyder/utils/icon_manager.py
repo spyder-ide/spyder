@@ -354,10 +354,10 @@ _qtaargs = {
     'dependency_ok':           [('fa.check',), {'color': MAIN_FG_COLOR}],
     'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
     'dependency_error':        [('fa.warning',), {'color': 'darkred'}],
-    'broken_image':          [('mdi.image-broken-variant',),
-                                {'color': MAIN_FG_COLOR}],
+    'broken_image':            [('mdi.image-broken-variant',), {'color': MAIN_FG_COLOR}],
     # --- Status bar --------------------------------------------------------
     'code_fork':               [('fa.code-fork',), {'color': MAIN_FG_COLOR}],
+    'statusbar':               [('mdi.dock-bottom',), {'color': MAIN_FG_COLOR}],
 }
 
 
@@ -500,7 +500,7 @@ def base64_from_icon(icon_name, width, height):
 
 
 def base64_from_icon_obj(icon_obj, width, height):
-    """Convert icon object to base64 enconding."""
+    """Convert icon object to base64 encoding."""
     image = QImage(icon_obj.pixmap(width, height).toImage())
     byte_array = QByteArray()
     buffer = QBuffer(byte_array)

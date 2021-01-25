@@ -19,11 +19,11 @@ from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QTabWidget,
-                            QVBoxLayout)
+                            QVBoxLayout, QWidget)
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 running_in_mac_app, save_lang_conf)
-from spyder.preferences.configdialog import GeneralConfigPage
+from spyder.plugins.preferences.api import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
 from spyder.utils.qthelpers import (register_app_launchservices,
@@ -45,9 +45,7 @@ class MainConfigPage(GeneralConfigPage):
         self.ICON = ima.icon('genprefs')
         newcb = self.create_checkbox
 
-        # --- Interface
-        general_group = QGroupBox(_("General"))
-
+        # --- Advanced
         # Remove disabled languages
         language_codes = LANGUAGE_CODES.copy()
         for lang in DISABLED_LANGUAGES:
@@ -94,16 +92,18 @@ class MainConfigPage(GeneralConfigPage):
         comboboxes_advanced_layout.addLayout(cbs_adv_grid)
         comboboxes_advanced_layout.addStretch(1)
 
-        general_layout = QVBoxLayout()
-        general_layout.addLayout(comboboxes_advanced_layout)
-        general_layout.addWidget(single_instance_box)
-        general_layout.addWidget(prompt_box)
-        general_layout.addWidget(popup_console_box)
-        general_layout.addWidget(check_updates)
-        general_group.setLayout(general_layout)
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addLayout(comboboxes_advanced_layout)
+        advanced_layout.addWidget(single_instance_box)
+        advanced_layout.addWidget(prompt_box)
+        advanced_layout.addWidget(popup_console_box)
+        advanced_layout.addWidget(check_updates)
 
-        # --- Theme
-        interface_group = QGroupBox(_("Interface"))
+        advanced_widget = QWidget()
+        advanced_widget.setLayout(advanced_layout)
+
+        # --- Panes
+        interface_group = QGroupBox(_("Panes"))
 
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs')
@@ -170,57 +170,6 @@ class MainConfigPage(GeneralConfigPage):
 
             macOS_group.setLayout(macOS_layout)
 
-
-        # --- Status bar
-        sbar_group = QGroupBox(_("Status bar"))
-        show_status_bar = newcb(_("Show status bar"), 'show_status_bar')
-
-        memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
-                           tip=self.main.mem_status.toolTip())
-        memory_spin = self.create_spinbox("", _(" ms"), 'memory_usage/timeout',
-                                          min_=100, max_=1000000, step=100)
-        memory_box.toggled.connect(memory_spin.setEnabled)
-        memory_spin.setEnabled(self.get_option('memory_usage/enable'))
-        memory_box.setEnabled(self.main.mem_status.is_supported())
-        memory_spin.setEnabled(self.main.mem_status.is_supported())
-
-        cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
-                        tip=self.main.cpu_status.toolTip())
-        cpu_spin = self.create_spinbox("", _(" ms"), 'cpu_usage/timeout',
-                                       min_=100, max_=1000000, step=100)
-        cpu_box.toggled.connect(cpu_spin.setEnabled)
-        cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
-
-        cpu_box.setEnabled(self.main.cpu_status.is_supported())
-        cpu_spin.setEnabled(self.main.cpu_status.is_supported())
-
-        clock_box = newcb(_("Show clock"), 'clock/enable')
-
-        status_bar_o = self.get_option('show_status_bar')
-        show_status_bar.toggled.connect(memory_box.setEnabled)
-        show_status_bar.toggled.connect(memory_spin.setEnabled)
-        show_status_bar.toggled.connect(cpu_box.setEnabled)
-        show_status_bar.toggled.connect(cpu_spin.setEnabled)
-        show_status_bar.toggled.connect(clock_box.setEnabled)
-        memory_box.setEnabled(status_bar_o)
-        memory_spin.setEnabled(status_bar_o)
-        cpu_box.setEnabled(status_bar_o)
-        cpu_spin.setEnabled(status_bar_o)
-        clock_box.setEnabled(status_bar_o)
-
-        # Layout status bar
-        cpu_memory_layout = QGridLayout()
-        cpu_memory_layout.addWidget(memory_box, 0, 0)
-        cpu_memory_layout.addWidget(memory_spin, 0, 1)
-        cpu_memory_layout.addWidget(cpu_box, 1, 0)
-        cpu_memory_layout.addWidget(cpu_spin, 1, 1)
-        cpu_memory_layout.addWidget(clock_box, 2, 0)
-
-        sbar_layout = QVBoxLayout()
-        sbar_layout.addWidget(show_status_bar)
-        sbar_layout.addLayout(cpu_memory_layout)
-        sbar_group.setLayout(sbar_layout)
-
         # --- Screen resolution Group (hidpi)
         screen_resolution_group = QGroupBox(_("Screen resolution"))
         screen_resolution_bg = QButtonGroup(screen_resolution_group)
@@ -276,7 +225,8 @@ class MainConfigPage(GeneralConfigPage):
         screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
         screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
         screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
-        screen_resolution_inner_layout.addWidget(self.custom_scaling_edit, 2, 1)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_edit, 2, 1)
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
@@ -287,13 +237,13 @@ class MainConfigPage(GeneralConfigPage):
             interface_tab = self.create_tab(screen_resolution_group,
                                             interface_group)
 
-        tabs = QTabWidget()
-        tabs.addTab(interface_tab, _("Interface"))
-        tabs.addTab(self.create_tab(general_group, sbar_group),
-                    _("Advanced settings"))
+        self.tabs = QTabWidget()
+        self.tabs.addTab(interface_tab, _("Interface"))
+        self.tabs.addTab(self.create_tab(advanced_widget),
+                         _("Advanced settings"))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
     def apply_settings(self, options):
