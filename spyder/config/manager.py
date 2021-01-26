@@ -15,7 +15,7 @@ import os.path as osp
 # Local imports
 from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
-from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
+from spyder.config.user import UserConfig, MultiUserConfig, NoDefault, cp
 from spyder.utils.programs import check_version
 
 
@@ -225,7 +225,25 @@ class ConfigurationManager(object):
         If section is None, the `option` is requested from default section.
         """
         config = self.get_active_conf(section)
-        return config.get(section=section, option=option, default=default)
+        if isinstance(option, (list, tuple)):
+            base_option = option[0]
+            intermediate_options = option[1:-1]
+            last_option = option[-1]
+
+            base_conf = config.get(
+                section=section, option=base_option, default={})
+            next_ptr = base_conf
+            for opt in intermediate_options:
+                next_ptr = next_ptr.get(opt, {})
+
+            value = next_ptr.get(last_option, None)
+            if value is None:
+                value = default
+                if default is NoDefault:
+                    raise cp.NoOptionError(option, section)
+        else:
+            value = config.get(section=section, option=option, default=default)
+        return value
 
     def set(self, section, option, value, verbose=False, save=True):
         """
@@ -233,6 +251,23 @@ class ConfigurationManager(object):
 
         If section is None, the `option` is added to the default section.
         """
+        import inspect
+        if isinstance(option, (list, tuple)):
+            base_option = option[0]
+            intermediate_options = option[1:-1]
+            last_option = option[-1]
+
+            base_conf = self.get(section, base_option, {})
+            conf_ptr = base_conf
+            for opt in intermediate_options:
+                next_ptr = conf_ptr.get(opt, {})
+                conf_ptr[opt] = next_ptr
+                conf_ptr = next_ptr
+
+            conf_ptr[last_option] = value
+            value = base_conf
+            option = base_option
+
         config = self.get_active_conf(section)
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
@@ -244,6 +279,18 @@ class ConfigurationManager(object):
         This is useful for type checking in `get` method.
         """
         config = self.get_active_conf(section)
+        if isinstance(option, (list, tuple)):
+            base_option = option[0]
+            intermediate_options = option[1:-1]
+            last_option = option[-1]
+
+            base_default = config.get_default(section, base_option)
+            conf_ptr = base_default
+            for opt in intermediate_options:
+                conf_ptr = conf_ptr[opt]
+
+            return conf_ptr[last_option]
+
         return config.get_default(section, option)
 
     def remove_section(self, section):
@@ -254,7 +301,19 @@ class ConfigurationManager(object):
     def remove_option(self, section, option):
         """Remove `option` from `section`."""
         config = self.get_active_conf(section)
-        config.remove_option(section, option)
+        if isinstance(option, (list, tuple)):
+            base_option = option[0]
+            intermediate_options = option[1:-1]
+            last_option = option[-1]
+
+            base_conf = self.get(section, base_option)
+            conf_ptr = base_conf
+            for opt in intermediate_options:
+                conf_ptr = conf_ptr[opt]
+            conf_ptr.pop(last_option)
+            self.set(section, base_option)
+        else:
+            config.remove_option(section, option)
 
     def reset_to_defaults(self, section=None):
         """Reset config to Default values."""

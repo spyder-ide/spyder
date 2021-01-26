@@ -14,6 +14,7 @@ Wraps FallbackActor to provide compatibility with SpyderCompletionProvider API.
 import logging
 
 # Local imports
+from spyder.config.base import _
 from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.completion.providers.fallback.actor import FallbackActor
 
@@ -35,6 +36,9 @@ class FallbackProvider(SpyderCompletionProvider):
                 self.COMPLETION_CLIENT_NAME, _id, resp))
         self.started = False
         self.requests = {}
+
+    def get_name(self):
+        return _('Fallback')
 
     def start_provider(self, language):
         return self.started

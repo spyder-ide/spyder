@@ -13,6 +13,7 @@ introspection clients.
 
 # Standard library imports
 from collections import defaultdict
+import functools
 import logging
 from pkg_resources import parse_version, iter_entry_points
 from typing import List, Any
@@ -22,15 +23,23 @@ from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.config.base import _
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            SpyderCompletionProvider,
                                            COMPLETION_ENTRYPOINT)
+from spyder.plugins.completion.confpage import CompletionConfigPage
 
 logger = logging.getLogger(__name__)
 COMPLETION_REQUESTS = [getattr(CompletionRequestTypes, c)
                        for c in dir(CompletionRequestTypes) if c.isupper()]
+
+
+def partialclass(cls, *args, **kwds):
+    """Return a partial class constructor."""
+    class NewCls(cls):
+        __init__ = functools.partialmethod(cls.__init__, *args, **kwds)
+    return NewCls
 
 
 class CompletionPlugin(SpyderPluginV2):
@@ -54,6 +63,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
+    REQUIRES = [Plugins.Preferences, Plugins.StatusBar]
     CONF_DEFAULTS = [
         ('enabled_providers', {}),
         ('provider_configuration', {}),
@@ -131,6 +141,15 @@ class CompletionPlugin(SpyderPluginV2):
                                f'point {entry_point}')
                 raise e
 
+        # Define configuration page
+        conf_providers = []
+        for provider_key in self.providers:
+            provider = self.providers[provider_key]['instance']
+            conf_providers.append((provider_key, provider.get_name()))
+
+        self.CONF_WIDGET_CLASS = partialclass(
+            CompletionConfigPage, providers=conf_providers)
+
     # ---------------- Public Spyder API required methods ---------------------
     def get_name(self) -> str:
         return _('Completion and linting')
@@ -145,6 +164,9 @@ class CompletionPlugin(SpyderPluginV2):
 
     def register(self):
         """Start all available completion providers."""
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.STOPPED:

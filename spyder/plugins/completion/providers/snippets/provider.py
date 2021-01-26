@@ -11,6 +11,7 @@ import bisect
 import logging
 
 # Local imports
+from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.api import (SpyderCompletionProvider,
                                            SUPPORTED_LANGUAGES)
@@ -41,6 +42,9 @@ class SnippetsProvider(SpyderCompletionProvider):
         self.started = False
         self.requests = {}
         self.config = config
+
+    def get_name(self):
+        return _('Custom text snippets')
 
     def start_provider(self, language):
         return self.started

@@ -701,6 +701,9 @@ class SpyderCompletionProvider(QObject):
     # 3. You don't need to touch this value if you're just adding a new option
     CONF_VERSION = "0.1.0"
 
+    # Widget to be used as entry in Spyder Preferences dialog.
+    CONF_TABS = []
+
     def __init__(self, parent, config):
         """
         Main completion provider constructor.
@@ -717,6 +720,10 @@ class SpyderCompletionProvider(QObject):
         QObject.__init__(self, parent)
         self.main = parent
         self.config = config
+
+    def get_name(self) -> str:
+        """Return a human readable name of the completion provider."""
+        return ''
 
     def register_file(self, language: str, filename: str, codeeditor):
         """
