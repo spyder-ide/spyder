@@ -25,19 +25,19 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.gui import get_font
-from spyder.plugins.completion.manager.api import LSP_LANGUAGES
+from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.snippets.ast import build_snippet_ast
 from spyder.widgets.helperwidgets import ItemDelegate
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
 # Languages supported by the text snippets extension
-LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
-LANGUAGE_SET = {lang.lower() for lang in LSP_LANGUAGES}
+LANGUAGE_NAMES = {x.lower(): x for x in SUPPORTED_LANGUAGES}
+LANGUAGE_SET = {lang.lower() for lang in SUPPORTED_LANGUAGES}
 
-PYTHON_POS = bisect.bisect_left(LSP_LANGUAGES, 'Python')
-LSP_LANGUAGES_PY = list(LSP_LANGUAGES)
-LSP_LANGUAGES_PY.insert(PYTHON_POS, 'Python')
+PYTHON_POS = bisect.bisect_left(SUPPORTED_LANGUAGES, 'Python')
+SUPPORTED_LANGUAGES_PY = list(SUPPORTED_LANGUAGES)
+SUPPORTED_LANGUAGES_PY.insert(PYTHON_POS, 'Python')
 
 LANGUAGE, ADDR, CMD = [0, 1, 2]
 
@@ -51,7 +51,7 @@ SNIPPETS_SCHEMA = {
             'language': {
                 'type': 'string',
                 'description': 'Programming language',
-                'enum': [lang.lower() for lang in LSP_LANGUAGES_PY]
+                'enum': [lang.lower() for lang in SUPPORTED_LANGUAGES_PY]
             },
             'triggers': {
                 'type': 'array',
@@ -141,8 +141,8 @@ class Snippet:
                  snippet_text="", remove_trigger=False):
         self.index = 0
         self.language = language
-        if self.language in LSP_LANGUAGE_NAME:
-            self.language = LSP_LANGUAGE_NAME[self.language]
+        if self.language in LANGUAGE_NAMES:
+            self.language = LANGUAGE_NAMES[self.language]
 
         self.trigger_text = trigger_text
         self.snippet_text = snippet_text

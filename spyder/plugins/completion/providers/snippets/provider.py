@@ -16,6 +16,9 @@ from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.api import (SpyderCompletionProvider,
                                            SUPPORTED_LANGUAGES)
 from spyder.plugins.completion.providers.snippets.actor import SnippetsActor
+from spyder.plugins.completion.providers.snippets.configtabs import (
+    SnippetsConfigTab
+)
 
 PYTHON_POS = bisect.bisect_left(SUPPORTED_LANGUAGES, 'Python')
 SUPPORTED_LANGUAGES_PY = list(SUPPORTED_LANGUAGES)
@@ -30,6 +33,7 @@ class SnippetsProvider(SpyderCompletionProvider):
     DEFAULT_ORDER = 2
     CONF_DEFAULTS = [('snippets', SNIPPETS)]
     CONF_VERSION = "0.1.0"
+    CONF_TABS = [SnippetsConfigTab]
 
     def __init__(self, parent, config):
         SpyderCompletionProvider.__init__(self, parent, config)

@@ -128,7 +128,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def __init__(self, parent):
         ConfigPage.__init__(self, parent,
                             apply_callback=lambda:
-                            self.apply_settings(self.changed_options))
+                            self._apply_settings_tabs(self.changed_options))
         self.checkboxes = {}
         self.radiobuttons = {}
         self.lineedits = {}
@@ -144,6 +144,14 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.default_button_group = None
         self.main = parent.main
         self.tabs = None
+
+    def _apply_settings_tabs(self, options):
+        if self.tabs is not None:
+            for i in range(self.tabs.count()):
+                tab = self.tabs.widget(i)
+                if hasattr(tab, 'apply_settings'):
+                    tab.apply_settings()
+        self.apply_settings(options)
 
     def apply_settings(self, options):
         raise NotImplementedError

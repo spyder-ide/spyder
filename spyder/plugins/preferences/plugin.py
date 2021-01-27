@@ -107,7 +107,7 @@ class Preferences(SpyderPluginV2):
             self.config_pages[plugin.CONF_SECTION] = (
                 self.OLD_API, Widget, plugin)
 
-    def check_version_and_merge(conf_section: str, conf_key: str,
+    def check_version_and_merge(self, conf_section: str, conf_key: str,
                                 new_value: BasicType,
                                 current_version: Version):
         """Add a versioned additional option to a configuration section."""
@@ -124,8 +124,8 @@ class Preferences(SpyderPluginV2):
 
             allow_replacement = current_version > prev_version
             allow_deletions = current_version.major > prev_version.major
-            new_value = merge_defaults(prev_default, new_value,
-                                       allow_replacement, allow_deletions)
+            new_value = self.merge_defaults(prev_default, new_value,
+                                            allow_replacement, allow_deletions)
             new_default = new_value
 
             if current_value != NoDefault:
@@ -174,7 +174,7 @@ class Preferences(SpyderPluginV2):
                 if new_key in prev_default:
                     current_subvalue = prev_default[new_key]
                     new_subvalue = new_default[new_key]
-                    prev_default[new_key] = merge_defaults(
+                    prev_default[new_key] = self.merge_defaults(
                         current_subvalue, new_subvalue,
                         allow_replacement, allow_deletions)
                 else:
@@ -212,7 +212,7 @@ class Preferences(SpyderPluginV2):
                 if new_key in current_value:
                     current_subvalue = current_value[new_key]
                     new_subvalue = new_value[new_key]
-                    current_value[new_key] = merge_configurations(
+                    current_value[new_key] = self.merge_configurations(
                         current_subvalue, new_subvalue)
                 else:
                     current_value[new_key] = new_value[new_key]

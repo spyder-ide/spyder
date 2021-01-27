@@ -8,6 +8,9 @@
 API to create an entry in Spyder Preferences associated to a given plugin.
 """
 
+# Standard library imports
+import types
+
 # Third party imports
 from qtpy.QtWidgets import QWidget
 
@@ -32,6 +35,16 @@ class SpyderPreferencesTab(QWidget):
 
         if self.TITLE is None or not isinstance(self.TITLE, str):
             raise ValueError("TITLE must be a str")
+
+    def apply_settings(self):
+        """
+        Hook called to manually apply settings that cannot be automatically
+        applied manually.
+
+        Reimplement this if the configuration tab has complex widgets that
+        cannot be created with any of the `self.create_*` calls.
+        """
+        pass
 
     def __getattr__(self, attr):
         this_class_dir = dir(self)
@@ -59,18 +72,29 @@ class PluginConfigPage(SpyderConfigPage):
         self.get_font = plugin.get_font
 
         if not self.APPLY_CONF_PAGE_SETTINGS:
-            try:
-                # New API
-                self.apply_settings = plugin.apply_conf
-                self.get_option = plugin.get_conf_option
-                self.set_option = plugin.set_conf_option
-            except AttributeError:
-                # Old API
-                self.apply_settings = plugin.apply_plugin_settings
-                self.get_option = plugin.get_option
-                self.set_option = plugin.set_option
+            self.patch_apply_settings(plugin)
 
         SpyderConfigPage.__init__(self, parent)
+
+    def _wrap_apply_settings(self, func):
+        def wrapper(self, options):
+            self.previous_apply_settings(options)
+            func(options)
+        return types.MethodType(wrapper, self)
+
+    def patch_apply_settings(self, plugin):
+        self.previous_apply_settings = self.apply_settings
+        try:
+            # New API
+            self.apply_settings = self._wrap_apply_settings(plugin.apply_conf)
+            self.get_option = plugin.get_conf_option
+            self.set_option = plugin.set_conf_option
+        except AttributeError:
+            # Old API
+            self.apply_settings = self._wrap_apply_settings(
+                plugin.apply_plugin_settings)
+            self.get_option = plugin.get_option
+            self.set_option = plugin.set_option
 
     def get_name(self):
         """

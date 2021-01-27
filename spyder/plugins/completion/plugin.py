@@ -71,6 +71,7 @@ class CompletionPlugin(SpyderPluginV2):
     ]
     CONF_VERSION = '0.1.0'
     CONF_FILE = False
+    ADDITIONAL_CONF_TABS = {}
 
     # TODO: This should be implemented in order to have all completion plugins'
     # configuration pages under "Completion & Linting"
@@ -140,14 +141,17 @@ class CompletionPlugin(SpyderPluginV2):
                                f'point {entry_point}')
                 raise e
 
-        # Define configuration page
+        # Define configuration page and tabs
         conf_providers = []
+        conf_tabs = []
         for provider_key in self.providers:
             provider = self.providers[provider_key]['instance']
+            conf_tabs += provider.CONF_TABS
             conf_providers.append((provider_key, provider.get_name()))
 
         self.CONF_WIDGET_CLASS = partialclass(
             CompletionConfigPage, providers=conf_providers)
+        self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
 
     # ---------------- Public Spyder API required methods ---------------------
     def get_name(self) -> str:
