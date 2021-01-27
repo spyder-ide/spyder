@@ -316,6 +316,7 @@ DEFAULTS = [
             ('completions',
              {
                'enable': True,
+               'enable_code_snippets': True,
                'completions_wait_for_ms': 200,
                'enabled_providers': {},
                'provider_configuration': {},

@@ -22,31 +22,83 @@ class CompletionConfigPage(PluginConfigPage):
 
     def setup_page(self):
         newcb = self.create_checkbox
-        self.provider_checkboxes = []
 
+        # -------------------- Plugin state group -----------------------------
+        plugin_state_group = QGroupBox(_('Plugin status'))
+        plugin_state_layout = QVBoxLayout()
+        self.completion_box = newcb(_("Enable Completion and linting plugin"),
+                                    'enable')
+        plugin_state_layout.addWidget(self.completion_box)
+        plugin_state_group.setLayout(plugin_state_layout)
+
+        self.completion_box.toggled.connect(self.enable_disable_plugin)
+
+        # ------------------- Providers state group ---------------------------
+        self.provider_checkboxes = []
         providers_layout = QGridLayout()
-        providers_group = QGroupBox(_("Completion providers"))
+        self.providers_group = QGroupBox(_("Completion providers"))
         for i, (provider_key, provider_name) in enumerate(self.providers):
             cb = newcb(_('Enable {0} provider').format(provider_name),
                        ('enabled_providers', provider_key), default=True)
             providers_layout.addWidget(cb, i, 0)
             self.provider_checkboxes.append(cb)
 
-        providers_group.setLayout(providers_layout)
+        self.providers_group.setLayout(providers_layout)
 
         completions_wait_for_ms = self.create_spinbox(
             _("Time to wait for all providers to return (ms):"), None,
             'completions_wait_for_ms', min_=0, max_=5000, step=10,
             tip=_("Beyond this timeout, "
                 "the first available provider will be returned"))
+        completion_hint_box = newcb(
+            _("Show completion details"),
+            'completions_hint',
+            section='editor')
+        automatic_completion_box = newcb(
+            _("Show completions on the fly"),
+            'automatic_completions',
+            section='editor')
+        completions_after_characters = self.create_spinbox(
+            _("Show automatic completions after characters entered:"), None,
+            'automatic_completions_after_chars', min_=1, step=1,
+            tip=_("Default is 3"), section='editor')
+        code_snippets_box = newcb(
+            _("Enable code snippets in the editor"), 'enable_code_snippets')
 
-        advanced_layout = QVBoxLayout()
-        advanced_group = QGroupBox(_('Advanced settings'))
-        advanced_layout.addWidget(completions_wait_for_ms)
-        advanced_group.setLayout(advanced_layout)
+        self.advanced_group = QGroupBox(_('Advanced settings'))
+        advanced_layout = QGridLayout()
+        advanced_layout.addWidget(completion_hint_box, 0, 0)
+        advanced_layout.addWidget(code_snippets_box, 1, 0)
+        advanced_layout.addWidget(automatic_completion_box, 2, 0)
+        advanced_layout.addWidget(completions_after_characters.plabel, 3, 0)
+        advanced_layout.addWidget(completions_after_characters.spinbox, 3, 1)
+        advanced_layout.addWidget(completions_wait_for_ms.plabel, 4, 0)
+        advanced_layout.addWidget(completions_wait_for_ms.spinbox, 4, 1)
+        advanced_layout.setColumnStretch(2, 6)
+        self.advanced_group.setLayout(advanced_layout)
+
+        def disable_completion_after_characters(state):
+            completions_after_characters.plabel.setEnabled(state)
+            completions_after_characters.spinbox.setEnabled(state)
+
+        automatic_completion_box.toggled.connect(
+            disable_completion_after_characters)
 
         layout = QVBoxLayout()
-        layout.addWidget(providers_group)
-        layout.addWidget(advanced_group)
+        layout.addWidget(plugin_state_group)
+        layout.addWidget(self.providers_group)
+        layout.addWidget(self.advanced_group)
         layout.addStretch(1)
         self.setLayout(layout)
+
+    def enable_disable_plugin(self, state):
+        self.providers_group.setEnabled(state)
+        self.advanced_group.setEnabled(state)
+
+        if self.tabs is not None:
+            num_tabs = self.tabs.count()
+            index = 1
+            while index < num_tabs:
+                tab_widget = self.tabs.widget(index)
+                tab_widget.setEnabled(state)
+                index += 1

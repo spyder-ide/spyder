@@ -1046,11 +1046,9 @@ class MainWindow(QMainWindow):
         self.register_plugin(self.maininterpreter)
 
         # Code completion client initialization
-        if CONF.get('completions', 'enable'):
-            from spyder.plugins.completion.plugin import CompletionPlugin
-            self.completions = CompletionPlugin(self, configuration=CONF)
-            self.register_plugin(self.completions)
-            # self.thirdparty_plugins.append(self.completions)
+        from spyder.plugins.completion.plugin import CompletionPlugin
+        self.completions = CompletionPlugin(self, configuration=CONF)
+        self.register_plugin(self.completions)
 
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
