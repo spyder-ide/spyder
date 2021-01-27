@@ -23,28 +23,30 @@ class CompletionConfigPage(PluginConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
         self.provider_checkboxes = []
-        # enabled_providers = self.get_option('enabled_providers')
 
         providers_layout = QGridLayout()
         providers_group = QGroupBox(_("Completion providers"))
         for i, (provider_key, provider_name) in enumerate(self.providers):
-            # provider_status = enabled_providers.get(provider_key, True)
             cb = newcb(_('Enable {0} provider').format(provider_name),
                        ('enabled_providers', provider_key), default=True)
-            # cb = QCheckBox(_('Enable {0} provider').format(provider_name))
-            # cb.setChecked(provider_status)
-            # cb.clicked.connect(
-            #     lambda _: self.has_been_modified('enabled_providers'))
             providers_layout.addWidget(cb, i, 0)
             self.provider_checkboxes.append(cb)
 
         providers_group.setLayout(providers_layout)
+
+        completions_wait_for_ms = self.create_spinbox(
+            _("Time to wait for all providers to return (ms):"), None,
+            'completions_wait_for_ms', min_=0, max_=5000, step=10,
+            tip=_("Beyond this timeout, "
+                "the first available provider will be returned"))
+
+        advanced_layout = QVBoxLayout()
+        advanced_group = QGroupBox(_('Advanced settings'))
+        advanced_layout.addWidget(completions_wait_for_ms)
+        advanced_group.setLayout(advanced_layout)
+
         layout = QVBoxLayout()
         layout.addWidget(providers_group)
+        layout.addWidget(advanced_group)
         layout.addStretch(1)
         self.setLayout(layout)
-
-    def apply_settings(self, options):
-        enabled_providers = self.get_option('enabled_providers')
-        print(options)
-        print(enabled_providers)

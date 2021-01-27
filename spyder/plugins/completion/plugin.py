@@ -16,7 +16,7 @@ from collections import defaultdict
 import functools
 import logging
 from pkg_resources import parse_version, iter_entry_points
-from typing import List, Any
+from typing import List, Any, Union
 
 # Third-party imports
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
@@ -126,8 +126,7 @@ class CompletionPlugin(SpyderPluginV2):
         self.projects = None
 
         # Timeout limit for a response to be received
-        self.wait_for_ms = self.get_conf_option('completions_wait_for_ms',
-                                                section='editor')
+        self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
 
         # Find and instantiate all completion providers registered via
         # entrypoints
@@ -171,7 +170,10 @@ class CompletionPlugin(SpyderPluginV2):
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.STOPPED:
                 # TODO: Register status bar widgets
-                provider_info['instance'].start()
+                provider_enabled = self.get_conf_option(
+                    ('enabled_providers', provider_name), True)
+                if provider_enabled:
+                    provider_info['instance'].start()
 
     def unregister(self):
         """Stop all running completion providers."""
@@ -193,6 +195,27 @@ class CompletionPlugin(SpyderPluginV2):
                 if provider_can_close:
                     provider.shutdown()
         return can_close
+
+    def after_configuration_update(self, options: List[Union[tuple, str]]):
+        providers_to_update = set({})
+        for option in options:
+            if option == 'completions_wait_for_ms':
+                self.wait_for_ms = self.get_conf_option(
+                    'completions_wait_for_ms')
+            elif isinstance(option, tuple):
+                option_name, provider_name, *__ = option
+                if option_name == 'enabled_providers':
+                    provider_status = self.get_conf_option(
+                        ('enabled_providers', provider_name))
+                    if provider_status:
+                        self.start_provider_instance(provider_name)
+                    else:
+                        self.shutdown_provider_instance(provider_name)
+                elif option_name == 'provider_configuration':
+                    providers_to_update |= {provider_name}
+
+        for provider in providers_to_update:
+            self.update_provider_configuration(provider)
 
     # ---------- Completion provider registering/start/stop methods -----------
     def _merge_default_configurations(self,
@@ -246,17 +269,11 @@ class CompletionPlugin(SpyderPluginV2):
 
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
-        enabled_plugins = self.get_conf_option('enabled_providers')
         provider_configurations = self.get_conf_option(
             'provider_configuration')
 
         provider_name = Provider.COMPLETION_CLIENT_NAME
         self._available_providers[provider_name] = Provider
-
-        is_provider_enabled = enabled_plugins.get(provider_name, True)
-        if not is_provider_enabled:
-            # Do not instantiate a disabled completion provider
-            return
 
         logger.debug("Completion plugin: Registering {0}".format(
             provider_name))
@@ -356,6 +373,29 @@ class CompletionPlugin(SpyderPluginV2):
             self, providers: List[str], req_type: str) -> List[str]:
         request_order = self.source_priority[req_type]
         return sorted(providers, key=lambda p: request_order[p])
+
+    def start_provider_instance(self, provider_name: str):
+        """Start a given provider."""
+        provider_info = self.providers[provider_name]
+        if provider_info['status'] == self.STOPPED:
+            provider_info['instance'].start()
+
+    def shutdown_provider_instance(self, provider_name: str):
+        """Shutdown a given provider."""
+        provider_info = self.providers[provider_name]
+        if provider_info['status'] == self.RUNNING:
+            provider_info['instance'].shutdown()
+            provider_info['status'] = self.STOPPED
+
+    def update_provider_configuration(self, provider_name: str):
+        """Update a provider configuration."""
+        provider_configurations = self.get_conf_option(
+            'provider_configuration')
+        provider_info = self.providers[provider_name]
+        if provider['status'] == self.RUNNING:
+            provider_configuration = provider_configurations[provider_name]
+            config = provider_configuration['values']
+            provider_info['instance'].update_configuration(config)
 
     # --------------- Public completion API request methods -------------------
     def send_request(self, language: str, req_type: str, req: dict):
@@ -498,14 +538,9 @@ class CompletionPlugin(SpyderPluginV2):
 
     def update_configuration(self):
         """Handle completion option configuration updates."""
-        self.wait_for_ms = self.get_conf_option('completions_wait_for_ms',
-                                                section='editor')
+        self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
         for provider_name in self.providers:
-            provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                # TODO: Obtain individual provider settings
-                conf = {}
-                provider_info['instance'].update_configuration(conf)
+            self.update_provider_configuration(provider_name)
 
     def get_global_option(
             self, option: str, section: str, default: Any = None) -> Any:

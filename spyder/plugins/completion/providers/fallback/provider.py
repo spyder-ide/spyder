@@ -51,6 +51,7 @@ class FallbackProvider(SpyderCompletionProvider):
     def shutdown(self):
         if self.started:
             self.fallback_actor.stop()
+            self.started = False
 
     def send_request(self, language, req_type, req, req_id=None):
         # if not self.enabled:

@@ -223,7 +223,6 @@ DEFAULTS = [
               'automatic_completions': True,
               'automatic_completions_after_chars': 3,
               'automatic_completions_after_ms': 300,
-              'completions_wait_for_ms': 200,
               'completions_hint': True,
               'completions_hint_after_ms': 500,
               'underline_errors': False,
@@ -317,6 +316,7 @@ DEFAULTS = [
             ('completions',
              {
                'enable': True,
+               'completions_wait_for_ms': 200,
                'enabled_providers': {},
                'provider_configuration': {},
                'request_priorities': {}

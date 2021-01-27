@@ -26,6 +26,7 @@ from collections import OrderedDict
 import inspect
 import logging
 import os
+from typing import List, Union
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
@@ -1053,14 +1054,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 )
 
             self._conf.set(section, option, value)
-            self.apply_conf({option})
+            self.apply_conf({option}, False)
 
-    def apply_conf(self, options_set):
+    def apply_conf(self, options_set, notify=True):
         """
         Apply `options_set` to this plugin's widget.
         """
         if self._conf is not None and options_set:
             container = self.get_container()
+            if notify:
+                self.after_configuration_update(list(options_set))
             # The container might not implement the SpyderWidgetMixin API
             # for example a completion client that only implements the
             # completion client interface without any options.
@@ -1357,6 +1360,20 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         pass
 
+    def after_configuration_update(self, options: List[Union[str, tuple]]):
+        """
+        Perform additional operations after updating the plugin configuration
+        values.
+
+        This can be implemented by plugins that do not have a container and
+        need to act on configuration updates.
+
+        Parameters
+        ----------
+        options: List[Union[str, tuple]]
+            A list that contains the options that were updated.
+        """
+        pass
 
 
 class SpyderDockablePlugin(SpyderPluginV2):
