@@ -14,6 +14,7 @@ introspection clients.
 # Standard library imports
 from collections import defaultdict
 import functools
+import inspect
 import logging
 from pkg_resources import parse_version, iter_entry_points
 from typing import List, Any, Union
@@ -25,6 +26,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.config.base import _
+from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            SpyderCompletionProvider,
                                            COMPLETION_ENTRYPOINT)
@@ -73,8 +75,8 @@ class CompletionPlugin(SpyderPluginV2):
     CONF_FILE = False
     ADDITIONAL_CONF_TABS = {}
 
-    # TODO: This should be implemented in order to have all completion plugins'
-    # configuration pages under "Completion & Linting"
+    # The configuration page is created dynamically based on the providers
+    # loaded
     CONF_WIDGET_CLASS = None
 
     # Ad Hoc polymorphism signals to make this plugin a completion provider
@@ -129,6 +131,44 @@ class CompletionPlugin(SpyderPluginV2):
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
 
+        # Set/Get option patching definitions
+        def wrap_get_option(provider):
+            plugin = self
+            def wrapper(self, option, default=NoDefault, section=None):
+                if section is None:
+                    if isinstance(option, tuple):
+                        option = ('provider_configuration', provider, *option)
+                    else:
+                        option = ('provider_configuration', provider, option)
+                return plugin.get_conf_option(option, default, section)
+            return wrapper
+
+        def wrap_set_option(provider):
+            plugin = self
+            def wrapper(self, option, value, section=None):
+                if section is None:
+                    if isinstance(option, tuple):
+                        option = ('provider_configuration', provider, *option)
+                    else:
+                        option = ('provider_configuration', provider, option)
+                return plugin.set_conf_option(option, value, section)
+            return wrapper
+
+        # Filter widget creation functions in ConfigPage
+        members = inspect.getmembers(CompletionConfigPage)
+        widget_funcs = []
+        for name, call in members:
+            if name.startswith('create_'):
+                sig = inspect.signature(call)
+                parameters = sig.parameters
+                if 'option' in sig.parameters:
+                    pos = 0
+                    for param in parameters:
+                        if param == 'option':
+                            break
+                        pos += 1
+                    widget_funcs.append((name, call, pos, parameters))
+
         # Find and instantiate all completion providers registered via
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
@@ -146,6 +186,10 @@ class CompletionPlugin(SpyderPluginV2):
         conf_tabs = []
         for provider_key in self.providers:
             provider = self.providers[provider_key]['instance']
+            for tab in provider.CONF_TABS:
+                # Add set_option/get_option to tab definition
+                setattr(tab, 'get_option', wrap_get_option(provider_key))
+                setattr(tab, 'set_option', wrap_set_option(provider_key))
             conf_tabs += provider.CONF_TABS
             conf_providers.append((provider_key, provider.get_name()))
 

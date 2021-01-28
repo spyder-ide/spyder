@@ -72,7 +72,7 @@ class PluginConfigPage(SpyderConfigPage):
         self.get_font = plugin.get_font
 
         if not self.APPLY_CONF_PAGE_SETTINGS:
-            self.patch_apply_settings(plugin)
+            self._patch_apply_settings(plugin)
 
         SpyderConfigPage.__init__(self, parent)
 
@@ -82,7 +82,7 @@ class PluginConfigPage(SpyderConfigPage):
             func(options)
         return types.MethodType(wrapper, self)
 
-    def patch_apply_settings(self, plugin):
+    def _patch_apply_settings(self, plugin):
         self.previous_apply_settings = self.apply_settings
         try:
             # New API
