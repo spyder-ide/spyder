@@ -91,7 +91,9 @@ def get_data_files():
     """
     if sys.platform.startswith('linux'):
         data_files = [('share/applications', ['scripts/spyder.desktop']),
-                      ('share/icons', ['img_src/spyder.png'])]
+                      ('share/icons', ['img_src/spyder.png']),
+                      ('share/metainfo',
+                       ['scripts/org.spyder_ide.spyder.appdata.xml'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
                                    'img_src/spyder_reset.ico'])]
