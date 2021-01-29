@@ -68,6 +68,11 @@ def make_app_bundle(dist_dir, make_lite=False):
         File "<frozen zipimport>", line 177, in get_data
         KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
         Grammar3.8.6.final.0.pickle'
+    ipython :
+        [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
+        Source file
+        <path>/Resources/lib/python38.zip/IPython/core/profile/README_STARTUP
+        does not exist
     jedi :
         jedi.api.environment.InvalidPythonEnvironment: Could not get version
         information for '<path>/Contents/MacOS/python': InternalError("The
@@ -122,8 +127,8 @@ def make_app_bundle(dist_dir, make_lite=False):
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'jedi', 'jinja2',
-                'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'IPython', 'jedi',
+                'jinja2', 'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
                 'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
                 'spyder_kernels', 'textdistance',
                 ]
