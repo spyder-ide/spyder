@@ -21,6 +21,7 @@ from qtpy.QtWidgets import (QComboBox, QGroupBox, QGridLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.providers.snippets.widgets.snippetsconfig import (
     SnippetModelsProxy, SnippetTable, SUPPORTED_LANGUAGES_PY, PYTHON_POS)
 from spyder.api.preferences import SpyderPreferencesTab
