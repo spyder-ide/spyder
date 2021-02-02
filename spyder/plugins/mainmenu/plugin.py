@@ -54,16 +54,20 @@ class MainMenu(SpyderPluginV2):
         # Reference holder dict for the menus
         self._APPLICATION_MENUS = OrderedDict()
         # Create Application menus using plugin public API
+        # FIXME: Migrated menus need to have 'dynamic=True' (default value) to
+        # work on Mac. Remove the 'dynamic' kwarg when migrating a menu!
         create_app_menu = self.create_application_menu
-        create_app_menu(ApplicationMenus.File, _("&File"))
-        create_app_menu(ApplicationMenus.Edit, _("&Edit"))
-        create_app_menu(ApplicationMenus.Search, _("&Search"))
-        create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
-        create_app_menu(ApplicationMenus.Run, _("&Run"))
-        create_app_menu(ApplicationMenus.Debug, _("&Debug"))
-        create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
-        create_app_menu(ApplicationMenus.Projects, _("&Projects"))
-        create_app_menu(ApplicationMenus.Tools, _("&Tools"))
+        create_app_menu(ApplicationMenus.File, _("&File"), dynamic=False)
+        create_app_menu(ApplicationMenus.Edit, _("&Edit"), dynamic=False)
+        create_app_menu(ApplicationMenus.Search, _("&Search"), dynamic=False)
+        create_app_menu(ApplicationMenus.Source, _("Sour&ce"), dynamic=False)
+        create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
+        create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
+        create_app_menu(
+            ApplicationMenus.Consoles, _("C&onsoles"), dynamic=False)
+        create_app_menu(
+            ApplicationMenus.Projects, _("&Projects"), dynamic=False)
+        create_app_menu(ApplicationMenus.Tools, _("&Tools"), dynamic=False)
         create_app_menu(ApplicationMenus.View, _("&View"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
 
@@ -180,7 +184,7 @@ class MainMenu(SpyderPluginV2):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def create_application_menu(self, menu_id, title):
+    def create_application_menu(self, menu_id, title, dynamic=True):
         """
         Create a Spyder application menu.
 
@@ -195,7 +199,7 @@ class MainMenu(SpyderPluginV2):
             raise SpyderAPIError(
                 'Menu with id "{}" already added!'.format(menu_id))
 
-        menu = ApplicationMenu(self.main, title)
+        menu = ApplicationMenu(self.main, title, dynamic=dynamic)
         menu.menu_id = menu_id
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)
