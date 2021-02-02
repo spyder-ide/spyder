@@ -137,9 +137,11 @@ class CompletionPlugin(SpyderPluginV2):
             def wrapper(self, option, default=NoDefault, section=None):
                 if section is None:
                     if isinstance(option, tuple):
-                        option = ('provider_configuration', provider, *option)
+                        option = ('provider_configuration', provider, 'values',
+                                  *option)
                     else:
-                        option = ('provider_configuration', provider, option)
+                        option = ('provider_configuration', provider, 'values',
+                                  option)
                 return plugin.get_conf_option(option, default, section)
             return wrapper
 
@@ -148,10 +150,44 @@ class CompletionPlugin(SpyderPluginV2):
             def wrapper(self, option, value, section=None):
                 if section is None:
                     if isinstance(option, tuple):
-                        option = ('provider_configuration', provider, *option)
+                        option = ('provider_configuration', provider, 'values',
+                                  *option)
                     else:
-                        option = ('provider_configuration', provider, option)
+                        option = ('provider_configuration', provider, 'values',
+                                  option)
                 return plugin.set_conf_option(option, value, section)
+            return wrapper
+
+        # Wrap create_* methods in configpage
+        def wrap_create_op(create_name, opt_pos, provider):
+            def wrapper(self, *args, **kwargs):
+                if kwargs['section'] is None:
+                    arg_list = list(args)
+                    if isinstance(args[opt_pos], tuple):
+                        arg_list[opt_pos] = (
+                            'provider_configuration', provider, 'values',
+                            *args[opt_pos])
+                    else:
+                        arg_list[opt_pos] = (
+                            'provider_configuration', provider, 'values',
+                            args[opt_pos])
+                    args = tuple(arg_list)
+                call = getattr(self.parent, create_name)
+                return call(*args, **kwargs)
+            return wrapper
+
+        def wrap_apply_settings(Tab, provider):
+            prev_method = Tab.apply_settings
+            def wrapper(self):
+                wrapped_opts = set({})
+                for opt in prev_method(self):
+                    if isinstance(opt, tuple):
+                        wrapped_opts |= {('provider_configuration',
+                                          provider, 'values', *opt)}
+                    else:
+                        wrapped_opts |= {(
+                            'provider_configuration', provider, 'values', opt)}
+                return wrapped_opts
             return wrapper
 
         # Filter widget creation functions in ConfigPage
@@ -167,7 +203,7 @@ class CompletionPlugin(SpyderPluginV2):
                         if param == 'option':
                             break
                         pos += 1
-                    widget_funcs.append((name, call, pos, parameters))
+                    widget_funcs.append((name, pos))
 
         # Find and instantiate all completion providers registered via
         # entrypoints
@@ -190,6 +226,12 @@ class CompletionPlugin(SpyderPluginV2):
                 # Add set_option/get_option to tab definition
                 setattr(tab, 'get_option', wrap_get_option(provider_key))
                 setattr(tab, 'set_option', wrap_set_option(provider_key))
+                # Wrap apply_settings to return settings correctly
+                setattr(tab, 'apply_settings',
+                        wrap_apply_settings(tab, provider_key))
+                # Wrap create_* methods to consider provider
+                for name, pos in widget_funcs:
+                    setattr(tab, name, wrap_create_op(name, pos, provider_key))
             conf_tabs += provider.CONF_TABS
             conf_providers.append((provider_key, provider.get_name()))
 
@@ -440,7 +482,7 @@ class CompletionPlugin(SpyderPluginV2):
         provider_configurations = self.get_conf_option(
             'provider_configuration')
         provider_info = self.providers[provider_name]
-        if provider['status'] == self.RUNNING:
+        if provider_info['status'] == self.RUNNING:
             provider_configuration = provider_configurations[provider_name]
             config = provider_configuration['values']
             provider_info['instance'].update_configuration(config)

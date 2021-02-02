@@ -10,15 +10,19 @@ API to create an entry in Spyder Preferences associated to a given plugin.
 
 # Standard library imports
 import types
+from typing import Tuple, Union, Set
 
 # Third party imports
 from qtpy.QtWidgets import QWidget
 
 # Local imports
-from spyder.plugins.preferences.api import SpyderConfigPage
+from spyder.plugins.preferences.api import SpyderConfigPage, BaseConfigTab
 
 
-class SpyderPreferencesTab(QWidget):
+OptionSet = Set[Union[str, Tuple[str, ...]]]
+
+
+class SpyderPreferencesTab(BaseConfigTab):
     """
     Widget that represents a tab on a preference page.
 
@@ -36,7 +40,7 @@ class SpyderPreferencesTab(QWidget):
         if self.TITLE is None or not isinstance(self.TITLE, str):
             raise ValueError("TITLE must be a str")
 
-    def apply_settings(self):
+    def apply_settings(self) -> OptionSet:
         """
         Hook called to manually apply settings that cannot be automatically
         applied manually.
@@ -44,7 +48,7 @@ class SpyderPreferencesTab(QWidget):
         Reimplement this if the configuration tab has complex widgets that
         cannot be created with any of the `self.create_*` calls.
         """
-        pass
+        return set({})
 
     def __getattr__(self, attr):
         this_class_dir = dir(self)
@@ -78,8 +82,8 @@ class PluginConfigPage(SpyderConfigPage):
 
     def _wrap_apply_settings(self, func):
         def wrapper(self, options):
-            self.previous_apply_settings(options)
-            func(options)
+            opts = self.previous_apply_settings()
+            func(options | opts)
         return types.MethodType(wrapper, self)
 
     def _patch_apply_settings(self, plugin):
@@ -144,3 +148,16 @@ class PluginConfigPage(SpyderConfigPage):
         self.setLayout(layout)
         """
         raise NotImplementedError
+
+    def apply_settings(self) -> OptionSet:
+        """
+        Hook called to manually apply settings that cannot be automatically
+        applied manually.
+
+        Reimplement this if the configuration page has complex widgets that
+        cannot be created with any of the `self.create_*` calls.
+
+        This call should return a set containing the configuration options that
+        changed.
+        """
+        return set({})

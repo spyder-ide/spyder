@@ -37,6 +37,11 @@ from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
 
 
+class BaseConfigTab(QWidget):
+    """Stub class to declare a config page."""
+    pass
+
+
 class ConfigAccessMixin(object):
     """Namespace for methods that access config storage"""
     CONF_SECTION = None
@@ -149,8 +154,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if self.tabs is not None:
             for i in range(self.tabs.count()):
                 tab = self.tabs.widget(i)
-                if hasattr(tab, 'apply_settings'):
-                    tab.apply_settings()
+                layout = tab.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if hasattr(widget, 'apply_settings'):
+                        if issubclass(type(widget), BaseConfigTab):
+                            options |= widget.apply_settings()
         self.apply_settings(options)
 
     def apply_settings(self, options):

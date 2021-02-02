@@ -109,17 +109,19 @@ SNIPPETS_SCHEMA = {
 }
 
 
-def iter_snippets(language, snippets=None):
+def iter_snippets(language, get_option, set_option, snippets=None):
     language_snippets = []
     load_snippets = snippets is None
     if load_snippets:
-        snippets = CONF.get('snippet-completions', language.lower(), {})
+        snippets = get_option(language.lower(), default={})
     for trigger in snippets:
         trigger_descriptions = snippets[trigger]
         for description in trigger_descriptions:
             if load_snippets:
                 this_snippet = Snippet(language=language, trigger_text=trigger,
-                                       description=description)
+                                       description=description,
+                                       get_option=get_option,
+                                       set_option=set_option)
                 this_snippet.load()
             else:
                 current_snippet = trigger_descriptions[description]
@@ -129,7 +131,9 @@ def iter_snippets(language, snippets=None):
                                        trigger_text=trigger,
                                        description=description,
                                        snippet_text=text,
-                                       remove_trigger=remove_trigger)
+                                       remove_trigger=remove_trigger,
+                                       get_option=get_option,
+                                       set_option=set_option)
             language_snippets.append(this_snippet)
     return language_snippets
 
@@ -138,7 +142,8 @@ class Snippet:
     """Convenience class to store user snippets."""
 
     def __init__(self, language=None, trigger_text="", description="",
-                 snippet_text="", remove_trigger=False):
+                 snippet_text="", remove_trigger=False, get_option=None,
+                 set_option=None):
         self.index = 0
         self.language = language
         if self.language in LANGUAGE_NAMES:
@@ -150,6 +155,8 @@ class Snippet:
         self.remove_trigger = remove_trigger
         self.initial_trigger_text = trigger_text
         self.initial_description = description
+        self.set_option = set_option
+        self.get_option = get_option
 
     def __repr__(self):
         return '[{0}] {1} ({2}): {3}'.format(
@@ -168,7 +175,7 @@ class Snippet:
 
     def load(self):
         if self.language is not None and self.trigger_text != '':
-            state = CONF.get('snippet-completions', self.language.lower())
+            state = self.get_option(self.language.lower())
             trigger_info = state[self.trigger_text]
             snippet_info = trigger_info[self.description]
             self.snippet_text = snippet_info['text']
@@ -177,7 +184,7 @@ class Snippet:
     def save(self):
         if self.language is not None:
             language = self.language.lower()
-            current_state = CONF.get('snippet-completions', language, {})
+            current_state = self.get_option(language, default={})
             new_state = {
                 'text': self.snippet_text,
                 'remove_trigger': self.remove_trigger
@@ -193,17 +200,17 @@ class Snippet:
             trigger_info = current_state.get(self.trigger_text, {})
             trigger_info[self.description] = new_state
             current_state[self.trigger_text] = trigger_info
-            CONF.set('snippet-completions', language, current_state)
+            self.set_option(language, current_state)
 
     def delete(self):
         if self.language is not None:
             language = self.language.lower()
-            current_state = CONF.get('snippet-completions', language, {})
+            current_state = self.get_option(language, default={})
             trigger = current_state[self.trigger_text]
             trigger.pop(self.description)
             if len(trigger) == 0:
                 current_state.pop(self.trigger_text)
-            CONF.set('snippet-completions', language, current_state)
+            self.set_option(language, current_state)
 
 
 class SnippetEditor(QDialog):
@@ -217,7 +224,7 @@ class SnippetEditor(QDialog):
 
     def __init__(self, parent, language=None, trigger_text='', description='',
                  snippet_text='', remove_trigger=False, trigger_texts=[],
-                 descriptions=[]):
+                 descriptions=[], get_option=None, set_option=None):
         super(SnippetEditor, self).__init__(parent)
 
         snippet_description = _(
@@ -236,7 +243,8 @@ class SnippetEditor(QDialog):
         self.base_snippet = Snippet(
             language=language, trigger_text=trigger_text,
             snippet_text=snippet_text, description=description,
-            remove_trigger=remove_trigger)
+            remove_trigger=remove_trigger,
+            get_option=get_option, set_option=set_option)
 
         # Widgets
         self.snippet_settings_description = QLabel(snippet_description)
@@ -292,7 +300,7 @@ class SnippetEditor(QDialog):
 
         self.snippet_input.setup_editor(
             language=language,
-            color_scheme=CONF.get('appearance', 'selected'),
+            color_scheme=get_option('selected', section='appearance'),
             wrap=False,
             highlight_current_line=True,
             font=get_font()
@@ -479,9 +487,10 @@ class SnippetsModel(QAbstractTableModel):
 
 
 class SnippetModelsProxy:
-    def __init__(self):
+    def __init__(self, parent):
         self.models = {}
         self.awaiting_queue = {}
+        self.parent = parent
 
     def get_model(self, table, language, text_color=None):
         if language not in self.models:
@@ -499,7 +508,9 @@ class SnippetModelsProxy:
             self.load_snippets(language, model, defaults)
 
     def load_snippets(self, language, model, snippets=None, to_add=[]):
-        snippets = iter_snippets(language, snippets=snippets)
+        snippets = iter_snippets(language, self.parent.get_option,
+                                 self.parent.set_option,
+                                 snippets=snippets)
         for i, snippet in enumerate(snippets):
             snippet.index = i
 
@@ -521,7 +532,9 @@ class SnippetModelsProxy:
         model.snippet_map = snippet_map
 
     def save_snippets(self):
+        language_changes = set({})
         for language in self.models:
+            language_changes |= {language}
             language_model = self.models[language]
 
             while len(language_model.delete_queue) > 0:
@@ -532,15 +545,19 @@ class SnippetModelsProxy:
                 snippet.save()
 
         for language in list(self.awaiting_queue.keys()):
+            language_changes |= {language}
             language_queue = self.awaiting_queue.pop(language)
             for snippet in language_queue:
                 snippet.save()
+        return language_changes
 
     def update_or_enqueue(self, language, trigger, description, snippet):
         new_snippet = Snippet(
             language=language, trigger_text=trigger, description=description,
             snippet_text=snippet['text'],
-            remove_trigger=snippet['remove_trigger'])
+            remove_trigger=snippet['remove_trigger'],
+            get_option=self.parent.get_option,
+            set_option=self.parent.set_option)
 
         if language in self.models:
             language_model = self.models[language]
@@ -708,7 +725,8 @@ class SnippetTable(QTableView):
         self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
 
     def show_editor(self, new_snippet=False):
-        snippet = Snippet()
+        snippet = Snippet(get_option=self._parent.get_option,
+                          set_option=self._parent.set_option)
         if not new_snippet:
             idx = self.currentIndex().row()
             snippet = self.source_model.row(idx)
@@ -727,7 +745,9 @@ class SnippetTable(QTableView):
                                remove_trigger=snippet.remove_trigger,
                                snippet_text=snippet.snippet_text,
                                trigger_texts=trigger_texts,
-                               descriptions=descriptions)
+                               descriptions=descriptions,
+                               get_option=self._parent.get_option,
+                               set_option=self._parent.set_option)
         if dialog.exec_():
             snippet = dialog.get_options()
             key = (snippet.trigger_text, snippet.description)

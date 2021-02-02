@@ -60,7 +60,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
         snippet_lang_layout.addWidget(self.snippets_language_cb)
         snippet_lang_group.setLayout(snippet_lang_layout)
 
-        self.snippets_proxy = SnippetModelsProxy()
+        self.snippets_proxy = SnippetModelsProxy(self)
         self.snippets_table = SnippetTable(
             self, self.snippets_proxy, language=self.snippets_language)
         self.snippets_table.setMaximumHeight(180)
@@ -204,4 +204,4 @@ class SnippetsConfigTab(SpyderPreferencesTab):
             self.set_modified(modified)
 
     def apply_settings(self):
-        pass
+        return self.snippets_proxy.save_snippets()

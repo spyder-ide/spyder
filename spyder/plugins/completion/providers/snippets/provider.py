@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 class SnippetsProvider(SpyderCompletionProvider):
     COMPLETION_CLIENT_NAME = 'snippets'
     DEFAULT_ORDER = 2
-    CONF_DEFAULTS = [('snippets', SNIPPETS)]
+    CONF_DEFAULTS = [(lang, SNIPPETS[lang]) for lang in SNIPPETS]
     CONF_VERSION = "0.1.0"
     CONF_TABS = [SnippetsConfigTab]
 
@@ -77,10 +77,9 @@ class SnippetsProvider(SpyderCompletionProvider):
         req['language'] = language
         self.snippets_actor.sig_mailbox.emit(request)
 
-    def update_configuration(self, config):
-        self.config = config
+    def update_configuration(self, snippets):
+        self.config = snippets
         snippet_info = {}
-        snippets = config.get('snippets', {})
         for language in SUPPORTED_LANGUAGES_PY:
             snippet_info[language] = snippets.get(language, {})
         self.snippets_actor.sig_update_snippets.emit(snippet_info)
