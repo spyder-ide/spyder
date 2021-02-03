@@ -1139,12 +1139,9 @@ class MainWindow(QMainWindow):
 
         # Explorer
         if CONF.get('explorer', 'enable'):
-            self.set_splash(_("Loading file explorer..."))
             from spyder.plugins.explorer.plugin import Explorer
-            self.explorer = Explorer(self)
-            self.explorer.register_plugin()
-            self.add_plugin(self.explorer)
-            self.preferences.register_plugin_preferences(self.explorer)
+            self.explorer = Explorer(self, configuration=CONF)
+            self.register_plugin(self.explorer)
 
         # Online help widget
         if CONF.get('onlinehelp', 'enable'):
@@ -3375,7 +3372,7 @@ def create_window(app, splash, options, args):
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
-    if sys.platform == "darwin":
+    if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
         if hasattr(app, '_pending_file_open'):

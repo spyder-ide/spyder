@@ -170,7 +170,7 @@ class ExplorerTreeWidget(FilteredDirView):
 class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
-    sig_open_file = Signal(str)
+    sig_open_file_requested = Signal(str)
 
     def __init__(self, parent, name_filters=[], show_hscrollbar=True,
                  options_button=None, single_click_to_open=False):
@@ -180,12 +180,20 @@ class ProjectExplorerWidget(QWidget):
         self.show_hscrollbar = show_hscrollbar
 
         self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup(
-            name_filters=self.name_filters,
-            single_click_to_open=False,
-        )
+        options = {
+            'date_column': False,
+            'kind_column': True,
+            'size_column': False,
+            'name_filters': name_filters,
+            'show_hidden': False,
+            'single_click_to_open': single_click_to_open,
+            'file_associations': {},
+        }
+        self.treewidget.setup(options)
         self.treewidget.setup_view()
         self.treewidget.hide()
+        self.treewidget.sig_open_file_requested.connect(
+            self.sig_open_file_requested)
 
         self.emptywidget = ExplorerTreeWidget(self)
 
@@ -256,7 +264,7 @@ class ProjectExplorerTest(QWidget):
         hlayout1.addWidget(label)
         self.label1 = QLabel()
         hlayout1.addWidget(self.label1)
-        self.explorer.sig_open_file.connect(self.label1.setText)
+        self.explorer.sig_open_file_requested.connect(self.label1.setText)
 
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)
