@@ -15,17 +15,15 @@ import sys
 
 # Third party imports
 import pytest
-from qtpy.QtCore import QEvent, QPoint, Qt, QTimer
-from qtpy.QtGui import QMouseEvent
+from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QInputDialog, QMenu, QMessageBox, QTextEdit)
+                            QInputDialog, QMessageBox, QTextEdit)
 
 # Local imports
-from spyder.plugins.explorer.widgets.explorer import (FileExplorerTest,
-                                                      ProjectExplorerTest)
+from spyder.plugins.explorer.widgets.main_widget import (
+    FileExplorerTest, ProjectExplorerTest)
 from spyder.plugins.projects.widgets.explorer import (
     ProjectExplorerTest as ProjectExplorerTest2)
-from spyder.py3compat import PY2
 
 
 HERE = osp.abspath(osp.dirname(__file__))
@@ -113,7 +111,7 @@ def test_copy_path(explorer_with_files, path_method):
     """Test copy absolute and relative paths."""
     project, __, file_paths, __, cb = explorer_with_files
     explorer_directory = project.explorer.treewidget.fsmodel.rootPath()
-    copied_from = project.explorer.treewidget.parent_widget.__class__.__name__
+    copied_from = project.explorer.treewidget._parent.__class__.__name__
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
     cb_output = cb.text(mode=cb.Clipboard)
@@ -214,7 +212,8 @@ def test_single_click_to_open(qtbot, file_explorer):
                 if os.path.isfile(full_path):
                     rect = treewidget.visualRect(index)
                     pos = rect.center()
-                    qtbot.mouseClick(treewidget.viewport(), Qt.LeftButton, pos=pos)
+                    qtbot.mouseClick(
+                        treewidget.viewport(), Qt.LeftButton, pos=pos)
 
                     if single_click:
                         assert full_path == file_explorer.label1.text()
@@ -264,9 +263,9 @@ def test_get_file_associations(qtbot, file_explorer_associations):
 
 
 @pytest.mark.first
-def test_create_file_manage_actions(qtbot, file_explorer_associations,
-                                    tmp_path):
-    widget = widget = file_explorer_associations.explorer.treewidget
+def test_create_file_manager_actions(qtbot, file_explorer_associations,
+                                     tmp_path):
+    widget = file_explorer_associations.explorer.treewidget
     fpath = tmp_path / 'text.txt'
     fpath.write_text(u'hello!')
     fpath_2 = tmp_path / 'text.json'
@@ -275,21 +274,21 @@ def test_create_file_manage_actions(qtbot, file_explorer_associations,
     fpath_3.write_text(u'hello!')
 
     # Single file with valid association
-    actions = widget.create_file_manage_actions([str(fpath)])
-    action_texts = [action.title().lower() for action in actions
-                    if isinstance(action, QMenu)]
-    assert 'open with' in action_texts
+    actions = widget._create_file_associations_actions([str(fpath)])
+    action_texts = [action.text().lower() for action in actions]
+    assert any('app 1' in text for text in action_texts)
+    assert any('default external application' in text for text in action_texts)
 
     # Two files with valid association
-    actions = widget.create_file_manage_actions([str(fpath), str(fpath_2)])
-    action_texts = [action.title().lower() for action in actions
-                    if isinstance(action, QMenu)]
-    assert 'open with' in action_texts
+    actions = widget._create_file_associations_actions(
+        [str(fpath), str(fpath_2)])
+    action_texts = [action.text().lower() for action in actions]
+    assert any('app 1' in text for text in action_texts)
+    assert any('default external application' in text for text in action_texts)
 
     # Single file with no association
-    actions = widget.create_file_manage_actions([str(fpath_3)])
-    action_texts = [action.title().lower() for action in actions
-                    if isinstance(action, QMenu)]
+    actions = widget._create_file_associations_actions([str(fpath_3)])
+    action_texts = [action.text().lower() for action in actions]
     assert not action_texts
 
 
@@ -384,7 +383,6 @@ def test_update_filters(file_explorer, qtbot):
 
     This is a regression test for spyder-ide/spyder#14328
     """
-    explorer = file_explorer.explorer
     widget = file_explorer.explorer.treewidget
 
     # Assert explorer.py is present (in case we rename it)
@@ -396,7 +394,7 @@ def test_update_filters(file_explorer, qtbot):
     assert idx0.isValid()
 
     # Activate filters
-    explorer.filter_button.clicked.emit()
+    widget.filter_button.toggle()
 
     # Auxiliary function to interact with the filters dialog.
     def interact():

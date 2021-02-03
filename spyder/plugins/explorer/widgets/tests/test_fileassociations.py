@@ -11,7 +11,6 @@ Tests for explorer plugin utilities.
 
 # Standard imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports
@@ -20,7 +19,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.explorer.widgets.fileassociations import (
-    ApplicationsDialog, FileAssociationsWidget, InputTextDialog)
+    ApplicationsDialog, InputTextDialog)
 from spyder.py3compat import PY2
 
 

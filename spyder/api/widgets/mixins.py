@@ -596,11 +596,15 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
     """
 
     @staticmethod
-    def create_icon(name):
+    def create_icon(name, image_file=False):
         """
         Create an icon by name using the spyder Icon manager.
         """
-        return ima.icon(name)
+        if image_file:
+            icon = ima.get_icon(name)
+        else:
+            icon = ima.icon(name)
+        return icon
 
     def update_style(self):
         """

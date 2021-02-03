@@ -573,6 +573,7 @@ class Plugins:
     """
     Convenience class for accessing Spyder internal plugins.
     """
+    Application = 'application'
     Breakpoints = 'breakpoints'
     CodeAnalysis = 'code_analysis'
     CodeCompletion = 'code_completion'

@@ -42,6 +42,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
+from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
 from spyder.config.base import get_home_dir, get_conf_path, get_module_path
@@ -345,29 +346,30 @@ def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Use a particular plugin
     file_explorer = main_window.explorer
+    main_widget = file_explorer.get_widget()
 
     # Undock action
-    file_explorer._undock_action.triggered.emit(True)
+    main_widget.undock_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert file_explorer._undocked_window is not None
-    assert isinstance(file_explorer._undocked_window, PluginWindow)
-    assert file_explorer._undocked_window.centralWidget() == file_explorer
+    assert main_widget.undock_action is not None
+    assert isinstance(main_widget.windowwidget, SpyderWindowWidget)
+    assert main_widget.windowwidget.centralWidget() == main_widget
 
     # Dock action
-    file_explorer._dock_action.triggered.emit(True)
+    main_widget.dock_action.triggered.emit(True)
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
-    assert file_explorer._undocked_window is None
+    assert main_widget.windowwidget is None
 
     # Close action
-    file_explorer._close_plugin_action.triggered.emit(True)
+    main_widget.close_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert not file_explorer._toggle_view_action.isChecked()
+    assert not file_explorer.toggle_view_action.isChecked()
 
     # Toggle view action
-    file_explorer._toggle_view_action.setChecked(True)
+    file_explorer.toggle_view_action.setChecked(True)
     assert file_explorer.dockwidget.isVisible()
 
 
@@ -947,20 +949,22 @@ def test_change_types_in_varexp(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
-def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
+def test_change_cwd_ipython_console(
+        main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
     changing cwd in the IPython console.
     """
     wdir = main_window.workingdirectory
-    treewidget = main_window.explorer.fileexplorer.treewidget
+    treewidget = main_window.explorer.get_widget().treewidget
     shell = main_window.ipyconsole.get_current_shellwidget()
 
     # Wait until the window is fully up
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Create temp dir
-    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
+    temp_dir = str(tmpdir.mkdir(test_directory))
 
     # Change directory in IPython console using %cd
     with qtbot.waitSignal(shell.executed):
@@ -991,7 +995,8 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     shell = main_window.ipyconsole.get_current_shellwidget()
 
     # Wait until the window is fully up
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Create temp directory
     temp_dir = to_text_string(tmpdir.mkdir(test_directory))
@@ -2096,14 +2101,14 @@ def test_run_static_code_analysis(main_window, qtbot):
 @pytest.mark.slow
 def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
     """Test that the troubleshooting menu item calls the valid URL."""
-    help_plugin = main_window.help
+    application_plugin = main_window.application
     MockQDesktopServices = Mock()
     mockQDesktopServices_instance = MockQDesktopServices()
     attr_to_patch = ('spyder.utils.qthelpers.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
     # Unit test of help menu item: Make sure the correct URL is called.
-    help_plugin.trouble_action.trigger()
+    application_plugin.trouble_action.trigger()
     assert MockQDesktopServices.openUrl.call_count == 1
     mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
 

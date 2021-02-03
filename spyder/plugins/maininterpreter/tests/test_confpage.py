@@ -35,7 +35,6 @@ def test_load_time(qtbot):
     # Create Preferences dialog
     main = MainWindowMock()
     preferences = main.preferences
-    preferences.config_pages.pop(PreferencePages.General)
     main_interpreter = MainInterpreter(main, configuration=CONF)
     main.register_plugin(main_interpreter)
 

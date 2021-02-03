@@ -117,9 +117,6 @@ class ConfigDialogTester:
         setattr(self._main, 'preferences', Preferences(self._main, CONF))
         self._main.register_plugin(self._main.preferences)
 
-        if not general_config_plugins:
-            self._main.preferences.config_pages.pop(PreferencePages.General)
-
         if plugins:
             for Plugin in plugins:
                 if hasattr(Plugin, 'CONF_WIDGET_CLASS'):

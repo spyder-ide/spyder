@@ -23,8 +23,6 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.plugins.mainmenu.api import (
     ApplicationMenu, ApplicationMenus, HelpMenuSections)
-from spyder.plugins.mainmenu.container import (
-    MainMenuContainer)
 from spyder.utils.qthelpers import add_actions, set_menu_icons
 
 # Localization
@@ -33,13 +31,8 @@ _ = get_translation('spyder')
 
 class MainMenu(SpyderPluginV2):
     NAME = 'mainmenu'
-    OPTIONAL = [Plugins.Help, Plugins.Shortcuts]
-    CONTAINER_CLASS = MainMenuContainer
     CONF_SECTION = NAME
     CONF_FILE = False
-    CONF_FROM_OPTIONS = {
-        'check_updates_on_startup': ('main', 'check_updates_on_startup'),
-    }
 
     def get_name(self):
         return _('Main menus')
@@ -54,54 +47,25 @@ class MainMenu(SpyderPluginV2):
         # Reference holder dict for the menus
         self._APPLICATION_MENUS = OrderedDict()
         # Create Application menus using plugin public API
+        # FIXME: Migrated menus need to have 'dynamic=True' (default value) to
+        # work on Mac. Remove the 'dynamic' kwarg when migrating a menu!
         create_app_menu = self.create_application_menu
         create_app_menu(ApplicationMenus.File, _("&File"))
-        create_app_menu(ApplicationMenus.Edit, _("&Edit"))
-        create_app_menu(ApplicationMenus.Search, _("&Search"))
-        create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
-        create_app_menu(ApplicationMenus.Run, _("&Run"))
-        create_app_menu(ApplicationMenus.Debug, _("&Debug"))
-        create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
-        create_app_menu(ApplicationMenus.Projects, _("&Projects"))
+        create_app_menu(ApplicationMenus.Edit, _("&Edit"), dynamic=False)
+        create_app_menu(ApplicationMenus.Search, _("&Search"), dynamic=False)
+        create_app_menu(ApplicationMenus.Source, _("Sour&ce"), dynamic=False)
+        create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
+        create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
+        create_app_menu(
+            ApplicationMenus.Consoles, _("C&onsoles"), dynamic=False)
+        create_app_menu(
+            ApplicationMenus.Projects, _("&Projects"), dynamic=False)
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.View, _("&View"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
 
-    def on_mainwindow_visible(self):
-        self._setup_menus()
-
     # --- Private methods
     # ------------------------------------------------------------------------
-
-    def _populate_help_menu(self):
-        """Add base actions and menus to te Help menu."""
-        self._populate_help_menu_support_section()
-        self._populate_help_menu_about_section()
-
-    def _populate_help_menu_support_section(self):
-        """Create Spyder base support actions."""
-        help_plugin = self.get_plugin(Plugins.Help)
-        help_support_action = None
-        if help_plugin:
-            from spyder.plugins.help.plugin import HelpActions
-            help_support_action = help_plugin.get_action(
-                HelpActions.SpyderSupportAction)
-
-        for support_action in [self.dependencies_action,
-                               self.check_updates_action]:
-            self.add_item_to_application_menu(
-                support_action,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.Support,
-                before=help_support_action,
-                before_section=HelpMenuSections.ExternalDocumentation)
-
-    def _populate_help_menu_about_section(self):
-        """Create Spyder base about actions."""
-        self.add_item_to_application_menu(
-            self.about_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.About)
 
     def _show_shortcuts(self, menu):
         """
@@ -176,11 +140,10 @@ class MainMenu(SpyderPluginV2):
                     menu.aboutToShow.connect(
                         lambda menu=menu: set_menu_icons(menu, False))
                     menu.aboutToShow.connect(self._hide_options_menus)
-        self._populate_help_menu()
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def create_application_menu(self, menu_id, title):
+    def create_application_menu(self, menu_id, title, dynamic=True):
         """
         Create a Spyder application menu.
 
@@ -195,7 +158,7 @@ class MainMenu(SpyderPluginV2):
             raise SpyderAPIError(
                 'Menu with id "{}" already added!'.format(menu_id))
 
-        menu = ApplicationMenu(self.main, title)
+        menu = ApplicationMenu(self.main, title, dynamic=dynamic)
         menu.menu_id = menu_id
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)
@@ -253,7 +216,6 @@ class MainMenu(SpyderPluginV2):
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
         app_menu_actions = {
-            ApplicationMenus.File: self._main.file_menu_actions,
             ApplicationMenus.Edit: self._main.edit_menu_actions,
             ApplicationMenus.Search: self._main.search_menu_actions,
             ApplicationMenus.Source: self._main.source_menu_actions,
@@ -261,7 +223,6 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Debug: self._main.debug_menu_actions,
             ApplicationMenus.Consoles: self._main.consoles_menu_actions,
             ApplicationMenus.Projects: self._main.projects_menu_actions,
-            ApplicationMenus.Tools: self._main.tools_menu_actions,
         }
 
         menu_id = menu_id if menu_id else menu.menu_id
@@ -292,51 +253,3 @@ class MainMenu(SpyderPluginV2):
             )
 
         return self._APPLICATION_MENUS[menu_id]
-
-    def get_application_context_menu(self, parent=None):
-        """
-        Return menu with the actions to be shown by the Spyder context menu.
-        """
-        documentation_action = None
-        tutorial_action = None
-        shortcuts_action = None
-
-        help_plugin = self.get_plugin(Plugins.Help)
-        shortcuts = self.get_plugin(Plugins.Shortcuts)
-        menu = QMenu(parent=parent)
-        actions = []
-        # Help actions
-        if help_plugin:
-            from spyder.plugins.help.plugin import HelpActions
-            documentation_action = help_plugin.get_action(
-                HelpActions.SpyderDocumentationAction)
-            tutorial_action = help_plugin.get_action(
-                HelpActions.ShowSpyderTutorialAction)
-            actions += [documentation_action, tutorial_action]
-        # Shortcuts actions
-        if shortcuts:
-            from spyder.plugins.shortcuts.plugin import ShortcutActions
-            shortcuts_action = shortcuts.get_action(
-                ShortcutActions.ShortcutSummaryAction)
-            actions.append(shortcuts_action)
-        # MainMenu actions
-        actions += [MENU_SEPARATOR, self.about_action]
-
-        add_actions(menu, actions)
-
-        return menu
-
-    @property
-    def dependencies_action(self):
-        """Show Spyder's Dependencies dialog box."""
-        return self.get_container().dependencies_action
-
-    @property
-    def check_updates_action(self):
-        """Check if a new version of Spyder is available."""
-        return self.get_container().check_updates_action
-
-    @property
-    def about_action(self):
-        """Show Spyder's About dialog box."""
-        return self.get_container().about_action

@@ -25,8 +25,6 @@ from spyder.api.plugins import SpyderPluginV2, SpyderPlugin
 from spyder.config.base import _
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
-from spyder.plugins.preferences.api import PreferencePages, GeneralConfigPage
-from spyder.plugins.preferences.general import MainConfigPage
 from spyder.plugins.preferences.widgets.container import PreferencesContainer
 
 logger = logging.getLogger(__name__)
@@ -55,12 +53,7 @@ class Preferences(SpyderPluginV2):
 
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
-        self.config_pages = {
-            PreferencePages.General: (self.NEW_API,
-                                      lambda plugin, dlg: MainConfigPage(
-                                          dlg, plugin),
-                                      self.get_main())
-        }
+        self.config_pages = {}
         self.config_tabs = {}
 
     def register_plugin_preferences(
@@ -69,9 +62,6 @@ class Preferences(SpyderPluginV2):
                 plugin.CONF_WIDGET_CLASS is not None):
             # New API
             Widget = plugin.CONF_WIDGET_CLASS
-            if issubclass(plugin.CONF_WIDGET_CLASS, GeneralConfigPage):
-                Widget = lambda plugin, dlg: plugin.CONF_WIDGET_CLASS(
-                    dlg, plugin)
 
             self.config_pages[plugin.NAME] = (self.NEW_API, Widget, plugin)
 
@@ -87,7 +77,7 @@ class Preferences(SpyderPluginV2):
                         new_value = conf_keys[conf_key]
                         self.check_version_and_merge(
                             conf_section, conf_key, new_value,
-                            plugin_conf_version)
+                            plugin_conf_version, plugin)
 
             # Check if the plugin declares any additional configuration tabs
             if plugin.ADDITIONAL_CONF_TABS is not None:
@@ -101,15 +91,13 @@ class Preferences(SpyderPluginV2):
                 plugin.CONFIGWIDGET_CLASS is not None):
             # Old API
             Widget = plugin.CONFIGWIDGET_CLASS
-            if issubclass(plugin.CONFIGWIDGET_CLASS, GeneralConfigPage):
-                Widget = lambda plugin, dlg: plugin.CONFIGWIDGET_CLASS(
-                    dlg, plugin)
+
             self.config_pages[plugin.CONF_SECTION] = (
                 self.OLD_API, Widget, plugin)
 
     def check_version_and_merge(self, conf_section: str, conf_key: str,
                                 new_value: BasicType,
-                                current_version: Version):
+                                current_version: Version, plugin):
         """Add a versioned additional option to a configuration section."""
         current_value = self.get_conf_option(conf_key, section=conf_section)
         section_additional = self.get_conf_option('additional_configuration',
@@ -201,7 +189,7 @@ class Preferences(SpyderPluginV2):
         Recursively match and merge a new configuration value into a
         previous one.
         """
-        current_type = type(current_type)
+        current_type = type(current_value)
         new_type = type(new_value)
         iterable_types = {list, tuple}
         base_types = {int, float, bool, complex, str, bytes}

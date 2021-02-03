@@ -39,6 +39,7 @@ class MainWindowMock(QMainWindow):
     plugin_focus_changed = Mock()
     fallback_completions = Mock()
     ipyconsole = Mock()
+    mainmenu = Mock()
 
 
 @pytest.mark.parametrize(

@@ -117,7 +117,7 @@ class WorkingDirectory(SpyderPluginV2):
 
         if explorer and sender_plugin != explorer:
             explorer.chdir(directory, emit=False)
-            explorer.refresh_plugin(directory, force_current=True)
+            explorer.refresh(directory, force_current=True)
 
         if ipyconsole and sender_plugin != ipyconsole:
             ipyconsole.set_current_client_working_directory(directory)

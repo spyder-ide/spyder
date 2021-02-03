@@ -23,9 +23,8 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 running_in_mac_app, save_lang_conf)
-from spyder.plugins.preferences.api import GeneralConfigPage
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string
-import spyder.utils.icon_manager as ima
 from spyder.utils.qthelpers import (register_app_launchservices,
                                     restore_launchservices)
 
@@ -37,12 +36,10 @@ if sys.platform == "darwin":
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
 
-class MainConfigPage(GeneralConfigPage):
-    CONF_SECTION = "main"
-    NAME = _("General")
+class ApplicationConfigPage(PluginConfigPage):
+    APPLY_CONF_PAGE_SETTINGS = True
 
     def setup_page(self):
-        self.ICON = ima.icon('genprefs')
         newcb = self.create_checkbox
 
         # --- Advanced
@@ -268,7 +265,7 @@ class MainConfigPage(GeneralConfigPage):
                 self.set_option(
                     'high_dpi_custom_scale_factors', scale_factors_text)
                 self.changed_options.add('high_dpi_custom_scale_factors')
-        self.main.apply_settings()
+        self.plugin.apply_settings()
 
     def _save_lang(self):
         """

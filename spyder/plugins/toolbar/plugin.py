@@ -51,7 +51,6 @@ class Toolbar(SpyderPluginV2):
 
         # TODO: Until all core plugins are migrated, this is needed.
         ACTION_MAP = {
-            ApplicationToolbars.Main: self.main.main_toolbar_actions,
             ApplicationToolbars.File: self.main.file_toolbar_actions,
             ApplicationToolbars.Debug: self.main.debug_toolbar_actions,
             ApplicationToolbars.Run: self.main.run_toolbar_actions,
@@ -120,7 +119,7 @@ class Toolbar(SpyderPluginV2):
 
     def add_item_to_application_toolbar(self, item, toolbar=None,
                                         toolbar_id=None, section=None,
-                                        before=None):
+                                        before=None, before_section=None):
         """
         Add action or widget `item` to given application menu `section`.
 
@@ -136,6 +135,9 @@ class Toolbar(SpyderPluginV2):
             The section id in which to insert the `item` on the `toolbar`.
         before: str or None
             Make the item appear before another given item.
+        before_section: str or None
+            Make the item defined section appear before another given section
+            (must be already defined).
 
         Notes
         -----
@@ -147,6 +149,7 @@ class Toolbar(SpyderPluginV2):
                 toolbar_id=toolbar_id,
                 section=section,
                 before=before,
+                before_section=before_section
             )
 
     def get_application_toolbar(self, toolbar_id):

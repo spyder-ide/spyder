@@ -25,17 +25,6 @@ from spyder.config.gui import is_dark_interface
 
 # --- Constants
 # ----------------------------------------------------------------------------
-class ApplicationToolbars:
-    File = 'file_toolbar'
-    Run = 'run_toolbar'
-    Debug = 'defbug_toolbar'
-    Main = 'main_toolbar'
-    Search = 'search_toolbar'
-    Edit = 'edit_toolbar'
-    Source = 'source_toolbar'
-    WorkingDirectory = 'working_directory_toolbar'
-
-
 class ToolbarLocation:
     Top = Qt.TopToolBarArea
     Bottom = Qt.BottomToolBarArea
@@ -75,7 +64,8 @@ class SpyderToolbar(QToolBar):
 
         self.setWindowTitle(title)
 
-    def add_item(self, action_or_widget, section=None, before=None):
+    def add_item(self, action_or_widget, section=None, before=None,
+                 before_section=None):
         """
         Add action or widget item to given toolbar `section`.
         """
@@ -90,7 +80,26 @@ class SpyderToolbar(QToolBar):
         if section is not None and section not in self._section_items:
             self._section_items[section] = [action_or_widget]
         else:
-            self._section_items[section].append(action_or_widget)
+            if before is not None:
+                new_actions_or_widgets = []
+                for act_or_wid in self._section_items[section]:
+                    if act_or_wid == before:
+                        new_actions_or_widgets.append(action_or_widget)
+                    new_actions_or_widgets.append(act_or_wid)
+                self._section_items[section] = new_actions_or_widgets
+            else:
+                self._section_items[section].append(action_or_widget)
+        if (before_section is not None and
+                before_section in self._section_items):
+            new_sections_keys = []
+            for sec in self._section_items.keys():
+                if sec == before_section:
+                    new_sections_keys.append(section)
+                if sec != section:
+                    new_sections_keys.append(sec)
+            self._section_items = OrderedDict(
+                (section_key, self._section_items[section_key])
+                for section_key in new_sections_keys)
 
     def _render(self):
         """

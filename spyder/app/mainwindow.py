@@ -116,12 +116,10 @@ from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
 set_attached_console_visible = None
 is_attached_console_visible = None
 set_windows_appusermodelid = None
-WinUserEnvDialog = None
 if os.name == 'nt':
     from spyder.utils.windows import (set_attached_console_visible,
                                       is_attached_console_visible,
                                       set_windows_appusermodelid)
-    from spyder.utils.environ import WinUserEnvDialog
 
 #==============================================================================
 # Constants
@@ -231,7 +229,6 @@ class MainWindow(QMainWindow):
         plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
-        plugin.sig_restart_requested.connect(self.restart)
         plugin.sig_restart_requested.connect(self.restart)
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
@@ -481,7 +478,6 @@ class MainWindow(QMainWindow):
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         self.default_style = str(qapp.style().objectName())
-        self.dialog_manager = DialogManager()
 
         self.init_workdir = options.working_directory
         self.profile = options.profile
@@ -587,8 +583,6 @@ class MainWindow(QMainWindow):
         self.fullscreen_action = None
 
         # Menu bars
-        self.file_menu = None
-        self.file_menu_actions = []
         self.edit_menu = None
         self.edit_menu_actions = []
         self.search_menu = None
@@ -603,8 +597,6 @@ class MainWindow(QMainWindow):
         self.consoles_menu_actions = []
         self.projects_menu = None
         self.projects_menu_actions = []
-        self.tools_menu = None
-        self.tools_menu_actions = []
 
         self.plugins_menu = None
         self.plugins_menu_actions = []
@@ -801,7 +793,8 @@ class MainWindow(QMainWindow):
         from spyder.api.widgets.menus import SpyderMenu
         from spyder.plugins.mainmenu.plugin import MainMenu
         from spyder.plugins.mainmenu.api import (
-            ApplicationMenus, HelpMenuSections, ViewMenuSections)
+            ApplicationMenus, HelpMenuSections, ViewMenuSections,
+            ToolsMenuSections, FileMenuSections)
         self.mainmenu = MainMenu(self, configuration=CONF)
         self.register_plugin(self.mainmenu)
 
@@ -814,6 +807,11 @@ class MainWindow(QMainWindow):
         from spyder.plugins.toolbar.plugin import Toolbar
         self.toolbar = Toolbar(self, configuration=CONF)
         self.register_plugin(self.toolbar)
+
+        # Application plugin
+        from spyder.plugins.application.plugin import Application
+        self.application = Application(self, configuration=CONF)
+        self.register_plugin(self.application)
 
         logger.info("Creating core actions...")
         # TODO: Change registration to use MainMenus
@@ -902,7 +900,6 @@ class MainWindow(QMainWindow):
         # TODO: Remove when all menus are migrated to use the Main Menu Plugin
         logger.info("Creating Menus...")
         mainmenu = self.mainmenu
-        self.file_menu = mainmenu.get_application_menu("file_menu")
         self.edit_menu = mainmenu.get_application_menu("edit_menu")
         self.search_menu = mainmenu.get_application_menu("search_menu")
         self.source_menu = mainmenu.get_application_menu("source_menu")
@@ -914,7 +911,6 @@ class MainWindow(QMainWindow):
                 self.update_execution_state_kernel)
         self.projects_menu = mainmenu.get_application_menu("projects_menu")
         self.projects_menu.aboutToShow.connect(self.valid_project)
-        self.tools_menu = mainmenu.get_application_menu("tools_menu")
 
         # Toolbars
         logger.info("Creating toolbars...")
@@ -946,16 +942,18 @@ class MainWindow(QMainWindow):
         reset_spyder_action = create_action(
             self, _("Reset Spyder to factory defaults"),
             triggered=self.reset_spyder)
-        self.tools_menu_actions = [prefs_action, spyder_path_action]
-        if WinUserEnvDialog is not None:
-            winenv_action = create_action(self,
-                    _("Current user environment variables..."),
-                    icon='win_env.png',
-                    tip=_("Show and edit current user environment "
-                            "variables in Windows registry "
-                            "(i.e. for all sessions)"),
-                    triggered=self.win_env)
-            self.tools_menu_actions.append(winenv_action)
+        from spyder.plugins.application.plugin import (
+            ApplicationActions, WinUserEnvDialog)
+        winenv_action = None
+        if WinUserEnvDialog:
+            winenv_action = self.application.get_action(
+                ApplicationActions.SpyderWindowsEnvVariables)
+        for tool_action in [prefs_action, spyder_path_action]:
+            self.mainmenu.add_item_to_application_menu(
+                tool_action,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Tools,
+                before=winenv_action)
         # from spyder.plugins.completion.kite.utils.install import (
         #     check_if_kite_installed)
         # is_kite_installed, kite_path = check_if_kite_installed()
@@ -964,12 +962,19 @@ class MainWindow(QMainWindow):
         #         self, _("Install Kite completion engine"),
         #         icon=get_icon('kite', adjust_for_interface=True),
         #         triggered=self.show_kite_installation)
-        #     self.tools_menu_actions.append(install_kite_action)
-        self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
+        #     self.mainmenu.add_item_to_application_menu(
+        #         install_kite_action,
+        #         menu_id=ApplicationMenus.Tools,
+        #         section=ToolsMenuSections.Tools)
+        self.mainmenu.add_item_to_application_menu(
+                reset_spyder_action,
+                menu_id=ApplicationMenus.Tools)
         if get_debug_level() >= 3:
             self.menu_lsp_logs = QMenu(_("LSP logs"))
             self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
-            self.tools_menu_actions += [self.menu_lsp_logs]
+            self.mainmenu.add_item_to_application_menu(
+                self.menu_lsp_logs,
+                menu_id=ApplicationMenus.Tools)
 
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
@@ -996,10 +1001,20 @@ class MainWindow(QMainWindow):
             )
 
         # Main toolbar
-        self.main_toolbar_actions = [self.maximize_action,
-                                     self.fullscreen_action,
-                                     None,
-                                     prefs_action, spyder_path_action]
+        from spyder.plugins.toolbar.api import (
+            ApplicationToolbars, MainToolbarSections)
+        for main_layout_action in [self.maximize_action,
+                                   self.fullscreen_action]:
+            self.toolbar.add_item_to_application_toolbar(
+                main_layout_action,
+                toolbar_id=ApplicationToolbars.Main,
+                section=MainToolbarSections.LayoutSection,
+                before_section=MainToolbarSections.ApplicationSection)
+        for main_application_action in [prefs_action, spyder_path_action]:
+            self.toolbar.add_item_to_application_toolbar(
+                main_application_action,
+                toolbar_id=ApplicationToolbars.Main,
+                section=MainToolbarSections.ApplicationSection)
 
         # Switcher instance
         logger.info("Loading switcher...")
@@ -1067,30 +1082,16 @@ class MainWindow(QMainWindow):
 
         self.preferences.register_plugin_preferences(self.editor)
 
-        # Populating file menu entries
-        quit_action = create_action(self, _("&Quit"),
-                                    icon=ima.icon('exit'),
-                                    tip=_("Quit"),
-                                    triggered=self.console.quit,
-                                    context=Qt.ApplicationShortcut)
-        self.register_shortcut(quit_action, "_", "Quit")
-        restart_action = create_action(self, _("&Restart"),
-                                       icon=ima.icon('restart'),
-                                       tip=_("Restart"),
-                                       triggered=self.restart,
-                                       context=Qt.ApplicationShortcut)
-        self.register_shortcut(restart_action, "_", "Restart")
-
-        file_actions = [
+        switcher_actions = [
             self.file_switcher_action,
-            self.symbol_finder_action,
-            None,
+            self.symbol_finder_action
         ]
-        if sys.platform == 'darwin':
-            file_actions.extend(self.editor.tab_navigation_actions + [None])
-
-        file_actions.extend([restart_action, quit_action])
-        self.file_menu_actions += file_actions
+        for switcher_action in switcher_actions:
+            self.mainmenu.add_item_to_application_menu(
+                    switcher_action,
+                    menu_id=ApplicationMenus.File,
+                    section=FileMenuSections.Switcher,
+                    before_section=FileMenuSections.Restart)
         self.set_splash("")
 
         # Namespace browser
@@ -1132,12 +1133,9 @@ class MainWindow(QMainWindow):
 
         # Explorer
         if CONF.get('explorer', 'enable'):
-            self.set_splash(_("Loading file explorer..."))
             from spyder.plugins.explorer.plugin import Explorer
-            self.explorer = Explorer(self)
-            self.explorer.register_plugin()
-            self.add_plugin(self.explorer)
-            self.preferences.register_plugin_preferences(self.explorer)
+            self.explorer = Explorer(self, configuration=CONF)
+            self.register_plugin(self.explorer)
 
         # Online help widget
         if CONF.get('onlinehelp', 'enable'):
@@ -1308,7 +1306,8 @@ class MainWindow(QMainWindow):
             self.mainmenu.add_item_to_application_menu(
                 self.ipython_menu,
                 menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.ExternalDocumentation)
+                section=HelpMenuSections.ExternalDocumentation,
+                before_section=HelpMenuSections.About)
 
         # ----- View
         # View menu
@@ -1366,7 +1365,6 @@ class MainWindow(QMainWindow):
 
         # TODO: Migrate to use the MainMenu Plugin instead of list of actions
         # Filling out menu/toolbar entries:
-        add_actions(self.file_menu, self.file_menu_actions)
         add_actions(self.edit_menu, self.edit_menu_actions)
         add_actions(self.search_menu, self.search_menu_actions)
         add_actions(self.source_menu, self.source_menu_actions)
@@ -1374,7 +1372,6 @@ class MainWindow(QMainWindow):
         add_actions(self.debug_menu, self.debug_menu_actions)
         add_actions(self.consoles_menu, self.consoles_menu_actions)
         add_actions(self.projects_menu, self.projects_menu_actions)
-        add_actions(self.tools_menu, self.tools_menu_actions)
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -1497,16 +1494,6 @@ class MainWindow(QMainWindow):
         # Connect Editor debug action with Console
         self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
 
-        # Show dialog with missing dependencies
-        if not running_under_pytest():
-            # This avoids computing missing deps before the window is fully up
-            timer_report_deps = QTimer(self)
-            timer_report_deps.setInterval(2000)
-            timer_report_deps.setSingleShot(True)
-            timer_report_deps.timeout.connect(
-                self.report_missing_dependencies)
-            timer_report_deps.start()
-
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
@@ -1625,35 +1612,6 @@ class MainWindow(QMainWindow):
 
         self.base_title = title
         self.setWindowTitle(self.base_title)
-
-    @Slot()
-    def report_missing_dependencies(self):
-        """Show a QMessageBox with a list of missing hard dependencies"""
-        # Declare dependencies before trying to detect the missing ones
-        dependencies.declare_dependencies()
-        missing_deps = dependencies.missing_dependencies()
-
-        if missing_deps:
-            # We change '<br>' by '\n', in order to replace the '<'
-            # that appear in our deps by '&lt' (to not break html
-            # formatting) and finally we restore '<br>' again.
-            missing_deps = (missing_deps.replace('<br>', '\n').
-                            replace('<', '&lt;').replace('\n', '<br>'))
-
-            QMessageBox.critical(self, _('Error'),
-                _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br>"
-                  "<b>Please install them to avoid this message.</b>"
-                  "<br><br>"
-                  "<i>Note</i>: Spyder could work without some of these "
-                  "dependencies, however to have a smooth experience when "
-                  "using Spyder we <i>strongly</i> recommend you to install "
-                  "all the listed missing dependencies.<br><br>"
-                  "Failing to install these dependencies might result in bugs. "
-                  "Please be sure that any found bugs are not the direct "
-                  "result of missing dependencies, prior to reporting a new "
-                  "issue."
-                  ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
         """
@@ -2499,7 +2457,7 @@ class MainWindow(QMainWindow):
         add_actions(self.plugins_menu, actions)
 
     def createPopupMenu(self):
-        return self.mainmenu.get_application_context_menu(parent=self)
+        return self.application.get_application_context_menu(parent=self)
 
     def set_splash(self, message):
         """Set splash message"""
@@ -2621,8 +2579,6 @@ class MainWindow(QMainWindow):
         # Fixes spyder-ide/spyder#12139
         prefix = 'window' + '/'
         self.save_current_window_settings(prefix)
-
-        self.dialog_manager.close_all()
 
         # self.completions.shutdown()
 
@@ -3049,11 +3005,6 @@ class MainWindow(QMainWindow):
         path_dict = self.get_spyder_pythonpath_dict()
         self.update_python_path(path_dict)
 
-    @Slot()
-    def win_env(self):
-        """Show Windows current user environment variables."""
-        self.dialog_manager.show(WinUserEnvDialog(self))
-
     # --- Kite
     def show_kite_installation(self):
         """Show installation dialog for Kite."""
@@ -3166,68 +3117,8 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def restart(self, reset=False):
-        """
-        Quit and Restart Spyder application.
-
-        If reset True it allows to reset spyder on restart.
-        """
-        # Get start path to use in restart script
-        spyder_start_directory = get_module_path('spyder')
-        restart_script = osp.join(spyder_start_directory, 'app', 'restart.py')
-
-        # Get any initial argument passed when spyder was started
-        # Note: Variables defined in bootstrap.py and spyder/app/start.py
-        env = os.environ.copy()
-        bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
-        spyder_args = env.pop('SPYDER_ARGS')
-
-        # Get current process and python running spyder
-        pid = os.getpid()
-        python = sys.executable
-
-        # Check if started with bootstrap.py
-        if bootstrap_args is not None:
-            spyder_args = bootstrap_args
-            is_bootstrap = True
-        else:
-            is_bootstrap = False
-
-        # Pass variables as environment variables (str) to restarter subprocess
-        env['SPYDER_ARGS'] = spyder_args
-        env['SPYDER_PID'] = str(pid)
-        env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
-        env['SPYDER_RESET'] = str(reset)
-
-        if DEV:
-            repo_dir = osp.dirname(spyder_start_directory)
-            if os.name == 'nt':
-                env['PYTHONPATH'] = ';'.join([repo_dir])
-            else:
-                env['PYTHONPATH'] = ':'.join([repo_dir])
-
-        # Build the command and popen arguments depending on the OS
-        if os.name == 'nt':
-            # Hide flashing command prompt
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            shell = False
-        else:
-            startupinfo = None
-            shell = True
-
-        command = '"{0}" "{1}"'
-        command = command.format(python, restart_script)
-
-        try:
-            if self.closing(True):
-                subprocess.Popen(command, shell=shell, env=env,
-                                 startupinfo=startupinfo)
-                self.console.quit()
-        except Exception as error:
-            # If there is an error with subprocess, Spyder should not quit and
-            # the error can be inspected in the internal console
-            print(error)  # spyder: test-skip
-            print(command)  # spyder: test-skip
+        """Wrapper to handle plugins request to restart Spyder."""
+        self.application.restart(reset=reset)
 
     # ---- Interactive Tours
     def show_tour(self, index):
@@ -3368,7 +3259,7 @@ def create_window(app, splash, options, args):
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
-    if sys.platform == "darwin":
+    if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
         if hasattr(app, '_pending_file_open'):
