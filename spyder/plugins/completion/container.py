@@ -9,6 +9,7 @@
 # Standard library imports
 
 # Third-party imports
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -31,4 +32,6 @@ class CompletionContainer(PluginMainContainer):
         widget = Widget(self)
 
         if isinstance(widget, QMessageBox):
+            if hasattr(widget, 'sig_restart_spyder'):
+                widget.sig_restart_spyder.connect(self.sig_restart_requested)
             widget.exec_()
