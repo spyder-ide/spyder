@@ -17,7 +17,7 @@ import functools
 import inspect
 import logging
 from pkg_resources import parse_version, iter_entry_points
-from typing import List, Any, Union
+from typing import List, Any, Union, Optional, Tuple
 
 # Third-party imports
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
@@ -31,6 +31,7 @@ from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            SpyderCompletionProvider,
                                            COMPLETION_ENTRYPOINT)
 from spyder.plugins.completion.confpage import CompletionConfigPage
+from spyder.plugins.completion.container import CompletionContainer
 
 logger = logging.getLogger(__name__)
 COMPLETION_REQUESTS = [getattr(CompletionRequestTypes, c)
@@ -79,6 +80,9 @@ class CompletionPlugin(SpyderPluginV2):
     # loaded
     CONF_WIDGET_CLASS = None
 
+    # Empty container used to store graphical widgets
+    CONTAINER_CLASS = CompletionContainer
+
     # Ad Hoc polymorphism signals to make this plugin a completion provider
     # without inheriting from SpyderCompletionProvider
 
@@ -90,6 +94,16 @@ class CompletionPlugin(SpyderPluginV2):
 
     # Use this signal to indicate that the plugin is ready
     sig_plugin_ready = Signal(str)
+
+    # Use this signal to indicate a change in the Python path.
+    sig_pythonpath_changed = Signal(object, object)
+
+    # Use this signal to indicate a change in the main Python interpreter.
+    sig_main_interpreter_changed = Signal()
+
+    #: Signal to inform a plugin that a given language client has
+    #  started properly and it's ready to be used.
+    sig_language_client_available = Signal(dict, str)
 
     # Provider status constants
     RUNNING = 'running'
@@ -256,6 +270,17 @@ class CompletionPlugin(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
+        # TODO: Move this section to the new API once the migration of
+        # Application is complete
+        if self.main:
+            self.main.sig_pythonpath_changed.connect(
+                self.sig_pythonpath_changed)
+
+        # TODO: Move this section to the new API once the migration of projects
+        # is complete
+        if self.main.projects:
+            pass
+
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.STOPPED:
@@ -359,6 +384,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
+        container = self.get_container()
         provider_configurations = self.get_conf_option(
             'provider_configuration')
 
@@ -399,8 +425,21 @@ class CompletionPlugin(SpyderPluginV2):
         self.set_conf_option('request_priorities', source_priorities)
 
         provider_instance = Provider(self, new_provider_config['values'])
+
+        # Signals
         provider_instance.sig_provider_ready.connect(self.provider_available)
         provider_instance.sig_response_ready.connect(self.receive_response)
+        provider_instance.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
+        provider_instance.sig_language_client_available.connect(
+            self.sig_language_client_available)
+        provider_instance.sig_show_widget.connect(
+            container.show_widget
+        )
+        self.sig_pythonpath_changed.connect(
+            provider_instance.python_path_update)
+        self.sig_main_interpreter_changed.connect(
+            provider_instance.main_interpreter_changed)
 
         self.providers[provider_name] = {
             'instance': provider_instance,
@@ -584,7 +623,8 @@ class CompletionPlugin(SpyderPluginV2):
                 provider_info['instance'].broadcast_notification(
                     req_type, req)
 
-    def project_path_update(self, project_path: str, update_kind='addition'):
+    def project_path_update(self, project_path: str, update_kind='addition',
+                            instance=None):
         """
         Handle project path updates on Spyder.
 
@@ -595,13 +635,37 @@ class CompletionPlugin(SpyderPluginV2):
         update_kind: str
             Path update kind, one of
             :class:`spyder.plugins.completion.WorkspaceUpdateKind`
+        instance: object
+            Reference to :class:`spyder.plugins.projects.plugin.Projects`
         """
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 provider_info['instance'].project_path_update(
-                    project_path, update_kind
+                    project_path, update_kind, instance
                 )
+
+    @Slot(str, str)
+    def editor_focus_changed(
+            self, filename: Optional[str], language: Optional[str]):
+        """
+        Handle focus changes across tabs and split editors.
+
+        Parameters
+        ----------
+        filename: Optional[str]
+            Path to the file currently focused on the editor. If None, then
+            the focus is not currently on the editor.
+        language: Optional[str]
+            Name of the programming language of the currently focused file.
+            If None, then the focus is not currently on the editor.
+        """
+        if filename is not None and language is not None:
+            for provider_name in self.providers:
+                provider_info = self.providers[provider_name]
+                if provider_info['status'] == self.RUNNING:
+                    provider_info['instance'].editor_focus_changed(
+                        filename, language)
 
     def register_file(self, language: str, filename: str, codeeditor):
         """

@@ -190,6 +190,11 @@ snippets = pkg_resources.EntryPoint.parse(
     'SnippetsProvider'
 )
 
+lsp = pkg_resources.EntryPoint.parse(
+    'lsp = spyder.plugins.completion.providers.languageserver.provider:'
+    'LanguageServerProvider'
+)
+
 # Create a fake Spyder distribution
 d = pkg_resources.Distribution(__file__)
 
@@ -197,7 +202,8 @@ d = pkg_resources.Distribution(__file__)
 d._ep_map = {
     'spyder.completions': {
         'fallback': fallback,
-        'snippets': snippets
+        'snippets': snippets,
+        'lsp': lsp
     }
 }
 

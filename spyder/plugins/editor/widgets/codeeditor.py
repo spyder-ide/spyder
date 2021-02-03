@@ -1153,7 +1153,7 @@ class CodeEditor(TextEditBaseWidget):
             additional_msg = ""
             self.document_did_open()
 
-        logger.debug(u"Completion services available for{0}: {1}".format(
+        logger.debug(u"Completion services available for {0}: {1}".format(
             additional_msg, self.filename))
 
     def register_completion_capabilities(self, capabilities):

@@ -13,9 +13,9 @@ import logging
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)
-from spyder.plugins.completion.languageserver.providers.utils import (
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri, process_uri, snake_to_camel)
-from spyder.plugins.completion.languageserver.decorators import (
+from spyder.plugins.completion.providers.languageserver.decorators import (
     handles, send_request, send_notification)
 
 

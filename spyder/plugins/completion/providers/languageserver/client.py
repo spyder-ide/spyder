@@ -28,7 +28,7 @@ import psutil
 # Local imports
 from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 running_under_pytest)
-from spyder.plugins.completion.manager.api import (
+from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
     TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
     ClientConstants)

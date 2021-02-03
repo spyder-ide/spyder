@@ -13,10 +13,10 @@ https://microsoft.github.io/language-server-protocol/specifications/specificatio
 """
 
 # Standard library imports
-from typing import Any, Optional
+from typing import Any, Optional, Tuple, Union
 
 # Third party imports
-from qtpy.QtCore import Signal, QObject
+from qtpy.QtCore import Signal, QObject, Slot
 
 
 # Supported LSP programming languages
@@ -670,6 +670,45 @@ class SpyderCompletionProvider(QObject):
     # Use this signal to indicate that the plugin is ready
     sig_provider_ready = Signal(str)
 
+    #: Signal to inform a plugin that a given language client has
+    #  started properly and it's ready to be used.
+    sig_language_client_available = Signal(dict, str)
+
+    # Use this signal to show a message dialog or other widget, its argument
+    # should be a QWidget that receives parent as parameter.
+    sig_show_widget = Signal(object)
+
+    sig_exception_occurred = Signal(dict)
+    """
+    This signal can be emitted to report an exception from any plugin.
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The expected keys are:
+        >>> error_data= {
+            "text": str,
+            "is_traceback": bool,
+            "repo": str,
+            "title": str,
+            "label": str,
+            "steps": str,
+        }
+
+    Notes
+    -----
+    The `is_traceback` key indicates if `text` contains plain text or a
+    Python error traceback.
+
+    The `title` and `repo` keys indicate how the error data should
+    customize the report dialog and Github error submission.
+
+    The `label` and `steps` keys allow customizing the content of the
+    error dialog.
+
+    This signal is automatically connected to the main Spyder interface.
+    """
+
     # ---------------------------- ATTRIBUTES ---------------------------------
 
     # Name of the completion service
@@ -835,7 +874,8 @@ class SpyderCompletionProvider(QObject):
         """
         pass
 
-    def project_path_update(self, project_path: str, update_kind: str):
+    def project_path_update(self, project_path: str, update_kind: str,
+                            instance: Any):
         """
         Handle project path updates on Spyder.
 
@@ -846,10 +886,45 @@ class SpyderCompletionProvider(QObject):
         update_kind: str
             Path update kind, one of
             :class:`spyder.plugins.completion.api.WorkspaceUpdateKind`
+        instance: object
+            Reference to :class:`spyder.plugins.projects.plugin.Projects`
         """
         pass
 
-    def start_provider(self, language: str):
+    @Slot(object, object)
+    def python_path_update(self, previous_path, new_path):
+        """
+        Handle Python path updates on Spyder.
+
+        Parameters
+        ----------
+        previous_path: Dict
+            Dictionary containing the previous Python path values
+        new_path: Dict
+            Dictionary containing the current Python path values.
+        """
+        pass
+
+    @Slot()
+    def main_interpreter_changed(self):
+        """Handle changes on the main Python interpreter of Spyder."""
+        pass
+
+    def editor_focus_changed(
+            self, filename: str, language: str):
+        """
+        Handle focus changes across tabs and split editors.
+
+        Parameters
+        ----------
+        filename: str
+            Path to the file currently focused on the editor.
+        language: str
+            Name of the programming language of the currently focused file.
+        """
+        pass
+
+    def start_provider(self, language: str) -> bool:
         """
         Start completions/introspection services for a given language.
 
@@ -878,7 +953,7 @@ class SpyderCompletionProvider(QObject):
 
     def start(self):
         """Start completion plugin."""
-        self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
+        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
 
     def shutdown(self):
         """Stop completion plugin."""
@@ -889,7 +964,7 @@ class SpyderCompletionProvider(QObject):
         return True
 
     def get_option(self,
-                   option_name: str,
+                   option_name: Union[str, Tuple[str, ...]],
                    default: Any = None,
                    section: Optional[str] = None) -> Any:
         """
@@ -915,7 +990,58 @@ class SpyderCompletionProvider(QObject):
             settings or the actual value stored.
         """
         if section is None:
-            return self.config.get(option_name, default)
-        else:
-            return self.main.get_global_option(
-                option_name, section, default)
+            section = 'completions'
+            if isinstance(option_name, tuple):
+                option_name = (
+                    'provider_configuration',
+                    self.COMPLETION_CLIENT_NAME,
+                    'values',
+                    *option_name
+                )
+            else:
+                option_name = (
+                    'provider_configuration',
+                    self.COMPLETION_CLIENT_NAME,
+                    'values',
+                    option_name
+                )
+        return self.main.get_global_option(
+            option_name, section, default)
+
+    def set_option(self,
+                   option_name: Union[str, Tuple[str, ...]],
+                   value: Any,
+                   section: Optional[str] = None):
+        """
+        Set an option in the provider configuration settings dictionary or
+        in the global Spyder configurations.
+
+        Parameters
+        ----------
+        option_name: str
+            Option name to lookup for in the provider settings
+            dictionary/global Spyder configurations.
+        value: Any
+            Value to set in the configuration entry.
+        section: Optional[str]
+            If None, then the option is retrieved from the local provider
+            configurations. Otherwise, lookup on the global Spyder
+            configurations.
+        """
+        if section is None:
+            section = 'completions'
+            if isinstance(option_name, tuple):
+                option_name = (
+                    'provider_configuration',
+                    self.COMPLETION_CLIENT_NAME,
+                    'values',
+                    *option_name
+                )
+            else:
+                option_name = (
+                    'provider_configuration',
+                    self.COMPLETION_CLIENT_NAME,
+                    'values',
+                    option_name
+                )
+        self.main.set_conf_option(option_name, value, section)

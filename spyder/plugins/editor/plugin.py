@@ -104,7 +104,7 @@ class Editor(SpyderPluginWidget):
     sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
-    sig_editor_focus_changed = Signal()
+    sig_editor_focus_changed = Signal(str, str)
 
     sig_help_requested = Signal(dict)
     """
@@ -1141,6 +1141,11 @@ class Editor(SpyderPluginWidget):
         self.main.console.sig_edit_goto_requested.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.main.completions.sig_language_client_available.connect(
+            self.register_completion_capabilities)
+
+        self.sig_editor_focus_changed.connect(
+            self.main.completions.editor_focus_changed)
 
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
@@ -1381,8 +1386,10 @@ class Editor(SpyderPluginWidget):
                                               run_cell_copy))
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
-        editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
-        editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.editor_focus_changed.connect(
+            lambda _x, _y: self.save_focus_editorstack)
+        editorstack.editor_focus_changed.connect(
+            lambda _x, _y: self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))

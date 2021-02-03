@@ -423,7 +423,7 @@ class EditorStack(QWidget):
     run_cell_in_ipyclient = Signal(str, object, str, bool)
     debug_cell_in_ipyclient = Signal(str, object, str, bool)
     update_plugin_title = Signal()
-    editor_focus_changed = Signal()
+    editor_focus_changed = Signal(str, str)
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
@@ -621,7 +621,7 @@ class EditorStack(QWidget):
         self.analysis_timer.timeout.connect(self.analyze_script)
 
         # Update filename label
-        self.editor_focus_changed.connect(self.update_fname_label)
+        self.editor_focus_changed.connect(lambda x, y: self.update_fname_label)
 
         # Accepting drops
         self.setAcceptDrops(True)
@@ -2401,14 +2401,18 @@ class EditorStack(QWidget):
     def focus_changed(self):
         """Editor focus has changed"""
         fwidget = QApplication.focusWidget()
+        fname = None
+        language = None
         for finfo in self.data:
             if fwidget is finfo.editor:
+                fname = finfo.editor.filename
+                language = finfo.editor.language
                 if finfo.editor.operation_in_progress:
                     self.spinner.start()
                 else:
                     self.spinner.stop()
                 self.refresh()
-        self.editor_focus_changed.emit()
+        self.editor_focus_changed.emit(fname, language)
 
     def _refresh_outlineexplorer(self, index=None, update=True, clear=False):
         """Refresh outline explorer panel"""

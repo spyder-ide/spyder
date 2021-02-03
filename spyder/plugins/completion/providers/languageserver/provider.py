@@ -27,15 +27,19 @@ from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
-                                           SpyderCompletionProvider)
+                                           SpyderCompletionProvider,
+                                           WorkspaceUpdateKind)
 from spyder.plugins.completion.providers.languageserver.client import LSPClient
 # TODO: Define config page behaviour
 # from spyder.plugins.completion.providers.languageserver.confpage import (
 #     LanguageServerConfigPage)
 # TODO: Define status widget behaviour
-# from spyder.plugins.completion.providers.languageserver.widgets.status import (
-#     ClientStatus, LSPStatusWidget)
-from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.plugins.completion.providers.languageserver.widgets.status import (
+    ClientStatus) # , LSPStatusWidget)
+# from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.plugins.completion.providers.languageserver.widgets.message_box import (
+    ServerDisabledMessageBox
+)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 # Modules to be preloaded for Rope and Jedi
@@ -92,7 +96,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     STOPPED = 'stopped'
     RUNNING = 'running'
     LOCALHOST = ['127.0.0.1', 'localhost']
-    # TODO: Define config page interaction
+    # TODO: Finish configuration tabs migration
     # CONFIGWIDGET_CLASS = LanguageServerConfigPage
     MAX_RESTART_ATTEMPTS = 5
     TIME_BETWEEN_RESTARTS = 10000  # ms
@@ -135,16 +139,13 @@ class LanguageServerProvider(SpyderCompletionProvider):
         self.register_queue = {}
         self.update_lsp_configuration()
         self.show_no_external_server_warning = True
+        self.current_project_path = None
 
         # Status bar widget
-        if parent is not None:
-            self.status_widget = LSPStatusWidget(parent=None, plugin=self)
-            statusbar = self.main.statusbar
-            statusbar.add_status_widget(self.status_widget)
-
-        # TODO: Move to register in the new API
-        # self.sig_exception_occurred.connect(
-        #     self.main.console.handle_exception)
+        # if parent is not None:
+        #     self.status_widget = LSPStatusWidget(parent=None, plugin=self)
+        #     statusbar = self.main.statusbar
+        #     statusbar.add_status_widget(self.status_widget)
 
     def __del__(self):
         """Stop all heartbeats"""
@@ -269,7 +270,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             self.clients_restart_timers[language] = timer
             timer.start()
 
-    # --- Other methods
+    # ------------------ SpyderCompletionProvider methods ---------------------
+    def get_name(self):
+        return _('Language Server Protocol (LSP)')
+
     def register_file(self, language, filename, codeeditor):
         if language in self.clients:
             language_client = self.clients[language]['instance']
@@ -284,7 +288,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         clients for.
         """
         languages = ['python']
-        all_options = CONF.options(self.CONF_SECTION)
+        all_options = self.config
         for option in all_options:
             if option in [l.lower() for l in SUPPORTED_LANGUAGES]:
                 languages.append(option)
@@ -304,11 +308,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         This can be the current project path or the output of
         getcwd_or_home (except for Python, see below).
         """
-        path = None
-
-        # Get path of the current project
-        if self.main and self.main.projects:
-            path = self.main.projects.get_active_project_path()
+        path = self.current_project_path
 
         if not path:
             # We can't use getcwd_or_home for LSP servers because if it
@@ -324,7 +324,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         return path
 
     @Slot()
-    def project_path_update(self, project_path, update_kind):
+    def project_path_update(self, project_path, update_kind, projects):
         """
         Send a didChangeWorkspaceFolders request to each LSP server
         when the project path changes so they can update their
@@ -333,6 +333,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
         If the server doesn't support workspace updates, restart the
         client with the new root path.
         """
+        if update_kind == WorkspaceUpdateKind.ADDITION:
+            self.current_project_path = project_path
+
         for language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
@@ -341,7 +344,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
                         instance.support_workspace_update):
                     instance.send_workspace_folders_change({
                         'folder': project_path,
-                        'instance': self.main.projects,
+                        'instance': projects,
                         'kind': update_kind
                     })
                 else:
@@ -349,13 +352,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
                         "{0}: LSP does not support multiple workspaces, "
                         "restarting client!".format(instance.language)
                     )
-                    self.main.projects.stop_workspace_services()
-                    self.main.editor.stop_completion_services(language)
-                    self.main.outlineexplorer.stop_symbol_services(language)
                     folder = self.get_root_path(language)
                     instance.folder = folder
-                    self.close_client(language)
-                    self.start_client(language)
+                    self.stop_provider(language)
+                    self.start_provider(language)
 
     @Slot(str)
     def report_server_error(self, error):
@@ -399,12 +399,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             + os_message
         )
 
-        QMessageBox.warning(
-            self.main,
-            _("Warning"),
-            warn_str
-        )
+        def wrap_message_box(parent):
+            return QMessageBox.warning(parent, _("Warning"), warn_str)
 
+        self.sig_show_widget.emit(wrap_message_box)
         self.show_no_external_server_warning = False
 
     @Slot(str)
@@ -437,22 +435,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             _("Do you want to restart Spyder now?")
         )
 
-        box = MessageCheckBox(icon=QMessageBox.Warning, parent=self.main)
-        box.setWindowTitle(_("Warning"))
-        box.set_checkbox_text(_("Don't show again"))
-        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        box.setDefaultButton(QMessageBox.No)
-        box.set_checked(False)
-        box.set_check_visible(True)
-        box.setText(warn_str)
-        answer = box.exec_()
+        wrapper = ServerDisabledMessageBox.instance(warn_str, self.set_option)
+        self.sig_show_widget.emit(wrapper)
 
-        self.set_option('show_lsp_down_warning', not box.is_checked())
-
-        if answer == QMessageBox.Yes:
-            self.main.restart()
-
-    def start_client(self, language):
+    def start_provider(self, language):
         """Start an LSP client for a given language."""
         # To keep track if the client was started.
         started = False
@@ -516,35 +502,18 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     def register_client_instance(self, instance):
         """Register signals emitted by a client instance."""
-        if self.main:
-            self.main.sig_pythonpath_changed.connect(self.update_syspath)
-            self.main.sig_main_interpreter_changed.connect(
-                functools.partial(self.update_lsp_configuration, python_only=True))
-            instance.sig_went_down.connect(self.handle_lsp_down)
-            instance.sig_initialize.connect(self.on_initialize)
-
-            if self.main.projects:
-                instance.sig_initialize.connect(
-                    lambda settings, language:
-                    self.main.projects.start_workspace_services())
-            if self.main.editor:
-                instance.sig_initialize.connect(
-                    self.main.editor.register_completion_capabilities)
-                self.main.editor.sig_editor_focus_changed.connect(
-                    self.status_widget.update_status)
-            if self.main.outlineexplorer:
-                instance.sig_initialize.connect(
-                    self.main.outlineexplorer.start_symbol_services)
-            if self.main.console:
-                instance.sig_server_error.connect(self.report_server_error)
+        instance.sig_went_down.connect(self.handle_lsp_down)
+        instance.sig_initialize.connect(self.on_initialize)
+        instance.sig_server_error.connect(self.report_server_error)
+        instance.sig_initialize.connect(self.sig_language_client_available)
 
     def shutdown(self):
         logger.info("Shutting down LSP manager...")
         for language in self.clients:
-            self.close_client(language)
+            self.stop_provider(language)
 
     @Slot(object, object)
-    def update_syspath(self, path_dict, new_path_dict):
+    def python_path_update(self, path_dict, new_path_dict):
         """
         Update server configuration after a change in Spyder's Python
         path.
@@ -563,6 +532,16 @@ class LanguageServerProvider(SpyderCompletionProvider):
         if update:
             logger.debug("Update server's sys.path")
             self.update_lsp_configuration(python_only=True)
+
+    @Slot()
+    def main_interpreter_changed(self):
+        self.update_lsp_configuration(python_only=True)
+
+    def editor_focus_changed(self, filename: str, language: str):
+        # TODO: Update status widget here.
+        #     self.main.editor.sig_editor_focus_changed.connect(
+        #         self.status_widget.update_status)
+        pass
 
     def update_configuration(self, config):
         self.config = config
@@ -614,19 +593,16 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     def restart_client(self, language, config):
         """Restart a client."""
-        self.main.editor.stop_completion_services(language)
-        self.main.projects.stop_workspace_services()
-        self.main.outlineexplorer.stop_symbol_services(language)
-        self.close_client(language)
+        self.stop_provider(language)
         self.clients[language] = config
-        self.start_client(language)
+        self.start_provider(language)
 
     def update_client_status(self, active_set):
         for language in self.clients:
             if language not in active_set:
-                self.close_client(language)
+                self.stop_provider(language)
 
-    def close_client(self, language):
+    def stop_provider(self, language):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:

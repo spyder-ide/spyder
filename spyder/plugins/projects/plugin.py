@@ -180,6 +180,10 @@ class Projects(SpyderPluginWidget):
             ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
                                   False, True, False))
 
+        lspmgr.sig_language_client_available.connect(
+            lambda settings, language:
+                self.start_workspace_services())
+
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
             lambda path:
@@ -192,7 +196,8 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind=WorkspaceUpdateKind.ADDITION))
+                              update_kind=WorkspaceUpdateKind.ADDITION,
+                              instance=self))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -209,7 +214,8 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind=WorkspaceUpdateKind.DELETION))
+                              update_kind=WorkspaceUpdateKind.DELETION,
+                              instance=self))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_closed.connect(
