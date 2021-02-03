@@ -17,3 +17,8 @@ class ApplicationToolbars:
     Debug = 'debug_toolbar'
     Main = 'main_toolbar'
     WorkingDirectory = 'working_directory_toolbar'
+
+
+class MainToolbarSections:
+    LayoutSection = 'layout_toolbar_section'
+    ApplicationSection = 'application_toolbar_section'

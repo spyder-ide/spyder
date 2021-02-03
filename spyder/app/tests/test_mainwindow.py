@@ -2101,14 +2101,14 @@ def test_run_static_code_analysis(main_window, qtbot):
 @pytest.mark.slow
 def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
     """Test that the troubleshooting menu item calls the valid URL."""
-    help_plugin = main_window.help
+    application_plugin = main_window.application
     MockQDesktopServices = Mock()
     mockQDesktopServices_instance = MockQDesktopServices()
     attr_to_patch = ('spyder.utils.qthelpers.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
     # Unit test of help menu item: Make sure the correct URL is called.
-    help_plugin.trouble_action.trigger()
+    application_plugin.trouble_action.trigger()
     assert MockQDesktopServices.openUrl.call_count == 1
     mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
 

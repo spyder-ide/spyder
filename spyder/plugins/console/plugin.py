@@ -19,8 +19,10 @@ from qtpy.QtGui import QIcon
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
+from spyder.plugins.application.plugin import ApplicationActions
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget
-from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus, FileMenuSections, HelpMenuSections)
 
 # Localization
 _ = get_translation('spyder')
@@ -39,7 +41,7 @@ class Console(SpyderDockablePlugin):
     """
     NAME = 'internal_console'
     WIDGET_CLASS = ConsoleWidget
-    OPTIONAL = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.Application, Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONF_FROM_OPTIONS = {
@@ -92,7 +94,9 @@ class Console(SpyderDockablePlugin):
 
     def register(self):
         widget = self.get_widget()
+        application = self.get_plugin(Plugins.Application)
         mainmenu = self.get_plugin(Plugins.MainMenu)
+        dependencies_action = None
 
         # Signals
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -118,17 +122,26 @@ class Console(SpyderDockablePlugin):
                         "might have about the crash."),
             )
             widget.handle_exception(error_data)
+
+        # Actions
+        report_action = self.create_action(
+            ConsoleActions.SpyderReportAction,
+            _("Report issue..."),
+            icon=self.create_icon('bug'),
+            triggered=self.report_issue)
+        if application:
+            dependencies_action = application.get_action(
+                ApplicationActions.SpyderDependenciesAction)
         if mainmenu:
-            report_action = self.create_action(
-                ConsoleActions.SpyderReportAction,
-                _("Report issue..."),
-                icon=self.create_icon('bug'),
-                triggered=self.report_issue)
             mainmenu.add_item_to_application_menu(
                 report_action,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.Support,
-                before_section=HelpMenuSections.ExternalDocumentation)
+                before=dependencies_action)
+            mainmenu.add_item_to_application_menu(
+                widget.quit_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Restart)
 
     def update_font(self):
         font = self.get_font()

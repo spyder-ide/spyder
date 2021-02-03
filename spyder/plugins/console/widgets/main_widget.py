@@ -51,7 +51,9 @@ class ConsoleWidgetActions:
     Environment = 'environment_action'
     ExternalEditor = 'external_editor_action'
     MaxLineCount = 'max_line_count_action'
-    Quit = 'quit_action'
+    # The name of the action needs to match name of the shortcut
+    # so 'Quit' is used instead of something like 'quit_action'
+    Quit = 'Quit'
     Run = 'run_action'
     SysPath = 'sys_path_action'
 
@@ -172,13 +174,15 @@ class ConsoleWidget(PluginMainWidget):
 
     def setup(self, options):
         # TODO: Move this to the shell
-        quit_action = self.create_action(
+        self.quit_action = self.create_action(
             ConsoleWidgetActions.Quit,
             text=_("&Quit"),
             tip=_("Quit"),
             icon=self.create_icon('exit'),
             triggered=self.sig_quit_requested,
             context=Qt.ApplicationShortcut,
+            shortcut_context="_",
+            register_shortcut=True
         )
         run_action = self.create_action(
             ConsoleWidgetActions.Run,
@@ -252,7 +256,7 @@ class ConsoleWidget(PluginMainWidget):
             )
 
         self.add_item_to_menu(
-            quit_action,
+            self.quit_action,
             menu=options_menu,
             section=ConsoleWidgetOptionsMenuSections.Quit,
         )

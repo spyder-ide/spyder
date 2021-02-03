@@ -183,7 +183,8 @@ class ToolbarContainer(PluginMainContainer):
             mainwindow.addToolBar(toolbar)
 
     def add_item_to_application_toolbar(self, item, toolbar=None, toolbar_id=None,
-                                        section=None, before=None):
+                                        section=None, before=None,
+                                        before_section=None):
         """
         Add action or widget `item` to given application toolbar `section`.
 
@@ -199,6 +200,9 @@ class ToolbarContainer(PluginMainContainer):
             The section id in which to insert the `item` on the `toolbar`.
         before: str or None
             Make the item appear before another given item.
+        before_section: str or None
+            Make the item defined section appear before another given section
+            (the section must be already defined).
 
         Notes
         -----
@@ -222,7 +226,8 @@ class ToolbarContainer(PluginMainContainer):
         toolbar = toolbar if toolbar else self.get_application_toolbar(
             toolbar_id)
 
-        toolbar.add_item(item, section=section, before=before)
+        toolbar.add_item(item, section=section, before=before,
+                         before_section=before_section)
 
     def get_application_toolbar(self, toolbar_id):
         """
