@@ -68,6 +68,11 @@ class BasePluginMixin(object):
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default)
 
+    def _remove_option(self, option, section=None):
+        """Remove option from spyder.ini."""
+        section = self.CONF_SECTION if section is None else section
+        CONF.remove_option(section, option)
+
     def _show_status_message(self, message, timeout=0):
         """Show message in main window's status bar."""
         self.main.statusBar().showMessage(message, timeout)

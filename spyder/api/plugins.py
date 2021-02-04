@@ -137,6 +137,19 @@ class BasePlugin(BasePluginMixin):
         return super(BasePlugin, self)._get_option(option, default,
                                                    section=section)
 
+    def remove_option(self, option, section=None):
+        """
+        Remove an option from the Spyder configuration file.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            A string or a Tuple of strings containing an option name to remove.
+        section: Optional[str]
+            Name of the section where the option belongs to.
+        """
+        return super(BasePlugin, self)._remove_option(option, section=section)
+
     def starting_long_process(self, message):
         """
         Show a message in main window's status bar and changes the
@@ -1055,6 +1068,28 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 )
 
             self._conf.set(section, option, value)
+            self.apply_conf({option}, False)
+
+    def remove_conf_option(self, option, section=None):
+        """
+        Delete an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            Name of the option, either a string or a tuple of strings.
+        section: str
+            Section in the configuration system.
+        """
+        if self._conf is not None:
+            section = self.CONF_SECTION if section is None else section
+            if section is None:
+                raise SpyderAPIError(
+                    'A spyder plugin must define a `CONF_SECTION` class '
+                    'attribute!'
+                )
+
+            self._conf.remove_option(section, option)
             self.apply_conf({option}, False)
 
     def apply_conf(self, options_set, notify=True):

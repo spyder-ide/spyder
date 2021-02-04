@@ -30,6 +30,7 @@ from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
                                            SpyderCompletionProvider,
                                            WorkspaceUpdateKind)
 from spyder.plugins.completion.providers.languageserver.client import LSPClient
+from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 # TODO: Define config page behaviour
 # from spyder.plugins.completion.providers.languageserver.confpage import (
 #     LanguageServerConfigPage)
@@ -53,6 +54,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     COMPLETION_CLIENT_NAME = 'lsp'
     DEFAULT_ORDER = 1
     CONF_DEFAULTS = [
+        ('enable_hover_hints', True),
         ('show_lsp_down_warning', True),
         ('code_completion', True),
         ('code_snippets', True),
@@ -92,6 +94,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     #    version, e.g. from 3.0.0 to 4.0.0
     # 3. You don't need to touch this value if you're just adding a new option
     CONF_VERSION = "0.1.0"
+    CONF_TABS = TABS
 
     STOPPED = 'stopped'
     RUNNING = 'running'
@@ -607,8 +610,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 logger.info("Stopping LSP client for {}...".format(language))
-                # language_client['instance'].shutdown()
-                # language_client['instance'].exit()
+                language_client['instance'].disconnect()
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 

@@ -54,6 +54,10 @@ class ConfigAccessMixin(object):
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default)
 
+    def remove_option(option, section=None):
+        section = self.CONF_SECTION if section is None else section
+        CONF.remove_option(section, option)
+
 
 class ConfigPage(QWidget):
     """Base class for configuration page in Preferences"""
@@ -792,6 +796,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             self.tabs.addTab(self.create_tab(widget),
                              Widget.TITLE)
+        self.load_from_conf()
 
 
 class GeneralConfigPage(SpyderConfigPage):

@@ -16,7 +16,7 @@ from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.api import (SpyderCompletionProvider,
                                            SUPPORTED_LANGUAGES)
 from spyder.plugins.completion.providers.snippets.actor import SnippetsActor
-from spyder.plugins.completion.providers.snippets.configtabs import (
+from spyder.plugins.completion.providers.snippets.conftabs import (
     SnippetsConfigTab
 )
 

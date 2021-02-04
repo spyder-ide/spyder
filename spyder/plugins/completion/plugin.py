@@ -56,12 +56,9 @@ class CompletionPlugin(SpyderPluginV2):
     set of :class:`SpyderCompletionProvider` instances that are registered
     and discovered via entrypoints.
 
-    This plugin can assume that `fallback`, `snippets` and `language_server`
+    This plugin can assume that `fallback`, `snippets`, `lsp` and `kite`
     completion providers are available, since they are included as part of
     Spyder.
-
-    TODO: Kite will be stripped from the Spyder core into its own completion
-    provider.
     """
 
     NAME = 'completions'
@@ -110,6 +107,10 @@ class CompletionPlugin(SpyderPluginV2):
     STOPPED = 'stopped'
 
     SKIP_INTERMEDIATE_REQUESTS = {
+        CompletionRequestTypes.DOCUMENT_COMPLETION
+    }
+
+    AGGREGATE_RESPONSES = {
         CompletionRequestTypes.DOCUMENT_COMPLETION
     }
 
@@ -172,10 +173,23 @@ class CompletionPlugin(SpyderPluginV2):
                 return plugin.set_conf_option(option, value, section)
             return wrapper
 
+        def wrap_remove_option(provider):
+            plugin = self
+            def wrapper(self, option, section=None):
+                if section is None:
+                    if isinstance(option, tuple):
+                        option = ('provider_configuration', provider, 'values',
+                                  *option)
+                    else:
+                        option = ('provider_configuration', provider, 'values',
+                                  option)
+                    return plugin.remove_conf_option(option, section)
+            return wrapper
+
         # Wrap create_* methods in configpage
         def wrap_create_op(create_name, opt_pos, provider):
             def wrapper(self, *args, **kwargs):
-                if kwargs['section'] is None:
+                if kwargs.get('section', None) is None:
                     arg_list = list(args)
                     if isinstance(args[opt_pos], tuple):
                         arg_list[opt_pos] = (
@@ -187,7 +201,9 @@ class CompletionPlugin(SpyderPluginV2):
                             args[opt_pos])
                     args = tuple(arg_list)
                 call = getattr(self.parent, create_name)
-                return call(*args, **kwargs)
+                widget = call(*args, **kwargs)
+                widget.setParent(self)
+                return widget
             return wrapper
 
         def wrap_apply_settings(Tab, provider):
@@ -212,7 +228,7 @@ class CompletionPlugin(SpyderPluginV2):
                 sig = inspect.signature(call)
                 parameters = sig.parameters
                 if 'option' in sig.parameters:
-                    pos = 0
+                    pos = -1
                     for param in parameters:
                         if param == 'option':
                             break
@@ -237,9 +253,10 @@ class CompletionPlugin(SpyderPluginV2):
         for provider_key in self.providers:
             provider = self.providers[provider_key]['instance']
             for tab in provider.CONF_TABS:
-                # Add set_option/get_option to tab definition
+                # Add set_option/get_option/remove_option to tab definition
                 setattr(tab, 'get_option', wrap_get_option(provider_key))
                 setattr(tab, 'set_option', wrap_set_option(provider_key))
+                setattr(tab, 'remove_option', wrap_remove_option(provider_key))
                 # Wrap apply_settings to return settings correctly
                 setattr(tab, 'apply_settings',
                         wrap_apply_settings(tab, provider_key))
@@ -562,11 +579,12 @@ class CompletionPlugin(SpyderPluginV2):
         }
 
         # Start the timer on this request
-        if self.wait_for_ms > 0:
-            QTimer.singleShot(self.wait_for_ms,
-                              lambda: self.receive_timeout(req_id))
-        else:
-            self.requests[req_id]['timed_out'] = True
+        if req_type in self.AGGREGATE_RESPONSES:
+            if self.wait_for_ms > 0:
+                QTimer.singleShot(self.wait_for_ms,
+                                  lambda: self.receive_timeout(req_id))
+            else:
+                self.requests[req_id]['timed_out'] = True
 
         # Send request to all running completion providers
         for provider_name in self.providers:
@@ -759,24 +777,27 @@ class CompletionPlugin(SpyderPluginV2):
         language = request_responses['language'].lower()
         req_type = request_responses['req_type']
 
-        # Wait only for the available providers for the given request
-        available_providers = self.available_providers_for_language(language)
-        sorted_providers = self.sort_providers_for_request(
-            available_providers, req_type)
-        timed_out = request_responses['timed_out']
-        all_returned = all(source in request_responses['sources']
-                           for source in sorted_providers)
-
-        if not timed_out:
-            # Before the timeout
-            if all_returned:
-                self.skip_and_reply(req_id)
+        if req_type in self.AGGREGATE_RESPONSES:
+            # Wait only for the available providers for the given request
+            available_providers = self.available_providers_for_language(
+                language)
+            sorted_providers = self.sort_providers_for_request(
+                available_providers, req_type)
+            timed_out = request_responses['timed_out']
+            all_returned = all(source in request_responses['sources']
+                            for source in sorted_providers)
+            if not timed_out:
+                # Before the timeout
+                if all_returned:
+                    self.skip_and_reply(req_id)
+            else:
+                # After the timeout
+                any_nonempty = any(request_responses['sources'].get(source)
+                                for source in sorted_providers)
+                if all_returned or any_nonempty:
+                    self.skip_and_reply(req_id)
         else:
-            # After the timeout
-            any_nonempty = any(request_responses['sources'].get(source)
-                               for source in sorted_providers)
-            if all_returned or any_nonempty:
-                self.skip_and_reply(req_id)
+            self.skip_and_reply(req_id)
 
     def skip_and_reply(self, req_id: int):
         """

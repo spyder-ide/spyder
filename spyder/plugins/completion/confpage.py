@@ -47,7 +47,7 @@ class CompletionConfigPage(PluginConfigPage):
 
         completions_wait_for_ms = self.create_spinbox(
             _("Time to wait for all providers to return (ms):"), None,
-            'completions_wait_for_ms', min_=0, max_=5000, step=10,
+            'completions_wait_for_ms', min_=0, max_=10000, step=10,
             tip=_("Beyond this timeout, "
                 "the first available provider will be returned"))
         completion_hint_box = newcb(

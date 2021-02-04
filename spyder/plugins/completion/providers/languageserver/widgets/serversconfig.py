@@ -23,22 +23,25 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.config.gui import get_font
-from spyder.plugins.completion.manager.api import LSP_LANGUAGES
+from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
-LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
-LANGUAGE_SET = {lang.lower() for lang in LSP_LANGUAGES}
+LSP_LANGUAGE_NAME = {x.lower(): x for x in SUPPORTED_LANGUAGES}
+LANGUAGE_SET = {lang.lower() for lang in SUPPORTED_LANGUAGES}
 
 
-def iter_servers():
-    for option in CONF.options('lsp-server'):
-        if option in LANGUAGE_SET:
-            server = LSPServer(language=option)
+def iter_servers(get_option, set_option, remove_option):
+    for language in LANGUAGE_SET:
+        conf = get_option(language, default=None)
+        if conf is not None:
+            server = LSPServer(language=language,
+                               set_option=set_option,
+                               get_option=get_option,
+                               remove_option=remove_option)
             server.load()
             yield server
 
@@ -48,7 +51,8 @@ class LSPServer(object):
 
     def __init__(self, language=None, cmd='', host='127.0.0.1',
                  port=2084, args='', external=False, stdio=False,
-                 configurations={}):
+                 configurations={}, set_option=None, get_option=None,
+                 remove_option=None):
         self.index = 0
         self.language = language
         if self.language in LSP_LANGUAGE_NAME:
@@ -60,6 +64,9 @@ class LSPServer(object):
         self.host = host
         self.external = external
         self.stdio = stdio
+        self.set_option = set_option
+        self.get_option = get_option
+        self.remove_option = remove_option
 
     def __repr__(self):
         base_str = '[{0}] {1} {2} ({3}:{4})'
@@ -81,18 +88,22 @@ class LSPServer(object):
 
     def load(self):
         if self.language is not None:
-            state = CONF.get('lsp-server', self.language.lower())
+            state = self.get_option(self.language.lower())
             self.__dict__.update(state)
 
     def save(self):
         if self.language is not None:
             language = self.language.lower()
-            CONF.set('lsp-server', language, self.__dict__)
+            dict_repr = dict(self.__dict__)
+            dict_repr.pop('set_option')
+            dict_repr.pop('get_option')
+            dict_repr.pop('remove_option')
+            self.set_option(language, dict_repr)
 
     def delete(self):
         if self.language is not None:
             language = self.language.lower()
-            CONF.remove_option('lsp-server', language)
+            self.remove_option(language)
 
 
 class LSPServerEditor(QDialog):
@@ -113,7 +124,8 @@ class LSPServerEditor(QDialog):
 
     def __init__(self, parent, language=None, cmd='', host='127.0.0.1',
                  port=2084, args='', external=False, stdio=False,
-                 configurations={}, **kwargs):
+                 configurations={}, get_option=None, set_option=None,
+                 remove_option=None, **kwargs):
         super(LSPServerEditor, self).__init__(parent)
 
         description = _(
@@ -130,6 +142,9 @@ class LSPServerEditor(QDialog):
         )
         self.parent = parent
         self.external = external
+        self.set_option = set_option
+        self.get_option = get_option
+        self.remove_option = remove_option
 
         # Widgets
         self.server_settings_description = QLabel(description)
@@ -161,11 +176,11 @@ class LSPServerEditor(QDialog):
         self.lang_cb.setToolTip(
             _('Programming language provided by the LSP server'))
         self.lang_cb.addItem(_('Select a language'))
-        self.lang_cb.addItems(LSP_LANGUAGES)
+        self.lang_cb.addItems(SUPPORTED_LANGUAGES)
 
         self.button_ok.setEnabled(False)
         if language is not None:
-            idx = LSP_LANGUAGES.index(language)
+            idx = SUPPORTED_LANGUAGES.index(language)
             self.lang_cb.setCurrentIndex(idx + 1)
             self.button_ok.setEnabled(True)
 
@@ -189,7 +204,7 @@ class LSPServerEditor(QDialog):
 
         self.conf_input.setup_editor(
             language='json',
-            color_scheme=CONF.get('appearance', 'selected'),
+            color_scheme=get_option('selected', section='appearance'),
             wrap=False,
             highlight_current_line=True,
             font=get_font()
@@ -368,7 +383,7 @@ class LSPServerEditor(QDialog):
             self.form_status(False)
             self.button_ok.setEnabled(False)
         else:
-            server = self.parent.get_server_by_lang(LSP_LANGUAGES[idx - 1])
+            server = self.parent.get_server_by_lang(SUPPORTED_LANGUAGES[idx - 1])
             self.form_status(True)
             if server is not None:
                 self.host_input.setText(server.host)
@@ -447,7 +462,7 @@ class LSPServerEditor(QDialog):
 
     def get_options(self):
         language_idx = self.lang_cb.currentIndex()
-        language = LSP_LANGUAGES[language_idx - 1]
+        language = SUPPORTED_LANGUAGES[language_idx - 1]
         host = self.host_input.text()
         port = int(self.port_spinner.value())
         external = self.external_cb.isChecked()
@@ -457,7 +472,10 @@ class LSPServerEditor(QDialog):
         configurations = json.loads(self.conf_input.toPlainText())
         server = LSPServer(language=language.lower(), cmd=cmd, args=args,
                            host=host, port=port, external=external,
-                           stdio=stdio, configurations=configurations)
+                           stdio=stdio, configurations=configurations,
+                           get_option=self.get_option,
+                           set_option=self.set_option,
+                           remove_option=self.remove_option)
         return server
 
 
@@ -609,7 +627,9 @@ class LSPServerTable(QTableView):
         return self.source_model.server_map.get(lang)
 
     def load_servers(self):
-        servers = list(iter_servers())
+        servers = list(iter_servers(self._parent.get_option,
+                                    self._parent.set_option,
+                                    self._parent.remove_option))
         for i, server in enumerate(servers):
             server.index = i
             server.language = LSP_LANGUAGE_NAME[server.language.lower()]
@@ -621,11 +641,15 @@ class LSPServerTable(QTableView):
         self.sortByColumn(LANGUAGE, Qt.AscendingOrder)
 
     def save_servers(self):
+        language_set = set({})
         for server in self.source_model.servers:
+            language_set |= {server.language.lower()}
             server.save()
         while len(self.delete_queue) > 0:
             server = self.delete_queue.pop(0)
+            language_set |= {server.language.lower()}
             server.delete()
+        return language_set
 
     def delete_server(self, idx):
         server = self.source_model.servers.pop(idx)
@@ -635,8 +659,16 @@ class LSPServerTable(QTableView):
         self.adjust_cells()
         self.sortByColumn(LANGUAGE, Qt.AscendingOrder)
 
+    def delete_server_by_lang(self, language):
+        idx = next((i for i, x in enumerate(self.source_model.servers)
+                    if x.language == language), None)
+        if idx is not None:
+            self.delete_server(idx)
+
     def show_editor(self, new_server=False):
-        server = LSPServer()
+        server = LSPServer(get_option=self._parent.get_option,
+                           set_option=self._parent.set_option,
+                           remove_option=self._parent.remove_option)
         if not new_server:
             idx = self.currentIndex().row()
             server = self.source_model.row(idx)

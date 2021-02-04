@@ -93,12 +93,14 @@ class PluginConfigPage(SpyderConfigPage):
             self.apply_settings = self._wrap_apply_settings(plugin.apply_conf)
             self.get_option = plugin.get_conf_option
             self.set_option = plugin.set_conf_option
+            self.remove_option = plugin.remove_conf_option
         except AttributeError:
             # Old API
             self.apply_settings = self._wrap_apply_settings(
                 plugin.apply_plugin_settings)
             self.get_option = plugin.get_option
             self.set_option = plugin.set_option
+            self.remove_option = plugin.remove_option
 
     def get_name(self):
         """
