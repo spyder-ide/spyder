@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        build_type: ['Lite', 'Full']
+        build_type: ['Lite'] #, 'Full']
     defaults:
       run:
         shell: bash -l {0}
@@ -28,8 +28,11 @@ jobs:
           fetch-depth: 0
       - name: Update System
         run: |
+          python3.9 -c 'import tkinter; print(f"Tcl version: {tkinter.TclVersion}")'
+          brew uninstall python
+          brew install python
           brew install spatialindex
-          brew link python@3.9
+          python3.9 -c 'import tkinter; print(f"Tcl version: {tkinter.TclVersion}")'
       - name: Install Dependencies
         run: |
           INSTALL_FLAGS=()
