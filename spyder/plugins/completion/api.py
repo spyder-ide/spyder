@@ -661,22 +661,74 @@ class SpyderCompletionProvider(QObject):
     with Spyder CodeEditor and Projects manager.
     """
 
-    # Use this signal to send a response back to the completion manager
-    # str: Completion client name
-    # int: Request sequence identifier
-    # dict: Response dictionary
     sig_response_ready = Signal(str, int, dict)
+    """
+    This signal is used to send a response back to the completion manager.
 
-    # Use this signal to indicate that the plugin is ready
+    Parameters
+    ----------
+    completion_client_name: str
+        Name of the completion client that produced this response.
+    request_seq: int
+        Sequence number for the request.
+    response: dict
+        Actual request corpus response.
+    """
+
     sig_provider_ready = Signal(str)
+    """
+    This signal is used to indicate that the completion provider is ready
+    to handle requests.
 
-    #: Signal to inform a plugin that a given language client has
-    #  started properly and it's ready to be used.
+    Parameters
+    ----------
+    completion_client_name: str
+        Name of the completion client.
+    """
+
     sig_language_client_available = Signal(dict, str)
+    """
+    This signal is used to indicate that completion capabilities are supported
+    for a given programming language.
 
-    # Use this signal to show a message dialog or other widget, its argument
-    # should be a QWidget that receives parent as parameter.
+    Parameters
+    ----------
+    completion_capabilites: dict
+        Available configurations supported by the client, it should conform to
+        `spyder.plugins.completion.api.SERVER_CAPABILITES`.
+    language: str
+        Name of the programming language whose completion capabilites are
+        available.
+    """
+
     sig_show_widget = Signal(object)
+    """
+    This signal is used to display a graphical widget such as a QMessageBox.
+
+    Parameters
+    ----------
+    widget: Union[QWidget, Callable[[QWidget], QWidget]]
+        Widget to display, its constructor should receive parent as first and
+        only argument.
+    """
+
+    sig_update_statusbar = Signal(str, str, tuple, dict)
+    """
+    This signal is used to call a remote method on a statusbar registered via
+    the `STATUS_BAR` attribute.
+
+    Parameters
+    ----------
+    statusbar_key: str
+        Status bar key identifier that was registered on the `STATUS_BAR`
+        attribute.
+    method_name: str
+        Name of the remote method defined on the statusbar.
+    args: tuple
+        Tuple with positional arguments to invoke the method.
+    kwargs: dict
+        Dictionary containing optional arguments to invoke the method.
+    """
 
     sig_exception_occurred = Signal(dict)
     """
@@ -742,6 +794,18 @@ class SpyderCompletionProvider(QObject):
 
     # Widget to be used as entry in Spyder Preferences dialog.
     CONF_TABS = []
+
+    # A map of status bars that the provider declares to display on Spyder.
+    # Each status bar should correspond to a
+    # :class:`spyder.api.widgets.status.StatusBarWidget` or
+    # a closure that returns a StatusBarWidget.
+    #
+    # STATUS_BAR = {
+    #     'statusbar_key1': StatusBarClass1,
+    #     'statusbar_key2': StatusBarClass2,
+    #     ...
+    # }
+    STATUS_BARS = {}
 
     def __init__(self, parent, config):
         """

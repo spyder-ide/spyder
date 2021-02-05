@@ -19,6 +19,10 @@ from spyder.api.widgets import PluginMainContainer
 class CompletionContainer(PluginMainContainer):
     """Stateless class used to store graphical widgets."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.statusbars = {}
+
     def setup(self, options=None):
         pass
 
@@ -35,3 +39,16 @@ class CompletionContainer(PluginMainContainer):
             if hasattr(widget, 'sig_restart_spyder'):
                 widget.sig_restart_spyder.connect(self.sig_restart_requested)
             widget.exec_()
+
+    def register_statusbars(self, statusbar_map):
+        for status_key in statusbar_map:
+            StatusBar = statusbar_map[status_key]
+            self.statusbars[status_key] = StatusBar(self)
+
+    def all_statusbars(self):
+        return [self.statusbars[k] for k in self.statusbars]
+
+    def statusbar_rpc(self, status_key, method, args, kwargs):
+        statusbar = self.statusbars[status_key]
+        call = getattr(statusbar, method)
+        call(*args, **kwargs)

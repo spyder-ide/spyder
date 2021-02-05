@@ -63,7 +63,9 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
-    REQUIRES = [Plugins.Preferences, Plugins.StatusBar]
+    REQUIRES = [Plugins.Preferences]
+    OPTIONAL = [Plugins.StatusBar]
+
     CONF_DEFAULTS = [
         ('enabled_providers', {}),
         ('provider_configuration', {}),
@@ -83,24 +85,62 @@ class CompletionPlugin(SpyderPluginV2):
     # Ad Hoc polymorphism signals to make this plugin a completion provider
     # without inheriting from SpyderCompletionProvider
 
-    # Use this signal to send a response back to the completion manager
-    # str: Completion client name
-    # int: Request sequence identifier
-    # dict: Response dictionary
     sig_response_ready = Signal(str, int, dict)
+    """
+    This signal is used to receive a response from a completion provider.
 
-    # Use this signal to indicate that the plugin is ready
-    sig_plugin_ready = Signal(str)
+    Parameters
+    ----------
+    completion_client_name: str
+        Name of the completion client that produced this response.
+    request_seq: int
+        Sequence number for the request.
+    response: dict
+        Actual request corpus response.
+    """
 
-    # Use this signal to indicate a change in the Python path.
+    sig_provider_ready = Signal(str)
+    """
+    This signal is used to indicate that a completion provider is ready
+    to handle requests.
+
+    Parameters
+    ----------
+    completion_client_name: str
+        Name of the completion client.
+    """
+
     sig_pythonpath_changed = Signal(object, object)
+    """
+    This signal is used to receive changes on the PythonPath.
 
-    # Use this signal to indicate a change in the main Python interpreter.
+    Parameters
+    ----------
+    prev_path: dict
+        Previous PythonPath settings.
+    new_path: dict
+        New PythonPath settings.
+    """
+
     sig_main_interpreter_changed = Signal()
+    """
+    This signal is used to receive changes on the main Python interpreter.
+    """
 
-    #: Signal to inform a plugin that a given language client has
-    #  started properly and it's ready to be used.
     sig_language_client_available = Signal(dict, str)
+    """
+    This signal is used to indicate that completion services are available
+    for a given programming language.
+
+    Parameters
+    ----------
+    completion_capabilites: dict
+        Available configurations supported by the client, it should conform to
+        `spyder.plugins.completion.api.SERVER_CAPABILITES`.
+    language: str
+        Name of the programming language whose completion capabilites are
+        available.
+    """
 
     # Provider status constants
     RUNNING = 'running'
@@ -250,6 +290,8 @@ class CompletionPlugin(SpyderPluginV2):
         # Define configuration page and tabs
         conf_providers = []
         conf_tabs = []
+        container = self.get_container()
+
         for provider_key in self.providers:
             provider = self.providers[provider_key]['instance']
             for tab in provider.CONF_TABS:
@@ -264,6 +306,8 @@ class CompletionPlugin(SpyderPluginV2):
                 for name, pos in widget_funcs:
                     setattr(tab, name, wrap_create_op(name, pos, provider_key))
             conf_tabs += provider.CONF_TABS
+            # Add defined status bars to container
+            container.register_statusbars(provider.STATUS_BARS)
             conf_providers.append((provider_key, provider.get_name()))
 
         self.CONF_WIDGET_CLASS = partialclass(
@@ -286,6 +330,12 @@ class CompletionPlugin(SpyderPluginV2):
         """Start all available completion providers."""
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
+
+        container = self.get_container()
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        if statusbar:
+            for sb in container.all_statusbars():
+                statusbar.add_status_widget(sb, 0)
 
         # TODO: Move this section to the new API once the migration of
         # Application is complete
@@ -453,6 +503,9 @@ class CompletionPlugin(SpyderPluginV2):
         provider_instance.sig_show_widget.connect(
             container.show_widget
         )
+        provider_instance.sig_update_statusbar.connect(
+            container.statusbar_rpc)
+
         self.sig_pythonpath_changed.connect(
             provider_instance.python_path_update)
         self.sig_main_interpreter_changed.connect(
@@ -472,6 +525,7 @@ class CompletionPlugin(SpyderPluginV2):
         """Indicate that the completion provider `provider_name` is running."""
         provider_info = self.providers[provider_name]
         provider_info['status'] = self.RUNNING
+        self.sig_provider_ready.emit(provider_name)
 
     def start_provider(self, language: str) -> bool:
         """Start completion providers for a given programming language."""
@@ -848,7 +902,6 @@ class CompletionPlugin(SpyderPluginV2):
             # This is triggered when a codeeditor instance has been
             # removed before the response can be processed.
             pass
-
 
     def gather_completions(self, req_id_responses: dict):
         """Gather completion responses from plugins."""

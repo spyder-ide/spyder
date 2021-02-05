@@ -36,7 +36,7 @@ from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 #     LanguageServerConfigPage)
 # TODO: Define status widget behaviour
 from spyder.plugins.completion.providers.languageserver.widgets.status import (
-    ClientStatus) # , LSPStatusWidget)
+    ClientStatus, LSPStatusWidget)
 # from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.completion.providers.languageserver.widgets.message_box import (
     ServerDisabledMessageBox
@@ -145,10 +145,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
         self.current_project_path = None
 
         # Status bar widget
-        # if parent is not None:
-        #     self.status_widget = LSPStatusWidget(parent=None, plugin=self)
-        #     statusbar = self.main.statusbar
-        #     statusbar.add_status_widget(self.status_widget)
+        self.STATUS_BARS = {
+            'lsp_statusbar': self.create_statusbar
+        }
 
     def __del__(self):
         """Stop all heartbeats"""
@@ -198,6 +197,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 self.clients_hearbeat[language] = None
                 self.report_lsp_down(language)
 
+    def create_statusbar(self, parent):
+        return LSPStatusWidget(parent, self)
+
     def check_restart(self, client, language):
         """
         Check if a server restart was successful in order to stop
@@ -235,6 +237,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Update status for the current file.
         """
         self.clients_statusbar[language] = status
+        self.sig_update_statusbar.emit(
+            'lsp_statusbar', 'update_status', (language, status), {})
         # self.status_widget.update_status(language, status)
 
     def on_initialize(self, options, language):
@@ -544,7 +548,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # TODO: Update status widget here.
         #     self.main.editor.sig_editor_focus_changed.connect(
         #         self.status_widget.update_status)
-        pass
+        self.sig_update_statusbar.emit(
+            'lsp_statusbar', 'set_current_language', (language,), {})
 
     def update_configuration(self, config):
         self.config = config
