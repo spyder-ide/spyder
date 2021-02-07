@@ -3813,5 +3813,36 @@ def test_outline_no_init(main_window, qtbot):
     assert len(treewidget.editor_tree_cache[editor_id]) > 0
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_pdb_without_comm(main_window, qtbot):
+    """Check if pdb works without comm."""
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("get_ipython().kernel.frontend_comm.close()")
+    shell.execute("%debug print()")
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    assert "Two: 2" in control.toPlainText()
+
+    # Press step button and expect a sig_pdb_step signal
+    with qtbot.waitSignal(shell.sig_pdb_step):
+        main_window.editor.debug_command("step")
+
+    # Stop debugging and expect an executed signal
+    with qtbot.waitSignal(shell.executed):
+        main_window.editor.stop_debugging()
+
+
 if __name__ == "__main__":
     pytest.main()
