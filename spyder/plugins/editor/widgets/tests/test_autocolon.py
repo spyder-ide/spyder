@@ -75,6 +75,15 @@ def test_no_auto_colon_in_listcomp_over_two_lines():
     editor = construct_editor("ns = [ n for ns in range(10) \n if n < 5 ]")
     assert editor.autoinsert_colons() == False
 
+def test_no_auto_colon_in_listcomp_over_three_lines():
+    """Tests spyder-ide/spyder#1354"""
+    editor = construct_editor("ns = [ n \n for ns in range(10) \n if n < 5 ]")
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Up)
+    cursor.movePosition(QTextCursor.EndOfLine)
+    editor.setTextCursor(cursor)
+    assert not editor.autoinsert_colons()
+
 
 # --- Failing tests
 # -----------------------------------------------------------------------------
@@ -82,15 +91,6 @@ def test_no_auto_colon_in_listcomp_over_two_lines():
 def test_auto_colon_even_if_colon_inside_quotes():
     editor = construct_editor("if text == ':'")
     assert editor.autoinsert_colons() == True
-
-@pytest.mark.xfail
-def test_no_auto_colon_in_listcomp_over_three_lines():
-    editor = construct_editor("ns = [ n \n for ns in range(10) \n if n < 5 ]")
-    cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.Up)
-    cursor.movePosition(QTextCursor.EndOfLine)
-    editor.setTextCursor(cursor)
-    assert editor.autoinsert_colons() == False
 
 @pytest.mark.xfail
 def test_auto_colon_in_two_if_statements_on_one_line():

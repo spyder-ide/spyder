@@ -1532,7 +1532,7 @@ def test_pdb_multiline(ipyconsole, qtbot):
     qtbot.wait(500)
 
     assert shell.get_value('bb') == 10
-    assert "if True:\n   ...:     bb = 10\n" in control.toPlainText()
+    assert "if True:\n     ...:     bb = 10\n" in control.toPlainText()
 
 
 @flaky(max_runs=3)
@@ -1823,7 +1823,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1832,7 +1832,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[1]:"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[4]:"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)

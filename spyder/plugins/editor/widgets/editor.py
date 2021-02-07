@@ -216,7 +216,7 @@ class FileInfo(QObject):
 
     def run_todo_finder(self):
         """Run TODO finder"""
-        if self.editor.is_python():
+        if self.editor.is_python_or_ipython():
             self.threadmanager.add_thread(find_tasks,
                                           self.todo_finished,
                                           self.get_source_code(), self)
@@ -1540,6 +1540,7 @@ class EditorStack(QWidget):
 
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
+        finfo.editor.filename = new_filename
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -2962,7 +2963,7 @@ class EditorStack(QWidget):
             The starting line number of the cell in the file.
         """
         (filename, cell_name) = cell_id
-        if editor.is_python():
+        if editor.is_python_or_ipython():
             args = (text, cell_name, filename, self.run_cell_copy)
             if debug:
                 self.debug_cell_in_ipyclient.emit(*args)

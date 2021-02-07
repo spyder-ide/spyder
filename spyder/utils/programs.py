@@ -14,7 +14,7 @@ from distutils.version import LooseVersion
 from getpass import getuser
 from textwrap import dedent
 import glob
-import imp
+import importlib
 import itertools
 import os
 import os.path as osp
@@ -31,7 +31,7 @@ import psutil
 
 # Local imports
 from spyder.config.base import (is_stable_version, running_under_pytest,
-                                get_home_dir, running_in_mac_app)
+                                get_home_dir)
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -39,7 +39,6 @@ from spyder.utils.misc import get_python_executable
 
 
 HERE = osp.abspath(osp.dirname(__file__))
-WINDOWS = os.name == 'nt'
 
 
 class ProgramError(Exception):
@@ -87,29 +86,35 @@ def is_program_installed(basename):
         if basename.endswith('.app') and osp.exists(basename):
             return basename
 
-        pyenv = [osp.join('/usr', 'local', 'bin')]
+        pyenv = [
+            osp.join('/usr', 'local', 'bin'),
+            osp.join(home, '.pyenv', 'bin')
+        ]
 
         # Prioritize Anaconda before Miniconda; local before global.
         a = [osp.join(home, 'opt'), '/opt']
-        b = ['anaconda3', 'miniconda3']
+        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
 
     elif sys.platform.startswith('linux'):
-        pyenv = [osp.join('/usr', 'local', 'bin')]
+        pyenv = [
+            osp.join('/usr', 'local', 'bin'),
+            osp.join(home, '.pyenv', 'bin')
+        ]
 
         a = [home, '/opt']
-        b = ['anacona3', 'miniconda3']
+        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
 
-    elif WINDOWS:
+    elif os.name == 'nt':
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
         a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
-        b = ['Anaconda3', 'Miniconda3']
+        b = ['Anaconda', 'Miniconda', 'Anaconda3', 'Miniconda3']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
@@ -221,8 +226,12 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
     else:
         subprocess_kwargs['shell'] = True
 
-    if 'executable' not in subprocess_kwargs:
-        subprocess_kwargs['executable'] = os.getenv('SHELL')
+    # Don't pass SHELL to subprocess on Windows because it makes this
+    # fumction fail in Git Bash (where SHELL is declared; other Windows
+    # shells don't set it).
+    if not os.name == 'nt':
+        if 'executable' not in subprocess_kwargs:
+            subprocess_kwargs['executable'] = os.getenv('SHELL')
 
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
@@ -658,17 +667,23 @@ def python_script_exists(package=None, module=None):
     package=None -> module is in sys.path (standard library modules)
     """
     assert module is not None
-    try:
-        if package is None:
-            path = imp.find_module(module)[1]
+    if package is None:
+        spec = importlib.util.find_spec(module)
+        if spec:
+            path = spec.origin
         else:
-            path = osp.join(imp.find_module(package)[1], module)+'.py'
-    except ImportError:
-        return
-    if not osp.isfile(path):
-        path += 'w'
-    if osp.isfile(path):
-        return path
+            path = None
+    else:
+        spec = importlib.util.find_spec(package)
+        if spec:
+            path = osp.join(spec.origin, module)+'.py'
+        else:
+            path = None
+    if path:
+        if not osp.isfile(path):
+            path += 'w'
+        if osp.isfile(path):
+            return path
 
 
 def run_python_script(package=None, module=None, args=[], p_args=[]):
@@ -929,9 +944,14 @@ def is_module_installed(module_name, version=None, interpreter=None):
             # Module is not installed
             return False
 
-        # This can happen if a package was not uninstalled correctly
-        if module_version is None:
-            return False
+        # This can happen if a package was not uninstalled correctly. For
+        # instance, if it's __pycache__ main directory is left behind.
+        try:
+            mod = __import__(module_name)
+            if not getattr(mod, '__file__', None):
+                return False
+        except Exception:
+            pass
 
     if version is None:
         return True
@@ -1051,57 +1071,13 @@ def is_spyder_process(pid):
         return False
 
 
-def get_pyenv_path(name):
-    """Return the complete path of the pyenv."""
-    home = get_home_dir()
-    if WINDOWS:
-        path = osp.join(
-            home, '.pyenv', 'pyenv-win', 'versions', name, 'python.exe')
-    elif name == '':
-        path = osp.join(home, '.pyenv', 'shims', 'python')
-    else:
-        path = osp.join(home, '.pyenv', 'versions', name, 'bin', 'python')
-    return path
-
-
-def get_list_pyenv_envs():
-    """Return the list of all pyenv envs found in the system."""
-    env_list = {}
-    pyenv = find_program('pyenv')
-    if pyenv is None:
-        return env_list
-
-    cmdstr = ' '.join([pyenv, 'versions', '--bare', '--skip-aliases'])
-    try:
-        out, err = run_shell_command(cmdstr, env={}).communicate()
-        out = out.decode()
-        err = err.decode()
-    except Exception:
-        out = ''
-        err = ''
-    out = out.split('\n')
-    for env in out:
-        data = env.split(osp.sep)
-        path = get_pyenv_path(data[-1])
-        if data[-1] == '':
-            name = 'internal' if running_in_mac_app(path) else 'system'
-        else:
-            name = 'pyenv: {}'.format(data[-1])
-        version = (
-            'Python 2.7' if data[-1] == '' else 'Python {}'.format(data[0]))
-        env_list[name] = (path, version)
-    return env_list
-
-
 def get_interpreter_info(path):
     """Return version information of the selected Python interpreter."""
     try:
-        out, err = run_program(path, ['-V']).communicate()
+        out, __ = run_program(path, ['-V']).communicate()
         out = out.decode()
-        err = err.decode()
     except Exception:
         out = ''
-        err = ''
     return out.strip()
 
 

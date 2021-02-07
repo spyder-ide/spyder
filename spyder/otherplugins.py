@@ -9,6 +9,7 @@ Spyder third-party plugins configuration management.
 """
 
 # Standard library imports
+import importlib
 import logging
 import os
 import os.path as osp
@@ -17,12 +18,8 @@ import traceback
 
 # Local imports
 from spyder.config.base import get_conf_path
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 
-if PY2:
-    import imp
-else:
-    import importlib
 
 # Constants
 logger = logging.getLogger(__name__)
@@ -108,18 +105,12 @@ def _import_module_from_path(module_name, plugin_path):
     """
     module = None
     try:
-        if PY2:
-            info = imp.find_module(module_name, [plugin_path])
-            if info:
-                module = imp.load_module(module_name, *info)
-        else:
-            # Python 3.4+
-            spec = importlib.machinery.PathFinder.find_spec(
-                module_name,
-                [plugin_path])
+        spec = importlib.machinery.PathFinder.find_spec(
+            module_name,
+            [plugin_path])
 
-            if spec:
-                module = spec.loader.load_module(module_name)
+        if spec:
+            module = spec.loader.load_module(module_name)
     except Exception as err:
         debug_message = ("plugin: '{module_name}' load failed with `{err}`"
                          "").format(module_name=module_name,

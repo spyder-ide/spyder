@@ -205,7 +205,7 @@ class TextHelper(object):
                                      end_column)
         if move:
             block = text_cursor.block()
-            self.unfold_if_colapsed(block)
+            self.unfold_if_colapsed(text_cursor)
             self._editor.setTextCursor(text_cursor)
 
             if self._editor.isVisible():
@@ -217,11 +217,12 @@ class TextHelper(object):
                 self._editor.find(word, QTextDocument.FindCaseSensitively)
         return text_cursor
 
-    def unfold_if_colapsed(self, block):
+    def unfold_if_colapsed(self, cursor):
         """Unfold parent fold trigger if the block is collapsed.
 
         :param block: Block to unfold.
         """
+        block = cursor.block()
         try:
             folding_panel = self._editor.panels.get('FoldingPanel')
         except KeyError:
@@ -229,8 +230,28 @@ class TextHelper(object):
         else:
             if block.isVisible():
                 return
-            block = folding_panel.find_parent_scope(block)
-            folding_panel.toggle_fold_trigger(block)
+
+            fold_start_line = block.blockNumber()
+            text_cursor = self._move_cursor_to(fold_start_line + 1)
+
+            # Find the innermost code folding region for the current position
+            enclosing_regions = sorted(list(
+                folding_panel.current_tree[fold_start_line]))
+
+            folding_status = folding_panel.folding_status
+            if len(enclosing_regions) > 0:
+                for region in enclosing_regions:
+                    fold_start_line = region.begin
+                    block = self._editor.document().findBlockByNumber(
+                        fold_start_line)
+                    if fold_start_line in folding_status:
+                        fold_status = folding_status[fold_start_line]
+                        if fold_status:
+                            folding_panel.toggle_fold_trigger(block)
+
+            self._editor.setTextCursor(cursor)
+            if self._editor.isVisible():
+                self._editor.centerCursor()
 
     def selected_text(self):
         """Returns the selected text."""

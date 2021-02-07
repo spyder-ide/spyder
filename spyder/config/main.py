@@ -241,7 +241,6 @@ DEFAULTS = [
             ('historylog',
              {
               'enable': True,
-              'max_entries': 100,
               'wrap': True,
               'go_to_eof': True,
               'line_numbers': False,
@@ -547,6 +546,7 @@ DEFAULTS = [
               'show_installation_dialog': True,
               'show_onboarding': True,
               'show_installation_error_message': True,
+              'spyder_runs': 1
              }),
             ]
 
@@ -647,4 +647,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '61.2.0'
+CONF_VERSION = '63.0.0'
