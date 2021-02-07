@@ -1798,27 +1798,6 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
 
 
 @flaky(max_runs=3)
-def test_pdb_without_comm(ipyconsole, qtbot):
-    """Check if pdb works without comm."""
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
-    control = ipyconsole.get_focus_widget()
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("get_ipython().kernel.frontend_comm.close()")
-    shell.execute("%debug print()")
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-
-    assert "Two: 2" in control.toPlainText()
-
-
-@flaky(max_runs=3)
 def test_recursive_pdb(ipyconsole, qtbot):
     """Check commands and code are separted."""
     shell = ipyconsole.get_current_shellwidget()
