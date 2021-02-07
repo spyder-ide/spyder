@@ -21,7 +21,7 @@ from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import Qt
-from qtpy import QtGui
+from qtpy.QtGui import QTextCursor
 
 from spyder.config.base import _, get_conf_path
 from spyder.config.manager import CONF
@@ -248,7 +248,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
             # Check if we can guess a path from the shell content:
             self._flush_pending_stream()
             cursor = self._get_end_cursor()
-            cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
+            cursor.setPosition(self._prompt_pos, QTextCursor.KeepAnchor)
             text = cursor.selection().toPlainText()
             match = re.search(r"> (.*\.py)\((\d+)\)", text)
             if match:
