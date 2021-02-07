@@ -43,13 +43,6 @@ FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 TIMEOUT = 15
 SETUP_TIMEOUT = 60
 
-TKINTER_INSTALLED = False
-try:
-    import tkinter
-    TKINTER_INSTALLED = True
-except:
-    pass
-
 
 @contextmanager
 def setup_kernel(cmd):
@@ -605,9 +598,21 @@ f = np.get_printoptions()['formatter']
         assert "{'float_kind': <built-in method format of str object" in content
 
 
+# We declare this constant immediately before the test, as determining
+# that TURTLE_ACTIVE is True will briefly pop up a window, similar to the
+# windows that will pop up during the test itself.
+TURTLE_ACTIVE = False
+try:
+    import turtle
+    turtle.Screen()
+    turtle.bye()
+    TURTLE_ACTIVE = True
+except:
+    pass
+
 @flaky(max_runs=3)
-@pytest.mark.skipif(not TKINTER_INSTALLED,
-                    reason="Doesn't work on Python installations without Tk")
+@pytest.mark.skipif(not TURTLE_ACTIVE,
+                    reason="Doesn't work on non-interactive settings or Python installations without Tk")
 def test_turtle_launch(tmpdir):
     """Test turtle scripts running in the same kernel."""
     # Command to start the kernel
