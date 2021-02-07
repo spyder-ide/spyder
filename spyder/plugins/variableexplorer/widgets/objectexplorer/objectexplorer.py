@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, is_dark_interface
@@ -45,10 +46,9 @@ logger = logging.getLogger(__name__)
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(BaseDialog):
+class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
     """Object explorer main widget window."""
-    # TODO: Use signal to trigger update of configs
-    sig_option_changed = Signal(str, object)
+    CONF_SECTION = 'variable_explorer'
 
     def __init__(self,
                  obj,
@@ -58,9 +58,6 @@ class ObjectExplorer(BaseDialog):
                  parent=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
-                 show_callable_attributes=False,
-                 show_special_attributes=False,
-                 dataframe_format=None,
                  readonly=None,
                  reset=False):
         """
@@ -75,23 +72,19 @@ class ObjectExplorer(BaseDialog):
             define which columns are present in the table and their defaults
         :param attribute_details: list of AttributeDetails objects that define
             which attributes can be selected in the details pane.
-        :param show_callable_attributes: if True rows where the 'is attribute'
-            and 'is callable' columns are both True, are displayed.
-            Otherwise they are hidden.
-        :param show_special_attributes: if True rows where the 'is attribute'
-            is True and the object name starts and ends with two underscores,
-            are displayed. Otherwise they are hidden.
-        :param dataframe_format: Format for the values in the Dataframe Editor.
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
         QDialog.__init__(self, parent=parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        # Options
+        show_callable_attributes = self.get_conf('show_callable_attributes')
+        show_special_attributes = self.get_conf('show_special_attributes')
+
         # Model
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
-        self._dataframe_format = dataframe_format
         self.readonly = readonly
 
         self.btn_save_and_close = None
@@ -102,8 +95,8 @@ class ObjectExplorer(BaseDialog):
 
         self._proxy_tree_model = TreeProxyModel(
             show_callable_attributes=show_callable_attributes,
-            show_special_attributes=show_special_attributes,
-            dataframe_format=dataframe_format)
+            show_special_attributes=show_special_attributes
+        )
 
         self._proxy_tree_model.setSourceModel(self._tree_model)
         # self._proxy_tree_model.setSortRole(RegistryTableModel.SORT_ROLE)
@@ -111,14 +104,12 @@ class ObjectExplorer(BaseDialog):
         # self._proxy_tree_model.setSortCaseSensitivity(Qt.CaseInsensitive)
 
         # Tree widget
-        self.obj_tree = ToggleColumnTreeView(
-                dataframe_format=self._dataframe_format)
+        self.obj_tree = ToggleColumnTreeView()
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         self.obj_tree.add_header_context_menu()
-        self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
 
         # Views
         self._setup_actions()
@@ -157,21 +148,27 @@ class ObjectExplorer(BaseDialog):
     def _setup_actions(self):
         """Creates the main window actions."""
         # Show/hide callable objects
-        self.toggle_show_callable_action = \
-            QAction(_("Show callable attributes"), self, checkable=True,
-                    shortcut=QKeySequence("Alt+C"),
-                    statusTip=_("Shows/hides attributes "
-                                "that are callable (functions, methods, etc)"))
+        self.toggle_show_callable_action = QAction(
+            _("Show callable attributes"),
+            self,
+            checkable=True,
+            shortcut=QKeySequence("Alt+C"),
+            statusTip=_("Shows/hides attributes that are callable "
+                        "(functions, methods, etc)")
+        )
         self.toggle_show_callable_action.toggled.connect(
             self._proxy_tree_model.setShowCallables)
         self.toggle_show_callable_action.toggled.connect(
             self.obj_tree.resize_columns_to_contents)
 
         # Show/hide special attributes
-        self.toggle_show_special_attribute_action = \
-            QAction(_("Show __special__ attributes"), self, checkable=True,
-                    shortcut=QKeySequence("Alt+S"),
-                    statusTip=_("Shows or hides __special__ attributes"))
+        self.toggle_show_special_attribute_action = QAction(
+            _("Show __special__ attributes"),
+            self,
+            checkable=True,
+            shortcut=QKeySequence("Alt+S"),
+            statusTip=_("Shows or hides __special__ attributes")
+        )
         self.toggle_show_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
         self.toggle_show_special_attribute_action.toggled.connect(
@@ -221,8 +218,7 @@ class ObjectExplorer(BaseDialog):
         """Toggle show callable atributes action."""
         action_checked = not self.toggle_show_callable_action.isChecked()
         self.toggle_show_callable_action.setChecked(action_checked)
-        self.sig_option_changed.emit('show_callable_attributes',
-                                     action_checked)
+        self.set_conf('show_callable_attributes', action_checked)
 
     @Slot()
     def _toggle_show_special_attributes_action(self):
@@ -230,18 +226,7 @@ class ObjectExplorer(BaseDialog):
         action_checked = (
             not self.toggle_show_special_attribute_action.isChecked())
         self.toggle_show_special_attribute_action.setChecked(action_checked)
-        self.sig_option_changed.emit('show_special_attributes', action_checked)
-
-    @Slot(str)
-    def _set_dataframe_format(self, new_format):
-        """
-        Set format to use in DataframeEditor.
-
-        Args:
-            new_format (string): e.g. "%.3f"
-        """
-        self.sig_option_changed.emit('dataframe_format', new_format)
-        self._tree_model.dataframe_format = new_format
+        self.set_conf('show_special_attributes', action_checked)
 
     def _setup_views(self):
         """Creates the UI widgets."""
@@ -486,9 +471,7 @@ def test():
                'date': datetime.date(1945, 5, 8),
                'datetime': datetime.datetime(1945, 5, 8),
                'foobar': foobar}
-    ObjectExplorer.create_explorer(example, 'Example',
-                                   show_callable_attributes=True,
-                                   show_special_attributes=True)
+    ObjectExplorer.create_explorer(example, 'Example')
 
 
 if __name__ == "__main__":
