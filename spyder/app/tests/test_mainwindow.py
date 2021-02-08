@@ -3853,10 +3853,13 @@ def test_print_comms(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute(code)
 
+    assert nsb.editor.source_model.rowCount() == 0
     with qtbot.waitSignal(shell.executed):
         shell.execute("a = Test()")
 
-    # Make sure the warning is printed
+    # Make sure the warning is printed and that the variable
+    # is in the variable explorer
+    assert nsb.editor.source_model.rowCount() == 1
     assert ("Output from spyder call 'get_namespace_view':"
             in control.toPlainText())
 
