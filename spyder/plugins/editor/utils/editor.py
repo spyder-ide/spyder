@@ -19,6 +19,7 @@ Original file:
 # Standard library imports
 import functools
 import weakref
+import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QTimer, Qt
@@ -28,6 +29,7 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.py3compat import to_text_string
+from spyder.utils import encoding
 
 
 def drift_color(base_color, factor=110):
@@ -232,7 +234,6 @@ class TextHelper(object):
                 return
 
             fold_start_line = block.blockNumber()
-            text_cursor = self._move_cursor_to(fold_start_line + 1)
 
             # Find the innermost code folding region for the current position
             enclosing_regions = sorted(list(
@@ -1171,3 +1172,24 @@ def with_wait_cursor(func):
             QApplication.restoreOverrideCursor()
         return ret_val
     return wrapper
+
+
+def get_file_language(filename, text=None):
+    """Get file language from filename"""
+    ext = osp.splitext(filename)[1]
+    if ext.startswith('.'):
+        ext = ext[1:]  # file extension with leading dot
+    language = ext
+    if not ext:
+        if text is None:
+            text, _enc = encoding.read(filename)
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            if line.startswith('#!'):
+                shebang = line[2:]
+                if 'python' in shebang:
+                    language = 'python'
+            else:
+                break
+    return language
