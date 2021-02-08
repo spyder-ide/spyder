@@ -1332,7 +1332,6 @@ class MainWindow(QMainWindow):
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
 
-        # Handle DPI scale and window changes to show a restart message
         # Handle DPI scale and window changes to show a restart message.
         # Don't activate this functionality on macOS because it's being
         # triggered in the wrong situations.
@@ -1361,11 +1360,10 @@ class MainWindow(QMainWindow):
 
     def show_dpi_change_message(self, dpi):
         """Show message to restart Spyder since the DPI scale changed."""
-        screen = self.window().windowHandle().screen()
         if not self.show_dpi_message:
             return
 
-        if self.current_dpi != dpi and screen is not None:
+        if self.current_dpi != dpi:
             # Check the window state to not show the message if the window
             # is in fullscreen mode.
             window = self.window().windowHandle()
@@ -1374,7 +1372,8 @@ class MainWindow(QMainWindow):
                 return
 
             dismiss_box = QCheckBox(
-                _("Hide this message during the current session")
+                _("Hide this message during the current session"),
+                self
             )
 
             msgbox = QMessageBox(self)
@@ -1394,7 +1393,7 @@ class MainWindow(QMainWindow):
                 _('Dismiss'), QMessageBox.NoRole)
             msgbox.setCheckBox(dismiss_box)
             msgbox.setDefaultButton(dismiss_button)
-            msgbox.exec_()
+            msgbox.show()
 
             if dismiss_box.isChecked():
                 self.show_dpi_message = False
@@ -1410,6 +1409,7 @@ class MainWindow(QMainWindow):
                 # Reconnect DPI scale changes to show a restart message
                 # also update current dpi for future checks
                 self.current_dpi = dpi
+                screen = self.window().windowHandle().screen()
                 screen.logicalDotsPerInchChanged.connect(
                     self.show_dpi_change_message)
 
