@@ -3836,5 +3836,33 @@ def test_pdb_without_comm(main_window, qtbot):
         main_window.editor.stop_debugging()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_print_comms(main_window, qtbot):
+    """Test warning printed when comms print."""
+    # Write code with a cell to a file
+    code = ("class Test:\n    @property\n    def shape(self):"
+            "\n        print((10,))")
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_focus_widget()
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Create some output from spyder call
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(code)
+
+    assert nsb.editor.source_model.rowCount() == 0
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("a = Test()")
+
+    # Make sure the warning is printed and that the variable
+    # is in the variable explorer
+    assert nsb.editor.source_model.rowCount() == 1
+    assert ("Output from spyder call 'get_namespace_view':"
+            in control.toPlainText())
+
+
 if __name__ == "__main__":
     pytest.main()
