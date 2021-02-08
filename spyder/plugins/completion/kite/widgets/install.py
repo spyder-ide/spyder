@@ -26,12 +26,15 @@ from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
 
 KITE_SPYDER_URL = "https://kite.com/integrations/spyder"
 KITE_CONTACT_URL = "https://kite.com/contact/"
-
+MAC = sys.platform == 'darwin'
 
 class KiteIntegrationInfo(QWidget):
     """Initial Widget with info about the integration with Kite."""
-    # Signal triggered for the 'Learn more' button
-    sig_learn_more_button_clicked = Signal()
+    ICON_SCALE_FACTOR = 0.5 if MAC else 0.55
+    TITLE_FONT_SIZE = '19pt' if MAC else '16pt'
+    CONTENT_FONT_SIZE = '15pt' if MAC else '12pt'
+    BUTTONS_FONT_SIZE = '15pt' if MAC else '13pt'
+    BUTTONS_PADDING = '6px' if MAC else '4px 10px'
     # Signal triggered for the 'Install Kite' button
     sig_install_button_clicked = Signal()
     # Signal triggered for the 'Dismiss' button
@@ -41,62 +44,99 @@ class KiteIntegrationInfo(QWidget):
         super(KiteIntegrationInfo, self).__init__(parent)
         # Images
         images_layout = QHBoxLayout()
-        if is_dark_interface():
-            icon_filename = 'spyder_kite.svg'
-        else:
-            icon_filename = 'spyder_kite_dark.svg'
+        icon_filename = 'kite_completions.png'
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
         screen = QApplication.primaryScreen()
-        device_image_ratio = screen.devicePixelRatio()
-        if device_image_ratio > 1:
-            image.setDevicePixelRatio(device_image_ratio)
-        else:
-            image_height = image.height() * 0.5
-            image_width = image.width() * 0.5
-            image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                                 Qt.SmoothTransformation)
+        image_label = QLabel()
+        image_height = image.height() * self.ICON_SCALE_FACTOR
+        image_width = image.width() * self.ICON_SCALE_FACTOR
+        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
+                             Qt.SmoothTransformation)
         image_label.setPixmap(image)
 
         images_layout.addStretch()
         images_layout.addWidget(image_label)
         images_layout.addStretch()
 
+        ilayout = QHBoxLayout()
+        ilayout.addLayout(images_layout)
+
         # Label
+        integration_label_title = QLabel("Get better code completions in Spyder")
+        integration_label_title.setStyleSheet(f"font-size: {self.TITLE_FONT_SIZE}")
+        integration_label_title.setWordWrap(True)
         integration_label = QLabel(
-            _("Now Spyder can use <a href=\"{kite_url}\">Kite</a> to "
-              "provide better and more accurate code completions in its "
-              "editor <br>for the most important packages in the Python "
-              "scientific ecosystem, such as Numpy, <br>Matplotlib and "
-              "Pandas.<br><br>Would you like to install it or learn more "
-              "about it?<br><br><i>Note:</i> Kite is free to use "
-              "but is not an open source program.")
+            _("Now Spyder can use Kite to provide better code "
+              "completions for key packages in the scientific Python "
+              "Ecosystem. Install Kite for a better editor experience in "
+              "Spyder. <br><br>Kite is free to use but is not open "
+              "source.<a href=\"{kite_url}\"> Learn more about Kite </a>")
             .format(kite_url=KITE_SPYDER_URL))
+        integration_label.setStyleSheet(f"font-size: {self.CONTENT_FONT_SIZE}")
         integration_label.setOpenExternalLinks(True)
+        integration_label.setWordWrap(True)
+        integration_label.setFixedWidth(360)
+        label_layout = QVBoxLayout()
+        label_layout.addWidget(integration_label_title)
+        label_layout.addWidget(integration_label)
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        learn_more_button = QPushButton(_('Learn more'))
-        learn_more_button.setAutoDefault(False)
         install_button = QPushButton(_('Install Kite'))
         install_button.setAutoDefault(False)
+        install_button.setStyleSheet(
+           "background-color: #3775A9;"
+           f"font-size: {self.BUTTONS_FONT_SIZE};"
+           f"padding: {self.BUTTONS_PADDING}"
+         )
         dismiss_button = QPushButton(_('Dismiss'))
         dismiss_button.setAutoDefault(False)
+        dismiss_button.setStyleSheet(
+           "background-color: #60798B;"
+           f"font-size: {self.BUTTONS_FONT_SIZE};"
+           f"padding: {self.BUTTONS_PADDING}"
+         )
         buttons_layout.addStretch()
         buttons_layout.addWidget(install_button)
-        buttons_layout.addWidget(learn_more_button)
+        if not MAC:
+            buttons_layout.addSpacing(10)
         buttons_layout.addWidget(dismiss_button)
 
-        general_layout = QVBoxLayout()
-        general_layout.addLayout(images_layout)
-        general_layout.addWidget(integration_label)
-        general_layout.addLayout(buttons_layout)
+        # Buttons with label
+        vertical_layout = QVBoxLayout()
+        if not MAC:
+            vertical_layout.addStretch()
+            vertical_layout.addLayout(label_layout)
+            vertical_layout.addSpacing(20)
+            vertical_layout.addLayout(buttons_layout)
+            vertical_layout.addStretch()
+        else:
+            vertical_layout.addLayout(label_layout)
+            vertical_layout.addLayout(buttons_layout)
+
+        general_layout = QHBoxLayout()
+        if not MAC:
+            general_layout.addStretch()
+            general_layout.addLayout(ilayout)
+            general_layout.addSpacing(1)
+            general_layout.addLayout(vertical_layout)
+            general_layout.addStretch()
+        else:
+            general_layout.addLayout(ilayout)
+            general_layout.addLayout(vertical_layout)
+
         self.setLayout(general_layout)
 
-        learn_more_button.clicked.connect(self.sig_learn_more_button_clicked)
         install_button.clicked.connect(self.sig_install_button_clicked)
         dismiss_button.clicked.connect(self.sig_dismiss_button_clicked)
+
+        if is_dark_interface():
+            self.setStyleSheet("background-color: #262E38")
+        self.setContentsMargins(18, 40, 18, 40)
+        if not MAC:
+             self.setFixedSize(640, 280)
 
 
 class KiteWelcome(QWidget):
@@ -277,6 +317,7 @@ class KiteInstallerDialog(QDialog):
 
     def __init__(self, parent, installation_thread):
         super(KiteInstallerDialog, self).__init__(parent)
+        self.setStyleSheet("background-color: #262E38")
         if sys.platform == 'darwin':
             self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint
                                 | Qt.Tool)
@@ -304,8 +345,6 @@ class KiteInstallerDialog(QDialog):
         self._installation_thread.sig_installation_status.connect(
             self.finished_installation)
         self._installation_thread.sig_error_msg.connect(self._handle_error_msg)
-        self._integration_widget.sig_learn_more_button_clicked.connect(
-            self.welcome)
         self._integration_widget.sig_install_button_clicked.connect(
             self.install)
         self._integration_widget.sig_dismiss_button_clicked.connect(
