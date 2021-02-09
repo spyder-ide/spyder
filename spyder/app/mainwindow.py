@@ -1358,6 +1358,22 @@ class MainWindow(QMainWindow):
                 new_screen.logicalDotsPerInchChanged.connect(
                     self.show_dpi_change_message)
 
+    def handle_dpi_change_response(self, result, dpi):
+        """Handle dpi change message dialog result."""
+        if self.dpi_change_dismiss_box.isChecked():
+            self.show_dpi_message = False
+            self.dpi_change_dismiss_box = None
+        if result == 0:  # Restart button was clicked
+            # Activate HDPI auto-scaling option since is needed for a
+            # proper display when using OS scaling
+            CONF.set('main', 'normal_screen_resolution', False)
+            CONF.set('main', 'high_dpi_scaling', True)
+            CONF.set('main', 'high_dpi_custom_scale_factor', False)
+            self.restart()
+        else:
+            # Update current dpi for future checks
+            self.current_dpi = dpi
+
     def show_dpi_change_message(self, dpi):
         """Show message to restart Spyder since the DPI scale changed."""
         if not self.show_dpi_message:
@@ -1371,7 +1387,7 @@ class MainWindow(QMainWindow):
                     sys.platform == 'darwin'):
                 return
 
-            dismiss_box = QCheckBox(
+            self.dpi_change_dismiss_box = QCheckBox(
                 _("Hide this message during the current session"),
                 self
             )
@@ -1387,31 +1403,14 @@ class MainWindow(QMainWindow):
                  "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
                  "in case Spyder is not displayed correctly.<br><br>"
                  "Do you want to restart Spyder?"))
-            restart_button = msgbox.addButton(
-                _('Restart now'), QMessageBox.NoRole)
+            msgbox.addButton(_('Restart now'), QMessageBox.NoRole)
             dismiss_button = msgbox.addButton(
                 _('Dismiss'), QMessageBox.NoRole)
-            msgbox.setCheckBox(dismiss_box)
+            msgbox.setCheckBox(self.dpi_change_dismiss_box)
             msgbox.setDefaultButton(dismiss_button)
-            msgbox.show()
-
-            if dismiss_box.isChecked():
-                self.show_dpi_message = False
-
-            if msgbox.clickedButton() == restart_button:
-                # Activate HDPI auto-scaling option since is needed for a
-                # proper display when using OS scaling
-                CONF.set('main', 'normal_screen_resolution', False)
-                CONF.set('main', 'high_dpi_scaling', True)
-                CONF.set('main', 'high_dpi_custom_scale_factor', False)
-                self.restart()
-            else:
-                # Reconnect DPI scale changes to show a restart message
-                # also update current dpi for future checks
-                self.current_dpi = dpi
-                screen = self.window().windowHandle().screen()
-                screen.logicalDotsPerInchChanged.connect(
-                    self.show_dpi_change_message)
+            msgbox.finished.connect(
+                lambda result: self.handle_dpi_change_response(result, dpi))
+            msgbox.open()
 
     def set_window_title(self):
         """Set window title."""
