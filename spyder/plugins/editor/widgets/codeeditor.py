@@ -1669,8 +1669,8 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing folding")
 
         # Update folding in a thread
-        if self.update_folding_thread.isRunning():
-            self.update_folding_thread.terminate()
+        # if self.update_folding_thread.isRunning():
+        #     self.update_folding_thread.terminate()
 
         self.update_folding_thread.run = functools.partial(
             self.update_and_merge_folding, extended_ranges)
@@ -1994,7 +1994,7 @@ class CodeEditor(TextEditBaseWidget):
             # blank import or dot completion
             self.do_completion()
         elif (leading_text.split()[0] in ['from', 'import'] and
-                not ';' in leading_text):
+                ';' not in leading_text):
             # import line with a single statement
             #  (prevents lines like: `import pdb; pdb.set_trace()`)
             self.do_completion()
@@ -4237,9 +4237,6 @@ class CodeEditor(TextEditBaseWidget):
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
-
-        if QToolTip.isVisible():
-            self.hide_tooltip_if_necessary(key)
 
         if event.isAccepted():
             # The event was handled by one of the editor extension.
