@@ -724,7 +724,7 @@ class CompletionPlugin(SpyderPluginV2):
                 )
 
     @Slot(str, str)
-    def editor_focus_changed(
+    def file_opened_updated(
             self, filename: Optional[str], language: Optional[str]):
         """
         Handle focus changes across tabs and split editors.
@@ -742,7 +742,7 @@ class CompletionPlugin(SpyderPluginV2):
             for provider_name in self.providers:
                 provider_info = self.providers[provider_name]
                 if provider_info['status'] == self.RUNNING:
-                    provider_info['instance'].editor_focus_changed(
+                    provider_info['instance'].file_opened_updated(
                         filename, language)
 
     def register_file(self, language: str, filename: str, codeeditor):

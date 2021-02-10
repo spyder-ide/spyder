@@ -1704,7 +1704,7 @@ class EditorStack(QWidget):
 
     def get_current_language(self):
         if self.data:
-            return self.data[self.get_stack_index()].language
+            return self.data[self.get_stack_index()].editor.language
 
     def get_filenames(self):
         """

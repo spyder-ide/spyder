@@ -16,8 +16,8 @@ import os.path as osp
 from qtpy.QtCore import QMutexLocker
 from spyder.plugins.completion.providers.kite.decorators import (
     send_request, handles)
-from spyder.plugins.completion.manager.api import (
-    LSPRequestTypes, CompletionItemKind)
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes, CompletionItemKind)
 
 
 # Kite can return e.g. "int | str", so we make the default hint VALUE.
@@ -66,7 +66,7 @@ def convert_text_snippet(snippet_info):
 
 class DocumentProvider:
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN)
     def document_did_open(self, params):
         request = {
             'source': 'spyder',
@@ -85,7 +85,7 @@ class DocumentProvider:
             self.opened_files[params['file']] = params['text']
         return request
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_DID_CHANGE)
     def document_did_change(self, params):
         request = {
             'source': 'spyder',
@@ -102,7 +102,7 @@ class DocumentProvider:
             self.opened_files[params['file']] = params['text']
         return request
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
     def document_cursor_event(self, params):
         request = {
             'source': 'spyder',
@@ -117,7 +117,7 @@ class DocumentProvider:
         }
         return request
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
     def request_document_completions(self, params):
         text = self.opened_files[params['file']]
         request = {
@@ -133,7 +133,7 @@ class DocumentProvider:
         }
         return request
 
-    @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
+    @handles(CompletionRequestTypes.DOCUMENT_COMPLETION)
     def convert_completion_request(self, response):
         # The response schema is tested via mocking in
         # spyder/plugins/editor/widgets/tests/test_introspection.py
@@ -190,7 +190,7 @@ class DocumentProvider:
 
         return {'params': spyder_completions}
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, params):
         text = self.opened_files.get(params['file'], "")
         md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
@@ -208,7 +208,7 @@ class DocumentProvider:
         }
         return None, request
 
-    @handles(LSPRequestTypes.DOCUMENT_HOVER)
+    @handles(CompletionRequestTypes.DOCUMENT_HOVER)
     def process_hover(self, response):
         # logger.debug(response)
         text = None
@@ -223,7 +223,7 @@ class DocumentProvider:
 
         return {'params': text}
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @send_request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self, request):
         text = self.opened_files.get(request['file'], "")
         response = {
@@ -235,7 +235,7 @@ class DocumentProvider:
         }
         return response
 
-    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def process_signature(self, response):
         params = None
         if response is not None:

@@ -1437,9 +1437,9 @@ class Editor(SpyderPluginWidget):
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(
-            lambda _x, _y: self.save_focus_editorstack)
+            lambda _x: self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(
-            lambda _x, _y: self.main.plugin_focus_changed)
+            lambda _x: self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
