@@ -30,9 +30,9 @@ MAC = sys.platform == 'darwin'
 
 class KiteIntegrationInfo(QWidget):
     """Initial Widget with info about the integration with Kite."""
-    ICON_SCALE_FACTOR = 0.5 if MAC else 0.55
-    TITLE_FONT_SIZE = '19pt' if MAC else '16pt'
-    CONTENT_FONT_SIZE = '15pt' if MAC else '12pt'
+    ICON_SCALE_FACTOR = 0.5
+    TITLE_FONT_SIZE = '19pt' if MAC else '14pt'
+    CONTENT_FONT_SIZE = '15pt' if MAC else '11pt'
     BUTTONS_FONT_SIZE = '15pt' if MAC else '13pt'
     BUTTONS_PADDING = '6px' if MAC else '4px 10px'
     # Signal triggered for the 'Install Kite' button
@@ -132,7 +132,7 @@ class KiteIntegrationInfo(QWidget):
             self.setStyleSheet("background-color: #262E38")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
-             self.setFixedSize(640, 280)
+             self.setFixedSize(800, 350)
 
 
 class KiteWelcome(QWidget):
