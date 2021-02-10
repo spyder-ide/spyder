@@ -16,13 +16,17 @@ Original file:
 <https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/mode.py>
 """
 
+# Local imports
 import logging
+
+# Third party imports
+from qtpy.QtCore import QObject
 
 
 logger = logging.getLogger(__name__)
 
 
-class EditorExtension(object):
+class EditorExtension(QObject):
     """
     Base class for editor extensions.
 
@@ -83,9 +87,9 @@ class EditorExtension(object):
         :class:`spyder.widgets.sourcecode.CodeEditor` uses that as the
         attribute key when you install a editor extension.
         """
+        super().__init__()
         self.name = self.__class__.__name__
-        # EditorExtension description
-        self.description = self.__doc__
+        self.description = self.__doc__  # EditorExtension description
         self._enabled = False
         self._editor = None
         self._on_close = False

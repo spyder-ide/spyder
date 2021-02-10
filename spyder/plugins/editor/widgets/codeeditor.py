@@ -62,7 +62,8 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
-                                              SnippetsExtension)
+                                              SnippetsExtension,
+                                              MultiCursorsEditorExtension)
 from spyder.plugins.completion.kite.widgets.calltoaction import (
     KiteCallToAction)
 from spyder.plugins.completion.manager.api import (LSPRequestTypes,
@@ -266,6 +267,10 @@ class CodeEditor(TextEditBaseWidget):
     )
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
+    #: Signals emitted at the start of the editor's paintEvent
+    sig_about_to_be_painted = Signal(QPaintEvent)
+
+    #: Signals emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
 
     # To have these attrs when early viewportEvent's are triggered
@@ -299,6 +304,9 @@ class CodeEditor(TextEditBaseWidget):
 
     #: Signal emitted when a key is released
     sig_key_released = Signal(QKeyEvent)
+
+    #: Signal emitted when the a button of the mouse is clicked
+    sig_mouse_pressed = Signal(QMouseEvent)
 
     #: Signal emitted when the alt key is pressed and the left button of the
     #  mouse is clicked
@@ -664,6 +672,7 @@ class CodeEditor(TextEditBaseWidget):
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
         self.editor_extensions.add(CloseQuotesExtension())
+        self.editor_extensions.add(MultiCursorsEditorExtension())
         self.editor_extensions.add(SnippetsExtension())
         self.editor_extensions.add(CloseBracketsExtension())
 
@@ -2604,8 +2613,7 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).showEvent(event)
         self.panels.refresh()
 
-
-    #-----Misc.
+    # --- Misc.
     def _apply_highlighter_color_scheme(self):
         """Apply color scheme from syntax highlighter to the editor"""
         hl = self.highlighter
@@ -4370,6 +4378,8 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_key_pressed.emit(event)
 
         self.kite_call_to_action.handle_key_press(event)
+        if event.isAccepted():
+            return
 
         key = event.key()
         text = to_text_string(event.text())
@@ -5063,6 +5073,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Override Qt method."""
+        event.ignore()
+        self.sig_mouse_pressed.emit(event)
+        if event.isAccepted():
+            return
+
         self.hide_tooltip()
         self.kite_call_to_action.handle_mouse_press(event)
 
@@ -5181,6 +5196,11 @@ class CodeEditor(TextEditBaseWidget):
     #------ Paint event
     def paintEvent(self, event):
         """Overrides paint event to update the list of visible blocks"""
+        event.ignore()
+        self.sig_about_to_be_painted.emit(event)
+        if event.isAccepted():
+            return
+
         self.update_visible_blocks(event)
         TextEditBaseWidget.paintEvent(self, event)
         self.painted.emit(event)
@@ -5311,9 +5331,9 @@ class Printer(QPrinter):
         painter.restore()
 
 
-#===============================================================================
+# =============================================================================
 # Editor + Class browser test
-#===============================================================================
+# =============================================================================
 class TestWidget(QSplitter):
     def __init__(self, parent):
         QSplitter.__init__(self, parent)
