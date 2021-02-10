@@ -117,15 +117,11 @@ class KiteIntegrationInfo(QWidget):
             vertical_layout.addLayout(buttons_layout)
 
         general_layout = QHBoxLayout()
-        if not MAC:
-            general_layout.addStretch()
-            general_layout.addLayout(ilayout)
-            general_layout.addSpacing(1)
-            general_layout.addLayout(vertical_layout)
-            general_layout.addStretch()
-        else:
-            general_layout.addLayout(ilayout)
-            general_layout.addLayout(vertical_layout)
+        general_layout.addStretch()
+        general_layout.addLayout(ilayout)
+        general_layout.addSpacing(15)
+        general_layout.addLayout(vertical_layout)
+        general_layout.addStretch()
 
         self.setLayout(general_layout)
 
