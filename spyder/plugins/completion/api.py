@@ -723,7 +723,7 @@ class SpyderCompletionProvider(QObject):
         only argument.
     """
 
-    sig_update_statusbar = Signal(str, str, tuple, dict)
+    sig_call_statusbar = Signal(str, str, tuple, dict)
     """
     This signal is used to call a remote method on a statusbar registered via
     the `STATUS_BAR` attribute.
@@ -985,17 +985,18 @@ class SpyderCompletionProvider(QObject):
         """Handle changes on the main Python interpreter of Spyder."""
         pass
 
-    def editor_focus_changed(
-            self, filename: str, language: str):
+    def file_opened_updated(self, filename: str, language: str):
         """
-        Handle focus changes across tabs and split editors.
+        Handle file modifications and file switching events, including when a
+        new file is created.
 
         Parameters
         ----------
         filename: str
-            Path to the file currently focused on the editor.
+            Path to the file that was changed/opened/focused.
         language: str
-            Name of the programming language of the currently focused file.
+            Name of the programming language of the file that was
+            changed/opened/focused.
         """
         pass
 
@@ -1120,3 +1121,9 @@ class SpyderCompletionProvider(QObject):
                     option_name
                 )
         self.main.set_conf_option(option_name, value, section)
+
+    def on_mainwindow_visible(self):
+        """
+        Actions to be performed after the main window's has been shown.
+        """
+        pass

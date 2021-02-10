@@ -24,10 +24,6 @@ from spyder.plugins.completion.manager.api import SpyderCompletionPlugin
 from spyder.plugins.completion.providers.kite.client import KiteClient
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
-from spyder.plugins.completion.providers.kite.utils.install import (
-    KiteInstallationThread)
-from spyder.plugins.completion.providers.kite.widgets.install import (
-    KiteInstallerDialog)
 from spyder.plugins.completion.providers.kite.widgets.messagebox import (
     KiteInstallationErrorMessage)
 from spyder.plugins.completion.providers.kite.widgets.status import (
@@ -50,22 +46,9 @@ class KiteCompletionProvider(SpyderCompletionProvider):
 
     def __init__(self, parent, config):
         super().__init__(parent, config)
-        # SpyderCompletionPlugin.__init__(self, parent)
         self.available_languages = []
         self.client = KiteClient(None)
         self.kite_process = None
-
-        # Installation dialog
-        # self.installation_thread = KiteInstallationThread(self)
-        # self.installer = KiteInstallerDialog(
-        #     parent,
-        #     self.installation_thread)
-
-        # Status widget
-        # statusbar = self.main.statusbar
-        # self.open_file_updated = False
-        # self.status_widget = KiteStatusWidget(parent=None, plugin=self)
-        # statusbar.add_status_widget(self.status_widget)
 
         # Signals
         self.client.sig_client_started.connect(self.http_client_ready)
@@ -84,11 +67,10 @@ class KiteCompletionProvider(SpyderCompletionProvider):
         self.client.sig_client_wrong_response.connect(
             self._wrong_response_error)
 
-        # self.installation_thread.sig_installation_status.connect(
-        #     self.set_status)
-        # self.status_widget.sig_clicked.connect(
-        #     self.show_installation_dialog)
-        # self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
+        # Status bar widget
+        self.STATUS_BARS = {
+            'kite_statusbar': self.create_statusbar
+        }
 
         # Config
         self.update_configuration(self.config)
@@ -143,6 +125,10 @@ class KiteCompletionProvider(SpyderCompletionProvider):
         if self.kite_process is not None:
             self.kite_process.kill()
 
+    def on_mainwindow_visible(self):
+        self.sig_call_statusbar.emit(
+            'kite_statusbar', 'mainwindow_setup_finished', tuple(), {})
+
     @Slot(list)
     def http_client_ready(self, languages):
         logger.debug('Kite client is available for {0}'.format(languages))
@@ -150,57 +136,22 @@ class KiteCompletionProvider(SpyderCompletionProvider):
         self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
         self._kite_onboarding()
 
-    @Slot()
-    def mainwindow_setup_finished(self):
-        """
-        This is called after the main window setup finishes, and the
-        third time Spyder is started, to show Kite's installation dialog
-        and onboarding if necessary.
-        """
-        spyder_runs = self.get_option('spyder_runs')
-        if spyder_runs == 3:
-            self._kite_onboarding()
-
-            show_dialog = self.get_option('show_installation_dialog')
-            if show_dialog:
-                # Only show the dialog once at startup
-                self.set_option('show_installation_dialog', False)
-                self.show_installation_dialog()
-        else:
-            if spyder_runs < 3:
-                self.set_option('spyder_runs', spyder_runs + 1)
-
     @Slot(str)
     @Slot(dict)
     def set_status(self, status):
         """Show Kite status for the current file."""
-        self.status_widget.set_value(status)
+        self.sig_call_statusbar.emit(
+            'kite_statusbar', 'set_value', (status,), {})
 
-    @Slot()
-    def show_installation_dialog(self):
-        """Show installation dialog."""
-        installed, path = check_if_kite_installed()
-        if not installed and not running_under_pytest():
-            self.installer.show()
-
-    def send_status_request(self, filename):
+    def file_opened_updated(self, filename, _language):
         """Request status for the given file."""
-        if not self.is_installing():
-            self.client.sig_perform_status_request.emit(filename)
+        # if not self.is_installing():
+        self.client.sig_perform_status_request.emit(filename)
 
     def update_configuration(self, config):
         self.client.enable_code_snippets = self.get_option(
             'enable_code_snippets', section='completions')
         self._show_onboarding = self.get_option('show_onboarding')
-
-    def is_installing(self):
-        """Check if an installation is taking place."""
-        return (self.installation_thread.isRunning()
-                and not self.installation_thread.cancelled)
-
-    def installation_cancelled_or_errored(self):
-        """Check if an installation was cancelled or failed."""
-        return self.installation_thread.cancelled_or_errored()
 
     def _kite_onboarding(self):
         """Request the onboarding file."""
@@ -208,8 +159,6 @@ class KiteCompletionProvider(SpyderCompletionProvider):
         # since the get_onboarding_file call fails fast.
         if not self._show_onboarding:
             return
-        # if self.main.is_setting_up:
-        #     return
         if not self.available_languages:
             return
         # Don't send another request until this request fails.
@@ -247,3 +196,6 @@ class KiteCompletionProvider(SpyderCompletionProvider):
 
         self.sig_show_widget.emit(wrap_message)
         self.sig_disable_provider.emit(self.COMPLETION_CLIENT_NAME)
+
+    def create_statusbar(self, parent):
+        return KiteStatusWidget(parent, self)

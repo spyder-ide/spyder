@@ -8,10 +8,7 @@
 
 # Standard library imports
 import logging
-try:
-    from urllib import quote  # Python 2
-except ImportError:
-    from urllib.parse import quote  # Python 3
+from urllib.parse import quote
 
 # Third party imports
 from qtpy.QtCore import QObject, QThread, Signal, QMutex
@@ -20,11 +17,12 @@ import requests
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.manager import CONF
-from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
-from spyder.plugins.completion.kite.decorators import class_register
-from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
-from spyder.plugins.completion.kite.utils.status import (
+from spyder.plugins.completion.providers.kite import (
+    KITE_ENDPOINTS, KITE_REQUEST_MAPPING)
+from spyder.plugins.completion.providers.kite.decorators import class_register
+from spyder.plugins.completion.providers.kite.providers import (
+    KiteMethodProviderMixIn)
+from spyder.plugins.completion.providers.kite.utils.status import (
     status, check_if_kite_running)
 from spyder.py3compat import (
     ConnectionError, ConnectionRefusedError, TEXT_TYPES)

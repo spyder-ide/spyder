@@ -13,9 +13,13 @@ import logging
 
 # Local imports
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _
-from spyder.plugins.completion.kite.utils.status import (
+from spyder.config.base import _, running_under_pytest
+from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed, NOT_INSTALLED)
+from spyder.plugins.completion.providers.kite.utils.install import (
+    KiteInstallationThread)
+from spyder.plugins.completion.providers.kite.widgets.install import (
+    KiteInstallerDialog)
 from spyder.utils import icon_manager as ima
 
 logger = logging.getLogger(__name__)
@@ -27,18 +31,29 @@ class KiteStatusWidget(StatusBarWidget):
     DEFAULT_STATUS = _('not reachable')
     ID = 'kite_status'
 
-    def __init__(self, parent, plugin):
-        self.plugin = plugin
+    def __init__(self, parent, provider):
+        self.provider = provider
         self.tooltip = self.BASE_TOOLTIP
         super().__init__(parent)
         is_installed, _ = check_if_kite_installed()
         self.setVisible(is_installed)
 
+        # Installation dialog
+        self.installation_thread = KiteInstallationThread(self)
+        self.installer = KiteInstallerDialog(
+            self,
+            self.installation_thread)
+
+        self.installation_thread.sig_installation_status.connect(
+            self.set_value)
+        self.sig_clicked.connect(self.show_installation_dialog)
+
     def set_value(self, value):
         """Return Kite completions state."""
-        kite_enabled = self.plugin.get_option('enable')
-        is_installing = self.plugin.is_installing()
-        cancelled_or_errored = self.plugin.installation_cancelled_or_errored()
+        kite_enabled = self.provider.get_option(('enabled_providers', 'kite'),
+                                                section='completions')
+        is_installing = self.is_installing()
+        cancelled_or_errored = self.installation_cancelled_or_errored()
 
         if (value is not None and 'short' in value):
             self.tooltip = value['long']
@@ -69,3 +84,39 @@ class KiteStatusWidget(StatusBarWidget):
 
     def get_icon(self):
         return ima.get_icon('kite', adjust_for_interface=True)
+
+    @Slot()
+    def show_installation_dialog(self):
+        """Show installation dialog."""
+        installed, path = check_if_kite_installed()
+        if not installed and not running_under_pytest():
+            self.installer.show()
+
+    def is_installing(self):
+        """Check if an installation is taking place."""
+        return (self.installation_thread.isRunning()
+                and not self.installation_thread.cancelled)
+
+    def installation_cancelled_or_errored(self):
+        """Check if an installation was cancelled or failed."""
+        return self.installation_thread.cancelled_or_errored()
+
+    @Slot()
+    def mainwindow_setup_finished(self):
+        """
+        This is called after the main window setup finishes, and the
+        third time Spyder is started, to show Kite's installation dialog
+        and onboarding if necessary.
+        """
+        spyder_runs = self.get_option('spyder_runs')
+        if spyder_runs == 3:
+            self.provider._kite_onboarding()
+
+            show_dialog = self.provider.get_option('show_installation_dialog')
+            if show_dialog:
+                # Only show the dialog once at startup
+                self.provider.set_option('show_installation_dialog', False)
+                self.show_installation_dialog()
+        else:
+            if spyder_runs < 3:
+                self.provider.set_option('spyder_runs', spyder_runs + 1)

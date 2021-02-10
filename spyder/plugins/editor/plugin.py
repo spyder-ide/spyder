@@ -100,11 +100,25 @@ class Editor(SpyderPluginWidget):
 
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
-    open_file_update = Signal(str)
+
+    sig_file_opened_closed_updated = Signal(str, str)
+    """
+    This signal is emitted when a file is opened, closed or updated,
+    including switching among files.
+
+    Parameters
+    ----------
+    filename: str
+        Name of the file that was opened, closed or updated.
+    language: str
+        Name of the programming language of the file that was opened,
+        closed or updated.
+    """
+
     sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
-    sig_editor_focus_changed = Signal(str, str)
+    sig_editor_focus_changed = Signal(str)
 
     sig_help_requested = Signal(dict)
     """
@@ -375,11 +389,6 @@ class Editor(SpyderPluginWidget):
         logger.debug("Perform request {0} for: {1}".format(
             request, params['file']))
         self.main.completions.send_request(language, request, params)
-
-    def kite_completions_file_status(self):
-        """Connect open_file_update to Kite's status."""
-        self.open_file_update.connect(
-            self.main.completions.get_client('kite').send_status_request)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -1185,8 +1194,8 @@ class Editor(SpyderPluginWidget):
         self.main.completions.sig_language_client_available.connect(
             self.register_completion_capabilities)
 
-        self.sig_editor_focus_changed.connect(
-            self.main.completions.editor_focus_changed)
+        self.sig_file_opened_closed_updated.connect(
+            self.main.completions.file_opened_updated)
 
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
@@ -1620,6 +1629,11 @@ class Editor(SpyderPluginWidget):
         if editorstack is not None:
             return editorstack.get_current_filename()
 
+    def get_current_language(self):
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            return editorstack.get_current_language()
+
     def is_file_opened(self, filename=None):
         return self.editorstacks[0].is_file_opened(filename)
 
@@ -1741,7 +1755,8 @@ class Editor(SpyderPluginWidget):
                     action.setEnabled(enable and WINPDB_PATH is not None)
                 else:
                     action.setEnabled(enable)
-            self.open_file_update.emit(self.get_current_filename())
+            self.sig_file_opened_closed_updated.emit(
+                self.get_current_filename(), self.get_current_language())
 
     def update_code_analysis_actions(self):
         """Update actions in the warnings menu."""

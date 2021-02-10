@@ -237,7 +237,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Update status for the current file.
         """
         self.clients_statusbar[language] = status
-        self.sig_update_statusbar.emit(
+        self.sig_call_statusbar.emit(
             'lsp_statusbar', 'update_status', (language, status), {})
         # self.status_widget.update_status(language, status)
 
@@ -544,11 +544,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def main_interpreter_changed(self):
         self.update_lsp_configuration(python_only=True)
 
-    def editor_focus_changed(self, filename: str, language: str):
-        # TODO: Update status widget here.
-        #     self.main.editor.sig_editor_focus_changed.connect(
-        #         self.status_widget.update_status)
-        self.sig_update_statusbar.emit(
+    def file_opened_updated(self, filename: str, language: str):
+        self.sig_call_statusbar.emit(
             'lsp_statusbar', 'set_current_language', (language,), {})
 
     def update_configuration(self, config):

@@ -20,8 +20,8 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
 from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
-from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
-                                                          FINISHED, CANCELLED)
+from spyder.plugins.completion.provider.kite.utils.install import (
+    ERRORED, INSTALLING, FINISHED, CANCELLED)
 
 
 KITE_SPYDER_URL = "https://kite.com/integrations/spyder"

@@ -398,6 +398,11 @@ class CompletionPlugin(SpyderPluginV2):
         for provider in providers_to_update:
             self.update_provider_configuration(provider)
 
+    def on_mainwindow_visible(self):
+        for provider_name in self.providers:
+            provider_info = self.providers[provider_name]
+            provider_info['instance'].on_mainwindow_visible()
+
     # ---------- Completion provider registering/start/stop methods -----------
     def _merge_default_configurations(self,
                                       Provider: SpyderCompletionProvider,
@@ -504,7 +509,7 @@ class CompletionPlugin(SpyderPluginV2):
         provider_instance.sig_show_widget.connect(
             container.show_widget
         )
-        provider_instance.sig_update_statusbar.connect(
+        provider_instance.sig_call_statusbar.connect(
             container.statusbar_rpc)
 
         self.sig_pythonpath_changed.connect(
