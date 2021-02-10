@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-12-11 12:38-0500\n"
-"PO-Revision-Date: 2021-01-16 15:56\n"
+"PO-Revision-Date: 2021-02-10 11:56\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -4172,7 +4172,7 @@ msgstr "Derzeit ist keine IPython-Konsole zum Ausführen von <b>{}</b> verfügba
 
 #: spyder/plugins/ipythonconsole/plugin.py:907
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.10.0 and < 1.11.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
-msgstr ""
+msgstr "In Ihrer Python-Umgebung oder -Installation ist das <tt>spyder-kernels</tt>-Modul oder die richtige Version davon nicht installiert (>= 1.10.0 and < 1.11.0). Ohne dieses Modul kann Spyder keine Konsole für Sie erstellen. <br><br>Sie können es installieren, indem Sie folgende Befehle in einem Systemterminal ausführen: <br><br>Wenn sie mit conda arbeiten und es installiert ist<tt>conda install spyder-kernels</tt><br><br> oder sonst <br><br><tt>pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1203
 msgid "Do you want to close this console?"
@@ -4378,7 +4378,7 @@ msgstr "Ein Fehler ist aufgetreten, siehe die Konsole."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:95
 msgid "The comm channel is not working."
-msgstr ""
+msgstr "Das comm-Programm ist nicht erreichbar. [SLANG/AKRONYM/SHORTENER ist mehrdeutig, comm =commercial | comm=communication | ]"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:96
 msgid "%s.<br><br>Note: Please don't report this problem on Github, there's nothing to do about it."
@@ -4418,7 +4418,7 @@ msgstr "Alle Kernel neu starten"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:43
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
-msgstr ""
+msgstr "Standardmäßig werden einige IPython-Konsolen-Einstellungen nur auf neue Konsolen angewendet. Um Einstellungen auf bestehende Konsolen anzuwenden, wählen Sie aus den folgenden Optionen.<br><br>Bitte beachten Sie: Änderungen an laufenden Konsolen werden einen Neustart des Kernels erzwingen und alle aktuellen Arbeiten gehen verloren."
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:54
 msgid "Apply to current console and restart kernel"
