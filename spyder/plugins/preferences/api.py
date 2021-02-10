@@ -181,6 +181,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def is_valid(self):
         """Return True if all widget contents are valid"""
+        status = True
         for lineedit in self.lineedits:
             if lineedit in self.validate_data and lineedit.isEnabled():
                 validator, invalid_msg = self.validate_data[lineedit]
@@ -190,7 +191,18 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                      "%s:<br><b>%s</b>" % (invalid_msg, text),
                                      QMessageBox.Ok)
                     return False
-        return True
+
+        if self.tabs is not None and status:
+            for i in range(self.tabs.count()):
+                tab = self.tabs.widget(i)
+                layout = tab.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if issubclass(type(widget), BaseConfigTab):
+                        status &= widget.is_valid()
+                        if not status:
+                            return status
+        return status
 
     def load_from_conf(self):
         """Load settings from configuration file."""

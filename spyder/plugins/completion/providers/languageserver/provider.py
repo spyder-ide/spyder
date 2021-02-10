@@ -38,7 +38,7 @@ from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 from spyder.plugins.completion.providers.languageserver.widgets.status import (
     ClientStatus, LSPStatusWidget)
 # from spyder.widgets.helperwidgets import MessageCheckBox
-from spyder.plugins.completion.providers.languageserver.widgets.message_box import (
+from spyder.plugins.completion.providers.languageserver.widgets.messagebox import (
     ServerDisabledMessageBox
 )
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES

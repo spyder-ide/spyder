@@ -50,6 +50,14 @@ class SpyderPreferencesTab(BaseConfigTab):
         """
         return set({})
 
+    def is_valid(self) -> bool:
+        """
+        Return True if the tab contents are valid.
+
+        This method can be overriden to perform complex checks.
+        """
+        return True
+
     def __getattr__(self, attr):
         this_class_dir = dir(self)
         if attr not in this_class_dir:

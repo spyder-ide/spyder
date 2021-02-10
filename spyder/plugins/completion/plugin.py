@@ -337,11 +337,10 @@ class CompletionPlugin(SpyderPluginV2):
             for sb in container.all_statusbars():
                 statusbar.add_status_widget(sb, 0)
 
-        # TODO: Move this section to the new API once the migration of
-        # Application is complete
         if self.main:
             self.main.sig_pythonpath_changed.connect(
                 self.sig_pythonpath_changed)
+            # self.main.sig_setup_finished.connect(self.setup_finished)
 
         # TODO: Move this section to the new API once the migration of projects
         # is complete
@@ -500,6 +499,8 @@ class CompletionPlugin(SpyderPluginV2):
             self.sig_exception_occurred)
         provider_instance.sig_language_client_available.connect(
             self.sig_language_client_available)
+        provider_instance.sig_disable_provider.connect(
+            self.shutdown_provider_instance)
         provider_instance.sig_show_widget.connect(
             container.show_widget
         )

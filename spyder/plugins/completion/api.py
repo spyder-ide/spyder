@@ -701,6 +701,17 @@ class SpyderCompletionProvider(QObject):
         available.
     """
 
+    sig_disable_provider = Signal(str)
+    """
+    This signal is used to indicate that a completion provider should be
+    disabled.
+
+    Parameters
+    ----------
+    completion_provider_name: str
+        Name of the completion provider to disable.
+    """
+
     sig_show_widget = Signal(object)
     """
     This signal is used to display a graphical widget such as a QMessageBox.
