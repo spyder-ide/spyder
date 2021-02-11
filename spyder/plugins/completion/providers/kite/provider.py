@@ -17,10 +17,9 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.manager import CONF
-from spyder.utils.programs import run_program
 from spyder.plugins.completion.api import SpyderCompletionProvider
-from spyder.plugins.completion.manager.api import SpyderCompletionPlugin
+from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
+from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.completion.providers.kite.client import KiteClient
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
@@ -29,12 +28,18 @@ from spyder.plugins.completion.providers.kite.widgets.messagebox import (
 from spyder.plugins.completion.providers.kite.widgets.status import (
     KiteStatusWidget)
 from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.utils import icon_manager as ima
+from spyder.utils.programs import run_program
 
 
 logger = logging.getLogger(__name__)
 
 
-class KiteCompletionProvider(SpyderCompletionProvider):
+class KiteProviderActions:
+    Installation = 'kite_installation'
+
+
+class KiteProvider(SpyderCompletionProvider):
     COMPLETION_CLIENT_NAME = 'kite'
     DEFAULT_ORDER = 1
     CONF_DEFAULTS = [
@@ -75,12 +80,15 @@ class KiteCompletionProvider(SpyderCompletionProvider):
         # Config
         self.update_configuration(self.config)
 
+        # Menus
+        self.setup_menus()
+
     # ------------------ SpyderCompletionProvider methods ---------------------
     def get_name(self):
         return 'Kite'
 
     def send_request(self, language, req_type, req, req_id):
-        if self.enabled and language in self.available_languages:
+        if language in self.available_languages:
             self.client.sig_perform_request.emit(req_id, req_type, req)
         else:
             self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
@@ -177,7 +185,7 @@ class KiteCompletionProvider(SpyderCompletionProvider):
             self._show_onboarding = True
             return
         self.set_option('show_onboarding', False)
-        # self.main.open_file(onboarding_file)
+        self.sig_open_file.emit(onboarding_file)
 
     @Slot(str, object)
     def _wrong_response_error(self, method, resp):
@@ -199,3 +207,21 @@ class KiteCompletionProvider(SpyderCompletionProvider):
 
     def create_statusbar(self, parent):
         return KiteStatusWidget(parent, self)
+
+    def show_kite_installation(self):
+        self.sig_call_statusbar.emit(
+            'kite_statusbar', 'show_installation_dialog', tuple(), {})
+
+    def setup_menus(self):
+        is_kite_installed, kite_path = check_if_kite_installed()
+        if not is_kite_installed:
+            install_kite_action = self.create_action(
+                KiteProviderActions.Installation,
+                _("Install Kite completion engine"),
+                icon=ima.get_icon('kite', adjust_for_interface=True),
+                triggered=self.show_kite_installation)
+
+            self.add_item_to_application_menu(
+                install_kite_action,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Tools)

@@ -33,6 +33,7 @@ KITE_DOCUMENT_TYPES = defaultdict(lambda: CompletionItemKind.VALUE, {
 })
 
 KITE_COMPLETION = 'Kite'
+KITE_ICON_SCALE = (416.14 / 526.8)
 
 logger = logging.getLogger(__name__)
 
@@ -161,6 +162,7 @@ class DocumentProvider:
                     'sortText': (i, 0),
                     'documentation': completion['documentation']['text'],
                     'provider': KITE_COMPLETION,
+                    'icon': ('kite', KITE_ICON_SCALE)
                 }
                 spyder_completions.append(entry)
 
@@ -185,6 +187,7 @@ class DocumentProvider:
                             'sortText': (i, j+1),
                             'documentation': child['documentation']['text'],
                             'provider': KITE_COMPLETION,
+                            'icon': ('kite', KITE_ICON_SCALE)
                         }
                         spyder_completions.append(child_entry)
 

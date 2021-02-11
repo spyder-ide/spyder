@@ -11,6 +11,9 @@ Status widget for Kite completions.
 # Standard library imports
 import logging
 
+# Third party imports
+from qtpy.QtCore import Slot
+
 # Local imports
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _, running_under_pytest
@@ -34,12 +37,12 @@ class KiteStatusWidget(StatusBarWidget):
     def __init__(self, parent, provider):
         self.provider = provider
         self.tooltip = self.BASE_TOOLTIP
+        self.installation_thread = KiteInstallationThread(self)
         super().__init__(parent)
         is_installed, _ = check_if_kite_installed()
         self.setVisible(is_installed)
 
         # Installation dialog
-        self.installation_thread = KiteInstallationThread(self)
         self.installer = KiteInstallerDialog(
             self,
             self.installation_thread)
@@ -51,6 +54,7 @@ class KiteStatusWidget(StatusBarWidget):
     def set_value(self, value):
         """Return Kite completions state."""
         kite_enabled = self.provider.get_option(('enabled_providers', 'kite'),
+                                                default=True,
                                                 section='completions')
         is_installing = self.is_installing()
         cancelled_or_errored = self.installation_cancelled_or_errored()

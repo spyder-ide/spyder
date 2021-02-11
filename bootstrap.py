@@ -195,6 +195,11 @@ lsp = pkg_resources.EntryPoint.parse(
     'LanguageServerProvider'
 )
 
+kite = pkg_resources.EntryPoint.parse(
+    'kite = spyder.plugins.completion.providers.kite.provider:'
+    'KiteProvider'
+)
+
 # Create a fake Spyder distribution
 d = pkg_resources.Distribution(__file__)
 
@@ -203,7 +208,8 @@ d._ep_map = {
     'spyder.completions': {
         'fallback': fallback,
         'snippets': snippets,
-        'lsp': lsp
+        'lsp': lsp,
+        'kite': kite
     }
 }
 

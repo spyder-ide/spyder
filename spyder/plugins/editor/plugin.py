@@ -1193,6 +1193,7 @@ class Editor(SpyderPluginWidget):
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.completions.sig_language_client_available.connect(
             self.register_completion_capabilities)
+        self.main.completions.sig_open_file.connect(self.load)
 
         self.sig_file_opened_closed_updated.connect(
             self.main.completions.file_opened_updated)

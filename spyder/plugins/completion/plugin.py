@@ -64,7 +64,7 @@ class CompletionPlugin(SpyderPluginV2):
     NAME = 'completions'
     CONF_SECTION = 'completions'
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.StatusBar]
+    OPTIONAL = [Plugins.StatusBar, Plugins.MainMenu]
 
     CONF_DEFAULTS = [
         ('enabled_providers', {}),
@@ -140,6 +140,16 @@ class CompletionPlugin(SpyderPluginV2):
     language: str
         Name of the programming language whose completion capabilites are
         available.
+    """
+
+    sig_open_file = Signal(str)
+    """
+    This signal is used to open a file in the editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to a file to open with the editor.
     """
 
     # Provider status constants
@@ -511,6 +521,7 @@ class CompletionPlugin(SpyderPluginV2):
         )
         provider_instance.sig_call_statusbar.connect(
             container.statusbar_rpc)
+        provider_instance.sig_open_file.connect(self.sig_open_file)
 
         self.sig_pythonpath_changed.connect(
             provider_instance.python_path_update)
@@ -560,11 +571,6 @@ class CompletionPlugin(SpyderPluginV2):
         return self.providers[name]['instance']
 
     def is_provider_running(self, name: str) -> bool:
-        # TODO: Let LSP server emit sig_provider_ready
-        # if name == LanguageServerPlugin.COMPLETION_CLIENT_NAME:
-        #     # The LSP plugin does not emit a plugin ready signal
-        #     return name in self.clients
-
         status = self.clients.get(name, {}).get('status', self.STOPPED)
         return status == self.RUNNING
 
@@ -602,6 +608,38 @@ class CompletionPlugin(SpyderPluginV2):
             provider_configuration = provider_configurations[provider_name]
             config = provider_configuration['values']
             provider_info['instance'].update_configuration(config)
+
+    def create_action(self, *args, **kwargs):
+        container = self.get_container()
+        kwargs['parent'] = container
+        return container.create_action(*args, **kwargs)
+
+    def get_application_menu(self, *args, **kwargs):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        if main_menu:
+            return main_menu.get_application_menu(*args, **kwargs)
+
+    def get_menu(self, *args, **kwargs):
+        container = self.get_container()
+        return container.get_menu(*args, **kwargs)
+
+    def create_application_menu(self, *args, **kwargs):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        if main_menu:
+            return main_menu.create_application_menu(*args, **kwargs)
+
+    def create_menu(self, *args, **kwargs):
+        container = self.get_container()
+        return container.create_menu(*args, **kwargs)
+
+    def add_item_to_application_menu(self, *args, **kwargs):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        if main_menu:
+            main_menu.add_item_to_application_menu(*args, **kwargs)
+
+    def add_item_to_menu(self, *args, **kwargs):
+        container = self.get_container()
+        container.add_item_to_menu(*args, **kwargs)
 
     # --------------- Public completion API request methods -------------------
     def send_request(self, language: str, req_type: str, req: dict):
@@ -773,28 +811,6 @@ class CompletionPlugin(SpyderPluginV2):
         self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
         for provider_name in self.providers:
             self.update_provider_configuration(provider_name)
-
-    def get_global_option(
-            self, option: str, section: str, default: Any = None) -> Any:
-        """
-        Retrieve an option value from the global Spyder configurations.
-
-        Parameters
-        ----------
-        option: str
-            Option name to lookup for in global Spyder configurations.
-        default: Any
-            Default value to return if `option_name` was not found.
-        section: str
-            Name of the configuration section in Spyder
-
-        Returns
-        -------
-        Any
-            Either the default value if `option_name` was not found on the
-            settings or the actual value stored.
-        """
-        return self.get_conf_option(option, default=default, section=section)
 
     # ----------------- Completion result processing methods ------------------
     @Slot(str, int, dict)

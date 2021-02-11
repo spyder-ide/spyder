@@ -16,7 +16,7 @@ https://microsoft.github.io/language-server-protocol/specifications/specificatio
 from typing import Any, Optional, Tuple, Union
 
 # Third party imports
-from qtpy.QtCore import Signal, QObject, Slot
+from qtpy.QtCore import Signal, QObject, Slot, Qt
 
 
 # Supported LSP programming languages
@@ -741,6 +741,16 @@ class SpyderCompletionProvider(QObject):
         Dictionary containing optional arguments to invoke the method.
     """
 
+    sig_open_file = Signal(str)
+    """
+    This signal is used to open a file in the editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to a file to open with the editor.
+    """
+
     sig_exception_occurred = Signal(dict)
     """
     This signal can be emitted to report an exception from any plugin.
@@ -1039,6 +1049,12 @@ class SpyderCompletionProvider(QObject):
         """Establish if the current completion provider can be stopped."""
         return True
 
+    def on_mainwindow_visible(self):
+        """
+        Actions to be performed after the main window's has been shown.
+        """
+        pass
+
     def get_option(self,
                    option_name: Union[str, Tuple[str, ...]],
                    default: Any = None,
@@ -1081,8 +1097,8 @@ class SpyderCompletionProvider(QObject):
                     'values',
                     option_name
                 )
-        return self.main.get_global_option(
-            option_name, section, default)
+        return self.main.get_conf_option(
+            option_name, default=default, section=section)
 
     def set_option(self,
                    option_name: Union[str, Tuple[str, ...]],
@@ -1120,10 +1136,136 @@ class SpyderCompletionProvider(QObject):
                     'values',
                     option_name
                 )
-        self.main.set_conf_option(option_name, value, section)
+        self.main.set_conf_option(option_name, value, section=section)
 
-    def on_mainwindow_visible(self):
+    def create_action(self, name, text, icon=None, icon_text='', tip=None,
+                      toggled=None, triggered=None, shortcut_context=None,
+                      context=Qt.WidgetWithChildrenShortcut, initial=None,
+                      register_shortcut=False):
         """
-        Actions to be performed after the main window's has been shown.
+        name: str
+            unique identifiable name for the action
+        text: str
+           Localized text for the action
+        icon: QIcon,
+            Icon for the action when applied to menu or toolbutton.
+        icon_text: str
+            Icon for text in toolbars. If True, this will also disable
+            the tooltip on this toolbutton if part of a toolbar.
+        tip: str
+            Tooltip to define for action on menu or toolbar.
+        toggled: callable
+            The callable to use when toggling this action
+        triggered: callable
+            The callable to use when triggering this action.
+        shortcut_context: str
+            Set the `str` context of the shortcut.
+        context: Qt.ShortcutContext
+            Set the context for the shortcut.
+        initial: object
+            Sets the initial state of a togglable action. This does not emit
+            the toggled signal.
+        register_shortcut: bool, optional
+            If True, main window will expose the shortcut in Preferences.
+            The default value is `False`.
+        Notes
+        -----
+        There is no need to set shortcuts right now. We only create actions
+        with this (and similar methods) and these are then exposed as possible
+        shortcuts on plugin registration in the main window with the
+        register_shortcut argument.
+
+        If icon_text is True, this will also disable the tooltip.
+
+        If a shortcut is found in the default config then it is assigned,
+        otherwise it's left blank for the user to define one for it.
         """
-        pass
+        return self.main.create_action(
+            name, text, icon=icon, icon_text=icon_text, tip=tip,
+            toggled=toggled, triggered=triggered,
+            shortcut_context=shortcut_context, context=context,
+            initial=initial, register_shortcut=register_shortcut)
+
+    def create_application_menu(self, menu_id, title, dynamic=True):
+        """
+        Create a Spyder application menu.
+
+        Parameters
+        ----------
+        menu_id: str
+            The menu unique identifier string.
+        title: str
+            The localized menu title to be displayed.
+        """
+        self.main.create_application_menu(menu_id, title, dynamic=dynamic)
+
+    def create_menu(self, name, text=None, icon=None):
+        """
+        Create a menu.
+
+        Parameters
+        ----------
+        name: str
+            Unique str identifier.
+        text: str or None
+            Localized text string.
+        icon: QIcon or None
+            Icon to use for the menu.
+
+        Return: QMenu
+            Return the created menu.
+        """
+        self.main.create_menu(name, text=text, icon=icon)
+
+    def get_menu(name):
+        """Retrieve a menu by its id."""
+        return self.main.get_menu(name)
+
+    def get_application_menu(self, menu_id):
+        """
+        Return an application menu by menu unique id.
+
+        Parameters
+        ----------
+        menu_id: ApplicationMenu
+            The menu unique identifier string.
+        """
+        return self.main.get_application_menu(menu_id)
+
+    def add_item_to_menu(self, action_or_menu, menu, section=None,
+                         before=None):
+        """
+        Add a SpyderAction or a QWidget to the menu.
+        """
+        self.main.add_item_to_menu(
+            action_or_menu, menu, section=section, before=before)
+
+    def add_item_to_application_menu(self, item, menu=None, menu_id=None,
+                                     section=None, before=None,
+                                     before_section=None):
+        """
+        Add action or widget `item` to given application menu `section`.
+
+        Parameters
+        ----------
+        item: SpyderAction or SpyderMenu
+            The item to add to the `menu`.
+        menu: ApplicationMenu or None
+            Instance of a Spyder application menu.
+        menu_id: str or None
+            The application menu unique string identifier.
+        section: str or None
+            The section id in which to insert the `item` on the `menu`.
+        before: SpyderAction/SpyderMenu or None
+            Make the item appear before another given item.
+        before_section: Section or None
+            Make the item section (if provided) appear before another
+            given section.
+
+        Notes
+        -----
+        Must provide a `menu` or a `menu_id`.
+        """
+        self.main.add_item_to_application_menu(
+            item, menu=menu, menu_id=menu_id, section=section,
+            before=before, before_section=before_section)
