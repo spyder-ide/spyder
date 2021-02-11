@@ -561,8 +561,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if cursor is None:
             cursor = self.textCursor()
         ls = self.get_line_separator()
-        cursor, _ = self.select_current_cell(cursor)
-        line_from, _ = self.get_selection_bounds(cursor)
+        cursor, __ = self.select_current_cell(cursor)
+        line_from, __ = self.get_selection_bounds(cursor)
         # Get the block for the first cell line
         start = cursor.selectionStart()
         block = self.document().findBlock(start)
