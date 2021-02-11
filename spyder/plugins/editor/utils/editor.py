@@ -416,84 +416,6 @@ class TextHelper(object):
         text_cursor.deletePreviousChar()
         editor.setTextCursor(text_cursor)
 
-    def clean_document(self):
-        """
-        Removes trailing whitespaces and ensure one single blank line at the
-        end of the QTextDocument.
-
-        FIXME: It was deprecated in pyqode, maybe It should be deleted
-        """
-        editor = self._editor
-        value = editor.verticalScrollBar().value()
-        pos = self.cursor_position()
-        editor.textCursor().beginEditBlock()
-
-        # cleanup whitespaces
-        editor._cleaning = True
-        eaten = 0
-        removed = set()
-        for line in editor._modified_lines:
-            # parse line before and line after modified line (for cases where
-            # key_delete or key_return has been pressed)
-            for j in range(-1, 2):
-                # skip current line
-                if line + j != pos[0]:
-                    if line + j >= 0:
-                        txt = self.line_text(line + j)
-                        stxt = txt.rstrip()
-                        if txt != stxt:
-                            self.set_line_text(line + j, stxt)
-                        removed.add(line + j)
-        editor._modified_lines -= removed
-
-        # ensure there is only one blank line left at the end of the file
-        i = self.line_count()
-        while i:
-            line = self.line_text(i - 1)
-            if line.strip():
-                break
-            self.remove_last_line()
-            i -= 1
-        if self.line_text(self.line_count() - 1):
-            editor.appendPlainText('')
-
-        # restore cursor and scrollbars
-        text_cursor = editor.textCursor()
-        doc = editor.document()
-        assert isinstance(doc, QTextDocument)
-        text_cursor = self._move_cursor_to(pos[0])
-        text_cursor.movePosition(text_cursor.StartOfLine,
-                                 text_cursor.MoveAnchor)
-        cpos = text_cursor.position()
-        text_cursor.select(text_cursor.LineUnderCursor)
-        if text_cursor.selectedText():
-            text_cursor.setPosition(cpos)
-            offset = pos[1] - eaten
-            text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
-                                     offset)
-        else:
-            text_cursor.setPosition(cpos)
-        editor.setTextCursor(text_cursor)
-        editor.verticalScrollBar().setValue(value)
-
-        text_cursor.endEditBlock()
-        editor._cleaning = False
-        editor.document_did_change()
-
-    def select_whole_line(self, line=None, apply_selection=True):
-        """
-        Selects an entire line.
-
-        :param line: Line to select. If None, the current line will be selected
-        :param apply_selection: True to apply selection on the text editor
-            widget, False to just return the text cursor without setting it
-            on the editor.
-        :return: QTextCursor
-        """
-        if line is None:
-            line = self.current_line_nbr()
-        return self.select_lines(line, line, apply_selection=apply_selection)
-
     def _move_cursor_to(self, line):
         cursor = self._editor.textCursor()
         block = self._editor.document().findBlockByNumber(line-1)
@@ -542,24 +464,6 @@ class TextHelper(object):
         if apply_selection:
             editor.setTextCursor(text_cursor)
         return text_cursor
-
-    def selection_range(self):
-        """
-        Returns the selected lines boundaries (start line, end line)
-
-        :return: tuple(int, int)
-        """
-        editor = self._editor
-        doc = editor.document()
-        start = doc.findBlock(
-            editor.textCursor().selectionStart()).blockNumber()
-        end = doc.findBlock(
-            editor.textCursor().selectionEnd()).blockNumber()
-        text_cursor = QTextCursor(editor.textCursor())
-        text_cursor.setPosition(editor.textCursor().selectionEnd())
-        if text_cursor.columnNumber() == 0 and start != end:
-            end -= 1
-        return start, end
 
     def line_pos_from_number(self, line_number):
         """
@@ -636,20 +540,6 @@ class TextHelper(object):
                             QTextCursor.KeepAnchor)
         return cursor.selectedText().strip()
 
-    def get_right_character(self, cursor=None):
-        """
-        Gets the character that is on the right of the text cursor.
-
-        :param cursor: QTextCursor that defines the position where the search
-            will start.
-        """
-        next_char = self.get_right_word(cursor=cursor)
-        if len(next_char):
-            next_char = next_char[0]
-        else:
-            next_char = None
-        return next_char
-
     def insert_text(self, text, keep_position=True):
         """
         Inserts text at the cursor position.
@@ -669,36 +559,6 @@ class TextHelper(object):
             text_cursor.setPosition(e, text_cursor.KeepAnchor)
         self._editor.setTextCursor(text_cursor)
         self._editor.document_did_change()
-
-    def clear_selection(self):
-        """Clears text cursor selection."""
-        text_cursor = self._editor.textCursor()
-        text_cursor.clearSelection()
-        self._editor.setTextCursor(text_cursor)
-
-    def move_right(self, keep_anchor=False, nb_chars=1):
-        """
-        Moves the cursor on the right.
-
-        :param keep_anchor: True to keep anchor (to select text) or False to
-            move the anchor (no selection)
-        :param nb_chars: Number of characters to move.
-        """
-        text_cursor = self._editor.textCursor()
-        text_cursor.movePosition(
-            text_cursor.Right, text_cursor.KeepAnchor if keep_anchor else
-            text_cursor.MoveAnchor, nb_chars)
-        self._editor.setTextCursor(text_cursor)
-
-    def selected_text_to_lower(self):
-        """Replaces the selected text by its lower version."""
-        txt = self.selected_text()
-        self.insert_text(txt.lower())
-
-    def selected_text_to_upper(self):
-        """Replaces the selected text by its upper version."""
-        txt = self.selected_text()
-        self.insert_text(txt.upper())
 
     def search_text(self, text_cursor, search_txt, search_flags):
         """
@@ -771,150 +631,6 @@ class TextHelper(object):
                                     is_user_obj):
                                 return True
         return False
-
-    def select_extended_word(self, continuation_chars=('.',)):
-        """
-        Performs extended word selection. Extended selection consists in
-        selecting the word under cursor and any other words that are linked
-        by a ``continuation_chars``.
-
-        :param continuation_chars: the list of characters that may extend a
-            word.
-        """
-        cursor = self._editor.textCursor()
-        original_pos = cursor.position()
-        start_pos = None
-        end_pos = None
-        # go left
-        stop = False
-        seps = self._editor.word_separators + [' ']
-        while not stop:
-            cursor.clearSelection()
-            cursor.movePosition(cursor.Left, cursor.KeepAnchor)
-            char = cursor.selectedText()
-            if cursor.atBlockStart():
-                stop = True
-                start_pos = cursor.position()
-            elif char in seps and char not in continuation_chars:
-                stop = True
-                start_pos = cursor.position() + 1
-        # go right
-        cursor.setPosition(original_pos)
-        stop = False
-        while not stop:
-            cursor.clearSelection()
-            cursor.movePosition(cursor.Right, cursor.KeepAnchor)
-            char = cursor.selectedText()
-            if cursor.atBlockEnd():
-                stop = True
-                end_pos = cursor.position()
-                if char in seps:
-                    end_pos -= 1
-            elif char in seps and char not in continuation_chars:
-                stop = True
-                end_pos = cursor.position() - 1
-        if start_pos and end_pos:
-            cursor.setPosition(start_pos)
-            cursor.movePosition(cursor.Right, cursor.KeepAnchor,
-                                end_pos - start_pos)
-            self._editor.setTextCursor(cursor)
-
-    def match_select(self, ignored_symbols=None):
-        """
-        Performs matched selection, selects text between matching quotes or
-        parentheses.
-
-        :param ignored_symbols; matching symbols to ignore.
-        """
-        def filter_matching(ignored_symbols, matching):
-            """
-            Removes any ignored symbol from the match dict.
-            """
-            if ignored_symbols is not None:
-                for symbol in matching.keys():
-                    if symbol in ignored_symbols:
-                        matching.pop(symbol)
-            return matching
-
-        def find_opening_symbol(cursor, matching):
-            """
-            Find the position ot the opening symbol
-            :param cursor: Current text cursor
-            :param matching: symbol matches map
-            """
-            start_pos = None
-            opening_char = None
-            closed = {k: 0 for k in matching.values()
-                      if k not in ['"', "'"]}
-            # go left
-            stop = False
-            while not stop and not cursor.atStart():
-                cursor.clearSelection()
-                cursor.movePosition(cursor.Left, cursor.KeepAnchor)
-                char = cursor.selectedText()
-                if char in closed.keys():
-                    closed[char] += 1
-                elif char in matching.keys():
-                    opposite = matching[char]
-                    if opposite in closed.keys() and closed[opposite]:
-                        closed[opposite] -= 1
-                        continue
-                    else:
-                        # found opening quote or parenthesis
-                        start_pos = cursor.position() + 1
-                        stop = True
-                        opening_char = char
-            return opening_char, start_pos
-
-        def find_closing_symbol(cursor, matching, opening_char, original_pos):
-            """
-            Finds the position of the closing symbol.
-
-            :param cursor: current text cursor
-            :param matching: symbold matching dict
-            :param opening_char: the opening character
-            :param original_pos: position of the opening character.
-            """
-            end_pos = None
-            cursor.setPosition(original_pos)
-            rev_matching = {v: k for k, v in matching.items()}
-            opened = {k: 0 for k in rev_matching.values()
-                      if k not in ['"', "'"]}
-            stop = False
-            while not stop and not cursor.atEnd():
-                cursor.clearSelection()
-                cursor.movePosition(cursor.Right, cursor.KeepAnchor)
-                char = cursor.selectedText()
-                if char in opened.keys():
-                    opened[char] += 1
-                elif char in rev_matching.keys():
-                    opposite = rev_matching[char]
-                    if opposite in opened.keys() and opened[opposite]:
-                        opened[opposite] -= 1
-                        continue
-                    elif matching[opening_char] == char:
-                        # found opening quote or parenthesis
-                        end_pos = cursor.position() - 1
-                        stop = True
-            return end_pos
-
-        matching = {'(': ')', '{': '}', '[': ']', '"': '"', "'": "'"}
-        filter_matching(ignored_symbols, matching)
-        cursor = self._editor.textCursor()
-        original_pos = cursor.position()
-        end_pos = None
-        opening_char, start_pos = find_opening_symbol(cursor, matching)
-        if opening_char:
-            end_pos = find_closing_symbol(
-                cursor, matching, opening_char, original_pos)
-        if start_pos and end_pos:
-            cursor.setPosition(start_pos)
-            cursor.movePosition(cursor.Right, cursor.KeepAnchor,
-                                end_pos - start_pos)
-            self._editor.setTextCursor(cursor)
-            return True
-        else:
-            return False
 
 
 class TextBlockHelper(object):
