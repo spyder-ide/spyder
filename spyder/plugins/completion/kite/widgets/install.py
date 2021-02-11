@@ -64,8 +64,10 @@ class KiteIntegrationInfo(QWidget):
         ilayout.addLayout(images_layout)
 
         # Label
-        integration_label_title = QLabel("Get better code completions in Spyder")
-        integration_label_title.setStyleSheet(f"font-size: {self.TITLE_FONT_SIZE}")
+        integration_label_title = QLabel(
+           "Get better code completions in Spyder")
+        integration_label_title.setStyleSheet(
+           f"font-size: {self.TITLE_FONT_SIZE}")
         integration_label_title.setWordWrap(True)
         integration_label = QLabel(
             _("Now Spyder can use Kite to provide better code "
@@ -132,7 +134,7 @@ class KiteIntegrationInfo(QWidget):
             self.setStyleSheet("background-color: #262E38")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
-             self.setFixedSize(800, 350)
+            self.setFixedSize(800, 350)
 
 
 class KiteWelcome(QWidget):
