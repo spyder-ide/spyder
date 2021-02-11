@@ -72,7 +72,7 @@ class KiteIntegrationInfo(QWidget):
               "completions for key packages in the scientific Python "
               "Ecosystem. Install Kite for a better editor experience in "
               "Spyder. <br><br>Kite is free to use but is not open "
-              "source.<a href=\"{kite_url}\"> Learn more about Kite </a>")
+              "source. <a href=\"{kite_url}\">Learn more about Kite </a>")
             .format(kite_url=KITE_SPYDER_URL))
         integration_label.setStyleSheet(f"font-size: {self.CONTENT_FONT_SIZE}")
         integration_label.setOpenExternalLinks(True)
