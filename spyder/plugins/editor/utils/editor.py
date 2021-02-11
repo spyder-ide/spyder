@@ -17,15 +17,13 @@ Original file:
 """
 
 # Standard library imports
-import functools
 import weakref
 import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QTimer, Qt
 from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
-                        QTextDocument, QCursor)
-from qtpy.QtWidgets import QApplication
+                        QTextDocument)
 
 # Local imports
 from spyder.py3compat import to_text_string
