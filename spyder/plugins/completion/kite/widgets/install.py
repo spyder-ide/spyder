@@ -297,15 +297,11 @@ class KiteInstallerDialog(QDialog):
             .format(kite_url=KITE_SPYDER_URL, kite_contact=KITE_CONTACT_URL))
         self.accept()
 
-    def setup(self, integration=True, welcome=False, installation=False):
+    def setup(self, integration=True, installation=False):
         """Setup visibility of widgets."""
         self._integration_widget.setVisible(integration)
         self._installation_widget.setVisible(installation)
         self.adjustSize()
-
-    def welcome(self):
-        """Show welcome widget."""
-        self.setup(integration=False, welcome=True, installation=False)
 
     def install(self):
         """Initialize installation process and show install widget."""
