@@ -137,74 +137,6 @@ class KiteIntegrationInfo(QWidget):
             self.setFixedSize(800, 350)
 
 
-class KiteWelcome(QWidget):
-    """Kite welcome info widget."""
-
-    # Signal to check clicks on the installation button
-    sig_install_button_clicked = Signal()
-    # Signal to check clicks on the dismiss button
-    sig_dismiss_button_clicked = Signal()
-
-    def __init__(self, parent):
-        super(KiteWelcome, self).__init__(parent)
-        self.setFixedHeight(350)
-
-        # Left side
-        install_info = QLabel(
-            _("<big><b>Level up your completions with "
-              "Kite</b></big><br><br>"
-              "Kite is a native app that runs locally "
-              "on your computer <br>and uses machine learning "
-              "to provide advanced <br>completions.<br><br>"
-              "&#10003; Specialized support for Python "
-              "data analysis packages<br><br>"
-              "&#10003; 1.5x more completions "
-              "than the builtin engine<br><br>"
-              "&#10003; Completions ranked by code context <br><br>"
-              "&#10003; Full line code completions<br><br>"
-              "&#10003; 100% local - no internet "
-              "connection required<br><br>"
-              "&#10003; 100% free to use<br><br>"
-              "<a href=\"{kite_url}\">Learn more on the Kite website</a>")
-            .format(kite_url=KITE_SPYDER_URL))
-        install_info.setOpenExternalLinks(True)
-
-        # Right side
-        action_layout = QVBoxLayout()
-        install_gif_source = get_image_path('kite.gif')
-
-        install_gif = QMovie(install_gif_source)
-        install_gif_label = QLabel()
-        install_gif.start()
-        install_image = install_gif.currentPixmap()
-        image_height = install_image.height() * 0.8
-        image_width = install_image.width() * 0.8
-        install_gif.setScaledSize(QSize(image_width, image_height))
-        install_gif_label.setMovie(install_gif)
-
-        button_layout = QHBoxLayout()
-        install_button = QPushButton(_('Install Kite'))
-        dismiss_button = QPushButton(_('Dismiss'))
-        button_layout.addStretch()
-        button_layout.addWidget(install_button)
-        button_layout.addWidget(dismiss_button)
-        button_layout.addStretch()
-
-        action_layout.addWidget(install_gif_label)
-        action_layout.addStretch()
-        action_layout.addLayout(button_layout)
-
-        # Layout
-        general_layout = QHBoxLayout()
-        general_layout.addWidget(install_info)
-        general_layout.addLayout(action_layout)
-        self.setLayout(general_layout)
-
-        # Signals
-        install_button.clicked.connect(self.sig_install_button_clicked)
-        dismiss_button.clicked.connect(self.sig_dismiss_button_clicked)
-
-
 class HoverEventFilter(QObject):
     """QObject to handle event filtering."""
     # Signal to trigger on a HoverEnter event
@@ -324,13 +256,11 @@ class KiteInstallerDialog(QDialog):
         self._parent = parent
         self._installation_thread = installation_thread
         self._integration_widget = KiteIntegrationInfo(self)
-        self._welcome_widget = KiteWelcome(self)
         self._installation_widget = KiteInstallation(self)
 
         # Layout
         installer_layout = QVBoxLayout()
         installer_layout.addWidget(self._integration_widget)
-        installer_layout.addWidget(self._welcome_widget)
         installer_layout.addWidget(self._installation_widget)
 
         self.setLayout(installer_layout)
@@ -346,10 +276,6 @@ class KiteInstallerDialog(QDialog):
         self._integration_widget.sig_install_button_clicked.connect(
             self.install)
         self._integration_widget.sig_dismiss_button_clicked.connect(
-            self.reject)
-        self._welcome_widget.sig_install_button_clicked.connect(
-            self.install)
-        self._welcome_widget.sig_dismiss_button_clicked.connect(
             self.reject)
         self._installation_widget.ok_button.clicked.connect(
             self.close_installer)
@@ -374,7 +300,6 @@ class KiteInstallerDialog(QDialog):
     def setup(self, integration=True, welcome=False, installation=False):
         """Setup visibility of widgets."""
         self._integration_widget.setVisible(integration)
-        self._welcome_widget.setVisible(welcome)
         self._installation_widget.setVisible(installation)
         self.adjustSize()
 
@@ -430,8 +355,6 @@ class KiteInstallerDialog(QDialog):
 if __name__ == "__main__":
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    install_welcome = KiteWelcome(None)
-    install_welcome.show()
     install_progress = KiteInstallation(None)
     install_progress.show()
     app.exec_()
