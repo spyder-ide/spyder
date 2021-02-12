@@ -145,9 +145,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
         self.current_project_path = None
 
         # Status bar widget
-        self.STATUS_BARS = {
-            'lsp_statusbar': self.create_statusbar
-        }
+        self.STATUS_BAR_CLASSES = [
+            self.create_statusbar
+        ]
 
     def __del__(self):
         """Stop all heartbeats"""
@@ -238,8 +238,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         self.clients_statusbar[language] = status
         self.sig_call_statusbar.emit(
-            'lsp_statusbar', 'update_status', (language, status), {})
-        # self.status_widget.update_status(language, status)
+            LSPStatusWidget.ID, 'update_status', (language, status), {})
 
     def on_initialize(self, options, language):
         """
@@ -546,7 +545,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     def file_opened_updated(self, filename: str, language: str):
         self.sig_call_statusbar.emit(
-            'lsp_statusbar', 'set_current_language', (language,), {})
+            LSPStatusWidget.ID, 'set_current_language', (language,), {})
 
     def update_configuration(self, config):
         self.config = config

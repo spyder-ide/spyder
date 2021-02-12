@@ -73,9 +73,9 @@ class KiteProvider(SpyderCompletionProvider):
             self._wrong_response_error)
 
         # Status bar widget
-        self.STATUS_BARS = {
-            'kite_statusbar': self.create_statusbar
-        }
+        self.STATUS_BAR_CLASSES = [
+            self.create_statusbar
+        ]
 
         # Config
         self.update_configuration(self.config)
@@ -135,7 +135,7 @@ class KiteProvider(SpyderCompletionProvider):
 
     def on_mainwindow_visible(self):
         self.sig_call_statusbar.emit(
-            'kite_statusbar', 'mainwindow_setup_finished', tuple(), {})
+            KiteStatusWidget.ID, 'mainwindow_setup_finished', tuple(), {})
 
     @Slot(list)
     def http_client_ready(self, languages):
@@ -149,11 +149,10 @@ class KiteProvider(SpyderCompletionProvider):
     def set_status(self, status):
         """Show Kite status for the current file."""
         self.sig_call_statusbar.emit(
-            'kite_statusbar', 'set_value', (status,), {})
+            KiteStatusWidget.ID, 'set_value', (status,), {})
 
     def file_opened_updated(self, filename, _language):
         """Request status for the given file."""
-        # if not self.is_installing():
         self.client.sig_perform_status_request.emit(filename)
 
     def update_configuration(self, config):
@@ -210,7 +209,7 @@ class KiteProvider(SpyderCompletionProvider):
 
     def show_kite_installation(self):
         self.sig_call_statusbar.emit(
-            'kite_statusbar', 'show_installation_dialog', tuple(), {})
+            KiteStatusWidget.ID, 'show_installation_dialog', tuple(), {})
 
     def setup_menus(self):
         is_kite_installed, kite_path = check_if_kite_installed()

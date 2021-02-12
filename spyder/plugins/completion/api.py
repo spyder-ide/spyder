@@ -726,13 +726,13 @@ class SpyderCompletionProvider(QObject):
     sig_call_statusbar = Signal(str, str, tuple, dict)
     """
     This signal is used to call a remote method on a statusbar registered via
-    the `STATUS_BAR` attribute.
+    the `STATUS_BAR_CLASSES` attribute.
 
     Parameters
     ----------
     statusbar_key: str
-        Status bar key identifier that was registered on the `STATUS_BAR`
-        attribute.
+        Status bar key identifier that was registered on the
+        `STATUS_BAR_CLASSES` attribute.
     method_name: str
         Name of the remote method defined on the statusbar.
     args: tuple
@@ -816,17 +816,22 @@ class SpyderCompletionProvider(QObject):
     # Widget to be used as entry in Spyder Preferences dialog.
     CONF_TABS = []
 
-    # A map of status bars that the provider declares to display on Spyder.
+    # A list of status bars classes that the provider declares to
+    # display on Spyder.
+    #
     # Each status bar should correspond to a
     # :class:`spyder.api.widgets.status.StatusBarWidget` or
     # a closure that returns a StatusBarWidget.
     #
-    # STATUS_BAR = {
-    #     'statusbar_key1': StatusBarClass1,
-    #     'statusbar_key2': StatusBarClass2,
+    # type: Union[StatusBarWidget, Callable[[QWidget], StatusBarWidget]]
+    #
+    # STATUS_BAR_CLASSES = [
+    #     StatusBarClass1,
+    #     StatusBarClass2,
+    #     FunctionThatReturnsAStatusBar
     #     ...
-    # }
-    STATUS_BARS = {}
+    # ]
+    STATUS_BAR_CLASSES = []
 
     def __init__(self, parent, config):
         """

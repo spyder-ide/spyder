@@ -345,7 +345,7 @@ class CompletionPlugin(SpyderPluginV2):
                             self.wrap_create_op(name, pos, provider_key))
             conf_tabs += provider.CONF_TABS
             # Add defined status bars to container
-            container.register_statusbars(provider.STATUS_BARS)
+            container.register_statusbars(provider.STATUS_BAR_CLASSES)
             conf_providers.append((provider_key, provider.get_name()))
 
         return conf_providers, conf_tabs
