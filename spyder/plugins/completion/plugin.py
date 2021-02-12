@@ -196,95 +196,6 @@ class CompletionPlugin(SpyderPluginV2):
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
 
-        # Set/Get option patching definitions
-        def wrap_get_option(provider):
-            plugin = self
-            def wrapper(self, option, default=NoDefault, section=None):
-                if section is None:
-                    if isinstance(option, tuple):
-                        option = ('provider_configuration', provider, 'values',
-                                  *option)
-                    else:
-                        option = ('provider_configuration', provider, 'values',
-                                  option)
-                return plugin.get_conf_option(option, default, section)
-            return wrapper
-
-        def wrap_set_option(provider):
-            plugin = self
-            def wrapper(self, option, value, section=None):
-                if section is None:
-                    if isinstance(option, tuple):
-                        option = ('provider_configuration', provider, 'values',
-                                  *option)
-                    else:
-                        option = ('provider_configuration', provider, 'values',
-                                  option)
-                return plugin.set_conf_option(option, value, section)
-            return wrapper
-
-        def wrap_remove_option(provider):
-            plugin = self
-            def wrapper(self, option, section=None):
-                if section is None:
-                    if isinstance(option, tuple):
-                        option = ('provider_configuration', provider, 'values',
-                                  *option)
-                    else:
-                        option = ('provider_configuration', provider, 'values',
-                                  option)
-                    return plugin.remove_conf_option(option, section)
-            return wrapper
-
-        # Wrap create_* methods in configpage
-        def wrap_create_op(create_name, opt_pos, provider):
-            def wrapper(self, *args, **kwargs):
-                if kwargs.get('section', None) is None:
-                    arg_list = list(args)
-                    if isinstance(args[opt_pos], tuple):
-                        arg_list[opt_pos] = (
-                            'provider_configuration', provider, 'values',
-                            *args[opt_pos])
-                    else:
-                        arg_list[opt_pos] = (
-                            'provider_configuration', provider, 'values',
-                            args[opt_pos])
-                    args = tuple(arg_list)
-                call = getattr(self.parent, create_name)
-                widget = call(*args, **kwargs)
-                widget.setParent(self)
-                return widget
-            return wrapper
-
-        def wrap_apply_settings(Tab, provider):
-            prev_method = Tab.apply_settings
-            def wrapper(self):
-                wrapped_opts = set({})
-                for opt in prev_method(self):
-                    if isinstance(opt, tuple):
-                        wrapped_opts |= {('provider_configuration',
-                                          provider, 'values', *opt)}
-                    else:
-                        wrapped_opts |= {(
-                            'provider_configuration', provider, 'values', opt)}
-                return wrapped_opts
-            return wrapper
-
-        # Filter widget creation functions in ConfigPage
-        members = inspect.getmembers(CompletionConfigPage)
-        widget_funcs = []
-        for name, call in members:
-            if name.startswith('create_'):
-                sig = inspect.signature(call)
-                parameters = sig.parameters
-                if 'option' in sig.parameters:
-                    pos = -1
-                    for param in parameters:
-                        if param == 'option':
-                            break
-                        pos += 1
-                    widget_funcs.append((name, pos))
-
         # Find and instantiate all completion providers registered via
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
@@ -297,29 +208,10 @@ class CompletionPlugin(SpyderPluginV2):
                                f'point {entry_point}')
                 raise e
 
+        (conf_providers,
+         conf_tabs) = self.gather_completion_configtabs_statusbars()
+
         # Define configuration page and tabs
-        conf_providers = []
-        conf_tabs = []
-        container = self.get_container()
-
-        for provider_key in self.providers:
-            provider = self.providers[provider_key]['instance']
-            for tab in provider.CONF_TABS:
-                # Add set_option/get_option/remove_option to tab definition
-                setattr(tab, 'get_option', wrap_get_option(provider_key))
-                setattr(tab, 'set_option', wrap_set_option(provider_key))
-                setattr(tab, 'remove_option', wrap_remove_option(provider_key))
-                # Wrap apply_settings to return settings correctly
-                setattr(tab, 'apply_settings',
-                        wrap_apply_settings(tab, provider_key))
-                # Wrap create_* methods to consider provider
-                for name, pos in widget_funcs:
-                    setattr(tab, name, wrap_create_op(name, pos, provider_key))
-            conf_tabs += provider.CONF_TABS
-            # Add defined status bars to container
-            container.register_statusbars(provider.STATUS_BARS)
-            conf_providers.append((provider_key, provider.get_name()))
-
         self.CONF_WIDGET_CLASS = partialclass(
             CompletionConfigPage, providers=conf_providers)
         self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
@@ -412,6 +304,185 @@ class CompletionPlugin(SpyderPluginV2):
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             provider_info['instance'].on_mainwindow_visible()
+
+    # ------ Completion provider initialization redefintion wrappers
+    def gather_completion_configtabs_statusbars(self):
+        """
+        Register completion provider configuration tabs and status bar
+        widgets.
+
+        This method iterates over all completion providers,
+        take their corresponding configuration tabs, patch the methods that
+        interact with writing/reading/removing configuration options to
+        consider provider configuration options that are stored inside this
+        plugin's `provider_configuration` option, making the provider unaware
+        of the CompletionPlugin existence.
+
+        Finally, all status bar widgets declared by the provider are registered
+        on the container.
+        """
+        conf_providers = []
+        conf_tabs = []
+        container = self.get_container()
+        widget_funcs = self.gather_create_ops()
+
+        for provider_key in self.providers:
+            provider = self.providers[provider_key]['instance']
+            for tab in provider.CONF_TABS:
+                # Add set_option/get_option/remove_option to tab definition
+                setattr(tab, 'get_option',
+                        self.wrap_get_option(provider_key))
+                setattr(tab, 'set_option',
+                        self.wrap_set_option(provider_key))
+                setattr(tab, 'remove_option',
+                        self.wrap_remove_option(provider_key))
+                # Wrap apply_settings to return settings correctly
+                setattr(tab, 'apply_settings',
+                        self.wrap_apply_settings(tab, provider_key))
+                # Wrap create_* methods to consider provider
+                for name, pos in widget_funcs:
+                    setattr(tab, name,
+                            self.wrap_create_op(name, pos, provider_key))
+            conf_tabs += provider.CONF_TABS
+            # Add defined status bars to container
+            container.register_statusbars(provider.STATUS_BARS)
+            conf_providers.append((provider_key, provider.get_name()))
+
+        return conf_providers, conf_tabs
+
+    def gather_create_ops(self):
+        """
+        Extract all the create_* methods declared in the
+        :class:`spyder.api.preferences.PluginConfigPage` class
+        """
+        # Filter widget creation functions in ConfigPage
+        members = inspect.getmembers(CompletionConfigPage)
+        widget_funcs = []
+        for name, call in members:
+            if name.startswith('create_'):
+                sig = inspect.signature(call)
+                parameters = sig.parameters
+                if 'option' in sig.parameters:
+                    pos = -1
+                    for param in parameters:
+                        if param == 'option':
+                            break
+                        pos += 1
+                    widget_funcs.append((name, pos))
+        return widget_funcs
+
+    def wrap_get_option(self, provider):
+        """
+        Wraps `get_option` method for a provider config tab to consider its
+        actual section nested inside `provider_configuration` key in the
+        completion plugin.
+
+        This wrapper method allows configuration tabs to not be aware about
+        their presence behind the completion plugin.
+        """
+        plugin = self
+        def wrapper(self, option, default=NoDefault, section=None):
+            if section is None:
+                if isinstance(option, tuple):
+                    option = ('provider_configuration', provider, 'values',
+                              *option)
+                else:
+                    option = ('provider_configuration', provider, 'values',
+                              option)
+            return plugin.get_conf_option(option, default, section)
+        return wrapper
+
+    def wrap_set_option(self, provider):
+        """
+        Wraps `set_option` method for a provider config tab to consider its
+        actual section nested inside `provider_configuration` key in the
+        completion plugin.
+
+        This wrapper method allows configuration tabs to not be aware about
+        their presence behind the completion plugin.
+        """
+        plugin = self
+        def wrapper(self, option, value, section=None):
+            if section is None:
+                if isinstance(option, tuple):
+                    option = ('provider_configuration', provider, 'values',
+                                *option)
+                else:
+                    option = ('provider_configuration', provider, 'values',
+                                option)
+            return plugin.set_conf_option(option, value, section)
+        return wrapper
+
+    def wrap_remove_option(self, provider):
+        """
+        Wraps `remove_option` method for a provider config tab to consider its
+        actual section nested inside `provider_configuration` key in the
+        completion plugin.
+
+        This wrapper method allows configuration tabs to not be aware about
+        their presence behind the completion plugin.
+        """
+        plugin = self
+        def wrapper(self, option, section=None):
+            if section is None:
+                if isinstance(option, tuple):
+                    option = ('provider_configuration', provider, 'values',
+                                *option)
+                else:
+                    option = ('provider_configuration', provider, 'values',
+                                option)
+                return plugin.remove_conf_option(option, section)
+        return wrapper
+
+    # Wrap create_* methods in configpage
+    def wrap_create_op(self, create_name, opt_pos, provider):
+        """
+        Wraps `create_*` methods for a provider config tab to consider its
+        actual section nested inside `provider_configuration` key in the
+        completion plugin.
+
+        This wrapper method allows configuration tabs to not be aware about
+        their presence behind the completion plugin.
+        """
+        def wrapper(self, *args, **kwargs):
+            if kwargs.get('section', None) is None:
+                arg_list = list(args)
+                if isinstance(args[opt_pos], tuple):
+                    arg_list[opt_pos] = (
+                        'provider_configuration', provider, 'values',
+                        *args[opt_pos])
+                else:
+                    arg_list[opt_pos] = (
+                        'provider_configuration', provider, 'values',
+                        args[opt_pos])
+                args = tuple(arg_list)
+            call = getattr(self.parent, create_name)
+            widget = call(*args, **kwargs)
+            widget.setParent(self)
+            return widget
+        return wrapper
+
+    def wrap_apply_settings(self, Tab, provider):
+        """
+        Wraps `apply_settings` method for a provider config tab to consider its
+        actual section nested inside `provider_configuration` key in the
+        completion plugin.
+
+        This wrapper method allows configuration tabs to not be aware about
+        their presence behind the completion plugin.
+        """
+        prev_method = Tab.apply_settings
+        def wrapper(self):
+            wrapped_opts = set({})
+            for opt in prev_method(self):
+                if isinstance(opt, tuple):
+                    wrapped_opts |= {('provider_configuration',
+                                        provider, 'values', *opt)}
+                else:
+                    wrapped_opts |= {(
+                        'provider_configuration', provider, 'values', opt)}
+            return wrapped_opts
+        return wrapper
 
     # ---------- Completion provider registering/start/stop methods -----------
     def _merge_default_configurations(self,
