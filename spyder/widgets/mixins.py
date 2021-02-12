@@ -853,12 +853,6 @@ class BaseEditMixin(object):
 
 
     #------Selection
-    def clear_selection(self):
-        """Clear current selection"""
-        cursor = self.textCursor()
-        cursor.clearSelection()
-        self.setTextCursor(cursor)
-
     def extend_selection_to_next(self, what='word', direction='left'):
         """
         Extend selection to next *what* ('word' or 'character')

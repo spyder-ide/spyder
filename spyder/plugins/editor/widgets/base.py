@@ -37,7 +37,6 @@ from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
-    has_cell_separators = False
     focus_in = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
@@ -49,6 +48,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
+
+        self.has_cell_separators = False
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.extra_selections_dict = {}
@@ -85,7 +86,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
-        self.calltip_position = None
         self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
 
         self.highlight_current_cell_enabled = False
@@ -241,7 +241,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         return (first, last)
 
-    #------Highlight current line
+    # ------Highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
         selection = TextDecoration(self.textCursor())
@@ -256,7 +256,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Unhighlight current line"""
         self.clear_extra_selections('current_line')
 
-    #------Highlight current cell
+    # ------Highlight current cell
     def highlight_current_cell(self):
         """Highlight current cell"""
         if (not self.has_cell_separators or
@@ -442,11 +442,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.bracepos = (pos1,)
             self.__highlight(self.bracepos, color=self.unmatched_p_color)
 
-    #-----Widget setup and options
-    def set_codecompletion_auto(self, state):
-        """Set code completion state"""
-        self.codecompletion_auto = state
-
+    # -----Widget setup and options
     def set_wrap_mode(self, mode=None):
         """
         Set wrap mode
@@ -460,7 +456,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             wrap_mode = QTextOption.NoWrap
         self.setWordWrapMode(wrap_mode)
 
-    #------Reimplementing Qt methods
+    # ------Reimplementing Qt methods
     @Slot()
     def copy(self):
         """
@@ -488,7 +484,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             return super(TextEditBaseWidget, self).toPlainText()
 
     def keyPressEvent(self, event):
-        text, key = event.text(), event.key()
+        key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier
         # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
@@ -498,7 +494,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
-    #------Text: get, set, ...
+    # ------Text: get, set, ...
     def get_cell_list(self):
         """Get all cells."""
         # Reimplemented in childrens
@@ -565,8 +561,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if cursor is None:
             cursor = self.textCursor()
         ls = self.get_line_separator()
-        cursor, whole_file_selected = self.select_current_cell(cursor)
-        line_from, line_to = self.get_selection_bounds(cursor)
+        cursor, __ = self.select_current_cell(cursor)
+        line_from, __ = self.get_selection_bounds(cursor)
         # Get the block for the first cell line
         start = cursor.selectionStart()
         block = self.document().findBlock(start)
@@ -906,19 +902,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if cursor_position < position_from or cursor_position > position_to:
             self.set_cursor_position(position_to)
 
-    #------Code completion / Calltips
-    def hide_tooltip_if_necessary(self, key):
-        """Hide calltip when necessary"""
-        try:
-            calltip_char = self.get_character(self.calltip_position)
-            before = self.is_cursor_before(self.calltip_position,
-                                           char_offset=1)
-            other = key in (Qt.Key_ParenRight, Qt.Key_Period, Qt.Key_Tab)
-            if calltip_char not in ('?', '(') or before or other:
-                QToolTip.hideText()
-        except (IndexError, TypeError):
-            QToolTip.hideText()
-
+    # ------Code completion / Calltips
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
@@ -1004,7 +988,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_widget.hide(focus_to_parent=focus_to_parent)
         QToolTip.hideText()
 
-    #------Standard keys
+    # ------Standard keys
     def stdkey_clear(self):
         if not self.has_selected_text():
             self.moveCursor(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
@@ -1055,17 +1039,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             self.moveCursor(QTextCursor.EndOfBlock, move_mode)
 
-    def stdkey_pageup(self):
-        pass
-
-    def stdkey_pagedown(self):
-        pass
-
-    def stdkey_escape(self):
-        pass
-
-
-    #----Qt Events
+    # ----Qt Events
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:

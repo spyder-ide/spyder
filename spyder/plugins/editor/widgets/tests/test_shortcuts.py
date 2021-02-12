@@ -22,7 +22,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.plugins.editor.widgets.codeeditor import GoToLineDialog
+from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.config.manager import CONF
 

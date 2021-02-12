@@ -22,58 +22,6 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 from spyder.config.base import _, running_under_pytest
 
 
-def gather_file_data(name):
-    """
-    Gather data about a given file.
-
-    Returns a dict with fields 'name', 'mtime' and 'size', containing the
-    relevant data for the file. If the file does not exists, then the dict
-    contains only the field `name`.
-    """
-    res = {'name': name}
-    try:
-        res['mtime'] = osp.getmtime(name)
-        res['size'] = osp.getsize(name)
-    except OSError:
-        pass
-    return res
-
-
-def file_data_to_str(data):
-    """
-    Convert file data to a string for display.
-
-    This function takes the file data produced by gather_file_data().
-    """
-    if not data:
-        return _('<i>File name not recorded</i>')
-    res = data['name']
-    try:
-        mtime_as_str = time.strftime('%Y-%m-%d %H:%M:%S',
-                                     time.localtime(data['mtime']))
-        res += '<br><i>{}</i>: {}'.format(_('Last modified'), mtime_as_str)
-        res += u'<br><i>{}</i>: {} {}'.format(
-                _('Size'), data['size'], _('bytes'))
-    except KeyError:
-        res += '<br>' + _('<i>File no longer exists</i>')
-    return res
-
-
-def recovery_data_key_function(item):
-    """
-    Convert item in `RecoveryDialog.data` to tuple so that it can be sorted.
-
-    Sorting the tuples returned by this function will sort first by name of
-    the original file, then by name of the autosave file. All items without an
-    original file name will be at the end.
-    """
-    orig_dict, autosave_dict = item
-    if orig_dict:
-        return (0, orig_dict['name'], autosave_dict['name'])
-    else:
-        return (1, 0, autosave_dict['name'])
-
-
 class RecoveryDialog(QDialog):
     """Dialog window to allow users to recover from autosave files."""
     def __init__(self, autosave_mapping, parent=None):
@@ -124,6 +72,22 @@ class RecoveryDialog(QDialog):
             self.splash.show()
         super(RecoveryDialog, self).reject()
 
+    def gather_file_data(self, name):
+        """
+        Gather data about a given file.
+
+        Returns a dict with fields 'name', 'mtime' and 'size', containing the
+        relevant data for the file. If the file does not exists, then the dict
+        contains only the field `name`.
+        """
+        res = {'name': name}
+        try:
+            res['mtime'] = osp.getmtime(name)
+            res['size'] = osp.getsize(name)
+        except OSError:
+            pass
+        return res
+
     def gather_data(self, autosave_mapping):
         """
         Gather data about files which may be recovered.
@@ -136,15 +100,29 @@ class RecoveryDialog(QDialog):
         self.data = []
         for orig, autosave in autosave_mapping:
             if orig:
-                orig_dict = gather_file_data(orig)
+                orig_dict = self.gather_file_data(orig)
             else:
                 orig_dict = None
-            autosave_dict = gather_file_data(autosave)
+            autosave_dict = self.gather_file_data(autosave)
             if 'mtime' not in autosave_dict:  # autosave file does not exist
                 continue
             self.data.append((orig_dict, autosave_dict))
-        self.data.sort(key=recovery_data_key_function)
+        self.data.sort(key=self.recovery_data_key_function)
         self.num_enabled = len(self.data)
+
+    def recovery_data_key_function(self, item):
+        """
+        Convert item in `RecoveryDialog.data` to tuple so that it can be sorted.
+
+        Sorting the tuples returned by this function will sort first by name of
+        the original file, then by name of the autosave file. All items without an
+        original file name will be at the end.
+        """
+        orig_dict, autosave_dict = item
+        if orig_dict:
+            return (0, orig_dict['name'], autosave_dict['name'])
+        else:
+            return (1, 0, autosave_dict['name'])
 
     def add_label(self):
         """Add label with explanation at top of dialog window."""
@@ -180,8 +158,8 @@ class RecoveryDialog(QDialog):
         table.setStyleSheet('::item { border-bottom: 1px solid gray }')
 
         for idx, (original, autosave) in enumerate(self.data):
-            self.add_label_to_table(idx, 0, file_data_to_str(original))
-            self.add_label_to_table(idx, 1, file_data_to_str(autosave))
+            self.add_label_to_table(idx, 0, self.file_data_to_str(original))
+            self.add_label_to_table(idx, 1, self.file_data_to_str(autosave))
 
             widget = QWidget()
             layout = QHBoxLayout()
@@ -217,6 +195,25 @@ class RecoveryDialog(QDialog):
         table.resizeColumnsToContents()
 
         self.layout.addWidget(table)
+
+    def file_data_to_str(self, data):
+        """
+        Convert file data to a string for display.
+
+        This function takes the file data produced by gather_file_data().
+        """
+        if not data:
+            return _('<i>File name not recorded</i>')
+        res = data['name']
+        try:
+            mtime_as_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                        time.localtime(data['mtime']))
+            res += '<br><i>{}</i>: {}'.format(_('Last modified'), mtime_as_str)
+            res += u'<br><i>{}</i>: {} {}'.format(
+                    _('Size'), data['size'], _('bytes'))
+        except KeyError:
+            res += '<br>' + _('<i>File no longer exists</i>')
+        return res
 
     def add_cancel_button(self):
         """Add a cancel button at the bottom of the dialog window."""
