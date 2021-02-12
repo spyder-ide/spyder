@@ -43,7 +43,7 @@ class SpyderPreferencesTab(BaseConfigTab):
     def apply_settings(self) -> OptionSet:
         """
         Hook called to manually apply settings that cannot be automatically
-        applied manually.
+        applied.
 
         Reimplement this if the configuration tab has complex widgets that
         cannot be created with any of the `self.create_*` calls.
@@ -89,6 +89,11 @@ class PluginConfigPage(SpyderConfigPage):
         SpyderConfigPage.__init__(self, parent)
 
     def _wrap_apply_settings(self, func):
+        """
+        Wrap apply_settings call to ensure that a user-defined custom call
+        is called alongside the Spyder Plugin API configuration propagation
+        call.
+        """
         def wrapper(self, options):
             opts = self.previous_apply_settings()
             func(options | opts)
@@ -162,7 +167,7 @@ class PluginConfigPage(SpyderConfigPage):
     def apply_settings(self) -> OptionSet:
         """
         Hook called to manually apply settings that cannot be automatically
-        applied manually.
+        applied.
 
         Reimplement this if the configuration page has complex widgets that
         cannot be created with any of the `self.create_*` calls.
