@@ -875,7 +875,7 @@ class SpyderCompletionProvider(QObject):
     def send_request(
             self, language: str, req_type: str, req: dict, req_id: int):
         """
-        Process completion/introspection request from Spyder.
+        Send completion/introspection request from Spyder.
         The completion request `req_type` needs to have a response.
 
         Parameters
@@ -924,16 +924,14 @@ class SpyderCompletionProvider(QObject):
 
         Parameters
         ----------
-        req_type: str
+        notification_type: str
             Type of request, one of
             :class:`spyder.plugins.completion.CompletionTypes`
-        req: dict
-            Request body
+        notification: dict
+            Notification body
             {
                 **kwargs: notification-specific parameters
             }
-        req_id: int
-            Request identifier for response, None if notification
         """
         pass
 
@@ -955,7 +953,8 @@ class SpyderCompletionProvider(QObject):
 
     def update_configuration(self, config: dict):
         """
-        Handle completion option configuration updates.
+        Handle completion option configuration updates done through
+        Preferences.
 
         Parameters
         ----------
@@ -1043,8 +1042,18 @@ class SpyderCompletionProvider(QObject):
         pass
 
     def start(self):
-        """Start completion plugin."""
-        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
+        """
+        Start completion provider.
+
+        The completion provider startup logic must be invoked on this method.
+
+        Note: Once the completion provider is ready,
+        the signal `sig_provider_ready` must be emitted with the completion
+        provider name, e.g.,
+        `self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)`
+        """
+        raise NotImplementedError(
+            'A completion provider must implement start()')
 
     def shutdown(self):
         """Stop completion plugin."""

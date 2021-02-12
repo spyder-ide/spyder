@@ -513,6 +513,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
         instance.sig_server_error.connect(self.report_server_error)
         instance.sig_initialize.connect(self.sig_language_client_available)
 
+    def start(self):
+        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
+
     def shutdown(self):
         logger.info("Shutting down LSP manager...")
         for language in self.clients:

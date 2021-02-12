@@ -251,7 +251,6 @@ class ConfigurationManager(object):
 
         If section is None, the `option` is added to the default section.
         """
-        import inspect
         if isinstance(option, (list, tuple)):
             base_option = option[0]
             intermediate_options = option[1:-1]
