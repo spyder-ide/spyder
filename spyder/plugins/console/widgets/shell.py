@@ -763,9 +763,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def postprocess_keyevent(self, event):
         """Process keypress event"""
         ShellBaseWidget.postprocess_keyevent(self, event)
-        if QToolTip.isVisible():
-            _event, _text, key, _ctrl, _shift = restore_keyevent(event)
-            self.hide_tooltip_if_necessary(key)
 
     def _key_other(self, text):
         """1 character key"""

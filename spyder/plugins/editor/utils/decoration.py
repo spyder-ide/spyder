@@ -17,7 +17,7 @@ Original file:
 """
 
 # Third party imports
-from qtpy.QtCore import QObject, QPoint, QTimer, Slot
+from qtpy.QtCore import QObject, QTimer, Slot
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports

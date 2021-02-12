@@ -269,8 +269,6 @@ class ConsoleWidget(PluginMainWidget):
             self.shell.setMaximumBlockCount(value)
         elif option == 'wrap':
             self.shell.toggle_wrap_mode(value)
-        elif option == 'codecompletion/auto':
-            self.shell.set_codecompletion_auto(value)
         elif option == 'external_editor/path':
             self.shell.set_external_editor(value, '')
 

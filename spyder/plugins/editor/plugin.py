@@ -41,8 +41,10 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
-from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
-                                                  EditorSplitter, EditorStack,)
+from spyder.plugins.editor.widgets.codeeditor_widgets import Printer
+from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
+                                                  EditorSplitter,
+                                                  EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    save_bookmarks)
@@ -56,7 +58,6 @@ from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration,
                                         RunConfigDialog, RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
-
 
 
 logger = logging.getLogger(__name__)
@@ -99,7 +100,6 @@ class Editor(SpyderPluginWidget):
     """
 
     breakpoints_saved = Signal()
-    run_in_current_extconsole = Signal(str, str, str, bool, bool)
 
     sig_file_opened_closed_updated = Signal(str, str)
     """
@@ -114,7 +114,7 @@ class Editor(SpyderPluginWidget):
         Name of the programming language of the file that was opened,
         closed or updated.
     """
-
+    
     sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
@@ -179,7 +179,7 @@ class Editor(SpyderPluginWidget):
 
         self.__first_open_files_setup = True
         self.editorstacks = []
-        self.last_focus_editorstack = {}
+        self.last_focused_editorstack = {}
         self.editorwindows = []
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
@@ -1171,15 +1171,18 @@ class Editor(SpyderPluginWidget):
         return self.file_dependent_actions
 
     def update_pdb_state(self, state, last_step):
-        """Enable/disable debugging actions and handle pdb state change."""
-        # Enable/disable actions taking into account debugging state:
-        # self.debug_action.setEnabled(not state)
-        # self.debug_cell_action.setEnabled(not state)
-        # self.debug_next_action.setEnabled(state)
-        # self.debug_step_action.setEnabled(state)
-        # self.debug_return_action.setEnabled(state)
-        # self.debug_continue_action.setEnabled(state)
-        # self.debug_exit_action.setEnabled(state)
+        """
+        Enable/disable debugging actions and handle pdb state change.
+
+        Some examples depending on the debugging state:
+        self.debug_action.setEnabled(not state)
+        self.debug_cell_action.setEnabled(not state)
+        self.debug_next_action.setEnabled(state)
+        self.debug_step_action.setEnabled(state)
+        self.debug_return_action.setEnabled(state)
+        self.debug_continue_action.setEnabled(state)
+        self.debug_exit_action.setEnabled(state)
+        """
         current_editor = self.get_current_editor()
         if current_editor:
             current_editor.update_debugger_panel_state(state, last_step)
@@ -1200,8 +1203,6 @@ class Editor(SpyderPluginWidget):
 
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
-
-        editorstack = self.get_current_editorstack()
 
         self.add_dockwidget()
         self.update_pdb_state(False, {})
@@ -1299,7 +1300,7 @@ class Editor(SpyderPluginWidget):
             completions.update_configuration()
 
     #------ Focus tabwidget
-    def __get_focus_editorstack(self):
+    def __get_focused_editorstack(self):
         fwidget = QApplication.focusWidget()
         if isinstance(fwidget, EditorStack):
             return fwidget
@@ -1308,24 +1309,26 @@ class Editor(SpyderPluginWidget):
                 if editorstack.isAncestorOf(fwidget):
                     return editorstack
 
-    def set_last_focus_editorstack(self, editorwindow, editorstack):
-        self.last_focus_editorstack[editorwindow] = editorstack
-        self.last_focus_editorstack[None] = editorstack # very last editorstack
+    def set_last_focused_editorstack(self, editorwindow, editorstack):
+        self.last_focused_editorstack[editorwindow] = editorstack
+        # very last editorstack
+        self.last_focused_editorstack[None] = editorstack
 
-    def get_last_focus_editorstack(self, editorwindow=None):
-        return self.last_focus_editorstack[editorwindow]
+    def get_last_focused_editorstack(self, editorwindow=None):
+        return self.last_focused_editorstack[editorwindow]
 
-    def remove_last_focus_editorstack(self, editorstack):
-        for editorwindow, widget in list(self.last_focus_editorstack.items()):
+    def remove_last_focused_editorstack(self, editorstack):
+        for editorwindow, widget in list(
+                self.last_focused_editorstack.items()):
             if widget is editorstack:
-                self.last_focus_editorstack[editorwindow] = None
+                self.last_focused_editorstack[editorwindow] = None
 
-    def save_focus_editorstack(self):
-        editorstack = self.__get_focus_editorstack()
+    def save_focused_editorstack(self):
+        editorstack = self.__get_focused_editorstack()
         if editorstack is not None:
             for win in [self]+self.editorwindows:
                 if win.isAncestorOf(editorstack):
-                    self.set_last_focus_editorstack(win, editorstack)
+                    self.set_last_focused_editorstack(win, editorstack)
 
     # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
@@ -1334,8 +1337,8 @@ class Editor(SpyderPluginWidget):
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
-            self.set_last_focus_editorstack(self, editorstack)
-            editorstack.set_closable( len(self.editorstacks) > 1 )
+            self.set_last_focused_editorstack(self, editorstack)
+            editorstack.set_closable(len(self.editorstacks) > 1)
             if self.outlineexplorer is not None:
                 editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
             editorstack.set_find_widget(self.find_widget)
@@ -1437,10 +1440,8 @@ class Editor(SpyderPluginWidget):
                                               run_cell_copy))
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
-        editorstack.editor_focus_changed.connect(
-            lambda _x: self.save_focus_editorstack)
-        editorstack.editor_focus_changed.connect(
-            lambda _x: self.main.plugin_focus_changed)
+        editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
+        editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
@@ -1495,7 +1496,7 @@ class Editor(SpyderPluginWidget):
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
-        self.remove_last_focus_editorstack(editorstack)
+        self.remove_last_focused_editorstack(editorstack)
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
@@ -1608,9 +1609,10 @@ class Editor(SpyderPluginWidget):
             if len(self.editorstacks) == 1:
                 editorstack = self.editorstacks[0]
             else:
-                editorstack = self.__get_focus_editorstack()
+                editorstack = self.__get_focused_editorstack()
                 if editorstack is None or editorwindow is not None:
-                    editorstack = self.get_last_focus_editorstack(editorwindow)
+                    editorstack = self.get_last_focused_editorstack(
+                        editorwindow)
                     if editorstack is None:
                         editorstack = self.editorstacks[0]
             return editorstack
@@ -1647,12 +1649,8 @@ class Editor(SpyderPluginWidget):
         return editorstack.set_current_filename(filename, focus)
 
     def set_path(self):
-        # TODO: Fix this
         for finfo in self.editorstacks[0].data:
             finfo.path = self.main.get_spyder_pythonpath()
-        #if self.introspector:
-        #    self.introspector.change_extra_path(
-        #            self.main.get_spyder_pythonpath())
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -1884,7 +1882,6 @@ class Editor(SpyderPluginWidget):
             text = ''
             enc = 'utf-8'
             default_content = True
-            empty = True
 
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
@@ -2010,10 +2007,9 @@ class Editor(SpyderPluginWidget):
 
         editor0 = self.get_current_editor()
         if editor0 is not None:
-            position0 = editor0.get_position('cursor')
             filename0 = self.get_current_filename()
         else:
-            position0, filename0 = None, None
+            filename0 = None
         if not filenames:
             # Recent files action
             action = self.sender()
@@ -2136,7 +2132,7 @@ class Editor(SpyderPluginWidget):
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
-            if goto is not None: # 'word' is assumed to be None as well
+            if goto is not None:  # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word,
                                           start_column=start_column)
             current_editor.clearFocus()
@@ -2346,7 +2342,7 @@ class Editor(SpyderPluginWidget):
             editor.unindent()
 
     @Slot()
-    def text_uppercase (self):
+    def text_uppercase(self):
         """Change current line or selection to uppercase."""
         editor = self.get_current_editor()
         if editor is not None:
@@ -2483,7 +2479,6 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_history.append((filename, position, line, column))
         self.cursor_pos_index = len(self.cursor_pos_history)-1
         self.update_cursorpos_actions()
-
 
     def text_changed_at(self, filename, position):
         self.last_edit_cursor_pos = (to_text_string(filename), position)
@@ -3025,7 +3020,6 @@ class Editor(SpyderPluginWidget):
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
             if finfo is not None:
-                # TODO: Connect this to the LSP
                 if todo_n in options and todo_o:
                     finfo.run_todo_finder()
 
@@ -3121,7 +3115,7 @@ class Editor(SpyderPluginWidget):
                     for layout_settings in win_layout:
                         self.editorwindows_to_be_created.append(
                             layout_settings)
-                self.set_last_focus_editorstack(self, self.editorstacks[0])
+                self.set_last_focused_editorstack(self, self.editorstacks[0])
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)

@@ -1,5 +1,5 @@
 channels:
-- manics # Used by jupyter-desktop-server
+- conda-forge # Used by jupyter-desktop-server
 dependencies:
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
@@ -71,7 +71,7 @@ dependencies:
 - scipy
 - sympy
 
-# Required for jupyter-desktop-server
+# Required for desktop view on mybinder.org
 - websockify
 - pip:
-    - jupyter-desktop-server
+  - jupyter-desktop-server

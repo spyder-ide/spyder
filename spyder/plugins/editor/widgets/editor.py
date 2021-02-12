@@ -23,8 +23,8 @@ import unicodedata
 # Third party imports
 import qdarkstyle
 from qtpy.compat import getsavefilename
-from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
-                         QThread, QTimer, Signal, Slot, QCoreApplication)
+from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
+                         Signal, Slot)
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
@@ -37,8 +37,7 @@ from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
-from spyder.py3compat import (qbytearray_to_str, to_text_string,
-                              MutableSequence)
+from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -49,261 +48,21 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
+from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets import codeeditor
-from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
-from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
-from spyder.plugins.editor.widgets.codeeditor import get_file_language
+from spyder.plugins.editor.widgets.editorstack_helpers import (
+    ThreadManager, FileInfo, StackHistory)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
-from spyder.config.manager import CONF
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 from spyder.plugins.outlineexplorer.api import cell_name
 
 
 logger = logging.getLogger(__name__)
-
-
-class AnalysisThread(QThread):
-    """Analysis thread"""
-
-    def __init__(self, parent, checker, source_code):
-
-        super(AnalysisThread, self).__init__(parent)
-        self.checker = checker
-        self.results = None
-        self.source_code = source_code
-
-    def run(self):
-        """Run analysis"""
-        try:
-            self.results = self.checker(self.source_code)
-        except Exception as e:
-            logger.error(e, exc_info=True)
-
-
-class ThreadManager(QObject):
-    """Analysis thread manager"""
-    def __init__(self, parent, max_simultaneous_threads=2):
-        super(ThreadManager, self).__init__(parent)
-        self.max_simultaneous_threads = max_simultaneous_threads
-        self.started_threads = {}
-        self.pending_threads = []
-        self.end_callbacks = {}
-
-    def close_threads(self, parent):
-        """Close threads associated to parent_id"""
-        logger.debug("Call ThreadManager's 'close_threads'")
-        if parent is None:
-            # Closing all threads
-            self.pending_threads = []
-            threadlist = []
-            for threads in list(self.started_threads.values()):
-                threadlist += threads
-        else:
-            parent_id = id(parent)
-            self.pending_threads = [(_th, _id) for (_th, _id)
-                                    in self.pending_threads
-                                    if _id != parent_id]
-            threadlist = self.started_threads.get(parent_id, [])
-        for thread in threadlist:
-            logger.debug("Waiting for thread %r to finish" % thread)
-            while thread.isRunning():
-                # We can't terminate thread safely, so we simply wait...
-                QApplication.processEvents()
-
-    def close_all_threads(self):
-        """Close all threads"""
-        logger.debug("Call ThreadManager's 'close_all_threads'")
-        self.close_threads(None)
-
-    def add_thread(self, checker, end_callback, source_code, parent):
-        """Add thread to queue"""
-        parent_id = id(parent)
-        thread = AnalysisThread(self, checker, source_code)
-        self.end_callbacks[id(thread)] = end_callback
-        self.pending_threads.append((thread, parent_id))
-        logger.debug("Added thread %r to queue" % thread)
-        QTimer.singleShot(50, self.update_queue)
-
-    def update_queue(self):
-        """Update queue"""
-        started = 0
-        for parent_id, threadlist in list(self.started_threads.items()):
-            still_running = []
-            for thread in threadlist:
-                if thread.isFinished():
-                    end_callback = self.end_callbacks.pop(id(thread))
-                    if thread.results is not None:
-                        #  The thread was executed successfully
-                        end_callback(thread.results)
-                    thread.setParent(None)
-                    thread = None
-                else:
-                    still_running.append(thread)
-                    started += 1
-            threadlist = None
-            if still_running:
-                self.started_threads[parent_id] = still_running
-            else:
-                self.started_threads.pop(parent_id)
-        logger.debug("Updating queue:")
-        logger.debug("    started: %d" % started)
-        logger.debug("    pending: %d" % len(self.pending_threads))
-        if self.pending_threads and started < self.max_simultaneous_threads:
-            thread, parent_id = self.pending_threads.pop(0)
-            thread.finished.connect(self.update_queue)
-            threadlist = self.started_threads.get(parent_id, [])
-            self.started_threads[parent_id] = threadlist+[thread]
-            logger.debug("===>starting: %r" % thread)
-            thread.start()
-
-
-class FileInfo(QObject):
-    """File properties"""
-    todo_results_changed = Signal()
-    sig_save_bookmarks = Signal(str, str)
-    text_changed_at = Signal(str, int)
-    edit_goto = Signal(str, int, str)
-    sig_send_to_help = Signal(str, str, bool)
-    sig_filename_changed = Signal(str)
-    sig_show_object_info = Signal(int)
-    sig_show_completion_object_info = Signal(str, str)
-
-    def __init__(self, filename, encoding, editor, new, threadmanager):
-        QObject.__init__(self)
-        self.threadmanager = threadmanager
-        self._filename = filename
-        self.newly_created = new
-        self.default = False      # Default untitled file
-        self.encoding = encoding
-        self.editor = editor
-        self.path = []
-
-        self.classes = (filename, None, None)
-        self.todo_results = []
-        self.lastmodified = QFileInfo(filename).lastModified()
-
-        self.editor.textChanged.connect(self.text_changed)
-        self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
-        self.editor.sig_show_object_info.connect(self.sig_show_object_info)
-        self.editor.sig_show_completion_object_info.connect(
-            self.sig_send_to_help)
-        self.sig_filename_changed.connect(self.editor.sig_filename_changed)
-
-    @property
-    def filename(self):
-        return self._filename
-
-    @filename.setter
-    def filename(self, value):
-        self._filename = value
-        self.sig_filename_changed.emit(value)
-
-    def text_changed(self):
-        """Editor's text has changed"""
-        self.default = False
-        self.text_changed_at.emit(self.filename,
-                                  self.editor.get_position('cursor'))
-
-    def get_source_code(self):
-        """Return associated editor source code"""
-        return to_text_string(self.editor.toPlainText())
-
-    def run_todo_finder(self):
-        """Run TODO finder"""
-        if self.editor.is_python_or_ipython():
-            self.threadmanager.add_thread(find_tasks,
-                                          self.todo_finished,
-                                          self.get_source_code(), self)
-
-    def todo_finished(self, results):
-        """Code analysis thread has finished"""
-        self.set_todo_results(results)
-        self.todo_results_changed.emit()
-
-    def set_todo_results(self, results):
-        """Set TODO results and update markers in editor"""
-        self.todo_results = results
-        self.editor.process_todo(results)
-
-    def cleanup_todo_results(self):
-        """Clean-up TODO finder results"""
-        self.todo_results = []
-
-    def bookmarks_changed(self):
-        """Bookmarks list has changed."""
-        bookmarks = self.editor.get_bookmarks()
-        if self.editor.bookmarks != bookmarks:
-            self.editor.bookmarks = bookmarks
-            self.sig_save_bookmarks.emit(self.filename, repr(bookmarks))
-
-
-class StackHistory(MutableSequence):
-    """Handles editor stack history.
-
-    Works as a list of numbers corresponding to tab indexes.
-    Internally elements are saved using objects id's.
-    """
-
-    def __init__(self, editor):
-        self.history = list()
-        self.id_list = list()
-        self.editor = editor
-
-    def _update_id_list(self):
-        """Update list of corresponpding ids and tabs."""
-        self.id_list = [id(self.editor.tabs.widget(_i))
-                        for _i in range(self.editor.tabs.count())]
-
-    def refresh(self):
-        """Remove editors that are not longer open."""
-        self._update_id_list()
-        for _id in self.history[:]:
-            if _id not in self.id_list:
-                self.history.remove(_id)
-
-    def __len__(self):
-        return len(self.history)
-
-    def __getitem__(self, i):
-        self._update_id_list()
-        try:
-            return self.id_list.index(self.history[i])
-        except ValueError:
-            self.refresh()
-            raise IndexError
-
-    def __delitem__(self, i):
-        del self.history[i]
-
-    def __setitem__(self, i, v):
-        _id = id(self.editor.tabs.widget(v))
-        self.history[i] = _id
-
-    def __str__(self):
-        return str(list(self))
-
-    def insert(self, i, tab_index):
-        """Insert the widget (at tab index) in the position i (index)."""
-        _id = id(self.editor.tabs.widget(tab_index))
-        self.history.insert(i, _id)
-
-    def remove(self, tab_index):
-        """Remove the widget at the corresponding tab_index."""
-        _id = id(self.editor.tabs.widget(tab_index))
-        if _id in self.history:
-            self.history.remove(_id)
-
-    def remove_and_append(self, index):
-        """Remove previous entrances of a tab, and add it as the latest."""
-        while index in self:
-            self.remove(index)
-        self.append(index)
 
 
 class TabSwitcherWidget(QListWidget):
@@ -386,8 +145,8 @@ class TabSwitcherWidget(QListWidget):
             for key in qsc.split('+'):
                 key = key.lower()
                 if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
-                   (key == 'alt' and event.key() == Qt.Key_Alt)):
-                        self.item_selected()
+                        (key == 'alt' and event.key() == Qt.Key_Alt)):
+                    self.item_selected()
         event.accept()
 
     def keyPressEvent(self, event):
@@ -400,8 +159,6 @@ class TabSwitcherWidget(QListWidget):
     def focusOutEvent(self, event):
         """Reimplement Qt method to close the widget when loosing focus."""
         event.ignore()
-        # Inspired from CompletionWidget.focusOutEvent() in file
-        # widgets/sourcecode/base.py line 212
         if sys.platform == "darwin":
             if event.reason() != Qt.ActiveWindowFocusReason:
                 self.close()
@@ -503,9 +260,6 @@ class EditorStack(QWidget):
         self.menu = None
         self.switcher_dlg = None
         self.switcher_manager = None
-#        self.filelist_btn = None
-#        self.previous_btn = None
-#        self.next_btn = None
         self.tabs = None
         self.tabs_switcher = None
 
@@ -540,9 +294,9 @@ class EditorStack(QWidget):
                                   triggered=self.sort_file_tabs_alphabetically)
 
         if sys.platform == 'darwin':
-           text=_("Show in Finder")
+            text = _("Show in Finder")
         else:
-           text= _("Show in external file explorer")
+            text = _("Show in external file explorer")
         external_fileexp_action = create_action(
             self, text,
             triggered=self.show_in_external_file_explorer,
@@ -556,7 +310,6 @@ class EditorStack(QWidget):
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
-        self.unregister_callback = None
         self.is_closable = False
         self.new_action = None
         self.open_action = None
@@ -629,7 +382,7 @@ class EditorStack(QWidget):
         # Local shortcuts
         self.shortcuts = self.create_shortcuts()
 
-        #For opening last closed tabs
+        # For opening last closed tabs
         self.last_closed_files = []
 
         # Reference to save msgbox and avoid memory to be freed.
@@ -672,9 +425,6 @@ class EditorStack(QWidget):
             context='Editor',
             name='Inspect current object',
             parent=self)
-        # TODO: Cleaner way to do this?
-        # This should be called from the plugin and not the widgets
-        app = QCoreApplication.instance()
 
         set_breakpoint = CONF.config_shortcut(
             self.set_or_clear_breakpoint,
@@ -1120,7 +870,7 @@ class EditorStack(QWidget):
 
         self.send_to_help(name, help_text, force=True)
 
-    #------ Editor Widget Settings
+    #  ------ Editor Widget Settings
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state
@@ -1157,13 +907,8 @@ class EditorStack(QWidget):
                     finfo.editor.classfuncdropdown.setVisible(state)
 
     def __update_editor_margins(self, editor):
-        editor.linenumberarea.setup_margins(linenumbers=self.linenumbers_enabled,
-                             markers=self.has_markers())
-
-    def __codeanalysis_settings_changed(self, current_finfo):
-        if self.data:
-            for finfo in self.data:
-                self.__update_editor_margins(finfo.editor)
+        editor.linenumberarea.setup_margins(
+            linenumbers=self.linenumbers_enabled, markers=self.has_markers())
 
     def has_markers(self):
         """Return True if this editorstack has a marker margin for TODOs or
@@ -1250,7 +995,7 @@ class EditorStack(QWidget):
 
     def set_indent_chars(self, indent_chars):
         # CONF.get(self.CONF_SECTION, 'indent_chars')
-        indent_chars = indent_chars[1:-1] # removing the leading/ending '*'
+        indent_chars = indent_chars[1:-1]  # removing the leading/ending '*'
         self.indent_chars = indent_chars
         if self.data:
             for finfo in self.data:
@@ -1447,7 +1192,7 @@ class EditorStack(QWidget):
         for finfo in self.data:
             finfo.editor.set_current_project_path(root_path)
 
-    #------ Stacked widget management
+    #  ------ Stacked widget management
     def get_stack_index(self):
         return self.tabs.currentIndex()
 
@@ -1602,7 +1347,7 @@ class EditorStack(QWidget):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-    #------ Context menu
+    #  ------ Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
         self.menu.clear()
@@ -1610,14 +1355,14 @@ class EditorStack(QWidget):
             actions = self.menu_actions
         else:
             actions = (self.new_action, self.open_action)
-            self.setFocus() # --> Editor.__get_focus_editortabwidget
+            self.setFocus()  # --> Editor.__get_focus_editortabwidget
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
 
         if sys.platform == 'darwin':
             set_menu_icons(self.menu, True)
 
-    #------ Hor/Ver splitting
+    #  ------ Hor/Ver splitting
     def __get_split_actions(self):
         if self.parent() is not None:
             plugin = self.parent().plugin
@@ -1789,8 +1534,7 @@ class EditorStack(QWidget):
         self.blockSignals(False)
         self.refresh()
 
-
-    #------ Close file, tabwidget...
+    #  ------ Close file, tabwidget...
     def close_file(self, index=None, force=False):
         """Close file (index=None -> close current file)
         Keep current file index unchanged (if current file
@@ -1858,14 +1602,6 @@ class EditorStack(QWidget):
         self.__modify_stack_title()
         return is_ok
 
-    def poll_open_file_languages(self):
-        """Get list of current opened files' languages"""
-        languages = []
-        for index in range(self.get_stack_count()):
-            languages.append(
-                self.tabs.widget(index).language.lower())
-        return set(languages)
-
     def register_completion_capabilities(self, capabilities, language):
         """
         Register completion server capabilities across all editors.
@@ -1906,13 +1642,13 @@ class EditorStack(QWidget):
         """ Close all files opened to the right """
         num = self.get_stack_index()
         n = self.get_stack_count()
-        for i in range(num, n-1):
+        for __ in range(num, n-1):
             self.close_file(num+1)
 
     def close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
-        for i in range(0, self.get_stack_count()-1  ):
+        for __ in range(0, self.get_stack_count() - 1):
             self.close_file(0)
 
     def sort_file_tabs_alphabetically(self):
@@ -1945,7 +1681,7 @@ class EditorStack(QWidget):
     def set_last_closed_files(self, fnames):
         self.last_closed_files = fnames
 
-    #------ Save
+    #  ------ Save
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified.
 
@@ -2339,9 +2075,6 @@ class EditorStack(QWidget):
 
     def current_changed(self, index):
         """Stack index has changed"""
-#        count = self.get_stack_count()
-#        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
-#            btn.setEnabled(count > 1)
         editor = self.get_current_editor()
         if index != -1:
             editor.setFocus()
@@ -2604,8 +2337,7 @@ class EditorStack(QWidget):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.sig_refresh_eol_chars.emit(os_name)
 
-
-    #------ Load, reload
+    #  ------ Load, reload
     def reload(self, index):
         """Reload file from disk."""
         finfo = self.data[index]
@@ -2740,8 +2472,8 @@ class EditorStack(QWidget):
         editor.sig_start_operation_in_progress.connect(self.spinner.start)
         editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(
-            lambda state: self.modification_changed(state,
-                editor_id=id(editor)))
+            lambda state: self.modification_changed(
+                state, editor_id=id(editor)))
         editor.focus_in.connect(self.focus_changed)
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
@@ -2911,7 +2643,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         finfo.editor.format_document_or_range()
 
-    #------ Run
+    #  ------ Run
     def run_selection(self):
         """
         Run selected text or current line in console.
@@ -2993,7 +2725,6 @@ class EditorStack(QWidget):
 
         self._run_cell_text(text, editor, (filename, cell_name))
 
-
     def _run_cell_text(self, text, editor, cell_id, debug=False):
         """Run cell code in the console.
 
@@ -3021,7 +2752,7 @@ class EditorStack(QWidget):
             console = QApplication.focusWidget()
             console.setFocus()
 
-    #------ Drag and drop
+    #  ------ Drag and drop
     def dragEnterEvent(self, event):
         """
         Reimplemented Qt method.
@@ -3325,7 +3056,7 @@ class EditorWidget(QSplitter):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        statusbar = parent.statusBar() # Create a status bar
+        statusbar = parent.statusBar()  # Create a status bar
         self.vcs_status = VCSStatus(self)
         self.cursorpos_status = CursorPositionStatus(self)
         self.encoding_status = EncodingStatus(self)
@@ -3381,8 +3112,8 @@ class EditorWidget(QSplitter):
         self.editorstacks.append(editorstack)
         logger.debug("EditorWidget.register_editorstack: %r" % editorstack)
         self.__print_editorstacks()
-        self.plugin.last_focus_editorstack[self.parent()] = editorstack
-        editorstack.set_closable( len(self.editorstacks) > 1 )
+        self.plugin.last_focused_editorstack[self.parent()] = editorstack
+        editorstack.set_closable(len(self.editorstacks) > 1)
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
         editorstack.reset_statusbar.connect(self.readwrite_status.hide)
@@ -3552,7 +3283,7 @@ class EditorPluginExample(QSplitter):
         self.editorstacks = []
         self.editorwindows = []
 
-        self.last_focus_editorstack = {} # fake
+        self.last_focused_editorstack = {} # fake
 
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,

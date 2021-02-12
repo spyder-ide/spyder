@@ -28,7 +28,5 @@ ALL_LANGUAGES = {
     'None': ('', ),
 }
 
-PYTHON_LIKE_LANGUAGES = ('Python', 'IPython', 'Cython', 'Enaml')
-
 CELL_LANGUAGES = {'Python': ('#%%', '# %%', '# <codecell>', '# In['),
                   'IPython': ('#%%', '# %%', '# <codecell>', '# In[')}

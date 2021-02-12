@@ -18,13 +18,14 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-import PIL
+import PIL.Image
 
 # Local imports
 from spyder_kernels.py3compat import PY2
 from spyder_kernels.utils.nsview import (sort_against, is_supported,
                                          value_to_display, get_size,
-                                         get_supported_types, Image)
+                                         get_supported_types, get_type_string,
+                                         is_editable_type)
 
 def generate_complex_object():
     """Taken from issue #4221."""
@@ -297,6 +298,127 @@ def test_ellipses(tmpdir):
 
     # Assert that there's a binary ellipses in the representation
     assert b' ...' in value_to_display(buffer)
+
+
+def test_get_type_string():
+    """Test for get_type_string."""
+    # Bools
+    assert get_type_string(True) == 'bool'
+
+    # Numeric types (PY2 has long, which disappeared in PY3)
+    if not PY2:
+        expected = ['int', 'float', 'complex']
+        numeric_types = [1, 1.5, 1 + 2j]
+        assert [get_type_string(t) for t in numeric_types] == expected
+
+    # Lists
+    assert get_type_string([1, 2, 3]) == 'list'
+
+    # Sets
+    assert get_type_string({1, 2, 3}) == 'set'
+
+    # Dictionaries
+    assert get_type_string({'a': 1, 'b': 2}) == 'dict'
+
+    # Tuples
+    assert get_type_string((1, 2, 3)) == 'tuple'
+
+    # Strings
+    if not PY2:
+        assert get_type_string('foo') == 'str'
+
+    # Numpy objects
+    assert get_type_string(np.array([1, 2, 3])) == 'NDArray'
+
+    masked_array = np.ma.MaskedArray([1, 2, 3], mask=[True, False, True])
+    assert get_type_string(masked_array) == 'MaskedArray'
+
+    matrix = np.matrix([[1, 2], [3, 4]])
+    assert get_type_string(matrix) == 'Matrix'
+
+    # Pandas objects
+    df = pd.DataFrame([1, 2, 3])
+    assert get_type_string(df) == 'DataFrame'
+
+    series = pd.Series([1, 2, 3])
+    assert get_type_string(series) == 'Series'
+
+    index = pd.Index([1, 2, 3])
+    assert get_type_string(index) == 'Int64Index'
+
+    # PIL images
+    img = PIL.Image.new('RGB', (256,256))
+    assert get_type_string(img) == 'PIL.Image.Image'
+
+    # Datetime objects
+    date = datetime.date(2010, 10, 1)
+    assert get_type_string(date) == 'datetime.date'
+
+    date = datetime.timedelta(-1, 2000)
+    assert get_type_string(date) == 'datetime.timedelta'
+
+
+def test_is_editable_type():
+    """Test for get_type_string."""
+    # Bools
+    assert is_editable_type(True)
+
+    # Numeric type
+    numeric_types = [1, 1.5, 1 + 2j]
+    assert all([is_editable_type(t) for t in numeric_types])
+
+    # Lists
+    assert is_editable_type([1, 2, 3])
+
+    # Sets
+    assert is_editable_type({1, 2, 3})
+
+    # Dictionaries
+    assert is_editable_type({'a': 1, 'b': 2})
+
+    # Tuples
+    assert is_editable_type((1, 2, 3))
+
+    # Strings
+    assert is_editable_type('foo')
+
+    # Numpy objects
+    assert is_editable_type(np.array([1, 2, 3]))
+
+    masked_array = np.ma.MaskedArray([1, 2, 3], mask=[True, False, True])
+    assert is_editable_type(masked_array)
+
+    matrix = np.matrix([[1, 2], [3, 4]])
+    assert is_editable_type(matrix)
+
+    # Pandas objects
+    df = pd.DataFrame([1, 2, 3])
+    assert is_editable_type(df)
+
+    series = pd.Series([1, 2, 3])
+    assert is_editable_type(series)
+
+    index = pd.Index([1, 2, 3])
+    assert is_editable_type(index)
+
+    # PIL images
+    img = PIL.Image.new('RGB', (256,256))
+    assert is_editable_type(img)
+
+    # Datetime objects
+    date = datetime.date(2010, 10, 1)
+    assert is_editable_type(date)
+
+    date = datetime.timedelta(-1, 2000)
+    assert is_editable_type(date)
+
+    # Other objects
+    class MyClass:
+        a = 1
+    assert not is_editable_type(MyClass)
+
+    my_instance = MyClass()
+    assert not is_editable_type(my_instance)
 
 
 if __name__ == "__main__":
