@@ -114,11 +114,11 @@ class Editor(SpyderPluginWidget):
         Name of the programming language of the file that was opened,
         closed or updated.
     """
-    
+
     sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
-    sig_editor_focus_changed = Signal(str)
+    sig_editor_focus_changed = Signal()
 
     sig_help_requested = Signal(dict)
     """

@@ -82,8 +82,7 @@ class Pylint(SpyderDockablePlugin):
 
         # Connect to Editor
         widget.sig_edit_goto_requested.connect(editor.load)
-        editor.sig_editor_focus_changed.connect(
-            lambda x: self._set_filename)
+        editor.sig_editor_focus_changed.connect(self._set_filename)
 
         # Connect to projects
         projects = self.get_plugin(Plugins.Projects)
