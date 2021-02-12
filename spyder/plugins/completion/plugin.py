@@ -236,7 +236,7 @@ class CompletionPlugin(SpyderPluginV2):
         container = self.get_container()
         statusbar = self.get_plugin(Plugins.StatusBar)
         if statusbar:
-            for sb in container.all_statusbars():
+            for sb in container.all_statusbar_widgets():
                 statusbar.add_status_widget(sb, 0)
 
         if self.main:
@@ -345,7 +345,7 @@ class CompletionPlugin(SpyderPluginV2):
                             self.wrap_create_op(name, pos, provider_key))
             conf_tabs += provider.CONF_TABS
             # Add defined status bars to container
-            container.register_statusbars(provider.STATUS_BAR_CLASSES)
+            container.register_statusbar_widgets(provider.STATUS_BAR_CLASSES)
             conf_providers.append((provider_key, provider.get_name()))
 
         return conf_providers, conf_tabs

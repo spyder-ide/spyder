@@ -21,7 +21,7 @@ class CompletionContainer(PluginMainContainer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.statusbars = {}
+        self.statusbar_widgets = {}
 
     def setup(self, options=None):
         pass
@@ -40,15 +40,30 @@ class CompletionContainer(PluginMainContainer):
                 widget.sig_restart_spyder.connect(self.sig_restart_requested)
             widget.exec_()
 
-    def register_statusbars(self, statusbar_classes):
+    def register_statusbar_widgets(self, statusbar_classes):
         for StatusBar in statusbar_classes:
             statusbar = StatusBar(self)
-            self.statusbars[statusbar.ID] = statusbar
+            self.statusbar_widgets[statusbar.ID] = statusbar
 
-    def all_statusbars(self):
-        return [self.statusbars[k] for k in self.statusbars]
+    def all_statusbar_widgets(self):
+        return [self.statusbar_widgets[k] for k in self.statusbar_widgets]
 
-    def statusbar_rpc(self, status_key, method, args, kwargs):
-        statusbar = self.statusbars[status_key]
+    def statusbar_rpc(self, status_key: str, method: str, args: tuple,
+                      kwargs: dict):
+        """
+        Perform a remote call on the status bar with ID `status_key`.
+
+        Parameters
+        ----------
+        status_key: str
+            Identifier of the status call that should recieve the method call.
+        method: str
+            Name of the method.
+        args: tuple
+            Positional arguments of the method call.
+        kwargs: dict
+            Optional arguments of the method call.
+        """
+        statusbar = self.statusbar_widgets[status_key]
         call = getattr(statusbar, method)
         call(*args, **kwargs)
