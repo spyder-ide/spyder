@@ -443,8 +443,8 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
                 destination_dir,
             )
             print("Installer created!")
-    except PermissionError as e:
-        print(e.message())
+    except PermissionError:
+        pass
 
 
 if __name__ == "__main__":
