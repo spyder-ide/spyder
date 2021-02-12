@@ -756,7 +756,8 @@ class CompletionPlugin(SpyderPluginV2):
                 self.requests[req_id]['timed_out'] = True
 
         # Send request to all running completion providers
-        for provider_name in self.providers:
+        providers = self.available_providers_for_language(language.lower())
+        for provider_name in providers:
             provider_info = self.providers[provider_name]
             provider_info['instance'].send_request(
                 language, req_type, req, req_id)
@@ -781,7 +782,8 @@ class CompletionPlugin(SpyderPluginV2):
                 **kwargs: notification-specific parameters
             }
         """
-        for provider_name in self.providers:
+        providers = self.available_providers_for_language(language.lower())
+        for provider_name in providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 provider_info['instance'].send_notification(
