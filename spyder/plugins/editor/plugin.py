@@ -331,7 +331,7 @@ class Editor(SpyderPluginWidget):
         language = options['language']
         codeeditor = options['codeeditor']
 
-        status = self.main.completions.start_provider(language.lower())
+        status = self.main.completions.start_providers(language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:

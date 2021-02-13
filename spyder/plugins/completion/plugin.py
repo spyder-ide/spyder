@@ -281,6 +281,12 @@ class CompletionPlugin(SpyderPluginV2):
         return can_close
 
     def after_configuration_update(self, options: List[Union[tuple, str]]):
+        """
+        Update plugin and/or provider configurations.
+
+        The settings are propagated from the changes on the configuration page
+        and/or tabs.
+        """
         providers_to_update = set({})
         for option in options:
             if option == 'completions_wait_for_ms':
@@ -635,7 +641,7 @@ class CompletionPlugin(SpyderPluginV2):
         provider_info['status'] = self.RUNNING
         self.sig_provider_ready.emit(provider_name)
 
-    def start_provider(self, language: str) -> bool:
+    def start_providers(self, language: str) -> bool:
         """Start completion providers for a given programming language."""
         started = False
         language_providers = self.language_status.get(language, {})
@@ -649,7 +655,7 @@ class CompletionPlugin(SpyderPluginV2):
         self.language_status[language] = language_providers
         return started
 
-    def stop_provider(self, language: str):
+    def stop_providers(self, language: str):
         """Stop completion providers for a given programming language."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
@@ -855,19 +861,18 @@ class CompletionPlugin(SpyderPluginV2):
                 )
 
     @Slot(str, str)
-    def file_opened_updated(
-            self, filename: Optional[str], language: Optional[str]):
+    def file_opened_updated(self, filename: str, language: str):
         """
-        Handle focus changes across tabs and split editors.
+        Handle file modifications and file switching events, including when a
+        new file is created.
 
         Parameters
         ----------
-        filename: Optional[str]
-            Path to the file currently focused on the editor. If None, then
-            the focus is not currently on the editor.
-        language: Optional[str]
-            Name of the programming language of the currently focused file.
-            If None, then the focus is not currently on the editor.
+        filename: str
+            Path to the file that was changed/opened/focused.
+        language: str
+            Name of the programming language of the file that was
+            changed/opened/focused.
         """
         if filename is not None and language is not None:
             for provider_name in self.providers:
@@ -998,7 +1003,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     def gather_and_reply(self, request_responses: dict):
         """
-        Gather request responses from all plugins and send them to the
+        Gather request responses from all providers and send them to the
         CodeEditor instance that requested them.
         """
         req_type = request_responses['req_type']
