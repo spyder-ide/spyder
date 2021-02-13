@@ -18,8 +18,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor, QTextFormat
 
 # Local imports
-from spyder.plugins.editor.widgets.codeeditor import (
-    CodeEditor, UPDATE_DECORATIONS_TIMEOUT)
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 HERE = osp.dirname(osp.realpath(__file__))
@@ -103,7 +102,7 @@ def test_decorations(construct_editor, qtbot):
     # updated.
     line_number = random.randint(100, editor.blockCount())
     editor.go_to_line(line_number)
-    qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+    qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
 
     # Assert a new cell is painted
     decorations = editor.decorations._decorations
@@ -160,7 +159,7 @@ def test_update_decorations_when_scrolling(qtbot):
         assert _update.call_count == 1
 
         # Wait for decorations to update
-        qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+        qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
 
         # Assert a new call to _update was done
         assert _update.call_count == 2
@@ -176,7 +175,7 @@ def test_update_decorations_when_scrolling(qtbot):
         assert _update.call_count == 2
 
         # Wait for decorations to update
-        qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+        qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
 
         # Assert a new call to _update was done
         assert _update.call_count == 3
@@ -192,7 +191,7 @@ def test_update_decorations_when_scrolling(qtbot):
                 qtbot.wait(5)
 
         # Only one call to _update should be done, after releasing the key.
-        qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+        qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
         assert _update.call_count == 4
 
         # Simulate continuously pressing the up arrow key.
@@ -202,7 +201,7 @@ def test_update_decorations_when_scrolling(qtbot):
                 qtbot.wait(5)
 
         # Only one call to _update should be done, after releasing the key.
-        qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+        qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
         assert _update.call_count == 5
 
 

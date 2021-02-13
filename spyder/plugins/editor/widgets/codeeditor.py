@@ -11,15 +11,12 @@ Editor widget based on QtGui.QPlainTextEdit
 # TODO: Try to separate this module from spyder to create a self
 #       consistent editor module (Qt source code and shell widgets library)
 
-# %% This line is for cell execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import division, print_function
-
 from unicodedata import category
 import logging
 import functools
@@ -43,8 +40,6 @@ from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
                             QToolTip, QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
 from three_merge import merge
-
-# %% This line is for cell execution testing
 
 
 # Local imports
@@ -99,10 +94,7 @@ except Exception:
 
 logger = logging.getLogger(__name__)
 
-# Timeout to update decorations (through a QTimer) when a position
-# changed is detected in the vertical scrollbar or when releasing
-# the up/down arrow keys.
-UPDATE_DECORATIONS_TIMEOUT = 500  # milliseconds
+
 
 
 # %% This line is for cell execution testing
@@ -133,6 +125,15 @@ class CodeEditor(TextEditBaseWidget):
     TAB_ALWAYS_INDENTS = (
         'py', 'pyw', 'python', 'ipy', 'c', 'cpp', 'cl', 'h', 'pyt', 'pyi'
     )
+
+    # Timeout to update decorations (through a QTimer) when a position
+    # changed is detected in the vertical scrollbar or when releasing
+    # the up/down arrow keys.
+    UPDATE_DECORATIONS_TIMEOUT = 500  # milliseconds
+
+    # Timeout to sychronize symbols and folding after linting results
+    # arrive
+    SYNC_SYMBOLS_AND_FOLDING_TIMEOUT = 500  # milliseconds
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -297,6 +298,15 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_widget.sig_completion_hint.connect(
             self.show_hint_for_completion)
 
+        # Request symbols and folding after a timeout.
+        # See: process_diagnostics
+        self._timer_sync_symbols_and_folding = QTimer(self)
+        self._timer_sync_symbols_and_folding.setSingleShot(True)
+        self._timer_sync_symbols_and_folding.setInterval(
+            self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUT)
+        self._timer_sync_symbols_and_folding.timeout.connect(
+            self.sync_symbols_and_folding)
+
         # Goto uri
         self._last_hover_pattern_key = None
         self._last_hover_pattern_text = None
@@ -422,7 +432,8 @@ class CodeEditor(TextEditBaseWidget):
         # Update decorations
         self.update_decorations_timer = QTimer(self)
         self.update_decorations_timer.setSingleShot(True)
-        self.update_decorations_timer.setInterval(UPDATE_DECORATIONS_TIMEOUT)
+        self.update_decorations_timer.setInterval(
+            self.UPDATE_DECORATIONS_TIMEOUT)
         self.update_decorations_timer.timeout.connect(
             self.update_decorations)
         self.verticalScrollBar().valueChanged.connect(
@@ -1141,26 +1152,135 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
         """Handle linting response."""
+        # The LSP spec doesn't require that folding and symbols
+        # are treated in the same way as linting, i.e. to be
+        # recomputed on didChange, didOpen and didSave. However,
+        # we think that's necessary to maintain accurate folding
+        # and symbols all the time. Therefore, we decided to call
+        # those requests here, but after a certain timeout to
+        # avoid performance issues.
+        self._timer_sync_symbols_and_folding.start()
+
+        # Process results (runs in a thread)
+        self.process_code_analysis(params['params'])
+
+    def sync_symbols_and_folding(self):
+        """
+        Synchronize symbols and folding after linting results arrive.
+        """
+        self.request_folding()
+        self.request_symbols()
+
+    def process_code_analysis(self, diagnostics):
+        """Process code analysis results in a thread."""
+        self.cleanup_code_analysis()
+        self._diagnostics = diagnostics
+
+        # Process diagnostics in a thread to improve performance.
+        self.update_diagnostics = QThread()
+        self.update_diagnostics.run = self.set_errors
+        self.update_diagnostics.finished.connect(self.finish_code_analysis)
+        self.update_diagnostics.start()
+
+    def cleanup_code_analysis(self):
+        """Remove all code analysis markers"""
+        self.setUpdatesEnabled(False)
+        self.clear_extra_selections('code_analysis_highlight')
+        self.clear_extra_selections('code_analysis_underline')
+        for data in self.blockuserdata_list():
+            data.code_analysis = []
+
+        self.setUpdatesEnabled(True)
+        # When the new code analysis results are empty, it is necessary
+        # to update manually the scrollflag and linenumber areas (otherwise,
+        # the old flags will still be displayed):
+        self.sig_flags_changed.emit()
+        self.linenumberarea.update()
+
+    def set_errors(self):
+        """Set errors and warnings in the line number area."""
         try:
-            # The LSP spec doesn't require that folding and symbols
-            # are treated in the same way as linting, i.e. to be
-            # recomputed on didChange, didOpen and didSave. However,
-            # we think that's necessary to maintain accurate folding
-            # and symbols all the time. Therefore, we decided to add
-            # these requests here.
-            self.request_folding()
-
-            # Tests don't pass with this request here.
-            if not running_under_pytest():
-                self.request_symbols()
-
-            self.process_code_analysis(params['params'])
+            self._process_code_analysis(underline=False)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing linting")
+
+    def underline_errors(self):
+        """Underline errors and warnings."""
+        try:
+            self._process_code_analysis(underline=True)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing linting")
+
+    def finish_code_analysis(self):
+        """Finish processing code analysis results."""
+        self.linenumberarea.update()
+        self.underline_errors()
+        self.update_extra_selections()
+        self.sig_process_code_analysis.emit()
+        self.sig_flags_changed.emit()
+
+    def _process_code_analysis(self, underline):
+        """
+        Process all code analysis results.
+
+        Parameters
+        ----------
+        underline: bool
+            Determines if errors and warnings are going to be set in
+            the line number area or underlined. It's better to separate
+            these two processes for perfomance reasons. That's because
+            setting errors can be done in a thread whereas underlining
+            them can't.
+        """
+        document = self.document()
+        for diagnostic in self._diagnostics:
+            if self.is_ipython() and (
+                    diagnostic["message"] == "undefined name 'get_ipython'"):
+                # get_ipython is defined in IPython files
+                continue
+            source = diagnostic.get('source', '')
+            msg_range = diagnostic['range']
+            start = msg_range['start']
+            end = msg_range['end']
+            code = diagnostic.get('code', 'E')
+            message = diagnostic['message']
+            severity = diagnostic.get(
+                'severity', DiagnosticSeverity.ERROR)
+
+            block = document.findBlockByNumber(start['line'])
+            data = block.userData()
+            if not data:
+                data = BlockUserData(self)
+
+            if underline:
+                block_nb = block.blockNumber()
+                first, last = self.get_buffer_block_numbers()
+
+                if (self.underline_errors_enabled and
+                        first <= block_nb <= last):
+                    error = severity == DiagnosticSeverity.ERROR
+                    color = self.error_color if error else self.warning_color
+                    color = QColor(color)
+                    color.setAlpha(255)
+                    block.color = color
+
+                    data.selection_start = start
+                    data.selection_end = end
+
+                    self.highlight_selection('code_analysis_underline',
+                                             data._selection(),
+                                             underline_color=block.color)
+            else:
+                data.code_analysis.append((source, code, severity, message))
+                block.setUserData(data)
 
     # ------------- LSP: Completion ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -1674,10 +1794,6 @@ class CodeEditor(TextEditBaseWidget):
         self.update_folding_thread.finished.connect(
             self.finish_code_folding)
         self.update_folding_thread.start()
-
-        # Tests for the class function selector need this.
-        if running_under_pytest():
-            self.request_symbols()
 
     def update_and_merge_folding(self, extended_ranges):
         """Update and merge new folding information."""
@@ -2641,103 +2757,6 @@ class CodeEditor(TextEditBaseWidget):
         if dlg.exec_():
             self.go_to_line(dlg.get_line_number())
 
-    def cleanup_code_analysis(self):
-        """Remove all code analysis markers"""
-        self.setUpdatesEnabled(False)
-        self.clear_extra_selections('code_analysis_highlight')
-        self.clear_extra_selections('code_analysis_underline')
-        for data in self.blockuserdata_list():
-            data.code_analysis = []
-
-        self.setUpdatesEnabled(True)
-        # When the new code analysis results are empty, it is necessary
-        # to update manually the scrollflag and linenumber areas (otherwise,
-        # the old flags will still be displayed):
-        self.sig_flags_changed.emit()
-        self.linenumberarea.update()
-
-    def _process_code_analysis(self, underline):
-        """
-        Process all code analysis results.
-
-        Parameters
-        ----------
-        underline: bool
-            Determines if errors and warnings are going to be set in
-            the line number area or underlined. It's better to separate
-            these two processes for performance reasons. That's because
-            setting errors can be done in a thread whereas underlining
-            them can't.
-        """
-        document = self.document()
-        for diagnostic in self._diagnostics:
-            if self.is_ipython() and (
-                    diagnostic["message"] == "undefined name 'get_ipython'"):
-                # get_ipython is defined in IPython files
-                continue
-            source = diagnostic.get('source', '')
-            msg_range = diagnostic['range']
-            start = msg_range['start']
-            end = msg_range['end']
-            code = diagnostic.get('code', 'E')
-            message = diagnostic['message']
-            severity = diagnostic.get(
-                'severity', DiagnosticSeverity.ERROR)
-
-            block = document.findBlockByNumber(start['line'])
-            data = block.userData()
-            if not data:
-                data = BlockUserData(self)
-
-            if underline:
-                block_nb = block.blockNumber()
-                first, last = self.get_buffer_block_numbers()
-
-                if (self.underline_errors_enabled and
-                        first <= block_nb <= last):
-                    error = severity == DiagnosticSeverity.ERROR
-                    color = self.error_color if error else self.warning_color
-                    color = QColor(color)
-                    color.setAlpha(255)
-                    block.color = color
-
-                    data.selection_start = start
-                    data.selection_end = end
-
-                    self.highlight_selection('code_analysis_underline',
-                                             data._selection(),
-                                             underline_color=block.color)
-            else:
-                data.code_analysis.append((source, code, severity, message))
-                block.setUserData(data)
-
-    def set_errors(self):
-        """Set errors and warnings in the line number area."""
-        self._process_code_analysis(underline=False)
-
-    def underline_errors(self):
-        """Underline errors and warnings."""
-        self._process_code_analysis(underline=True)
-
-    def finish_code_analysis(self):
-        """Finish processing code analysis results."""
-        self.linenumberarea.update()
-        self.underline_errors()
-        self.update_extra_selections()
-        self.sig_process_code_analysis.emit()
-        self.sig_flags_changed.emit()
-
-    def process_code_analysis(self, diagnostics):
-        """Process all code analysis results."""
-        self.cleanup_code_analysis()
-        self._diagnostics = diagnostics
-
-        # Process diagnostics in a thread to improve performance.
-        self.update_diagnostics = QThread()
-        self.update_diagnostics.run = self.set_errors
-        self.update_diagnostics.finished.connect(self.finish_code_analysis)
-        self.update_diagnostics.start()
-
     def hide_tooltip(self):
         """
         Hide the tooltip widget.
@@ -2904,7 +2923,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         block = self.textCursor().block()
         line_count = self.document().blockCount()
-        for _ in range(line_count):
+        for __ in range(line_count):
             line_number = block.blockNumber() + 1
             if line_number < line_count:
                 block = block.next()
@@ -2924,7 +2943,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         block = self.textCursor().block()
         line_count = self.document().blockCount()
-        for _ in range(line_count):
+        for __ in range(line_count):
             line_number = block.blockNumber() + 1
             if line_number > 1:
                 block = block.previous()

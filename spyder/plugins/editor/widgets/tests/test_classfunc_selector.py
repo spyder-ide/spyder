@@ -51,17 +51,8 @@ def test_class_func_selector(lsp_codeeditor, qtbot):
     code_editor.toggle_automatic_completions(False)
     code_editor.set_text(text)
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    # Wait a little bit before asking for symbols
-    qtbot.wait(2000)
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.request_symbols()
-
     # Wait for symbols info to arrive
-    qtbot.wait(2000)
+    qtbot.wait(3000)
 
     class_names = [item['name'] for item in panel.classes]
     func_names = [item['name'] for item in panel.funcs]
