@@ -8,7 +8,7 @@
 Spyder completion plugin.
 
 This plugin is on charge of creating and managing multiple code completion and
-introspection clients.
+introspection providers.
 """
 
 # Standard library imports
@@ -33,7 +33,11 @@ from spyder.plugins.completion.api import (CompletionRequestTypes,
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
 
+
 logger = logging.getLogger(__name__)
+
+# List of completion requests
+# e.g., textDocument/didOpen, workspace/configurationDidChange, etc.
 COMPLETION_REQUESTS = [getattr(CompletionRequestTypes, c)
                        for c in dir(CompletionRequestTypes) if c.isupper()]
 
@@ -66,20 +70,17 @@ class CompletionPlugin(SpyderPluginV2):
     REQUIRES = [Plugins.Preferences]
     OPTIONAL = [Plugins.StatusBar, Plugins.MainMenu]
 
-    CONF_DEFAULTS = [
-        ('enabled_providers', {}),
-        ('provider_configuration', {}),
-        ('request_priorities', {})
-    ]
-    CONF_VERSION = '0.1.0'
     CONF_FILE = False
+
+    # Additional configuration tabs for this plugin, this attribute is
+    # initialized dynamically based on the provider information.
     ADDITIONAL_CONF_TABS = {}
 
     # The configuration page is created dynamically based on the providers
     # loaded
     CONF_WIDGET_CLASS = None
 
-    # Empty container used to store graphical widgets
+    # Container used to store graphical widgets
     CONTAINER_CLASS = CompletionContainer
 
     # Ad Hoc polymorphism signals to make this plugin a completion provider
@@ -203,7 +204,7 @@ class CompletionPlugin(SpyderPluginV2):
                 logger.debug(f'Loading entry point: {entry_point}')
                 Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
-            except ImportError as e:
+            except Exception as e:
                 logger.warning('Failed to load completion provider from entry '
                                f'point {entry_point}')
                 raise e
@@ -534,20 +535,13 @@ class CompletionPlugin(SpyderPluginV2):
 
         return str(provider_conf_version), current_conf_values, provider_defaults
 
-    def _instantiate_and_register_provider(
-            self, Provider: SpyderCompletionProvider):
-        container = self.get_container()
+    def get_provider_configuration(self, Provider: SpyderCompletionProvider,
+                                   provider_name: str) -> dict:
+        """Get provider configuration dictionary."""
+
         provider_configurations = self.get_conf_option(
             'provider_configuration')
 
-        provider_name = Provider.COMPLETION_CLIENT_NAME
-        self._available_providers[provider_name] = Provider
-
-        logger.debug("Completion plugin: Registering {0}".format(
-            provider_name))
-
-        # Merge configuration settings between a provider defaults and
-        # the existing ones
         (provider_conf_version,
          current_conf_values,
          provider_defaults) = self._merge_default_configurations(
@@ -562,8 +556,11 @@ class CompletionPlugin(SpyderPluginV2):
 
         # Update provider configurations
         self.set_conf_option('provider_configuration', provider_configurations)
+        return new_provider_config
 
-        # Merge and update source priority order
+    def update_request_priorities(self, Provider: SpyderCompletionProvider,
+                                  provider_name: str):
+        """Sort request priorities based on Provider declared order."""
         source_priorities = self.get_conf_option('request_priorities')
         provider_priority = Provider.DEFAULT_ORDER
 
@@ -576,9 +573,10 @@ class CompletionPlugin(SpyderPluginV2):
         self.source_priority = source_priorities
         self.set_conf_option('request_priorities', source_priorities)
 
-        provider_instance = Provider(self, new_provider_config['values'])
+    def connect_provider_signals(self, provider_instance):
+        """Connect SpyderCompletionProvider signals."""
+        container = self.get_container()
 
-        # Signals
         provider_instance.sig_provider_ready.connect(self.provider_available)
         provider_instance.sig_response_ready.connect(self.receive_response)
         provider_instance.sig_exception_occurred.connect(
@@ -598,6 +596,28 @@ class CompletionPlugin(SpyderPluginV2):
             provider_instance.python_path_update)
         self.sig_main_interpreter_changed.connect(
             provider_instance.main_interpreter_changed)
+
+    def _instantiate_and_register_provider(
+            self, Provider: SpyderCompletionProvider):
+        provider_name = Provider.COMPLETION_CLIENT_NAME
+        self._available_providers[provider_name] = Provider
+
+        logger.debug("Completion plugin: Registering {0}".format(
+            provider_name))
+
+        # Merge configuration settings between a provider defaults and
+        # the existing ones
+        provider_config = self.get_provider_configuration(
+            Provider, provider_name)
+
+        # Merge and update source priority order
+        self.update_request_priorities(Provider, provider_name)
+
+        # Instantiate provider
+        provider_instance = Provider(self, provider_config['values'])
+
+        # Signals
+        self.connect_provider_signals(provider_instance)
 
         self.providers[provider_name] = {
             'instance': provider_instance,
@@ -999,7 +1019,7 @@ class CompletionPlugin(SpyderPluginV2):
             pass
 
     def gather_completions(self, req_id_responses: dict):
-        """Gather completion responses from plugins."""
+        """Gather completion responses from providers."""
         priorities = self.source_priority[
             CompletionRequestTypes.DOCUMENT_COMPLETION]
         priorities = sorted(list(priorities.keys()),
