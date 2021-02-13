@@ -312,11 +312,7 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
 
     # Put example text in editor
     code_editor.set_text(lines)
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     # Check that the outline tree was initialized successfully
     tree = trees[0]
@@ -332,12 +328,7 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     cursor.setPosition(end, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     code_editor.cut()
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     tree = trees[1]
     root_tree = get_tree_elements(treewidget)
@@ -353,11 +344,7 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     qtbot.keyPress(code_editor, Qt.Key_Up)
     code_editor.paste()
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     tree = trees[2]
     root_tree = get_tree_elements(treewidget)
@@ -372,12 +359,7 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     cursor.setPosition(end, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     code_editor.cut()
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     tree = trees[3]
     root_tree = get_tree_elements(treewidget)
@@ -392,12 +374,7 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
 
     qtbot.keyPress(code_editor, Qt.Key_Up)
     code_editor.paste()
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     tree = trees[4]
     root_tree = get_tree_elements(treewidget)
@@ -438,12 +415,7 @@ def test_empty_file(qtbot, lsp_codeeditor_outline):
     # Set empty contents
     code_editor.set_text('')
     code_editor.go_to_line(1)
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     # Assert the spinner is not shown.
     assert not outlineexplorer.loading_widget.isSpinning()
@@ -454,12 +426,7 @@ def foo():
     a = 10
     return a
 """)
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     root_tree = get_tree_elements(treewidget)
     assert root_tree == {'test.py': [{'foo': [{'a': []}]}]}
@@ -471,8 +438,7 @@ def foo():
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
-    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
-        code_editor.request_symbols()
+    qtbot.wait(3000)
 
     # Assert the tree is empty and the spinner is not shown.
     root_tree = get_tree_elements(treewidget)
