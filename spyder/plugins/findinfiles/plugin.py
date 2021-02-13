@@ -64,7 +64,7 @@ class FindInFiles(SpyderDockablePlugin):
 
         if editor:
             widget.sig_edit_goto_requested.connect(editor.load)
-            editor.sig_file_opened_closed_updated.connect(
+            editor.sig_file_opened_closed_or_updated.connect(
                 self.set_current_opened_file)
 
         if projects:

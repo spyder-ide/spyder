@@ -31,13 +31,8 @@ from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
                                            WorkspaceUpdateKind)
 from spyder.plugins.completion.providers.languageserver.client import LSPClient
 from spyder.plugins.completion.providers.languageserver.conftabs import TABS
-# TODO: Define config page behaviour
-# from spyder.plugins.completion.providers.languageserver.confpage import (
-#     LanguageServerConfigPage)
-# TODO: Define status widget behaviour
 from spyder.plugins.completion.providers.languageserver.widgets.status import (
     ClientStatus, LSPStatusWidget)
-# from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.completion.providers.languageserver.widgets.messagebox import (
     ServerDisabledMessageBox
 )
@@ -99,8 +94,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     STOPPED = 'stopped'
     RUNNING = 'running'
     LOCALHOST = ['127.0.0.1', 'localhost']
-    # TODO: Finish configuration tabs migration
-    # CONFIGWIDGET_CLASS = LanguageServerConfigPage
+
     MAX_RESTART_ATTEMPTS = 5
     TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
