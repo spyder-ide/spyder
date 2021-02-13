@@ -71,14 +71,15 @@ jobs:
         run: |
           sudo apt-get update --fix-missing
           sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0 xterm --fix-missing
-      #- name: Cache conda
-      #  uses: actions/cache@v1
-      #  env:
-      #    # Increase this value to reset cache if requirements/*.txt has not changed
-      #    CACHE_NUMBER: 0
-      #  with:
-      #    path: ~/conda_pkgs_dir
-      #    key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
+      # Foo
+      - name: Cache conda
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if requirements/*.txt has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
       - name: Cache pip
         if: env.RUN_BUILD == 'true'
         uses: actions/cache@v1
