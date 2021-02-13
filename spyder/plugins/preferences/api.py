@@ -38,7 +38,7 @@ from spyder.widgets.comboboxes import FileComboBox
 
 
 class BaseConfigTab(QWidget):
-    """Stub class to declare a config page."""
+    """Stub class to declare a config tab."""
     pass
 
 
