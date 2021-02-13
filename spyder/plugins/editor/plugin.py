@@ -101,7 +101,7 @@ class Editor(SpyderPluginWidget):
 
     breakpoints_saved = Signal()
 
-    sig_file_opened_closed_updated = Signal(str, str)
+    sig_file_opened_closed_or_updated = Signal(str, str)
     """
     This signal is emitted when a file is opened, closed or updated,
     including switching among files.
@@ -1198,7 +1198,7 @@ class Editor(SpyderPluginWidget):
             self.register_completion_capabilities)
         self.main.completions.sig_open_file.connect(self.load)
 
-        self.sig_file_opened_closed_updated.connect(
+        self.sig_file_opened_closed_or_updated.connect(
             self.main.completions.file_opened_updated)
 
         if self.main.outlineexplorer is not None:
@@ -1754,7 +1754,7 @@ class Editor(SpyderPluginWidget):
                     action.setEnabled(enable and WINPDB_PATH is not None)
                 else:
                     action.setEnabled(enable)
-            self.sig_file_opened_closed_updated.emit(
+            self.sig_file_opened_closed_or_updated.emit(
                 self.get_current_filename(), self.get_current_language())
 
     def update_code_analysis_actions(self):
