@@ -10,14 +10,17 @@ In addition to the remote_call mechanism implemented in CommBase:
 """
 from contextlib import contextmanager
 import logging
+import os
 import pickle
 
 import jupyter_client
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 import zmq
+from zmq.ssh import tunnel as zmqtunnel
 
 from spyder_kernels.comms.commbase import CommBase, CommError
 from spyder.py3compat import TimeoutError
+from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +40,38 @@ class KernelComm(CommBase, QObject):
 
     def __init__(self):
         super(KernelComm, self).__init__()
-        self.comm_port = None
+        self.remote_comm_port = None
         self.kernel_client = None
 
         # Register handlers
         self.register_call_handler('_async_error', self._async_error)
         self.register_call_handler('_set_comm_port', self._set_comm_port)
 
+    def ssh_tunnel(self, *args, **kwargs):
+        if os.name == 'nt':
+            return zmqtunnel.paramiko_tunnel(*args, **kwargs)
+        else:
+            return openssh_tunnel(None, *args, **kwargs)
+
     def _set_comm_port(self, port):
         """Set comm port."""
-        if port is None:
+        if port is None or port == self.remote_comm_port:
             return
+        self.remote_comm_port = port
+
         client = self.kernel_client
+
+        if hasattr(client, 'ssh_parameters'):
+            # Need to tunnel port
+            hostname, sshkey, password = client.ssh_parameters
+            local_port = zmqtunnel.select_random_ports(1)[0]
+            remote_port = port
+            remote_ip = client.ip
+            self.ssh_tunnel(
+                local_port, remote_port, hostname, remote_ip, sshkey,
+                password, timeout=10)
+            port = local_port
+
         if not (hasattr(client, 'comm_port') and client.comm_port == port):
             client.comm_port = port
             identity = client.session.bsession
