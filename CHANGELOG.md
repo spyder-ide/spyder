@@ -1,5 +1,40 @@
 # History of changes
 
+## Version 5.0alpha4 (2021-02-14)
+
+### Issues Closed
+
+* [Issue 14661](https://github.com/spyder-ide/spyder/issues/14661) - There's a blank space in the menus in the top in macOS ([PR 14682](https://github.com/spyder-ide/spyder/pull/14682) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 14612](https://github.com/spyder-ide/spyder/issues/14612) - View and Help application menus are not being display in master. ([PR 14619](https://github.com/spyder-ide/spyder/pull/14619) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 14537](https://github.com/spyder-ide/spyder/issues/14537) - Migrate Spyder preferences dialog to a separate plugin ([PR 14536](https://github.com/spyder-ide/spyder/pull/14536) by [@andfoy](https://github.com/andfoy))
+* [Issue 12195](https://github.com/spyder-ide/spyder/issues/12195) - Move Explorer/Projects plugin to use new API ([PR 14596](https://github.com/spyder-ide/spyder/pull/14596) by [@steff456](https://github.com/steff456))
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 14737](https://github.com/spyder-ide/spyder/pull/14737) - PR: Update code of conduct with version 2.0 of Contributor Covenant's one, by [@juanis2112](https://github.com/juanis2112)
+* [PR 14721](https://github.com/spyder-ide/spyder/pull/14721) - PR: Minor editor refactoring, by [@steff456](https://github.com/steff456)
+* [PR 14690](https://github.com/spyder-ide/spyder/pull/14690) - PR: Update the date of copyright notice, by [@storm-sergey](https://github.com/storm-sergey)
+* [PR 14682](https://github.com/spyder-ide/spyder/pull/14682) - PR: Add flag to prevent adding initial empty QAction on Mac for non-migrated menus, by [@dalthviz](https://github.com/dalthviz) ([14661](https://github.com/spyder-ide/spyder/issues/14661))
+* [PR 14628](https://github.com/spyder-ide/spyder/pull/14628) - PR: Add button to show and hide replace widget from find widget, by [@juanis2112](https://github.com/juanis2112) ([25](https://github.com/spyder-ide/ux-improvements/issues/25))
+* [PR 14619](https://github.com/spyder-ide/spyder/pull/14619) - PR: Support dynamic menus on Mac, by [@dalthviz](https://github.com/dalthviz) ([14612](https://github.com/spyder-ide/spyder/issues/14612))
+* [PR 14614](https://github.com/spyder-ide/spyder/pull/14614) - PR: Remove secondary toolbars from toolbars in view menu, by [@juanis2112](https://github.com/juanis2112)
+* [PR 14596](https://github.com/spyder-ide/spyder/pull/14596) - PR: Migrate Files to the new API, by [@steff456](https://github.com/steff456) ([12195](https://github.com/spyder-ide/spyder/issues/12195))
+* [PR 14592](https://github.com/spyder-ide/spyder/pull/14592) - PR: Fix wrong spelled words, by [@freddii](https://github.com/freddii)
+* [PR 14586](https://github.com/spyder-ide/spyder/pull/14586) - PR: Add a new Application plugin, by [@dalthviz](https://github.com/dalthviz)
+* [PR 14584](https://github.com/spyder-ide/spyder/pull/14584) - PR: Fix spelling mistakes in comments and docstrings, by [@freddii](https://github.com/freddii)
+* [PR 14576](https://github.com/spyder-ide/spyder/pull/14576) - PR: Add STIL to the list of supported languages, by [@andfoy](https://github.com/andfoy)
+* [PR 14562](https://github.com/spyder-ide/spyder/pull/14562) - PR: Add color system file for new scale of colors in Spyder 5, by [@juanis2112](https://github.com/juanis2112)
+* [PR 14536](https://github.com/spyder-ide/spyder/pull/14536) - PR: Migrate Spyder preference dialog to a plugin of the new API, by [@andfoy](https://github.com/andfoy) ([14537](https://github.com/spyder-ide/spyder/issues/14537))
+* [PR 14320](https://github.com/spyder-ide/spyder/pull/14320) - PR: Create status bar plugin (New API), by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 15 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0alpha3 (2021-01-08)
 
 ### Issues Closed
