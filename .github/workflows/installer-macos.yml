@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        build_type: ['Lite', 'Full']
+        build_type: ['Full', 'Lite']
     defaults:
       run:
         shell: bash -l {0}
@@ -21,6 +21,7 @@ jobs:
       LITE_FLAG: ${{ matrix.build_type == 'Lite' && '--lite' || '' }}
       DMGNAME: ${{ matrix.build_type == 'Lite' && 'Spyder-Lite.dmg' || 'Spyder.dmg' }}
       DISTDIR: ${{ github.workspace }}/dist
+      MACOSX_DEPLOYMENT_TARGET: 10.9
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -28,18 +29,21 @@ jobs:
           fetch-depth: 0
       - name: Update System
         run: |
-          brew install spatialindex
-          brew link python@3.9
+          brew uninstall --force --ignore-dependencies python
+          curl -L https://homebrew.bintray.com/bottles/python%403.9-3.9.1_8.mojave.bottle.tar.gz -o python@3.9-3.9.1_8.mojave.bottle.tar.gz
+          curl -L https://homebrew.bintray.com/bottles/spatialindex-1.9.3.mojave.bottle.tar.gz -o spatialindex-1.9.3.mojave.bottle.tar.gz
+          brew install -f python@3.9-3.9.1_8.mojave.bottle.tar.gz
+          brew install -f spatialindex-1.9.3.mojave.bottle.tar.gz
       - name: Install Dependencies
         run: |
           INSTALL_FLAGS=()
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
-          python3.9 -m pip install -c req-const.txt -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
-          python3.9 -m pip uninstall -q -y spyder
+          python3 -m pip install -c req-const.txt -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
+          python3 -m pip uninstall -q -y spyder
           cd ${GITHUB_WORKSPACE}
-          python3.9 setup.py develop egg_info
+          python3 setup.py develop egg_info
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: |
@@ -47,21 +51,21 @@ jobs:
           PLS_REPO=${GITHUB_WORKSPACE}/external-deps/python-language-server
           QDK_REPO=${GITHUB_WORKSPACE}/external-deps/qdarkstyle
           SITE_PACKAGES=`python3.9 -c 'import site; print(site.getsitepackages()[0])'`
-          python3.9 -m pip uninstall -q -y spyder-kernels python-language-server qdarkstyle
+          python3 -m pip uninstall -q -y spyder-kernels python-language-server qdarkstyle
           cd ${SPK_REPO}
-          python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
+          python3 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
           cd ${PLS_REPO}
-          python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
+          python3 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
           cd ${QDK_REPO}
-          python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
+          python3 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
       - name: Show Build Environment
         run: |
-          python3.9 -V -V
-          python3.9 -m pip list
+          python3 -V -V
+          python3 -m pip list
       - name: Build Application Bundle
-        run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
+        run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Build Disk Image
-        run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
+        run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
