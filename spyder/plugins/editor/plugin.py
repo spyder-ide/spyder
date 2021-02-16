@@ -2651,7 +2651,7 @@ class Editor(SpyderPluginWidget):
         """Re-run last script"""
         if self.get_option('save_all_before_run'):
             all_saved = self.save_all(save_new_files=save_new_files)
-            if not all_saved:
+            if all_saved is not None and not all_saved:
                 return
         if self.__last_ec_exec is None:
             return
