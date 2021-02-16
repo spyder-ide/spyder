@@ -15,10 +15,10 @@ import sys
 import pytest
 
 # Local imports
-from spyder.plugins.completion.kite.utils.install import (
+from spyder.plugins.completion.providers.kite.utils.install import (
     KiteInstallationThread, DOWNLOADING_INSTALLER, DOWNLOADING_SCRIPT,
     INSTALLING, FINISHED)
-from spyder.plugins.completion.kite.utils.status import (
+from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
 
 # Time to wait until the installation finishes

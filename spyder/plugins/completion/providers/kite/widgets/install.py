@@ -53,8 +53,8 @@ class KiteIntegrationInfo(QWidget):
         if device_image_ratio > 1:
             image.setDevicePixelRatio(device_image_ratio)
         else:
-            image_height = image.height() * 0.5
-            image_width = image.width() * 0.5
+            image_height = int(image.height() * 0.5)
+            image_width = int(image.width() * 0.5)
             image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
                                  Qt.SmoothTransformation)
         image_label.setPixmap(image)
@@ -139,8 +139,8 @@ class KiteWelcome(QWidget):
         install_gif_label = QLabel()
         install_gif.start()
         install_image = install_gif.currentPixmap()
-        image_height = install_image.height() * 0.8
-        image_width = install_image.width() * 0.8
+        image_height = int(install_image.height() * 0.8)
+        image_width = int(install_image.width() * 0.8)
         install_gif.setScaledSize(QSize(image_width, image_height))
         install_gif_label.setMovie(install_gif)
 
@@ -240,8 +240,8 @@ class KiteInstallation(QWidget):
             copilot_image.setDevicePixelRatio(device_pixel_ratio)
             copilot_label.setPixmap(copilot_image)
         else:
-            image_height = copilot_image.height() * 0.4
-            image_width = copilot_image.width() * 0.4
+            image_height = int(copilot_image.height() * 0.4)
+            image_width = int(copilot_image.width() * 0.4)
             copilot_label.setPixmap(
                 copilot_image.scaled(image_width, image_height,
                                      Qt.KeepAspectRatio,

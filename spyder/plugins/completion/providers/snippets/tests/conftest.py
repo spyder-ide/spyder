@@ -8,9 +8,9 @@ import pytest
 
 from qtpy.QtCore import QObject, Signal
 
-from spyder.plugins.completion.snippets.plugin import SnippetsPlugin
-from spyder.plugins.completion.languageserver.tests.conftest import (
-    qtbot_module)
+from spyder.plugins.completion.providers.snippets.provider import (
+    SnippetsProvider)
+from spyder.plugins.completion.tests.conftest import qtbot_module
 
 
 class CompletionManagerMock(QObject):
@@ -23,12 +23,12 @@ class CompletionManagerMock(QObject):
 
 @pytest.fixture(scope='module')
 def snippets_completions(qtbot_module, request):
-    snippets = SnippetsPlugin(None)
+    snippets = SnippetsProvider(None, dict(SnippetsProvider.CONF_DEFAULTS))
     completions = CompletionManagerMock(None)
     qtbot_module.addWidget(snippets)
     qtbot_module.addWidget(completions)
 
-    with qtbot_module.waitSignal(snippets.sig_plugin_ready, timeout=30000):
+    with qtbot_module.waitSignal(snippets.sig_provider_ready, timeout=30000):
         snippets.start()
 
     def teardown():

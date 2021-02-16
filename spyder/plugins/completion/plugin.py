@@ -245,11 +245,6 @@ class CompletionPlugin(SpyderPluginV2):
                 self.sig_pythonpath_changed)
             # self.main.sig_setup_finished.connect(self.setup_finished)
 
-        # TODO: Move this section to the new API once the migration of projects
-        # is complete
-        if self.main.projects:
-            pass
-
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.STOPPED:

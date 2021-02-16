@@ -10,10 +10,8 @@ from textwrap import dedent
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
-from spyder.config.lsp import PYTHON_CONFIG
-from spyder.plugins.completion.languageserver.client import LSPClient
-from spyder.plugins.completion.manager.api import (
-    LSPRequestTypes, WorkspaceUpdateKind)
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes, WorkspaceUpdateKind)
 
 
 class CompletionManager(QObject):
@@ -26,8 +24,8 @@ class CompletionManager(QObject):
 
 
 @pytest.fixture(scope='module', params=[
-    pytest.lazy_fixture('lsp_manager'),
-    pytest.lazy_fixture('lsp_stdio_manager')])
+    pytest.lazy_fixture('lsp_provider'),
+    pytest.lazy_fixture('lsp_stdio_provider')])
 def lsp_client_and_completion(request):
     """Create an LSP client/completion pair."""
     completion = CompletionManager()
@@ -53,7 +51,7 @@ def test_didOpen(lsp_client_and_completion, qtbot):
 
     # Wait for the client to be started
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, params)
+        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_OPEN, params)
     response, _ = blocker.args
 
     # Assert the response has what we expect
@@ -77,7 +75,7 @@ def test_get_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000):
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
+        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/signatureHelp request
     signature_params = {
@@ -90,7 +88,7 @@ def test_get_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_SIGNATURE,
+        client.perform_request(CompletionRequestTypes.DOCUMENT_SIGNATURE,
                                signature_params)
     _, response = blocker.args
 
@@ -115,7 +113,7 @@ def test_get_completions(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000):
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
+        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/completion request
     completion_params = {
@@ -128,7 +126,7 @@ def test_get_completions(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_COMPLETION,
+        client.perform_request(CompletionRequestTypes.DOCUMENT_COMPLETION,
                                completion_params)
     _, response = blocker.args
 
@@ -154,7 +152,7 @@ def test_go_to_definition(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000):
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
+        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/definition request
     go_to_definition_params = {
@@ -167,7 +165,7 @@ def test_go_to_definition(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_DEFINITION,
+        client.perform_request(CompletionRequestTypes.DOCUMENT_DEFINITION,
                                go_to_definition_params)
     _, response = blocker.args
 
@@ -198,7 +196,7 @@ def test_local_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
+        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/hover request
     signature_params = {
@@ -211,7 +209,7 @@ def test_local_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_HOVER,
+        client.perform_request(CompletionRequestTypes.DOCUMENT_HOVER,
                                signature_params)
     _, response = blocker.args
 

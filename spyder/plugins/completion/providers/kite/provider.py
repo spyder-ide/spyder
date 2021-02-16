@@ -141,7 +141,7 @@ class KiteProvider(SpyderCompletionProvider):
     def http_client_ready(self, languages):
         logger.debug('Kite client is available for {0}'.format(languages))
         self.available_languages = languages
-        self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
+        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
         self._kite_onboarding()
 
     @Slot(str)
