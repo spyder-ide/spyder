@@ -586,6 +586,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         Update the outline explorer for `editor` preserving the tree
         state.
         """
+        if items is None:
+            return
+
         plugin_base = self.parent().parent()
         if editor is None:
             editor = self.current_editor

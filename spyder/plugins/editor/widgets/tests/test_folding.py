@@ -65,12 +65,6 @@ def test_folding(lsp_codeeditor, qtbot):
     code_editor.insert_text(text)
     folding_panel = code_editor.panels.get('FoldingPanel')
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.request_folding()
-
     # Wait for the update thread to finish
     qtbot.wait(3000)
 
@@ -96,12 +90,6 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
 
     folding_panel = editor.panels.get('FoldingPanel')
     editor.insert_text(text)
-
-    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        editor.document_did_change()
-
-    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        editor.request_folding()
 
     # Wait for the update thread to finish
     qtbot.wait(3000)
@@ -130,12 +118,6 @@ def test_unfold_goto(search_codeeditor, qtbot):
     editor.toggle_code_folding(True)
     editor.insert_text(text)
     folding_panel = editor.panels.get('FoldingPanel')
-
-    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        editor.document_did_change()
-
-    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        editor.request_folding()
 
     # Wait for the update thread to finish
     qtbot.wait(3000)

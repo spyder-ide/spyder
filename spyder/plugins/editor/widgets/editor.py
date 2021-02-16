@@ -2040,9 +2040,11 @@ class EditorStack(QWidget):
 
         Iterate through self.data and call save() on any modified files.
         """
+        all_saved = True
         for index in range(self.get_stack_count()):
             if self.data[index].editor.document().isModified():
-                self.save(index, save_new_files=save_new_files)
+                all_saved &= self.save(index, save_new_files=save_new_files)
+        return all_saved
 
     #------ Update UI
     def start_stop_analysis_timer(self):
