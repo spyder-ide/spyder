@@ -69,7 +69,7 @@ class KiteCallToAction(QFrame):
         main_layout.addWidget(actions)
         main_layout.addStretch()
 
-        self._enabled = CONF.get('kite', 'call_to_action')
+        self._enabled = CONF.get('completions', 'kite_call_to_action')
         self._escaped = False
         self.hide()
 
@@ -123,7 +123,7 @@ class KiteCallToAction(QFrame):
     def _dismiss_forever(self):
         self.hide()
         self._enabled = False
-        CONF.set('kite', 'call_to_action', False)
+        CONF.set('completions', 'kite_call_to_action', False)
 
     def _learn_more(self):
         self.hide()

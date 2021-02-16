@@ -8,9 +8,10 @@ import pytest
 
 from qtpy.QtCore import QObject, Signal
 
-from spyder.plugins.completion.fallback.plugin import FallbackPlugin
-from spyder.plugins.completion.languageserver.tests.conftest import (
-    qtbot_module)
+from spyder.config.manager import CONF
+from spyder.plugins.completion.providers.fallback.provider import (
+    FallbackProvider)
+from spyder.plugins.completion.tests.conftest import qtbot_module
 
 
 class CompletionManagerMock(QObject):
@@ -23,12 +24,12 @@ class CompletionManagerMock(QObject):
 
 @pytest.fixture(scope='module')
 def fallback_completions(qtbot_module, request):
-    fallback = FallbackPlugin(None)
+    fallback = FallbackProvider(None, {})
     completions = CompletionManagerMock(None)
     qtbot_module.addWidget(fallback)
     qtbot_module.addWidget(completions)
 
-    with qtbot_module.waitSignal(fallback.sig_plugin_ready, timeout=30000):
+    with qtbot_module.waitSignal(fallback.sig_provider_ready, timeout=30000):
         fallback.start()
 
     def teardown():

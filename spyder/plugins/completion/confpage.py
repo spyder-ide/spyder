@@ -64,16 +64,21 @@ class CompletionConfigPage(PluginConfigPage):
             tip=_("Default is 3"), section='editor')
         code_snippets_box = newcb(
             _("Enable code snippets in the editor"), 'enable_code_snippets')
+        kite_cta_box = newcb(
+            _("Notify me when Kite can provide missing completions"
+              " (but is unavailable)"),
+            'kite_call_to_action')
 
         self.advanced_group = QGroupBox(_('Advanced settings'))
         advanced_layout = QGridLayout()
         advanced_layout.addWidget(completion_hint_box, 0, 0)
         advanced_layout.addWidget(code_snippets_box, 1, 0)
         advanced_layout.addWidget(automatic_completion_box, 2, 0)
-        advanced_layout.addWidget(completions_after_characters.plabel, 3, 0)
-        advanced_layout.addWidget(completions_after_characters.spinbox, 3, 1)
-        advanced_layout.addWidget(completions_wait_for_ms.plabel, 4, 0)
-        advanced_layout.addWidget(completions_wait_for_ms.spinbox, 4, 1)
+        advanced_layout.addWidget(kite_cta_box, 3, 0)
+        advanced_layout.addWidget(completions_after_characters.plabel, 4, 0)
+        advanced_layout.addWidget(completions_after_characters.spinbox, 4, 1)
+        advanced_layout.addWidget(completions_wait_for_ms.plabel, 5, 0)
+        advanced_layout.addWidget(completions_wait_for_ms.spinbox, 5, 1)
         advanced_layout.setColumnStretch(2, 6)
         self.advanced_group.setLayout(advanced_layout)
 
