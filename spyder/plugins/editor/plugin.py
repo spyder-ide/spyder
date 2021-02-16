@@ -2620,12 +2620,12 @@ class Editor(SpyderPluginWidget):
         else:
             wdir = ''
 
-        python = True # Note: in the future, it may be useful to run
+        python = True  # Note: in the future, it may be useful to run
         # something in a terminal instead of a Python interp.
         self.__last_ec_exec = (fname, wdir, args, interact, debug,
-                                python, python_args, current, systerm,
-                                post_mortem, clear_namespace,
-                                console_namespace)
+                               python, python_args, current, systerm,
+                               post_mortem, clear_namespace,
+                               console_namespace)
         self.re_run_file(save_new_files=False)
         if not interact and not debug:
             # If external console dockwidget is hidden, it will be
