@@ -662,7 +662,7 @@ class BaseTableView(QTableView):
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
                     [self.insert_action_above, self.insert_action_below,
-                    self.insert_action, self.paste_action, None, 
+                    self.insert_action, self.paste_action, None,
                     resize_action, resize_columns_action])
         return menu
 
@@ -1702,10 +1702,17 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         """
         leftData = self.sourceModel().data(left)
         rightData = self.sourceModel().data(right)
-        if isinstance(leftData, str) and isinstance(rightData, str):
-            return natsort(leftData) < natsort(rightData)
-        else:
-            return leftData < rightData
+        try:
+            if isinstance(leftData, str) and isinstance(rightData, str):
+                return natsort(leftData) < natsort(rightData)
+            else:
+                return leftData < rightData
+        except TypeError:
+            # This is needed so all the elements that cannot be compared such
+            # as dataframes and numpy arrays are grouped together in the
+            # variable explorer. For more info see spyder-ide/spyder#14527
+            return True
+
 
 # =============================================================================
 # Tests
