@@ -467,6 +467,8 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
 
     See spyder-ide/spyder#11821
     """
+    CONF.set('editor', 'save_all_before_run', False)
+
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -495,6 +497,8 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: check_text(webpage, "Matrix or vector norm."),
         timeout=6000)
+
+    CONF.set('editor', 'save_all_before_run', True)
 
 
 @pytest.mark.slow
