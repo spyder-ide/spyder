@@ -267,34 +267,25 @@ extras_require = {
 
 spyder_plugins_entry_points = [
     'appearance = spyder.plugins.appearance.plugin:Appearance',
+    'application = spyder.plugins.application.plugin:Application',
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
-    ('code_completion = spyder.plugins.completion.manager.plugin:'
-     'CompletionManager'),
-    'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
-    ('fallback_completion = spyder.plugins.completion.fallback.plugin:'
-     'FallbackPlugin'),
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
     'historylog = spyder.plugins.history.plugin:HistoryLog',
-    'ipython_console = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
-    ('kite_completion = spyder.plugins.completion.kite.plugin:'
-     'KiteCompletionPlugin'),
+    'internal_console = spyder.plugins.console.plugin:Console',
+    'main_interpreter = spyder.plugins.maininterpreter.plugin:MainInterpreter',
+    'mainmenu = spyder.plugins.mainmenu.plugin:MainMenu',
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
-    'outline_explorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
     'plots = spyder.plugins.plots.plugin:Plots',
     'preferences = spyder.plugins.preferences.plugin:Preferences',
     'profiler = spyder.plugins.profiler.plugin:Profiler',
-    'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
-    ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
-     'LanguageServerPlugin'),
-    'python = spyder.plugins.python.plugin:Python',
+    'run = spyder.plugins.run.plugin:Run',
     'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
-    ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
-     'VariableExplorer'),
-    ('workingdir = spyder.plugins.workingdirectory.plugin:'
-     'WorkingDirectory'),
+    'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
+    'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
+    'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]
 
 
