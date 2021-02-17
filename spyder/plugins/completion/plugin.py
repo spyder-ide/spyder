@@ -245,14 +245,7 @@ class CompletionPlugin(SpyderPluginV2):
                 self.sig_pythonpath_changed)
             # self.main.sig_setup_finished.connect(self.setup_finished)
 
-        for provider_name in self.providers:
-            provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.STOPPED:
-                # TODO: Register status bar widgets
-                provider_enabled = self.get_conf_option(
-                    ('enabled_providers', provider_name), True)
-                if provider_enabled:
-                    provider_info['instance'].start()
+        self.start_all_providers()
 
     def unregister(self):
         """Stop all running completion providers."""
@@ -534,7 +527,7 @@ class CompletionPlugin(SpyderPluginV2):
                     current_defaults.pop(key)
                     current_conf_values.pop(key)
 
-        return str(provider_conf_version), current_conf_values, provider_defaults
+        return str(provider_conf_version), current_conf_values, current_defaults
 
     def get_provider_configuration(self, Provider: SpyderCompletionProvider,
                                    provider_name: str) -> dict:
@@ -628,6 +621,16 @@ class CompletionPlugin(SpyderPluginV2):
         for language in self.language_status:
             server_status = self.language_status[language]
             server_status[provider_name] = False
+
+    def start_all_providers(self):
+        """Start all detected completion providers."""
+        for provider_name in self.providers:
+            provider_info = self.providers[provider_name]
+            if provider_info['status'] == self.STOPPED:
+                provider_enabled = self.get_conf_option(
+                    ('enabled_providers', provider_name), True)
+                if provider_enabled:
+                    provider_info['instance'].start()
 
     @Slot(str)
     def provider_available(self, provider_name: str):

@@ -130,7 +130,8 @@ class LSPStatusWidget(StatusBarWidget):
 
         # Don't update the status in case the editor and LSP languages
         # are different.
-        if self.current_language.lower() != lsp_language:
+        if (self.current_language is None or
+                self.current_language.lower() != lsp_language):
             return
         else:
             self.set_status(self.current_language, status)

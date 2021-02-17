@@ -23,7 +23,8 @@ from spyder.plugins.preferences.tests.conftest import config_dialog
 
 fallback = pkg_resources.EntryPoint.parse(
     'fallback = spyder.plugins.completion.providers.fallback.provider:'
-    'FallbackProvider')
+    'FallbackProvider'
+)
 
 snippets = pkg_resources.EntryPoint.parse(
     'snippets = spyder.plugins.completion.providers.snippets.provider:'
