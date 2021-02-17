@@ -266,7 +266,7 @@ class SearchThread(QThread):
                 self.num_files += 1
 
             line = self.truncate_result(line, colno, match_end)
-            item = (filename, lineno, colno, line)
+            item = (filename, lineno, colno, line, match_end)
             items.append(item)
 
         # Process title
@@ -941,7 +941,7 @@ class ItemDelegate(QStyledItemDelegate):
 
 
 class ResultsBrowser(OneColumnTree):
-    sig_edit_goto = Signal(str, int, str)
+    sig_edit_goto = Signal(str, int, int, int)
     sig_max_results_reached = Signal()
 
     def __init__(self, parent, text_color=None, max_results=1000):
@@ -978,8 +978,8 @@ class ResultsBrowser(OneColumnTree):
         """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
-            filename, lineno, colno = itemdata
-            self.sig_edit_goto.emit(filename, lineno, self.search_text)
+            filename, lineno, colno, colend = itemdata
+            self.sig_edit_goto.emit(filename, lineno, colno, colend - colno)
 
     def set_sorting(self, flag):
         """Enable result sorting after search is complete."""
@@ -1032,12 +1032,12 @@ class ResultsBrowser(OneColumnTree):
         self.setUpdatesEnabled(False)
         self.set_title(title)
         for item in items:
-            filename, lineno, colno, line = item
+            filename, lineno, colno, line, match_end = item
             file_item = self.files.get(filename, None)
             if file_item:
                 item = LineMatchItem(file_item, lineno, colno, line,
                                      self.font, self.text_color)
-                self.data[id(item)] = (filename, lineno, colno)
+                self.data[id(item)] = (filename, lineno, colno, match_end)
         self.setUpdatesEnabled(True)
 
     def set_max_results(self, value):
