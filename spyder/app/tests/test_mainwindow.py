@@ -14,6 +14,7 @@ Tests for the main window.
 from distutils.version import LooseVersion
 import os
 import os.path as osp
+import pkg_resources
 import re
 import shutil
 import sys
@@ -142,6 +143,44 @@ def find_desired_tab_in_window(tab_name, window):
     return None, None
 
 
+def register_all_providers():
+    """Create a entry points distribution to register all the providers."""
+    fallback = pkg_resources.EntryPoint.parse(
+        'fallback = spyder.plugins.completion.providers.fallback.provider:'
+        'FallbackProvider'
+    )
+    snippets = pkg_resources.EntryPoint.parse(
+        'snippets = spyder.plugins.completion.providers.snippets.provider:'
+        'SnippetsProvider'
+    )
+    lsp = pkg_resources.EntryPoint.parse(
+        'lsp = spyder.plugins.completion.providers.languageserver.provider:'
+        'LanguageServerProvider'
+    )
+
+    # Create a fake Spyder distribution
+    d = pkg_resources.Distribution(__file__)
+
+    # Add the providers to the fake EntryPoint
+    d._ep_map = {
+        'spyder.completions': {
+            'fallback': fallback,
+            'snippets': snippets,
+            'lsp': lsp
+        }
+    }
+    # Add the fake distribution to the global working_set
+    pkg_resources.working_set.add(d, 'spyder')
+
+
+def remove_fake_distribution():
+    """Remove fake entry points from pkg_resources"""
+    pkg_resources.working_set.by_key.pop('unknown')
+    pkg_resources.working_set.entry_keys.pop('spyder')
+    pkg_resources.working_set.entry_keys.pop(__file__)
+    pkg_resources.working_set.entries.remove('spyder')
+
+
 # =============================================================================
 # ---- Fixtures
 # =============================================================================
@@ -149,6 +188,8 @@ def find_desired_tab_in_window(tab_name, window):
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
+    register_all_providers()
+
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
@@ -261,6 +302,7 @@ def cleanup(request):
                 main_window.window.close()
             except AttributeError:
                 pass
+        remove_fake_distribution()
 
     request.addfinalizer(remove_test_dir)
 
@@ -601,14 +643,14 @@ def test_get_help_editor(main_window, qtbot, object_info):
     main_window.editor.new(fname="test.py", text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_open()
 
     # Write some object in the editor
     object_name, expected_text = object_info
     code_editor.set_text(object_name)
     code_editor.move_cursor(len(object_name))
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     # Get help
@@ -1982,10 +2024,12 @@ def example_def_2():
     main_window.editor.set_current_filename(str(file_a))
 
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_open()
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.request_symbols()
 
     qtbot.wait(9000)
@@ -2045,10 +2089,12 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     main_window.editor.load(str(file))
 
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_open()
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.request_symbols()
 
     qtbot.wait(5000)
@@ -2610,13 +2656,15 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_no_def)
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_open()
 
     # Move cursor to the left one character to be next to
     # FramelessWindowHint
     code_editor.move_cursor(-1)
-    with qtbot.waitSignal(code_editor.lsp_response_signal):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal):
         code_editor.go_to_definition_from_cursor()
 
     # Capture stderr and assert there are no errors
@@ -2629,12 +2677,14 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_def)
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_open()
 
     # Move cursor to the left one character to be next to QtCore
     code_editor.move_cursor(-1)
-    with qtbot.waitSignal(code_editor.lsp_response_signal):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal):
         code_editor.go_to_definition_from_cursor()
 
     def _get_filenames():
@@ -3577,10 +3627,10 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     # Wait until the LSP server is up.
     code_editor = main_window.editor.get_current_editor()
-    qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000)
+    qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000)
 
     # Wait until the initial requests are sent to the server.
-    lsp = main_window.completions.get_client('lsp')
+    lsp = main_window.completions.get_provider('lsp')
     python_client = lsp.clients['python']
     qtbot.wait(5000)
 
@@ -3591,6 +3641,8 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         (3, 'workspace/didChangeWorkspaceFolders'),
         (4, 'textDocument/didOpen'),
     ]
+
+    print(python_client['instance']._requests)
 
     assert python_client['instance']._requests[:5] == expected_requests
 
