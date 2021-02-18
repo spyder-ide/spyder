@@ -59,8 +59,8 @@ responses = {
 @pytest.mark.slow
 @pytest.mark.second
 @flaky(max_runs=5)
-def test_folding(lsp_codeeditor, qtbot):
-    code_editor, _ = lsp_codeeditor
+def test_folding(completions_codeeditor, qtbot):
+    code_editor, _ = completions_codeeditor
     code_editor.toggle_code_folding(True)
     code_editor.insert_text(text)
     folding_panel = code_editor.panels.get('FoldingPanel')
