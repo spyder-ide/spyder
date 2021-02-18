@@ -192,10 +192,10 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when an LSP request is sent to the LSP manager
     sig_perform_completion_request = Signal(str, str, dict)
 
-    #: Signal emitted when a response is received from an LSP server
+    #: Signal emitted when a response is received from the completion plugin
     # For now it's only used on tests, but it could be used to track
-    # and profile LSP diagnostics.
-    lsp_response_signal = Signal(str, object)
+    # and profile completion diagnostics.
+    completions_response_signal = Signal(str, object)
 
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str, bool)
@@ -983,7 +983,7 @@ class CodeEditor(TextEditBaseWidget):
             handler(params)
             # This signal is only used on tests.
             # It could be used to track and profile LSP diagnostics.
-            self.lsp_response_signal.emit(method, params)
+            self.completions_response_signal.emit(method, params)
 
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""

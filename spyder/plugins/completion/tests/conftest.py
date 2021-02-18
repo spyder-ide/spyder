@@ -154,13 +154,13 @@ completion_plugin_all = create_completion_plugin(
     remove_fake_distribution=remove_fake_distribution)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def completion_plugin_all_started(request, qtbot_module,
                                   completion_plugin_all):
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
 
     completion_plugin = completion_plugin_all
 
+    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     completion_plugin.wait_for_ms = 20000
     completion_plugin.start_all_providers()
 
@@ -180,12 +180,14 @@ def completion_plugin_all_started(request, qtbot_module,
     qtbot_module.waitUntil(wait_until_all_started, timeout=30000)
 
     with qtbot_module.waitSignal(
-            completion_plugin.sig_language_client_available, timeout=30000):
+            completion_plugin.sig_language_client_available, timeout=30000) as blocker:
         completion_plugin.start_providers('python')
+
+    capabilities, _ = blocker.args
 
     def teardown():
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
         completion_plugin.unregister()
 
     request.addfinalizer(teardown)
-    return completion_plugin
+    return completion_plugin, capabilities

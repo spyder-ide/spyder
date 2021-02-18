@@ -41,8 +41,9 @@ class FakeProvider(SpyderCompletionProvider):
 
 @pytest.fixture
 def completion_receiver(completion_plugin_all_started):
+    completion_plugin, _ = completion_plugin_all_started
     receiver = DummyCompletionReceiver(None)
-    return completion_plugin_all_started, receiver
+    return completion_plugin, receiver
 
 
 def test_configuration_merge(completion_plugin):

@@ -52,7 +52,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('enable_hover_hints', True),
         ('show_lsp_down_warning', True),
         ('code_completion', True),
-        ('code_snippets', True),
+        # ('code_snippets', True),
         ('jedi_definition', True),
         ('jedi_definition/follow_imports', True),
         ('jedi_signature_help', True),
@@ -758,7 +758,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
-            'include_params':  self.get_option('code_snippets')
+            'include_params':  self.get_option('enable_code_snippets',
+                                               section='completions')
         }
         jedi_signature_help = {
             'enabled': self.get_option('jedi_signature_help')

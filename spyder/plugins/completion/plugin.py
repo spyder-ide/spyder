@@ -292,7 +292,7 @@ class CompletionPlugin(SpyderPluginV2):
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
 
-        for provider in providers_to_update:
+        for provider in self.providers:
             self.update_provider_configuration(provider)
 
     def on_mainwindow_visible(self):

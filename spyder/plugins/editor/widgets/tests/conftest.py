@@ -23,11 +23,12 @@ from qtpy.QtGui import QFont
 from spyder.config.manager import CONF
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
-from spyder.plugins.completion.languageserver.tests.conftest import (
-    qtbot_module, MainWindowMock, MainWindowWidgetMock)
+from spyder.plugins.completion.tests.conftest import (
+    qtbot_module, MainWindowMock, completion_plugin_all_started,
+    completion_plugin_all)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
-from spyder.plugins.completion.manager.plugin import CompletionManager
+# from spyder.plugins.completion.manager.plugin import CompletionManager
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.py3compat import PY2, to_text_string
 from spyder.widgets.findreplace import FindReplace
@@ -67,70 +68,6 @@ def setup_editor(qtbot):
     finfo = editorStack.new('foo.py', 'utf-8', text)
     qtbot.addWidget(editorStack)
     return editorStack, finfo.editor
-
-
-@pytest.fixture
-def fallback_codeeditor(qtbot_module, request):
-    """CodeEditor instance with Fallback enabled."""
-
-    completions = CompletionManager(None, ['fallback'])
-    completions.start()
-    completions.start_client('python')
-    completions.language_status['python']['fallback'] = True
-    qtbot_module.addWidget(completions)
-
-    # Create a CodeEditor instance
-    editor = codeeditor_factory()
-    qtbot_module.addWidget(editor)
-    editor.show()
-
-    # Redirect editor fallback requests to FallbackActor
-    editor.sig_perform_completion_request.connect(completions.send_request)
-    editor.filename = 'test.py'
-    editor.language = 'Python'
-    editor.completions_available = True
-    qtbot_module.wait(2000)
-
-    def teardown():
-        completions.shutdown()
-        editor.hide()
-        editor.completion_widget.hide()
-
-    request.addfinalizer(teardown)
-    fallback = completions.get_client('fallback')
-    return editor, fallback
-
-
-@pytest.fixture
-def snippets_codeeditor(qtbot_module, request):
-    """CodeEditor instance with text snippets enabled."""
-    completions = CompletionManager(None, ['snippets'])
-    completions.start()
-    completions.start_client('python')
-    completions.language_status['python']['snippets'] = True
-    qtbot_module.addWidget(completions)
-
-    # Create a CodeEditor instance
-    editor = codeeditor_factory()
-    qtbot_module.addWidget(editor)
-    editor.show()
-
-    # Redirect editor snippets requests to SnippetsActor
-    editor.sig_perform_completion_request.connect(completions.send_request)
-    editor.filename = 'test.py'
-    editor.language = 'Python'
-    editor.completions_available = True
-    qtbot_module.wait(2000)
-
-    def teardown():
-        completions.shutdown()
-        editor.hide()
-        editor.completion_widget.hide()
-
-    request.addfinalizer(teardown)
-    snippets = completions.get_client('snippets')
-    snippets.update_configuration()
-    return editor, snippets
 
 
 @pytest.fixture
@@ -178,35 +115,6 @@ def kite_codeeditor(qtbot_module, request):
     return editor, kite
 
 
-@pytest.fixture(scope='function')
-def lsp_plugin(qtbot_module, request):
-    # Activate pycodestyle and pydocstyle
-    CONF.set('lsp-server', 'pycodestyle', True)
-    CONF.set('lsp-server', 'pydocstyle', True)
-    CONF.set('lsp-server', 'stdio', False)
-    CONF.set('lsp-server', 'code_snippets', False)
-
-    # Create the manager
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
-
-    main = MainWindowMock()
-    completions = CompletionManager(main, ['lsp'])
-    completions.start()
-    with qtbot_module.waitSignal(
-            main.editor.sig_lsp_initialized, timeout=30000):
-        completions.start_client('python')
-    completions.language_status['python']['lsp'] = True
-
-    def teardown():
-        completions.shutdown()
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-        CONF.set('lsp-server', 'pycodestyle', False)
-        CONF.set('lsp-server', 'pydocstyle', False)
-
-    request.addfinalizer(teardown)
-    return completions
-
-
 @pytest.fixture
 def mock_completions_codeeditor(qtbot_module, request):
     """CodeEditor instance with ability to mock the completions response.
@@ -242,23 +150,32 @@ def mock_completions_codeeditor(qtbot_module, request):
 
 
 @pytest.fixture
-def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
+def completions_codeeditor(completion_plugin_all_started, qtbot_module,
+                           request, capsys):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = codeeditor_factory()
     qtbot_module.addWidget(editor)
 
+    completion_plugin, capabilities = completion_plugin_all_started
+    completion_plugin.wait_for_ms = 2000
+
+    CONF.set('completions', 'enable_code_snippets', False)
+    completion_plugin.after_configuration_update([])
+
     # Redirect editor LSP requests to lsp_manager
-    editor.sig_perform_completion_request.connect(lsp_plugin.send_request)
+    editor.sig_perform_completion_request.connect(
+        completion_plugin.send_request)
 
     editor.filename = 'test.py'
     editor.language = 'Python'
-    lsp_plugin.register_file('python', 'test.py', editor)
-    capabilities = lsp_plugin.main.editor.completion_capabilities['python']
+
+    completion_plugin.register_file('python', 'test.py', editor)
     editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
-    with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
+    with qtbot_module.waitSignal(
+            editor.completions_response_signal, timeout=30000):
         editor.document_did_open()
 
     def teardown():
@@ -275,16 +192,16 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
         assert sys_err == ''
 
     request.addfinalizer(teardown)
-    lsp_plugin = lsp_plugin.get_client('lsp')
+    # lsp_plugin = lsp_plugin.get_client('lsp')
 
     editor.show()
 
-    return editor, lsp_plugin
+    return editor, completion_plugin
 
 
 @pytest.fixture
-def search_codeeditor(lsp_codeeditor, qtbot_module, request):
-    code_editor, _ = lsp_codeeditor
+def search_codeeditor(completions_codeeditor, qtbot_module, request):
+    code_editor, _ = completions_codeeditor
     find_replace = FindReplace(None, enable_replace=True)
     find_replace.set_editor(code_editor)
     qtbot_module.addWidget(find_replace)
