@@ -150,10 +150,6 @@ class ApplicationToolbar(SpyderToolbar):
     This is used by Qt to be able to save and restore the state of widgets.
     """
 
-    def _check_interface(self):
-        if self.ID is None:
-            raise SpyderAPIError("Toolbar must define an ID attribute.")
-
 
 class MainWidgetToolbar(SpyderToolbar):
     """
