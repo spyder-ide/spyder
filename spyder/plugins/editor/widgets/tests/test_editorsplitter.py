@@ -48,11 +48,11 @@ def editor_splitter_bot(qtbot):
 
 
 @pytest.fixture
-def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
+def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
     text = """
     import sys
     """
-    completions = lsp_plugin
+    completions, capabilities  = completion_plugin_all_started
 
     def report_file_open(options):
         filename = options['filename']
@@ -60,21 +60,17 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         callback = options['codeeditor']
         completions.register_file(
             language.lower(), filename, callback)
-        capabilities = (
-            completions.main.editor.completion_capabilities['python'])
         callback.start_completion_services()
         callback.register_completion_capabilities(capabilities)
 
         with qtbot_module.waitSignal(
-                callback.lsp_response_signal, timeout=30000):
+                callback.completions_response_signal, timeout=30000):
             callback.document_did_open()
 
     def register_editorstack(editorstack):
         editorstack.sig_perform_completion_request.connect(
             completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
-        capabilities = (
-            completions.main.editor.completion_capabilities['python'])
         editorstack.register_completion_capabilities(capabilities, 'python')
 
     def clone(editorstack, template=None):
@@ -104,7 +100,7 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         editorsplitter.close()
 
     request.addfinalizer(teardown)
-    lsp = completions.get_client('lsp')
+    lsp = completions.get_provider('lsp')
     return editorsplitter, lsp
 
 
