@@ -206,10 +206,18 @@ class SearchThread(QThread):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
+                        bstart, bend = match.start(), match.end()
+                        try:
+                            # Go from binary position to utf8 position
+                            start = len(line[:bstart].decode(enc))
+                            end = start + len(line[bstart:bend].decode(enc))
+                        except UnicodeDecodeError:
+                            start = bstart
+                            end = bend
                         self.partial_results.append((osp.abspath(fname),
                                                      lineno + 1,
-                                                     match.start(),
-                                                     match.end(),
+                                                     start,
+                                                     end,
                                                      line_dec))
                         if len(self.partial_results) > (2**self.power):
                             self.process_results()
@@ -222,10 +230,18 @@ class SearchThread(QThread):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
+                        try:
+                            # Go from binary position to utf8 position
+                            start = len(line[:found].decode(enc))
+                            end = start + len(text.decode(enc))
+                        except UnicodeDecodeError:
+                            start = found
+                            end = found + len(text)
+
                         self.partial_results.append((osp.abspath(fname),
                                                      lineno + 1,
-                                                     found,
-                                                     found + len(text),
+                                                     start,
+                                                     end,
                                                      line_dec))
                         if len(self.partial_results) > (2**self.power):
                             self.process_results()
