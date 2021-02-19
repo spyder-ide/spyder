@@ -19,6 +19,7 @@ from qtpy.QtWidgets import QMenu, QToolBar
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
+from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
 
@@ -300,13 +301,7 @@ class ToolbarContainer(PluginMainContainer):
         """
         main_section = ToolbarsMenuSections.Main
         secondary_section = ToolbarsMenuSections.Secondary
-        default_toolbars = [
-            ApplicationToolbars.File,
-            ApplicationToolbars.Run,
-            ApplicationToolbars.Debug,
-            ApplicationToolbars.Main,
-            ApplicationToolbars.WorkingDirectory
-        ]
+        default_toolbars = get_class_values(ApplicationToolbars)
 
         for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
             if toolbar:
