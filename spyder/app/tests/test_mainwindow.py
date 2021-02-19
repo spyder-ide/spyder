@@ -3869,9 +3869,10 @@ def test_print_comms(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="UTF8 on Windows")
 def test_goto_find(main_window, qtbot, tmpdir):
     """Test find goes to the right place."""
-
+    # Use UTF8 only character to make sure positions are respected
     code = "we Weee wee\nWe\n🚫 wee"
     match_positions = [
         (0, 2),
