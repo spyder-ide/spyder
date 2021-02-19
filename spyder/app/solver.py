@@ -168,7 +168,8 @@ def solve_plugin_dependencies(plugins):
     plugin_names = {plugin.NAME: plugin for plugin in plugins}
     # TODO: Remove the next line once the migration is finished (it
     # shouldn't be necessary)
-    plugin_names.update(find_internal_plugins())
+    internal_plugins = find_internal_plugins()
+    plugin_names.update(internal_plugins)
     dependencies_dict = {}
 
     # Prune plugins based on required dependencies
@@ -199,6 +200,10 @@ def solve_plugin_dependencies(plugins):
     deps = toposort_flatten(dependencies_dict)
 
     # Convert back from names to plugins
-    plugin_deps = [plugin_names[name] for name in deps]
+    # TODO: Remove the if part when the migration is done!
+    plugin_deps = [
+        plugin_names[name] for name in deps
+        if name not in internal_plugins.keys()
+    ]
 
     return plugin_deps
