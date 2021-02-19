@@ -3872,13 +3872,13 @@ def test_print_comms(main_window, qtbot):
 def test_goto_find(main_window, qtbot, tmpdir):
     """Test find goes to the right place."""
 
-    code = "we Weee wee\nWe\nwee"
+    code = "we Weee wee\nWe\n🚫 wee"
     match_positions = [
         (0, 2),
         (3, 7),
         (8, 11),
         (12, 14),
-        (15, 18)
+        (17, 20)
     ]
     subdir = tmpdir.mkdir("find-sub")
     p = subdir.join("find-test.py")
@@ -3910,7 +3910,7 @@ def test_goto_find(main_window, qtbot, tmpdir):
         findinfiles.result_browser.activated(item)
         cursor = code_editor.textCursor()
         position = (cursor.selectionStart(), cursor.selectionEnd())
-        assert position in match_positions
+        assert position == match_positions[i]
 
 
 if __name__ == "__main__":
