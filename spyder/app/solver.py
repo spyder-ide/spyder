@@ -166,6 +166,9 @@ def solve_plugin_dependencies(plugins):
         plugin._OPTIONAL = plugin.OPTIONAL.copy()
 
     plugin_names = {plugin.NAME: plugin for plugin in plugins}
+    # TODO: Remove the next line once the migration is finished (it
+    # shouldn't be necessary)
+    plugin_names.update(find_internal_plugins())
     dependencies_dict = {}
 
     # Prune plugins based on required dependencies

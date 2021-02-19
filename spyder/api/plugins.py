@@ -574,7 +574,6 @@ class Plugins:
     """
     Application = 'application'
     Breakpoints = 'breakpoints'
-    CodeAnalysis = 'code_analysis'
     CodeCompletion = 'code_completion'
     KiteCompletion = 'kite'
     FallBackCompletion = 'fallback'
