@@ -3878,7 +3878,7 @@ def test_goto_find(main_window, qtbot, tmpdir):
         (3, 7),
         (8, 11),
         (12, 14),
-        (17, 20)
+        (18, 21)
     ]
     subdir = tmpdir.mkdir("find-sub")
     p = subdir.join("find-test.py")
