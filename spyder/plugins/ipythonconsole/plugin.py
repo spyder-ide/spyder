@@ -78,7 +78,7 @@ class IPythonConsole(SpyderPluginWidget):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor]
+    OPTIONAL = [Plugins.Editor, Plugins.History]
 
     # Signals
     focus_changed = Signal()
