@@ -40,6 +40,10 @@ from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 
 
+# Maximum number of lines to load
+MAX_LINES = 1000
+
+
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
                       BrowseHistoryMixin):
     """
@@ -504,7 +508,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
                    if line and not line.startswith('#')]
 
         # Truncating history to X entries:
-        while len(history) >= CONF.get('historylog', 'max_entries'):
+        while len(history) >= MAX_LINES:
             del history[0]
             while rawhistory[0].startswith('#'):
                 del rawhistory[0]
@@ -759,9 +763,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def postprocess_keyevent(self, event):
         """Process keypress event"""
         ShellBaseWidget.postprocess_keyevent(self, event)
-        if QToolTip.isVisible():
-            _event, _text, key, _ctrl, _shift = restore_keyevent(event)
-            self.hide_tooltip_if_necessary(key)
 
     def _key_other(self, text):
         """1 character key"""

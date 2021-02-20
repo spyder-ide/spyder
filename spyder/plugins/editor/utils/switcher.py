@@ -11,16 +11,13 @@ Editor Switcher manager.
 # Standard library imports
 import os.path as osp
 
-# Third party imports
-from qtpy.QtGui import QIcon
-
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.switcher import shorten_paths, get_file_icon
 from spyder.plugins.completion.manager.api import (
-    SymbolKind, BLOCK_COMMENT, CELL, SYMBOL_KIND_ICON)
+    SymbolKind, SYMBOL_KIND_ICON)
 
 
 class EditorSwitcherManager(object):
@@ -139,7 +136,6 @@ class EditorSwitcherManager(object):
         self._switcher.set_placeholder_text(_('Select symbol'))
         oe_symbols = editor.oe_proxy.info or []
         display_variables = CONF.get('outline_explorer', 'display_variables')
-        group_cells = CONF.get('outline_explorer', 'group_cells')
 
         idx = 0
         total_symbols = len(oe_symbols)

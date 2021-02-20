@@ -853,12 +853,6 @@ class BaseEditMixin(object):
 
 
     #------Selection
-    def clear_selection(self):
-        """Clear current selection"""
-        cursor = self.textCursor()
-        cursor.clearSelection()
-        self.setTextCursor(cursor)
-
     def extend_selection_to_next(self, what='word', direction='left'):
         """
         Extend selection to next *what* ('word' or 'character')
@@ -897,15 +891,25 @@ class BaseEditMixin(object):
         start_cursor.setPosition(end_position, mode=QTextCursor.KeepAnchor)
         return self.get_selected_text(start_cursor)
 
-    def get_text(self, position_from, position_to):
-        """
-        Return text between *position_from* and *position_to*
-        Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
+    def get_text(self, position_from, position_to, remove_newlines=True):
+        """Returns text between *position_from* and *position_to*.
+
+        Positions may be integers or 'sol', 'eol', 'sof', 'eof' or 'cursor'.
+
+        Unless position_from='sof' and position_to='eof' any trailing newlines
+        in the string are removed. This was added as a workaround for
+        spyder-ide/spyder#1546 and later caused spyder-ide/spyder#14374.
+        The behaviour can be overridden by setting the optional parameter
+        *remove_newlines* to False.
+
+        TODO: Evaluate if this is still a problem and if the workaround can
+              be moved closer to where the problem occurs.
         """
         cursor = self.__select_text(position_from, position_to)
         text = to_text_string(cursor.selectedText())
-        all_text = position_from == 'sof' and position_to == 'eof'
-        if text and not all_text:
+        if remove_newlines:
+            remove_newlines = position_from != 'sof' or position_to != 'eof'
+        if text and remove_newlines:
             while text.endswith("\n"):
                 text = text[:-1]
             while text.endswith(u"\u2029"):
@@ -970,7 +974,7 @@ class BaseEditMixin(object):
         current_word = self.get_current_word(help_req=True)
 
         # Get max position to the left of cursor until space or no more
-        # charaters are left
+        # characters are left
         cursor.movePosition(QTextCursor.PreviousCharacter)
         while self.get_character(cursor.position()).strip():
             cursor.movePosition(QTextCursor.PreviousCharacter)
@@ -979,7 +983,7 @@ class BaseEditMixin(object):
         cursor_pos_left = cursor.position()
 
         # Get max position to the right of cursor until space or no more
-        # charaters are left
+        # characters are left
         cursor.setPosition(cursor_pos)
         while self.get_character(cursor.position()).strip():
             cursor.movePosition(QTextCursor.NextCharacter)
@@ -1166,6 +1170,12 @@ class BaseEditMixin(object):
     def remove_selected_text(self):
         """Delete selected text."""
         self.textCursor().removeSelectedText()
+        # The next three lines are a workaround for a quirk of
+        # QTextEdit. See spyder-ide/spyder#12663 and
+        # https://bugreports.qt.io/browse/QTBUG-35861
+        cursor = self.textCursor()
+        cursor.setPosition(cursor.position())
+        self.setTextCursor(cursor)
         self.document_did_change()
 
     def replace(self, text, pattern=None):

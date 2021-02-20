@@ -2,7 +2,6 @@
 #
 # Copyright © 2020 Spyder Project Contributors.
 # Licensed under the terms of the GPL-3.0 License
-# (see spyder/__init__.py for details)
 #
 # Copyright © 2018 Nicholas H.Tollervey.
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Script to create a windows installer using pynsist.
+Script to create a Windows installer using pynsist.
 
 Based on the Mu's win_installer.py script
 https://github.com/mu-editor/mu/blob/master/win_installer.py
@@ -26,13 +25,23 @@ https://github.com/mu-editor/mu/blob/master/win_installer.py
 import argparse
 import importlib.util as iutil
 import os
+import requests
 import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 import yarg
 
+
+# URL to download assets that the installer needs and that will be put on
+# the assets directory when building the installer
+
+ASSETS_URL = os.environ.get(
+    'ASSETS_URL',
+    'https://github.com/spyder-ide/windows-installer-assets/'
+    'releases/download/0.0.1/assets.zip')
 
 # Packages to remove from the requirements for example pip or
 # external direct dependencies (python-language-server spyder-kernels)
@@ -44,7 +53,7 @@ UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', '').split()
 
 SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
 
-# Packages to be added to the packages section regardles wheel checks or
+# Packages to be added to the packages section regardless wheel checks or
 # packages skipped, for example external direct dependencies
 # (spyder-kernels python-language-server)
 
@@ -91,6 +100,9 @@ packages=
     {packages}
 files=black-20.8b1.dist-info > $INSTDIR/pkgs
     __main__.py > $INSTDIR/pkgs/jedi/inference/compiled/subprocess
+    lib
+    tcl86t.dll > $INSTDIR/pkgs
+    tk86t.dll > $INSTDIR/pkgs
 [Build]
 installer_name={installer_name}
 nsi_template={template}
@@ -196,7 +208,7 @@ def pypi_wheels_in(requirements, skip_packages):
 
 def package_name(requirement):
     """
-    Return the name component of a `name==version` formated requirement.
+    Return the name component of a `name==version` formatted requirement.
     """
     requirement_name = requirement.partition("==")[0].split("@")[0].strip()
     return requirement_name
@@ -281,6 +293,27 @@ def create_pynsist_cfg(
     return installer_exe
 
 
+def download_file(url, target_directory):
+    """
+    Download the URL to the target_directory and return the filename.
+    """
+    local_filename = os.path.join(target_directory, url.split("/")[-1])
+    r = requests.get(url, stream=True)
+    with open(local_filename, "wb") as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                f.write(chunk)
+    return local_filename
+
+
+def unzip_file(filename, target_directory):
+    """
+    Given a filename, unzip it into the given target_directory.
+    """
+    with zipfile.ZipFile(filename) as z:
+        z.extractall(target_directory)
+
+
 def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
         license_path, extra_packages=None, conda_path=None, suffix=None,
         template=None):
@@ -292,6 +325,13 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
     (locking the dependencies set in setup.py) is generated and pynsist runned.
     """
     try:
+        print("Setting up assets from", ASSETS_URL)
+        print("Downloading assets from ", ASSETS_URL)
+        filename = download_file(ASSETS_URL, 'installers/Windows/assets')
+
+        print("Unzipping assets to", 'installers/Windows/assets')
+        unzip_file(filename, 'installers/Windows/assets')
+
         with tempfile.TemporaryDirectory(
                 prefix="installer-pynsist-") as work_dir:
             print("Temporary working directory at", work_dir)
@@ -309,6 +349,17 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             shutil.copy(
                 "installers/Windows/assets/jedi/__main__.py",
                 os.path.join(work_dir, "__main__.py"))
+
+            print("Copying required assets for Tkinter to work")
+            shutil.copytree(
+                "installers/Windows/assets/tcl/lib",
+                os.path.join(work_dir, "lib"))
+            shutil.copy(
+                "installers/Windows/assets/tcl/tcl86t.dll",
+                os.path.join(work_dir, "tcl86t.dll"))
+            shutil.copy(
+                "installers/Windows/assets/tcl/tk86t.dll",
+                os.path.join(work_dir, "tk86t.dll"))
 
             print("Copying NSIS plugins into discoverable path")
             shutil.copy(

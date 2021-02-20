@@ -675,7 +675,7 @@ class FunctionInfo(object):
 
     @staticmethod
     def is_char_in_pairs(pos_char, pairs):
-        """Return True if the charactor is in pairs of brackets or quotes."""
+        """Return True if the character is in pairs of brackets or quotes."""
         for pos_left, pos_right in pairs.items():
             if pos_left < pos_char < pos_right:
                 return True

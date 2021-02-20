@@ -77,3 +77,40 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         """Reimplement Qt method to send focus change notification"""
         self.focus_changed.emit()
         return super(ControlWidget, self).focusOutEvent(event)
+
+
+class PageControlWidget(QTextEdit, BaseEditMixin):
+    """
+    Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
+    use as the paging widget for IPython widgets
+    """
+    QT_CLASS = QTextEdit
+    visibility_changed = Signal(bool)
+    show_find_widget = Signal()
+    focus_changed = Signal()
+
+    def __init__(self, parent=None):
+        QTextEdit.__init__(self, parent)
+        BaseEditMixin.__init__(self)
+        self.found_results = []
+
+    def showEvent(self, event):
+        """Reimplement Qt Method"""
+        self.visibility_changed.emit(True)
+
+    def keyPressEvent(self, event):
+        """Reimplement Qt Method - Basic keypress event handler"""
+        event, text, key, ctrl, shift = restore_keyevent(event)
+
+        if key == Qt.Key_Slash and self.isVisible():
+            self.show_find_widget.emit()
+
+    def focusInEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.focus_changed.emit()
+        return super(PageControlWidget, self).focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.focus_changed.emit()
+        return super(PageControlWidget, self).focusOutEvent(event)

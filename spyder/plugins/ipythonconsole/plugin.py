@@ -27,8 +27,8 @@ from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QMenu,
-                            QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QLabel,
+                            QMenu, QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
@@ -43,9 +43,9 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
-                                                   ConsoleRestartDialog,
-                                                   KernelConnectionDialog)
+from spyder.plugins.ipythonconsole.widgets import (
+    ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
+    PageControlWidget)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -186,6 +186,7 @@ class IPythonConsole(SpyderPluginWidget):
                 os.makedirs(osp.join(test_dir))
 
         layout = QVBoxLayout()
+        layout.setSpacing(0)
         self.tabwidget = Tabs(self, menu=self._options_menu,
                               actions=self.menu_actions,
                               rename_tabs=True,
@@ -225,6 +226,18 @@ class IPythonConsole(SpyderPluginWidget):
                 "background:{}".format(MAIN_BG_COLOR))
         self.set_infowidget_font()
         layout.addWidget(self.infowidget)
+
+        # Label to inform users how to get out of the pager
+        self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
+        self.pager_label.setStyleSheet(
+            "background-color: #3775A9;"
+            "color: white;"
+            "margin: 0px 4px 4px 4px;"
+            "padding: 5px;"
+            "qproperty-alignment: AlignCenter;"
+        )
+        self.pager_label.hide()
+        layout.addWidget(self.pager_label)
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -544,6 +557,11 @@ class IPythonConsole(SpyderPluginWidget):
             # Give focus to the control widget of the selected tab
             control = client.get_control()
             control.setFocus()
+
+            if isinstance(control, PageControlWidget):
+                self.pager_label.show()
+            else:
+                self.pager_label.hide()
 
             # Create corner widgets
             buttons = [[b, -7] for b in client.get_toolbar_buttons()]
@@ -887,12 +905,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Stop debugging"""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if not sw.is_waiting_pdb_input():
-                sw.interrupt_kernel()
-            try:
-                sw.pdb_execute_command("exit")
-            except AttributeError:
-                pass
+            sw.stop_debugging()
 
     def get_pdb_state(self):
         """Get debugging state of the current console."""
@@ -993,7 +1006,7 @@ class IPythonConsole(SpyderPluginWidget):
                                       is_pylab=is_pylab, is_sympy=is_sympy)
         if client.shellwidget.kernel_manager is None:
             return
-        self.register_client(client)
+        self.register_client(client, give_focus=give_focus)
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
@@ -1225,13 +1238,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Set font for client
         client.set_font(self.get_font())
 
-        # Connect focus signal to client's control widget
-        control.focus_changed.connect(lambda: self.focus_changed.emit())
-
-        shellwidget.sig_change_cwd.connect(self.set_working_directory)
-
         # Set editor for the find widget
         self.find_widget.set_editor(control)
+
+        # Connect to working directory
+        shellwidget.sig_change_cwd.connect(self.set_working_directory)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1660,19 +1671,22 @@ class IPythonConsole(SpyderPluginWidget):
     #------ Private API -------------------------------------------------------
     def _init_asyncio_patch(self):
         """
-        Same workaround fix as https://github.com/ipython/ipykernel/pull/456
-        Set default asyncio policy to be compatible with tornado
-        Tornado 6 (at least) is not compatible with the default
-        asyncio implementation on Windows
-        Pick the older SelectorEventLoopPolicy on Windows
-        if the known-incompatible default policy is in use.
-        Do this as early as possible to make it a low priority and overrideable
-        ref: https://github.com/tornadoweb/tornado/issues/2608
-        FIXME: if/when tornado supports the defaults in asyncio,
-               remove and bump tornado requirement for py38
-        Based on: jupyter/qtconsole#406
+        - This was fixed in Tornado 6.1!
+        - Same workaround fix as ipython/ipykernel#564
+        - ref: tornadoweb/tornado#2608
+        - On Python 3.8+, Tornado 6.0 is not compatible with the default
+          asyncio implementation on Windows. Pick the older
+          SelectorEventLoopPolicy if the known-incompatible default policy is
+          in use.
+        - Do this as early as possible to make it a low priority and
+          overrideable.
         """
         if os.name == 'nt' and PY38_OR_MORE:
+            # Tests on Linux hang if we don't leave this import here.
+            import tornado
+            if tornado.version_info >= (6, 1):
+                return
+
             import asyncio
             try:
                 from asyncio import (
@@ -1825,6 +1839,8 @@ class IPythonConsole(SpyderPluginWidget):
                  kernel_client.iopub_port,
                  kernel_client.stdin_port,
                  kernel_client.hb_port) = newports
+                # Save parameters to connect comm later
+                kernel_client.ssh_parameters = (hostname, sshkey, password)
             except Exception as e:
                 QMessageBox.critical(self, _('Connection error'),
                                    _("Could not open ssh tunnel. The "

@@ -13,13 +13,8 @@ $ python setup.py
 
 import os
 import sys
-import shutil
-import argparse
-import pkg_resources
 from logging import getLogger, StreamHandler, Formatter
 from setuptools import setup
-from dmgbuild import build_dmg
-from dmgbuild.core import DMGError
 
 # Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -29,18 +24,14 @@ logger = getLogger('spyder-macOS')
 logger.addHandler(h)
 logger.setLevel('INFO')
 
-# Setup paths
+# Define paths
 HERE = os.path.abspath(__file__)
 THISDIR = os.path.dirname(HERE)
 SPYREPO = os.path.realpath(os.path.join(THISDIR, '..', '..'))
 ICONFILE = os.path.join(SPYREPO, 'img_src', 'spyder.icns')
-
 SPYLINK = os.path.join(THISDIR, 'spyder')
-os.symlink(os.path.join(SPYREPO, 'spyder'), SPYLINK)
 
-from spyder import __version__ as SPYVER                         # noqa
-from spyder.config.utils import EDIT_FILETYPES, _get_extensions  # noqa
-from spyder.config.base import MAC_APP_NAME                      # noqa
+sys.path.append(SPYREPO)
 
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
@@ -77,8 +68,6 @@ def make_app_bundle(dist_dir, make_lite=False):
         File "<frozen zipimport>", line 177, in get_data
         KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
         Grammar3.8.6.final.0.pickle'
-    ipykernel :
-        ModuleNotFoundError: No module named 'ipykernel.datapub'
     ipython :
         [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
         Source file
@@ -93,17 +82,18 @@ def make_app_bundle(dist_dir, make_lite=False):
         No module named 'jinja2.ext'
     keyring :
         ModuleNotFoundError: No module named 'keyring.backends.<mod>'
+    pandas :
+        From Variable explorer: KeyError('pandas._libs.interval')
     parso :
-        NotADirectoryError: [Errno 20] Not a directory:
-        '<path>/Resources/lib/python38.zip/parso/python/grammar38.txt'
+        jedi.api.environment.InvalidPythonEnvironment: Could not get version
+        information for '/Users/rclary/opt/miniconda3/envs/c2w_37/bin/python':
+        InternalError("The subprocess /Users/rclary/opt/miniconda3/envs/c2w_37/
+        bin/python has crashed (EOFError('Ran out of input'), stderr=).")
     PIL :
         Library not loaded: @loader_path/.dylibs/libjpeg.9.dylib
         Note: only applicable to not-Lite build
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
-    pylint :
-        No module named pylint.__main__; 'pylint' is a package and cannot be
-        directly executed
     pyls :
         <path>/Contents/MacOS/python: No module named pyls
         Note: still occurs in alias mode
@@ -123,29 +113,46 @@ def make_app_bundle(dist_dir, make_lite=False):
         python38.zip/spyder/app/mac_stylesheet.qss'
     spyder_kernels :
         No module named spyder_kernels.console.__main__
+    textdistance :
+        NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
+        python39.zip/textdistance/libraries.json'
+    """
+    import shutil
+    import pkg_resources
 
-   """
+    from spyder import __version__ as SPYVER
+    from spyder.config.utils import EDIT_FILETYPES, _get_extensions
+    from spyder.config.base import MAC_APP_NAME
+
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'ipykernel', 'IPython',
-                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
-                'pyls', 'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
-                'sphinx', 'spyder', 'spyder_kernels']
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'IPython', 'jedi',
+                'jinja2', 'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
+                'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
+                'spyder_kernels', 'textdistance',
+                ]
+
+    EXCLUDE_EGG = ['py2app']
 
     if make_lite:
         INCLUDES = []
         EXCLUDES = [
-            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
+            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy', 'PIL'
         ]
+        EXCLUDE_EGG.append('pillow')
     else:
         INCLUDES = [
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
         ]
         EXCLUDES = []
-        PACKAGES.append('PIL')
+        PACKAGES.extend(['pandas', 'PIL'])
 
+    EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
+
+    FRAMEWORKS = ['/usr/local/lib/libspatialindex.dylib',
+                  '/usr/local/lib/libspatialindex_c.dylib']  # for rtree
 
     OPTIONS = {
         'optimize': 0,
@@ -154,6 +161,7 @@ def make_app_bundle(dist_dir, make_lite=False):
         'excludes': EXCLUDES,
         'iconfile': ICONFILE,
         'dist_dir': dist_dir,
+        'frameworks': FRAMEWORKS,
         'plist': {
             'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
                                        'CFBundleTypeName': 'Text File',
@@ -169,15 +177,19 @@ def make_app_bundle(dist_dir, make_lite=False):
     shutil.copy2(os.path.join(SPYREPO, 'scripts', 'spyder'), app_script_path)
 
     try:
+        os.symlink(os.path.join(SPYREPO, 'spyder'), SPYLINK)
         setup(app=[app_script_path], options={'py2app': OPTIONS})
     finally:
         os.remove(app_script_path)
+        os.remove(SPYLINK)
 
-    # Copy egg info from site-packages: fixes pkg_resources issue for pyls
+    # Copy egg info from site-packages: fixes several pkg_resources issues
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
                             'lib', f'python{PYVER[0]}.{PYVER[1]}')
     for dist in pkg_resources.working_set:
-        if dist.egg_info is None:
+        if (dist.egg_info is None or dist.key.startswith('pyobjc')
+                or dist.key in EXCLUDE_EGG):
+            logger.info(f'Skipping egg {dist.key}')
             continue
         egg = os.path.basename(dist.egg_info)
         dest = os.path.join(dest_dir, egg)
@@ -203,6 +215,11 @@ def make_disk_image(dist_dir, make_lite=False):
 
     """
     logger.info('Creating disk image...')
+
+    from dmgbuild import build_dmg
+    from dmgbuild.core import DMGError
+    from spyder import __version__ as SPYVER
+    from spyder.config.base import MAC_APP_NAME
 
     volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)
     dmgfile = os.path.join(dist_dir, 'Spyder')
@@ -234,6 +251,7 @@ def make_disk_image(dist_dir, make_lite=False):
 
 
 if __name__ == '__main__':
+    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--no-app', dest='make_app',
                         action='store_false', default=True,
@@ -253,15 +271,12 @@ if __name__ == '__main__':
 
     dist_dir = os.path.abspath(args.dist_dir)
 
-    try:
-        if args.make_app:
-            make_app_bundle(dist_dir, make_lite=args.make_lite)
-        else:
-            logger.info('Skipping app bundle.')
+    if args.make_app:
+        make_app_bundle(dist_dir, make_lite=args.make_lite)
+    else:
+        logger.info('Skipping app bundle.')
 
-        if args.make_dmg:
-            make_disk_image(dist_dir, make_lite=args.make_lite)
-        else:
-            logger.info('Skipping disk image.')
-    finally:
-        os.remove(SPYLINK)
+    if args.make_dmg:
+        make_disk_image(dist_dir, make_lite=args.make_lite)
+    else:
+        logger.info('Skipping disk image.')

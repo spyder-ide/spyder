@@ -76,6 +76,24 @@ DEFAULTS = [
               'window/is_maximized': True,
               'window/is_fullscreen': False,
               'window/prefs_dialog_size': (1050, 530),
+              'use_custom_margin': True,
+              'custom_margin': 0,
+              'use_custom_cursor_blinking': False,
+              'show_internal_errors': True,
+              'check_updates_on_startup': True,
+              'cursor/width': 2,
+              'completion/size': (300, 180),
+              'report_error/remember_token': False,
+              'show_tour_message': True,
+              }),
+            ('toolbar',
+             {
+              'enable': True,
+              'toolbars_visible': True,
+              'last_visible_toolbars': [],
+             }),
+            ('statusbar',
+             {
               'show_status_bar': True,
               'memory_usage/enable': True,
               'memory_usage/timeout': 2000,
@@ -83,16 +101,6 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'clock/enable': False,
               'clock/timeout': 1000,
-              'use_custom_margin': True,
-              'custom_margin': 0,
-              'use_custom_cursor_blinking': False,
-              'show_internal_errors': True,
-              'check_updates_on_startup': True,
-              'toolbars_visible': True,
-              'cursor/width': 2,
-              'completion/size': (300, 180),
-              'report_error/remember_token': False,
-              'show_tour_message': True,
               }),
             ('quick_layouts',
              {
@@ -241,7 +249,6 @@ DEFAULTS = [
             ('historylog',
              {
               'enable': True,
-              'max_entries': 100,
               'wrap': True,
               'go_to_eof': True,
               'line_numbers': False,
@@ -284,11 +291,10 @@ DEFAULTS = [
             ('explorer',
              {
               'enable': True,
-              'wrap': True,
               'name_filters': NAME_FILTERS,
               'show_hidden': False,
-              'show_all': True,
               'single_click_to_open': False,
+              'file_associations': {},
               }),
             ('find_in_files',
              {
@@ -495,6 +501,8 @@ DEFAULTS = [
               'explorer/paste file': 'Ctrl+V',
               'explorer/copy absolute path': 'Ctrl+Alt+C',
               'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
+              # ---- In plugins/findinfiles/plugin ----
+              'find_in_files/find in files': 'Ctrl+Alt+F',
               }),
             ('appearance', APPEARANCE),
             ('lsp-server',
@@ -549,6 +557,7 @@ DEFAULTS = [
               'show_installation_dialog': True,
               'show_onboarding': True,
               'show_installation_error_message': True,
+              'spyder_runs': 1
              }),
             ]
 
@@ -566,12 +575,15 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
-            'last_visible_toolbars',
             'spyder_pythonpath',
             'window/position',
             'window/prefs_dialog_size',
             'window/size',
             'window/state',
+            ]
+         ),
+        ('toolbar', [
+            'last_visible_toolbars',
             ]
          ),
         ('appearance', [
@@ -649,4 +661,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '61.2.0'
+CONF_VERSION = '66.0.0'

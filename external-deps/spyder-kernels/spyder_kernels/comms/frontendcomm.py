@@ -229,3 +229,34 @@ class FrontendComm(CommBase):
                 comm._msg_callback(msg)
         comm.handle_msg = handle_msg
         super(FrontendComm, self)._register_comm(comm)
+
+    def _remote_callback(self, call_name, call_args, call_kwargs):
+        """Call the callback function for the remote call."""
+        saved_stdout_write = sys.stdout.write
+        saved_stderr_write = sys.stderr.write
+        sys.stdout.write = WriteWrapper(saved_stdout_write, call_name)
+        sys.stderr.write = WriteWrapper(saved_stderr_write, call_name)
+        try:
+            return super(FrontendComm, self)._remote_callback(
+                call_name, call_args, call_kwargs)
+        finally:
+            sys.stdout.write = saved_stdout_write
+            sys.stderr.write = saved_stderr_write
+
+
+class WriteWrapper():
+    """Wrapper to warn user when text is printed."""
+
+    def __init__(self, write, name):
+        self._write = write
+        self._name = name
+        self._warning_shown = False
+
+    def __call__(self, string):
+        """Print warning once."""
+        if not self._warning_shown:
+            self._warning_shown = True
+            self._write(
+                "\nOutput from spyder call "
+                + repr(self._name) + ":\n")
+        return self._write(string)

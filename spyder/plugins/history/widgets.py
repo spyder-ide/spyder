@@ -32,6 +32,9 @@ _ = get_translation('spyder')
 
 # --- Constants
 # ----------------------------------------------------------------------------
+# Maximum number of lines to show
+MAX_LINES = 1000
+
 class HistoryWidgetActions:
     # Triggers
     MaximumHistoryEntries = 'maximum_history_entries_action'
@@ -56,7 +59,6 @@ class HistoryWidget(PluginMainWidget):
         'color_scheme_name': 'spyder/dark',
         'go_to_eof': True,
         'line_numbers': True,
-        'max_entries': 100,
         'wrap': True,
     }
 
@@ -119,13 +121,6 @@ class HistoryWidget(PluginMainWidget):
 
     def setup(self, options):
         # Actions
-        self.history_action = self.create_action(
-            HistoryWidgetActions.MaximumHistoryEntries,
-            text=_("History..."),
-            tip=_("Set history maximum entries"),
-            icon=self.create_icon('history'),
-            triggered=self.change_history_depth,
-        )
         self.wrap_action = self.create_action(
             HistoryWidgetActions.ToggleWrap,
             text=_("Wrap lines"),
@@ -141,8 +136,7 @@ class HistoryWidget(PluginMainWidget):
 
         # Menu
         menu = self.get_options_menu()
-        for item in [self.history_action, self.wrap_action,
-                     self.linenumbers_action]:
+        for item in [self.wrap_action, self.linenumbers_action]:
             self.add_item_to_menu(
                 item,
                 menu=menu,
@@ -227,10 +221,9 @@ class HistoryWidget(PluginMainWidget):
 
         text = normalize_eols(text)
         linebreaks = [m.start() for m in re.finditer('\n', text)]
-        maxNline = self.get_option('max_entries')
 
-        if len(linebreaks) > maxNline:
-            text = text[linebreaks[-maxNline - 1] + 1:]
+        if len(linebreaks) > MAX_LINES:
+            text = text[linebreaks[-MAX_LINES - 1] + 1:]
             # Avoid an error when trying to write the trimmed text to disk.
             # See spyder-ide/spyder#9093.
             try:
@@ -290,7 +283,7 @@ class HistoryWidget(PluginMainWidget):
         filename: str
             History file.
         command: str
-            Command to append to histroy file.
+            Command to append to history file.
         """
         if not is_text_string(filename):  # filename is a QString
             filename = to_text_string(filename.toUtf8(), 'utf-8')
@@ -303,32 +296,6 @@ class HistoryWidget(PluginMainWidget):
             self.editors[index].set_cursor_position('eof')
 
         self.tabwidget.setCurrentIndex(index)
-
-    @Slot()
-    @Slot(int)
-    def change_history_depth(self, depth=None):
-        """
-        Change history max entries.
-
-        Parameters
-        ----------
-        depth: int, optional
-            Number of entries to use for the history. If None, an input dialog
-            will be used. Default is None.
-        """
-        valid = True
-        if depth is None:
-            depth, valid = QInputDialog.getInt(
-                self,
-                _('History'),
-                _('Maximum entries'),
-                self.get_option('max_entries'),
-                10,
-                10000,
-            )
-
-        if valid:
-            self.set_option('max_entries', depth)
 
     def refresh(self):
         """Refresh widget and update find widget on current editor."""

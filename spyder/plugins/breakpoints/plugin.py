@@ -17,9 +17,10 @@ import os.path as osp
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.plugins import ApplicationMenus, Plugins, SpyderDockablePlugin
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.plugins.breakpoints.widgets.main_widget import BreakpointWidget
+from spyder.plugins.mainmenu.api import ApplicationMenus
 
 # Localization
 _ = get_translation('spyder')
@@ -39,6 +40,7 @@ class Breakpoints(SpyderDockablePlugin):
     """
     NAME = 'breakpoints'
     REQUIRES = [Plugins.Editor]
+    OPTIONAL = [Plugins.MainMenu]
     TABIFY = [Plugins.Help]
     WIDGET_CLASS = BreakpointWidget
     CONF_SECTION = NAME
@@ -98,6 +100,7 @@ class Breakpoints(SpyderDockablePlugin):
     def register(self):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
+        mainmenu = self.get_plugin(Plugins.MainMenu)
 
         # TODO: change name of this signal on editor
         editor.breakpoints_saved.connect(self.set_data)
@@ -123,9 +126,11 @@ class Breakpoints(SpyderDockablePlugin):
             icon=self.get_icon(),
         )
 
+        if mainmenu:
+            debug_menu = mainmenu.get_application_menu(ApplicationMenus.Debug)
+            mainmenu.add_item_to_application_menu(list_action, debug_menu)
+
         # TODO: Fix location once the sections are defined
-        debug_menu = self.get_application_menu(ApplicationMenus.Debug)
-        self.add_item_to_application_menu(list_action, debug_menu)
         editor.pythonfile_dependent_actions += [list_action]
 
     # --- Private API

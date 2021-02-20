@@ -28,7 +28,6 @@ import os
 import os.path as osp
 import subprocess
 import sys
-import shutil
 
 # Third party imports
 from setuptools import setup, find_packages
@@ -92,7 +91,9 @@ def get_data_files():
     """
     if sys.platform.startswith('linux'):
         data_files = [('share/applications', ['scripts/spyder.desktop']),
-                      ('share/icons', ['img_src/spyder.png'])]
+                      ('share/icons', ['img_src/spyder.png']),
+                      ('share/metainfo',
+                       ['scripts/org.spyder_ide.spyder.appdata.xml'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
                                    'img_src/spyder_reset.ico'])]
@@ -177,6 +178,7 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
+    python_requires='>=3.6',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
@@ -186,6 +188,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
@@ -221,9 +224,9 @@ install_requires = [
     'pylint>=1.0',
     'pyqt5<5.13',
     'pyqtwebengine<5.13',
-    'python-language-server[all]>=0.36.1,<1.0.0',
+    'python-language-server[all]>=0.36.2,<1.0.0',
     'pyls-black>=0.4.6',
-    'pyls-spyder>=0.1.1',
+    'pyls-spyder>=0.3.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
@@ -232,7 +235,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.10.0,<1.11.0',
+    'spyder-kernels>=1.10.1,<1.11.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -267,7 +270,6 @@ spyder_plugins_entry_points = [
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
     ('code_completion = spyder.plugins.completion.manager.plugin:'
      'CompletionManager'),
-    'core = spyder.plugins.core.plugin:Core',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
     ('fallback_completion = spyder.plugins.completion.fallback.plugin:'
@@ -281,12 +283,14 @@ spyder_plugins_entry_points = [
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
     'outline_explorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
     'plots = spyder.plugins.plots.plugin:Plots',
+    'preferences = spyder.plugins.preferences.plugin:Preferences',
     'profiler = spyder.plugins.profiler.plugin:Profiler',
     'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
     ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
      'LanguageServerPlugin'),
     'python = spyder.plugins.python.plugin:Python',
+    'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
     ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
      'VariableExplorer'),
     ('workingdir = spyder.plugins.workingdirectory.plugin:'

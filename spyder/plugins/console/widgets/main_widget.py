@@ -22,11 +22,9 @@ import sys
 # Third party imports
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 
 # Local imports
-from spyder.api.plugins import (SpyderPlugin, SpyderPluginV2,
-                                SpyderDockablePlugin)
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.app.solver import find_internal_plugins
@@ -53,7 +51,9 @@ class ConsoleWidgetActions:
     Environment = 'environment_action'
     ExternalEditor = 'external_editor_action'
     MaxLineCount = 'max_line_count_action'
-    Quit = 'quit_action'
+    # The name of the action needs to match name of the shortcut
+    # so 'Quit' is used instead of something like 'quit_action'
+    Quit = 'Quit'
     Run = 'run_action'
     SysPath = 'sys_path_action'
 
@@ -174,13 +174,15 @@ class ConsoleWidget(PluginMainWidget):
 
     def setup(self, options):
         # TODO: Move this to the shell
-        quit_action = self.create_action(
+        self.quit_action = self.create_action(
             ConsoleWidgetActions.Quit,
             text=_("&Quit"),
             tip=_("Quit"),
             icon=self.create_icon('exit'),
             triggered=self.sig_quit_requested,
             context=Qt.ApplicationShortcut,
+            shortcut_context="_",
+            register_shortcut=True
         )
         run_action = self.create_action(
             ConsoleWidgetActions.Run,
@@ -254,7 +256,7 @@ class ConsoleWidget(PluginMainWidget):
             )
 
         self.add_item_to_menu(
-            quit_action,
+            self.quit_action,
             menu=options_menu,
             section=ConsoleWidgetOptionsMenuSections.Quit,
         )
@@ -267,8 +269,6 @@ class ConsoleWidget(PluginMainWidget):
             self.shell.setMaximumBlockCount(value)
         elif option == 'wrap':
             self.shell.toggle_wrap_mode(value)
-        elif option == 'codecompletion/auto':
-            self.shell.set_codecompletion_auto(value)
         elif option == 'external_editor/path':
             self.shell.set_external_editor(value, '')
 
@@ -334,6 +334,12 @@ class ConsoleWidget(PluginMainWidget):
         Bind help instance to this console.
         """
         self.shell.help = help_plugin
+
+    def report_issue(self):
+        """Report an issue with the SpyderErrorDialog."""
+        self._report_dlg = SpyderErrorDialog(self, is_report=True)
+        self._report_dlg.set_color_scheme(self.get_option('color_theme'))
+        self._report_dlg.show()
 
     @Slot(dict)
     def handle_exception(self, error_data, sender=None, internal_plugins=None):

@@ -19,23 +19,13 @@ from qtpy.QtWidgets import (QAction, QSizePolicy, QToolBar, QToolButton,
                             QWidget)
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.config.gui import is_dark_interface
 
 
 # --- Constants
 # ----------------------------------------------------------------------------
-class ApplicationToolBars:
-    File = 'file_toolbar'
-    Run = 'run_toolbar'
-    Debug = 'defbug_toolbar'
-    Main = 'main_toolbar'
-    Search = 'search_toolbar'
-    Edit = 'edit_toolbar'
-    Source = 'source_toolbar'
-    WorkingDirectory = 'working_directory_toolbar'
-
-
-class ToolBarLocation:
+class ToolbarLocation:
     Top = Qt.TopToolBarArea
     Bottom = Qt.BottomToolBarArea
 
@@ -51,16 +41,17 @@ class ToolTipFilter(QObject):
         event_type = event.type()
         action = obj.defaultAction() if isinstance(obj, QToolButton) else None
         if event_type == QEvent.ToolTip and action is not None:
-            return action.text_beside_icon
+            if action.tip is None:
+                return action.text_beside_icon
 
         return QObject.eventFilter(self, obj, event)
 
 
 # --- Widgets
 # ----------------------------------------------------------------------------
-class SpyderToolBar(QToolBar):
+class SpyderToolbar(QToolBar):
     """
-    Spyder ToolBar.
+    Spyder Toolbar.
 
     This class provides toolbars with some predefined functionality.
     """
@@ -69,16 +60,19 @@ class SpyderToolBar(QToolBar):
         super().__init__(parent=parent)
         self._section_items = OrderedDict()
         self._title = title
+        self._default_section = "default_section"
 
         self.setWindowTitle(title)
 
-    def add_item(self, action_or_widget, section=None, before=None):
+    def add_item(self, action_or_widget, section=None, before=None,
+                 before_section=None):
         """
-        Add action or widget item to given toolbar `section`. 
+        Add action or widget item to given toolbar `section`.
         """
-        if section is not None:
-            action_or_widget._section = section
+        if section is None:
+            section = self._default_section
 
+        action_or_widget._section = section
         if section is None and before is not None:
             action_or_widget._section = before._section
             section = before._section
@@ -86,7 +80,26 @@ class SpyderToolBar(QToolBar):
         if section is not None and section not in self._section_items:
             self._section_items[section] = [action_or_widget]
         else:
-            self._section_items[section].append(action_or_widget)
+            if before is not None:
+                new_actions_or_widgets = []
+                for act_or_wid in self._section_items[section]:
+                    if act_or_wid == before:
+                        new_actions_or_widgets.append(action_or_widget)
+                    new_actions_or_widgets.append(act_or_wid)
+                self._section_items[section] = new_actions_or_widgets
+            else:
+                self._section_items[section].append(action_or_widget)
+        if (before_section is not None and
+                before_section in self._section_items):
+            new_sections_keys = []
+            for sec in self._section_items.keys():
+                if sec == before_section:
+                    new_sections_keys.append(section)
+                if sec != section:
+                    new_sections_keys.append(sec)
+            self._section_items = OrderedDict(
+                (section_key, self._section_items[section_key])
+                for section_key in new_sections_keys)
 
     def _render(self):
         """
@@ -125,13 +138,24 @@ class SpyderToolBar(QToolBar):
                     widget.setCheckable(True)
 
 
-class ApplicationToolBar(SpyderToolBar):
+class ApplicationToolbar(SpyderToolbar):
     """
-    Spyder Main application ToolBar.
+    Spyder Main application Toolbar.
     """
 
+    ID = None
+    """
+    Unique string toolbar identifier.
 
-class MainWidgetToolbar(SpyderToolBar):
+    This is used by Qt to be able to save and restore the state of widgets.
+    """
+
+    def _check_interface(self):
+        if self.ID is None:
+            raise SpyderAPIError("Toolbar must define an ID attribute.")
+
+
+class MainWidgetToolbar(SpyderToolbar):
     """
     Spyder Widget toolbar class.
 

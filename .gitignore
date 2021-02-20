@@ -11,6 +11,7 @@ nppBackup/
 .pytest_cache/
 
 # Special dirs and files
+installers/Windows/assets/
 build/
 dist/
 bin/

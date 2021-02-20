@@ -124,8 +124,8 @@ To start working on a new PR, you need to execute these commands, filling in the
 
 ```bash
 $ git checkout <SPYDER-BASE-BRANCH>
-$ git pull upstream <SPYDER-BASE-BRANC>
-$ git checkout -b NAME-NEW-BRANCH
+$ git pull upstream <SPYDER-BASE-BRANCH>
+$ git checkout -b <NAME-NEW-BRANCH>
 ```
 
 

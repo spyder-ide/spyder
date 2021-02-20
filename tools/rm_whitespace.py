@@ -228,7 +228,7 @@ def handle_whitespace(file_paths, whitespace_type="all", warn_only=False,
 def handle_whitespace_files(file_types, whitespace_type="all",
                             warn_only=False, verbose=False,
                             check_prs=False):
-    """Remove trailing whitespace in all or selected files in the projct."""
+    """Remove trailing whitespace in all or selected files in the project."""
     files_toprocess = git_files(file_types)
     files_toprocess = filter_files(files_toprocess)
 

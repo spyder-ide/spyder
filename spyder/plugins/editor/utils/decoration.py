@@ -17,7 +17,7 @@ Original file:
 """
 
 # Third party imports
-from qtpy.QtCore import QObject, QPoint, QTimer, Slot
+from qtpy.QtCore import QObject, QTimer, Slot
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
@@ -26,7 +26,7 @@ from spyder.api.manager import Manager
 
 # Timeout to avoid almost simultaneous calls to update decorations, which
 # introduces a lot of sluggishness in the editor.
-UPDATE_TIMEOUT = 15  # miliseconds
+UPDATE_TIMEOUT = 15  # milliseconds
 
 
 class TextDecorationsManager(Manager, QObject):

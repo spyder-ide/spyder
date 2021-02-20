@@ -9,4 +9,4 @@ Plots Plugin API.
 """
 
 from spyder.plugins.plots.widgets.main_widget import (
-    PlotsWidgetActions, PlotsWidgetMainToolBarSections)
+    PlotsWidgetActions, PlotsWidgetMainToolbarSections)

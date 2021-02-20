@@ -225,7 +225,7 @@ def get_common_path(pathlist):
 
 def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=True):
     """
-    Add a PYTHONPATH entry to a list of enviroment variables.
+    Add a PYTHONPATH entry to a list of environment variables.
 
     This allows to extend the environment of an external process
     created with QProcess with our additions to PYTHONPATH.

@@ -1,6 +1,6 @@
 ![Spyder — The Scientific Python Development Environment](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/spyder_readme_banner.png)
 
-*Copyright © 2009–2019 [Spyder Project Contributors](
+*Copyright © 2009–2021 [Spyder Project Contributors](
 https://github.com/spyder-ide/spyder/graphs/contributors)*
 
 *Some source files and icons may be under other authorship/licenses; see

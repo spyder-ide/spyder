@@ -20,9 +20,9 @@ from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QAction, QShortcut
 
 # Local imports
-from spyder.api.menus import ApplicationMenus, HelpMenuSections
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.shortcuts.confpage import ShortcutsConfigPage
 from spyder.plugins.shortcuts.widgets.summary import ShortcutsSummaryDialog
 from spyder.utils.qthelpers import add_shortcut_to_tooltip, SpyderAction
@@ -44,7 +44,7 @@ class Shortcuts(SpyderPluginV2):
 
     NAME = 'shortcuts'
     # TODO: Fix requires to reflect the desired order in the preferences
-    REQUIRES = []
+    OPTIONAL = [Plugins.Preferences, Plugins.MainMenu]
     CONF_WIDGET_CLASS = ShortcutsConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -68,6 +68,10 @@ class Shortcuts(SpyderPluginV2):
         return self.create_icon('keyboard')
 
     def register(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
         self._shortcut_data = []
         shortcuts_action = self.create_action(
             ShortcutActions.ShortcutSummaryAction,
@@ -78,12 +82,13 @@ class Shortcuts(SpyderPluginV2):
         )
 
         # Add to Help menu.
-        help_menu = self.get_application_menu(ApplicationMenus.Help)
-        self.add_item_to_application_menu(
-            shortcuts_action,
-            help_menu,
-            section=HelpMenuSections.Documentation,
-        )
+        if mainmenu:
+            help_menu = mainmenu.get_application_menu(ApplicationMenus.Help)
+            mainmenu.add_item_to_application_menu(
+                shortcuts_action,
+                help_menu,
+                section=HelpMenuSections.Documentation,
+            )
 
     def on_mainwindow_visible(self):
         self.apply_shortcuts()
@@ -195,7 +200,7 @@ class Shortcuts(SpyderPluginV2):
         name: str
             Name of the shortcut.
         plugin_id: spyder.api.plugins.SpyderpluginV2 or None
-            The plugin for whcih the shortcut is registered. Default is None.
+            The plugin for which the shortcut is registered. Default is None.
 
         Returns
         -------
@@ -217,6 +222,6 @@ class Shortcuts(SpyderPluginV2):
         keystr: str
             Shortcut keys in string form.
         plugin_id: spyder.api.plugins.SpyderpluginV2 or None
-            The plugin for whcih the shortcut is registered. Default is None.
+            The plugin for which the shortcut is registered. Default is None.
         """
         self._conf.set_shortcut(context, name, keystr, plugin_name=plugin_id)

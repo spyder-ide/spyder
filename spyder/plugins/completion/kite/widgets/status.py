@@ -12,11 +12,11 @@ Status widget for Kite completions.
 import logging
 
 # Local imports
+from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
-from spyder.widgets.status import StatusBarWidget
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_installed, NOT_INSTALLED)
+from spyder.utils import icon_manager as ima
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +25,12 @@ class KiteStatusWidget(StatusBarWidget):
     """Status bar widget for Kite completions status."""
     BASE_TOOLTIP = _("Kite completions status")
     DEFAULT_STATUS = _('not reachable')
+    ID = 'kite_status'
 
-    def __init__(self, parent, statusbar, plugin):
+    def __init__(self, parent, plugin):
         self.plugin = plugin
         self.tooltip = self.BASE_TOOLTIP
-        super(KiteStatusWidget, self).__init__(
-            parent,
-            statusbar,
-            icon=ima.get_icon('kite', adjust_for_interface=True)
-        )
+        super().__init__(parent)
         is_installed, _ = check_if_kite_installed()
         self.setVisible(is_installed)
 
@@ -69,3 +66,6 @@ class KiteStatusWidget(StatusBarWidget):
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
         return self.tooltip
+
+    def get_icon(self):
+        return ima.get_icon('kite', adjust_for_interface=True)

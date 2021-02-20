@@ -6,22 +6,20 @@
 # ----------------------------------------------------------------------------
 """Tests for plugin config dialog."""
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import MagicMock
 
 # Test library imports
 import pytest
+from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
-from spyder.preferences.tests.conftest import config_dialog
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock:
-    register_shortcut = Mock()
-    editor = Mock()
+class MainWindowMock(QMainWindow):
+    register_shortcut = MagicMock()
+    editor = MagicMock()
 
 
 @pytest.mark.parametrize(

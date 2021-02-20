@@ -37,7 +37,9 @@ def console_plugin(qtbot):
             self._INTERNAL_PLUGINS = {'internal_console': Console}
 
         def __getattr__(self, attr):
-            if attr != '_INTERNAL_PLUGINS':
+            if attr == '_PLUGINS':
+                return {}
+            elif attr != '_INTERNAL_PLUGINS':
                 return Mock()
             else:
                 return self.__dict__[attr]

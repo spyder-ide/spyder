@@ -129,7 +129,7 @@ class Restarter(QWidget):
         Parameters
         ----------
         error_type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
-            Possible error codes when restarting/reseting spyder.
+            Possible error codes when restarting/resetting spyder.
         error : Exception
             Actual Python exception error caught.
         """
@@ -157,7 +157,7 @@ class Restarter(QWidget):
 
 def main():
     #==========================================================================
-    # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+    # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
     # be set before creating the application.
     #==========================================================================
     if CONF.get('main', 'high_dpi_custom_scale_factor'):
@@ -213,7 +213,7 @@ def main():
         else:
             args.append('--new-instance')
 
-    # Create the arguments needed for reseting
+    # Create the arguments needed for resetting
     if '--' in args:
         args_reset = ['--', '--reset']
     else:
@@ -223,7 +223,7 @@ def main():
     args = ' '.join(args)
     args_reset = ' '.join(args_reset)
 
-    # Get python excutable running this script
+    # Get python executable running this script
     python = sys.executable
 
     # Build the command

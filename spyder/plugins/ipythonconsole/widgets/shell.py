@@ -29,7 +29,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
-        HelpWidget, NamepaceBrowserWidget)
+        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -73,6 +73,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
+        self.custom_page_control = PageControlWidget
         self.custom_edit = True
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
@@ -266,11 +267,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._cwd = dirname
 
     def update_cwd(self):
-        """Update current working directory.
-
-        Retrieve the cwd and emit a signal connected to the working directory
-        widget. (see: handle_exec_method())
-        """
+        """Update current working directory in the kernel."""
         if self.kernel_client is None:
             return
         self.call_kernel(callback=self.remote_set_cwd).get_cwd()

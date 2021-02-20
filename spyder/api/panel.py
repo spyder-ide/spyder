@@ -140,9 +140,9 @@ class Panel(QWidget, EditorExtension):
             self.editor.panels.refresh()
 
     def geometry(self):
-        """Return geometry dimentions for floating Panels.
+        """Return geometry dimensions for floating Panels.
 
-        Note: If None is returned It'll use editor contentsRect dimentions.
+        Note: If None is returned It'll use editor contentsRect dimensions.
 
         returns: x0, y0, height width.
         """

@@ -77,7 +77,7 @@ class PylintWidgetOptionsMenuSections:
     History = "history_section"
 
 
-class PylintWidgetMainToolBarSections:
+class PylintWidgetMainToolbarSections:
     Main = "main_section"
 
 
@@ -502,7 +502,7 @@ class PylintWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar,
-                section=PylintWidgetMainToolBarSections.Main,
+                section=PylintWidgetMainToolbarSections.Main,
             )
 
         secondary_toolbar = self.create_toolbar("secondary")
@@ -511,7 +511,7 @@ class PylintWidget(PluginMainWidget):
             self.add_item_to_toolbar(
                 item,
                 secondary_toolbar,
-                section=PylintWidgetMainToolBarSections.Main,
+                section=PylintWidgetMainToolbarSections.Main,
             )
 
         self.show_data()

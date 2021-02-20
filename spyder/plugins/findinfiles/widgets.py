@@ -76,20 +76,20 @@ class FindInFilesWidgetActions:
     ToggleSearchRegex = 'toggle_use_regex_on_search_action'
 
 
-class FindInFilesWidgetToolBars:
+class FindInFilesWidgetToolbars:
     Exclude = 'exclude_toolbar'
     Location = 'location_toolbar'
 
 
-class FindInFilesWidgetMainToolBarSections:
+class FindInFilesWidgetMainToolbarSections:
     Main = 'main_section'
 
 
-class FindInFilesWidgetExcludeToolBarSections:
+class FindInFilesWidgetExcludeToolbarSections:
     Main = 'main_section'
 
 
-class FindInFilesWidgetLocationToolBarSections:
+class FindInFilesWidgetLocationToolbarSections:
     Main = 'main_section'
 
 
@@ -878,8 +878,7 @@ class FindInFilesWidget(PluginMainWidget):
             search_text,
             _("Search pattern"),
         )
-        self.search_label = QLabel(_('Search:'))
-        self.search_in_label = QLabel(_('Location:'))
+        self.search_in_label = QLabel(_('Search in:'))
         self.exclude_label = QLabel(_('Exclude:'))
         self.path_selection_combo = SearchInComboBox(path_history, self)
         self.exclude_pattern_edit = PatternComboBox(
@@ -894,15 +893,7 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
         # Setup
-        self.search_label.setBuddy(self.search_text_edit)
         self.exclude_label.setBuddy(self.exclude_pattern_edit)
-
-        fm = self.search_label.fontMetrics()
-        base_size = int(fm.width(_('Location:')) * 1.2)
-        self.search_label.setMinimumWidth(base_size)
-        self.search_in_label.setMinimumWidth(base_size)
-        self.exclude_label.setMinimumWidth(base_size)
-
         exclude_idx = self.get_option('exclude_index')
         if (exclude_idx is not None and exclude_idx >= 0
                 and exclude_idx < self.exclude_pattern_edit.count()):
@@ -997,34 +988,34 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.search_label, self.search_text_edit,
-                     self.search_regexp_action, self.case_action,
-                     self.more_options_action, self.find_action]:
+        for item in [self.search_text_edit, self.search_regexp_action,
+                     self.case_action, self.more_options_action,
+                     self.find_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
-                section=FindInFilesWidgetMainToolBarSections.Main,
+                section=FindInFilesWidgetMainToolbarSections.Main,
             )
 
         # Exclude Toolbar
         self.extras_toolbar = self.create_toolbar(
-            FindInFilesWidgetToolBars.Exclude)
+            FindInFilesWidgetToolbars.Exclude)
         for item in [self.exclude_label, self.exclude_pattern_edit,
                      self.exclude_regexp_action, self.create_stretcher()]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=self.extras_toolbar,
-                section=FindInFilesWidgetExcludeToolBarSections.Main,
+                section=FindInFilesWidgetExcludeToolbarSections.Main,
             )
 
         # Location toolbar
         location_toolbar = self.create_toolbar(
-            FindInFilesWidgetToolBars.Location)
+            FindInFilesWidgetToolbars.Location)
         for item in [self.search_in_label, self.path_selection_combo]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=location_toolbar,
-                section=FindInFilesWidgetLocationToolBarSections.Main,
+                section=FindInFilesWidgetLocationToolbarSections.Main,
             )
 
         menu = self.get_options_menu()

@@ -9,6 +9,7 @@ Help Plugin API.
 """
 
 # Local imports
+from spyder.plugins.help.plugin import HelpActions
 from spyder.plugins.help.widgets import (HelpWidgetActions,
-                                         HelpWidgetMainToolBarSections,
+                                         HelpWidgetMainToolbarSections,
                                          HelpWidgetOptionsMenuSections)

@@ -21,6 +21,7 @@ from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 from spyder.config.base import _, get_conf_path
 from spyder.config.manager import CONF
@@ -61,6 +62,7 @@ class DebuggingHistoryWidget(RichJupyterWidget):
     def __init__(self, *args, **kwargs):
         # History
         self._pdb_history_input_number = 0  # Input number for current session
+        self._saved_pdb_history_input_number = []  # for recursive debugging
         self._pdb_history_file = PdbHistory()
         self._pdb_history = [
             line[-1] for line in self._pdb_history_file.get_tail(
@@ -211,23 +213,33 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_debug_state(self, is_debugging):
         """Update the debug state."""
         if is_debugging:
+            # Start debugging
+            if self._pdb_in_loop > 0:
+                # Recursive debugging
+                self._saved_pdb_history_input_number.append(
+                    self._pdb_history_input_number)
+                self.end_history_session()
+            self.new_history_session()
             self._pdb_in_loop += 1
-        elif self.is_debugging():
+        elif self._pdb_in_loop > 0:
+            # Stop debugging
             self._pdb_in_loop -= 1
+            self.end_history_session()
+            if self._pdb_in_loop > 0:
+                # Still debugging
+                self.new_history_session()
+                self._pdb_history_input_number = (
+                    self._saved_pdb_history_input_number.pop())
+
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_frame_loc = (None, None)
 
-        # start/stop pdb history session
-        if self.is_debugging():
-            self.new_history_session()
-        else:
-            self.end_history_session()
-
     def _pdb_cmd_prefix(self):
         """Return the command prefix"""
         prefix = ''
-        if self.is_pdb_using_exclamantion_mark():
+        if (self.spyder_kernel_comm.is_open() and
+                self.is_pdb_using_exclamantion_mark()):
             prefix = '!'
         return prefix
 
@@ -238,6 +250,21 @@ class DebuggingWidget(DebuggingHistoryWidget):
         self.pdb_execute(
             self._pdb_cmd_prefix() + command, hidden=False,
             echo_stack_entry=False, add_history=False)
+
+    def _handle_input_request(self, msg):
+        """Process an input request."""
+        if (not self.spyder_kernel_comm.is_open() and
+                msg['content']['prompt'] == "ipdb> "):
+            # Check if we can guess a path from the shell content:
+            self._flush_pending_stream()
+            cursor = self._get_end_cursor()
+            cursor.setPosition(self._prompt_pos, QTextCursor.KeepAnchor)
+            text = cursor.selection().toPlainText()
+            match = re.search(r"> (.*\.py)\((\d+)\)", text)
+            if match:
+                fname, lineno = match.groups()
+                self.sig_pdb_step.emit(fname, int(lineno))
+        return super(DebuggingWidget, self)._handle_input_request(msg)
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
                     add_history=True):
@@ -258,6 +285,14 @@ class DebuggingWidget(DebuggingHistoryWidget):
         add_history: bool
             If not hidden, wether the line should be added to history
         """
+        # Send line to input if no comm
+        if not self.spyder_kernel_comm.is_open():
+            if not hidden:
+                self._append_plain_text(line + '\n')
+            self._finalize_input_request()
+            self.kernel_client.input(line)
+            return
+
         if not self.is_debugging():
             return
 
@@ -324,6 +359,13 @@ class DebuggingWidget(DebuggingHistoryWidget):
         }
 
     # --- To Sort --------------------------------------------------
+    def stop_debugging(self):
+        """Stop debugging."""
+        if (self.spyder_kernel_comm.is_open() and
+                not self.is_waiting_pdb_input()):
+            self.interrupt_kernel()
+        self.pdb_execute_command("exit")
+
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into a debugging session"""
         self.call_kernel(interrupt=True).set_breakpoints(
@@ -471,6 +513,10 @@ class DebuggingWidget(DebuggingHistoryWidget):
             password = self._pdb_prompt[1]
         self._pdb_prompt = (prompt, password)
 
+        # Update continuation prompt to reflect (possibly) new prompt length.
+        self._set_continuation_prompt(
+            self._make_continuation_prompt(prompt), html=True)
+
     def _is_pdb_complete(self, source):
         """
         Check if the pdb input is ready to be executed.
@@ -505,7 +551,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
                     self.input_buffer = source
 
             if interactive:
-                # Add a continuation propt if not complete
+                # Add a continuation prompt if not complete
                 complete, indent = self._is_pdb_complete(source)
                 if not complete:
                     self.do_execute(source, complete, indent)

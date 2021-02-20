@@ -1,47 +1,30 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.2.0 is released!
+**Subject**: [ANN] Spyder 4.2.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.2.0** has been released and is available for
+I'm pleased to announce that Spyder **4.2.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes a bit more than two months after version 4.1.5 and it contains the
+This release comes six weeks after version 4.2.0 and it contains the
 following new features and important fixes:
 
 
 - New features
-  * New, self-contained installers for Windows and macOS.
-  * Add support for inline and interactive Matplotlib plots in the debugger.
-  * Automatic detection of conda and pyenv environments in
-    `Preferences > Python interpreter`.
-  * Add functionality to do auto-formatting in the Editor. It can be triggered in
-    the menu `Source > Format file or selection` or with the shorcut
-    `Ctrl+Alt+I` (`Cmd+Alt+I` in macOS).
-  * Add support for text snippets in the Editor. The list of available snippets
-    is shown in `Preferences > Completion and linting > Snippets`.
-  * Support caching cells send in succession to the IPython console. This will
-    run one cell after the previous one finished.
-  * Make variables take precedence over Pdb commands in the debugger. In case a
-    variable clashes with a command, you'll have to prefix the command with `!`.
-  * Show a message to take a tour of Spyder features the first time 4.2.0 is
-    launched.
-  * Drop support for Python 2.7 and 3.5.
+  * Code folding for cells.
 
 - Important fixes
-  * Improve performance in the Editor when paiting indent guides and showing
-    linting messages.
-  * Prevent the creation of temporary files in Dropbox directories after saving
-    in the Editor.
-  * Prevent the Outline to degrade performance in the Editor when visible. This
-    was achieved by moving this pane to use the LSP architecture.
-  * Support Jedi 0.17.2
+  * Search works as expected for folded regions.
+  * IPython Console preferences are applied on the fly.
+  * IPython files (`*.ipy`) are better support in the Editor.
+  * Reduce time to show Preferences dialog.
+  * Support for macOS Big Sur.
 
-In this release we fixed 76 issues and merged 105 pull requests that amount
-to more than 770 commits. For a full list of fixes, please see our
+In this release we fixed 36 issues and merged 62 pull requests that amount
+to more than 277 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

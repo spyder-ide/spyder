@@ -12,18 +12,33 @@ Help Plugin.
 import os
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 
 # Local imports
+from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.plugins.console.plugin import ConsoleActions
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
+from spyder.utils.qthelpers import start_file
 
 # Localization
 _ = get_translation('spyder')
+
+
+class HelpActions:
+    # Documentation related
+    SpyderDocumentationAction = "spyder documentation"
+    SpyderDocumentationVideoAction = "spyder_documentation_video_action"
+    ShowSpyderTutorialAction = "spyder_tutorial_action"
+
+    # Support related
+    SpyderTroubleshootingAction = "spyder_troubleshooting_action"
+    SpyderSupportAction = "spyder_support_action"
+
 
 
 class Help(SpyderDockablePlugin):
@@ -31,8 +46,8 @@ class Help(SpyderDockablePlugin):
     Docstrings viewer widget.
     """
     NAME = 'help'
-    REQUIRES = [Plugins.Console, Plugins.Editor]
-    OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts]
+    REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Editor]
+    OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts, Plugins.MainMenu]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = HelpWidget
     CONF_SECTION = NAME
@@ -75,13 +90,18 @@ class Help(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         shortcuts = self.get_plugin(Plugins.Shortcuts)
+        preferences = self.get_plugin(Plugins.Preferences)
+
+        preferences.register_plugin_preferences(self)
+
+        # Expose widget signals on the plugin
+        widget.sig_render_started.connect(self.sig_render_started)
+        widget.sig_render_finished.connect(self.sig_render_finished)
 
         # self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         widget.set_history(self.load_history())
         widget.set_internal_console(internal_console)
         widget.sig_item_found.connect(self.save_history)
-        widget.sig_render_started.connect(self.sig_render_started)
-        widget.sig_render_finished.connect(self.sig_render_finished)
 
         editor.sig_help_requested.connect(self.set_editor_doc)
         internal_console.sig_help_requested.connect(self.set_object_text)
@@ -101,6 +121,16 @@ class Help(SpyderDockablePlugin):
             # See: spyder-ide/spyder#6992
             shortcuts.sig_shortcuts_updated.connect(
                 lambda: self.show_intro_message())
+
+        self.tutorial_action = self.create_action(
+            HelpActions.ShowSpyderTutorialAction,
+            text=_("Spyder tutorial"),
+            triggered=self.show_tutorial,
+            register_shortcut=False,
+        )
+
+        # Add actions to main menu (Help menu)
+        self._setup_menus()
 
     def update_font(self):
         color_scheme = self.get_color_scheme()
@@ -131,7 +161,28 @@ class Help(SpyderDockablePlugin):
         if ipyconsole:
             ipyconsole.apply_plugin_settings({'connect_to_oi'})
 
-    # --- API
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def _setup_menus(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
+        shortcuts_summary_action = None
+        if shortcuts:
+            from spyder.plugins.shortcuts.plugin import ShortcutActions
+            shortcuts_summary_action = shortcuts.get_action(
+                ShortcutActions.ShortcutSummaryAction)
+        if mainmenu:
+            from spyder.plugins.mainmenu.api import (
+                ApplicationMenus, HelpMenuSections)
+            # Documentation actions
+            mainmenu.add_item_to_application_menu(
+                self.tutorial_action,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Documentation,
+                before=shortcuts_summary_action,
+                before_section=HelpMenuSections.Support)
+
+    # --- Public API
     # ------------------------------------------------------------------------
     def set_shellwidget(self, shellwidget):
         """

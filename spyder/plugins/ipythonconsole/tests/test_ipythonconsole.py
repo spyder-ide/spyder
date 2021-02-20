@@ -1532,7 +1532,7 @@ def test_pdb_multiline(ipyconsole, qtbot):
     qtbot.wait(500)
 
     assert shell.get_value('bb') == 10
-    assert "if True:\n   ...:     bb = 10\n" in control.toPlainText()
+    assert "if True:\n     ...:     bb = 10\n" in control.toPlainText()
 
 
 @flaky(max_runs=3)
@@ -1798,27 +1798,6 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
 
 
 @flaky(max_runs=3)
-def test_pdb_without_comm(ipyconsole, qtbot):
-    """Check if pdb works without comm."""
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
-    control = ipyconsole.get_focus_widget()
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("get_ipython().kernel.frontend_comm.close()")
-    shell.execute("%debug print()")
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-
-    assert "Two: 2" in control.toPlainText()
-
-
-@flaky(max_runs=3)
 def test_recursive_pdb(ipyconsole, qtbot):
     """Check commands and code are separted."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1844,7 +1823,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1853,7 +1832,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[1]:"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[4]:"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
