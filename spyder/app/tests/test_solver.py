@@ -119,4 +119,15 @@ def test_solve_plugin_dependencies_3():
 
 def test_find_internal_plugins():
     internal = find_internal_plugins()
-    assert len(internal) == 20
+    assert len(internal) == 26
+
+
+def test_solve_internal_plugins():
+    internal = [p for p in find_internal_plugins().values()]
+
+    # For now we're not computing dependencies for internal plugins
+    # TODO: Remove when the migration is complete
+    assert solve_plugin_dependencies(internal, testing=False) == []
+
+    # Test that solver doesn't crash and returns all available plugins
+    assert len(solve_plugin_dependencies(internal, testing=True)) == 26
