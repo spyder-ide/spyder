@@ -1170,10 +1170,6 @@ class MainWindow(QMainWindow):
             self.findinfiles = FindInFiles(self, configuration=CONF)
             self.register_plugin(self.findinfiles)
 
-        # Load other plugins (former external plugins)
-        # TODO: Use this bucle to load all internal plugins and remove
-        # duplicated code
-
         # Breakpoints
         if CONF.get('breakpoints', 'enable'):
             from spyder.plugins.breakpoints.plugin import Breakpoints
@@ -1194,9 +1190,6 @@ class MainWindow(QMainWindow):
             self.pylint = Pylint(self, configuration=CONF)
             self.register_plugin(self.pylint)
             self.thirdparty_plugins.append(self.pylint)
-
-        # Third-party plugins
-        from spyder import dependencies
 
         self.set_splash(_("Loading third-party plugins..."))
         for mod in get_spyderplugins_mods():
