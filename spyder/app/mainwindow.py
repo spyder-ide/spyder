@@ -808,11 +808,6 @@ class MainWindow(QMainWindow):
         self.toolbar = Toolbar(self, configuration=CONF)
         self.register_plugin(self.toolbar)
 
-        # Application plugin
-        from spyder.plugins.application.plugin import Application
-        self.application = Application(self, configuration=CONF)
-        self.register_plugin(self.application)
-
         logger.info("Creating core actions...")
         # TODO: Change registration to use MainMenus
         self.close_dockwidget_action = create_action(
@@ -1125,6 +1120,11 @@ class MainWindow(QMainWindow):
             from spyder.plugins.help.plugin import Help
             self.help = Help(self, configuration=CONF)
             self.register_plugin(self.help)
+
+        # Application plugin
+        from spyder.plugins.application.plugin import Application
+        self.application = Application(self, configuration=CONF)
+        self.register_plugin(self.application)
 
         # History log widget
         if CONF.get('historylog', 'enable'):
