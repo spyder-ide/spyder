@@ -26,10 +26,10 @@ from qtpy.QtWidgets import QInputDialog, QMenu, QMessageBox, QVBoxLayout
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
+from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import (get_home_dir, get_project_config_folder,
                                 running_under_pytest)
 from spyder.config.manager import CONF
-from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -56,6 +56,11 @@ class Projects(SpyderPluginWidget):
 
     CONF_SECTION = 'project_explorer'
     CONF_FILE = False
+
+    # This is required for the new API
+    NAME = 'project_explorer'
+    REQUIRES = []
+    OPTIONAL = [Plugins.Completions]
 
     # Signals
     sig_project_created = Signal(str, str, object)

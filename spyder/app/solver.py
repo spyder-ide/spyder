@@ -99,6 +99,7 @@ def find_internal_plugins():
         internal_plugins["ipython_console"] = None
         internal_plugins["variable_explorer"] = None
         internal_plugins["outline_explorer"] = None
+        internal_plugins['completions'] = None
 
     return internal_plugins
 

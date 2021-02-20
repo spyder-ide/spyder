@@ -572,12 +572,9 @@ class Plugins:
     """
     Convenience class for accessing Spyder internal plugins.
     """
-    Application = 'application'
+    Application = 'main'  # This name is different for historical reasons
     Breakpoints = 'breakpoints'
-    CodeCompletion = 'code_completion'
-    KiteCompletion = 'kite'
-    FallBackCompletion = 'fallback'
-    LanguageServerCompletion = 'lsp'
+    Completions = 'completions'
     Console = 'internal_console'
     Editor = 'editor'
     Explorer = 'explorer'

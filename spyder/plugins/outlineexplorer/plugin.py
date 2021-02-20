@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
@@ -28,6 +28,11 @@ class OutlineExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'outline_explorer'
     CONF_FILE = False
+
+    # This is required for the new API
+    NAME = 'outline_explorer'
+    REQUIRES = [Plugins.Completions]
+    OPTIONAL = []
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)

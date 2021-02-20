@@ -17,6 +17,7 @@ from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.config.base import _
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
@@ -42,6 +43,11 @@ class CompletionManager(SpyderCompletionPlugin):
     RUNNING = 'running'
 
     BASE_PLUGINS = ALL_COMPLETION_PLUGINS
+
+    # This is required for the new API
+    NAME = 'completions'
+    REQUIRES = [Plugins.Preferences]
+    OPTIONAL = [Plugins.StatusBar, Plugins.MainMenu]
 
     WAIT_FOR_SOURCE = defaultdict(
         lambda: {LanguageServerPlugin.COMPLETION_CLIENT_NAME},

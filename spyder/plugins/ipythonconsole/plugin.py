@@ -33,7 +33,7 @@ from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
-from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
 from spyder.config.gui import get_font, is_dark_interface
@@ -74,6 +74,11 @@ class IPythonConsole(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+
+    # This is required for the new API
+    NAME = 'ipython_console'
+    REQUIRES = [Plugins.Console, Plugins.Preferences]
+    OPTIONAL = [Plugins.Editor]
 
     # Signals
     focus_changed = Signal()
