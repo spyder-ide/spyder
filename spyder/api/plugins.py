@@ -572,6 +572,7 @@ class Plugins:
     """
     Convenience class for accessing Spyder internal plugins.
     """
+    Appearance = 'appearance'
     Application = 'main'  # This name is different for historical reasons
     Breakpoints = 'breakpoints'
     Completions = 'completions'
@@ -582,6 +583,7 @@ class Plugins:
     Help = 'help'
     History = 'historylog'
     IPythonConsole = 'ipython_console'
+    MainInterpreter = 'main_interpreter'
     MainMenu = 'mainmenu'
     OnlineHelp = 'online_help'
     OutlineExplorer = 'outline_explorer'
@@ -590,6 +592,7 @@ class Plugins:
     Profiler = 'profiler'
     Projects = 'project_explorer'
     Pylint = 'pylint'
+    Run = 'run'
     Shortcuts = 'shortcuts'
     StatusBar = 'statusbar'
     Toolbar = "toolbar"
