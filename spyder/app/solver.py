@@ -95,14 +95,8 @@ def find_internal_plugins():
 
         # TODO: Remove after migration is finished
         internal_plugins["editor"] = None
-        internal_plugins["explorer"] = None
         internal_plugins["project_explorer"] = None
-        internal_plugins["code_completion"] = None
-        internal_plugins["kite"] = None
-        internal_plugins["fallback"] = None
         internal_plugins["ipython_console"] = None
-        internal_plugins["lsp"] = None
-        internal_plugins["pylint"] = None
         internal_plugins["variable_explorer"] = None
         internal_plugins["outline_explorer"] = None
 
@@ -114,16 +108,6 @@ def find_external_plugins():
     Find available internal plugins based on setuptools entry points.
     """
     internal_plugins = find_internal_plugins()
-    new_plugins = [
-        "appearance",
-        "code_completion",
-        "console",
-        "core",
-        "fallback_completion",
-        "kite_completion",
-        "lsp_completion",
-        "python",
-    ]
     plugins = [
         entry_point for entry_point
         in pkg_resources.iter_entry_points("spyder.plugins")
@@ -132,7 +116,7 @@ def find_external_plugins():
     external_plugins = {}
     for entry_point in plugins:
         name = entry_point.name
-        if name not in internal_plugins and name not in new_plugins:
+        if name not in internal_plugins:
             try:
                 class_name = entry_point.attrs[0]
                 mod = importlib.import_module(entry_point.module_name)
@@ -170,8 +154,6 @@ def solve_plugin_dependencies(plugins):
         dependencies.
     * Sort with toposort algorithm.
     """
-    plugin_names = [plugin.NAME for plugin in plugins]
-
     # Back up dependencies
     for plugin in plugins:
         if plugin.REQUIRES is None:
@@ -184,6 +166,10 @@ def solve_plugin_dependencies(plugins):
         plugin._OPTIONAL = plugin.OPTIONAL.copy()
 
     plugin_names = {plugin.NAME: plugin for plugin in plugins}
+    # TODO: Remove the next line once the migration is finished (it
+    # shouldn't be necessary)
+    internal_plugins = find_internal_plugins()
+    plugin_names.update(internal_plugins)
     dependencies_dict = {}
 
     # Prune plugins based on required dependencies
@@ -214,6 +200,10 @@ def solve_plugin_dependencies(plugins):
     deps = toposort_flatten(dependencies_dict)
 
     # Convert back from names to plugins
-    plugin_deps = [plugin_names[name] for name in deps]
+    # TODO: Remove the if part when the migration is done!
+    plugin_deps = [
+        plugin_names[name] for name in deps
+        if name not in internal_plugins.keys()
+    ]
 
     return plugin_deps
