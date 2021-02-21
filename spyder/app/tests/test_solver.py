@@ -13,7 +13,8 @@ import pytest
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.utils import get_class_values
 from spyder.app.solver import find_internal_plugins, solve_plugin_dependencies
 from spyder.utils.external.toposort import CircularDependencyError
 
@@ -120,6 +121,9 @@ def test_solve_plugin_dependencies_3():
 def test_find_internal_plugins():
     internal = find_internal_plugins()
     assert len(internal) == 26
+
+    # Assert we have the same number of plugins declared in our enum
+    assert len(get_class_values(Plugins)) == 26
 
 
 def test_solve_internal_plugins():
