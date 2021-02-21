@@ -715,12 +715,9 @@ def test_save_history_dbg(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Generate a traceback and enter debugging mode
+    # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug')
+        shell.execute('%debug print()')
 
     # Enter an expression
     with qtbot.waitSignal(shell.executed):
@@ -760,12 +757,9 @@ def test_save_history_dbg(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Generate a traceback and enter debugging mode
+    # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug')
+        shell.execute('%debug print()')
 
     # Press Up arrow button and assert we get the last
     # introduced command
@@ -876,11 +870,9 @@ def test_values_dbg(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Generate a traceback and enter debugging mode
+    # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug')
+        shell.execute('%debug print()')
 
     # Get value
     with qtbot.waitSignal(shell.executed):
@@ -932,11 +924,9 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import matplotlib.pyplot as plt')
 
-    # Generate a traceback and enter debugging mode
+    # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug')
+        shell.execute('%debug print()')
 
     # Set processing events to True
     CONF.set('ipython_console', 'pdb_execute_events', True)
@@ -1051,12 +1041,9 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Generate a traceback and enter debugging mode
+    # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug')
+        shell.execute('%debug print()')
 
     # Test Ctrl+C
     qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
@@ -1080,12 +1067,9 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Generate a traceback and enter debugging mode
+    # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug')
+        shell.execute('%debug print()')
 
     # Test clear magic
     shell.clear_console()
@@ -1412,12 +1396,9 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
-    # Generate a traceback and enter debugging mode
+    # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug')
+        shell.execute('%debug print()')
 
     # Test complete in debug mode
     # check abs is completed twice (as the cursor moves)
