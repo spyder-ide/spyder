@@ -226,7 +226,7 @@ install_requires = [
     'pyqtwebengine<5.13',
     'python-language-server[all]>=0.36.2,<1.0.0',
     'pyls-black>=0.4.6',
-    'pyls-spyder>=0.3.0',
+    'pyls-spyder>=0.3.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
@@ -235,7 +235,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.10.1,<1.11.0',
+    'spyder-kernels>=1.10.2,<1.11.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3,<2.0.0'
