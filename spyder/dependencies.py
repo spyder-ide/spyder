@@ -67,7 +67,7 @@ TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
-WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
+WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3;<2.0.0'
 
 
 # Optional dependencies
