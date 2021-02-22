@@ -726,21 +726,6 @@ class TextBlockHelper(object):
         block.setUserState(state)
 
     @staticmethod
-    def is_collapsed(block):
-        """
-        Checks if the block is expanded or collased.
-
-        :param block: QTextBlock
-        :return: False for an open trigger, True for for closed trigger
-        """
-        if block is None:
-            return False
-        state = block.userState()
-        if state == -1:
-            state = 0
-        return bool(state & 0x08000000)
-
-    @staticmethod
     def set_collapsed(block, val):
         """
         Sets the fold trigger state (collapsed or expanded).

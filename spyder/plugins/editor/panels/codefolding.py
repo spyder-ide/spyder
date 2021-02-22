@@ -107,7 +107,6 @@ class FoldingPanel(Panel):
                     # this should never happen since we're working with clones
                     pass
 
-
     @property
     def highlight_caret_scope(self):
         """
@@ -180,18 +179,6 @@ class FoldingPanel(Panel):
         self.folding_levels = {}
         self.folding_nesting = {}
 
-    def __compute_line_offsets(self, text, reverse=False):
-        lines = text.splitlines(True)
-        line_start_offset = {}
-        offset = 0
-        for i, line in enumerate(lines):
-            if not reverse:
-                line_start_offset[i + 1] = offset
-            else:
-                line_start_offset[offset] = i + 1
-            offset += len(line)
-        return line_start_offset
-
     def update_folding(self, folding_info):
         """Update folding panel folding ranges."""
         if folding_info is None:
@@ -252,7 +239,6 @@ class FoldingPanel(Panel):
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
         painter = QPainter(self)
-        document = self.editor.document()
 
         if not self._display_folding and not self._key_pressed:
             if any(self.folding_status.values()):
@@ -312,8 +298,7 @@ class FoldingPanel(Panel):
         :param painter: The widget's painter.
         """
         c = self.editor.sideareas_color
-        grad = QLinearGradient(rect.topLeft(),
-                                     rect.topRight())
+        grad = QLinearGradient(rect.topLeft(), rect.topRight())
         if sys.platform == 'darwin':
             grad.setColorAt(0, c.lighter(100))
             grad.setColorAt(1, c.lighter(110))
@@ -351,7 +336,7 @@ class FoldingPanel(Panel):
         :param painter: QPainter
         """
         rect = QRect(0, top, self.sizeHint().width(),
-                            self.sizeHint().height())
+                     self.sizeHint().height())
         if self._native_icons:
             opt = QStyleOptionViewItem()
 
@@ -380,7 +365,6 @@ class FoldingPanel(Panel):
 
     def find_parent_scope(self, block):
         """Find parent scope, if the block is not a fold trigger."""
-        original = block
         block_line = block.blockNumber()
         if block_line not in self.folding_regions:
             for start_line in self.folding_regions:
@@ -641,7 +625,8 @@ class FoldingPanel(Panel):
             self._key_pressed = True
             if cursor.hasSelection():
                 # change selection to encompass the whole scope.
-                positions_to_check = cursor.selectionStart(), cursor.selectionEnd()
+                positions_to_check = (cursor.selectionStart(),
+                                      cursor.selectionEnd())
             else:
                 positions_to_check = (cursor.position(), )
             for pos in positions_to_check:
@@ -651,7 +636,8 @@ class FoldingPanel(Panel):
                         self.folding_status[start_line]):
                     end_line = self.folding_regions[start_line]
                     if delete_request and cursor.hasSelection():
-                        tc = TextHelper(self.editor).select_lines(start_line, end_line)
+                        tc = TextHelper(self.editor).select_lines(
+                            start_line, end_line)
                         if tc.selectionStart() > cursor.selectionStart():
                             start = cursor.selectionStart()
                         else:
@@ -664,38 +650,6 @@ class FoldingPanel(Panel):
                         tc.setPosition(end, tc.KeepAnchor)
                         self.editor.setTextCursor(tc)
             self._key_pressed = False
-
-    @staticmethod
-    def _show_previous_blank_lines(block):
-        """
-        Show the block previous blank lines
-        """
-        # set previous blank lines visibles
-        pblock = block.previous()
-        while (pblock.text().strip() == '' and
-               pblock.blockNumber() >= 0):
-            pblock.setVisible(True)
-            pblock = pblock.previous()
-
-    def refresh_decorations(self, force=False):
-        """
-        Refresh decorations colors. This function is called by the syntax
-        highlighter when the style changed so that we may update our
-        decorations colors according to the new style.
-        """
-        cursor = self.editor.textCursor()
-        if (self._prev_cursor is None or force or
-                self._prev_cursor.blockNumber() != cursor.blockNumber()):
-            for deco_line in self._block_decos:
-                deco = self._block_decos[deco_line]
-                self.editor.decorations.remove(deco)
-            for deco_line in self._block_decos:
-                deco = self._block_decos[deco_line]
-                deco.set_outline(drift_color(
-                    self._get_scope_highlight_color(), 110))
-                deco.set_background(self._get_scope_highlight_color())
-                self.editor.decorations.add(deco)
-        self._prev_cursor = cursor
 
     def _refresh_editor_and_scrollbars(self):
         """
@@ -753,23 +707,6 @@ class FoldingPanel(Panel):
         self._refresh_editor_and_scrollbars()
         self.expand_all_triggered.emit()
 
-    def _on_action_toggle(self):
-        """Toggle the current fold trigger."""
-        block = self.editor.textCursor().block()
-        block = self.find_parent_scope(block)
-        self.toggle_fold_trigger(block)
-
-    def _on_action_collapse_all_triggered(self):
-        """Closes all top levels fold triggers recursively."""
-        self.collapse_all()
-
-    def _on_action_expand_all_triggered(self):
-        """
-        Expands all fold triggers.
-        :return:
-        """
-        self.expand_all()
-
     def _highlight_caret_scope(self):
         """
         Highlight the scope of the current caret position.
@@ -793,22 +730,3 @@ class FoldingPanel(Panel):
             else:
                 self._clear_scope_decos()
         self._block_nbr = block_nbr
-
-    def clone_settings(self, original):
-        self.native_icons = original.native_icons
-        self.indicators_icons = original.indicators_icons
-        self.highlight_caret_scope = original.highlight_caret_scope
-        self.custom_fold_region_background = \
-            original.custom_fold_region_background
-
-    def is_collapsed(self, block):
-        line_number = block.blockNumber()
-        return (line_number in self.folding_regions and
-                line_number in self.folding_status)
-
-    def get_range(self, block):
-        line_number = block.blockNumber()
-        end_number = line_number
-        if line_number in self.folding_regions:
-            end_number = self.folding_regions[line_number]
-        return line_number, end_number

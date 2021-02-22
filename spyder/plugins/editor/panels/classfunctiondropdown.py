@@ -183,7 +183,7 @@ class ClassFunctionDropdown(Panel):
             else:
                 combobox.addItem(fqn, item)
 
-        line, column = self._editor.get_cursor_line_column()
+        line, __ = self._editor.get_cursor_line_column()
         self.update_selected(line)
 
     def update_data(self, data):

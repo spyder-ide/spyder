@@ -130,9 +130,9 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
     bracket_extension.enable = True
 
 
-@pytest.mark.slow
-@pytest.mark.second
-@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
+# @pytest.mark.slow
+# @pytest.mark.second
+# @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
             ('"".format', '-> str'),
@@ -140,9 +140,9 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
             (TEST_TEXT, TEST_DOCSTRING)
         ]
     )
-def test_get_hints(qtbot, lsp_codeeditor, params, capsys):
+def test_get_hints(qtbot, completions_codeeditor, params, capsys):
     """Test that the editor is returning hover hints."""
-    code_editor, _ = lsp_codeeditor
+    code_editor, _ = completions_codeeditor
     param, expected_output_text = params
 
     # Set text in editor
