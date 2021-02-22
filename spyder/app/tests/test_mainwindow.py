@@ -2595,7 +2595,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 def test_preferences_change_interpreter(qtbot, main_window):
     """Test that on main interpreter change signal is emitted."""
     # Check original pyls configuration
-    lsp = main_window.completions.get_client('lsp')
+    lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
     jedi = config['configurations']['pyls']['plugins']['jedi']
     assert jedi['environment'] is None
