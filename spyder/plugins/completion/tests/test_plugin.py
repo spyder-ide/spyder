@@ -160,7 +160,7 @@ def test_configuration_merge(completion_plugin):
 
 
 def test_provider_detection(completion_plugin_all):
-    assert len(completion_plugin_all.providers) == 4
+    assert len(completion_plugin_all.providers) == 3
 
 
 @pytest.mark.slow
