@@ -66,6 +66,8 @@ jobs:
         if: github.event_name != 'pull_request'
         shell: bash -l {0}
         run: echo "RUN_BUILD=true" >> $GITHUB_ENV
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Install dependencies
         if: env.RUN_BUILD == 'true'
         shell: bash
