@@ -132,20 +132,19 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
                 'spyder_kernels', 'textdistance',
                 ]
-
+    INCLUDES = ['_sitebuiltins']
+    EXCLUDES = []
     EXCLUDE_EGG = ['py2app']
 
     if make_lite:
-        INCLUDES = []
-        EXCLUDES = [
+        EXCLUDES.extend([
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy', 'PIL'
-        ]
-        EXCLUDE_EGG.append('pillow')
+        ])
+        EXCLUDE_EGG.extend(['pillow'])
     else:
-        INCLUDES = [
+        INCLUDES.extend([
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
-        ]
-        EXCLUDES = []
+        ])
         PACKAGES.extend(['pandas', 'PIL'])
 
     EXCLUDE_EGG.extend(EXCLUDES)
