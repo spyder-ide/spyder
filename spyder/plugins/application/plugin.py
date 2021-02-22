@@ -35,9 +35,8 @@ _ = get_translation('spyder')
 
 class Application(SpyderPluginV2):
     NAME = 'application'
-    REQUIRES = [Plugins.Console]
-    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Preferences,
-                Plugins.Shortcuts]
+    REQUIRES = [Plugins.Console, Plugins.Preferences]
+    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False

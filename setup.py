@@ -226,7 +226,7 @@ install_requires = [
     'pyqtwebengine<5.13',
     'python-language-server[all]>=0.36.2,<1.0.0',
     'pyls-black>=0.4.6',
-    'pyls-spyder>=0.3.0',
+    'pyls-spyder>=0.3.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
@@ -235,10 +235,10 @@ install_requires = [
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.10.1,<1.11.0',
+    'spyder-kernels>=1.10.2,<1.11.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
-    'watchdog>=0.10.3'
+    'watchdog>=0.10.3,<2.0.0'
 ]
 
 extras_require = {
@@ -267,26 +267,26 @@ extras_require = {
 
 spyder_plugins_entry_points = [
     'appearance = spyder.plugins.appearance.plugin:Appearance',
+    'application = spyder.plugins.application.plugin:Application',
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
     'completions = spyder.plugins.completion.plugin:CompletionPlugin',
-    'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
     'historylog = spyder.plugins.history.plugin:HistoryLog',
-    'ipython_console = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
+    'internal_console = spyder.plugins.console.plugin:Console',
+    'main_interpreter = spyder.plugins.maininterpreter.plugin:MainInterpreter',
+    'mainmenu = spyder.plugins.mainmenu.plugin:MainMenu',
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
-    'outline_explorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
     'plots = spyder.plugins.plots.plugin:Plots',
     'preferences = spyder.plugins.preferences.plugin:Preferences',
     'profiler = spyder.plugins.profiler.plugin:Profiler',
-    'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
+    'run = spyder.plugins.run.plugin:Run',
     'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
-    ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
-     'VariableExplorer'),
-    ('workingdir = spyder.plugins.workingdirectory.plugin:'
-     'WorkingDirectory'),
+    'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
+    'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
+    'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]
 
 spyder_completions_entry_points = [

@@ -51,9 +51,9 @@ class Toolbar(SpyderPluginV2):
 
         # TODO: Until all core plugins are migrated, this is needed.
         ACTION_MAP = {
-            ApplicationToolbars.File: self.main.file_toolbar_actions,
-            ApplicationToolbars.Debug: self.main.debug_toolbar_actions,
-            ApplicationToolbars.Run: self.main.run_toolbar_actions,
+            ApplicationToolbars.File: self._main.file_toolbar_actions,
+            ApplicationToolbars.Debug: self._main.debug_toolbar_actions,
+            ApplicationToolbars.Run: self._main.run_toolbar_actions,
         }
         for toolbar in container.get_application_toolbars():
             toolbar_id = toolbar.ID
@@ -115,7 +115,7 @@ class Toolbar(SpyderPluginV2):
         toolbar: spyder.api.widgets.toolbars.ApplicationToolbar
             The application toolbar to add to the main window.
         """
-        self.get_container().add_application_toolbar(toolbar, self.main)
+        self.get_container().add_application_toolbar(toolbar, self._main)
 
     def add_item_to_application_toolbar(self, item, toolbar=None,
                                         toolbar_id=None, section=None,
