@@ -160,6 +160,7 @@ def test_configuration_merge(completion_plugin):
 
 
 def test_provider_detection(completion_plugin_all):
+    print(completion_plugin_all.providers)
     assert len(completion_plugin_all.providers) == 3
 
 
