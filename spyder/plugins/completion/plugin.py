@@ -16,6 +16,7 @@ from collections import defaultdict
 import functools
 import inspect
 import logging
+import os
 from pkg_resources import parse_version, iter_entry_points
 from typing import List, Any, Union, Optional, Tuple
 
@@ -25,7 +26,7 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            SpyderCompletionProvider,
@@ -258,6 +259,11 @@ class CompletionPlugin(SpyderPluginV2):
             self.main.sig_pythonpath_changed.connect(
                 self.sig_pythonpath_changed)
             # self.main.sig_setup_finished.connect(self.setup_finished)
+
+        # Do not start providers on tests unless necessary
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
 
         self.start_all_providers()
 
