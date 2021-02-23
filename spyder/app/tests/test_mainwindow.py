@@ -2452,19 +2452,33 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     was not updating correctly.
     """
     # Reset config
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+             False)
+
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+             False)
 
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
-                                                 'lsp-server')
+                                                 'completions')
     # Get the correct tab pages inside the Completion preferences page
     tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
+
+    tabs = [(page.tabs.widget(i).layout().itemAt(0).widget(), i)
+            for i in range(page.tabs.count())]
+
+    tabs = dict(zip(tnames, tabs))
     tab_widgets = {
-        tnames.index('code style and formatting'): page.code_style_check,
-        tnames.index('docstring style'): page.docstring_style_check,
+        'code style and formatting': 'code_style_check',
+        'docstring style': 'docstring_style_check'
     }
-    for idx, check in tab_widgets.items():
+
+    for tabname in tab_widgets:
+        tab, idx = tabs[tabname]
+        check_name = tab_widgets[tabname]
+        check = getattr(tab, check_name)
         page.tabs.setCurrentIndex(idx)
         check.animateClick()
         qtbot.wait(500)
@@ -2491,9 +2505,13 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     assert count == 2
 
     # Reset config
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+             False)
 
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+             False)
 
 @pytest.mark.slow
 def test_preferences_change_font_regression(main_window, qtbot):

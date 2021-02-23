@@ -390,6 +390,11 @@ class Editor(SpyderPluginWidget):
             request, params['file']))
         self.main.completions.send_request(language, request, params)
 
+    @Slot(str, tuple, dict)
+    def _rpc_call(self, method, args, kwargs):
+        meth = getattr(self, method)
+        meth(*args, **kwargs)
+
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -1197,6 +1202,7 @@ class Editor(SpyderPluginWidget):
         self.main.completions.sig_language_client_available.connect(
             self.register_completion_capabilities)
         self.main.completions.sig_open_file.connect(self.load)
+        self.main.completions.sig_editor_rpc.connect(self._rpc_call)
 
         self.sig_file_opened_closed_or_updated.connect(
             self.main.completions.file_opened_updated)
@@ -1214,6 +1220,25 @@ class Editor(SpyderPluginWidget):
             lambda: self.get_current_editor(),
             lambda: self.get_current_editorstack(),
             section=self.get_plugin_title())
+
+    def update_source_menu(self, options, **kwargs):
+        option_names = [opt[-1] if isinstance(opt, tuple) else opt
+                        for opt in options]
+        named_options = dict(zip(option_names, options))
+        for name, action in self.checkable_actions.items():
+            if name in named_options:
+                section = 'completions'
+                if name == 'underline_errors':
+                    section = 'editor'
+
+                opt = named_options[name]
+                state = self.get_option(opt, section=section)
+
+                # Avoid triggering the action when this action changes state
+                # See: spyder-ide/spyder#9915
+                action.blockSignals(True)
+                action.setChecked(state)
+                action.blockSignals(False)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1535,6 +1560,12 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
+
+    def call_all_editorstacks(self, method, *args, **kwargs):
+        """Call a method with arguments on all editorstacks."""
+        for editorstack in self.editorstacks:
+            method = getattr(editorstack, method)
+            method(*args, **kwargs)
 
     #------ Handling editor windows
     def setup_other_windows(self):

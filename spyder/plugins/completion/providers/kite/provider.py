@@ -43,6 +43,7 @@ class KiteProvider(SpyderCompletionProvider):
     COMPLETION_CLIENT_NAME = 'kite'
     DEFAULT_ORDER = 1
     CONF_DEFAULTS = [
+        ('spyder_runs', 0),
         ('show_installation_dialog', True),
         ('show_onboarding', True),
         ('show_installation_error_message', True)

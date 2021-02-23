@@ -112,7 +112,7 @@ class KiteStatusWidget(StatusBarWidget):
         third time Spyder is started, to show Kite's installation dialog
         and onboarding if necessary.
         """
-        spyder_runs = self.get_option('spyder_runs')
+        spyder_runs = self.provider.get_option('spyder_runs')
         if spyder_runs == 3:
             self.provider._kite_onboarding()
 

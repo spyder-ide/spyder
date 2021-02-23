@@ -153,6 +153,20 @@ class CompletionPlugin(SpyderPluginV2):
         Path to a file to open with the editor.
     """
 
+    sig_editor_rpc = Signal(str, tuple, dict)
+    """
+    This signal is used to perform remote calls to the editor.
+
+    Parameters
+    ----------
+    method: str
+        Name of the method to call on the editor.
+    args: tuple
+        Tuple containing the positional arguments to perform the call.
+    kwargs: dict
+        Dictionary containing the optional arguments to perform the call.
+    """
+
     # Provider status constants
     RUNNING = 'running'
     STOPPED = 'stopped'
@@ -294,6 +308,53 @@ class CompletionPlugin(SpyderPluginV2):
 
         for provider in self.providers:
             self.update_provider_configuration(provider)
+
+        # FIXME: Remove this after migrating the ConfManager to an observer
+        # pattern.
+        editor_method_sec_opts = {
+            'set_code_snippets_enabled': (self.CONF_SECTION,
+                                          'enable_code_snippets'),
+            'set_hover_hints_enabled':  (self.CONF_SECTION,
+                                         'provider_configuration',
+                                         'lsp',
+                                         'values',
+                                         'enable_hover_hints'),
+            'set_format_on_save': (self.CONF_SECTION,
+                                   'provider_configuration',
+                                   'lsp',
+                                   'values',
+                                   'format_on_save'),
+            'set_automatic_completions_enabled': ('editor',
+                                                  'automatic_completions'),
+            'set_completions_hint_enabled': ('editor', 'completions_hint'),
+            'set_completions_hint_after_ms': ('editor',
+                                              'completions_hint_after_ms'),
+            'set_underline_errors_enabled': ('editor', 'underline_errors'),
+            'set_automatic_completions_after_chars': (
+                'editor', 'automatic_completions_after_chars'),
+            'set_automatic_completions_after_ms': (
+                'editor', 'automatic_completions_after_ms'),
+            'set_edgeline_columns': (self.CONF_SECTION,
+                                     'provider_configuration',
+                                     'lsp',
+                                     'values',
+                                     'pycodestyle/max_line_length'),
+            'set_edgeline_enabled': ('editor', 'edge_line'),
+        }
+
+        for method_name, (sec, *opt) in editor_method_sec_opts.items():
+            opt = tuple(opt)
+            if len(opt) == 1:
+                opt = opt[0]
+            if opt in options:
+                opt_value = self.get_conf_option(opt, section=sec)
+                self.sig_editor_rpc.emit('call_all_editorstacks',
+                                         (method_name, (opt_value,)),
+                                         {})
+
+        # Update entries in the source menu
+        # FIXME: Delete this after CONF is moved to an observer pattern.
+        self.sig_editor_rpc.emit('update_source_menu', (options,), {})
 
     def on_mainwindow_visible(self):
         for provider_name in self.providers:
