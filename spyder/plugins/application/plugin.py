@@ -25,6 +25,7 @@ from spyder.config.base import DEV, get_module_path, running_under_pytest
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
     ApplicationActions, ApplicationContainer, WinUserEnvDialog)
+from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -73,13 +74,32 @@ class Application(SpyderPluginV2):
 
     def register(self):
         # Register with Preferences plugin
+        console = self.get_plugin(Plugins.Console)
+        main_menu = self.get_plugin(Plugins.MainMenu)
         preferences = self.get_plugin(Plugins.Preferences)
+
+        # Register conf page
         preferences.register_plugin_preferences(self)
 
         # Main menu population
         self._populate_file_menu()
         self._populate_tools_menu()
         self._populate_help_menu()
+
+        # Actions
+        report_action = self.create_action(
+            ConsoleActions.SpyderReportAction,
+            _("Report issue..."),
+            icon=self.create_icon('bug'),
+            triggered=console.report_issue)
+        dependencies_action = self.get_action(
+            ApplicationActions.SpyderDependenciesAction)
+        if main_menu:
+            main_menu.add_item_to_application_menu(
+                report_action,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Support,
+                before=dependencies_action)
 
     def on_close(self):
         self.get_container().on_close()
@@ -127,8 +147,6 @@ class Application(SpyderPluginV2):
     def _populate_help_menu_documentation_section(self, mainmenu):
         """Add base Spyder documentation actions to the Help main menu."""
         if mainmenu:
-            from spyder.plugins.mainmenu.api import (
-                ApplicationMenus, HelpMenuSections)
             shortcuts = self.get_plugin(Plugins.Shortcuts)
             shortcuts_summary_action = None
             if shortcuts:

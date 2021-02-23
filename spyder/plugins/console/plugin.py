@@ -31,17 +31,13 @@ _ = get_translation('spyder')
 logger = logging.getLogger(__name__)
 
 
-class ConsoleActions:
-    SpyderReportAction = "spyder_report_action"
-
-
 class Console(SpyderDockablePlugin):
     """
     Console widget
     """
     NAME = 'internal_console'
     WIDGET_CLASS = ConsoleWidget
-    OPTIONAL = [Plugins.Application, Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONF_FROM_OPTIONS = {
@@ -94,9 +90,7 @@ class Console(SpyderDockablePlugin):
 
     def register(self):
         widget = self.get_widget()
-        application = self.get_plugin(Plugins.Application)
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        dependencies_action = None
 
         # Signals
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -124,20 +118,7 @@ class Console(SpyderDockablePlugin):
             widget.handle_exception(error_data)
 
         # Actions
-        report_action = self.create_action(
-            ConsoleActions.SpyderReportAction,
-            _("Report issue..."),
-            icon=self.create_icon('bug'),
-            triggered=self.report_issue)
-        if application:
-            dependencies_action = application.get_action(
-                ApplicationActions.SpyderDependenciesAction)
         if mainmenu:
-            mainmenu.add_item_to_application_menu(
-                report_action,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.Support,
-                before=dependencies_action)
             mainmenu.add_item_to_application_menu(
                 widget.quit_action,
                 menu_id=ApplicationMenus.File,

@@ -42,7 +42,7 @@ class Profiler(SpyderDockablePlugin):
     """
 
     NAME = 'profiler'
-    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.VariableExplorer]
+    REQUIRES = [Plugins.Preferences, Plugins.Editor]
     OPTIONAL = [Plugins.MainMenu]
     TABIFY = Plugins.Help
     WIDGET_CLASS = ProfilerWidget
