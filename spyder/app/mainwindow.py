@@ -1059,18 +1059,6 @@ class MainWindow(QMainWindow):
                 menu_id=ApplicationMenus.Tools,
                 section=ToolsMenuSections.Tools,
                 before=winenv_action)
-        from spyder.plugins.completion.kite.utils.install import (
-            check_if_kite_installed)
-        is_kite_installed, kite_path = check_if_kite_installed()
-        if not is_kite_installed:
-            install_kite_action = create_action(
-                self, _("Install Kite completion engine"),
-                icon=get_icon('kite', adjust_for_interface=True),
-                triggered=self.show_kite_installation)
-            self.mainmenu.add_item_to_application_menu(
-                install_kite_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools)
         self.mainmenu.add_item_to_application_menu(
                 reset_spyder_action,
                 menu_id=ApplicationMenus.Tools)
