@@ -99,6 +99,7 @@ def find_internal_plugins():
         internal_plugins["ipython_console"] = None
         internal_plugins["variable_explorer"] = None
         internal_plugins["outline_explorer"] = None
+        internal_plugins['completions'] = None
 
     return internal_plugins
 
@@ -141,7 +142,7 @@ def find_external_plugins():
     return external_plugins
 
 
-def solve_plugin_dependencies(plugins):
+def solve_plugin_dependencies(plugins, testing=False):
     """
     Return a list of plugins sorted by dependencies.
 
@@ -168,8 +169,9 @@ def solve_plugin_dependencies(plugins):
     plugin_names = {plugin.NAME: plugin for plugin in plugins}
     # TODO: Remove the next line once the migration is finished (it
     # shouldn't be necessary)
-    internal_plugins = find_internal_plugins()
-    plugin_names.update(internal_plugins)
+    if not testing:
+        internal_plugins = find_internal_plugins()
+        plugin_names.update(internal_plugins)
     dependencies_dict = {}
 
     # Prune plugins based on required dependencies
@@ -201,9 +203,12 @@ def solve_plugin_dependencies(plugins):
 
     # Convert back from names to plugins
     # TODO: Remove the if part when the migration is done!
-    plugin_deps = [
-        plugin_names[name] for name in deps
-        if name not in internal_plugins.keys()
-    ]
+    if testing:
+        plugin_deps = [plugin_names[name] for name in deps]
+    else:
+        plugin_deps = [
+            plugin_names[name] for name in deps
+            if name not in internal_plugins.keys()
+        ]
 
     return plugin_deps

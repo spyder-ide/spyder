@@ -20,7 +20,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.plugins.console.plugin import ConsoleActions
+from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
 from spyder.utils.qthelpers import start_file

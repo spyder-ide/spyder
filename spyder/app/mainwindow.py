@@ -808,11 +808,6 @@ class MainWindow(QMainWindow):
         self.toolbar = Toolbar(self, configuration=CONF)
         self.register_plugin(self.toolbar)
 
-        # Application plugin
-        from spyder.plugins.application.plugin import Application
-        self.application = Application(self, configuration=CONF)
-        self.register_plugin(self.application)
-
         logger.info("Creating core actions...")
         # TODO: Change registration to use MainMenus
         self.close_dockwidget_action = create_action(
@@ -925,97 +920,6 @@ class MainWindow(QMainWindow):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-        logger.info("Creating Tools menu...")
-        # Tools + External Tools
-        prefs_action = create_action(self, _("Pre&ferences"),
-                                     icon=ima.icon('configure'),
-                                     triggered=self.show_preferences,
-                                     context=Qt.ApplicationShortcut)
-        self.register_shortcut(prefs_action, "_", "Preferences",
-                               add_shortcut_to_tip=True)
-        spyder_path_action = create_action(self,
-                                _("PYTHONPATH manager"),
-                                None, icon=ima.icon('pythonpath'),
-                                triggered=self.show_path_manager,
-                                tip=_("PYTHONPATH manager"),
-                                menurole=QAction.ApplicationSpecificRole)
-        reset_spyder_action = create_action(
-            self, _("Reset Spyder to factory defaults"),
-            triggered=self.reset_spyder)
-        from spyder.plugins.application.plugin import (
-            ApplicationActions, WinUserEnvDialog)
-        winenv_action = None
-        if WinUserEnvDialog:
-            winenv_action = self.application.get_action(
-                ApplicationActions.SpyderWindowsEnvVariables)
-        for tool_action in [prefs_action, spyder_path_action]:
-            self.mainmenu.add_item_to_application_menu(
-                tool_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools,
-                before=winenv_action)
-        from spyder.plugins.completion.kite.utils.install import (
-            check_if_kite_installed)
-        is_kite_installed, kite_path = check_if_kite_installed()
-        if not is_kite_installed:
-            install_kite_action = create_action(
-                self, _("Install Kite completion engine"),
-                icon=get_icon('kite', adjust_for_interface=True),
-                triggered=self.show_kite_installation)
-            self.mainmenu.add_item_to_application_menu(
-                install_kite_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools)
-        self.mainmenu.add_item_to_application_menu(
-                reset_spyder_action,
-                menu_id=ApplicationMenus.Tools)
-        if get_debug_level() >= 3:
-            self.menu_lsp_logs = QMenu(_("LSP logs"))
-            self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
-            self.mainmenu.add_item_to_application_menu(
-                self.menu_lsp_logs,
-                menu_id=ApplicationMenus.Tools)
-
-        # Maximize current plugin
-        self.maximize_action = create_action(self, '',
-                                        triggered=self.maximize_dockwidget,
-                                        context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.maximize_action, "_", "Maximize pane")
-        self.__update_maximize_action()
-
-        # Fullscreen mode
-        self.fullscreen_action = create_action(self,
-                                        _("Fullscreen mode"),
-                                        triggered=self.toggle_fullscreen,
-                                        context=Qt.ApplicationShortcut)
-        if sys.platform == 'darwin':
-            self.fullscreen_action.setEnabled(False)
-            self.fullscreen_action.setToolTip(_("For fullscreen mode use "
-                                               "macOS built-in feature"))
-        else:
-            self.register_shortcut(
-                self.fullscreen_action,
-                "_",
-                "Fullscreen mode",
-                add_shortcut_to_tip=True
-            )
-
-        # Main toolbar
-        from spyder.plugins.toolbar.api import (
-            ApplicationToolbars, MainToolbarSections)
-        for main_layout_action in [self.maximize_action,
-                                   self.fullscreen_action]:
-            self.toolbar.add_item_to_application_toolbar(
-                main_layout_action,
-                toolbar_id=ApplicationToolbars.Main,
-                section=MainToolbarSections.LayoutSection,
-                before_section=MainToolbarSections.ApplicationSection)
-        for main_application_action in [prefs_action, spyder_path_action]:
-            self.toolbar.add_item_to_application_toolbar(
-                main_application_action,
-                toolbar_id=ApplicationToolbars.Main,
-                section=MainToolbarSections.ApplicationSection)
-
         # Switcher instance
         logger.info("Loading switcher...")
         self.create_switcher()
@@ -1126,6 +1030,104 @@ class MainWindow(QMainWindow):
             self.help = Help(self, configuration=CONF)
             self.register_plugin(self.help)
 
+        # Application plugin
+        from spyder.plugins.application.plugin import Application
+        self.application = Application(self, configuration=CONF)
+        self.register_plugin(self.application)
+
+        # Tools + External Tools (some of this depends on the Application
+        # plugin)
+        logger.info("Creating Tools menu...")
+
+        prefs_action = create_action(self, _("Pre&ferences"),
+                                     icon=ima.icon('configure'),
+                                     triggered=self.show_preferences,
+                                     context=Qt.ApplicationShortcut)
+        self.register_shortcut(prefs_action, "_", "Preferences",
+                               add_shortcut_to_tip=True)
+        spyder_path_action = create_action(self,
+                                _("PYTHONPATH manager"),
+                                None, icon=ima.icon('pythonpath'),
+                                triggered=self.show_path_manager,
+                                tip=_("PYTHONPATH manager"),
+                                menurole=QAction.ApplicationSpecificRole)
+        reset_spyder_action = create_action(
+            self, _("Reset Spyder to factory defaults"),
+            triggered=self.reset_spyder)
+        from spyder.plugins.application.plugin import (
+            ApplicationActions, WinUserEnvDialog)
+        winenv_action = None
+        if WinUserEnvDialog:
+            winenv_action = self.application.get_action(
+                ApplicationActions.SpyderWindowsEnvVariables)
+        for tool_action in [prefs_action, spyder_path_action]:
+            self.mainmenu.add_item_to_application_menu(
+                tool_action,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Tools,
+                before=winenv_action)
+        from spyder.plugins.completion.kite.utils.install import (
+            check_if_kite_installed)
+        is_kite_installed, kite_path = check_if_kite_installed()
+        if not is_kite_installed:
+            install_kite_action = create_action(
+                self, _("Install Kite completion engine"),
+                icon=get_icon('kite', adjust_for_interface=True),
+                triggered=self.show_kite_installation)
+            self.mainmenu.add_item_to_application_menu(
+                install_kite_action,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Tools)
+        self.mainmenu.add_item_to_application_menu(
+                reset_spyder_action,
+                menu_id=ApplicationMenus.Tools)
+        if get_debug_level() >= 3:
+            self.menu_lsp_logs = QMenu(_("LSP logs"))
+            self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
+            self.mainmenu.add_item_to_application_menu(
+                self.menu_lsp_logs,
+                menu_id=ApplicationMenus.Tools)
+
+        # Maximize current plugin
+        self.maximize_action = create_action(self, '',
+                                        triggered=self.maximize_dockwidget,
+                                        context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.maximize_action, "_", "Maximize pane")
+        self.__update_maximize_action()
+
+        # Fullscreen mode
+        self.fullscreen_action = create_action(self,
+                                        _("Fullscreen mode"),
+                                        triggered=self.toggle_fullscreen,
+                                        context=Qt.ApplicationShortcut)
+        if sys.platform == 'darwin':
+            self.fullscreen_action.setEnabled(False)
+            self.fullscreen_action.setToolTip(_("For fullscreen mode use "
+                                               "macOS built-in feature"))
+        else:
+            self.register_shortcut(
+                self.fullscreen_action,
+                "_",
+                "Fullscreen mode",
+                add_shortcut_to_tip=True
+            )
+
+        # Main toolbar
+        from spyder.plugins.toolbar.api import (
+            ApplicationToolbars, MainToolbarSections)
+        for main_layout_action in [self.maximize_action,
+                                   self.fullscreen_action]:
+            self.toolbar.add_item_to_application_toolbar(
+                main_layout_action,
+                toolbar_id=ApplicationToolbars.Main,
+                section=MainToolbarSections.LayoutSection,
+                before_section=MainToolbarSections.ApplicationSection)
+        for main_application_action in [prefs_action, spyder_path_action]:
+            self.toolbar.add_item_to_application_toolbar(
+                main_application_action,
+                toolbar_id=ApplicationToolbars.Main,
+                section=MainToolbarSections.ApplicationSection)
+
         # History log widget
         if CONF.get('historylog', 'enable'):
             from spyder.plugins.history.plugin import HistoryLog
@@ -1170,10 +1172,6 @@ class MainWindow(QMainWindow):
             self.findinfiles = FindInFiles(self, configuration=CONF)
             self.register_plugin(self.findinfiles)
 
-        # Load other plugins (former external plugins)
-        # TODO: Use this bucle to load all internal plugins and remove
-        # duplicated code
-
         # Breakpoints
         if CONF.get('breakpoints', 'enable'):
             from spyder.plugins.breakpoints.plugin import Breakpoints
@@ -1194,9 +1192,6 @@ class MainWindow(QMainWindow):
             self.pylint = Pylint(self, configuration=CONF)
             self.register_plugin(self.pylint)
             self.thirdparty_plugins.append(self.pylint)
-
-        # Third-party plugins
-        from spyder import dependencies
 
         self.set_splash(_("Loading third-party plugins..."))
         for mod in get_spyderplugins_mods():
