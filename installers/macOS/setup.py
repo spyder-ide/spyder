@@ -124,6 +124,19 @@ def make_app_bundle(dist_dir, make_lite=False):
     from spyder.config.utils import EDIT_FILETYPES, _get_extensions
     from spyder.config.base import MAC_APP_NAME
 
+    # Patch py2app for IPython help()
+    py2app_file = pkg_resources.pkgutil.get_loader('py2app').get_filename()
+    site_file = os.path.join(os.path.dirname(py2app_file), 'apptemplate',
+                             'lib', 'site.py')
+    logger.info('Patching %s...', site_file)
+    with open(site_file, 'a+') as f:
+        f.seek(0)
+        content = f.read()
+        if 'builtins.help = _sitebuiltins._Helper()' not in content:
+            f.write('\nimport builtins'
+                    '\nimport _sitebuiltins'
+                    '\nbuiltins.help = _sitebuiltins._Helper()\n')
+
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
@@ -132,7 +145,7 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
                 'spyder_kernels', 'textdistance',
                 ]
-    INCLUDES = ['_sitebuiltins']
+    INCLUDES = ['_sitebuiltins']  # required for IPython help()
     EXCLUDES = []
     EXCLUDE_EGG = ['py2app']
 
@@ -175,6 +188,7 @@ def make_app_bundle(dist_dir, make_lite=False):
     app_script_path = os.path.join(SPYREPO, 'scripts', app_script_name)
     shutil.copy2(os.path.join(SPYREPO, 'scripts', 'spyder'), app_script_path)
 
+    # Build the application
     try:
         os.symlink(os.path.join(SPYREPO, 'spyder'), SPYLINK)
         setup(app=[app_script_path], options={'py2app': OPTIONS})
