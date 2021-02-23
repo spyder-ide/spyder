@@ -120,4 +120,4 @@ jobs:
       # Enable this if SSH debugging is required
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: env.RUN_BUILD == 'false'
+        if: ${{ failure() }}
