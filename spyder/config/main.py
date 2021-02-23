@@ -515,60 +515,6 @@ DEFAULTS = [
               'find_in_files/find in files': 'Ctrl+Alt+F',
               }),
             ('appearance', APPEARANCE),
-            ('lsp-server',
-             {
-              # This option is not used with the LSP server config
-              # It is used to disable hover hints in the editor
-              'enable_hover_hints': True,
-              'show_lsp_down_warning': True,
-              'code_completion': True,
-              'code_snippets': True,
-              'jedi_definition': True,
-              'jedi_definition/follow_imports': True,
-              'jedi_signature_help': True,
-              'preload_modules': PRELOAD_MDOULES,
-              'pyflakes': True,
-              'mccabe': False,
-              'formatting': 'autopep8',
-              'format_on_save': False,
-              'pycodestyle': False,
-              'pycodestyle/filename': '',
-              'pycodestyle/exclude': '',
-              'pycodestyle/select': '',
-              'pycodestyle/ignore': '',
-              'pycodestyle/max_line_length': 79,
-              'pydocstyle': False,
-              'pydocstyle/convention': 'numpy',
-              'pydocstyle/select': '',
-              'pydocstyle/ignore': '',
-              'pydocstyle/match': '(?!test_).*\\.py',
-              'pydocstyle/match_dir': '[^\\.].*',
-              'advanced/enabled': False,
-              'advanced/module': 'pyls',
-              'advanced/host': '127.0.0.1',
-              'advanced/port': 2087,
-              'advanced/external': False,
-              'advanced/stdio': False
-             }),
-            ('fallback-completions',
-             {
-              'enable': True,
-             }),
-            ('snippet-completions',
-             {
-               'enable': True,
-               **SNIPPETS
-             }),
-            ('kite',
-             {
-              'enable': True,
-              'call_to_action': True,
-              # Enable the installation dialog
-              'show_installation_dialog': True,
-              'show_onboarding': True,
-              'show_installation_error_message': True,
-              'spyder_runs': 1
-             }),
             ]
 
 
@@ -671,4 +617,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '66.0.0'
+CONF_VERSION = '67.0.0'

@@ -4118,7 +4118,10 @@ class CodeEditor(TextEditBaseWidget):
             triggered=writer.write_docstring_at_first_line_of_function)
 
         # Document formatting
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting')
+        )
         self.format_action = create_action(
             self,
             _('Format file or selection with {0}').format(
@@ -4970,7 +4973,10 @@ class CodeEditor(TextEditBaseWidget):
         self.re_run_last_cell_action.setVisible(self.is_python_or_ipython())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting')
+        )
         self.format_action.setText(_(
             'Format file or selection with {0}').format(
                 formatter.capitalize()))

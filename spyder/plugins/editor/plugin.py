@@ -859,7 +859,9 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'))
         self.formatting_action = create_action(
             self,
             _('Format file or selection with {0}').format(
@@ -1289,7 +1291,10 @@ class Editor(SpyderPluginWidget):
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
-            action.setChecked(CONF.get('lsp-server', conf_name))
+            action.setChecked(CONF.get(
+                'completions',
+                ('provider_configuration', 'lsp', 'values', conf_name)
+            ))
 
         action.blockSignals(False)
 
@@ -1320,9 +1325,12 @@ class Editor(SpyderPluginWidget):
             self.set_option(conf_name, checked)
         else:
             if conf_name in ('pycodestyle', 'pydocstyle'):
-                CONF.set('lsp-server', conf_name, checked)
+                CONF.set(
+                    'completions',
+                    ('provider_configuration', 'lsp', 'values', conf_name),
+                    checked)
             completions = self.main.completions
-            completions.update_configuration()
+            completions.after_configuration_update([])
 
     #------ Focus tabwidget
     def __get_focused_editorstack(self):
@@ -1438,10 +1446,14 @@ class Editor(SpyderPluginWidget):
 
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
 
-        editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
-                                                     'enable_hover_hints'))
+        editorstack.set_hover_hints_enabled(CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'enable_hover_hints')
+        ))
         editorstack.set_format_on_save(
-            CONF.get('lsp-server', 'format_on_save'))
+            CONF.get(
+                'completions',
+                ('provider_configuration', 'lsp', 'values', 'format_on_save')))
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 
@@ -1757,7 +1769,9 @@ class Editor(SpyderPluginWidget):
         self.formatting_action.setEnabled(status)
 
     def refresh_formatter_name(self):
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'))
         self.formatting_action.setText(
             _('Format file or selection with {0}').format(
                 formatter.capitalize()))
