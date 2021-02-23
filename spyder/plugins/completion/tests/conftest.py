@@ -135,7 +135,7 @@ def create_completion_plugin(create_fake_distribution=None,
         completions = CompletionPlugin(main_window, CONF)
 
         # Remove Kite (In case it was registered via setup.py)
-        completions.providers.pop('kite')
+        completions.providers.pop('kite', None)
 
         def teardown():
             if remove_fake_distribution is not None:
