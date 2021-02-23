@@ -864,11 +864,10 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
-        formatter = 'autopep8'
-        if not running_under_pytest():
-            formatter = CONF.get(
-                'completions',
-                ('provider_configuration', 'lsp', 'values', 'formatting'))
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'),
+            '')
         self.formatting_action = create_action(
             self,
             _('Format file or selection with {0}').format(
@@ -1298,12 +1297,11 @@ class Editor(SpyderPluginWidget):
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
-            opt = False
-            if not running_under_pytest():
-                opt = CONF.get(
-                    'completions',
-                    ('provider_configuration', 'lsp', 'values', conf_name)
-                )
+            opt = CONF.get(
+                'completions',
+                ('provider_configuration', 'lsp', 'values', conf_name),
+                False
+            )
             action.setChecked(opt)
 
         action.blockSignals(False)
@@ -1456,20 +1454,18 @@ class Editor(SpyderPluginWidget):
 
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
 
-        hover_hints = True
-        if not running_under_pytest():
-            hover_hints = CONF.get(
-                'completions',
-                ('provider_configuration', 'lsp', 'values',
-                 'enable_hover_hints')
-            )
+        hover_hints = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values',
+                'enable_hover_hints'),
+            True
+        )
 
-        format_on_save = False
-        if not running_under_pytest():
-            format_on_save = CONF.get(
-                'completions',
-                ('provider_configuration', 'lsp', 'values', 'format_on_save')
-            )
+        format_on_save = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            False
+        )
 
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)
@@ -1788,11 +1784,10 @@ class Editor(SpyderPluginWidget):
         self.formatting_action.setEnabled(status)
 
     def refresh_formatter_name(self):
-        formatter = 'autopep8'
-        if not running_under_pytest():
-            formatter = CONF.get(
-                'completions',
-                ('provider_configuration', 'lsp', 'values', 'formatting'))
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'),
+            '')
         self.formatting_action.setText(
             _('Format file or selection with {0}').format(
                 formatter.capitalize()))
