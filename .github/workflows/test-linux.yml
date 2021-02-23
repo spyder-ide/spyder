@@ -114,8 +114,8 @@ jobs:
         shell: bash -l {0}
         run: xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py
       # Enable this if SSH debugging is required
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Coverage
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
