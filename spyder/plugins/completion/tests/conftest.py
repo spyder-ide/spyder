@@ -134,6 +134,9 @@ def create_completion_plugin(create_fake_distribution=None,
         main_window = MainWindowMock()
         completions = CompletionPlugin(main_window, CONF)
 
+        # Remove Kite (In case it was registered via setup.py)
+        completions.providers.pop('kite')
+
         def teardown():
             if remove_fake_distribution is not None:
                 remove_fake_distribution()

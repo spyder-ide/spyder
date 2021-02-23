@@ -275,6 +275,8 @@ def main_window(request, tmpdir):
         # Reset cwd
         window.explorer.chdir(get_home_dir())
 
+    # Remove Kite (In case it was registered via setup.py)
+    window.completions.providers.pop('kite')
     yield window
 
     # Print shell content if failed
