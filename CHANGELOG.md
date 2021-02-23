@@ -1,5 +1,18 @@
 # History of changes
 
+## Version 5.0alpha5 (2021-02-23)
+
+### Pull Requests Merged
+
+* [PR 14796](https://github.com/spyder-ide/spyder/pull/14796) - PR: Fix plugin dependencies solver, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14782](https://github.com/spyder-ide/spyder/pull/14782) - PR: Several fixes to load external plugins, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0alpha4 (2021-02-14)
 
 ### Issues Closed
