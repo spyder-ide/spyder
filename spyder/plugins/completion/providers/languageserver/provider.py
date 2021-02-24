@@ -354,8 +354,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     )
                     folder = self.get_root_path(language)
                     instance.folder = folder
+                    self.sig_stop_completions.emit(language)
                     self.stop_provider(language)
                     self.start_provider(language)
+
 
     @Slot(str)
     def report_server_error(self, error):
@@ -594,6 +596,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     def restart_client(self, language, config):
         """Restart a client."""
+        self.sig_stop_completions.emit(language)
         self.stop_provider(language)
         self.clients[language] = config
         self.start_provider(language)

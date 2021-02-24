@@ -93,6 +93,8 @@ class OutlineExplorer(SpyderPluginWidget):
                                                self.restore_scrollbar_position)
         self.main.completions.sig_language_client_available.connect(
             self.start_symbol_services)
+        self.main.completions.sig_stop_completions.connect(
+            self.stop_symbol_services)
         self.add_dockwidget()
 
     def closing_plugin(self, cancelable=False):

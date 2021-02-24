@@ -168,6 +168,18 @@ class CompletionPlugin(SpyderPluginV2):
         Dictionary containing the optional arguments to perform the call.
     """
 
+    sig_stop_completions = Signal(str)
+    """
+    This signal is used to stop the completion services on Spyder plugins
+    that depend on them.
+
+    Parameters
+    ----------
+    language: str
+        Name of the programming language whose completion services are not
+        available.
+    """
+
     # Provider status constants
     RUNNING = 'running'
     STOPPED = 'stopped'
@@ -742,6 +754,12 @@ class CompletionPlugin(SpyderPluginV2):
             provider_status = self.language_status[language]
             providers = [p for p in provider_status if provider_status[p]]
         return providers
+
+    def is_fallback_only(self, language: str) -> bool:
+        available_providers = set(
+            self.available_providers_for_language(language))
+        fallback_providers = {'snippets', 'fallback'}
+        return (fallback_providers & available_providers) == fallback_providers
 
     def sort_providers_for_request(
             self, providers: List[str], req_type: str) -> List[str]:

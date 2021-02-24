@@ -346,10 +346,10 @@ class Editor(SpyderPluginWidget):
                 codeeditor.register_completion_capabilities(
                     self.completion_capabilities[language.lower()])
                 codeeditor.start_completion_services()
-            # elif self.main.completions.is_fallback_only(language.lower()):
-            # This is required to use fallback completions for files
-            # without a language server.
-            codeeditor.start_completion_services()
+            elif self.main.completions.is_fallback_only(language.lower()):
+                # This is required to use fallback completions for files
+                # without a language server.
+                codeeditor.start_completion_services()
         else:
             if codeeditor.language == language.lower():
                 logger.debug('Setting {0} completions off'.format(filename))
@@ -1211,6 +1211,8 @@ class Editor(SpyderPluginWidget):
             self.register_completion_capabilities)
         self.main.completions.sig_open_file.connect(self.load)
         self.main.completions.sig_editor_rpc.connect(self._rpc_call)
+        self.main.completions.sig_stop_completions.connect(
+            self.stop_completion_services)
 
         self.sig_file_opened_closed_or_updated.connect(
             self.main.completions.file_opened_updated)

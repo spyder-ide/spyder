@@ -751,6 +751,18 @@ class SpyderCompletionProvider(QObject):
         Path to a file to open with the editor.
     """
 
+    sig_stop_completions = Signal(str)
+    """
+    This signal is used to stop the completion services on Spyder plugins
+    that depend on them.
+
+    Parameters
+    ----------
+    language: str
+        Name of the programming language whose completion services are not
+        available.
+    """
+
     sig_exception_occurred = Signal(dict)
     """
     This signal can be emitted to report an exception from any plugin.

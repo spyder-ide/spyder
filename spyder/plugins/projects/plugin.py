@@ -187,6 +187,7 @@ class Projects(SpyderPluginWidget):
         lspmgr.sig_language_client_available.connect(
             lambda settings, language:
                 self.start_workspace_services())
+        lspmgr.sig_stop_completions.connect(self.stop_workspace_services)
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
@@ -648,7 +649,7 @@ class Projects(SpyderPluginWidget):
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
-    def stop_workspace_services(self):
+    def stop_workspace_services(self, _language):
         """Disable LSP workspace functionality."""
         self.completions_available = False
 
