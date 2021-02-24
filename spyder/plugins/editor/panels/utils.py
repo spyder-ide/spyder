@@ -111,9 +111,9 @@ class FoldingStatus(dict):
 def merge_interval(parent, node):
     """Build code folding tree representation from interval tree."""
     match = False
-    start, end = node.fold_range
+    start, __ = node.fold_range
     while parent.parent is not None and not match:
-        parent_start, parent_end = parent.fold_range
+        __, parent_end = parent.fold_range
         if parent_end <= start:
             parent = parent.parent
         else:
