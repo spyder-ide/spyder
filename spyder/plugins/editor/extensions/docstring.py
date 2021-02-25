@@ -22,7 +22,7 @@ from spyder.py3compat import to_text_string
 
 def is_start_of_function(text):
     """Return True if text is the beginning of the function definition."""
-    if isinstance(text, str) or isinstance(text, unicode):
+    if isinstance(text, str):
         function_prefix = ['def', 'async def']
         text = text.lstrip()
 
@@ -122,7 +122,7 @@ class DocstringWriterExtension(object):
         line_number = cursor.blockNumber() + 1
         number_of_lines_of_function = 0
 
-        for idx in range(min(line_number, 20)):
+        for __ in range(min(line_number, 20)):
             if cursor.block().blockNumber() == 0:
                 return None
 
@@ -154,7 +154,7 @@ class DocstringWriterExtension(object):
         number_of_lines = self.code_editor.blockCount()
         body_list = []
 
-        for idx in range(number_of_lines - line_number + 1):
+        for __ in range(number_of_lines - line_number + 1):
             text = to_text_string(cursor.block().text())
             text_indent = get_indent(text)
 
