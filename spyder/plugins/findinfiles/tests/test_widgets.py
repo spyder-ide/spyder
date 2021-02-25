@@ -38,7 +38,7 @@ def process_search_results(results):
     """
     matches = {}
     for result in results.values():
-        file, line, col, _ = result
+        file, line, col, __ = result
         filename = osp.basename(file)
         if filename not in matches:
             matches[filename] = []
