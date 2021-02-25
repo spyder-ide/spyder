@@ -174,7 +174,8 @@ class FindInFiles(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.add_dockwidget()
         self.findinfiles.result_browser.sig_edit_goto.connect(
-                                                         self.main.editor.load)
+            lambda filename, lineno, colno, colend: self.main.editor.load(
+                filename, lineno, start_column=colno, end_column=colend))
         self.findinfiles.find_options.redirect_stdio.connect(
                                         self.main.redirect_internalshell_stdio)
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)

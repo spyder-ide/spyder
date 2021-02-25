@@ -3867,5 +3867,52 @@ def test_print_comms(main_window, qtbot):
             in control.toPlainText())
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="UTF8 on Windows")
+def test_goto_find(main_window, qtbot, tmpdir):
+    """Test find goes to the right place."""
+    # Use UTF8 only character to make sure positions are respected
+    code = "we Weee wee\nWe\n🚫 wee"
+    match_positions = [
+        (0, 2),
+        (3, 7),
+        (8, 11),
+        (12, 14),
+        (18, 21)
+    ]
+    subdir = tmpdir.mkdir("find-sub")
+    p = subdir.join("find-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    code_editor = main_window.editor.get_focus_widget()
+
+    main_window.explorer.chdir(str(subdir))
+
+    findinfiles = main_window.findinfiles.findinfiles
+    findinfiles.set_search_text("we+")
+    findinfiles.find_options.edit_regexp.setChecked(
+        True)
+    findinfiles.find_options.case_button.setChecked(
+        False)
+    with qtbot.waitSignal(findinfiles.sig_finished, timeout=SHELL_TIMEOUT):
+        findinfiles.find()
+
+    results = findinfiles.result_browser.data
+    assert len(results) == 5
+    assert len(findinfiles.result_browser.files) == 1
+
+    file_item = list(findinfiles.result_browser.files.values())[0]
+    assert file_item.childCount() == 5
+
+    for i in range(5):
+        item = file_item.child(i)
+        findinfiles.result_browser.setCurrentItem(item)
+        findinfiles.result_browser.activated(item)
+        cursor = code_editor.textCursor()
+        position = (cursor.selectionStart(), cursor.selectionEnd())
+        assert position == match_positions[i]
+
+
 if __name__ == "__main__":
     pytest.main()
