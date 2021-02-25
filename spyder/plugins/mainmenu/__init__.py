@@ -5,5 +5,13 @@
 # (see spyder/__init__.py for details)
 
 """
-Main menu plugin.
+spyder.plugins.mainmenu
+=======================
+
+Main Menu Plugin.
 """
+
+from spyder.plugins.mainmenu.plugin import MainMenu
+
+# The following statement is required to be able to grab internal plugins.
+PLUGIN_CLASSES = [MainMenu]

@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -53,7 +54,6 @@ from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.api.plugins import SpyderPluginWidget
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration,
                                         RunConfigDialog, RunConfigOneDialog)
@@ -76,6 +76,11 @@ class Editor(SpyderPluginWidget):
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
+
+    # This is required for the new API
+    NAME = 'editor'
+    REQUIRES = []
+    OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
 
     # Signals
     run_in_current_ipyclient = Signal(str, str, str,

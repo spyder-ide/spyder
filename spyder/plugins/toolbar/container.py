@@ -19,6 +19,7 @@ from qtpy.QtWidgets import QMenu, QToolBar
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
+from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
 
@@ -149,7 +150,6 @@ class ToolbarContainer(PluginMainContainer):
         toolbar.ID = toolbar_id
         toolbar.setObjectName(toolbar_id)
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
-        self._toolbarslist.append(toolbar)
 
         return toolbar
 
@@ -164,8 +164,18 @@ class ToolbarContainer(PluginMainContainer):
         mainwindow: QMainWindow
             The main application window.
         """
+        # Check toolbar class
+        if not isinstance(toolbar, ApplicationToolbar):
+            raise SpyderAPIError(
+                'Any toolbar must subclass ApplicationToolbar!'
+            )
+
+        # Check ID
         toolbar_id = toolbar.ID
-        toolbar._check_interface()
+        if toolbar_id is None:
+            raise SpyderAPIError(
+                f"Toolbar `{repr(toolbar)}` doesn't have an identifier!"
+            )
 
         if toolbar_id in self._ADDED_TOOLBARS:
             raise SpyderAPIError(
@@ -289,31 +299,21 @@ class ToolbarContainer(PluginMainContainer):
         """
         Populate the toolbars menu inside the view application menu.
         """
-        # TODO: This is hardcoding an order and assuming the working
-        # directory toolbar plugin exists. This should probably just
-        # use the order of creation as the order, or even sort
-        # alphabetically.
-        order = [
-            ApplicationToolbars.File,
-            ApplicationToolbars.Run,
-            ApplicationToolbars.Debug,
-            ApplicationToolbars.Main,
-            "working_directory_toolbar",
-            None,
-        ]
+        main_section = ToolbarsMenuSections.Main
+        secondary_section = ToolbarsMenuSections.Secondary
+        default_toolbars = get_class_values(ApplicationToolbars)
 
-        section = 0
-        for toolbar_id in order:
-            if toolbar_id is None:
-                section += 1
-                continue
-
-            toolbar = self._ADDED_TOOLBARS.get(toolbar_id)
+        for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
             if toolbar:
                 action = toolbar.toggleViewAction()
+                section = (
+                    main_section
+                    if toolbar_id in default_toolbars
+                    else secondary_section
+                )
 
-            self.add_item_to_menu(
-                action,
-                menu=self.toolbars_menu,
-                section=str(section),
-            )
+                self.add_item_to_menu(
+                    action,
+                    menu=self.toolbars_menu,
+                    section=section,
+                )

@@ -82,10 +82,18 @@ To release a new version of Spyder you need to follow these steps:
 
 * Create a new branch in your fork with the name `update-core-deps`
 
-* Update the versions of those packages in the following files
+* In case a new version is not part of the `defaults` channel yet, you need to copy it to our channel with the following command:
+
+      anaconda copy conda-forge/pyls-spyder/0.3.2 --to-label dev --to-owner spyder-ide
+
+  *Note*: For this you need to install first the `anaconda-client` package in your `base` environment and open an account in https://anaconda.org/
+
+* Update the version of any packages required before the release in the following files:
 
   - `setup.py`
   - `spyder/dependencies.py`
+  - `requirements/conda.txt`
+  - `binder/environment.yml`
   - `spyder/plugins/ipythonconsole/plugin.py`
 
 * Commit with
@@ -93,7 +101,7 @@ To release a new version of Spyder you need to follow these steps:
       git add .
       git commit -m "Update core dependencies"
 
-* Update their respective subrepos with the following commands, but only if new versions are available!
+* Update our subrepos with the following commands, but only if new versions are available!
 
       git subrepo pull external-deps/spyder-kernels
       git subrepo pull external-deps/python-language-server

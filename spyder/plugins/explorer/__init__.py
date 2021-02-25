@@ -10,3 +10,8 @@ spyder.plugins.explorer
 
 Files and Directories Explorer Plugin.
 """
+
+from spyder.plugins.explorer.plugin import Explorer
+
+# The following statement is required to be able to grab internal plugins.
+PLUGIN_CLASSES = [Explorer]
