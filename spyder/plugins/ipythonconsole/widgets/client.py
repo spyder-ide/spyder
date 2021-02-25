@@ -660,7 +660,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         else:
             # Reset Pdb state and reopen comm
             sw._pdb_in_loop = False
-            sw.spyder_kernel_comm.close()
+            sw.spyder_kernel_comm.remove()
             sw.spyder_kernel_comm.open_comm(sw.kernel_client)
 
             # Start autorestart mechanism
