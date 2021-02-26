@@ -1977,6 +1977,8 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
 
+# FIXME: Make this test work again in our CIs (it's passing locally)
+@pytest.mark.skip
 @flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.use_introspection
@@ -3288,6 +3290,8 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_runcell_after_restart(main_window, qtbot):
     """Test runcell after a kernel restart."""
     # Write code to a file

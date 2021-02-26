@@ -149,7 +149,7 @@ class FallbackActor(QObject):
                 text_info = self.file_tokens[file]
                 tokens = self.tokenize(
                     text_info['text'],
-                    msg['offset'],
+                    text_info['offset'],
                     text_info['language'],
                     msg['current_word'])
             tokens = {'params': tokens}
