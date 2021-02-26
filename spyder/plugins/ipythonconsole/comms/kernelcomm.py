@@ -126,6 +126,12 @@ class KernelComm(CommBase, QObject):
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 
+    def remove(self, comm_id=None):
+        """Remove the comm without notifying the other side."""
+        id_list = self.get_comm_id_list(comm_id)
+        for comm_id in id_list:
+            del self._comms[comm_id]
+
     def open_comm(self, kernel_client):
         """Open comm through the kernel client."""
         self.kernel_client = kernel_client

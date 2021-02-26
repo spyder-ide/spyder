@@ -115,10 +115,12 @@ class SnippetsExtension(EditorExtension):
         else:
             try:
                 self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
-                self.editor.sig_insert_completion.disconnect(self.insert_snippet)
+                self.editor.sig_insert_completion.disconnect(
+                    self.insert_snippet)
                 self.editor.sig_cursor_position_changed.disconnect(
                     self.cursor_changed)
-                self.editor.sig_text_was_inserted.disconnect(self._redraw_snippets)
+                self.editor.sig_text_was_inserted.disconnect(
+                    self._redraw_snippets)
                 self.editor.sig_will_insert_text.disconnect(self._process_text)
                 self.editor.sig_will_paste_text.disconnect(self._process_text)
                 self.editor.sig_will_remove_selection.disconnect(
@@ -154,7 +156,8 @@ class SnippetsExtension(EditorExtension):
                     redo_info = (ast_copy, self.starting_position,
                                  self.active_snippet)
                     self.redo_stack.insert(0, redo_info)
-                    self.ast, self.starting_position, self.active_snippet = info
+                    (self.ast, self.starting_position,
+                     self.active_snippet) = info
                 self._update_ast()
                 self.editor.clear_extra_selections('code_snippets')
                 self.draw_snippets()
@@ -178,7 +181,8 @@ class SnippetsExtension(EditorExtension):
                     undo_info = (ast_copy, self.starting_position,
                                  self.active_snippet)
                     self.undo_stack.insert(0, undo_info)
-                    self.ast, self.starting_position, self.active_snippet = info
+                    (self.ast, self.starting_position,
+                     self.active_snippet) = info
                 self._update_ast()
                 self.editor.clear_extra_selections('code_snippets')
                 self.draw_snippets()
@@ -200,7 +204,7 @@ class SnippetsExtension(EditorExtension):
 
             if self.is_snippet_active:
                 line, column = self.editor.get_cursor_line_column()
-                node, snippet, text_node = self._find_node_by_position(
+                node, snippet, __ = self._find_node_by_position(
                     line, column)
                 if key == Qt.Key_Tab:
                     event.accept()
@@ -249,7 +253,6 @@ class SnippetsExtension(EditorExtension):
             self._remove_selection(start, end)
             return
         node, snippet, text_node = self._find_node_by_position(line, column)
-        leaf_kind = node.name
         node_position = node.position
         if len(node_position) == 1:
             # Single, terminal node
@@ -257,8 +260,6 @@ class SnippetsExtension(EditorExtension):
             node_position = ((x, y), (x, y))
 
         first_text_position = text_node.position[0][0]
-        first_text_start, first_text_end = first_text_position
-        node_start, node_end = node_position
         if first_text_position == (line, column):
             # Snippet is dissolved and replaced by its own text
             snippet_number = snippet.number
@@ -579,7 +580,6 @@ class SnippetsExtension(EditorExtension):
             self.reset()
             return
         poly = self._region_to_polygon(selection_start, selection_end)
-        bboxes = [sum(segment, tuple()) for segment in poly]
         for segment in poly:
             (_, start_column), (_, end_column) = segment
             bbox = sum(segment, tuple())

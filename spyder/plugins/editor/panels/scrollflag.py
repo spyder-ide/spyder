@@ -346,7 +346,7 @@ class ScrollFlagArea(Panel):
             vsb.pageStep(), scale_factor, offset) - offset
         slider_height = max(slider_height, self.get_slider_min_height())
 
-        # Calcul the minimum and maximum y-value to constraint the slider
+        # Calculate the minimum and maximum y-value to constraint the slider
         # range indicator position to the height span of the scrollbar area
         # where the slider may move.
         min_ypos = offset

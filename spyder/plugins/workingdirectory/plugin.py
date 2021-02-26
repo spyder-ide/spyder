@@ -35,7 +35,7 @@ class WorkingDirectory(SpyderPluginV2):
     NAME = 'workingdir'
     REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
     OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
-                Plugins.Projects]
+                Plugins.Find]
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
@@ -114,6 +114,7 @@ class WorkingDirectory(SpyderPluginV2):
         """
         explorer = self.get_plugin(Plugins.Explorer)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        find = self.get_plugin(Plugins.Find)
 
         if explorer and sender_plugin != explorer:
             explorer.chdir(directory, emit=False)
@@ -121,6 +122,9 @@ class WorkingDirectory(SpyderPluginV2):
 
         if ipyconsole and sender_plugin != ipyconsole:
             ipyconsole.set_current_client_working_directory(directory)
+
+        if find:
+            find.refresh_search_directory()
 
         if sender_plugin is not None:
             container = self.get_container()

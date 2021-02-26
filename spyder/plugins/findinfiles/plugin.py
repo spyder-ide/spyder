@@ -37,8 +37,7 @@ class FindInFiles(SpyderDockablePlugin):
     """
     NAME = 'find_in_files'
     REQUIRES = []
-    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.WorkingDirectory,
-                Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.MainMenu]
     TABIFY = [Plugins.VariableExplorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
@@ -60,20 +59,17 @@ class FindInFiles(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         editor = self.get_plugin(Plugins.Editor)
         projects = self.get_plugin(Plugins.Projects)
-        working_directory = self.get_plugin(Plugins.WorkingDirectory)
 
         if editor:
-            widget.sig_edit_goto_requested.connect(editor.load)
+            widget.sig_edit_goto_requested.connect(
+                lambda filename, lineno, search_text, colno, colend: editor.load(
+                    filename, lineno, start_column=colno, end_column=colend))
             editor.sig_file_opened_closed_or_updated.connect(
                 self.set_current_opened_file)
 
         if projects:
             projects.sig_project_loaded.connect(self.set_project_path)
             projects.sig_project_closed.connect(self.unset_project_path)
-
-        if working_directory:
-            working_directory.sig_current_directory_changed.connect(
-                self.refresh_search_directory)
 
         findinfiles_action = self.create_action(
             FindInFilesActions.FindInFiles,

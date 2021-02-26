@@ -120,7 +120,8 @@ class LineNumberArea(Panel):
                     if errors:
                         draw_pixmap(1, top, self.error_icon.pixmap(icon_size))
                     elif warnings:
-                        draw_pixmap(1, top, self.warning_icon.pixmap(icon_size))
+                        draw_pixmap(
+                            1, top, self.warning_icon.pixmap(icon_size))
                     elif infos:
                         draw_pixmap(1, top, self.info_icon.pixmap(icon_size))
                     elif hints:
