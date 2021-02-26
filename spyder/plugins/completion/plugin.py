@@ -759,7 +759,7 @@ class CompletionPlugin(SpyderPluginV2):
         available_providers = set(
             self.available_providers_for_language(language))
         fallback_providers = {'snippets', 'fallback'}
-        return (fallback_providers & available_providers) == fallback_providers
+        return (available_providers - fallback_providers) == set()
 
     def sort_providers_for_request(
             self, providers: List[str], req_type: str) -> List[str]:
