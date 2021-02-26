@@ -175,10 +175,13 @@ def register_all_providers():
 
 def remove_fake_distribution():
     """Remove fake entry points from pkg_resources"""
-    pkg_resources.working_set.by_key.pop('unknown')
-    pkg_resources.working_set.entry_keys.pop('spyder')
-    pkg_resources.working_set.entry_keys.pop(__file__)
-    pkg_resources.working_set.entries.remove('spyder')
+    try:
+        pkg_resources.working_set.by_key.pop('unknown')
+        pkg_resources.working_set.entry_keys.pop('spyder')
+        pkg_resources.working_set.entry_keys.pop(__file__)
+        pkg_resources.working_set.entries.remove('spyder')
+    except KeyError:
+        pass
 
 
 # =============================================================================
