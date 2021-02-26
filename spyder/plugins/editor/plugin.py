@@ -373,6 +373,11 @@ class Editor(SpyderPluginWidget):
                 language, capabilities)
         )
 
+        # This is required to start workspace before completion
+        # services when Spyder starts with an open project.
+        # TODO: Find a better solution for it in the future!!
+        self.main.projects.start_workspace_services()
+
         self.completion_capabilities[language] = dict(capabilities)
         for editorstack in self.editorstacks:
             editorstack.register_completion_capabilities(
