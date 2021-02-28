@@ -1159,8 +1159,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_folder(self, basedir=None):
         """New folder."""
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            name = self.get_selected_filenames()[0]
+            if osp.isfile(name):
+                name = osp.dirname(name)
+            basedir = fixpath(name)
 
         title = _('New folder')
         subtitle = _('Folder name:')
@@ -1190,8 +1192,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_file(self, basedir=None):
         """New file"""
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            fname = self.get_selected_filenames()[0]
+            if osp.isfile(fname):
+                fname = osp.dirname(fname)
+            basedir = fixpath(fname)
 
         title = _("New file")
         filters = _("All files")+" (*)"
@@ -1603,8 +1607,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_package(self, basedir=None):
         """New package"""
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            fname = self.get_selected_filenames()[0]
+            if osp.isfile(fname):
+                fname = osp.dirname(fname)
+            basedir = fixpath(fname)
 
         title = _('New package')
         subtitle = _('Package name:')
@@ -1613,8 +1619,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_module(self, basedir=None):
         """New module"""
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            fname = self.get_selected_filenames()[0]
+            if osp.isfile(fname):
+                fname = osp.dirname(fname)
+            basedir = fixpath(fname)
 
         title = _("New module")
         filters = _("Python files")+" (*.py *.pyw *.ipy)"
