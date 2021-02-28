@@ -115,7 +115,10 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
         fallback.send_request(
-            language, CompletionRequestTypes.DOCUMENT_COMPLETION, tokens_request)
+            language,
+            CompletionRequestTypes.DOCUMENT_COMPLETION,
+            tokens_request
+        )
     tokens = blocker.args
     tokens = {token['insertText'] for token in tokens[0]}
     assert len(expected_tokens - tokens) == 0
@@ -142,7 +145,10 @@ def test_token_update(qtbot_module, fallback_fixture):
     with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
         fallback.send_request(
-            'python', CompletionRequestTypes.DOCUMENT_COMPLETION, tokens_request)
+            'python',
+            CompletionRequestTypes.DOCUMENT_COMPLETION,
+            tokens_request
+        )
     initial_tokens = blocker.args[0]
     initial_tokens = {token['insertText'] for token in initial_tokens}
     assert 'args' not in initial_tokens
@@ -159,7 +165,10 @@ def test_token_update(qtbot_module, fallback_fixture):
     with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
         fallback.send_request(
-            'python', CompletionRequestTypes.DOCUMENT_COMPLETION, tokens_request)
+            'python',
+            CompletionRequestTypes.DOCUMENT_COMPLETION,
+            tokens_request
+        )
     updated_tokens = blocker.args[0]
     updated_tokens = {token['insertText'] for token in updated_tokens}
     assert 'args' in updated_tokens

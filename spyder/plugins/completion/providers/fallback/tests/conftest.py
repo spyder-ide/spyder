@@ -8,7 +8,6 @@ import pytest
 
 from qtpy.QtCore import QObject, Signal
 
-from spyder.config.manager import CONF
 from spyder.plugins.completion.providers.fallback.provider import (
     FallbackProvider)
 from spyder.plugins.completion.tests.conftest import qtbot_module
