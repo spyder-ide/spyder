@@ -7,7 +7,7 @@
 """
 Spyder completion plugin.
 
-This plugin is on charge of creating and managing multiple code completion and
+This plugin is in charge of creating and managing multiple code completion and
 introspection providers.
 """
 
@@ -58,8 +58,8 @@ class CompletionPlugin(SpyderPluginV2):
     Spyder.
 
     This plugin works by forwarding all the completion/linting requests to a
-    set of :class:`SpyderCompletionProvider` instances that are registered
-    and discovered via entrypoints.
+    set of :class:`SpyderCompletionProvider` instances that are discovered
+    and registered via entrypoints.
 
     This plugin can assume that `fallback`, `snippets`, `lsp` and `kite`
     completion providers are available, since they are included as part of
@@ -84,9 +84,7 @@ class CompletionPlugin(SpyderPluginV2):
     # Container used to store graphical widgets
     CONTAINER_CLASS = CompletionContainer
 
-    # Ad Hoc polymorphism signals to make this plugin a completion provider
-    # without inheriting from SpyderCompletionProvider
-
+    # ------------------------------- Signals ---------------------------------
     sig_response_ready = Signal(str, int, dict)
     """
     This signal is used to receive a response from a completion provider.
@@ -126,7 +124,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     sig_main_interpreter_changed = Signal()
     """
-    This signal is used to receive changes on the main Python interpreter.
+    This signal is used to report changes on the main Python interpreter.
     """
 
     sig_language_client_available = Signal(dict, str)
@@ -156,12 +154,12 @@ class CompletionPlugin(SpyderPluginV2):
 
     sig_editor_rpc = Signal(str, tuple, dict)
     """
-    This signal is used to perform remote calls to the editor.
+    This signal is used to perform remote calls in the editor.
 
     Parameters
     ----------
     method: str
-        Name of the method to call on the editor.
+        Name of the method to call in the editor.
     args: tuple
         Tuple containing the positional arguments to perform the call.
     kwargs: dict
@@ -170,7 +168,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     sig_stop_completions = Signal(str)
     """
-    This signal is used to stop the completion services on Spyder plugins
+    This signal is used to stop completion services on other Spyder plugins
     that depend on them.
 
     Parameters
@@ -180,7 +178,7 @@ class CompletionPlugin(SpyderPluginV2):
         available.
     """
 
-    # Provider status constants
+    # --------------------------- Other constants -----------------------------
     RUNNING = 'running'
     STOPPED = 'stopped'
 
@@ -236,10 +234,11 @@ class CompletionPlugin(SpyderPluginV2):
                                f'point {entry_point}')
                 raise e
 
-        (conf_providers,
-         conf_tabs) = self.gather_completion_configtabs_statusbars()
+        # Register statusbar widgets
+        self.register_statusbar_widgets()
 
         # Define configuration page and tabs
+        (conf_providers, conf_tabs) = self.gather_providers_and_configtabs()
         self.CONF_WIDGET_CLASS = partialclass(
             CompletionConfigPage, providers=conf_providers)
         self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
@@ -249,9 +248,9 @@ class CompletionPlugin(SpyderPluginV2):
         return _('Completion and linting')
 
     def get_description(self) -> str:
-        return _('This plugin is on charge of handling and dispatching, as '
-                 'well of receiving the responses of completion and linting '
-                 'requests sent to multiple providers.')
+        return _('This plugin is in charge of handling and dispatching, as '
+                 'well as of receiving the responses of completion and '
+                 'linting requests sent to multiple providers.')
 
     def get_icon(self):
         return self.create_icon('lspserver')
@@ -304,8 +303,8 @@ class CompletionPlugin(SpyderPluginV2):
         """
         Update plugin and/or provider configurations.
 
-        The settings are propagated from the changes on the configuration page
-        and/or tabs.
+        Settings are propagated from changes on the configuration page and/or
+        provider tabs.
         """
         providers_to_update = set({})
         for option in options:
@@ -379,25 +378,28 @@ class CompletionPlugin(SpyderPluginV2):
             provider_info = self.providers[provider_name]
             provider_info['instance'].on_mainwindow_visible()
 
-    # ------ Completion provider initialization redefintion wrappers
-    def gather_completion_configtabs_statusbars(self):
+    # ---------------------------- Status bar widgets -------------------------
+    def register_statusbar_widgets(self):
+        """Register status bar widgets for all providers with the container."""
+        container = self.get_container()
+        for provider_key in self.providers:
+            provider = self.providers[provider_key]['instance']
+            container.register_statusbar_widgets(provider.STATUS_BAR_CLASSES)
+
+    # -------- Completion provider initialization redefinition wrappers -------
+    def gather_providers_and_configtabs(self):
         """
-        Register completion provider configuration tabs and status bar
-        widgets.
+        Gather and register providers and their configuration tabs.
 
-        This method iterates over all completion providers,
-        take their corresponding configuration tabs, patch the methods that
+        This method iterates over all completion providers, takes their
+        corresponding configuration tabs, and patches the methods that
         interact with writing/reading/removing configuration options to
-        consider provider configuration options that are stored inside this
-        plugin's `provider_configuration` option, making the provider unaware
+        consider provider options that are stored inside this plugin's
+        `provider_configuration` option, which makes providers unaware
         of the CompletionPlugin existence.
-
-        Finally, all status bar widgets declared by the provider are registered
-        on the container.
         """
         conf_providers = []
         conf_tabs = []
-        container = self.get_container()
         widget_funcs = self.gather_create_ops()
 
         for provider_key in self.providers:
@@ -410,16 +412,17 @@ class CompletionPlugin(SpyderPluginV2):
                         self.wrap_set_option(provider_key))
                 setattr(tab, 'remove_option',
                         self.wrap_remove_option(provider_key))
+
                 # Wrap apply_settings to return settings correctly
                 setattr(tab, 'apply_settings',
                         self.wrap_apply_settings(tab, provider_key))
+
                 # Wrap create_* methods to consider provider
                 for name, pos in widget_funcs:
                     setattr(tab, name,
                             self.wrap_create_op(name, pos, provider_key))
+
             conf_tabs += provider.CONF_TABS
-            # Add defined status bars to container
-            container.register_statusbar_widgets(provider.STATUS_BAR_CLASSES)
             conf_providers.append((provider_key, provider.get_name()))
 
         return conf_providers, conf_tabs
@@ -448,13 +451,14 @@ class CompletionPlugin(SpyderPluginV2):
     def wrap_get_option(self, provider):
         """
         Wraps `get_option` method for a provider config tab to consider its
-        actual section nested inside `provider_configuration` key in the
-        completion plugin.
+        actual section nested inside the `provider_configuration` key of this
+        plugin options.
 
         This wrapper method allows configuration tabs to not be aware about
         their presence behind the completion plugin.
         """
         plugin = self
+
         def wrapper(self, option, default=NoDefault, section=None):
             if section is None:
                 if isinstance(option, tuple):
@@ -469,51 +473,52 @@ class CompletionPlugin(SpyderPluginV2):
     def wrap_set_option(self, provider):
         """
         Wraps `set_option` method for a provider config tab to consider its
-        actual section nested inside `provider_configuration` key in the
-        completion plugin.
+        actual section nested inside the `provider_configuration` key of this
+        plugin options.
 
         This wrapper method allows configuration tabs to not be aware about
         their presence behind the completion plugin.
         """
         plugin = self
+
         def wrapper(self, option, value, section=None):
             if section is None:
                 if isinstance(option, tuple):
                     option = ('provider_configuration', provider, 'values',
-                                *option)
+                              *option)
                 else:
                     option = ('provider_configuration', provider, 'values',
-                                option)
+                              option)
             return plugin.set_conf_option(option, value, section)
         return wrapper
 
     def wrap_remove_option(self, provider):
         """
         Wraps `remove_option` method for a provider config tab to consider its
-        actual section nested inside `provider_configuration` key in the
-        completion plugin.
+        actual section nested inside the `provider_configuration` key of this
+        plugin options.
 
         This wrapper method allows configuration tabs to not be aware about
         their presence behind the completion plugin.
         """
         plugin = self
+
         def wrapper(self, option, section=None):
             if section is None:
                 if isinstance(option, tuple):
                     option = ('provider_configuration', provider, 'values',
-                                *option)
+                              *option)
                 else:
                     option = ('provider_configuration', provider, 'values',
-                                option)
+                              option)
                 return plugin.remove_conf_option(option, section)
         return wrapper
 
-    # Wrap create_* methods in configpage
     def wrap_create_op(self, create_name, opt_pos, provider):
         """
         Wraps `create_*` methods for a provider config tab to consider its
-        actual section nested inside `provider_configuration` key in the
-        completion plugin.
+        actual section nested inside the `provider_configuration` key of this
+        plugin options.
 
         This wrapper method allows configuration tabs to not be aware about
         their presence behind the completion plugin.
@@ -539,19 +544,20 @@ class CompletionPlugin(SpyderPluginV2):
     def wrap_apply_settings(self, Tab, provider):
         """
         Wraps `apply_settings` method for a provider config tab to consider its
-        actual section nested inside `provider_configuration` key in the
-        completion plugin.
+        actual section nested inside the `provider_configuration` key of this
+        plugin options.
 
         This wrapper method allows configuration tabs to not be aware about
         their presence behind the completion plugin.
         """
         prev_method = Tab.apply_settings
+
         def wrapper(self):
             wrapped_opts = set({})
             for opt in prev_method(self):
                 if isinstance(opt, tuple):
                     wrapped_opts |= {('provider_configuration',
-                                        provider, 'values', *opt)}
+                                      provider, 'values', *opt)}
                 else:
                     wrapped_opts |= {(
                         'provider_configuration', provider, 'values', opt)}
@@ -606,7 +612,8 @@ class CompletionPlugin(SpyderPluginV2):
                     current_defaults.pop(key)
                     current_conf_values.pop(key)
 
-        return str(provider_conf_version), current_conf_values, current_defaults
+        return (str(provider_conf_version), current_conf_values,
+                current_defaults)
 
     def get_provider_configuration(self, Provider: SpyderCompletionProvider,
                                    provider_name: str) -> dict:
@@ -745,10 +752,12 @@ class CompletionPlugin(SpyderPluginV2):
         return self.providers[name]['instance']
 
     def is_provider_running(self, name: str) -> bool:
+        """Return if provider is running."""
         status = self.clients.get(name, {}).get('status', self.STOPPED)
         return status == self.RUNNING
 
     def available_providers_for_language(self, language: str) -> List[str]:
+        """Return the list of providers available for a given language."""
         providers = []
         if language in self.language_status:
             provider_status = self.language_status[language]
@@ -756,6 +765,10 @@ class CompletionPlugin(SpyderPluginV2):
         return providers
 
     def is_fallback_only(self, language: str) -> bool:
+        """
+        Return if fallback and snippets are the only available providers for
+        a given language.
+        """
         available_providers = set(
             self.available_providers_for_language(language))
         fallback_providers = {'snippets', 'fallback'}
@@ -763,6 +776,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     def sort_providers_for_request(
             self, providers: List[str], req_type: str) -> List[str]:
+        """Sort providers for a given request type."""
         request_order = self.source_priority[req_type]
         return sorted(providers, key=lambda p: request_order[p])
 
@@ -789,6 +803,7 @@ class CompletionPlugin(SpyderPluginV2):
             config = provider_configuration['values']
             provider_info['instance'].update_configuration(config)
 
+    # ---------- Methods to create/access graphical elements -----------
     def create_action(self, *args, **kwargs):
         container = self.get_container()
         kwargs['parent'] = container
@@ -842,8 +857,6 @@ class CompletionPlugin(SpyderPluginV2):
                 'filename': str,
                 **kwargs: request-specific parameters
             }
-        req_id: int
-            Request identifier for response
         """
         req_id = self.req_id
         self.req_id += 1
@@ -907,9 +920,9 @@ class CompletionPlugin(SpyderPluginV2):
         ----------
         req_type: str
             Type of request, one of
-            :class:`spyder.plugins.completion.api.CompletionRequestTypes`
+            :class:`spyder.plugins.completion.api.CompletionRequestTypes`.
         req: dict
-            Request body
+            Request body:
             {
                 'filename': str,
                 **kwargs: notification-specific parameters
@@ -929,12 +942,12 @@ class CompletionPlugin(SpyderPluginV2):
         Parameters
         ----------
         project_path: str
-            Path to the project folder modified
+            Path to the project folder being added or removed.
         update_kind: str
             Path update kind, one of
-            :class:`spyder.plugins.completion.WorkspaceUpdateKind`
+            :class:`spyder.plugins.completion.WorkspaceUpdateKind`.
         instance: object
-            Reference to :class:`spyder.plugins.projects.plugin.Projects`
+            Reference to :class:`spyder.plugins.projects.plugin.Projects`.
         """
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
@@ -974,11 +987,11 @@ class CompletionPlugin(SpyderPluginV2):
         Parameters
         ----------
         language: str
-            Programming language of the given file
+            Programming language of the given file.
         filename: str
-            Filename to register
+            Filename to register.
         codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
-            Codeeditor to send the client configurations
+            Codeeditor to send the client configurations.
         """
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
@@ -1042,7 +1055,7 @@ class CompletionPlugin(SpyderPluginV2):
                 available_providers, req_type)
             timed_out = request_responses['timed_out']
             all_returned = all(source in request_responses['sources']
-                            for source in sorted_providers)
+                               for source in sorted_providers)
             if not timed_out:
                 # Before the timeout
                 if all_returned:
@@ -1050,7 +1063,7 @@ class CompletionPlugin(SpyderPluginV2):
             else:
                 # After the timeout
                 any_nonempty = any(request_responses['sources'].get(source)
-                                for source in sorted_providers)
+                                   for source in sorted_providers)
                 if all_returned or any_nonempty:
                     self.skip_and_reply(req_id)
         else:
@@ -1134,7 +1147,7 @@ class CompletionPlugin(SpyderPluginV2):
         return responses
 
     def gather_responses(self, req_type: int, responses: dict):
-        """Gather responses other than completions from plugins."""
+        """Gather responses other than completions from providers."""
         response = None
         for source in self.source_priority[req_type]:
             if source in responses:
