@@ -102,43 +102,35 @@ class PanelsManager(Manager):
                 panel = self.remove(key)
                 panel.setParent(None)
 
-    def get(self, name_or_klass):
+    def get(self, name_or_class):
         """
         Gets a specific panel instance.
 
         :param name_or_klass: Name or class of the panel to retrieve.
         :return: The specified panel instance.
         """
-        if not is_text_string(name_or_klass):
-            name_or_klass = name_or_klass.__name__
+        if not is_text_string(name_or_class):
+            name_or_class = name_or_class.__name__
         for zone in range(4):
             try:
-                panel = self._panels[zone][name_or_klass]
+                panel = self._panels[zone][name_or_class]
             except KeyError:
                 pass
             else:
                 return panel
-        raise KeyError(name_or_klass)
-
-    def keys(self):
-        """Returns the list of installed panel names."""
-        return self._modes.keys()
-
-    def values(self):
-        """Returns the list of installed panels."""
-        return self._modes.values()
+        raise KeyError(name_or_class)
 
     def __iter__(self):
         lst = []
-        for zone, zone_dict in self._panels.items():
-            for name, panel in zone_dict.items():
+        for __, zone_dict in self._panels.items():
+            for __, panel in zone_dict.items():
                 lst.append(panel)
         return iter(lst)
 
     def __len__(self):
         lst = []
-        for zone, zone_dict in self._panels.items():
-            for name, panel in zone_dict.items():
+        for __, zone_dict in self._panels.items():
+            for __, panel in zone_dict.items():
                 lst.append(panel)
         return len(lst)
 

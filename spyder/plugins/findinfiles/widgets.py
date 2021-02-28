@@ -243,10 +243,18 @@ class SearchThread(QThread):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
+                        bstart, bend = match.start(), match.end()
+                        try:
+                            # Go from binary position to utf8 position
+                            start = len(line[:bstart].decode(enc))
+                            end = start + len(line[bstart:bend].decode(enc))
+                        except UnicodeDecodeError:
+                            start = bstart
+                            end = bend
                         self.partial_results.append((osp.abspath(fname),
                                                      lineno + 1,
-                                                     match.start(),
-                                                     match.end(),
+                                                     start,
+                                                     end,
                                                      line_dec))
                         if len(self.partial_results) > (2**self.power):
                             self.process_results()
@@ -259,10 +267,18 @@ class SearchThread(QThread):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
+                        try:
+                            # Go from binary position to utf8 position
+                            start = len(line[:found].decode(enc))
+                            end = start + len(text.decode(enc))
+                        except UnicodeDecodeError:
+                            start = found
+                            end = found + len(text)
+
                         self.partial_results.append((osp.abspath(fname),
                                                      lineno + 1,
-                                                     found,
-                                                     found + len(text),
+                                                     start,
+                                                     end,
                                                      line_dec))
                         if len(self.partial_results) > (2**self.power):
                             self.process_results()
@@ -303,7 +319,7 @@ class SearchThread(QThread):
                 self.num_files += 1
 
             line = self.truncate_result(line, colno, match_end)
-            item = (filename, lineno, colno, line)
+            item = (filename, lineno, colno, line, match_end)
             items.append(item)
 
         # Process title
@@ -690,7 +706,7 @@ class ItemDelegate(QStyledItemDelegate):
 
 
 class ResultsBrowser(OneColumnTree):
-    sig_edit_goto_requested = Signal(str, int, str)
+    sig_edit_goto_requested = Signal(str, int, str, int, int)
     sig_max_results_reached = Signal()
 
     def __init__(self, parent, text_color=None, max_results=1000):
@@ -727,9 +743,9 @@ class ResultsBrowser(OneColumnTree):
         """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
-            filename, lineno, colno = itemdata
-            self.sig_edit_goto_requested.emit(filename, lineno,
-                                              self.search_text)
+            filename, lineno, colno, colend = itemdata
+            self.sig_edit_goto_requested.emit(
+                filename, lineno, self.search_text, colno, colend - colno)
 
     def set_sorting(self, flag):
         """Enable result sorting after search is complete."""
@@ -782,12 +798,12 @@ class ResultsBrowser(OneColumnTree):
         self.setUpdatesEnabled(False)
         self.set_title(title)
         for item in items:
-            filename, lineno, colno, line = item
+            filename, lineno, colno, line, match_end = item
             file_item = self.files.get(filename, None)
             if file_item:
                 item = LineMatchItem(file_item, lineno, colno, line,
                                      self.font, self.text_color)
-                self.data[id(item)] = (filename, lineno, colno)
+                self.data[id(item)] = (filename, lineno, colno, match_end)
         self.setUpdatesEnabled(True)
 
     def set_max_results(self, value):
@@ -821,7 +837,7 @@ class FindInFilesWidget(PluginMainWidget):
     REGEX_ERROR = _("Regular expression error")
 
     # Signals
-    sig_edit_goto_requested = Signal(str, int, str)
+    sig_edit_goto_requested = Signal(str, int, str, int, int)
     """
     This signal will request to open a file in a given row and column
     using a code editor.
@@ -834,6 +850,10 @@ class FindInFilesWidget(PluginMainWidget):
         Cursor starting row position.
     word: str
         Word to select on given row.
+    start_column: int
+        Starting column of found word.
+    end_column:
+        Ending column of found word.
     """
 
     sig_finished = Signal()

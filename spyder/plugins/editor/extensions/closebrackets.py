@@ -76,8 +76,6 @@ class CloseBracketsExtension(EditorExtension):
         """Control automatic insertation of brackets in various situations."""
         pair = self.BRACKETS_PAIR[char]
 
-        line_text = self.editor.get_text('sol', 'eol')
-        line_to_cursor = self.editor.get_text('sol', 'cursor')
         cursor = self.editor.textCursor()
         trailing_text = self.editor.get_text('cursor', 'eol').strip()
 

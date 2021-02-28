@@ -13,7 +13,7 @@ from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
-from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.utils import icon_manager as ima
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser)
@@ -29,6 +29,11 @@ class VariableExplorer(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
     SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
+
+    # This is required for the new API
+    NAME = 'variable_explorer'
+    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
+    OPTIONAL = []
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)

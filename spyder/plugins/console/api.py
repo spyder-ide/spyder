@@ -12,3 +12,7 @@ Console Plugin API.
 from spyder.plugins.console.widgets.main_widget import (
     ConsoleWidgetActions, ConsoleWidgetInternalSettingsSubMenuSections,
     ConsoleWidgetMenus, ConsoleWidgetOptionsMenuSections)
+
+
+class ConsoleActions:
+    SpyderReportAction = "spyder_report_action"

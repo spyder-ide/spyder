@@ -13,7 +13,8 @@ import pytest
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.utils import get_class_values
 from spyder.app.solver import find_internal_plugins, solve_plugin_dependencies
 from spyder.utils.external.toposort import CircularDependencyError
 
@@ -119,4 +120,18 @@ def test_solve_plugin_dependencies_3():
 
 def test_find_internal_plugins():
     internal = find_internal_plugins()
-    assert len(internal) == 22
+    assert len(internal) == 26
+
+    # Assert we have the same number of plugins declared in our enum
+    assert len(get_class_values(Plugins)) == 26
+
+
+def test_solve_internal_plugins():
+    internal = [p for p in find_internal_plugins().values()]
+
+    # For now we're not computing dependencies for internal plugins
+    # TODO: Remove when the migration is complete
+    assert solve_plugin_dependencies(internal, testing=False) == []
+
+    # Test that solver doesn't crash and returns all available plugins
+    assert len(solve_plugin_dependencies(internal, testing=True)) == 26

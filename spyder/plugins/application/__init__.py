@@ -5,5 +5,13 @@
 # (see spyder/__init__.py for details)
 
 """
-Application plugin.
+spyder.plugins.application
+==========================
+
+Application Plugin.
 """
+
+from spyder.plugins.application.plugin import Application
+
+# The following statement is required to be able to grab internal plugins.
+PLUGIN_CLASSES = [Application]

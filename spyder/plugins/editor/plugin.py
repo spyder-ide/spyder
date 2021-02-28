@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -53,7 +54,6 @@ from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.api.plugins import SpyderPluginWidget
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration,
                                         RunConfigDialog, RunConfigOneDialog)
@@ -76,6 +76,11 @@ class Editor(SpyderPluginWidget):
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
+
+    # This is required for the new API
+    NAME = 'editor'
+    REQUIRES = []
+    OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
 
     # Signals
     run_in_current_ipyclient = Signal(str, str, str,
@@ -1969,7 +1974,7 @@ class Editor(SpyderPluginWidget):
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='',
              editorwindow=None, processevents=True, start_column=None,
-             set_focus=True, add_where='end'):
+             end_column=None, set_focus=True, add_where='end'):
         """
         Load a text file
         editorwindow: load in this editorwindow (useful when clicking on
@@ -1977,6 +1982,10 @@ class Editor(SpyderPluginWidget):
         processevents: determines if processEvents() should be called at the
         end of this method (set to False to prevent keyboard events from
         creeping through to the editor during debugging)
+        If goto is not none it represent a line to go to. start_column is
+        the start position in this line and end_column the length
+        (So that the end position is start_column + end_column)
+        Alternatively, the first match of word is used as a position.
         """
         # Switch to editor before trying to load a file
         try:
@@ -2113,7 +2122,8 @@ class Editor(SpyderPluginWidget):
                 self.__add_recent_file(filename)
             if goto is not None:  # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word,
-                                          start_column=start_column)
+                                          start_column=start_column,
+                                          end_column=end_column)
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
