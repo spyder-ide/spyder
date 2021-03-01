@@ -31,11 +31,8 @@ from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
                                            WorkspaceUpdateKind)
 from spyder.plugins.completion.providers.languageserver.client import LSPClient
 from spyder.plugins.completion.providers.languageserver.conftabs import TABS
-from spyder.plugins.completion.providers.languageserver.widgets.status import (
-    ClientStatus, LSPStatusWidget)
-from spyder.plugins.completion.providers.languageserver.widgets.messagebox import (
-    ServerDisabledMessageBox
-)
+from spyder.plugins.completion.providers.languageserver.widgets import (
+    ClientStatus, LSPStatusWidget, ServerDisabledMessageBox)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 # Modules to be preloaded for Rope and Jedi

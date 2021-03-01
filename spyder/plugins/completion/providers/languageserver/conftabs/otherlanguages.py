@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel,
 from spyder.api.preferences import SpyderPreferencesTab
 from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
-from spyder.plugins.completion.providers.languageserver.widgets.serversconfig import (
+from spyder.plugins.completion.providers.languageserver.widgets import (
     LSPServerTable)
 from spyder.utils import icon_manager as ima
 
