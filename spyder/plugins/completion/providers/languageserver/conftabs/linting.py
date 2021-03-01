@@ -16,7 +16,7 @@ from spyder.api.preferences import SpyderPreferencesTab
 from spyder.config.base import _
 
 
-class LintingConfigPage(SpyderPreferencesTab):
+class LintingConfigTab(SpyderPreferencesTab):
     """Linting configuration tab."""
 
     TITLE = _('Linting')
