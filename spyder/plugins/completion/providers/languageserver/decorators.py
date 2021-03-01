@@ -7,7 +7,8 @@
 """Spyder Language Server Protocol Client auxiliar decorators."""
 
 import functools
-from spyder.plugins.completion.providers.languageserver.transport import MessageKind
+from spyder.plugins.completion.providers.languageserver.transport import (
+    MessageKind)
 
 
 def send_request(req=None, method=None):

@@ -80,10 +80,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     # IMPORTANT NOTES:
     # 1. If you want to *change* the default value of a current option, you
-    #    need to do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+    #    need to do a MINOR update in config version, e.g. from 0.1.0 to 0.2.0
     # 2. If you want to *remove* options that are no longer needed or if you
     #    want to *rename* options, then you need to do a MAJOR update in
-    #    version, e.g. from 3.0.0 to 4.0.0
+    #    version, e.g. from 0.1.0 to 1.0.0
     # 3. You don't need to touch this value if you're just adding a new option
     CONF_VERSION = "0.1.0"
     CONF_TABS = TABS
@@ -608,7 +608,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 logger.info("Stopping LSP client for {}...".format(language))
-                language_client['instance'].disconnect()
+                try:
+                    language_client['instance'].disconnect()
+                except TypeError:
+                    pass
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 
@@ -758,8 +761,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
-            'include_params':  self.get_option('enable_code_snippets',
-                                               section='completions')
+            'include_params': self.get_option('enable_code_snippets',
+                                              section='completions')
         }
         jedi_signature_help = {
             'enabled': self.get_option('jedi_signature_help')
