@@ -321,8 +321,7 @@ DEFAULTS = [
                'enabled_providers': {},
                'provider_configuration': {},
                'request_priorities': {}
-             }
-            ),
+             }),
             ('profiler',
              {
               'enable': True,

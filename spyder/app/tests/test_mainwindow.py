@@ -3669,8 +3669,6 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         (4, 'textDocument/didOpen'),
     ]
 
-    print(python_client['instance']._requests)
-
     assert python_client['instance']._requests[:5] == expected_requests
 
 
