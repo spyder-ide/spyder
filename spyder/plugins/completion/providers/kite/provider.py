@@ -23,10 +23,8 @@ from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.completion.providers.kite.client import KiteClient
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
-from spyder.plugins.completion.providers.kite.widgets.messagebox import (
-    KiteInstallationErrorMessage)
-from spyder.plugins.completion.providers.kite.widgets.status import (
-    KiteStatusWidget)
+from spyder.plugins.completion.providers.kite.widgets import (
+    KiteInstallationErrorMessage, KiteStatusWidget)
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import run_program
 

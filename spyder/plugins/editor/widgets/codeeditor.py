@@ -53,8 +53,7 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.providers.kite.widgets.calltoaction import (
-    KiteCallToAction)
+from spyder.plugins.completion.providers.kite.widgets import KiteCallToAction
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            TextDocumentSyncKind,
                                            DiagnosticSeverity)
