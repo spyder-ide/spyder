@@ -356,12 +356,10 @@ DEFAULTS = [
               '_/lock unlock panes': "Shift+Ctrl+F5",
               '_/use next layout': "Shift+Alt+PgDown",
               '_/use previous layout': "Shift+Alt+PgUp",
-              '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
               '_/save current layout': "Shift+Alt+S",
               '_/layout preferences': "Shift+Alt+P",
-              '_/show toolbars': "Alt+Shift+T",
               '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
@@ -624,4 +622,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '67.0.0'
+CONF_VERSION = '68.0.0'

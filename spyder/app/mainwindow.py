@@ -559,10 +559,8 @@ class MainWindow(QMainWindow):
         self.switcher = None
 
         # Preferences
-        self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
-        self._report_dlg = None
 
         # Quick Layouts and Dialogs
         from spyder.preferences.layoutdialog import (LayoutSaveDialog,
@@ -784,11 +782,6 @@ class MainWindow(QMainWindow):
         else:
             css_path = CSS_PATH
 
-        # Preferences plugin
-        from spyder.plugins.preferences.plugin import Preferences
-        self.preferences = Preferences(self, configuration=CONF)
-        self.register_plugin(self.preferences)
-
         # Main menu plugin
         from spyder.api.widgets.menus import SpyderMenu
         from spyder.plugins.mainmenu.plugin import MainMenu
@@ -798,15 +791,20 @@ class MainWindow(QMainWindow):
         self.mainmenu = MainMenu(self, configuration=CONF)
         self.register_plugin(self.mainmenu)
 
-        # Shortcuts plugin
-        from spyder.plugins.shortcuts.plugin import Shortcuts
-        self.shortcuts = Shortcuts(self, configuration=CONF)
-        self.register_plugin(self.shortcuts)
-
         # Toolbar plugin
         from spyder.plugins.toolbar.plugin import Toolbar
         self.toolbar = Toolbar(self, configuration=CONF)
         self.register_plugin(self.toolbar)
+
+        # Preferences plugin
+        from spyder.plugins.preferences.plugin import Preferences
+        self.preferences = Preferences(self, configuration=CONF)
+        self.register_plugin(self.preferences)
+
+        # Shortcuts plugin
+        from spyder.plugins.shortcuts.plugin import Shortcuts
+        self.shortcuts = Shortcuts(self, configuration=CONF)
+        self.register_plugin(self.shortcuts)
 
         logger.info("Creating core actions...")
         # TODO: Change registration to use MainMenus
@@ -1028,38 +1026,24 @@ class MainWindow(QMainWindow):
 
         # Tools + External Tools (some of this depends on the Application
         # plugin)
-        logger.info("Creating Tools menu...")
-
-        prefs_action = create_action(self, _("Pre&ferences"),
-                                     icon=ima.icon('configure'),
-                                     triggered=self.show_preferences,
-                                     context=Qt.ApplicationShortcut)
-        self.register_shortcut(prefs_action, "_", "Preferences",
-                               add_shortcut_to_tip=True)
         spyder_path_action = create_action(self,
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
                                 triggered=self.show_path_manager,
                                 tip=_("PYTHONPATH manager"),
                                 menurole=QAction.ApplicationSpecificRole)
-        reset_spyder_action = create_action(
-            self, _("Reset Spyder to factory defaults"),
-            triggered=self.reset_spyder)
         from spyder.plugins.application.plugin import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
             winenv_action = self.application.get_action(
                 ApplicationActions.SpyderWindowsEnvVariables)
-        for tool_action in [prefs_action, spyder_path_action]:
-            self.mainmenu.add_item_to_application_menu(
-                tool_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools,
-                before=winenv_action)
         self.mainmenu.add_item_to_application_menu(
-                reset_spyder_action,
-                menu_id=ApplicationMenus.Tools)
+            spyder_path_action,
+            menu_id=ApplicationMenus.Tools,
+            section=ToolsMenuSections.Tools,
+            before=winenv_action
+        )
         if get_debug_level() >= 3:
             self.menu_lsp_logs = QMenu(_("LSP logs"))
             self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
@@ -1101,11 +1085,12 @@ class MainWindow(QMainWindow):
                 toolbar_id=ApplicationToolbars.Main,
                 section=MainToolbarSections.LayoutSection,
                 before_section=MainToolbarSections.ApplicationSection)
-        for main_application_action in [prefs_action, spyder_path_action]:
-            self.toolbar.add_item_to_application_toolbar(
-                main_application_action,
-                toolbar_id=ApplicationToolbars.Main,
-                section=MainToolbarSections.ApplicationSection)
+
+        self.toolbar.add_item_to_application_toolbar(
+            spyder_path_action,
+            toolbar_id=ApplicationToolbars.Main,
+            section=MainToolbarSections.ApplicationSection
+        )
 
         # History log widget
         if CONF.get('historylog', 'enable'):
@@ -3024,10 +3009,6 @@ class MainWindow(QMainWindow):
     def show_preferences(self):
         """Edit Spyder preferences."""
         self.preferences.open_dialog(self.prefs_dialog_size)
-
-    def __preference_page_changed(self, index):
-        """Preference page index has changed."""
-        self.prefs_index = index
 
     def set_prefs_size(self, size):
         """Save preferences dialog size"""

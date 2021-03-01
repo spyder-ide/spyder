@@ -94,10 +94,7 @@ class ToolbarContainer(PluginMainContainer):
         self.show_toolbars_action = self.create_action(
             ToolbarActions.ShowToolbars,
             text=_("Show toolbars"),
-            triggered=self._show_toolbars,
-            context=Qt.ApplicationShortcut,
-            shortcut_context="_",
-            register_shortcut=True
+            triggered=self._show_toolbars
         )
 
         self.toolbars_menu = self.create_menu(
