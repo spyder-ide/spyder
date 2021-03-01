@@ -27,7 +27,6 @@ from spyder.plugins.completion.providers.kite.widgets.messagebox import (
     KiteInstallationErrorMessage)
 from spyder.plugins.completion.providers.kite.widgets.status import (
     KiteStatusWidget)
-from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import run_program
 
@@ -43,7 +42,7 @@ class KiteProvider(SpyderCompletionProvider):
     COMPLETION_CLIENT_NAME = 'kite'
     DEFAULT_ORDER = 1
     CONF_DEFAULTS = [
-        ('spyder_runs', 0),
+        ('spyder_runs', 1),
         ('show_installation_dialog', True),
         ('show_onboarding', True),
         ('show_installation_error_message', True)
@@ -194,7 +193,6 @@ class KiteProvider(SpyderCompletionProvider):
             "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
             "Please make sure that your Kite installation is correct. "
             "In the meantime, Spyder will disable the Kite client to "
-
             "prevent further errors. For more information, please "
             "visit the <a href='https://help.kite.com/'>Kite help "
             "center</a>").format(method, resp)
