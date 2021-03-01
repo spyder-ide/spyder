@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-02-16 17:48\n"
+"PO-Revision-Date: 2021-03-01 21:58\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -51,7 +51,7 @@ msgstr "Une erreur s’est produite lors de la création d’un websocket requis
 
 #: spyder/app/mainwindow.py:515
 msgid "Close current pane"
-msgstr "Fermer le volet courant"
+msgstr "Fermer l'onglet en cours"
 
 #: spyder/app/mainwindow.py:523
 msgid "Lock panes and toolbars"
@@ -722,7 +722,7 @@ msgstr "Pour lancer la visite, appuyez sur le bouton vert à gauche de la barre 
 
 #: spyder/app/tour.py:1432
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
-msgstr ""
+msgstr "Consultez notre visite interactive pour découvrir les fonctionnalités et les panneaux de Spyder."
 
 #: spyder/app/tour.py:1443
 msgid "Start tour"
@@ -966,7 +966,7 @@ msgstr "Noyaux Jupyter pour la console Spyder"
 
 #: spyder/dependencies.py:226
 msgid "Compute distances between strings"
-msgstr ""
+msgstr "Calcule les distances entre les chaînes"
 
 #: spyder/dependencies.py:230
 msgid "3-way merge algorithm to merge document changes"
@@ -1130,7 +1130,7 @@ msgstr "Rejeter pour toujours"
 
 #: spyder/plugins/completion/kite/widgets/install.py:73
 msgid "Now Spyder can use Kite to provide better code completions for key packages in the scientific Python Ecosystem. Install Kite for a better editor experience in Spyder. <br><br>Kite is free to use but is not open source. <a href=\"{kite_url}\">Learn more about Kite </a>"
-msgstr ""
+msgstr "Spyder peut désormais utiliser Kite pour fournir de meilleurs compléments de code pour les paquets clés de l'écosystème scientifique Python. Installez Kite pour une meilleure expérience dans l'éditeur de Spyder. <br><br>Kite est libre d'utilisation mais n'est pas open source. <a href=\"{kite_url}\">En savoir plus sur Kite </a>"
 
 #: spyder/plugins/completion/kite/widgets/install.py:179
 msgid "Downloading"
@@ -1327,7 +1327,7 @@ msgstr "La valeur par défaut est 79"
 
 #: spyder/plugins/completion/languageserver/confpage.py:216
 msgid "Show vertical line at that length"
-msgstr ""
+msgstr "Afficher la ligne verticale à cette longueur"
 
 #: spyder/plugins/completion/languageserver/confpage.py:239
 msgid "Code style"
@@ -1335,7 +1335,7 @@ msgstr "Style du code"
 
 #: spyder/plugins/completion/languageserver/confpage.py:247
 msgid "Line length"
-msgstr ""
+msgstr "Longueur de ligne"
 
 #: spyder/plugins/completion/languageserver/confpage.py:264
 msgid "Spyder can use {0}, {1} or {2} to format your code for conformance to the {3} convention."
@@ -1527,7 +1527,7 @@ msgstr "Introspection"
 
 #: spyder/plugins/completion/languageserver/confpage.py:633
 msgid "Code style and formatting"
-msgstr ""
+msgstr "Style de code et mise en forme"
 
 #: spyder/plugins/completion/languageserver/confpage.py:635
 msgid "Docstring style"
@@ -3346,7 +3346,7 @@ msgstr "Afficher la date de modification"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1798
 msgid "Filter filenames"
-msgstr ""
+msgstr "Filtrer les noms de fichiers"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
@@ -4128,7 +4128,7 @@ msgstr "Aucune console IPython n'est actuellement disponible pour exécuter <b> 
 
 #: spyder/plugins/ipythonconsole/plugin.py:920
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.10.0 and < 1.11.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
-msgstr ""
+msgstr "Votre environnement ou votre installation Python ne dispose pas du module <tt>spyder-kernels</tt> ou la version de celui-ci n'est pas appropriée (>= 1.10.0 and < 1.11.0). Sans ce module, il est impossible pour Spyder de créer une console pour vous. <br><br>Vous pouvez l'installer en exécutant dans un terminal :<br><br><tt>conda install spyder-kernels</tt><br><br> ou <br><br><tt>pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1214
 msgid "Do you want to close this console?"
@@ -4332,7 +4332,7 @@ msgstr "Une erreur est survenue, consultez la console."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:95
 msgid "The comm channel is not working."
-msgstr ""
+msgstr "Le canal de communication ne fonctionne pas."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:96
 msgid "%s.<br><br>Note: Please don't report this problem on Github, there's nothing to do about it."
@@ -4360,27 +4360,27 @@ msgstr "Les données sont trop volumineuses pour être sauvegardées"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:36
 msgid "Keep Existing Kernels"
-msgstr ""
+msgstr "Garder les noyaux existants"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:37
 msgid "Restart Current Kernel"
-msgstr ""
+msgstr "Redémarrer le noyau actuel"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:38
 msgid "Restart All Kernels"
-msgstr ""
+msgstr "Redémarrer tous les noyaux"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:43
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
-msgstr ""
+msgstr "Par défaut, certaines préférences de la console IPython ne seront appliquées qu'aux nouvelles consoles. Pour appliquer les préférences aux consoles existantes, sélectionnez les options ci-dessous.<br><br>Important: l'application des modifications aux consoles en cours d'exécution forcera le redémarrage du noyau et que tout le travail en cours sera perdu."
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:54
 msgid "Apply to current console and restart kernel"
-msgstr ""
+msgstr "Appliquer à la console actuelle et redémarrer le noyau"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:56
 msgid "Apply to all existing consoles and restart all kernels"
-msgstr ""
+msgstr "Appliquer à toutes les consoles existantes et redémarrer tous les noyaux"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:450
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
@@ -6386,7 +6386,7 @@ msgstr "Instance :"
 
 #: spyder/utils/syntaxhighlighters.py:75
 msgid "Magic:"
-msgstr ""
+msgstr "Magique:"
 
 #: spyder/widgets/about.py:151 spyder/widgets/dependencies.py:94
 msgid "Copy to clipboard"
