@@ -63,7 +63,7 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
-# @flaky(max_runs=5)
+@flaky(max_runs=5)
 def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     """Test that the editor is ignoring some warnings."""
     editor, completion_plugin = completions_codeeditor_linting
