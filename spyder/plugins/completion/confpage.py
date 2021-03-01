@@ -23,7 +23,7 @@ class CompletionConfigPage(PluginConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # -------------------- Plugin state group -----------------------------
+        # -------------------- Plugin status group -----------------------------
         plugin_state_group = QGroupBox(_('Plugin status'))
         plugin_state_layout = QVBoxLayout()
         self.completion_box = newcb(_("Enable Completion and linting plugin"),
@@ -33,7 +33,7 @@ class CompletionConfigPage(PluginConfigPage):
 
         self.completion_box.toggled.connect(self.enable_disable_plugin)
 
-        # ------------------- Providers state group ---------------------------
+        # ------------------- Providers status group ---------------------------
         self.provider_checkboxes = []
         providers_layout = QGridLayout()
         self.providers_group = QGroupBox(_("Completion providers"))
@@ -48,8 +48,8 @@ class CompletionConfigPage(PluginConfigPage):
         completions_wait_for_ms = self.create_spinbox(
             _("Time to wait for all providers to return (ms):"), None,
             'completions_wait_for_ms', min_=0, max_=10000, step=10,
-            tip=_("Beyond this timeout, "
-                "the first available provider will be returned"))
+            tip=_("Beyond this timeout the first available provider "
+                  "will be returned"))
         completion_hint_box = newcb(
             _("Show completion details"),
             'completions_hint',
@@ -63,10 +63,10 @@ class CompletionConfigPage(PluginConfigPage):
             'automatic_completions_after_chars', min_=1, step=1,
             tip=_("Default is 3"), section='editor')
         code_snippets_box = newcb(
-            _("Enable code snippets in the editor"), 'enable_code_snippets')
+            _("Enable code snippets"), 'enable_code_snippets')
         kite_cta_box = newcb(
-            _("Notify me when Kite can provide missing completions"
-              " (but is unavailable)"),
+            _("Notify me when Kite can provide missing completions "
+              "(but is unavailable)"),
             'kite_call_to_action')
 
         self.advanced_group = QGroupBox(_('Advanced settings'))

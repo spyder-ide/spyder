@@ -653,6 +653,7 @@ COMPLETION_ENTRYPOINT = 'spyder.completions'
 
 # -------------- SPYDER COMPLETION PROVIDER INTERFACE ---------------
 
+
 class SpyderCompletionProvider(QObject):
     """
     Spyder plugin API for completion providers.
@@ -719,14 +720,14 @@ class SpyderCompletionProvider(QObject):
     Parameters
     ----------
     widget: Union[QWidget, Callable[[QWidget], QWidget]]
-        Widget to display, its constructor should receive parent as first and
-        only argument.
+        Widget to display, its constructor should receive parent as its first
+        and only argument.
     """
 
     sig_call_statusbar = Signal(str, str, tuple, dict)
     """
-    This signal is used to call a remote method on a statusbar registered via
-    the `STATUS_BAR_CLASSES` attribute.
+    This signal is used to call a remote method on a statusbar widget
+    registered via the `STATUS_BAR_CLASSES` attribute.
 
     Parameters
     ----------
@@ -759,13 +760,13 @@ class SpyderCompletionProvider(QObject):
     Parameters
     ----------
     language: str
-        Name of the programming language whose completion services are not
-        available.
+        Name of the programming language whose completion services are going
+        to be stopped.
     """
 
     sig_exception_occurred = Signal(dict)
     """
-    This signal can be emitted to report an exception from any plugin.
+    This signal can be emitted to report an exception from any provider.
 
     Parameters
     ----------
@@ -804,28 +805,28 @@ class SpyderCompletionProvider(QObject):
     # Status: Required
     DEFAULT_ORDER = -1
 
-    # Define configuration defaults if using a separate file.
-    # List of tuples, with the first item in the tuple being the section
-    # name and the second item being the default options dictionary.
+    # Define configuration options for the provider.
+    # List of tuples with the first item being the option name and the second
+    # one its default value.
     #
     # CONF_DEFAULTS_EXAMPLE = [
-    #     ('section-name', {'option-1': 'some-value',
-    #                       'option-2': True,}),
-    #     ('another-section-name', {'option-3': 'some-other-value',
-    #                               'option-4': [1, 2, 3],}),
+    #     ('option-1', 'some-value'),
+    #     ('option-2': True)
     # ]
     CONF_DEFAULTS = []
 
     # IMPORTANT NOTES:
     # 1. If you want to *change* the default value of a current option, you
-    #    need to do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+    #    need to do a MINOR update in config version, e.g. from 0.1.0 to 0.2.0
     # 2. If you want to *remove* options that are no longer needed or if you
     #    want to *rename* options, then you need to do a MAJOR update in
-    #    version, e.g. from 3.0.0 to 4.0.0
+    #    version, e.g. from 0.1.0 to 1.0.0
     # 3. You don't need to touch this value if you're just adding a new option
     CONF_VERSION = "0.1.0"
 
-    # Widget to be used as entry in Spyder Preferences dialog.
+    # Widget to be added as a tab in the "Completion and linting" entry of
+    # Spyder Preferences dialog. This will allow users to graphically configure
+    # the options declared by the provider.
     CONF_TABS = []
 
     # A list of status bars classes that the provider declares to
@@ -833,7 +834,7 @@ class SpyderCompletionProvider(QObject):
     #
     # Each status bar should correspond to a
     # :class:`spyder.api.widgets.status.StatusBarWidget` or
-    # a closure that returns a StatusBarWidget.
+    # a callable that returns a StatusBarWidget.
     #
     # type: Union[StatusBarWidget, Callable[[QWidget], StatusBarWidget]]
     #
@@ -856,7 +857,7 @@ class SpyderCompletionProvider(QObject):
         config: dict
             Current provider configuration values, whose keys correspond to
             the ones defined on `CONF_DEFAULTS` and the values correspond to
-            the current values according to the Spyder configuration.
+            the current values according to the Spyder configuration system.
         """
         QObject.__init__(self, parent)
         self.main = parent
@@ -966,12 +967,12 @@ class SpyderCompletionProvider(QObject):
     def update_configuration(self, config: dict):
         """
         Handle completion option configuration updates done through
-        Preferences.
+        Spyder Preferences.
 
         Parameters
         ----------
         conf: dict
-            Dictionary containing the new provider configuration
+            Dictionary containing the new provider configuration.
         """
         pass
 
@@ -983,7 +984,7 @@ class SpyderCompletionProvider(QObject):
         Parameters
         ----------
         project_path: str
-            Path to the project folder modified
+            Path to the project folder being added or removed.
         update_kind: str
             Path update kind, one of
             :class:`spyder.plugins.completion.api.WorkspaceUpdateKind`
@@ -1000,7 +1001,7 @@ class SpyderCompletionProvider(QObject):
         Parameters
         ----------
         previous_path: Dict
-            Dictionary containing the previous Python path values
+            Dictionary containing the previous Python path values.
         new_path: Dict
             Dictionary containing the current Python path values.
         """
@@ -1019,10 +1020,10 @@ class SpyderCompletionProvider(QObject):
         Parameters
         ----------
         filename: str
-            Path to the file that was changed/opened/focused.
+            Path to the file that was changed/opened/updated.
         language: str
             Name of the programming language of the file that was
-            changed/opened/focused.
+            changed/opened/updated.
         """
         pass
 
@@ -1033,7 +1034,7 @@ class SpyderCompletionProvider(QObject):
         Parameters
         ----------
         language: str
-            Programming language to start analyzing
+            Programming language to start analyzing.
 
         Returns
         -------
@@ -1049,7 +1050,7 @@ class SpyderCompletionProvider(QObject):
         Parameters
         ----------
         language: str
-            Programming language to stop analyzing
+            Programming language to stop analyzing.
         """
         pass
 
@@ -1077,7 +1078,7 @@ class SpyderCompletionProvider(QObject):
 
     def on_mainwindow_visible(self):
         """
-        Actions to be performed after the main window's has been shown.
+        Actions to be performed after the main window has been shown.
         """
         pass
 
@@ -1087,25 +1088,24 @@ class SpyderCompletionProvider(QObject):
                    section: Optional[str] = None) -> Any:
         """
         Retrieve an option value from the provider settings dictionary or
-        from the global Spyder configurations.
+        the global Spyder configuration.
 
         Parameters
         ----------
         option_name: str
             Option name to lookup for in the provider settings
-            dictionary/global Spyder configurations.
+            dictionary/global Spyder configuration.
         default: Any
             Default value to return if `option_name` was not found.
         section: Optional[str]
             If None, then the option is retrieved from the local provider
-            configurations. Otherwise, lookup on the global Spyder
-            configurations.
+            configuration. Otherwise, lookup on the global Spyder one.
 
         Returns
         -------
         Any
             Either the default value if `option_name` was not found on the
-            settings or the actual value stored.
+            settings or the actual stored value.
         """
         if section is None:
             section = 'completions'
@@ -1132,19 +1132,18 @@ class SpyderCompletionProvider(QObject):
                    section: Optional[str] = None):
         """
         Set an option in the provider configuration settings dictionary or
-        in the global Spyder configurations.
+        the global Spyder configuration.
 
         Parameters
         ----------
         option_name: str
             Option name to lookup for in the provider settings
-            dictionary/global Spyder configurations.
+            dictionary/global Spyder configuration.
         value: Any
-            Value to set in the configuration entry.
+            Value to set in the configuration system.
         section: Optional[str]
             If None, then the option is retrieved from the local provider
-            configurations. Otherwise, lookup on the global Spyder
-            configurations.
+            configuration. Otherwise, lookup on the global Spyder one.
         """
         if section is None:
             section = 'completions'
@@ -1194,6 +1193,7 @@ class SpyderCompletionProvider(QObject):
         register_shortcut: bool, optional
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
+
         Notes
         -----
         There is no need to set shortcuts right now. We only create actions

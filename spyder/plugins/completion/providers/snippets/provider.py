@@ -48,7 +48,7 @@ class SnippetsProvider(SpyderCompletionProvider):
         self.config = config
 
     def get_name(self):
-        return _('Custom text snippets')
+        return _('Text snippets')
 
     def start_provider(self, language):
         return self.started
