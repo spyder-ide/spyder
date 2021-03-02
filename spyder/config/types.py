@@ -9,13 +9,13 @@ Spyder configuration helping types and protocols.
 """
 
 # Standard library imports
-from typing import Any, Union, Tuple, Protocol
+from typing import Any, Union, Tuple
 
 # A configuration option in the configuration system
 ConfigurationKey = Union[str, Tuple[str, ...]]
 
 
-class ConfigurationObserver(Protocol):
+class ConfigurationObserver:
     """
     Stub typing class that represents a object that recieves updates on
     the values of configuration options that the object subscribed to.
