@@ -36,7 +36,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils import icon_manager as ima
-
+from qdarkstyle.darkpalette import DarkPalette
 
 if is_dark_interface():
     MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(25, 35, 45)
@@ -1437,9 +1437,10 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        start_tour_color = '#3775A9'
-        dismiss_tour_color = '#60798B'
-        font_color = 'white'
+        dialog_tour_color = DarkPalette.COLOR_BACKGROUND_2
+        start_tour_color = DarkPalette.COLOR_ACCENT_3
+        dismiss_tour_color = DarkPalette.COLOR_BACKGROUND_6
+        font_color = DarkPalette.COLOR_TEXT_1
         self.launch_tour_button = QPushButton(_('Start tour'))
         self.launch_tour_button.setStyleSheet(
           f"background-color: {start_tour_color};"
@@ -1502,7 +1503,8 @@ class OpenTourDialog(QDialog):
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
         if is_dark_interface():
-            self.setStyleSheet("background-color: #262E38")
+            self.setStyleSheet(
+                f"background-color:{dialog_tour_color}")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(640, 280)
