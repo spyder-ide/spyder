@@ -23,6 +23,7 @@ import uuid
 # Third party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
+from qdarkstyle.darkpalette import DarkPalette
 from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
@@ -59,7 +60,7 @@ from spyder.widgets.tabs import Tabs
 
 
 if is_dark_interface():
-    MAIN_BG_COLOR = '#19232D'
+    MAIN_BG_COLOR = 'DarkPalette.COLOR_BACKGROUND_1'
 else:
     MAIN_BG_COLOR = 'white'
 
@@ -235,8 +236,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         self.pager_label.setStyleSheet(
-            "background-color: #3775A9;"
-            "color: white;"
+            f"background-color: {DarkPalette.COLOR_ACCENT_2};"
+            f"color: {DarkPalette.COLOR_TEXT_1};"
             "margin: 0px 4px 4px 4px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"
