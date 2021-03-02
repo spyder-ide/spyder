@@ -51,7 +51,10 @@ def test_snippet_completions(qtbot_module, snippets_completions, trigger):
     with qtbot_module.waitSignal(completions.sig_recv_snippets,
                                  timeout=3000) as blocker:
         snippets.send_request(
-            'python', CompletionRequestTypes.DOCUMENT_COMPLETION, snippets_request)
+            'python',
+            CompletionRequestTypes.DOCUMENT_COMPLETION,
+            snippets_request
+        )
 
     resp_snippets = blocker.args[0]
     resp_snippets = [x for x in resp_snippets if x['filterText'] == trigger]

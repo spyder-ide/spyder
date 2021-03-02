@@ -656,7 +656,7 @@ COMPLETION_ENTRYPOINT = 'spyder.completions'
 
 class SpyderCompletionProvider(QObject):
     """
-    Spyder plugin API for completion providers.
+    Spyder provider API for completion providers.
 
     All completion providers must implement this interface in order to interact
     with Spyder CodeEditor and Projects manager.
@@ -668,8 +668,8 @@ class SpyderCompletionProvider(QObject):
 
     Parameters
     ----------
-    completion_client_name: str
-        Name of the completion client that produced this response.
+    completion_provider_name: str
+        Name of the completion provider that produced this response.
     request_seq: int
         Sequence number for the request.
     response: dict
@@ -683,11 +683,11 @@ class SpyderCompletionProvider(QObject):
 
     Parameters
     ----------
-    completion_client_name: str
-        Name of the completion client.
+    completion_provider_name: str
+        Name of the completion provider.
     """
 
-    sig_language_client_available = Signal(dict, str)
+    sig_language_completions_available = Signal(dict, str)
     """
     This signal is used to indicate that completion capabilities are supported
     for a given programming language.
@@ -695,8 +695,8 @@ class SpyderCompletionProvider(QObject):
     Parameters
     ----------
     completion_capabilites: dict
-        Available configurations supported by the client, it should conform to
-        `spyder.plugins.completion.api.SERVER_CAPABILITES`.
+        Available configurations supported by the provider, it should conform
+        to `spyder.plugins.completion.api.SERVER_CAPABILITES`.
     language: str
         Name of the programming language whose completion capabilites are
         available.
@@ -797,9 +797,9 @@ class SpyderCompletionProvider(QObject):
 
     # ---------------------------- ATTRIBUTES ---------------------------------
 
-    # Name of the completion service
+    # Name of the completion provider
     # Status: Required
-    COMPLETION_CLIENT_NAME = None
+    COMPLETION_PROVIDER_NAME = None
 
     # Define the priority of this provider, with 1 being the highest one
     # Status: Required
@@ -870,7 +870,7 @@ class SpyderCompletionProvider(QObject):
     def register_file(self, language: str, filename: str, codeeditor):
         """
         Register file to perform completions.
-        If a language client is not available for a given file, then this
+        If a language provider is not available for a given file, then this
         method should keep a queue, such that files can be initialized once
         a server is available.
 
@@ -881,7 +881,7 @@ class SpyderCompletionProvider(QObject):
         filename: str
             Filename to register
         codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
-            Codeeditor to send the client configurations
+            Codeeditor to send the provider configurations
         """
         pass
 
@@ -913,6 +913,7 @@ class SpyderCompletionProvider(QObject):
             self, language: str, notification_type: str, notification: dict):
         """
         Send notification to completion server based on Spyder changes.
+        All notifications sent won't return a response by the provider.
 
         Parameters
         ----------
@@ -1012,7 +1013,7 @@ class SpyderCompletionProvider(QObject):
         """Handle changes on the main Python interpreter of Spyder."""
         pass
 
-    def file_opened_updated(self, filename: str, language: str):
+    def file_opened_closed_or_updated(self, filename: str, language: str):
         """
         Handle file modifications and file switching events, including when a
         new file is created.
@@ -1027,7 +1028,7 @@ class SpyderCompletionProvider(QObject):
         """
         pass
 
-    def start_provider(self, language: str) -> bool:
+    def start_completion_services_for_language(self, language: str) -> bool:
         """
         Start completions/introspection services for a given language.
 
@@ -1039,11 +1040,11 @@ class SpyderCompletionProvider(QObject):
         Returns
         -------
         bool
-            True if language client could be started, otherwise False.
+            True if language provider could be started, otherwise False.
         """
         return False
 
-    def stop_provider(self, language: str):
+    def stop_completion_services_for_language(self, language: str):
         """
         Stop completions/introspection services for a given language.
 
@@ -1063,13 +1064,13 @@ class SpyderCompletionProvider(QObject):
         Note: Once the completion provider is ready,
         the signal `sig_provider_ready` must be emitted with the completion
         provider name, e.g.,
-        `self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)`
+        `self.sig_provider_ready.emit(self.COMPLETION_PROVIDER_NAME)`
         """
         raise NotImplementedError(
             'A completion provider must implement start()')
 
     def shutdown(self):
-        """Stop completion plugin."""
+        """Stop completion provider."""
         pass
 
     def can_close(self) -> bool:
@@ -1112,14 +1113,14 @@ class SpyderCompletionProvider(QObject):
             if isinstance(option_name, tuple):
                 option_name = (
                     'provider_configuration',
-                    self.COMPLETION_CLIENT_NAME,
+                    self.COMPLETION_PROVIDER_NAME,
                     'values',
                     *option_name
                 )
             else:
                 option_name = (
                     'provider_configuration',
-                    self.COMPLETION_CLIENT_NAME,
+                    self.COMPLETION_PROVIDER_NAME,
                     'values',
                     option_name
                 )
@@ -1150,14 +1151,14 @@ class SpyderCompletionProvider(QObject):
             if isinstance(option_name, tuple):
                 option_name = (
                     'provider_configuration',
-                    self.COMPLETION_CLIENT_NAME,
+                    self.COMPLETION_PROVIDER_NAME,
                     'values',
                     *option_name
                 )
             else:
                 option_name = (
                     'provider_configuration',
-                    self.COMPLETION_CLIENT_NAME,
+                    self.COMPLETION_PROVIDER_NAME,
                     'values',
                     option_name
                 )
@@ -1198,7 +1199,7 @@ class SpyderCompletionProvider(QObject):
         -----
         There is no need to set shortcuts right now. We only create actions
         with this (and similar methods) and these are then exposed as possible
-        shortcuts on plugin registration in the main window with the
+        shortcuts on provider registration in the main window with the
         register_shortcut argument.
 
         If icon_text is True, this will also disable the tooltip.

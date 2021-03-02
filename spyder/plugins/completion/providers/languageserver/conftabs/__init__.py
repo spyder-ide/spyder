@@ -10,13 +10,13 @@ from .advanced import AdvancedConfigTab
 from .docstring import DocstringConfigTab
 from .formatting import FormattingStyleConfigTab
 from .introspection import IntrospectionConfigTab
-from .linting import LintingConfigPage
+from .linting import LintingConfigTab
 from .otherlanguages import OtherLanguagesConfigTab
 
 
 # LSP provider tabs
 TABS = [
-    LintingConfigPage,
+    LintingConfigTab,
     IntrospectionConfigTab,
     FormattingStyleConfigTab,
     DocstringConfigTab,

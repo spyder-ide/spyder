@@ -23,24 +23,25 @@ logger = logging.getLogger(__name__)
 
 
 class FallbackProvider(SpyderCompletionProvider):
-    COMPLETION_CLIENT_NAME = 'fallback'
+    COMPLETION_PROVIDER_NAME = 'fallback'
     DEFAULT_ORDER = 3
 
     def __init__(self, parent, config):
         SpyderCompletionProvider.__init__(self, parent, config)
         self.fallback_actor = FallbackActor(self)
         self.fallback_actor.sig_fallback_ready.connect(
-            lambda: self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME))
+            lambda: self.sig_provider_ready.emit(
+                self.COMPLETION_PROVIDER_NAME))
         self.fallback_actor.sig_set_tokens.connect(
             lambda _id, resp: self.sig_response_ready.emit(
-                self.COMPLETION_CLIENT_NAME, _id, resp))
+                self.COMPLETION_PROVIDER_NAME, _id, resp))
         self.started = False
         self.requests = {}
 
     def get_name(self):
         return _('Fallback')
 
-    def start_provider(self, language):
+    def start_completion_services_for_language(self, language):
         return self.started
 
     def start(self):

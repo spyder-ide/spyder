@@ -34,7 +34,8 @@ from spyder.plugins.completion.api import (
     ClientConstants)
 from spyder.plugins.completion.providers.languageserver.decorators import (
     send_request, send_notification, class_register, handles)
-from spyder.plugins.completion.providers.languageserver.transport import MessageKind
+from spyder.plugins.completion.providers.languageserver.transport import (
+    MessageKind)
 from spyder.plugins.completion.providers.languageserver.providers import (
     LSPMethodProviderMixIn)
 from spyder.py3compat import PY2

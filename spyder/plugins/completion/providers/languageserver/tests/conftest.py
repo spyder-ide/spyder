@@ -49,9 +49,9 @@ def lsp_context(is_stdio):
 
         # Wait for the client to be started
         with qtbot_module.waitSignal(
-                provider.sig_language_client_available,
+                provider.sig_language_completions_available,
                 timeout=30000) as block:
-            provider.start_provider('python')
+            provider.start_completion_services_for_language('python')
 
         capabilities, _ = block.args
         assert all(

@@ -106,7 +106,9 @@ class DocumentProvider:
 
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_COMPLETION, {'params': response})
+                CompletionRequestTypes.DOCUMENT_COMPLETION,
+                {'params': response}
+            )
 
     @send_request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def signature_help_request(self, params):

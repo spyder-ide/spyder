@@ -26,8 +26,10 @@ class CompletionConfigPage(PluginConfigPage):
         # -------------------- Plugin status group -----------------------------
         plugin_state_group = QGroupBox(_('Plugin status'))
         plugin_state_layout = QVBoxLayout()
-        self.completion_box = newcb(_("Enable Completion and linting plugin"),
-                                    'enable')
+        self.completion_box = newcb(
+            _("Enable code completion and linting in the editor"),
+            'enable'
+        )
         plugin_state_layout.addWidget(self.completion_box)
         plugin_state_group.setLayout(plugin_state_layout)
 
@@ -36,7 +38,7 @@ class CompletionConfigPage(PluginConfigPage):
         # ------------------- Providers status group ---------------------------
         self.provider_checkboxes = []
         providers_layout = QGridLayout()
-        self.providers_group = QGroupBox(_("Completion providers"))
+        self.providers_group = QGroupBox(_("Providers"))
         for i, (provider_key, provider_name) in enumerate(self.providers):
             cb = newcb(_('Enable {0} provider').format(provider_name),
                        ('enabled_providers', provider_key), default=True)
@@ -69,18 +71,19 @@ class CompletionConfigPage(PluginConfigPage):
               "(but is unavailable)"),
             'kite_call_to_action')
 
-        self.advanced_group = QGroupBox(_('Advanced settings'))
-        advanced_layout = QGridLayout()
-        advanced_layout.addWidget(completion_hint_box, 0, 0)
-        advanced_layout.addWidget(code_snippets_box, 1, 0)
-        advanced_layout.addWidget(automatic_completion_box, 2, 0)
-        advanced_layout.addWidget(kite_cta_box, 3, 0)
-        advanced_layout.addWidget(completions_after_characters.plabel, 4, 0)
-        advanced_layout.addWidget(completions_after_characters.spinbox, 4, 1)
-        advanced_layout.addWidget(completions_wait_for_ms.plabel, 5, 0)
-        advanced_layout.addWidget(completions_wait_for_ms.spinbox, 5, 1)
-        advanced_layout.setColumnStretch(2, 6)
-        self.advanced_group.setLayout(advanced_layout)
+        # ------------------- Completions group ---------------------------
+        self.completions_group = QGroupBox(_('Completions'))
+        completions_layout = QGridLayout()
+        completions_layout.addWidget(completion_hint_box, 0, 0)
+        completions_layout.addWidget(code_snippets_box, 1, 0)
+        completions_layout.addWidget(automatic_completion_box, 2, 0)
+        completions_layout.addWidget(kite_cta_box, 3, 0)
+        completions_layout.addWidget(completions_after_characters.plabel, 4, 0)
+        completions_layout.addWidget(completions_after_characters.spinbox, 4, 1)
+        completions_layout.addWidget(completions_wait_for_ms.plabel, 5, 0)
+        completions_layout.addWidget(completions_wait_for_ms.spinbox, 5, 1)
+        completions_layout.setColumnStretch(2, 6)
+        self.completions_group.setLayout(completions_layout)
 
         def disable_completion_after_characters(state):
             completions_after_characters.plabel.setEnabled(state)
@@ -91,14 +94,14 @@ class CompletionConfigPage(PluginConfigPage):
 
         layout = QVBoxLayout()
         layout.addWidget(plugin_state_group)
+        layout.addWidget(self.completions_group)
         layout.addWidget(self.providers_group)
-        layout.addWidget(self.advanced_group)
         layout.addStretch(1)
         self.setLayout(layout)
 
     def enable_disable_plugin(self, state):
         self.providers_group.setEnabled(state)
-        self.advanced_group.setEnabled(state)
+        self.completions_group.setEnabled(state)
 
         if self.tabs is not None:
             num_tabs = self.tabs.count()

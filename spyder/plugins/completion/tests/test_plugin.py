@@ -29,7 +29,7 @@ class DummyCompletionReceiver(QObject):
 
 
 class FakeProvider(SpyderCompletionProvider):
-    COMPLETION_CLIENT_NAME = 'fake'
+    COMPLETION_PROVIDER_NAME = 'fake'
     CONF_DEFAULTS = [
         ('key1', 'value1'),
         ('key2', 'value2'),
@@ -53,7 +53,7 @@ def test_configuration_merge(completion_plugin):
     # Check that a new completion provider configuration is registered without
     # changes
     result = completion_plugin._merge_default_configurations(
-        FakeProvider, FakeProvider.COMPLETION_CLIENT_NAME, {}
+        FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, {}
     )
     (conf_version, conf_values, conf_defaults) = result
 
@@ -69,7 +69,7 @@ def test_configuration_merge(completion_plugin):
     FakeProvider.CONF_DEFAULTS = [(k, v) for k, v in second_config.items()]
 
     prev_config = {
-        FakeProvider.COMPLETION_CLIENT_NAME: {
+        FakeProvider.COMPLETION_PROVIDER_NAME: {
             'version': first_version,
             'values': first_defaults,
             'defaults': first_defaults
@@ -77,7 +77,7 @@ def test_configuration_merge(completion_plugin):
     }
 
     result = completion_plugin._merge_default_configurations(
-        FakeProvider, FakeProvider.COMPLETION_CLIENT_NAME, prev_config
+        FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
 
@@ -96,7 +96,7 @@ def test_configuration_merge(completion_plugin):
     FakeProvider.CONF_DEFAULTS = [(k, v) for k, v in third_config.items()]
 
     prev_config = {
-        FakeProvider.COMPLETION_CLIENT_NAME: {
+        FakeProvider.COMPLETION_PROVIDER_NAME: {
             'version': first_version,
             'values': config,
             'defaults': first_defaults
@@ -104,7 +104,7 @@ def test_configuration_merge(completion_plugin):
     }
 
     result = completion_plugin._merge_default_configurations(
-        FakeProvider, FakeProvider.COMPLETION_CLIENT_NAME, prev_config
+        FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
 
@@ -121,7 +121,7 @@ def test_configuration_merge(completion_plugin):
     FakeProvider.CONF_VERSION = "0.1.1"
 
     result = completion_plugin._merge_default_configurations(
-        FakeProvider, FakeProvider.COMPLETION_CLIENT_NAME, prev_config
+        FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
 
@@ -137,7 +137,7 @@ def test_configuration_merge(completion_plugin):
     FakeProvider.CONF_DEFAULTS = [(k, v) for k, v in fourth_config.items()]
 
     result = completion_plugin._merge_default_configurations(
-        FakeProvider, FakeProvider.COMPLETION_CLIENT_NAME, prev_config
+        FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
 
@@ -150,7 +150,7 @@ def test_configuration_merge(completion_plugin):
     expected_config.pop('key2')
 
     result = completion_plugin._merge_default_configurations(
-        FakeProvider, FakeProvider.COMPLETION_CLIENT_NAME, prev_config
+        FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
 

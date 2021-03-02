@@ -28,7 +28,6 @@ from spyder.plugins.completion.tests.conftest import (
     completion_plugin_all)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
-# from spyder.plugins.completion.manager.plugin import CompletionManager
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.py3compat import PY2, to_text_string
 from spyder.widgets.findreplace import FindReplace
@@ -192,7 +191,6 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
         assert sys_err == ''
 
     request.addfinalizer(teardown)
-    # lsp_plugin = lsp_plugin.get_client('lsp')
 
     editor.show()
 

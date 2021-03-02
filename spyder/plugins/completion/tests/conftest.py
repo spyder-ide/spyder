@@ -178,8 +178,8 @@ def completion_plugin_all_started(request, qtbot_module,
     qtbot_module.waitUntil(wait_until_all_started, timeout=30000)
 
     with qtbot_module.waitSignal(
-            completion_plugin.sig_language_client_available, timeout=30000) as blocker:
-        completion_plugin.start_providers('python')
+            completion_plugin.sig_language_completions_available, timeout=30000) as blocker:
+        completion_plugin.start_completion_services_for_language('python')
 
     capabilities, _ = blocker.args
 

@@ -76,7 +76,8 @@ class LSPStatusWidget(StatusBarWidget):
             restart_action = create_action(
                 self,
                 text=text,
-                triggered=lambda: self.provider.restart_lsp(language, force=True),
+                triggered=lambda: self.provider.restart_lsp(language,
+                                                            force=True),
             )
             add_actions(menu, [restart_action])
             rect = self.contentsRect()

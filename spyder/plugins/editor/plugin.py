@@ -336,7 +336,8 @@ class Editor(SpyderPluginWidget):
         language = options['language']
         codeeditor = options['codeeditor']
 
-        status = self.main.completions.start_providers(language.lower())
+        status = self.main.completions.start_completion_services_for_language(
+            language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
@@ -1212,7 +1213,7 @@ class Editor(SpyderPluginWidget):
         self.main.console.sig_edit_goto_requested.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.main.completions.sig_language_client_available.connect(
+        self.main.completions.sig_language_completions_available.connect(
             self.register_completion_capabilities)
         self.main.completions.sig_open_file.connect(self.load)
         self.main.completions.sig_editor_rpc.connect(self._rpc_call)
@@ -1220,7 +1221,7 @@ class Editor(SpyderPluginWidget):
             self.stop_completion_services)
 
         self.sig_file_opened_closed_or_updated.connect(
-            self.main.completions.file_opened_updated)
+            self.main.completions.file_opened_closed_or_updated)
 
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)

@@ -31,11 +31,8 @@ from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
                                            WorkspaceUpdateKind)
 from spyder.plugins.completion.providers.languageserver.client import LSPClient
 from spyder.plugins.completion.providers.languageserver.conftabs import TABS
-from spyder.plugins.completion.providers.languageserver.widgets.status import (
-    ClientStatus, LSPStatusWidget)
-from spyder.plugins.completion.providers.languageserver.widgets.messagebox import (
-    ServerDisabledMessageBox
-)
+from spyder.plugins.completion.providers.languageserver.widgets import (
+    ClientStatus, LSPStatusWidget, ServerDisabledMessageBox)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 # Modules to be preloaded for Rope and Jedi
@@ -46,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 class LanguageServerProvider(SpyderCompletionProvider):
     """Language Server Protocol manager."""
-    COMPLETION_CLIENT_NAME = 'lsp'
+    COMPLETION_PROVIDER_NAME = 'lsp'
     DEFAULT_ORDER = 1
     CONF_DEFAULTS = [
         ('enable_hover_hints', True),
@@ -83,10 +80,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     # IMPORTANT NOTES:
     # 1. If you want to *change* the default value of a current option, you
-    #    need to do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+    #    need to do a MINOR update in config version, e.g. from 0.1.0 to 0.2.0
     # 2. If you want to *remove* options that are no longer needed or if you
     #    want to *rename* options, then you need to do a MAJOR update in
-    #    version, e.g. from 3.0.0 to 4.0.0
+    #    version, e.g. from 0.1.0 to 1.0.0
     # 3. You don't need to touch this value if you're just adding a new option
     CONF_VERSION = "0.1.0"
     CONF_TABS = TABS
@@ -355,8 +352,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     folder = self.get_root_path(language)
                     instance.folder = folder
                     self.sig_stop_completions.emit(language)
-                    self.stop_provider(language)
-                    self.start_provider(language)
+                    self.stop_completion_services_for_language(language)
+                    self.start_completion_services_for_language(language)
 
 
     @Slot(str)
@@ -440,7 +437,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         wrapper = ServerDisabledMessageBox.instance(warn_str, self.set_option)
         self.sig_show_widget.emit(wrapper)
 
-    def start_provider(self, language):
+    def start_completion_services_for_language(self, language):
         """Start an LSP client for a given language."""
         # To keep track if the client was started.
         started = False
@@ -507,15 +504,16 @@ class LanguageServerProvider(SpyderCompletionProvider):
         instance.sig_went_down.connect(self.handle_lsp_down)
         instance.sig_initialize.connect(self.on_initialize)
         instance.sig_server_error.connect(self.report_server_error)
-        instance.sig_initialize.connect(self.sig_language_client_available)
+        instance.sig_initialize.connect(
+            self.sig_language_completions_available)
 
     def start(self):
-        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
+        self.sig_provider_ready.emit(self.COMPLETION_PROVIDER_NAME)
 
     def shutdown(self):
         logger.info("Shutting down LSP manager...")
         for language in self.clients:
-            self.stop_provider(language)
+            self.stop_completion_services_for_language(language)
 
     @Slot(object, object)
     def python_path_update(self, path_dict, new_path_dict):
@@ -542,7 +540,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def main_interpreter_changed(self):
         self.update_lsp_configuration(python_only=True)
 
-    def file_opened_updated(self, filename: str, language: str):
+    def file_opened_closed_or_updated(self, filename: str, language: str):
         self.sig_call_statusbar.emit(
             LSPStatusWidget.ID, 'set_current_language', (language,), {})
 
@@ -597,21 +595,24 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def restart_client(self, language, config):
         """Restart a client."""
         self.sig_stop_completions.emit(language)
-        self.stop_provider(language)
+        self.stop_completion_services_for_language(language)
         self.clients[language] = config
-        self.start_provider(language)
+        self.start_completion_services_for_language(language)
 
     def update_client_status(self, active_set):
         for language in self.clients:
             if language not in active_set:
-                self.stop_provider(language)
+                self.stop_completion_services_for_language(language)
 
-    def stop_provider(self, language):
+    def stop_completion_services_for_language(self, language):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 logger.info("Stopping LSP client for {}...".format(language))
-                language_client['instance'].disconnect()
+                try:
+                    language_client['instance'].disconnect()
+                except TypeError:
+                    pass
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 
@@ -619,7 +620,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         if req_id in self.requests:
             self.requests.discard(req_id)
             self.sig_response_ready.emit(
-                self.COMPLETION_CLIENT_NAME, req_id, response)
+                self.COMPLETION_PROVIDER_NAME, req_id, response)
 
     def send_request(self, language, request, params, req_id):
         if language in self.clients:
@@ -631,7 +632,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.receive_response, language=language, req_id=req_id)
                 client.perform_request(request, params)
                 return
-        self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
+        self.sig_response_ready.emit(self.COMPLETION_PROVIDER_NAME,
                                      req_id, {})
 
     def send_notification(self, language, request, params):
@@ -761,8 +762,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
-            'include_params':  self.get_option('enable_code_snippets',
-                                               section='completions')
+            'include_params': self.get_option('enable_code_snippets',
+                                              section='completions')
         }
         jedi_signature_help = {
             'enabled': self.get_option('jedi_signature_help')

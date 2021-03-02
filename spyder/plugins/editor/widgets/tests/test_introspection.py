@@ -225,9 +225,6 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
-# @pytest.mark.skipif(
-#     os.environ.get('CI') and (PY2 and os.name != 'nt'),
-#     reason='Fails on CI with Mac/Linux and Python 2')
 def test_automatic_completions(completions_codeeditor, qtbot):
     """Test on-the-fly completions."""
     code_editor, _ = completions_codeeditor
@@ -699,9 +696,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
     completion = code_editor.completion_widget
     snippets = code_editor.editor_extensions.get('SnippetsExtension')
 
-    # CONF.set('lsp-server', 'code_snippets', True)
-    # lsp.update_configuration()
-
     CONF.set('completions', 'enable_code_snippets', True)
     completion_plugin.after_configuration_update([])
 
@@ -742,8 +736,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
     assert snippets.is_snippet_active
     assert code_editor.has_selected_text()
 
-    # qtbot.wait(30000)
-
     # Rotate through snippet regions
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
@@ -773,7 +765,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    # qtbot.keyPress(completion, Qt.Key_Tab)
     if len(sig.args[0]) > 1:
         qtbot.keyPress(completion, Qt.Key_Tab)
 
@@ -799,7 +790,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    # qtbot.keyPress(completion, Qt.Key_Tab)
     if len(sig.args[0]) > 1:
         qtbot.keyPress(completion, Qt.Key_Tab)
 
@@ -829,7 +819,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    # qtbot.keyPress(completion, Qt.Key_Tab)
     if len(sig.args[0]) > 1:
         qtbot.keyPress(completion, Qt.Key_Tab)
 
@@ -858,7 +847,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    # qtbot.keyPress(completion, Qt.Key_Tab)
     if len(sig.args[0]) > 1:
         qtbot.keyPress(completion, Qt.Key_Tab)
 
@@ -904,7 +892,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    # qtbot.keyPress(completion, Qt.Key_Tab)
     if len(sig.args[0]) > 1:
         qtbot.keyPress(completion, Qt.Key_Tab)
 
