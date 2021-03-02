@@ -254,6 +254,9 @@ class ConfigurationManager(object):
             from. If None, the observer is degistered from all the options of
             the section `section`.
         """
+        if observer not in self._observer_map_keys:
+            return
+
         observer_sections = self._observer_map_keys[observer]
         if section is not None:
             section_options = observer_sections[section]
