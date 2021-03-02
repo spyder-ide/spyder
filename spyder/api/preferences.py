@@ -137,10 +137,13 @@ class PluginConfigPage(SpyderConfigPage):
             CONF.notify_observers(section, '__section')
             for opt in to_update[section]:
                 if isinstance(opt, tuple):
+                    print(opt)
                     opt = opt[:-1]
+                    print(opt)
                     section_prefix.add_path(opt)
             # Notify prefixed observers
             for prefix in section_prefix:
+                print(prefix)
                 CONF.notify_observers(section, prefix)
 
     def get_name(self):
