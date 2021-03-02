@@ -24,6 +24,7 @@ from enum import Enum
 from itertools import islice
 
 # Third party imports
+from qdarkstyle.darkpalette import DarkPalette
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
@@ -38,6 +39,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string
 from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
 from spyder.widgets.comboboxes import PythonModulesComboBox
@@ -52,7 +54,7 @@ logger = logging.getLogger(__name__)
 # --- Constants
 # ----------------------------------------------------------------------------
 if is_dark_interface():
-    MAIN_TEXT_COLOR = 'white'
+    MAIN_TEXT_COLOR = DarkPalette.COLOR_TEXT_1
 else:
     MAIN_TEXT_COLOR = '#444444'
 
@@ -848,7 +850,9 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
         if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
             if difference:
-                color, sign = ('green', '-') if difference < 0 else ('red', '+')
+                color, sign = ((SpyderPalette.COLOR_SUCCESS_1, '-')
+                               if difference < 0
+                               else (SpyderPalette.COLOR_ERROR_1, '+'))
                 diff_str = '{}{}'.format(sign, self.format_measure(difference))
         return [self.format_measure(x[0]), [diff_str, color]]
 
