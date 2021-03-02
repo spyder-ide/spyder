@@ -22,22 +22,16 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 
 # Local imports
-from spyder.api.decorators import configuration_observer
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.mixins import SpyderConfigurationObserver
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
 from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, create_toolbutton
 
-@configuration_observer
-class SpyderConfigurationObserver:
-    """
-    """
 
-
-
-class SpyderOptionMixin:
+class SpyderOptionMixin(SpyderConfigurationObserver):
     """
     This mixin provides option handling tools for any widget that needs to
     track options, their state and methods to call on option change.
@@ -218,14 +212,6 @@ class SpyderOptionMixin:
         """
         raise NotImplementedError(
             'Widget must define a `on_option_update` method!')
-
-    def on_configuration_change(self, option: ConfigurationKey, section: str,
-                                value: Any):
-        section_recievers = self._configuration_listeners.get(section, {})
-        option_recievers = section_recievers.get(option, [])
-        for receiver in option_recievers:
-            method = getattr(self, receiver)
-            method(value)
 
 
 class SpyderToolButtonMixin:
@@ -578,7 +564,7 @@ class SpyderActionMixin:
         @functools.wraps(toggled)
         def wrapper(*args, **kwargs):
             value = self.isChecked()
-            CONF.set(section, option, value)
+            CONF.set(section, option, value, recursive_notification=True)
             toggled(*args, **kwargs)
         return wrapper
 

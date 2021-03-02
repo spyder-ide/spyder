@@ -277,17 +277,49 @@ class ConfigurationManager(object):
 
     def notify_observers(self,
                          section: str,
-                         option: ConfigurationKey):
-        if isinstance(option, tuple):
+                         option: ConfigurationKey,
+                         recursive_notification: bool = False):
+        """
+        Notify observers of a change in the option `option` of configuration
+        section `section`.
+
+        Parameters
+        ----------
+        section: str
+            Name of the configuration section whose option did changed.
+        option: ConfigurationKey
+            Name/Path to the option that did changed.
+        recursive_notification: bool
+            If True, all the objects that observe all the changes on the
+            configuration section and objects that observe partial tuple paths
+            are notified. For example if the option `opt` of section `sec`
+            changes, then the observers for section `sec` are notified.
+            Likewise, if the option `(a, b, c)` changes, then observers for
+            `(a, b, c)`, `(a, b)` and a are notified as well.
+        """
+        if recursive_notification:
+            # Notify to section listeners
+            self._notify_section(section)
+
+        if isinstance(option, tuple) and recursive_notification:
+            # Notify to partial tuple observers
+            # e.g., If the option is (a, b, c), observers subscribed to
+            # (a, b, c), (a, b) and a are notified
             option_list = list(option)
             while option_list != []:
                 tuple_option = tuple(option_list)
+                if len(option_list) == 1:
+                    tuple_option = tuple_option[0]
+
                 value = self.get(section, tuple_option)
                 self._notify_option(section, tuple_option, value)
                 option_list.pop(-1)
         else:
-            value = self.get(section, option)
-            self._notify_option(section, option, value)
+            if option == '__section':
+                self._notify_section(section)
+            else:
+                value = self.get(section, option)
+                self._notify_option(section, option, value)
 
     def _notify_option(self, section: str, option: ConfigurationKey,
                        value: Any):
@@ -295,6 +327,10 @@ class ConfigurationManager(object):
         option_observers = section_observers.get(option, set({}))
         for observer in option_observers:
             observer.on_configuration_change(option, section, value)
+
+    def _notify_section(self, section: str):
+        section_values = dict(self.items(section))
+        self._notify_option(section, '__section', section_values)
 
     # --- Projects
     # ------------------------------------------------------------------------
@@ -346,6 +382,9 @@ class ConfigurationManager(object):
         If section is None, the `option` is requested from default section.
         """
         config = self.get_active_conf(section)
+        if isinstance(option, tuple) and len(option) == 1:
+            option = option[0]
+
         if isinstance(option, tuple):
             base_option = option[0]
             intermediate_options = option[1:-1]
@@ -366,7 +405,8 @@ class ConfigurationManager(object):
             value = config.get(section=section, option=option, default=default)
         return value
 
-    def set(self, section, option, value, verbose=False, save=True):
+    def set(self, section, option, value, verbose=False, save=True,
+            recursive_notification=False):
         """
         Set an `option` on a given `section`.
 
@@ -392,7 +432,7 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
-        self.notify_observers(section, original_option)
+        self.notify_observers(section, original_option, recursive_notification)
 
     def get_default(self, section, option):
         """

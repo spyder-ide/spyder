@@ -148,6 +148,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.fontboxes = {}
         self.coloredits = {}
         self.scedits = {}
+        self.cross_section_options = {}
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
@@ -387,6 +388,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         msg_if_enabled=False, section=None):
         checkbox = QCheckBox(text)
         self.checkboxes[checkbox] = (section, option, default)
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         if tip is not None:
             checkbox.setToolTip(tip)
         if msg_warning is not None or msg_info is not None:
@@ -406,6 +409,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                            msg_if_enabled=False, button_group=None,
                            restart=False, section=None):
         radiobutton = QRadioButton(text)
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         if button_group is None:
             if self.default_button_group is None:
                 self.default_button_group = QButtonGroup(self)
@@ -432,6 +437,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
                         content_type=None, section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
@@ -458,6 +465,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_textedit(self, text, option, default=NoDefault,
                         tip=None, restart=False, content_type=None,
                         section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QPlainTextEdit()
@@ -543,6 +552,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None,
                        section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         widget = QWidget(self)
         if prefix:
             plabel = QLabel(prefix)
@@ -582,6 +593,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_coloredit(self, text, option, default=NoDefault, tip=None,
                          without_layout=False, section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         clayout = ColorLayout(QColor(Qt.black), self)
         clayout.lineedit.setMaximumWidth(80)
@@ -601,6 +614,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_scedit(self, text, option, default=NoDefault, tip=None,
                       without_layout=False, section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         clayout = ColorLayout(QColor(Qt.black), self)
         clayout.lineedit.setMaximumWidth(80)
@@ -631,6 +646,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_combobox(self, text, choices, option, default=NoDefault,
                         tip=None, restart=False, section=None):
         """choices: couples (name, key)"""
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         combobox = QComboBox()
         if tip is not None:
@@ -665,6 +682,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                              default_line_edit=False, section=None,
                              validate_callback=None):
         """choices: couples (name, key)"""
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
                                 default_line_edit=default_line_edit)
         combobox.restart_required = restart

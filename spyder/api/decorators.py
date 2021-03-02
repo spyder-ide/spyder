@@ -37,6 +37,9 @@ def on_conf_change(section=None, option=None):
     The methods that use this decorator must have the following signature
     `def method(value): ...`
     """
+    if option is None:
+        option = '__section'
+
     def wrapper(func):
         func._conf_listen = (section, option)
         return func
