@@ -23,5 +23,5 @@ class SpyderConfigurationObserver:
     :function:`spyder.api.decorators.on_conf_change` decorator, which recieves
     a configuration section and option to observe.
 
-    When a change occurs on any of the registered
+    When a change occurs on any of the registered configuration
     """
