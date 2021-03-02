@@ -17,6 +17,7 @@ import re
 import traceback
 
 # Third party imports
+from qdarkstyle.darkpalette import DarkPalette
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QSize, Qt, QThread,
                          Signal, Slot)
@@ -33,6 +34,7 @@ from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.main import EXCLUDE_PATTERNS  # This could be more general?
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import regexp_error_msg
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.comboboxes import PatternComboBox
 # TODO: Use SpyderWidgetMixin on OneColumnTree
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -44,7 +46,7 @@ _ = get_translation('spyder')
 # --- Constants
 # ----------------------------------------------------------------------------
 if is_dark_interface():
-    MAIN_TEXT_COLOR = 'white'
+    MAIN_TEXT_COLOR = DarkPalette.COLOR_TEXT_1
 else:
     MAIN_TEXT_COLOR = '#444444'
 
@@ -833,7 +835,7 @@ class FindInFilesWidget(PluginMainWidget):
         'text_color': MAIN_TEXT_COLOR,
     }
     ENABLE_SPINNER = True
-    REGEX_INVALID = "background-color:rgb(255, 80, 80);"
+    REGEX_INVALID = f"background-color:{SpyderPalette.COLOR_ERROR_2};"
     REGEX_ERROR = _("Regular expression error")
 
     # Signals
