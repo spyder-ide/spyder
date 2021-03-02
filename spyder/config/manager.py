@@ -11,10 +11,12 @@ Configuration manager providing access to user/site/project configuration.
 # Standard library imports
 import os
 import os.path as osp
+from typing import Optional, Any
 
 # Local imports
 from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
+from spyder.config.types import ConfigurationKey, ConfigurationObserver
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault, cp
 from spyder.utils.programs import check_version
 
@@ -77,6 +79,21 @@ class ConfigurationManager(object):
 
         # TODO: To be implemented in following PR
         self._project_configs = {}  # Cache project configurations
+
+        # Object observer map
+        # This dict maps from a configuration key (str/tuple) to a set
+        # of objects that should be notified on changes to the corresponding
+        # subscription key per section. The observer objects must be hashable.
+        #
+        # type: Dict[ConfigurationKey, Dict[str, Set[ConfigurationObserver]]]
+        self._observers = {}
+
+        # Set of suscription keys per observer object
+        # This dict maps from a observer object to the set of configuration
+        # keys that the object is subscribed to per section.
+        #
+        # type: Dict[ConfigurationObserver, Dict[str, Set[ConfigurationKey]]]
+        self._observer_map_keys = {}
 
         # Setup
         self.remove_deprecated_config_locations()
@@ -175,6 +192,110 @@ class ConfigurationManager(object):
 
         return path
 
+    # --- Observer pattern
+    # ------------------------------------------------------------------------
+    def observe_configuration(self,
+                              observer: ConfigurationObserver,
+                              section: str,
+                              option: Optional[ConfigurationKey] = None):
+        """
+        Register an `observer` object to listen for changes in the option
+        `option` on the configuration `section`.
+
+        Parameters
+        ----------
+        observer: ConfigurationObserver
+            Object that conforms to the `ConfigurationObserver` protocol.
+        section: str
+            Name of the configuration section that contains the option
+            :param:`option`
+        option: Optional[ConfigurationKey]
+            Name of the option on the configuration section :param:`section`
+            that the object is going to suscribe to. If None, the observer
+            will observe any changes on any of the options of the configuration
+            section.
+        """
+        section_sets = self._observers.get(section, {})
+        option = option if option is not None else '__section'
+
+        option_set = section_sets.get(option, set({}))
+        option_set |= {observer}
+
+        section_sets[option] = option_set
+        self._observers[section] = section_sets
+
+        observer_section_sets = self._observer_map_keys.get(observer, {})
+        section_set = observer_section_sets.get(section, set({}))
+        section_set |= {option}
+
+        observer_section_sets[section] = section_set
+        self._observer_map_keys[observer] = observer_section_sets
+
+    def unobserve_configuration(self,
+                                observer: ConfigurationObserver,
+                                section: Optional[str] = None,
+                                option: Optional[ConfigurationKey] = None):
+        """
+        Remove an observer to prevent it to recieve further changes
+        on the values of the option `option` of the configuration section
+        `section`.
+
+        Parameters
+        ----------
+        observer: ConfigurationObserver
+            Object that conforms to the `ConfigurationObserver` protocol.
+        section: Optional[str]
+            Name of the configuration section that contains the option
+            :param:`option`. If None, the observer is deregistered from all the
+            options for all the sections that it has registered to.
+        option: Optional[ConfigurationKey]
+            Name of the configuration option on the configuration
+            :param:`section` that the observer is going to be unsubscribed
+            from. If None, the observer is degistered from all the options of
+            the section `section`.
+        """
+        observer_sections = self._observer_map_keys[observer]
+        if section is not None:
+            section_options = observer_sections[section]
+            section_observers = self._observers[section]
+            if option is not None:
+                for option in section_options:
+                    option_observers = section_observers[option]
+                    option_observers.pop(observer)
+                observer_sections.pop(section)
+            else:
+                option_observers = section_observers[option]
+                option_observers.pop(observer)
+        else:
+            for section in observer_sections:
+                section_options = observer_sections[section]
+                section_observers = self._observers[section]
+                for option in section_options:
+                    option_observers = section_observers[option]
+                    option_observers.pop(observer)
+            self._observer_map_keys.pop(observer)
+
+    def notify_observers(self,
+                         section: str,
+                         option: ConfigurationKey):
+        if isinstance(option, tuple):
+            option_list = list(option)
+            while option_list != []:
+                tuple_option = tuple(option_list)
+                value = self.get(section, tuple_option)
+                self._notify_option(section, tuple_option, value)
+                option_list.pop(-1)
+        else:
+            value = self.get(section, option)
+            self._notify_option(section, option, value)
+
+    def _notify_option(self, section: str, option: ConfigurationKey,
+                       value: Any):
+        section_observers = self._observers.get(section, {})
+        option_observers = section_observers.get(option, set({}))
+        for observer in option_observers:
+            observer.on_configuration_change(option, section, value)
+
     # --- Projects
     # ------------------------------------------------------------------------
     def register_config(self, root_path, config):
@@ -225,7 +346,7 @@ class ConfigurationManager(object):
         If section is None, the `option` is requested from default section.
         """
         config = self.get_active_conf(section)
-        if isinstance(option, (list, tuple)):
+        if isinstance(option, tuple):
             base_option = option[0]
             intermediate_options = option[1:-1]
             last_option = option[-1]
@@ -251,7 +372,8 @@ class ConfigurationManager(object):
 
         If section is None, the `option` is added to the default section.
         """
-        if isinstance(option, (list, tuple)):
+        original_option = option
+        if isinstance(option, tuple):
             base_option = option[0]
             intermediate_options = option[1:-1]
             last_option = option[-1]
@@ -270,6 +392,7 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
+        self.notify_observers(section, original_option)
 
     def get_default(self, section, option):
         """
@@ -278,7 +401,7 @@ class ConfigurationManager(object):
         This is useful for type checking in `get` method.
         """
         config = self.get_active_conf(section)
-        if isinstance(option, (list, tuple)):
+        if isinstance(option, tuple):
             base_option = option[0]
             intermediate_options = option[1:-1]
             last_option = option[-1]
@@ -300,7 +423,7 @@ class ConfigurationManager(object):
     def remove_option(self, section, option):
         """Remove `option` from `section`."""
         config = self.get_active_conf(section)
-        if isinstance(option, (list, tuple)):
+        if isinstance(option, tuple):
             base_option = option[0]
             intermediate_options = option[1:-1]
             last_option = option[-1]
@@ -311,6 +434,7 @@ class ConfigurationManager(object):
                 conf_ptr = conf_ptr[opt]
             conf_ptr.pop(last_option)
             self.set(section, base_option)
+            self.notify_observers(section, base_option)
         else:
             config.remove_option(section, option)
 

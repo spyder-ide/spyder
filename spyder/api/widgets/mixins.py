@@ -12,17 +12,29 @@ Spyder API Mixins.
 """
 
 # Standard library imports
+import functools
 from collections import OrderedDict
+import types
+from typing import Any
 
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 
 # Local imports
+from spyder.api.decorators import configuration_observer
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
+from spyder.config.types import ConfigurationKey
+from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, create_toolbutton
+
+@configuration_observer
+class SpyderConfigurationObserver:
+    """
+    """
+
 
 
 class SpyderOptionMixin:
@@ -206,6 +218,14 @@ class SpyderOptionMixin:
         """
         raise NotImplementedError(
             'Widget must define a `on_option_update` method!')
+
+    def on_configuration_change(self, option: ConfigurationKey, section: str,
+                                value: Any):
+        section_recievers = self._configuration_listeners.get(section, {})
+        option_recievers = section_recievers.get(option, [])
+        for receiver in option_recievers:
+            method = getattr(self, receiver)
+            method(value)
 
 
 class SpyderToolButtonMixin:
@@ -441,7 +461,8 @@ class SpyderActionMixin:
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
-                      register_shortcut=False, parent=None):
+                      register_shortcut=False, section=None, option=None,
+                      parent=None):
         """
         name: str
             unique identifiable name for the action
@@ -465,6 +486,12 @@ class SpyderActionMixin:
         initial: object
             Sets the initial state of a togglable action. This does not emit
             the toggled signal.
+        section: str
+            Name of the configuration section whose option is going to be
+            modified.
+        option: ConfigurationKey
+            Name of the configuration option whose value is reflected and
+            affected by the action
         register_shortcut: bool, optional
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
@@ -501,6 +528,10 @@ class SpyderActionMixin:
         if parent is None:
             parent = self
 
+        if toggled:
+            if section is not None and option is not None:
+                toggled = self.wrap_toggled(toggled, section, option)
+
         action = create_action(
             parent,
             text=text,
@@ -519,6 +550,11 @@ class SpyderActionMixin:
         action.register_shortcut = register_shortcut
         action.tip = tip
 
+        if toggled:
+            if section is not None and option is not None:
+                CONF.observe_configuration(action, section, option)
+                self.add_configuration_update(action)
+
         if initial is not None:
             if toggled:
                 self.blockSignals(True)
@@ -527,9 +563,32 @@ class SpyderActionMixin:
             elif triggered:
                 raise SpyderAPIError(
                     'Initial values can only apply to togglable actions!')
+        else:
+            if toggled:
+                if section is not None and option is not None:
+                    value = CONF.get(section, option)
+                    self.blockSignals(True)
+                    action.setChecked(value)
+                    self.blockSignals(False)
 
         self._actions[name] = action
         return action
+
+    def wrap_toggled(self, toggled, section, option):
+        @functools.wraps(toggled)
+        def wrapper(*args, **kwargs):
+            value = self.isChecked()
+            CONF.set(section, option, value)
+            toggled(*args, **kwargs)
+        return wrapper
+
+    def add_configuration_update(self, action):
+        def on_configuration_change(self, _option, _section, value):
+            self.blockSignals(True)
+            self.setChecked(value)
+            self.blockSignals(False)
+        method = types.MethodType(on_configuration_change, action)
+        setattr(action, 'on_configuration_change', method)
 
     def get_action(self, name):
         """
