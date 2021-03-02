@@ -186,7 +186,7 @@ class Projects(SpyderPluginWidget):
 
         # TODO: This is not necessary anymore due to us starting workspace
         # services in the editor. However, we could restore it in the future.
-        #lspmgr.sig_language_client_available.connect(
+        #lspmgr.sig_language_completions_available.connect(
         #    lambda settings, language:
         #        self.start_workspace_services())
         lspmgr.sig_stop_completions.connect(self.stop_workspace_services)

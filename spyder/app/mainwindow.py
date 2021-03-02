@@ -1182,7 +1182,7 @@ class MainWindow(QMainWindow):
                     if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
                         self.preferences.register_plugin_preferences(plugin)
 
-                    if hasattr(plugin, 'COMPLETION_CLIENT_NAME'):
+                    if hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
                         self.completions.register_completion_plugin(plugin)
                     else:
                         self.thirdparty_plugins.append(plugin)
@@ -2513,9 +2513,6 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
 
-        # if not self.completions.closing_plugin(cancelable):
-        #     return False
-
         # Internal plugins
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             # New API
@@ -2551,8 +2548,6 @@ class MainWindow(QMainWindow):
         # Fixes spyder-ide/spyder#12139
         prefix = 'window' + '/'
         self.save_current_window_settings(prefix)
-
-        # self.completions.shutdown()
 
         self.already_closed = True
         return True

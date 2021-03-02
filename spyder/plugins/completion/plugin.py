@@ -127,7 +127,7 @@ class CompletionPlugin(SpyderPluginV2):
     This signal is used to report changes on the main Python interpreter.
     """
 
-    sig_language_client_available = Signal(dict, str)
+    sig_language_completions_available = Signal(dict, str)
     """
     This signal is used to indicate that completion services are available
     for a given programming language.
@@ -135,8 +135,8 @@ class CompletionPlugin(SpyderPluginV2):
     Parameters
     ----------
     completion_capabilites: dict
-        Available configurations supported by the client, it should conform to
-        `spyder.plugins.completion.api.SERVER_CAPABILITES`.
+        Available configurations supported by the providers, it should conform
+        to `spyder.plugins.completion.api.SERVER_CAPABILITES`.
     language: str
         Name of the programming language whose completion capabilites are
         available.
@@ -216,9 +216,6 @@ class CompletionPlugin(SpyderPluginV2):
         # Completion request priority
         self.source_priority = {}
 
-        # Projects plugin reference
-        self.projects = None
-
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
 
@@ -269,7 +266,6 @@ class CompletionPlugin(SpyderPluginV2):
         if self.main:
             self.main.sig_pythonpath_changed.connect(
                 self.sig_pythonpath_changed)
-            # self.main.sig_setup_finished.connect(self.setup_finished)
 
         # Do not start providers on tests unless necessary
         if running_under_pytest():
@@ -661,8 +657,8 @@ class CompletionPlugin(SpyderPluginV2):
         provider_instance.sig_response_ready.connect(self.receive_response)
         provider_instance.sig_exception_occurred.connect(
             self.sig_exception_occurred)
-        provider_instance.sig_language_client_available.connect(
-            self.sig_language_client_available)
+        provider_instance.sig_language_completions_available.connect(
+            self.sig_language_completions_available)
         provider_instance.sig_disable_provider.connect(
             self.shutdown_provider_instance)
         provider_instance.sig_show_widget.connect(
@@ -679,7 +675,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
-        provider_name = Provider.COMPLETION_CLIENT_NAME
+        provider_name = Provider.COMPLETION_PROVIDER_NAME
         self._available_providers[provider_name] = Provider
 
         logger.debug("Completion plugin: Registering {0}".format(
@@ -725,7 +721,7 @@ class CompletionPlugin(SpyderPluginV2):
         provider_info['status'] = self.RUNNING
         self.sig_provider_ready.emit(provider_name)
 
-    def start_providers(self, language: str) -> bool:
+    def start_completion_services_for_language(self, language: str) -> bool:
         """Start completion providers for a given programming language."""
         started = False
         language_providers = self.language_status.get(language, {})
@@ -733,18 +729,20 @@ class CompletionPlugin(SpyderPluginV2):
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 provider = provider_info['instance']
-                provider_started = provider.start_provider(language)
+                provider_started = (
+                    provider.start_completion_services_for_language(language))
                 started |= provider_started
                 language_providers[provider_name] = provider_started
         self.language_status[language] = language_providers
         return started
 
-    def stop_providers(self, language: str):
+    def stop_completion_services_for_language(self, language: str):
         """Stop completion providers for a given programming language."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
+            instance = provider_info['instance']
             if provider_info['status'] == self.RUNNING:
-                provider_info['instance'].stop_provider(language)
+                instance.stop_completion_services_for_language(language)
         self.language_status.pop(language)
 
     def get_provider(self, name: str) -> SpyderCompletionProvider:
@@ -957,7 +955,7 @@ class CompletionPlugin(SpyderPluginV2):
                 )
 
     @Slot(str, str)
-    def file_opened_updated(self, filename: str, language: str):
+    def file_opened_closed_or_updated(self, filename: str, language: str):
         """
         Handle file modifications and file switching events, including when a
         new file is created.
@@ -974,7 +972,7 @@ class CompletionPlugin(SpyderPluginV2):
             for provider_name in self.providers:
                 provider_info = self.providers[provider_name]
                 if provider_info['status'] == self.RUNNING:
-                    provider_info['instance'].file_opened_updated(
+                    provider_info['instance'].file_opened_closed_or_updated(
                         filename, language)
 
     def register_file(self, language: str, filename: str, codeeditor):

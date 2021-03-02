@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class SnippetsProvider(SpyderCompletionProvider):
-    COMPLETION_CLIENT_NAME = 'snippets'
+    COMPLETION_PROVIDER_NAME = 'snippets'
     DEFAULT_ORDER = 2
     CONF_DEFAULTS = [(lang, SNIPPETS[lang]) for lang in SNIPPETS]
     CONF_VERSION = "0.1.0"
@@ -42,7 +42,7 @@ class SnippetsProvider(SpyderCompletionProvider):
             self.signal_provider_ready)
         self.snippets_actor.sig_snippets_response.connect(
             lambda _id, resp: self.sig_response_ready.emit(
-                self.COMPLETION_CLIENT_NAME, _id, resp))
+                self.COMPLETION_PROVIDER_NAME, _id, resp))
         self.started = False
         self.requests = {}
         self.config = config
@@ -50,7 +50,7 @@ class SnippetsProvider(SpyderCompletionProvider):
     def get_name(self):
         return _('Text snippets')
 
-    def start_provider(self, language):
+    def start_completion_services_for_language(self, language):
         return self.started
 
     def start(self):
@@ -60,7 +60,7 @@ class SnippetsProvider(SpyderCompletionProvider):
 
     def signal_provider_ready(self):
         self.update_configuration(self.config)
-        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
+        self.sig_provider_ready.emit(self.COMPLETION_PROVIDER_NAME)
 
     def shutdown(self):
         if self.started:

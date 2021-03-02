@@ -37,7 +37,7 @@ class KiteProviderActions:
 
 
 class KiteProvider(SpyderCompletionProvider):
-    COMPLETION_CLIENT_NAME = 'kite'
+    COMPLETION_PROVIDER_NAME = 'kite'
     DEFAULT_ORDER = 1
     CONF_DEFAULTS = [
         ('spyder_runs', 1),
@@ -61,7 +61,7 @@ class KiteProvider(SpyderCompletionProvider):
             self.set_status)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
-                              self.COMPLETION_CLIENT_NAME))
+                              self.COMPLETION_PROVIDER_NAME))
 
         self.client.sig_response_ready.connect(self._kite_onboarding)
         self.client.sig_status_response_ready.connect(self._kite_onboarding)
@@ -89,10 +89,10 @@ class KiteProvider(SpyderCompletionProvider):
         if language in self.available_languages:
             self.client.sig_perform_request.emit(req_id, req_type, req)
         else:
-            self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
+            self.sig_response_ready.emit(self.COMPLETION_PROVIDER_NAME,
                                          req_id, {})
 
-    def start_provider(self, language):
+    def start_completion_services_for_language(self, language):
         return language in self.available_languages
 
     def start(self):
@@ -139,7 +139,7 @@ class KiteProvider(SpyderCompletionProvider):
     def http_client_ready(self, languages):
         logger.debug('Kite client is available for {0}'.format(languages))
         self.available_languages = languages
-        self.sig_provider_ready.emit(self.COMPLETION_CLIENT_NAME)
+        self.sig_provider_ready.emit(self.COMPLETION_PROVIDER_NAME)
         self._kite_onboarding()
 
     @Slot(str)
@@ -149,7 +149,7 @@ class KiteProvider(SpyderCompletionProvider):
         self.sig_call_statusbar.emit(
             KiteStatusWidget.ID, 'set_value', (status,), {})
 
-    def file_opened_updated(self, filename, _language):
+    def file_opened_closed_or_updated(self, filename, _language):
         """Request status for the given file."""
         self.client.sig_perform_status_request.emit(filename)
 
@@ -199,7 +199,7 @@ class KiteProvider(SpyderCompletionProvider):
             return QMessageBox.critical(parent, _('Kite error'), err_msg)
 
         self.sig_show_widget.emit(wrap_message)
-        self.sig_disable_provider.emit(self.COMPLETION_CLIENT_NAME)
+        self.sig_disable_provider.emit(self.COMPLETION_PROVIDER_NAME)
 
     def create_statusbar(self, parent):
         return KiteStatusWidget(parent, self)
