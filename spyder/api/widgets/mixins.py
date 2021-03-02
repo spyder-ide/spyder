@@ -514,7 +514,7 @@ class SpyderActionMixin:
         if parent is None:
             parent = self
 
-        if toggled:
+        if toggled is not None:
             if section is not None and option is not None:
                 toggled = self.wrap_toggled(toggled, section, option)
 
