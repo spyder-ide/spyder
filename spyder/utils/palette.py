@@ -38,18 +38,18 @@ class SpyderPaletteDark:
 
     # Colors for icons and variable explorer in dark mode
 
-    GROUP_DARK_1 = GroupDark.B10
-    GROUP_DARK_2 = GroupDark.B20
-    GROUP_DARK_3 = GroupDark.B30
-    GROUP_DARK_4 = GroupDark.B40
-    GROUP_DARK_5 = GroupDark.B50
-    GROUP_DARK_6 = GroupDark.B60
-    GROUP_DARK_7 = GroupDark.B70
-    GROUP_DARK_8 = GroupDark.B80
-    GROUP_DARK_9 = GroupDark.B90
-    GROUP_DARK_10 = GroupDark.B100
-    GROUP_DARK_11 = GroupDark.B110
-    GROUP_DARK_12 = GroupDark.B120
+    GROUP_1 = GroupDark.B10
+    GROUP_2 = GroupDark.B20
+    GROUP_3 = GroupDark.B30
+    GROUP_4 = GroupDark.B40
+    GROUP_5 = GroupDark.B50
+    GROUP_6 = GroupDark.B60
+    GROUP_7 = GroupDark.B70
+    GROUP_8 = GroupDark.B80
+    GROUP_9 = GroupDark.B90
+    GROUP_10 = GroupDark.B100
+    GROUP_11 = GroupDark.B110
+    GROUP_12 = GroupDark.B120
 
 
 class SpyderPaletteLight:
@@ -79,18 +79,18 @@ class SpyderPaletteLight:
 
     # Colors for icons and variable explorer in light mode
 
-    GROUP_LIGHT_1 = GroupLight.B10
-    GROUP_LIGHT_2 = GroupLight.B20
-    GROUP_LIGHT_3 = GroupLight.B30
-    GROUP_LIGHT_4 = GroupLight.B40
-    GROUP_LIGHT_5 = GroupLight.B50
-    GROUP_LIGHT_6 = GroupLight.B60
-    GROUP_LIGHT_7 = GroupLight.B70
-    GROUP_LIGHT_8 = GroupLight.B80
-    GROUP_LIGHT_9 = GroupLight.B90
-    GROUP_LIGHT_10 = GroupLight.B100
-    GROUP_LIGHT_11 = GroupLight.B110
-    GROUP_LIGHT_12 = GroupLight.B120
+    GROUP_1 = GroupLight.B10
+    GROUP_2 = GroupLight.B20
+    GROUP_3 = GroupLight.B30
+    GROUP_4 = GroupLight.B40
+    GROUP_5 = GroupLight.B50
+    GROUP_6 = GroupLight.B60
+    GROUP_7 = GroupLight.B70
+    GROUP_8 = GroupLight.B80
+    GROUP_9 = GroupLight.B90
+    GROUP_10 = GroupLight.B100
+    GROUP_11 = GroupLight.B110
+    GROUP_12 = GroupLight.B120
 
 
 class LightPalette(object):
