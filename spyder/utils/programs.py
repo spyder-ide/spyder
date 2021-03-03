@@ -1071,3 +1071,39 @@ def find_git():
         return find_program('git')
     else:
         return find_program('git')
+
+
+def add_user_pythonpath(pathlist=()):
+    """Get user's local PYTHONPATH and merge with provided path list.
+    Only appends local PYTHONPATH paths that are valid directories and are
+    not already in `pathlist`
+
+    Parameters
+    ----------
+    pathlist : tuple of str
+        List of paths to which to append paths in the user's local PYTHONPATH.
+
+    Returns
+    -------
+    pathlist : tuple of str
+        Appended path list.
+
+    """
+    cmdstr = ''
+    if sys.platform == 'darwin':
+        cmdstr = ('[[ -e /etc/profile ]] && source /etc/profile; '
+                  '[[ -e ~/.bash_profile ]] && source ~/.bash_profile; '
+                  'echo $PYTHONPATH')
+    elif sys.platform.startswith('linux'):
+        pass
+    elif os.name == 'nt':
+        pass
+
+    out, err = run_shell_command(cmdstr).communicate()
+
+    pathlist = tuple(pathlist)
+    for _path in tuple(out.decode().strip().strip(':').split(':')):
+        if _path not in pathlist and osp.isdir(_path):
+            pathlist += (_path,)
+
+    return pathlist

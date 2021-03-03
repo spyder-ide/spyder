@@ -97,7 +97,7 @@ from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
-from spyder.utils.programs import is_module_installed
+from spyder.utils.programs import is_module_installed, add_user_pythonpath
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
@@ -2874,7 +2874,10 @@ class MainWindow(QMainWindow):
         """Load path stored in Spyder configuration folder."""
         if osp.isfile(self.SPYDER_PATH):
             path, _x = encoding.readlines(self.SPYDER_PATH)
-            self.path = tuple(name for name in path if osp.isdir(name))
+            if True:  # use local PYTHONPATH preference
+                self.path = add_user_pythonpath(path)
+            else:
+                self.path = path
 
         if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
             not_active_path, _x = encoding.readlines(
@@ -2959,7 +2962,11 @@ class MainWindow(QMainWindow):
         """Show path manager dialog."""
         from spyder.widgets.pathmanager import PathManager
         read_only_path = tuple(self.projects.get_pythonpath())
-        dialog = PathManager(self, self.path, read_only_path,
+        if True:  # use local PYTHONPATH preference
+            path = add_user_pythonpath(self.path)
+        else:
+            path = self.path
+        dialog = PathManager(self, path, read_only_path,
                              self.not_active_path, sync=True)
         self._path_manager = dialog
         dialog.sig_path_changed.connect(self.update_python_path)
