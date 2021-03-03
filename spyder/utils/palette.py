@@ -136,5 +136,5 @@ if is_dark_interface():
     SpyderPalette = SpyderPaletteDark
     QDarkPalette = DarkPalette
 else:
-    SpyderPalete = SpyderPaletteLight
+    SpyderPalette = SpyderPaletteLight
     QDarkPalette = LightPalette
