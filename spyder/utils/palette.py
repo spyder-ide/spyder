@@ -92,6 +92,7 @@ class SpyderPaletteLight:
     GROUP_LIGHT_11 = GroupLight.B110
     GROUP_LIGHT_12 = GroupLight.B120
 
+
 class LightPalette(object):
     """Theme variables."""
 
@@ -128,9 +129,9 @@ class LightPalette(object):
     BORDER_SELECTION_2 = '1px solid $COLOR_ACCENT_2'
     BORDER_SELECTION_1 = '1px solid $COLOR_ACCENT_1'
 
-
     # Example of additional widget specific variables
     W_STATUS_BAR_BACKGROUND_COLOR = COLOR_ACCENT_1
+
 
 if is_dark_interface():
     SpyderPalette = SpyderPaletteDark
