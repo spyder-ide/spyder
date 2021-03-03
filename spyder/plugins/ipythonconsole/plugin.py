@@ -23,7 +23,6 @@ import uuid
 # Third party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
-from qdarkstyle.darkpalette import DarkPalette
 from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
@@ -37,7 +36,7 @@ from zmq.ssh import tunnel as zmqtunnel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
-from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -52,6 +51,7 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
+from spyder.utils.palette import QDarkPalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
 from spyder.widgets.browser import WebView
@@ -59,11 +59,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
-if is_dark_interface():
-    MAIN_BG_COLOR = 'DarkPalette.COLOR_BACKGROUND_1'
-else:
-    MAIN_BG_COLOR = 'white'
-
+MAIN_BG_COLOR = 'QDarkPalette.COLOR_BACKGROUND_1'
 
 class IPythonConsole(SpyderPluginWidget):
     """
@@ -236,8 +232,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         self.pager_label.setStyleSheet(
-            f"background-color: {DarkPalette.COLOR_ACCENT_2};"
-            f"color: {DarkPalette.COLOR_TEXT_1};"
+            f"background-color: {QDarkPalette.COLOR_ACCENT_2};"
+            f"color: {QDarkPalette.COLOR_TEXT_1};"
             "margin: 0px 4px 4px 4px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"

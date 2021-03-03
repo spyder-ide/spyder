@@ -17,7 +17,6 @@ import re
 import traceback
 
 # Third party imports
-from qdarkstyle.darkpalette import DarkPalette
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QSize, Qt, QThread,
                          Signal, Slot)
@@ -30,11 +29,11 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
-from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.gui import get_font
 from spyder.config.main import EXCLUDE_PATTERNS  # This could be more general?
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.palette import SpyderPalette
+from spyder.utils.palette import SpyderPalette, QDarkPalette
 from spyder.widgets.comboboxes import PatternComboBox
 # TODO: Use SpyderWidgetMixin on OneColumnTree
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -45,10 +44,7 @@ _ = get_translation('spyder')
 
 # --- Constants
 # ----------------------------------------------------------------------------
-if is_dark_interface():
-    MAIN_TEXT_COLOR = DarkPalette.COLOR_TEXT_1
-else:
-    MAIN_TEXT_COLOR = '#444444'
+MAIN_TEXT_COLOR = QDarkPalette.COLOR_TEXT_1
 
 ON = 'on'
 OFF = 'off'
