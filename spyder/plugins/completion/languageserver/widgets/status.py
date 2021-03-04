@@ -52,7 +52,7 @@ class LSPStatusWidget(StatusBarWidget):
 
     def __init__(self, parent, plugin):
         self.tooltip = self.BASE_TOOLTIP
-        super().__init__(parent, spinner=True)
+        super().__init__(parent, show_spinner=True)
 
         self.plugin = plugin
         self.menu = QMenu(self)

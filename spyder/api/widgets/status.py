@@ -13,17 +13,31 @@ from qtpy.QtGui import QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import is_dark_interface
 from spyder.utils.qthelpers import create_waitspinner
 
 
 class StatusBarWidget(QWidget, SpyderWidgetMixin):
-    """Status bar widget base."""
+    """
+    Base class for status bar widgets.
+
+    These widgets consist of an icon, a label and (optionally) a
+    spinner. However, you can use any QWidget in the status bar by
+    passing its class to CUSTOM_WIDGET_CLASS.
+    """
 
     ID = None
     """
     Unique string widget identifier.
+    """
+
+    CUSTOM_WIDGET_CLASS = None
+    """
+    Custom widget class to use instead of the default widget layout.
+    This will completely override the widget API, which won't have
+    any effect.
     """
 
     sig_option_changed = Signal(str, object)
@@ -37,13 +51,28 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     This signal is emmitted when the widget is clicked.
     """
 
-    def __init__(self, parent=None, spinner=False):
+    def __init__(self, parent=None, show_spinner=False):
         """Status bar widget base."""
         super().__init__(parent)
+        self._parent = parent
+        self.show_spinner = show_spinner
+        self.spinner = None
 
+        if self.CUSTOM_WIDGET_CLASS:
+            if not issubclass(self.CUSTOM_WIDGET_CLASS, QWidget):
+                raise SpyderAPIError(
+                    'Any custom status widget must subclass QWidget!'
+                )
+            self.custom_widget = self.CUSTOM_WIDGET_CLASS(parent)
+            self.set_custom_layout()
+        else:
+            self.custom_widget = None
+            self.set_default_layout()
+
+    def set_default_layout(self):
+        """Set layout for default widgets."""
         # Variables
         self.value = None
-        self._parent = parent
 
         # Widget
         self._icon = self.get_icon()
@@ -51,8 +80,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self._icon_size = QSize(16, 16)  # Should this be adjustable?
         self.label_icon = QLabel()
         self.label_value = QLabel()
-        self.spinner = None
-        if spinner:
+        if self.show_spinner:
             self.spinner = create_waitspinner(size=14, parent=self)
 
         # Layout setup
@@ -60,14 +88,18 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         layout.setSpacing(0)  # Reduce space between icon and label
         layout.addWidget(self.label_icon)
         layout.addWidget(self.label_value)
-        if spinner:
+
+        if self.show_spinner:
             layout.addWidget(self.spinner)
             self.spinner.hide()
+
         if is_dark_interface():
             layout.addSpacing(0)
         else:
             layout.addSpacing(10)
+
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignVCenter)
 
         # Widget setup
         self.set_icon()
@@ -81,9 +113,33 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self.set_value('')
         self.update_tooltip()
 
+    def set_custom_layout(self):
+        """Set layout for custom widgets."""
+        if self.show_spinner:
+            self.spinner = create_waitspinner(size=14, parent=self)
+
+        layout = QHBoxLayout(self)
+        layout.setSpacing(0)
+        layout.addWidget(self.custom_widget)
+
+        if self.show_spinner:
+            layout.addWidget(self.spinner)
+            self.spinner.hide()
+
+        if is_dark_interface():
+            layout.addSpacing(0)
+        else:
+            layout.addSpacing(10)
+
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignVCenter)
+
     # ---- Status bar widget API
     def set_icon(self):
         """Set the icon for the status bar widget."""
+        if self.custom_widget:
+            return
+
         icon = self._icon
         self.label_icon.setVisible(icon is not None)
         if icon is not None and isinstance(icon, QIcon):
@@ -92,11 +148,17 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     def set_value(self, value):
         """Set formatted text value."""
+        if self.custom_widget:
+            return
+
         self.value = value
         self.label_value.setText(value)
 
     def update_tooltip(self):
         """Update tooltip for widget."""
+        if self.custom_widget:
+            return
+
         tooltip = self.get_tooltip()
         if tooltip:
             self.label_value.setToolTip(tooltip)
@@ -120,10 +182,12 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
 
 class BaseTimerStatus(StatusBarWidget):
-    """Status bar widget base for widgets that update based on timers."""
+    """
+    Base class for status bar widgets that update based on timers.
+    """
 
     def __init__(self, parent=None):
-        """Status bar widget base for widgets that update based on timers."""
+        """Base class for status bar widgets that update based on timers."""
         self.timer = None  # Needs to come before parent call
         super().__init__(parent)
         self._interval = 2000
