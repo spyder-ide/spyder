@@ -59,7 +59,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
-MAIN_BG_COLOR = 'QDarkPalette.COLOR_BACKGROUND_1'
+MAIN_BG_COLOR = QDarkPalette.COLOR_BACKGROUND_1
 
 class IPythonConsole(SpyderPluginWidget):
     """
