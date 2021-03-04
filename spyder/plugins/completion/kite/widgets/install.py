@@ -19,6 +19,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
 # Local imports
 from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
+from spyder.utils.palette import QDarkPalette
 from spyder.utils import icon_manager as ima
 from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
                                                           FINISHED, CANCELLED)
@@ -89,14 +90,14 @@ class KiteIntegrationInfo(QWidget):
         install_button = QPushButton(_('Install Kite'))
         install_button.setAutoDefault(False)
         install_button.setStyleSheet(
-           "background-color: #3775A9;"
+           f"background-color: {QDarkPalette.COLOR_ACCENT_3};"
            f"font-size: {self.BUTTONS_FONT_SIZE};"
            f"padding: {self.BUTTONS_PADDING}"
          )
         dismiss_button = QPushButton(_('Dismiss'))
         dismiss_button.setAutoDefault(False)
         dismiss_button.setStyleSheet(
-           "background-color: #60798B;"
+           f"background-color: {QDarkPalette.COLOR_BACKGROUND_6};"
            f"font-size: {self.BUTTONS_FONT_SIZE};"
            f"padding: {self.BUTTONS_PADDING}"
          )
@@ -130,8 +131,8 @@ class KiteIntegrationInfo(QWidget):
         install_button.clicked.connect(self.sig_install_button_clicked)
         dismiss_button.clicked.connect(self.sig_dismiss_button_clicked)
 
-        if is_dark_interface():
-            self.setStyleSheet("background-color: #262E38")
+        self.setStyleSheet(
+            f"background-color: {QDarkPalette.COLOR_BACKGROUND_2}")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(800, 350)
@@ -247,7 +248,8 @@ class KiteInstallerDialog(QDialog):
 
     def __init__(self, parent, installation_thread):
         super(KiteInstallerDialog, self).__init__(parent)
-        self.setStyleSheet("background-color: #262E38")
+        self.setStyleSheet(
+            f"background-color: {QDarkPalette.COLOR_BACKGROUND_2}")
         if sys.platform == 'darwin':
             self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint
                                 | Qt.Tool)
