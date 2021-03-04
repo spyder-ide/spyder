@@ -1,5 +1,36 @@
 # History of changes
 
+## Version 4.2.3 (2021-03-04)
+
+### Important fixes
+* Fix a very visible bug with Kite installation.
+* Make Find pane to correctly highlight results in the editor.
+* Don't show "Mo such comm" message when restaring kernels.
+
+### Issues Closed
+
+* [Issue 14835](https://github.com/spyder-ide/spyder/issues/14835) - Editing in 4.2.2 causes issue popup ([PR 14842](https://github.com/spyder-ide/spyder/pull/14842) by [@andfoy](https://github.com/andfoy))
+* [Issue 14801](https://github.com/spyder-ide/spyder/issues/14801) - Kite installation error ([PR 14816](https://github.com/spyder-ide/spyder/pull/14816) by [@steff456](https://github.com/steff456))
+* [Issue 14755](https://github.com/spyder-ide/spyder/issues/14755) - Find in files plugin does not forward results to editor properly ([PR 14770](https://github.com/spyder-ide/spyder/pull/14770) by [@impact27](https://github.com/impact27))
+* [Issue 14713](https://github.com/spyder-ide/spyder/issues/14713) - python "help" command failed in iPython console ([PR 14804](https://github.com/spyder-ide/spyder/pull/14804) by [@mrclary](https://github.com/mrclary))
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 14842](https://github.com/spyder-ide/spyder/pull/14842) - PR: Prevent IndexError when updating folding, by [@andfoy](https://github.com/andfoy) ([14835](https://github.com/spyder-ide/spyder/issues/14835))
+* [PR 14840](https://github.com/spyder-ide/spyder/pull/14840) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 14816](https://github.com/spyder-ide/spyder/pull/14816) - PR: Remove unexpected argument in Kite installation dialog, by [@steff456](https://github.com/steff456) ([14801](https://github.com/spyder-ide/spyder/issues/14801))
+* [PR 14805](https://github.com/spyder-ide/spyder/pull/14805) - PR: Remove "No such comm" warning, by [@impact27](https://github.com/impact27)
+* [PR 14804](https://github.com/spyder-ide/spyder/pull/14804) - PR: Patch py2app site.py template for IPython help(), by [@mrclary](https://github.com/mrclary) ([14713](https://github.com/spyder-ide/spyder/issues/14713))
+* [PR 14770](https://github.com/spyder-ide/spyder/pull/14770) - PR: Fix match in Find plugin, by [@impact27](https://github.com/impact27) ([14755](https://github.com/spyder-ide/spyder/issues/14755))
+
+In this release 6 pull requests were closed.
+
+
+----
+
+
 ## Version 4.2.2 (2021-02-22)
 
 ### Important fixes
@@ -90,9 +121,9 @@ In this release 35 pull requests were closed.
 
 ### Important fixes
 
-* Search works as expected for folded regions.
+* Search in the editor works as expected for folded regions.
 * IPython Console preferences are applied on the fly.
-* IPython files (`*.ipy`) are better support in the Editor.
+* IPython files (`*.ipy`) are better supported in the editor.
 * Reduce time to show Preferences dialog.
 * Support for macOS Big Sur.
 
@@ -221,7 +252,7 @@ In this release 62 pull requests were closed.
   `Ctrl+Alt+I` (`Cmd+Alt+I` in macOS).
 * Add support for text snippets in the Editor. The list of available snippets
   is shown in `Preferences > Completion and linting > Snippets`.
-* Support caching cells send in succession to the IPython console. This will
+* Support caching cells sent in succession to the IPython console. This will
   run one cell after the previous one finished.
 * Make variables take precedence over Pdb commands in the debugger. In case a
   variable clashes with a command, you'll have to prefix the command with `!`.
