@@ -40,9 +40,17 @@ To release a new version of Spyder you need to follow these steps:
 
       git checkout translate/<branch-name>
 
-* Squash all commits in that branch to leave only one with the message
+* Squash all commits in that branch to leave only one with the command
 
-  `Update and compile translations`
+      git rebase --interactive HEAD~N
+
+  where N is the number of commits on it.
+
+* Change the commit message with
+
+      git commit --amend
+
+  to be `Update and compile translations [ci skip]`
 
 * Generate the `mo` files by running
 
@@ -73,6 +81,7 @@ To release a new version of Spyder you need to follow these steps:
       git checkout master
       git merge 4.x
       Merge from 4.x: PR #xxxxx
+      git push upstream master
 
 ### Update core dependencies
 
@@ -110,7 +119,7 @@ To release a new version of Spyder you need to follow these steps:
 
 ## To do the release
 
-* Close the current milestone Github
+* Close the current milestone on Github
 
 * git pull or git fetch/merge
 
