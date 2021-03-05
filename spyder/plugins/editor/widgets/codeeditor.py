@@ -312,11 +312,11 @@ class CodeEditor(TextEditBaseWidget):
         self._last_hover_pattern_text = None
 
         # 79-col edge line
-        self.edge_line = self.panels.register(EdgeLine(self),
+        self.edge_line = self.panels.register(EdgeLine(),
                                               Panel.Position.FLOATING)
 
         # indent guides
-        self.indent_guides = self.panels.register(IndentationGuide(self),
+        self.indent_guides = self.panels.register(IndentationGuide(),
                                                   Panel.Position.FLOATING)
         # Blanks enabled
         self.blanks_enabled = False
@@ -339,11 +339,11 @@ class CodeEditor(TextEditBaseWidget):
         self.blockCountChanged.connect(self.debugger.update_breakpoints)
 
         # Line number area management
-        self.linenumberarea = self.panels.register(LineNumberArea(self))
+        self.linenumberarea = self.panels.register(LineNumberArea())
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
-            ClassFunctionDropdown(self),
+            ClassFunctionDropdown(),
             Panel.Position.TOP,
         )
 
@@ -393,7 +393,7 @@ class CodeEditor(TextEditBaseWidget):
         self.found_results_color = QColor(Qt.magenta).lighter(180)
 
         # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
+        self.scrollflagarea = self.panels.register(ScrollFlagArea(),
                                                    Panel.Position.RIGHT)
         self.panels.refresh()
 

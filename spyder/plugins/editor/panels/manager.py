@@ -80,15 +80,15 @@ class PanelsManager(Manager):
         logger.debug('panel %s installed' % panel.name)
         return panel
 
-    def remove(self, name_or_klass):
+    def remove(self, name_or_class):
         """
         Removes the specified panel.
 
-        :param name_or_klass: Name or class of the panel to remove.
+        :param name_or_class: Name or class of the panel to remove.
         :return: The removed panel
         """
-        logger.debug('removing panel %s' % name_or_klass)
-        panel = self.get(name_or_klass)
+        logger.debug('removing panel %s' % name_or_class)
+        panel = self.get(name_or_class)
         panel.on_uninstall()
         panel.hide()
         panel.setParent(None)
