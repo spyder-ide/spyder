@@ -114,7 +114,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
 
         # Widgets
         self._highlighter = None
-        self.linenumberarea = LineNumberArea()
+        self.linenumberarea = LineNumberArea(self)
 
         # Widget setup
         self.setObjectName(self.__class__.__name__ + str(id(self)))
