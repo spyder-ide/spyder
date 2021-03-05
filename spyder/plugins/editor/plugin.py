@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
@@ -3144,3 +3145,10 @@ class Editor(SpyderPluginWidget):
         """
         for editorstack in self.editorstacks:
             editorstack.set_current_project_path(root_path)
+
+    def register_panel(self, panel_class, *args, position=Panel.Position.LEFT,
+                       **kwargs):
+        """Register a panel in all the editorstacks in the given position."""
+        for editorstack in self.editorstacks:
+            editorstack.register_panel(
+                panel_class, *args, position=position, **kwargs)

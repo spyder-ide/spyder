@@ -96,7 +96,7 @@ class PanelsManager(Manager):
 
     def clear(self):
         """Removes all panel from the CodeEditor."""
-        for i in range(4):
+        for i in range(5):
             while len(self._panels[i]):
                 key = sorted(list(self._panels[i].keys()))[0]
                 panel = self.remove(key)
@@ -111,7 +111,7 @@ class PanelsManager(Manager):
         """
         if not is_text_string(name_or_class):
             name_or_class = name_or_class.__name__
-        for zone in range(4):
+        for zone in range(5):
             try:
                 panel = self._panels[zone][name_or_class]
             except KeyError:
