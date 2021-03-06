@@ -313,7 +313,8 @@ class BaseEditMixin(object):
                 template += (
                     '<hr>'
                     '<div align="left">'
-                    '<span style="color:#148CD2;text-decoration:none;'
+                    f'<span style="color: {QStylePalette.COLOR_ACCENT_4};'
+                    'text-decoration:none;'
                     'font-family:"{font_family}";font-size:{size}pt;><i>'
                     ''.format(font_family=font_family,
                               size=text_size)
