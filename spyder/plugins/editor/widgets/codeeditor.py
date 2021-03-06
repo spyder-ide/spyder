@@ -80,6 +80,7 @@ from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
+from spyder.utils.palette import SpyderPalette, QDarkPalette
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
@@ -385,12 +386,12 @@ class CodeEditor(TextEditBaseWidget):
         self.setVerticalScrollBar(QScrollBar())
 
         # Highlights and flag colors
-        self.warning_color = "#FFAD07"
-        self.error_color = "#EA2B0E"
-        self.todo_color = "#B4D4F3"
-        self.breakpoint_color = "#30E62E"
-        self.occurrence_color = QColor(Qt.yellow).lighter(160)
-        self.found_results_color = QColor(Qt.magenta).lighter(180)
+        self.warning_color = SpyderPalette.COLOR_WARN_1
+        self.error_color = SpyderPalette.COLOR_ERROR_1
+        self.todo_color = SpyderPalette.ICON_2
+        self.breakpoint_color = SpyderPalette.ICON_3
+        self.occurrence_color = QColor(SpyderPalette.GROUP_2).lighter(160)
+        self.found_results_color = QColor(SpyderPalette.COLOR_HIGLIGHT_2)
 
         # Scrollbar flag area
         self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
@@ -3012,7 +3013,7 @@ class CodeEditor(TextEditBaseWidget):
         self.show_tooltip(
             title=_("To do"),
             text=data.todo,
-            title_color='#3096FC',
+            title_color= QDarkPalette.COLOR_ACCENT_4,
             at_line=line_number,
         )
 
