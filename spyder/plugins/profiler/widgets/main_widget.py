@@ -37,7 +37,7 @@ from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string
 from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
-from spyder.utils.palette import SpyderPalette, QDarkPalette
+from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
 from spyder.widgets.comboboxes import PythonModulesComboBox
@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 # --- Constants
 # ----------------------------------------------------------------------------
-MAIN_TEXT_COLOR = QDarkPalette.COLOR_TEXT_1
+MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 
 class ProfilerWidgetActions:
     # Triggers

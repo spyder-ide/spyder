@@ -149,7 +149,7 @@ class LightPalette(object):
 
 if is_dark_interface():
     SpyderPalette = SpyderPaletteDark
-    QDarkPalette = DarkPalette
+    QStylePalette = DarkPalette
 else:
     SpyderPalette = SpyderPaletteLight
-    QDarkPalette = LightPalette
+    QStylePalette = LightPalette

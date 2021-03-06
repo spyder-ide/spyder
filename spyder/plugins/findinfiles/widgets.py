@@ -33,7 +33,7 @@ from spyder.config.gui import get_font
 from spyder.config.main import EXCLUDE_PATTERNS  # This could be more general?
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.palette import SpyderPalette, QDarkPalette
+from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.widgets.comboboxes import PatternComboBox
 # TODO: Use SpyderWidgetMixin on OneColumnTree
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -44,7 +44,7 @@ _ = get_translation('spyder')
 
 # --- Constants
 # ----------------------------------------------------------------------------
-MAIN_TEXT_COLOR = QDarkPalette.COLOR_TEXT_1
+MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 
 ON = 'on'
 OFF = 'off'

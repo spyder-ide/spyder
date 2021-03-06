@@ -80,7 +80,7 @@ from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import SpyderPalette, QDarkPalette
+from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
@@ -3013,7 +3013,7 @@ class CodeEditor(TextEditBaseWidget):
         self.show_tooltip(
             title=_("To do"),
             text=data.todo,
-            title_color= QDarkPalette.COLOR_ACCENT_4,
+            title_color= QStylePalette.COLOR_ACCENT_4,
             at_line=line_number,
         )
 

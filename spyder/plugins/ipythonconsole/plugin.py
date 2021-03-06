@@ -51,7 +51,7 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
-from spyder.utils.palette import QDarkPalette
+from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
 from spyder.widgets.browser import WebView
@@ -59,7 +59,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
-MAIN_BG_COLOR = QDarkPalette.COLOR_BACKGROUND_1
+MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
 
 class IPythonConsole(SpyderPluginWidget):
     """
@@ -232,8 +232,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         self.pager_label.setStyleSheet(
-            f"background-color: {QDarkPalette.COLOR_ACCENT_2};"
-            f"color: {QDarkPalette.COLOR_TEXT_1};"
+            f"background-color: {QStylePalette.COLOR_ACCENT_2};"
+            f"color: {QStylePalette.COLOR_TEXT_1};"
             "margin: 0px 4px 4px 4px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"

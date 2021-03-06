@@ -16,14 +16,14 @@ from qtpy.QtWidgets import QApplication
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.console.utils.ansihandler import ANSIEscapeCodeHandler
-from spyder.utils.palette import QDarkPalette, SpyderPalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 
 
 
-MAIN_BG_COLOR = QDarkPalette.COLOR_BACKGROUND_1
-MAIN_DEFAULT_FG_COLOR = QDarkPalette.COLOR_TEXT_1
+MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
+MAIN_DEFAULT_FG_COLOR = QStylePalette.COLOR_TEXT_1
 MAIN_ERROR_FG_COLOR = SpyderPalette.COLOR_ERROR_1
-MAIN_TB_FG_COLOR = QDarkPalette.COLOR_ACCENT_2
+MAIN_TB_FG_COLOR = QStylePalette.COLOR_ACCENT_2
 MAIN_PROMPT_FG_COLOR = SpyderPalette.GROUP_4
 
 def insert_text_to(cursor, text, fmt):

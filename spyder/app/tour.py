@@ -35,7 +35,7 @@ from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
-from spyder.utils.palette import QDarkPalette
+from spyder.utils.palette import QStylePalette
 from spyder.utils import icon_manager as ima
 
 
@@ -1438,10 +1438,10 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        dialog_tour_color = QDarkPalette.COLOR_BACKGROUND_2
-        start_tour_color = QDarkPalette.COLOR_ACCENT_3
-        dismiss_tour_color = QDarkPalette.COLOR_BACKGROUND_6
-        font_color = QDarkPalette.COLOR_TEXT_1
+        dialog_tour_color = QStylePalette.COLOR_BACKGROUND_2
+        start_tour_color = QStylePalette.COLOR_ACCENT_3
+        dismiss_tour_color = QStylePalette.COLOR_BACKGROUND_6
+        font_color = QStylePalette.COLOR_TEXT_1
         self.launch_tour_button = QPushButton(_('Start tour'))
         self.launch_tour_button.setStyleSheet(
           f"background-color: {start_tour_color};"

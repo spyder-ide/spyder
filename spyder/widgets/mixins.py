@@ -36,7 +36,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
-from spyder.utils.palette import QDarkPalette, SpyderPalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 QT55_VERSION = programs.check_version(QT_VERSION, "5.5", ">=")
@@ -52,7 +52,7 @@ class BaseEditMixin(object):
     _PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.GROUP_2
     _DEFAULT_TITLE_COLOR = SpyderPalette.GROUP_6
     _CHAR_HIGHLIGHT_COLOR = SpyderPalette.GROUP_1
-    _DEFAULT_TEXT_COLOR = QDarkPalette.COLOR_TEXT_2
+    _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
@@ -135,8 +135,8 @@ class BaseEditMixin(object):
         if id(widget) in self._styled_widgets:
             return
         self._styled_widgets.add(id(widget))
-        background = QDarkPalette.COLOR_BACKGROUND_4
-        border = QDarkPalette.COLOR_TEXT_2
+        background = QStylePalette.COLOR_BACKGROUND_4
+        border = QStylePalette.COLOR_TEXT_2
         name = widget.__class__.__name__
         widget.setObjectName(name)
         css = '''
@@ -295,8 +295,8 @@ class BaseEditMixin(object):
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
                     base_style = (
-                        f'background-color:{QDarkPalette.COLOR_BACKGROUND_4};'
-                        f'color:{QDarkPalette.COLOR_TEXT_1};'
+                        f'background-color:{QStylePalette.COLOR_BACKGROUND_4};'
+                        f'color:{QStylePalette.COLOR_TEXT_1};'
                         'font-size:11px;'
                     )
                     help_text = ''
