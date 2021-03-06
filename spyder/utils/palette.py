@@ -51,6 +51,13 @@ class SpyderPaletteDark:
     GROUP_11 = GroupDark.B110
     GROUP_12 = GroupDark.B120
 
+    # Colors for ocurrences and highlight
+
+    COLOR_HIGLIGHT_1 = Blue.B50
+    COLOR_HIGLIGHT_2 = Blue.B70
+    COLOR_HIGLIGHT_3 = Blue.B80
+    COLOR_HIGLIGHT_4 = Blue.B90
+
 
 class SpyderPaletteLight:
 
@@ -91,6 +98,13 @@ class SpyderPaletteLight:
     GROUP_10 = GroupLight.B100
     GROUP_11 = GroupLight.B110
     GROUP_12 = GroupLight.B120
+
+    # Colors for ocurrences and highlight
+
+    COLOR_HIGLIGHT_1 = Blue.B50
+    COLOR_HIGLIGHT_2 = Blue.B70
+    COLOR_HIGLIGHT_3 = Blue.B80
+    COLOR_HIGLIGHT_4 = Blue.B90
 
 
 class LightPalette(object):
