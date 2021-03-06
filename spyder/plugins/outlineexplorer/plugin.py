@@ -91,6 +91,10 @@ class OutlineExplorer(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
+        self.main.completions.sig_language_completions_available.connect(
+            self.start_symbol_services)
+        self.main.completions.sig_stop_completions.connect(
+            self.stop_symbol_services)
         self.add_dockwidget()
 
     def closing_plugin(self, cancelable=False):

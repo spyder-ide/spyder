@@ -44,8 +44,8 @@ class SomeOtherObject:
 @pytest.mark.slow
 @pytest.mark.second
 @flaky(max_runs=5)
-def test_class_func_selector(lsp_codeeditor, qtbot):
-    code_editor, _ = lsp_codeeditor
+def test_class_func_selector(completions_codeeditor, qtbot):
+    code_editor, _ = completions_codeeditor
     panel = code_editor.classfuncdropdown
     panel.setVisible(True)
     code_editor.toggle_automatic_completions(False)

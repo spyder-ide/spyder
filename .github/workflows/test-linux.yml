@@ -117,3 +117,7 @@ jobs:
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: codecov
+      # Enable this if SSH debugging is required
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: ${{ failure() }}
