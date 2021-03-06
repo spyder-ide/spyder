@@ -69,6 +69,9 @@ class CustomStatusBarWidget(StatusBarWidget):
     ID = 'custom_status'
     CUSTOM_WIDGET_CLASS = MyComboBox
 
+    def get_icon(self):
+        return self.create_icon('environment')
+
 
 def test_status_bar_widget_signal(status_bar, qtbot):
     plugin, window = status_bar
@@ -92,6 +95,7 @@ def test_custom_widget(status_bar, qtbot):
 
     # Add widget to status bar
     w = CustomStatusBarWidget(window)
+    w.set_value('Options: ')
     plugin.add_status_widget(w)
     # qtbot.stop()
 
