@@ -119,9 +119,9 @@ class LightPalette(object):
     COLOR_BACKGROUND_6 = Gray.B90
 
     COLOR_TEXT_1 = Gray.B10
-    COLOR_TEXT_2 = Gray.B30
+    COLOR_TEXT_2 = Gray.B20
     COLOR_TEXT_3 = Gray.B50
-    COLOR_TEXT_4 = Gray.B70
+    COLOR_TEXT_4 = Gray.B80
 
     COLOR_ACCENT_1 = Blue.B130
     COLOR_ACCENT_2 = Blue.B100
