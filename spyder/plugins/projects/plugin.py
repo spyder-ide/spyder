@@ -40,9 +40,9 @@ from spyder.plugins.projects.api import (BaseProjectType, EmptyProject,
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
-from spyder.plugins.completion.manager.api import (
-    LSPRequestTypes, FileChangeType, WorkspaceUpdateKind)
-from spyder.plugins.completion.manager.decorators import (
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes, FileChangeType, WorkspaceUpdateKind)
+from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
 
@@ -184,6 +184,13 @@ class Projects(SpyderPluginWidget):
             ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
                                   False, True, False))
 
+        # TODO: This is not necessary anymore due to us starting workspace
+        # services in the editor. However, we could restore it in the future.
+        #lspmgr.sig_language_completions_available.connect(
+        #    lambda settings, language:
+        #        self.start_workspace_services())
+        lspmgr.sig_stop_completions.connect(self.stop_workspace_services)
+
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
             lambda path:
@@ -196,7 +203,8 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind=WorkspaceUpdateKind.ADDITION))
+                              update_kind=WorkspaceUpdateKind.ADDITION,
+                              instance=self))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -213,7 +221,8 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind=WorkspaceUpdateKind.DELETION))
+                              update_kind=WorkspaceUpdateKind.DELETION,
+                              instance=self))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_closed.connect(
@@ -642,7 +651,7 @@ class Projects(SpyderPluginWidget):
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
-    def stop_workspace_services(self):
+    def stop_workspace_services(self, _language):
         """Disable LSP workspace functionality."""
         self.completions_available = False
 
@@ -661,7 +670,7 @@ class Projects(SpyderPluginWidget):
             handler(params)
 
     @Slot(str, str, bool)
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     def file_moved(self, src_file, dest_file, is_dir):
         """Notify LSP server about a file that is moved."""
@@ -685,7 +694,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
@@ -701,7 +710,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
@@ -717,7 +726,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
@@ -733,7 +742,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+    @request(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE,
              requires_response=False)
     def notify_project_open(self, path):
         """Notify LSP server about project path availability."""
@@ -744,7 +753,7 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+    @request(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE,
              requires_response=False)
     def notify_project_close(self, path):
         """Notify LSP server to unregister project path."""
@@ -755,8 +764,8 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
-    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
-    @request(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT,
+    @handles(CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
+    @request(method=CompletionRequestTypes.WORKSPACE_APPLY_EDIT,
              requires_response=False)
     def handle_workspace_edit(self, params):
         """Apply edits to multiple files and notify server about success."""

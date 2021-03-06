@@ -24,6 +24,7 @@ import atexit
 import argparse
 import os
 import os.path as osp
+import pkg_resources
 import shutil
 import subprocess
 import sys
@@ -177,6 +178,44 @@ subprocess.check_output(
 )
 
 atexit.register(remove_pyls_installation)
+
+print("*. Declaring completion providers")
+# Register completion providers
+fallback = pkg_resources.EntryPoint.parse(
+    'fallback = spyder.plugins.completion.providers.fallback.provider:'
+    'FallbackProvider')
+
+snippets = pkg_resources.EntryPoint.parse(
+    'snippets = spyder.plugins.completion.providers.snippets.provider:'
+    'SnippetsProvider'
+)
+
+lsp = pkg_resources.EntryPoint.parse(
+    'lsp = spyder.plugins.completion.providers.languageserver.provider:'
+    'LanguageServerProvider'
+)
+
+kite = pkg_resources.EntryPoint.parse(
+    'kite = spyder.plugins.completion.providers.kite.provider:'
+    'KiteProvider'
+)
+
+# Create a fake Spyder distribution
+d = pkg_resources.Distribution(__file__)
+
+# Add the providers to the fake EntryPoint
+d._ep_map = {
+    'spyder.completions': {
+        'fallback': fallback,
+        'snippets': snippets,
+        'lsp': lsp,
+        'kite': kite
+    }
+}
+
+# Add the fake distribution to the global working_set
+pkg_resources.working_set.add(d, 'spyder')
+
 
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:

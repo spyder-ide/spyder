@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QComboBox, QHBoxLayout
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _
-from spyder.plugins.completion.manager.api import SymbolKind
+from spyder.plugins.completion.api import SymbolKind
 from spyder.utils import icon_manager as ima
 
 

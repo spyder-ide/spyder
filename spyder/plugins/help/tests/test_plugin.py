@@ -25,7 +25,8 @@ from flaky import flaky
 
 # Local imports
 from spyder.plugins.help.plugin import Help
-from spyder.plugins.completion.fallback.utils import default_info_response
+from spyder.plugins.completion.providers.fallback.utils import (
+    default_info_response)
 
 
 # =============================================================================

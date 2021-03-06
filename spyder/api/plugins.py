@@ -26,6 +26,7 @@ from collections import OrderedDict
 import inspect
 import logging
 import os
+from typing import List, Union
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
@@ -135,6 +136,19 @@ class BasePlugin(BasePluginMixin):
         """
         return super(BasePlugin, self)._get_option(option, default,
                                                    section=section)
+
+    def remove_option(self, option, section=None):
+        """
+        Remove an option from the Spyder configuration file.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            A string or a Tuple of strings containing an option name to remove.
+        section: Optional[str]
+            Name of the section where the option belongs to.
+        """
+        return super(BasePlugin, self)._remove_option(option, section=section)
 
     def starting_long_process(self, message):
         """
@@ -1052,15 +1066,39 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                     'attribute!'
                 )
 
-            self._conf.set(section, str(option), value)
-            self.apply_conf({str(option)})
+            self._conf.set(section, option, value)
+            self.apply_conf({option}, False)
 
-    def apply_conf(self, options_set):
+    def remove_conf_option(self, option, section=None):
+        """
+        Delete an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            Name of the option, either a string or a tuple of strings.
+        section: str
+            Section in the configuration system.
+        """
+        if self._conf is not None:
+            section = self.CONF_SECTION if section is None else section
+            if section is None:
+                raise SpyderAPIError(
+                    'A spyder plugin must define a `CONF_SECTION` class '
+                    'attribute!'
+                )
+
+            self._conf.remove_option(section, option)
+            self.apply_conf({option}, False)
+
+    def apply_conf(self, options_set, notify=True):
         """
         Apply `options_set` to this plugin's widget.
         """
         if self._conf is not None and options_set:
             container = self.get_container()
+            if notify:
+                self.after_configuration_update(list(options_set))
             # The container might not implement the SpyderWidgetMixin API
             # for example a completion client that only implements the
             # completion client interface without any options.
@@ -1357,6 +1395,20 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         pass
 
+    def after_configuration_update(self, options: List[Union[str, tuple]]):
+        """
+        Perform additional operations after updating the plugin configuration
+        values.
+
+        This can be implemented by plugins that do not have a container and
+        need to act on configuration updates.
+
+        Parameters
+        ----------
+        options: List[Union[str, tuple]]
+            A list that contains the options that were updated.
+        """
+        pass
 
 
 class SpyderDockablePlugin(SpyderPluginV2):

@@ -1447,6 +1447,10 @@ class EditorStack(QWidget):
         if self.data:
             return self.data[self.get_stack_index()].filename
 
+    def get_current_language(self):
+        if self.data:
+            return self.data[self.get_stack_index()].editor.language
+
     def get_filenames(self):
         """
         Return a list with the names of all the files currently opened in

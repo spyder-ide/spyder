@@ -23,8 +23,7 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.plugins.completion.manager.api import (
-    SymbolKind, BLOCK_COMMENT, CELL, SYMBOL_KIND_ICON)
+from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text, create_plugin_layout,
                                     create_waitspinner)
@@ -58,8 +57,8 @@ SYMBOL_NAME_MAP = {
     SymbolKind.EVENT: _('Event'),
     SymbolKind.OPERATOR: _('Operator'),
     SymbolKind.TYPE_PARAMETER: _('Type parameter'),
-    CELL: _('Cell'),
-    BLOCK_COMMENT: _('Block comment')
+    SymbolKind.CELL: _('Cell'),
+    SymbolKind.BLOCK_COMMENT: _('Block comment')
 }
 
 ICON_CACHE = {}

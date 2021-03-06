@@ -965,16 +965,9 @@ class MainWindow(QMainWindow):
         self.register_plugin(self.maininterpreter)
 
         # Code completion client initialization
-        self.set_splash(_("Starting code completion manager..."))
-        from spyder.plugins.completion.manager.plugin import CompletionManager
-        self.completions = CompletionManager(self)
-        self.completions.start()
-
-        self.preferences.register_plugin_preferences(self.completions)
-
-        for completion_plugin in self.completions.clients.values():
-            completion_plugin = completion_plugin['plugin']
-            self.preferences.register_plugin_preferences(completion_plugin)
+        from spyder.plugins.completion.plugin import CompletionPlugin
+        self.completions = CompletionPlugin(self, configuration=CONF)
+        self.register_plugin(self.completions)
 
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
@@ -1066,18 +1059,6 @@ class MainWindow(QMainWindow):
                 menu_id=ApplicationMenus.Tools,
                 section=ToolsMenuSections.Tools,
                 before=winenv_action)
-        from spyder.plugins.completion.kite.utils.install import (
-            check_if_kite_installed)
-        is_kite_installed, kite_path = check_if_kite_installed()
-        if not is_kite_installed:
-            install_kite_action = create_action(
-                self, _("Install Kite completion engine"),
-                icon=get_icon('kite', adjust_for_interface=True),
-                triggered=self.show_kite_installation)
-            self.mainmenu.add_item_to_application_menu(
-                install_kite_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools)
         self.mainmenu.add_item_to_application_menu(
                 reset_spyder_action,
                 menu_id=ApplicationMenus.Tools)
@@ -1201,7 +1182,7 @@ class MainWindow(QMainWindow):
                     if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
                         self.preferences.register_plugin_preferences(plugin)
 
-                    if hasattr(plugin, 'COMPLETION_CLIENT_NAME'):
+                    if hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
                         self.completions.register_completion_plugin(plugin)
                     else:
                         self.thirdparty_plugins.append(plugin)
@@ -1489,9 +1470,6 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files(close_previous_files=False)
-
-        # Connect Editor to Kite completions plugin status
-        self.editor.kite_completions_file_status()
 
         # Connect Editor debug action with Console
         self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
@@ -2535,9 +2513,6 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
 
-        if not self.completions.closing_plugin(cancelable):
-            return False
-
         # Internal plugins
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             # New API
@@ -2573,8 +2548,6 @@ class MainWindow(QMainWindow):
         # Fixes spyder-ide/spyder#12139
         prefix = 'window' + '/'
         self.save_current_window_settings(prefix)
-
-        self.completions.shutdown()
 
         self.already_closed = True
         return True
@@ -2998,11 +2971,6 @@ class MainWindow(QMainWindow):
         self.project_path = tuple(self.projects.get_pythonpath())
         path_dict = self.get_spyder_pythonpath_dict()
         self.update_python_path(path_dict)
-
-    # --- Kite
-    def show_kite_installation(self):
-        """Show installation dialog for Kite."""
-        self.completions.get_client('kite').show_installation_dialog()
 
     #---- Preferences
     def apply_settings(self):

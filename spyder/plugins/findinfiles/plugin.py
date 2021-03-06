@@ -64,8 +64,8 @@ class FindInFiles(SpyderDockablePlugin):
             widget.sig_edit_goto_requested.connect(
                 lambda filename, lineno, search_text, colno, colend: editor.load(
                     filename, lineno, start_column=colno, end_column=colend))
-            # TODO: improve name of signal open_file_update?
-            editor.open_file_update.connect(self.set_current_opened_file)
+            editor.sig_file_opened_closed_or_updated.connect(
+                self.set_current_opened_file)
 
         if projects:
             projects.sig_project_loaded.connect(self.set_project_path)
@@ -102,7 +102,7 @@ class FindInFiles(SpyderDockablePlugin):
         """
         self.get_widget().set_directory(getcwd_or_home())
 
-    def set_current_opened_file(self, path):
+    def set_current_opened_file(self, path, _language):
         """
         Set path of current opened file in editor.
 

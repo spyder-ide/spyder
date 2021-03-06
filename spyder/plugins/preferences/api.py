@@ -37,6 +37,11 @@ from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
 
 
+class BaseConfigTab(QWidget):
+    """Stub class to declare a config tab."""
+    pass
+
+
 class ConfigAccessMixin(object):
     """Namespace for methods that access config storage"""
     CONF_SECTION = None
@@ -48,6 +53,10 @@ class ConfigAccessMixin(object):
     def get_option(self, option, default=NoDefault, section=None):
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default)
+
+    def remove_option(option, section=None):
+        section = self.CONF_SECTION if section is None else section
+        CONF.remove_option(section, option)
 
 
 class ConfigPage(QWidget):
@@ -128,7 +137,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def __init__(self, parent):
         ConfigPage.__init__(self, parent,
                             apply_callback=lambda:
-                            self.apply_settings(self.changed_options))
+                            self._apply_settings_tabs(self.changed_options))
         self.checkboxes = {}
         self.radiobuttons = {}
         self.lineedits = {}
@@ -145,6 +154,18 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.main = parent.main
         self.tabs = None
 
+    def _apply_settings_tabs(self, options):
+        if self.tabs is not None:
+            for i in range(self.tabs.count()):
+                tab = self.tabs.widget(i)
+                layout = tab.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if hasattr(widget, 'apply_settings'):
+                        if issubclass(type(widget), BaseConfigTab):
+                            options |= widget.apply_settings()
+        self.apply_settings(options)
+
     def apply_settings(self, options):
         raise NotImplementedError
 
@@ -160,6 +181,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def is_valid(self):
         """Return True if all widget contents are valid"""
+        status = True
         for lineedit in self.lineedits:
             if lineedit in self.validate_data and lineedit.isEnabled():
                 validator, invalid_msg = self.validate_data[lineedit]
@@ -169,7 +191,18 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                      "%s:<br><b>%s</b>" % (invalid_msg, text),
                                      QMessageBox.Ok)
                     return False
-        return True
+
+        if self.tabs is not None and status:
+            for i in range(self.tabs.count()):
+                tab = self.tabs.widget(i)
+                layout = tab.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if issubclass(type(widget), BaseConfigTab):
+                        status &= widget.is_valid()
+                        if not status:
+                            return status
+        return status
 
     def load_from_conf(self):
         """Load settings from configuration file."""
@@ -775,6 +808,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             self.tabs.addTab(self.create_tab(widget),
                              Widget.TITLE)
+        self.load_from_conf()
 
 
 class GeneralConfigPage(SpyderConfigPage):
