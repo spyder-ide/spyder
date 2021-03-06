@@ -18,16 +18,14 @@ from spyder.api.widgets import PluginMainWidgetMenus, PluginMainWidget
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.palette import QDarkPalette
 
 
 # Localization
 _ = get_translation('spyder')
 
 
-if is_dark_interface():
-    MAIN_BG_COLOR = '#19232D'
-else:
-    MAIN_BG_COLOR = 'white'
+MAIN_BG_COLOR = QDarkPalette.COLOR_BACKGROUND_1
 
 
 # --- Constants
