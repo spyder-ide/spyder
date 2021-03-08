@@ -78,7 +78,6 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     All Spyder non dockable plugins can define a plugin container that must
     subclass this.
     """
-    DEFAULT_OPTIONS = {}
 
     # --- Signals
     # ------------------------------------------------------------------------
@@ -150,9 +149,8 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     error dialog.
     """
 
-    def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
-        super().__init__(parent=parent)
-        self._options = options
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(parent=parent, class_parent=plugin)
 
         # Attributes
         # --------------------------------------------------------------------
@@ -172,7 +170,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     # --- API: methods to define or override
     # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         """
         Create actions, widgets, add to menu and other setup requirements.
         """
@@ -188,22 +186,6 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         raise NotImplementedError(
             'A PluginMainContainer subclass must define a `update_actions` '
             'method!')
-
-    def on_option_update(self, option, value):
-        """
-        This method is called when an option is set with the `set_option`
-        or `set_options` method from the OptionMixin.
-        """
-        raise NotImplementedError(
-            'A PluginMainContainer subclass must define a `on_option_update` '
-            'method!')
-
-    # ---- Private methods
-    # ------------------------------------------------------------------------
-    def _setup(self, options=DEFAULT_OPTIONS):
-        """Apply options when instantiated by the plugin."""
-        for option, value in options.items():
-            self.on_option_update(option, value)
 
 
 class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
@@ -225,7 +207,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     horizontal space available for the plugin. This mean that toolbars must be
     stacked vertically and cannot be placed horizontally next to each other.
     """
-    DEFAULT_OPTIONS = {}
 
     # --- Attributes
     # ------------------------------------------------------------------------
@@ -338,12 +319,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     needs its ancestor to be updated.
     """
 
-    def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
-        super().__init__(parent=parent)
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(parent=parent, class_parent=plugin)
 
         # Attributes
         # --------------------------------------------------------------------
-        self._options = options
         self._is_tab = False
         self._name = name
         self._plugin = plugin
@@ -434,7 +414,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         return all_children
 
-    def _setup(self, options=DEFAULT_OPTIONS):
+    def _setup(self):
         """
         Setup default actions, create options menu, and connect signals.
         """
@@ -511,6 +491,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             context=Qt.WidgetWithChildrenShortcut,
             shortcut_context='_',
         )
+
         bottom_section = OptionsMenuSections.Bottom
         for item in [self.undock_action, self.close_action, self.dock_action]:
             self.add_item_to_menu(
@@ -624,7 +605,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             self.toggle_view_action,
         ]
 
-        for child in all_children:
+        for child in set(all_children):
             get_actions_method = getattr(child, 'get_actions', None)
             _actions = getattr(child, '_actions', None)
 
@@ -1079,7 +1060,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         pass
 
-    def setup(self, options):
+    def setup(self):
         """
         Create widget actions, add to menu and other setup requirements.
         """
@@ -1097,15 +1078,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             'A PluginMainWidget subclass must define an `update_actions` '
             'method!')
 
-    def on_option_update(self, option, value):
-        """
-        This method is called when the an option is set with the `set_option`
-        or `set_options` method from the OptionMixin.
-        """
-        raise NotImplementedError(
-            'A PluginMainWidget subclass must define an `on_option_update` '
-            'method!')
-
 
 def run_test():
     # Third party imports
@@ -1117,9 +1089,8 @@ def run_test():
     app = qapplication()
     main = QMainWindow()
     widget = PluginMainWidget('test', main)
-    options = PluginMainWidget.DEFAULT_OPTIONS
     widget.get_title = lambda x=None: 'Test title'
-    widget._setup(options)
+    widget._setup()
     layout = QHBoxLayout()
     layout.addWidget(QTableWidget())
     widget.setLayout(layout)

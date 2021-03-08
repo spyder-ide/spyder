@@ -39,7 +39,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     def __init__(self, parent=None, spinner=False):
         """Status bar widget base."""
-        super().__init__(parent)
+        super().__init__(parent, class_parent=parent)
 
         # Variables
         self.value = None

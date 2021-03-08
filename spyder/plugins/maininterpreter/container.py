@@ -14,6 +14,7 @@ import os.path as osp
 from qtpy.QtCore import Signal
 
 # Local imports
+from spyder.api.decorators import on_conf_change
 from spyder.api.widgets import PluginMainContainer
 from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 from spyder.utils.misc import get_python_executable
@@ -42,7 +43,7 @@ class MainInterpreterContainer(PluginMainContainer):
     """
 
     # ---- PluginMainContainer API
-    def setup(self, options):
+    def setup(self):
 
         self.interpreter_status = InterpreterStatus(
             parent=self,
@@ -61,25 +62,26 @@ class MainInterpreterContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
-    def on_option_update(self, option, value):
+    @on_conf_change(option=['default', 'custom_interpreter', 'custom'])
+    def section_conf_update(self, option, value):
         if option in ['default', 'custom_interpreter', 'custom'] and value:
             self._update_status()
             self.sig_interpreter_changed.emit()
 
             # Set new interpreter
-            executable = osp.normpath(self.get_option('custom_interpreter'))
+            executable = osp.normpath(self.get_conf('custom_interpreter'))
             if (option in ['custom', 'custom_interpreter'] and
                     osp.isfile(executable)):
                 self.sig_add_to_custom_interpreters_requested.emit(executable)
 
     # ---- Public API
     def get_main_interpreter(self):
-        if self.get_option('default'):
+        if self.get_conf('default'):
             return get_python_executable()
         else:
-            executable = osp.normpath(self.get_option('custom_interpreter'))
+            executable = osp.normpath(self.get_conf('custom_interpreter'))
 
-            # Check if custom interpreter is stil present
+            # Check if custom interpreter is still present
             if osp.isfile(executable):
                 return executable
             else:

@@ -17,6 +17,7 @@ from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QInputDialog, QVBoxLayout, QWidget
 
 # Local imports
+from spyder.api.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.py3compat import is_text_string, to_text_string
@@ -69,8 +70,8 @@ class HistoryWidget(PluginMainWidget):
     changes.
     """
 
-    def __init__(self, name, plugin, parent, options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent, options)
+    def __init__(self, name, plugin, parent):
+        super().__init__(name, plugin, parent)
 
         # Attributes
         self.editors = []
@@ -119,19 +120,21 @@ class HistoryWidget(PluginMainWidget):
     def get_focus_widget(self):
         return self.tabwidget.currentWidget()
 
-    def setup(self, options):
+    def setup(self):
         # Actions
         self.wrap_action = self.create_action(
             HistoryWidgetActions.ToggleWrap,
             text=_("Wrap lines"),
-            toggled=lambda value: self.set_option('wrap', value),
-            initial=self.get_option('wrap'),
+            toggled=True,
+            initial=self.get_conf('wrap'),
+            option='wrap'
         )
         self.linenumbers_action = self.create_action(
             HistoryWidgetActions.ToggleLineNumbers,
             text=_("Show line numbers"),
-            toggled=lambda value: self.set_option('line_numbers', value),
-            initial=self.get_option('line_numbers'),
+            toggled=True,
+            initial=self.get_conf('line_numbers'),
+            option='line_numbers'
         )
 
         # Menu
@@ -146,17 +149,20 @@ class HistoryWidget(PluginMainWidget):
     def update_actions(self):
         pass
 
-    def on_option_update(self, option, value):
-        if self.tabwidget is not None:
-            if option == 'wrap':
-                for editor in self.editors:
-                    editor.toggle_wrap_mode(value)
-            elif option == 'line_numbers':
-                for editor in self.editors:
-                    editor.toggle_line_numbers(value)
-            elif option == 'color_scheme_name':
-                for editor in self.editors:
-                    editor.set_font(self.font)
+    @on_conf_change(option='wrap')
+    def on_wrap_update(self, value):
+        for editor in self.editors:
+            editor.toggle_wrap_mode(value)
+
+    @on_conf_change(option='line_numbers')
+    def on_line_numbers_update(self, value):
+        for editor in self.editors:
+            editor.toggle_line_numbers(value)
+
+    @on_conf_change(option='selected', section='appearance')
+    def on_color_scheme_change(self, value):
+        for editor in self.editors:
+            editor.set_font(self.font)
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -253,11 +259,11 @@ class HistoryWidget(PluginMainWidget):
         # Setup
         language = 'py' if osp.splitext(filename)[1] == '.py' else 'bat'
         editor.setup_editor(
-            linenumbers=self.get_option('line_numbers'),
+            linenumbers=self.get_conf('line_numbers'),
             language=language,
-            color_scheme=self.get_option('color_scheme_name'),
+            color_scheme=self.get_conf('selected', section='appearance'),
             font=self.font,
-            wrap=self.get_option('wrap'),
+            wrap=self.get_conf('wrap'),
         )
         editor.setReadOnly(True)
         editor.set_text(self.get_filename_text(filename))
@@ -292,7 +298,7 @@ class HistoryWidget(PluginMainWidget):
         command = to_text_string(command)
         self.editors[index].append(command)
 
-        if self.get_option('go_to_eof'):
+        if self.get_conf('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
 
         self.tabwidget.setCurrentIndex(index)

@@ -261,11 +261,16 @@ DEFAULTS = [
               'connect/ipython_console': False,
               'math': True,
               'automatic_import': True,
+              'plain_mode': False,
+              'rich_mode': True,
+              'show_source': False,
+              'locked': False,
               }),
             ('onlinehelp',
              {
               'enable': True,
               'zoom_factor': .8,
+              'handle_links': False,
               'max_history_entries': 20,
               }),
             ('outline_explorer',
@@ -285,11 +290,21 @@ DEFAULTS = [
               'show_all': True,
               'show_hscrollbar': True,
               'max_recent_projects': 10,
-              'visible_if_project_open': True
+              'visible_if_project_open': True,
+              'single_click_to_open': False,
+              'date_column': False,
+              'kind_column': True,
+              'size_column': False,
+              'show_hidden': False,
+              'type_column': False,
+              'file_associations': {},
               }),
             ('explorer',
              {
               'enable': True,
+              'date_column': True,
+              'type_column': False,
+              'size_column': False,
               'name_filters': NAME_FILTERS,
               'show_hidden': False,
               'single_click_to_open': False,
@@ -306,6 +321,7 @@ DEFAULTS = [
               'search_text_samples': [TASKS_PATTERN],
               'more_options': False,
               'case_sensitive': False,
+              'exclude_case_sensitive': False,
               'max_results': 1000,
               }),
             ('breakpoints',
@@ -335,6 +351,8 @@ DEFAULTS = [
               }),
             ('workingdir',
              {
+              'history': [],
+              'workdir': None,
               'working_dir_adjusttocontents': False,
               'working_dir_history': 20,
               'console/use_project_or_home_directory': False,
@@ -560,6 +578,8 @@ NAME_MAP = {
         ('find_in_files', [
             'path_history'
             'search_text',
+            'exclude_index',
+            'search_in_index',
             ]
          ),
         ('main_interpreter', [

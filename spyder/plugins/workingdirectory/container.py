@@ -17,6 +17,7 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
+from spyder.api.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
 from spyder.api.widgets.toolbars import ApplicationToolbar
@@ -78,10 +79,10 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
     # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
-    def setup(self, options):
+    def setup(self):
 
         # Variables
-        self.history = self.get_option('history')
+        self.history = self.get_conf('history')
         self.histindex = None
 
         # Widgets
@@ -89,7 +90,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.toolbar = WorkingDirectoryToolbar(self, title)
         self.pathedit = PathComboBox(
             self,
-            adjust_to_contents=self.get_option('working_dir_adjusttocontents'),
+            adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
         )
 
         # Widget Setup
@@ -103,7 +104,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
                 "created in the editor"
             )
         )
-        self.pathedit.setMaxCount(self.get_option('working_dir_history'))
+        self.pathedit.setMaxCount(self.get_conf('working_dir_history'))
         self.pathedit.selected_text = self.pathedit.currentText()
 
         # Signals
@@ -156,9 +157,9 @@ class WorkingDirectoryContainer(PluginMainContainer):
             and self.histindex < len(self.history) - 1
         )
 
-    def on_option_update(self, option, value):
-        if option == 'history':
-            self.history = value
+    @on_conf_change(option='history')
+    def on_history_update(self, value):
+        self.history = value
 
     # --- API
     # ------------------------------------------------------------------------
@@ -172,12 +173,12 @@ class WorkingDirectoryContainer(PluginMainContainer):
         str:
             The current working directory.
         """
-        if self.get_option('startup/use_fixed_directory'):
-            workdir = self.get_option('startup/fixed_directory')
-        elif self.get_option('console/use_project_or_home_directory'):
+        if self.get_conf('startup/use_fixed_directory', ''):
+            workdir = self.get_conf('startup/fixed_directory')
+        elif self.get_conf('console/use_project_or_home_directory', ''):
             workdir = get_home_dir()
         else:
-            workdir = self.get_option('console/fixed_directory')
+            workdir = self.get_conf('console/fixed_directory', '')
 
         if not osp.isdir(workdir):
             workdir = get_home_dir()
@@ -294,13 +295,13 @@ class WorkingDirectoryContainer(PluginMainContainer):
         history: list
             List of string paths.
         """
-        self.change_option('history', history)
+        self.set_conf('history', history)
         if history:
             self.pathedit.addItems(history)
 
-        if self.get_option('workdir') is None:
+        if self.get_conf('workdir') is None:
             workdir = self.get_workdir()
         else:
-            workdir = self.get_option('workdir')
+            workdir = self.get_conf('workdir')
 
         self.chdir(workdir)

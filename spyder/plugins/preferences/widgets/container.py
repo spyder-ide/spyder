@@ -78,7 +78,7 @@ class PreferencesContainer(PluginMainContainer):
         return self.dialog is not None and self.dialog.isVisible()
 
     # ---- PluginMainContainer API
-    def setup(self, options=None):
+    def setup(self):
         pass
 
     def update_actions(self):

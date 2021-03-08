@@ -38,7 +38,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     DEFAULT_OPTIONS = {}
 
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, class_parent=parent)
 
         self.__expanded_state = None
 

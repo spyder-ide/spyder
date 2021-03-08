@@ -85,7 +85,7 @@ class ApplicationContainer(PluginMainContainer):
         'show_internal_errors': True,
     }
 
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         # Attributes
         self.dialog_manager = DialogManager()
         self.give_updates_feedback = False
@@ -202,7 +202,7 @@ class ApplicationContainer(PluginMainContainer):
 
         # Adjust the checkbox depending on the stored configuration
         option = 'check_updates_on_startup'
-        check_updates = self.get_option(option)
+        check_updates = self.get_conf(option)
         box.set_checked(check_updates)
 
         if error_msg is not None:
@@ -248,7 +248,7 @@ class ApplicationContainer(PluginMainContainer):
                 check_updates = box.is_checked()
 
         # Update checkbox based on user interaction
-        self.set_option(option, check_updates)
+        self.set_conf(option, check_updates)
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)

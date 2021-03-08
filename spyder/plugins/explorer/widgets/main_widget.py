@@ -16,6 +16,7 @@ from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 # Local imports
+from spyder.api.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.plugins.explorer.widgets.explorer import (
@@ -157,7 +158,7 @@ class ExplorerWidget(PluginMainWidget):
         Path to use as working directory of interpreter.
     """
 
-    def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
+    def __init__(self, name, plugin, parent=None):
         """
         Initialize the widget.
 
@@ -169,18 +170,14 @@ class ExplorerWidget(PluginMainWidget):
             Plugin of the container
         parent: QWidget
             Parent of this widget
-        options: dict
-            Options of the container.
         """
-        super().__init__(name, plugin=plugin, parent=parent, options=options)
+        super().__init__(name, plugin=plugin, parent=parent)
 
         # Widgets
-        tree_options = self.options_from_keys(
-            options, ExplorerTreeWidget.DEFAULT_OPTIONS)
-        self.treewidget = ExplorerTreeWidget(parent=self, options=tree_options)
+        self.treewidget = ExplorerTreeWidget(parent=self)
 
         # Setup widgets
-        self.treewidget.setup(tree_options)
+        self.treewidget.setup()
         self.chdir(getcwd_or_home())
 
         # Layouts
@@ -215,15 +212,8 @@ class ExplorerWidget(PluginMainWidget):
         """Return the title of the plugin tab."""
         return _("Files")
 
-    def setup(self, options):
-        """
-        Performs the setup of plugin's menu and actions.
-
-        Parameters
-        ----------
-        options: dict
-            Widget options.
-        """
+    def setup(self):
+        """Performs the setup of plugin's menu and actions."""
         # Menu
         menu = self.get_options_menu()
 
@@ -258,19 +248,6 @@ class ExplorerWidget(PluginMainWidget):
     def update_actions(self):
         """Handle the update of actions of the plugin."""
         pass
-
-    def on_option_update(self, option, value):
-        """
-        Handles the update or change of an option.
-
-        Parameters
-        ----------
-        option: str
-            String that define the option.
-        value: Any
-            The new value for the given option.
-        """
-        self.treewidget.on_option_update(option, value)
 
     # ---- Public API
     # ------------------------------------------------------------------------

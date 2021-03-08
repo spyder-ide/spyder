@@ -27,6 +27,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
+from spyder.api.decorators import on_conf_change
 from spyder.app.solver import find_internal_plugins
 from spyder.config.base import DEV, get_debug_level
 from spyder.plugins.console.widgets.internalshell import InternalShell
@@ -121,8 +122,8 @@ class ConsoleWidget(PluginMainWidget):
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
-    def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent, options)
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(name, plugin, parent)
 
         logger.info("Initializing...")
 
@@ -135,12 +136,12 @@ class ConsoleWidget(PluginMainWidget):
         self.error_dlg = None
         self.shell = InternalShell(  # TODO: Move to use SpyderWidgetMixin?
             parent=parent,
-            namespace=self.get_option('namespace'),
-            commands=self.get_option('commands'),
-            message=self.get_option('message'),
-            max_line_count=self.get_option('max_line_count'),
-            profile=self.get_option('profile'),
-            multithreaded=self.get_option('multithreaded'),
+            namespace=self.get_conf('namespace'),
+            commands=self.get_conf('commands'),
+            message=self.get_conf('message'),
+            max_line_count=self.get_conf('max_line_count'),
+            profile=self.get_conf('profile'),
+            multithreaded=self.get_conf('multithreaded'),
         )
         self.find_widget = FindReplace(self)
 
@@ -148,7 +149,7 @@ class ConsoleWidget(PluginMainWidget):
         self.setAcceptDrops(True)
         self.find_widget.set_editor(self.shell)
         self.find_widget.hide()
-        self.shell.toggle_wrap_mode(self.get_option('wrap'))
+        self.shell.toggle_wrap_mode(self.get_conf('wrap'))
 
         # Layout
         layout = QVBoxLayout()
@@ -172,7 +173,7 @@ class ConsoleWidget(PluginMainWidget):
     def get_title(self):
         return _('Internal console')
 
-    def setup(self, options):
+    def setup(self):
         # TODO: Move this to the shell
         self.quit_action = self.create_action(
             ConsoleWidgetActions.Quit,
@@ -221,14 +222,14 @@ class ConsoleWidget(PluginMainWidget):
         wrap_action = self.create_action(
             ConsoleWidgetActions.ToggleWrap,
             text=_("Wrap lines"),
-            toggled=lambda val: self.set_option('wrap', val),
-            initial=self.get_option('wrap'),
+            toggled=lambda val: self.set_conf('wrap', val),
+            initial=self.get_conf('wrap'),
         )
         codecompletion_action = self.create_action(
             ConsoleWidgetActions.ToggleCodeCompletion,
             text=_("Automatic code completion"),
-            toggled=lambda val: self.set_option('codecompletion/auto', val),
-            initial=self.get_option('codecompletion/auto'),
+            toggled=lambda val: self.set_conf('codecompletion/auto', val),
+            initial=self.get_conf('codecompletion/auto'),
         )
 
         # Submenu
@@ -262,15 +263,19 @@ class ConsoleWidget(PluginMainWidget):
         )
 
         self.shell.set_external_editor(
-            self.get_option('external_editor/path'), '')
+            self.get_conf('external_editor/path'), '')
 
-    def on_option_update(self, option, value):
-        if option == 'max_line_count':
-            self.shell.setMaximumBlockCount(value)
-        elif option == 'wrap':
-            self.shell.toggle_wrap_mode(value)
-        elif option == 'external_editor/path':
-            self.shell.set_external_editor(value, '')
+    @on_conf_change(option='max_line_count')
+    def max_line_count_update(self, value):
+        self.shell.setMaximumBlockCount(value)
+
+    @on_conf_change(option='wrap')
+    def wrap_mode_update(self, value):
+        self.shell.toggle_wrap_mode(value)
+
+    @on_conf_change(option='external_editor/path')
+    def external_editor_update(self, value):
+        self.shell.set_external_editor(value, '')
 
     def update_actions(self):
         pass
@@ -338,7 +343,7 @@ class ConsoleWidget(PluginMainWidget):
     def report_issue(self):
         """Report an issue with the SpyderErrorDialog."""
         self._report_dlg = SpyderErrorDialog(self, is_report=True)
-        self._report_dlg.set_color_scheme(self.get_option('color_theme'))
+        self._report_dlg.set_color_scheme(self.get_conf('color_theme'))
         self._report_dlg.show()
 
     @Slot(dict)
@@ -415,10 +420,10 @@ class ConsoleWidget(PluginMainWidget):
                     'the "error_data" dictionary!'.format(plugin_name)
                 )
 
-        if self.get_option('show_internal_errors'):
+        if self.get_conf('show_internal_errors'):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
-                self.error_dlg.set_color_scheme(self.get_option('color_theme'))
+                self.error_dlg.set_color_scheme(self.get_conf('color_theme'))
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
@@ -556,13 +561,13 @@ class ConsoleWidget(PluginMainWidget):
                 self,
                 _('Buffer'),
                 _('Maximum line count'),
-                self.get_option('max_line_count'),
+                self.get_conf('max_line_count'),
                 0,
                 1000000,
             )
 
         if valid:
-            self.set_option('max_line_count', value)
+            self.set_conf('max_line_count', value)
 
     @Slot()
     def change_exteditor(self, path=None):
@@ -576,11 +581,11 @@ class ConsoleWidget(PluginMainWidget):
                 _('External editor'),
                 _('External editor executable path:'),
                 QLineEdit.Normal,
-                self.get_option('external_editor/path'),
+                self.get_conf('external_editor/path'),
             )
 
         if valid:
-            self.set_option('external_editor/path', to_text_string(path))
+            self.set_conf('external_editor/path', to_text_string(path))
 
     def set_exit_function(self, func):
         """

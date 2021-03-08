@@ -140,9 +140,8 @@ class PydocBrowser(PluginMainWidget):
     This signal is emitted to indicate the help page has finished loading.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent=parent, options=options)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent=parent)
 
         self._is_running = False
         self.home_url = None
@@ -152,18 +151,18 @@ class PydocBrowser(PluginMainWidget):
         self.label = QLabel(_("Package:"))
         self.url_combo = UrlComboBox(self)
         self.webview = WebView(self,
-                               handle_links=self.get_option('handle_links'))
+                               handle_links=self.get_conf('handle_links'))
         self.find_widget = FindReplace(self)
 
         # Setup
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
-        self.url_combo.setMaxCount(self.get_option('max_history_entries'))
+        self.url_combo.setMaxCount(self.get_conf('max_history_entries'))
         tip = _('Write a package name here, e.g. pandas')
         self.url_combo.lineEdit().setPlaceholderText(tip)
         self.url_combo.lineEdit().setToolTip(tip)
         self.webview.setup()
-        self.webview.set_zoom_factor(self.get_option('zoom_factor'))
+        self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
 
         # Layout
         spacing = 10
@@ -194,7 +193,7 @@ class PydocBrowser(PluginMainWidget):
         self.url_combo.lineEdit().selectAll()
         return self.url_combo
 
-    def setup(self, options={}):
+    def setup(self):
         # Actions
         home_action = self.create_action(
             PydocBrowserActions.Home,
@@ -247,9 +246,6 @@ class PydocBrowser(PluginMainWidget):
 
         refresh_action.setVisible(not self._is_running)
         stop_action.setVisible(self._is_running)
-
-    def on_option_update(self, option, value):
-        pass
 
     # --- Private API
     # ------------------------------------------------------------------------

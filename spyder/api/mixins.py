@@ -9,23 +9,125 @@ Spyder API helper mixins.
 """
 
 # Standard library imports
-from typing import Any
+import logging
+from typing import Any, Union, Optional
 
 # Local imports
-from spyder.api.decorators import configuration_observer
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
+from spyder.config.user import NoDefault
 
 
-@configuration_observer
-class SpyderConfigurationObserver:
+logger = logging.getLogger(__name__)
+
+BasicTypes = Union[bool, int, str, tuple, list, dict]
+
+
+class SpyderConfigurationAccessor:
+    """
+    Mixin used to access options stored in the Spyder configuration.
+    """
+
+    # Name of the configuration section that's going to be
+    # used to record the object's permanent data in Spyder
+    # config system (i.e. in spyder.ini)
+    CONF_SECTION = None
+
+    def get_conf(self,
+                 option: ConfigurationKey,
+                 default: Union[NoDefault, BasicTypes] = NoDefault,
+                 section: Optional[str] = None):
+        """
+        Get an option from Spyder configuration system.
+
+        Parameters
+        ----------
+        option: ConfigurationKey
+            Name/Tuple path of the option to get its value from.
+        default: Union[NoDefault, BasicTypes]
+            Fallback value to return if the option is not found on the
+            configuration system.
+        section: str
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+
+        Returns
+        -------
+        value: BasicTypes
+            Value of the option in the configuration section.
+
+        Raises
+        ------
+        spyder.py3compat.configparser.NoOptionError
+            If the option does not exist in the configuration under the given
+            section and the default value is NoDefault.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+
+        return CONF.get(section, option, default)
+
+    def set_conf(self,
+                 option: ConfigurationKey,
+                 value: BasicTypes,
+                 section: Optional[str] = None):
+        """
+        Set an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: ConfigurationKey
+            Name/Tuple path of the option to set its value.
+        value: BasicTypes
+            Value to set on the configuration system.
+        section: Optional[str]
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+        CONF.set(section, option, value)
+
+
+    def remove_conf(self,
+                    option: ConfigurationKey,
+                    section: Optional[str] = None):
+        """
+        Remove an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: ConfigurationKey
+            Name/Tuple path of the option to set its value.
+        section: Optional[str]
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+        CONF.remove_option(section, option)
+
+
+class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     """
     Concrete implementation of the protocol
     :class:`spyder.config.types.ConfigurationObserver`.
 
-    This mixin enables a class to recieve configuration updates seamlessly,
+    This mixin enables a class to receive configuration updates seamlessly,
     by registering methods using the
-    :function:`spyder.api.decorators.on_conf_change` decorator, which recieves
+    :function:`spyder.api.decorators.on_conf_change` decorator, which receives
     a configuration section and option to observe.
 
     When a change occurs on any of the registered configuration options,
@@ -33,15 +135,62 @@ class SpyderConfigurationObserver:
     """
 
     def __init__(self):
+        if self.CONF_SECTION is None:
+            raise AttributeError(
+                'A SpyderConfigurationObserver must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+
+        self._configuration_listeners = {}
+        self._multi_option_listeners = set({})
+        self._gather_observers()
+        self._merge_none_observers()
+
         # Register class to listen for changes in all the registered options
         for section in self._configuration_listeners:
+            section = self.CONF_SECTION if section is None else section
             observed_options = self._configuration_listeners[section]
             for option in observed_options:
+                logger.debug(f'{self} is observing {option} '
+                             f'in section {section}')
                 CONF.observe_configuration(self, section, option)
 
     def __del__(self):
         # Remove object from the configuration observer
         CONF.unobserve_configuration(self)
+
+    def _gather_observers(self):
+        """Gather all the methods decorated with `on_conf_change`."""
+        for method_name in dir(self):
+            method = getattr(self, method_name, None)
+            if hasattr(method, '_conf_listen'):
+                info = method._conf_listen
+                if len(info) > 1:
+                    self._multi_option_listeners |= {method_name}
+
+                for section, option in info:
+                    section_listeners = self._configuration_listeners.get(
+                        section, {})
+                    option_listeners = section_listeners.get(option, [])
+                    option_listeners.append(method_name)
+                    section_listeners[option] = option_listeners
+                    self._configuration_listeners[section] = section_listeners
+
+    def _merge_none_observers(self):
+        """Replace observers that declared section as None by CONF_SECTION."""
+        default_selectors = self._configuration_listeners.get(None, {})
+        section_selectors = self._configuration_listeners.get(
+            self.CONF_SECTION, {})
+
+        for option in default_selectors:
+            default_option_receivers = default_selectors.get(option, [])
+            section_option_receivers = section_selectors.get(option, [])
+            merged_receivers = (
+                default_option_receivers + section_option_receivers)
+            section_selectors[option] = merged_receivers
+
+        self._configuration_listeners[self.CONF_SECTION] = section_selectors
+        self._configuration_listeners.pop(None, None)
 
     def on_configuration_change(self, option: ConfigurationKey, section: str,
                                 value: Any):
@@ -58,8 +207,11 @@ class SpyderConfigurationObserver:
         value: Any
             New value of the configuration option that produced the event.
         """
-        section_recievers = self._configuration_listeners.get(section, {})
-        option_recievers = section_recievers.get(option, [])
-        for receiver in option_recievers:
+        section_receivers = self._configuration_listeners.get(section, {})
+        option_receivers = section_receivers.get(option, [])
+        for receiver in option_receivers:
             method = getattr(self, receiver)
-            method(value)
+            if receiver in self._multi_option_listeners:
+                method(option, value)
+            else:
+                method(value)
