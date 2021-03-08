@@ -8,10 +8,6 @@ fi
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
-    # add conda-forge channel for rtree installation for testing only
-    # remove after Anaconda pkgs/main updated to rtree 0.9.7
-    conda config --append channels conda-forge
-
     if [ "$OS" != "win" ]; then
         # Install nomkl to avoid installing Intel MKL libraries
         conda install nomkl -q -y
