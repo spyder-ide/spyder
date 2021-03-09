@@ -162,7 +162,7 @@ class ApplicationContainer(PluginMainContainer):
             register_shortcut=True)
 
         # Initialize
-        if DEV is None and options.get('check_updates_on_startup'):
+        if DEV is None and self.get_conf('check_updates_on_startup'):
             self.give_updates_feedback = False
             self.check_updates(startup=True)
 
