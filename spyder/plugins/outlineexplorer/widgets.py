@@ -915,7 +915,7 @@ class OutlineExplorerWidget(QWidget):
                  sort_files_alphabetically=False, display_variables=False,
                  follow_cursor=True, options_button=None):
         # TODO: Remove once the OutlineExplorer is migrated
-        self.CONF_SECTION = parent.CONF_SECTION
+        self.CONF_SECTION = 'outline_explorer'
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(
