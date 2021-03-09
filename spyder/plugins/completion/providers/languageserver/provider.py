@@ -559,6 +559,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def on_code_snippets_enabled_disabled(self, value):
         self.update_lsp_configuration()
 
+    @on_conf_change(section='main', option='spyder_pythonpath')
+    def on_pythonpath_option_update(self, value):
+        self.update_lsp_configuration(python_only=True)
+
     def update_lsp_configuration(self, python_only=False):
         """
         Update server configuration after changes done by the user
