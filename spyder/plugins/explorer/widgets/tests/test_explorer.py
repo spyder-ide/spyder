@@ -196,6 +196,7 @@ def test_single_click_to_open(qtbot, file_explorer):
     qtbot.keyClick(treewidget, Qt.Key_Up)  # To focus and select the 1st item
     initial_index = treewidget.currentIndex()  # To keep a reference
 
+    # qtbot.wait(20000)
     def run_test_helper(single_click, initial_index):
         # Reset the widget
         treewidget.setCurrentIndex(initial_index)
@@ -222,12 +223,10 @@ def test_single_click_to_open(qtbot, file_explorer):
 
     # Test single click to open
     treewidget.set_single_click_to_open(True)
-    assert 'True' in file_explorer.label3.text()
     run_test_helper(single_click=True, initial_index=initial_index)
 
     # Test double click to open
     treewidget.set_single_click_to_open(False)
-    assert 'False' in file_explorer.label3.text()
     run_test_helper(single_click=False, initial_index=initial_index)
 
 

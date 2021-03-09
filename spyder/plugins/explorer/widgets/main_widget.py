@@ -320,19 +320,18 @@ class ExplorerWidget(PluginMainWidget):
 # =============================================================================
 class FileExplorerTest(QWidget):
     def __init__(self, directory=None, file_associations={}):
-        super().__init__()
         self.CONF_SECTION = 'explorer'
+        super().__init__()
 
         if directory is not None:
             self.directory = directory
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
 
-        options = ExplorerWidget.DEFAULT_OPTIONS
-        options['file_associations'] = file_associations
-        self.explorer = ExplorerWidget('explorer', None, parent=self)
-        self.explorer._setup(options)
-        self.explorer.setup(options)
+        self.explorer = ExplorerWidget('explorer', self, parent=self)
+        self.explorer.set_conf('file_associations', file_associations)
+        self.explorer._setup()
+        self.explorer.setup()
         self.label_dir = QLabel("<b>Open dir:</b>")
         self.label_file = QLabel("<b>Open file:</b>")
         self.label1 = QLabel()

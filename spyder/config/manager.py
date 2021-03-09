@@ -354,7 +354,11 @@ class ConfigurationManager(object):
             logger.debug('Sending notification to observers of '
                          f'{option} in configuration section {section}')
         for observer in option_observers:
-            observer.on_configuration_change(option, section, value)
+            try:
+                observer.on_configuration_change(option, section, value)
+            except RuntimeError:
+                # Prevent errors when QtObjects are destroyed
+                pass
 
     def _notify_section(self, section: str):
         section_values = dict(self.items(section))

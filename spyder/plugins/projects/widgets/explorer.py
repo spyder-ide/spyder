@@ -248,6 +248,7 @@ class ProjectExplorerWidget(QWidget):
 class ProjectExplorerTest(QWidget):
     def __init__(self, directory=None):
         QWidget.__init__(self)
+        self.CONF_SECTION = 'project_explorer'
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
 
