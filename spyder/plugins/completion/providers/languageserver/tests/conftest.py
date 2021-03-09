@@ -21,6 +21,7 @@ from spyder.plugins.completion.providers.languageserver.provider import (
 
 class CompletionPluginMock(QObject, MagicMock):
     """Mock for the completion plugin."""
+    CONF_SECTION = 'completions'
 
     def __init__(self, conf):
         super().__init__()
