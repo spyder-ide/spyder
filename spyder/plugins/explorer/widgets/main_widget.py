@@ -321,6 +321,7 @@ class ExplorerWidget(PluginMainWidget):
 class FileExplorerTest(QWidget):
     def __init__(self, directory=None, file_associations={}):
         super().__init__()
+        self.CONF_SECTION = 'explorer'
 
         if directory is not None:
             self.directory = directory
@@ -375,6 +376,7 @@ class FileExplorerTest(QWidget):
 class ProjectExplorerTest(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
+        self.CONF_SECTION = 'explorer'
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
         self.treewidget = FilteredDirView(self)
