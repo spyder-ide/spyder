@@ -343,7 +343,8 @@ class ConsoleWidget(PluginMainWidget):
     def report_issue(self):
         """Report an issue with the SpyderErrorDialog."""
         self._report_dlg = SpyderErrorDialog(self, is_report=True)
-        self._report_dlg.set_color_scheme(self.get_conf('color_theme'))
+        self._report_dlg.set_color_scheme(self.get_conf(
+            'selected', section='appearance'))
         self._report_dlg.show()
 
     @Slot(dict)
@@ -420,10 +421,11 @@ class ConsoleWidget(PluginMainWidget):
                     'the "error_data" dictionary!'.format(plugin_name)
                 )
 
-        if self.get_conf('show_internal_errors'):
+        if self.get_conf('show_internal_errors', section='main'):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
-                self.error_dlg.set_color_scheme(self.get_conf('color_theme'))
+                self.error_dlg.set_color_scheme(
+                    self.get_conf('selected', section='appearance'))
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
