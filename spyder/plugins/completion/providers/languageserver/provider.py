@@ -563,6 +563,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def on_pythonpath_option_update(self, value):
         self.update_lsp_configuration(python_only=True)
 
+    @on_conf_change(section='main_interpreter',
+                    option=['default', 'custom_interpreter'])
+    def on_main_interpreter_change(self, option, value):
+        self.update_lsp_configuration()
+
     def update_lsp_configuration(self, python_only=False):
         """
         Update server configuration after changes done by the user
