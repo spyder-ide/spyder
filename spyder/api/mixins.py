@@ -11,6 +11,7 @@ Spyder API helper mixins.
 # Standard library imports
 import logging
 from typing import Any, Union, Optional
+import warnings
 
 # Local imports
 from spyder.config.manager import CONF
@@ -136,7 +137,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
 
     def __init__(self):
         if self.CONF_SECTION is None:
-            raise AttributeError(
+            warnings.warn(
                 'A SpyderConfigurationObserver must define a `CONF_SECTION` '
                 'class attribute!'
             )
