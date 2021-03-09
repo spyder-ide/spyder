@@ -142,6 +142,7 @@ def test_find_in_files_search(findinfiles, qtbot):
     values.
     """
     CONF.reset_to_defaults(section='find_in_files')
+    print(CONF.items('find_in_files'))
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
