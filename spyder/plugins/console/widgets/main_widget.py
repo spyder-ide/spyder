@@ -136,12 +136,12 @@ class ConsoleWidget(PluginMainWidget):
         self.error_dlg = None
         self.shell = InternalShell(  # TODO: Move to use SpyderWidgetMixin?
             parent=parent,
-            namespace=self.get_conf('namespace'),
-            commands=self.get_conf('commands'),
-            message=self.get_conf('message'),
+            namespace=self.get_conf('namespace', {}),
+            commands=self.get_conf('commands', []),
+            message=self.get_conf('message', ''),
             max_line_count=self.get_conf('max_line_count'),
-            profile=self.get_conf('profile'),
-            multithreaded=self.get_conf('multithreaded'),
+            profile=self.get_conf('profile', False),
+            multithreaded=self.get_conf('multithreaded', False),
         )
         self.find_widget = FindReplace(self)
 
