@@ -1105,7 +1105,9 @@ class FindInFilesWidget(PluginMainWidget):
 
     @on_conf_change(option='max_results')
     def on_max_results_update(self, value):
+        print('--------------------', value)
         self.result_browser.set_max_results(value)
+        print(self.result_browser.max_results)
 
     # --- Private API
     # ------------------------------------------------------------------------
