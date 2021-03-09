@@ -88,9 +88,9 @@ class Pylint(SpyderDockablePlugin):
         projects = self.get_plugin(Plugins.Projects)
         if projects:
             projects.sig_project_loaded.connect(
-                lambda value: widget.change_option("project_dir", value))
+                lambda value: widget.set_conf("project_dir", value))
             projects.sig_project_closed.connect(
-                lambda value: widget.change_option("project_dir", None))
+                lambda value: widget.set_conf("project_dir", None))
 
         # Add action to application menus
         pylint_act = self.get_action(PylintWidgetActions.RunCodeAnalysis)
