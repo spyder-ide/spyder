@@ -1409,6 +1409,7 @@ def test():
 
     app = qapplication()
     widget = FindInFilesWidget('find_in_files')
+    widget.CONF_SECTION = 'find_in_files'
     widget._setup()
     widget.setup()
     widget.resize(640, 480)
