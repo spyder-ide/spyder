@@ -3216,6 +3216,9 @@ def create_window(app, splash, options, args):
         main.console.start_interpreter(namespace)
         main.console.set_namespace_item('spy', Spy(app=app, window=main))
 
+    # Propagate current configurations to all configuration observers
+    CONF.notify_all_observers()
+
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)

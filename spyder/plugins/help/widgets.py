@@ -485,7 +485,12 @@ class HelpWidget(PluginMainWidget):
     @on_conf_change(option='automatic_import')
     def on_automatic_import_update(self, value):
         self.object_combo.validate_current_text()
-        self.force_refresh()
+        if (self._last_editor_doc is None or
+                self._last_console_cb is None or
+                    self._last_editor_cb is None):
+            self.show_intro_message()
+        else:
+            self.force_refresh()
 
     @on_conf_change(option='rich_mode')
     def on_rich_mode_update(self, value):
@@ -500,7 +505,12 @@ class HelpWidget(PluginMainWidget):
             self.docstring = value
             self.stack_layout.setCurrentWidget(self.plain_text)
 
-        self.force_refresh()
+        if (self._last_editor_doc is None or
+                self._last_console_cb is None or
+                    self._last_editor_cb is None):
+            self.show_intro_message()
+        else:
+            self.force_refresh()
 
     @on_conf_change(option='show_source')
     def on_show_source_update(self, value):
@@ -510,7 +520,12 @@ class HelpWidget(PluginMainWidget):
                 False)
 
         self.docstring = not value
-        self.force_refresh()
+        if (self._last_editor_doc is None or
+                self._last_console_cb is None or
+                    self._last_editor_cb is None):
+            self.show_intro_message()
+        else:
+            self.force_refresh()
 
     def update_actions(self):
         for __, action in self.get_actions().items():

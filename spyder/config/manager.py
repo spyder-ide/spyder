@@ -15,6 +15,7 @@ import os.path as osp
 from typing import Optional, Any
 
 # Local imports
+from spyder.api.utils import PrefixedTuple
 from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.types import ConfigurationKey, ConfigurationObserver
@@ -280,6 +281,24 @@ class ConfigurationManager(object):
                     option_observers = section_observers[option]
                     option_observers.pop(observer)
             self._observer_map_keys.pop(observer)
+
+    def notify_all_observers(self):
+        """
+        Notify all the observers subscribed to all the sections and options.
+        """
+        for section in self._observers:
+            option_observers = self._observers[section]
+            section_prefix = PrefixedTuple()
+            # Notify section observers
+            CONF.notify_observers(section, '__section')
+            for option in option_observers:
+                if isinstance(option, tuple):
+                    section_prefix.add_path(option)
+                else:
+                    self.notify_observers(section, option)
+            # Notify prefixed observers
+            for prefix in section_prefix:
+                self.notify_observers(section, prefix)
 
     def notify_observers(self,
                          section: str,
