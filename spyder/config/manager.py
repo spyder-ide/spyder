@@ -287,18 +287,7 @@ class ConfigurationManager(object):
         Notify all the observers subscribed to all the sections and options.
         """
         for section in self._observers:
-            option_observers = self._observers[section]
-            section_prefix = PrefixedTuple()
-            # Notify section observers
-            CONF.notify_observers(section, '__section')
-            for option in option_observers:
-                if isinstance(option, tuple):
-                    section_prefix.add_path(option)
-                else:
-                    self.notify_observers(section, option)
-            # Notify prefixed observers
-            for prefix in section_prefix:
-                self.notify_observers(section, prefix)
+            self.notify_section_all_observers(section)
 
     def notify_observers(self,
                          section: str,
@@ -363,6 +352,21 @@ class ConfigurationManager(object):
     def _notify_section(self, section: str):
         section_values = dict(self.items(section))
         self._notify_option(section, '__section', section_values)
+
+    def notify_section_all_observers(self, section: str):
+        """Notify all the observers subscribed to any option of a section."""
+        option_observers = self._observers[section]
+        section_prefix = PrefixedTuple()
+        # Notify section observers
+        CONF.notify_observers(section, '__section')
+        for option in option_observers:
+            if isinstance(option, tuple):
+                section_prefix.add_path(option)
+            else:
+                self.notify_observers(section, option)
+        # Notify prefixed observers
+        for prefix in section_prefix:
+            self.notify_observers(section, prefix)
 
     # --- Projects
     # ------------------------------------------------------------------------
@@ -514,6 +518,10 @@ class ConfigurationManager(object):
         """Reset config to Default values."""
         config = self.get_active_conf(section)
         config.reset_to_defaults(section=section)
+        if section is not None:
+            self.notify_section_all_observers(section)
+        else:
+            self.notify_all_observers()
 
     # Shortcut configuration management
     # ------------------------------------------------------------------------
