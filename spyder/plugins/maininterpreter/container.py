@@ -53,12 +53,6 @@ class MainInterpreterContainer(PluginMainContainer):
         self.interpreter_status.sig_open_preferences_requested.connect(
             self.sig_open_preferences_requested)
 
-        # TODO: Automatically connect sig_option_changed from widgets that
-        # inherit from SpyderWidgetMixin to the container's signal of the
-        # same name.
-        self.interpreter_status.sig_option_changed.connect(
-            self.sig_option_changed)
-
     def update_actions(self):
         pass
 

@@ -146,7 +146,7 @@ class Pylint(SpyderDockablePlugin):
         """
         editor = self.get_plugin(Plugins.Editor)
         if editor:
-            if self.get_conf_option("save_before", True) and not editor.save():
+            if self.get_conf("save_before", True) and not editor.save():
                 return
 
         if filename is None:

@@ -57,8 +57,8 @@ class OnlineHelp(SpyderDockablePlugin):
 
     def on_close(self, cancelable=False):
         self.save_history()
-        self.set_conf_option('zoom_factor',
-                             self.get_widget().get_zoom_factor())
+        self.set_conf('zoom_factor',
+                      self.get_widget().get_zoom_factor())
         return True
 
     def register(self):

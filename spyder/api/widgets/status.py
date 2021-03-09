@@ -26,12 +26,6 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     Unique string widget identifier.
     """
 
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is required when widgets need to change options in
-    Spyder's config system.
-    """
-
     sig_clicked = Signal()
     """
     This signal is emmitted when the widget is clicked.

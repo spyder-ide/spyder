@@ -242,18 +242,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         Folder to remove.
     """
 
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is emitted when an option is changed.
-
-    Parameters
-    ----------
-    option: str
-        Option that is changed.
-    object: Any
-        New value fot the option.
-    """
-
     sig_open_file_requested = Signal(str)
     """
     This signal is emitted to request opening a new file with Spyder.

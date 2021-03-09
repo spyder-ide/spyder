@@ -74,7 +74,7 @@ def pylint_plugin(mocker, qtbot):
         return_value=None)
     plugin = Pylint(parent=main_window, configuration=CONF)
     plugin._register()
-    plugin.set_conf_option("history_filenames", [])
+    plugin.set_conf("history_filenames", [])
     widget = plugin.get_widget()
     widget.filecombo.clear()
     qtbot.addWidget(widget)
@@ -205,7 +205,7 @@ def test_pylint_widget_pylintrc(
                  return_value=search_paths[WORKING_DIR])
     mocker.patch("spyder.plugins.pylint.main_widget.osp.expanduser",
                  return_value=search_paths[HOME_DIR])
-    pylint_plugin.set_conf_option("project_dir", search_paths[PROJECT_DIR])
+    pylint_plugin.set_conf("project_dir", search_paths[PROJECT_DIR])
 
     pylint_widget = pylint_plugin.get_widget()
     pylint_plugin.start_code_analysis(filename=pylint_test_script)
@@ -236,8 +236,8 @@ def test_pylint_max_history_conf(pylint_plugin, pylint_test_scripts):
     # Change the max_entry to 2
     assert pylint_widget.filecombo.count() == 0
     pylint_plugin.change_history_depth(2)
-    assert pylint_plugin.get_conf_option('max_entries') == 2
-    assert pylint_widget.get_option('max_entries') == 2
+    assert pylint_plugin.get_conf('max_entries') == 2
+    assert pylint_widget.get_conf('max_entries') == 2
 
     # Call to set_filename
     pylint_widget.set_filename(filename=script_0)

@@ -11,6 +11,7 @@ import bisect
 import logging
 
 # Local imports
+from spyder.api.decorators import on_conf_change
 from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.api import (SpyderCompletionProvider,
@@ -59,7 +60,7 @@ class SnippetsProvider(SpyderCompletionProvider):
             self.started = True
 
     def signal_provider_ready(self):
-        self.update_configuration(self.config)
+        self.update_snippets(self.config)
         self.sig_provider_ready.emit(self.COMPLETION_PROVIDER_NAME)
 
     def shutdown(self):
@@ -77,7 +78,8 @@ class SnippetsProvider(SpyderCompletionProvider):
         req['language'] = language
         self.snippets_actor.sig_mailbox.emit(request)
 
-    def update_configuration(self, snippets):
+    @on_conf_change
+    def update_snippets(self, snippets):
         self.config = snippets
         snippet_info = {}
         for language in SUPPORTED_LANGUAGES_PY:

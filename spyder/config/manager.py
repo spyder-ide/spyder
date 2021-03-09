@@ -9,6 +9,7 @@ Configuration manager providing access to user/site/project configuration.
 """
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 from typing import Optional, Any
@@ -20,6 +21,8 @@ from spyder.config.types import ConfigurationKey, ConfigurationObserver
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault, cp
 from spyder.utils.programs import check_version
 
+
+logger = logging.getLogger(__name__)
 
 EXTRA_VALID_SHORTCUT_CONTEXTS = [
     '_',
@@ -328,6 +331,9 @@ class ConfigurationManager(object):
                        value: Any):
         section_observers = self._observers.get(section, {})
         option_observers = section_observers.get(option, set({}))
+        if len(option_observers) > 0:
+            logger.debug('Sending notification to observers of '
+                         f'{option} in configuration section {section}')
         for observer in option_observers:
             observer.on_configuration_change(option, section, value)
 

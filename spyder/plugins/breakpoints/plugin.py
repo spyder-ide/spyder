@@ -139,7 +139,7 @@ class Breakpoints(SpyderDockablePlugin):
         """
         Load breakpoint data from configuration file.
         """
-        breakpoints_dict = self.get_conf_option(
+        breakpoints_dict = self.get_conf(
             'breakpoints',
             default={},
             section='run',

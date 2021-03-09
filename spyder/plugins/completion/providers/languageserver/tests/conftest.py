@@ -26,7 +26,7 @@ class CompletionPluginMock(QObject, MagicMock):
         super().__init__()
         self.conf = conf
 
-    def get_conf_option(self, option, default=None, section=None):
+    def get_conf(self, option, default=None, section=None):
         if section == 'completions':
             option = option[-1]
             return self.conf.get(option, default)

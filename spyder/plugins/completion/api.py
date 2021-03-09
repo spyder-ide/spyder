@@ -18,6 +18,8 @@ from typing import Any, Optional, Tuple, Union
 # Third party imports
 from qtpy.QtCore import Signal, QObject, Slot, Qt
 
+# Local imports
+from spyder.api.mixins import SpyderConfigurationObserver
 
 # Supported LSP programming languages
 SUPPORTED_LANGUAGES = [
@@ -653,8 +655,60 @@ COMPLETION_ENTRYPOINT = 'spyder.completions'
 
 # -------------- SPYDER COMPLETION PROVIDER INTERFACE ---------------
 
+class CompletionConfigurationObserver(SpyderConfigurationObserver):
+    """
+    Extension to the :class:`spyder.api.mixins.SpyderConfigurationObserver`
+    mixin implementation to consider a nested provider configuration.
+    """
 
-class SpyderCompletionProvider(QObject):
+    def _gather_observers(self):
+        """Gather all the methods decorated with `on_conf_change`."""
+        for method_name in dir(self):
+            method = getattr(self, method_name, None)
+            if hasattr(method, '_conf_listen'):
+                info = method._conf_listen
+                if len(info) > 1:
+                    self._multi_option_listeners |= {method_name}
+
+                for section, option in info:
+                    if section is None:
+                        section = 'completions'
+                        if option == '__section':
+                            option = (
+                                'provider_configuration',
+                                self.COMPLETION_PROVIDER_NAME,
+                                'values'
+                            )
+                        else:
+                            option = self._wrap_provider_option(option)
+
+                    section_listeners = self._configuration_listeners.get(
+                        section, {})
+                    option_listeners = section_listeners.get(option, [])
+                    option_listeners.append(method_name)
+                    section_listeners[option] = option_listeners
+                    self._configuration_listeners[section] = section_listeners
+
+
+    def _wrap_provider_option(self, option):
+        if isinstance(option, tuple):
+            option = (
+                'provider_configuration',
+                self.COMPLETION_PROVIDER_NAME,
+                'values',
+                *option
+            )
+        else:
+            option = (
+                'provider_configuration',
+                self.COMPLETION_PROVIDER_NAME,
+                'values',
+                option
+            )
+        return option
+
+
+class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
     """
     Spyder provider API for completion providers.
 
@@ -859,7 +913,9 @@ class SpyderCompletionProvider(QObject):
             the ones defined on `CONF_DEFAULTS` and the values correspond to
             the current values according to the Spyder configuration system.
         """
-        QObject.__init__(self, parent)
+        self.CONF_SECTION = parent.CONF_SECTION
+
+        super().__init__(parent)
         self.main = parent
         self.config = config
 
@@ -962,18 +1018,6 @@ class SpyderCompletionProvider(QObject):
             }
         resp_id: int
             Request identifier for response
-        """
-        pass
-
-    def update_configuration(self, config: dict):
-        """
-        Handle completion option configuration updates done through
-        Spyder Preferences.
-
-        Parameters
-        ----------
-        conf: dict
-            Dictionary containing the new provider configuration.
         """
         pass
 
@@ -1083,10 +1127,10 @@ class SpyderCompletionProvider(QObject):
         """
         pass
 
-    def get_option(self,
-                   option_name: Union[str, Tuple[str, ...]],
-                   default: Any = None,
-                   section: Optional[str] = None) -> Any:
+    def get_conf(self,
+                 option_name: Union[str, Tuple[str, ...]],
+                 default: Any = None,
+                 section: Optional[str] = None) -> Any:
         """
         Retrieve an option value from the provider settings dictionary or
         the global Spyder configuration.
@@ -1124,13 +1168,13 @@ class SpyderCompletionProvider(QObject):
                     'values',
                     option_name
                 )
-        return self.main.get_conf_option(
+        return self.main.get_conf(
             option_name, default=default, section=section)
 
-    def set_option(self,
-                   option_name: Union[str, Tuple[str, ...]],
-                   value: Any,
-                   section: Optional[str] = None):
+    def set_conf(self,
+                 option_name: Union[str, Tuple[str, ...]],
+                 value: Any,
+                 section: Optional[str] = None):
         """
         Set an option in the provider configuration settings dictionary or
         the global Spyder configuration.
@@ -1162,7 +1206,7 @@ class SpyderCompletionProvider(QObject):
                     'values',
                     option_name
                 )
-        self.main.set_conf_option(option_name, value, section=section)
+        self.main.set_conf(option_name, value, section=section)
 
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,

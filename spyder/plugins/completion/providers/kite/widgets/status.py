@@ -53,9 +53,9 @@ class KiteStatusWidget(StatusBarWidget):
 
     def set_value(self, value):
         """Return Kite completions state."""
-        kite_enabled = self.provider.get_option(('enabled_providers', 'kite'),
-                                                default=True,
-                                                section='completions')
+        kite_enabled = self.provider.get_conf(('enabled_providers', 'kite'),
+                                              default=True,
+                                              section='completions')
         is_installing = self.is_installing()
         cancelled_or_errored = self.installation_cancelled_or_errored()
 
@@ -112,15 +112,15 @@ class KiteStatusWidget(StatusBarWidget):
         third time Spyder is started, to show Kite's installation dialog
         and onboarding if necessary.
         """
-        spyder_runs = self.provider.get_option('spyder_runs')
+        spyder_runs = self.provider.get_conf('spyder_runs')
         if spyder_runs == 3:
             self.provider._kite_onboarding()
 
-            show_dialog = self.provider.get_option('show_installation_dialog')
+            show_dialog = self.provider.get_conf('show_installation_dialog')
             if show_dialog:
                 # Only show the dialog once at startup
-                self.provider.set_option('show_installation_dialog', False)
+                self.provider.set_conf('show_installation_dialog', False)
                 self.show_installation_dialog()
         else:
             if spyder_runs < 3:
-                self.provider.set_option('spyder_runs', spyder_runs + 1)
+                self.provider.set_conf('spyder_runs', spyder_runs + 1)

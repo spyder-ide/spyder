@@ -134,9 +134,6 @@ class PlotsWidget(PluginMainWidget):
         'save_dir': getcwd_or_home()
     }
 
-    # Signals
-    sig_option_changed = Signal(str, object)
-
     sig_figure_loaded = Signal()
     """This signal is emitted when a figure is loaded succesfully"""
 

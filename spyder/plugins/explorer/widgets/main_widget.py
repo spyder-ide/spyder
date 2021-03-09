@@ -190,7 +190,6 @@ class ExplorerWidget(PluginMainWidget):
         self.treewidget.sig_file_created.connect(self.sig_file_created)
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
-        self.treewidget.sig_option_changed.connect(self.sig_option_changed)
         self.treewidget.sig_module_created.connect(self.sig_module_created)
         self.treewidget.sig_open_interpreter_requested.connect(
             self.sig_open_interpreter_requested)
@@ -371,8 +370,6 @@ class FileExplorerTest(QWidget):
         self.explorer.sig_dir_opened.connect(
             lambda: self.explorer.treewidget.refresh('..'))
         self.explorer.sig_open_file_requested.connect(self.label1.setText)
-        self.explorer.sig_option_changed.connect(
-           lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
 
 
 class ProjectExplorerTest(QWidget):

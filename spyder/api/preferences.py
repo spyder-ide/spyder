@@ -109,9 +109,9 @@ class PluginConfigPage(SpyderConfigPage):
         try:
             # New API
             self.apply_settings = self._wrap_apply_settings(plugin.apply_conf)
-            self.get_option = plugin.get_conf_option
-            self.set_option = plugin.set_conf_option
-            self.remove_option = plugin.remove_conf_option
+            self.get_option = plugin.get_conf
+            self.set_option = plugin.set_conf
+            self.remove_option = plugin.remove_conf
         except AttributeError:
             # Old API
             self.apply_settings = self._wrap_apply_settings(

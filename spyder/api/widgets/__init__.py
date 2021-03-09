@@ -97,18 +97,6 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     This signal can be emitted to request the main application to restart.
     """
 
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is emitted when an option has been set.
-
-    Parameters
-    ----------
-    option: str
-        Option name.
-    value: object
-        New value of the changed option.
-    """
-
     sig_redirect_stdio_requested = Signal(bool)
     """
     This signal can be emitted to request the main application to redirect
@@ -245,18 +233,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     sig_restart_requested = Signal()
     """
     This signal can be emitted to request the main application to restart.
-    """
-
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is emitted when an option has been set.
-
-    Parameters
-    ----------
-    option: str
-        Option name.
-    value: object
-        New value of the changed option.
     """
 
     sig_redirect_stdio_requested = Signal(bool)

@@ -935,7 +935,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
                 'OPTIONAL requirements!'.format(plugin_name)
             )
 
-    def get_conf_option(self, option, default=NoDefault, section=None):
+    def get_conf(self, option, default=NoDefault, section=None):
         """
         Get an option from Spyder configuration system.
 
@@ -966,7 +966,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
     @Slot(str, object)
     @Slot(str, object, str)
-    def set_conf_option(self, option, value, section=None):
+    def set_conf(self, option, value, section=None):
         """
         Set an option in Spyder configuration system.
 
@@ -991,7 +991,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
             self._conf.set(section, option, value)
             self.apply_conf({option}, False)
 
-    def remove_conf_option(self, option, section=None):
+    def remove_conf(self, option, section=None):
         """
         Delete an option in the Spyder configuration system.
 

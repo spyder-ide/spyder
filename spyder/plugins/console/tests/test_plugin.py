@@ -138,8 +138,8 @@ ZeroDivisionError: division by zero
 
     # --- Test segfault errors
     # Set config and call register so the dialog is created
-    console_plugin.set_conf_option('previous_crash', error,
-                                   section='main')
+    console_plugin.set_conf('previous_crash', error,
+                            section='main')
     console_plugin.register()
 
     # Make sure the error dialog was generated.
@@ -149,7 +149,7 @@ ZeroDivisionError: division by zero
     assert widget.error_dlg.title.text() == 'Segmentation fault crash'
 
     # Reset config
-    console_plugin.set_conf_option('previous_crash', '', section='main')
+    console_plugin.set_conf('previous_crash', '', section='main')
 
 
 if __name__ == "__main__":
