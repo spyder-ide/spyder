@@ -75,7 +75,8 @@ class SpyderConfigurationAccessor:
     def set_conf(self,
                  option: ConfigurationKey,
                  value: BasicTypes,
-                 section: Optional[str] = None):
+                 section: Optional[str] = None,
+                 recursive_notification: bool = True):
         """
         Set an option in the Spyder configuration system.
 
@@ -88,6 +89,13 @@ class SpyderConfigurationAccessor:
         section: Optional[str]
             Section in the configuration system, e.g. `shortcuts`. If None,
             then the value of `CONF_SECTION` is used.
+        recursive_notification: bool
+            If True, all the objects that observe all the changes on the
+            configuration section and objects that observe partial tuple paths
+            are notified. For example if the option `opt` of section `sec`
+            changes, then the observers for section `sec` are notified.
+            Likewise, if the option `(a, b, c)` changes, then observers for
+            `(a, b, c)`, `(a, b)` and a are notified as well.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -95,7 +103,8 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
-        CONF.set(section, option, value)
+        CONF.set(section, option, value,
+                 recursive_notification=recursive_notification)
 
 
     def remove_conf(self,

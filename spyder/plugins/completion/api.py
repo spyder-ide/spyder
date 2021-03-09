@@ -1174,7 +1174,8 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
     def set_conf(self,
                  option_name: Union[str, Tuple[str, ...]],
                  value: Any,
-                 section: Optional[str] = None):
+                 section: Optional[str] = None,
+                 recursive_notification: bool = True):
         """
         Set an option in the provider configuration settings dictionary or
         the global Spyder configuration.
@@ -1189,6 +1190,13 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         section: Optional[str]
             If None, then the option is retrieved from the local provider
             configuration. Otherwise, lookup on the global Spyder one.
+        recursive_notification: bool
+            If True, all the objects that observe all the changes on the
+            configuration section and objects that observe partial tuple paths
+            are notified. For example if the option `opt` of section `sec`
+            changes, then the observers for section `sec` are notified.
+            Likewise, if the option `(a, b, c)` changes, then observers for
+            `(a, b, c)`, `(a, b)` and a are notified as well.
         """
         if section is None:
             section = 'completions'
@@ -1206,7 +1214,8 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
                     'values',
                     option_name
                 )
-        self.main.set_conf(option_name, value, section=section)
+        self.main.set_conf(option_name, value, section=section,
+                           recursive_notification=recursive_notification)
 
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,

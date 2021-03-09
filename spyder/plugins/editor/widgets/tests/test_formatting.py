@@ -49,7 +49,6 @@ def test_document_formatting(formatter, completions_codeeditor, qtbot):
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values','formatting'),
              formatter)
-    completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
     # Set text in editor

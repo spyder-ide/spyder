@@ -101,7 +101,8 @@ class BasePlugin(BasePluginMixin):
         super(BasePlugin, self)._show_status_message(message, timeout)
 
     @Slot(str, object)
-    def set_option(self, option, value, section=None):
+    def set_option(self, option, value, section=None,
+                   recursive_notification=True):
         """
         Set an option in Spyder configuration file.
 
@@ -119,7 +120,9 @@ class BasePlugin(BasePluginMixin):
           same or another plugin.
         * CONF_SECTION needs to be defined for this to work.
         """
-        super(BasePlugin, self)._set_option(option, value, section=section)
+        super(BasePlugin, self)._set_option(
+            option, value, section=section,
+            recursive_notification=recursive_notification)
 
     def get_option(self, option, default=NoDefault, section=None):
         """
@@ -966,7 +969,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
     @Slot(str, object)
     @Slot(str, object, str)
-    def set_conf(self, option, value, section=None):
+    def set_conf(self, option, value, section=None,
+                 recursive_notification=True):
         """
         Set an option in Spyder configuration system.
 
@@ -979,6 +983,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
             Python object.
         section: str
             Section in the configuration system, e.g. `shortcuts`.
+        recursive_notification: bool
+            If True, all the objects that observe all the changes on the
+            configuration section and objects that observe partial tuple paths
+            are notified. For example if the option `opt` of section `sec`
+            changes, then the observers for section `sec` are notified.
+            Likewise, if the option `(a, b, c)` changes, then observers for
+            `(a, b, c)`, `(a, b)` and a are notified as well.
         """
         if self._conf is not None:
             section = self.CONF_SECTION if section is None else section
@@ -988,7 +999,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
                     'attribute!'
                 )
 
-            self._conf.set(section, option, value)
+            self._conf.set(section, option, value,
+                           recursive_notification=recursive_notification)
             self.apply_conf({option}, False)
 
     def remove_conf(self, option, section=None):

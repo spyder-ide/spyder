@@ -48,7 +48,7 @@ class ConfigAccessMixin(object):
 
     def set_option(self, option, value, section=None):
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, option, value)
+        CONF.set(section, option, value, recursive_notification=False)
 
     def get_option(self, option, default=NoDefault, section=None):
         section = self.CONF_SECTION if section is None else section
@@ -324,11 +324,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 self.checkboxes.items()):
             if option in self.changed_options:
                 value = checkbox.isChecked()
-                self.set_option(option, value, section=sec)
+                self.set_option(option, value, section=sec,
+                                recursive_notification=False)
         for radiobutton, (sec, option, _default) in list(
                 self.radiobuttons.items()):
             if option in self.changed_options:
-                self.set_option(option, radiobutton.isChecked(), section=sec)
+                self.set_option(option, radiobutton.isChecked(), section=sec,
+                                recursive_notification=False)
         for lineedit, (sec, option, _default) in list(self.lineedits.items()):
             if option in self.changed_options:
                 data = lineedit.text()
@@ -337,7 +339,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     data = [item.strip() for item in data.split(',')]
                 else:
                     data = to_text_string(data)
-                self.set_option(option, data, section=sec)
+                self.set_option(option, data, section=sec,
+                                recursive_notification=False)
         for textedit, (sec, option, _default) in list(self.textedits.items()):
             if option in self.changed_options:
                 data = textedit.toPlainText()
@@ -351,15 +354,17 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     data = [item.strip() for item in data.split(',')]
                 else:
                     data = to_text_string(data)
-                self.set_option(option, data, section=sec)
+                self.set_option(option, data, section=sec,
+                                recursive_notification=False)
         for spinbox, (sec, option, _default) in list(self.spinboxes.items()):
             if option in self.changed_options:
-                self.set_option(option, spinbox.value(), section=sec)
+                self.set_option(option, spinbox.value(), section=sec,
+                                recursive_notification=False)
         for combobox, (sec, option, _default) in list(self.comboboxes.items()):
             if option in self.changed_options:
                 data = combobox.itemData(combobox.currentIndex())
                 self.set_option(option, from_qvariant(data, to_text_string),
-                                section=sec)
+                                section=sec, recursive_notification=False)
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
             if option in self.changed_options:
                 font = fontbox.currentFont()
@@ -369,14 +374,15 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if option in self.changed_options:
                 self.set_option(option,
                                 to_text_string(clayout.lineedit.text()),
-                                section=sec)
+                                section=sec, recursive_notification=False)
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
                 self.scedits.items()):
             if option in self.changed_options:
                 color = to_text_string(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
-                self.set_option(option, (color, bold, italic), section=sec)
+                self.set_option(option, (color, bold, italic), section=sec,
+                                recursive_notification=False)
 
     @Slot(str)
     def has_been_modified(self, option):

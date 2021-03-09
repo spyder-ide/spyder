@@ -134,7 +134,8 @@ class PluginConfigPage(SpyderConfigPage):
         for section in to_update:
             section_prefix = PrefixedTuple()
             # Notify section observers
-            CONF.notify_observers(section, '__section')
+            CONF.notify_observers(section, '__section',
+                                  recursive_notification=False)
             for opt in to_update[section]:
                 if isinstance(opt, tuple):
                     opt = opt[:-1]
@@ -142,7 +143,8 @@ class PluginConfigPage(SpyderConfigPage):
             # Notify prefixed observers
             for prefix in section_prefix:
                 try:
-                    CONF.notify_observers(section, prefix)
+                    CONF.notify_observers(section, prefix,
+                                          recursive_notification=False)
                 except Exception:
                     # Prevent unexpected failures on tests
                     pass

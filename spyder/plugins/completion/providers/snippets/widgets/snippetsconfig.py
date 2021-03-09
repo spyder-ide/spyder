@@ -200,7 +200,8 @@ class Snippet:
             trigger_info = current_state.get(self.trigger_text, {})
             trigger_info[self.description] = new_state
             current_state[self.trigger_text] = trigger_info
-            self.set_option(language, current_state)
+            self.set_option(language, current_state,
+                            recursive_notification=False)
 
     def delete(self):
         if self.language is not None:
@@ -210,7 +211,8 @@ class Snippet:
             trigger.pop(self.description)
             if len(trigger) == 0:
                 current_state.pop(self.trigger_text)
-            self.set_option(language, current_state)
+            self.set_option(language, current_state,
+                            recursive_notification=False)
 
 
 class SnippetEditor(QDialog):

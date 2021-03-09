@@ -303,7 +303,7 @@ class ConfigurationManager(object):
     def notify_observers(self,
                          section: str,
                          option: ConfigurationKey,
-                         recursive_notification: bool = False):
+                         recursive_notification: bool = True):
         """
         Notify observers of a change in the option `option` of configuration
         section `section`.
@@ -434,7 +434,7 @@ class ConfigurationManager(object):
         return value
 
     def set(self, section, option, value, verbose=False, save=True,
-            recursive_notification=False):
+            recursive_notification=True):
         """
         Set an `option` on a given `section`.
 

@@ -475,7 +475,8 @@ class CompletionPlugin(SpyderPluginV2):
         """
         plugin = self
 
-        def wrapper(self, option, value, section=None):
+        def wrapper(self, option, value, section=None,
+                    recursive_notification=False):
             if section is None:
                 if isinstance(option, tuple):
                     option = ('provider_configuration', provider, 'values',
@@ -483,7 +484,9 @@ class CompletionPlugin(SpyderPluginV2):
                 else:
                     option = ('provider_configuration', provider, 'values',
                               option)
-            return plugin.set_conf(option, value, section)
+            return plugin.set_conf(
+                option, value, section,
+                recursive_notification=recursive_notification)
         return wrapper
 
     def wrap_remove_option(self, provider):
