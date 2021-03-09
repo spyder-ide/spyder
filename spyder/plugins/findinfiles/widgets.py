@@ -817,22 +817,6 @@ class FindInFilesWidget(PluginMainWidget):
     Find in files widget.
     """
 
-    DEFAULT_OPTIONS = {
-        'case_sensitive': False,
-        'exclude_case_sensitive': False,
-        'exclude': EXCLUDE_PATTERNS[0],
-        'exclude_index': None,
-        'exclude_regexp': False,
-        'path_history': [],
-        'max_results': 1000,
-        'hist_limit': MAX_PATH_HISTORY,
-        'more_options': False,
-        'search_in_index': None,
-        'search_text': '',
-        'search_text_regexp': False,
-        'supported_encodings': ("utf-8", "iso-8859-1", "cp1252"),
-        'text_color': MAIN_TEXT_COLOR,
-    }
     ENABLE_SPINNER = True
     REGEX_INVALID = "background-color:rgb(255, 80, 80);"
     REGEX_ERROR = _("Regular expression error")
@@ -1424,10 +1408,9 @@ def test():
     from spyder.utils.qthelpers import qapplication
 
     app = qapplication()
-    options = FindInFilesWidget.DEFAULT_OPTIONS.copy()
-    widget = FindInFilesWidget('find_in_files', options=options)
-    widget._setup(options=options)
-    widget.setup(options=options)
+    widget = FindInFilesWidget('find_in_files')
+    widget._setup()
+    widget.setup()
     widget.resize(640, 480)
     widget.show()
     external_paths = [
