@@ -103,7 +103,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 timeout=CALL_KERNEL_TIMEOUT).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
-        except (PicklingError, UnpicklingError):
+        except (PicklingError, UnpicklingError, TypeError):
             raise ValueError(msg % reason_not_picklable)
         except RuntimeError:
             raise ValueError(msg % reason_dead)
