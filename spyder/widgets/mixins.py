@@ -49,9 +49,9 @@ else:
 
 class BaseEditMixin(object):
 
-    _PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.GROUP_2
-    _DEFAULT_TITLE_COLOR = SpyderPalette.GROUP_6
-    _CHAR_HIGHLIGHT_COLOR = SpyderPalette.GROUP_1
+    _PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
+    _DEFAULT_TITLE_COLOR = QStylePalette.COLOR_ACCENT_4
+    _CHAR_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
     _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
@@ -136,7 +136,7 @@ class BaseEditMixin(object):
             return
         self._styled_widgets.add(id(widget))
         background = QStylePalette.COLOR_BACKGROUND_4
-        border = QStylePalette.COLOR_TEXT_2
+        border = QStylePalette.COLOR_TEXT_4
         name = widget.__class__.__name__
         widget.setObjectName(name)
         css = '''

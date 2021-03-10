@@ -521,7 +521,7 @@ class FoldingPanel(Panel):
         deco.set_outline(drift_color(
             self._get_scope_highlight_color(), 110))
         deco.set_background(self._get_scope_highlight_color())
-        deco.set_foreground(QColor(QStylePalette.COLOR_TEXT_4 ))
+        deco.set_foreground(QColor(QStylePalette.COLOR_TEXT_4))
         self._block_decos[start_line] = deco
         self.editor.decorations.add(deco)
 

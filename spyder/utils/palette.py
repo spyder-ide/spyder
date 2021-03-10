@@ -24,7 +24,7 @@ class SpyderPaletteDark:
     COLOR_ERROR_3 = Red.B110
 
     COLOR_WARN_1 = Orange.B40
-    COLOR_WARN_2 = Red.B70
+    COLOR_WARN_2 = Orange.B70
     COLOR_WARN_3 = Orange.B110
 
     # Icon colors
@@ -53,10 +53,10 @@ class SpyderPaletteDark:
 
     # Colors for ocurrences and highlight
 
-    COLOR_HIGLIGHT_1 = Blue.B10
-    COLOR_HIGLIGHT_2 = Blue.B20
-    COLOR_HIGLIGHT_3 = Blue.B30
-    COLOR_HIGLIGHT_4 = Blue.B40
+    COLOR_HIGHLIGHT_1 = Blue.B10
+    COLOR_HIGHLIGHT_2 = Blue.B20
+    COLOR_HIGHLIGHT_3 = Blue.B30
+    COLOR_HIGHLIGHT_4 = Blue.B40
 
 
 class SpyderPaletteLight:
@@ -72,7 +72,7 @@ class SpyderPaletteLight:
     COLOR_ERROR_3 = Red.B110
 
     COLOR_WARN_1 = Orange.B40
-    COLOR_WARN_2 = Red.B70
+    COLOR_WARN_2 = Orange.B70
     COLOR_WARN_3 = Orange.B110
 
     # Icon colors
@@ -101,10 +101,10 @@ class SpyderPaletteLight:
 
     # Colors for ocurrences and highlight
 
-    COLOR_HIGLIGHT_1 = Blue.B100
-    COLOR_HIGLIGHT_2 = Blue.B110
-    COLOR_HIGLIGHT_3 = Blue.B120
-    COLOR_HIGLIGHT_4 = Blue.B130
+    COLOR_HIGHLIGHT_1 = Blue.B100
+    COLOR_HIGHLIGHT_2 = Blue.B110
+    COLOR_HIGHLIGHT_3 = Blue.B120
+    COLOR_HIGHLIGHT_4 = Blue.B130
 
 
 class LightPalette(object):
@@ -125,8 +125,8 @@ class LightPalette(object):
 
     COLOR_ACCENT_1 = Blue.B130
     COLOR_ACCENT_2 = Blue.B100
-    COLOR_ACCENT_3 = Blue.B90
-    COLOR_ACCENT_4 = Blue.B70
+    COLOR_ACCENT_3 = Blue.B70
+    COLOR_ACCENT_4 = Blue.B60
     COLOR_ACCENT_5 = Blue.B50
 
     OPACITY_TOOLTIP = 230

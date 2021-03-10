@@ -38,7 +38,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
@@ -758,7 +758,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if end:
             color = QStylePalette.COLOR_TEXT_3
         else:
-            color = SpyderPalette.GROUP_10
+            color = QStylePalette.COLOR_ACCENT_4
         text = "<span style=\'color: %s\'><b>%s" \
                "</b></span>" % (color,
                                 time.strftime(fmt, time.gmtime(elapsed_time)))

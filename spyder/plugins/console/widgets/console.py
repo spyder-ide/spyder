@@ -19,12 +19,11 @@ from spyder.plugins.console.utils.ansihandler import ANSIEscapeCodeHandler
 from spyder.utils.palette import QStylePalette, SpyderPalette
 
 
-
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
 MAIN_DEFAULT_FG_COLOR = QStylePalette.COLOR_TEXT_1
 MAIN_ERROR_FG_COLOR = SpyderPalette.COLOR_ERROR_1
-MAIN_TB_FG_COLOR = QStylePalette.COLOR_ACCENT_2
-MAIN_PROMPT_FG_COLOR = SpyderPalette.GROUP_4
+MAIN_TB_FG_COLOR = QStylePalette.COLOR_ACCENT_3
+MAIN_PROMPT_FG_COLOR = SpyderPalette.COLOR_SUCCESS_1
 
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
