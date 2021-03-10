@@ -40,6 +40,10 @@ class IndentationGuide(Panel):
     def update_bar_position(self, value):
         self.bar_offset = value
 
+    def sizeHint(self):
+        """Override Qt method."""
+        return self.size()
+
     def paintEvent(self, event):
         """
         Overriden Qt method.

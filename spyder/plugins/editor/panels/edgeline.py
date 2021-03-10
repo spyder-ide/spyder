@@ -39,6 +39,10 @@ class EdgeLine(Panel):
             x = self.editor.fontMetrics().width(column * '9')
             painter.drawLine(x, 0, x, size.height())
 
+    def sizeHint(self):
+        """Override Qt method."""
+        return self.size()
+
     # --- Other methods
     # -----------------------------------------------------------------
 
