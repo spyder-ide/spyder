@@ -52,7 +52,7 @@ class LSPStatusWidget(StatusBarWidget):
 
     def __init__(self, parent, provider):
         self.tooltip = self.BASE_TOOLTIP
-        super().__init__(parent, spinner=True)
+        super().__init__(parent, show_spinner=True)
 
         self.provider = provider
         self.current_language = None
