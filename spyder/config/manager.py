@@ -13,6 +13,7 @@ import logging
 import os
 import os.path as osp
 from typing import Optional, Any
+import weakref
 
 # Local imports
 from spyder.api.utils import PrefixedTuple
@@ -97,7 +98,7 @@ class ConfigurationManager(object):
         # keys that the object is subscribed to per section.
         #
         # type: Dict[ConfigurationObserver, Dict[str, Set[ConfigurationKey]]]
-        self._observer_map_keys = {}
+        self._observer_map_keys = weakref.WeakKeyDictionary()
 
         # Setup
         self.remove_deprecated_config_locations()
@@ -222,7 +223,7 @@ class ConfigurationManager(object):
         section_sets = self._observers.get(section, {})
         option = option if option is not None else '__section'
 
-        option_set = section_sets.get(option, set({}))
+        option_set = section_sets.get(option, weakref.WeakSet())
         option_set |= {observer}
 
         section_sets[option] = option_set
