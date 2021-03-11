@@ -12,7 +12,7 @@ import logging
 
 # Local imports
 from spyder.api.decorators import on_conf_change
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.api import (SpyderCompletionProvider,
                                            SUPPORTED_LANGUAGES)
