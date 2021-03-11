@@ -351,7 +351,7 @@ class ConfigurationManager(object):
                 self.unobserve_configuration(observer)
 
     def _notify_section(self, section: str):
-        section_values = dict(self.items(section))
+        section_values = dict(self.items(section) or [])
         self._notify_option(section, '__section', section_values)
 
     def notify_section_all_observers(self, section: str):
