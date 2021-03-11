@@ -148,7 +148,8 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         if self.CONF_SECTION is None:
             warnings.warn(
                 'A SpyderConfigurationObserver must define a `CONF_SECTION` '
-                'class attribute!'
+                f'class attribute! Hint: {self} or its parent should define '
+                'the section.'
             )
 
         self._configuration_listeners = {}
