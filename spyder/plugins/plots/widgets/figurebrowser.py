@@ -827,7 +827,15 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.close()
 
         # See: spyder-ide/spyder#12459
-        QTimer.singleShot(150, lambda: thumbnail.setParent(None))
+        QTimer.singleShot(
+            150, lambda: self._remove_thumbnail_parent(thumbnail))
+
+    def _remove_thumbnail_parent(self, thumbnail):
+        try:
+            thumbnail.setParent(None)
+        except RuntimeError:
+            # Omit exception in case the thumbnail has been garbage-collected
+            pass
 
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""
