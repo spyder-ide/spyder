@@ -1159,7 +1159,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def get_selected_dir(self):
         """ Get selected dir
         If file is selected the directory containing file is returned.
-        If multiple items are selected, first item is chosen
+        If multiple items are selected, first item is chosen.
         """
         selected_path = self.get_selected_filenames()[0]
         if osp.isfile(selected_path):
