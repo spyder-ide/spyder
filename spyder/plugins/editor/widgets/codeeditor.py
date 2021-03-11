@@ -391,7 +391,7 @@ class CodeEditor(TextEditBaseWidget):
         self.todo_color = SpyderPalette.ICON_2
         self.breakpoint_color = SpyderPalette.ICON_3
         self.occurrence_color = QColor(SpyderPalette.GROUP_2).lighter(160)
-        self.found_results_color = QColor(SpyderPalette.COLOR_HIGHLIGHT_2)
+        self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
         # Scrollbar flag area
         self.scrollflagarea = self.panels.register(ScrollFlagArea(self),

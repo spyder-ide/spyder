@@ -51,12 +51,19 @@ class SpyderPaletteDark:
     GROUP_11 = GroupDark.B110
     GROUP_12 = GroupDark.B120
 
-    # Colors for ocurrences and highlight
+    # Colors for highlight in editor
 
     COLOR_HIGHLIGHT_1 = Blue.B10
     COLOR_HIGHLIGHT_2 = Blue.B20
     COLOR_HIGHLIGHT_3 = Blue.B30
-    COLOR_HIGHLIGHT_4 = Blue.B40
+    COLOR_HIGHLIGHT_4 = Blue.B50
+
+    # Colors for ocurrences from find widget
+
+    COLOR_OCCURRENCE_1 = Gray.B10
+    COLOR_OCCURRENCE_2 = Gray.B20
+    COLOR_OCCURRENCE_3 = Gray.B30
+    COLOR_OCCURRENCE_4 = Gray.B50
 
     # Colors for Spyder and Python logos
 
@@ -106,12 +113,19 @@ class SpyderPaletteLight:
     GROUP_11 = GroupLight.B110
     GROUP_12 = GroupLight.B120
 
-    # Colors for ocurrences and highlight
+    # Colors for highlight in editor
 
-    COLOR_HIGHLIGHT_1 = Blue.B100
-    COLOR_HIGHLIGHT_2 = Blue.B110
+    COLOR_HIGHLIGHT_1 = Blue.B140
+    COLOR_HIGHLIGHT_2 = Blue.B130
     COLOR_HIGHLIGHT_3 = Blue.B120
-    COLOR_HIGHLIGHT_4 = Blue.B130
+    COLOR_HIGHLIGHT_4 = Blue.B110
+
+    # Colors for ocurrences from find widget
+
+    COLOR_OCCURRENCE_1 = Gray.B120
+    COLOR_OCCURRENCE_2 = Gray.B110
+    COLOR_OCCURRENCE_3 = Gray.B100
+    COLOR_OCCURRENCE_4 = Gray.B90
 
     # Colors for Spyder and Python logos
 
