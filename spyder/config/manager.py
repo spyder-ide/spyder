@@ -363,10 +363,16 @@ class ConfigurationManager(object):
             if isinstance(option, tuple):
                 section_prefix.add_path(option)
             else:
-                self.notify_observers(section, option)
+                try:
+                    self.notify_observers(section, option)
+                except cp.NoOptionError:
+                    pass
         # Notify prefixed observers
         for prefix in section_prefix:
-            self.notify_observers(section, prefix)
+            try:
+                self.notify_observers(section, prefix)
+            except cp.NoOptionError:
+                    pass
 
     # --- Projects
     # ------------------------------------------------------------------------

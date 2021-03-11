@@ -576,6 +576,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
         python_only: bool
             Perform an update only for the Python language server.
         """
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+
         for language in self.get_languages():
             if python_only and language != 'python':
                 continue
@@ -679,16 +683,16 @@ class LanguageServerProvider(SpyderCompletionProvider):
         python_config = PYTHON_CONFIG.copy()
 
         # Server options
-        cmd = self.get_conf('advanced/module')
-        host = self.get_conf('advanced/host')
-        port = self.get_conf('advanced/port')
+        cmd = self.get_conf('advanced/module', 'pyls')
+        host = self.get_conf('advanced/host', '127.0.0.1')
+        port = self.get_conf('advanced/port', 2087)
 
         # Pycodestyle
-        cs_exclude = self.get_conf('pycodestyle/exclude').split(',')
-        cs_filename = self.get_conf('pycodestyle/filename').split(',')
-        cs_select = self.get_conf('pycodestyle/select').split(',')
-        cs_ignore = self.get_conf('pycodestyle/ignore').split(',')
-        cs_max_line_length = self.get_conf('pycodestyle/max_line_length')
+        cs_exclude = self.get_conf('pycodestyle/exclude', '').split(',')
+        cs_filename = self.get_conf('pycodestyle/filename', '').split(',')
+        cs_select = self.get_conf('pycodestyle/select', '').split(',')
+        cs_ignore = self.get_conf('pycodestyle/ignore', '').split(',')
+        cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
 
         pycodestyle = {
             'enabled': self.get_conf('pycodestyle'),
@@ -710,15 +714,15 @@ class LanguageServerProvider(SpyderCompletionProvider):
         convention = self.get_conf('pydocstyle/convention')
 
         if convention == 'Custom':
-            ds_ignore = self.get_conf('pydocstyle/ignore').split(',')
-            ds_select = self.get_conf('pydocstyle/select').split(',')
+            ds_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
+            ds_select = self.get_conf('pydocstyle/select', '').split(',')
             ds_add_ignore = []
             ds_add_select = []
         else:
             ds_ignore = []
             ds_select = []
-            ds_add_ignore = self.get_conf('pydocstyle/ignore').split(',')
-            ds_add_select = self.get_conf('pydocstyle/select').split(',')
+            ds_add_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
+            ds_add_select = self.get_conf('pydocstyle/select', '').split(',')
 
         pydocstyle = {
             'enabled': self.get_conf('pydocstyle'),

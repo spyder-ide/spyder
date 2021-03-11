@@ -80,6 +80,10 @@ class SnippetsProvider(SpyderCompletionProvider):
 
     @on_conf_change
     def update_snippets(self, snippets):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+
         self.config = snippets
         snippet_info = {}
         for language in SUPPORTED_LANGUAGES_PY:

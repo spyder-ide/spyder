@@ -156,11 +156,19 @@ class KiteProvider(SpyderCompletionProvider):
 
     @on_conf_change(section='completions', option='enable_code_snippets')
     def on_code_snippets_changed(self, value):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+
         self.client.enable_code_snippets = self.get_conf(
             'enable_code_snippets', section='completions')
 
     @on_conf_change
     def update_kite_configuration(self, config):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+
         self._show_onboarding = self.get_conf('show_onboarding')
 
     def _kite_onboarding(self):
