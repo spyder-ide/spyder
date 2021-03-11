@@ -80,8 +80,8 @@ def test_add_history(historylog):
     text1 = 'a = 5\nb= 10\na + b\n'
     path1 = create_file(name1, text1)
     tab1 = os.path.basename(path1)
-    hw.get_conf('line_numbers', False)
-    hw.get_conf('wrap', False)
+    hw.set_conf('line_numbers', False)
+    hw.set_conf('wrap', False)
     hl.add_history(path1)
 
     # Check tab and editor were created correctly.
@@ -104,8 +104,8 @@ def test_add_history(historylog):
     text2 = 'random text\nspam line\n\n\n\n'
     path2 = create_file(name2, text2)
     tab2 = os.path.basename(path2)
-    hw.get_conf('line_numbers', True)
-    hw.get_conf('wrap', True)
+    hw.set_conf('line_numbers', True)
+    hw.set_conf('wrap', True)
     hw.add_history(path2)
 
     # Check second tab and editor were created correctly.
@@ -142,7 +142,7 @@ def test_append_to_history(qtbot, historylog):
     hw = historylog.get_widget()
 
     # Toggle to move to the end of the file after appending.
-    hw.get_conf('go_to_eof', True)
+    hw.set_conf('go_to_eof', True)
 
     # Force cursor to the beginning of the file.
     text1 = 'import re\n'
@@ -158,7 +158,7 @@ def test_append_to_history(qtbot, historylog):
     assert not hw.editors[0].linenumberarea.isVisible()
 
     # Toggle to not move cursor after appending.
-    hw.get_conf('go_to_eof', False)
+    hw.set_conf('go_to_eof', False)
 
     # Force cursor to the beginning of the file.
     hw.editors[0].set_cursor_position('sof')
