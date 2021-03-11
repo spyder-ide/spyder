@@ -39,6 +39,8 @@ class InterpreterStatus(BaseTimerStatus):
         'custom': False,
     }
 
+    CONF_SECTION = 'main_interpreter'
+
     sig_open_preferences_requested = Signal()
     """
     Signal to open the main interpreter preferences.
