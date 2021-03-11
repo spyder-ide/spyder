@@ -913,7 +913,8 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
             the ones defined on `CONF_DEFAULTS` and the values correspond to
             the current values according to the Spyder configuration system.
         """
-        self.CONF_SECTION = parent.CONF_SECTION
+        self.CONF_SECTION = (parent.CONF_SECTION
+                             if parent is not None else 'completions')
 
         super().__init__(parent)
         self.main = parent
