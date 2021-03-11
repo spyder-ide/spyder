@@ -96,7 +96,7 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(autouse=True)
 def reset_conf_before_test():
     from spyder.config.manager import CONF
-    CONF.reset_to_defaults()
+    CONF.reset_to_defaults(notification=False)
 
     from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
     from spyder.plugins.completion.plugin import CompletionPlugin
@@ -122,4 +122,5 @@ def reset_conf_before_test():
         }
         provider_configurations[provider_name] = new_provider_config
 
-    CONF.set('completions', 'provider_configuration', provider_configurations)
+    CONF.set('completions', 'provider_configuration', provider_configurations,
+             notification=False)

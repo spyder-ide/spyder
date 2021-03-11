@@ -449,7 +449,7 @@ class ConfigurationManager(object):
         return value
 
     def set(self, section, option, value, verbose=False, save=True,
-            recursive_notification=True):
+            recursive_notification=True, notification=True):
         """
         Set an `option` on a given `section`.
 
@@ -475,7 +475,9 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
-        self.notify_observers(section, original_option, recursive_notification)
+        if notification:
+            self.notify_observers(
+                section, original_option, recursive_notification)
 
     def get_default(self, section, option):
         """
@@ -521,14 +523,15 @@ class ConfigurationManager(object):
         else:
             config.remove_option(section, option)
 
-    def reset_to_defaults(self, section=None):
+    def reset_to_defaults(self, section=None, notification=True):
         """Reset config to Default values."""
         config = self.get_active_conf(section)
         config.reset_to_defaults(section=section)
-        if section is not None:
-            self.notify_section_all_observers(section)
-        else:
-            self.notify_all_observers()
+        if notification:
+            if section is not None:
+                self.notify_section_all_observers(section)
+            else:
+                self.notify_all_observers()
 
     # Shortcut configuration management
     # ------------------------------------------------------------------------
