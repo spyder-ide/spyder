@@ -3669,7 +3669,11 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         (4, 'textDocument/didOpen'),
     ]
 
-    assert python_client['instance']._requests[:5] == expected_requests
+    lsp_requests = python_client['instance']._requests
+    start_idx = lsp_requests.index((0, 'initialize'))
+    # print(python_client['instance']._requests)
+
+    assert python_client['instance']._requests[start_idx:start_idx + 5] == expected_requests
 
 
 @pytest.mark.slow
