@@ -265,21 +265,21 @@ class ConfigurationManager(object):
         if section is not None:
             section_options = observer_sections[section]
             section_observers = self._observers[section]
-            if option is not None:
+            if option is None:
                 for option in section_options:
                     option_observers = section_observers[option]
-                    option_observers.pop(observer)
+                    option_observers.remove(observer)
                 observer_sections.pop(section)
             else:
                 option_observers = section_observers[option]
-                option_observers.pop(observer)
+                option_observers.remove(observer)
         else:
             for section in observer_sections:
                 section_options = observer_sections[section]
                 section_observers = self._observers[section]
                 for option in section_options:
                     option_observers = section_observers[option]
-                    option_observers.pop(observer)
+                    option_observers.remove(observer)
             self._observer_map_keys.pop(observer)
 
     def notify_all_observers(self):
