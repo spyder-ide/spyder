@@ -342,7 +342,7 @@ class ConfigurationManager(object):
         if len(option_observers) > 0:
             logger.debug('Sending notification to observers of '
                          f'{option} in configuration section {section}')
-        for observer in option_observers:
+        for observer in list(option_observers):
             try:
                 observer.on_configuration_change(option, section, value)
             except RuntimeError:
