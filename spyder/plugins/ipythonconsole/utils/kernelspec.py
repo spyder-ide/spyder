@@ -25,7 +25,7 @@ from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
-from spyder.utils.programs import is_python_interpreter
+from spyder.utils.programs import is_python_interpreter, get_user_env_variables
 
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -128,6 +128,11 @@ class SpyderKernelSpec(KernelSpec):
         # Avoid IPython adding the virtualenv on which Spyder is running
         # to the kernel sys.path
         env_vars.pop('VIRTUAL_ENV', None)
+        env_vars.pop('PYTHONPATH', None)
+
+        # App considerations
+        if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
+            env_vars.pop('PYTHONHOME', None)
 
         # Add spyder-kernels subrepo path to PYTHONPATH
         if DEV or running_under_pytest():
@@ -136,6 +141,17 @@ class SpyderKernelSpec(KernelSpec):
                                     'spyder-kernels')
 
             env_vars.update({'PYTHONPATH': subrepo_path})
+
+        user_env_vars = get_user_env_variables()
+
+        if CONF.get('main_interpreter', 'system_pythonpath', False):
+            pythonpath = os.pathsep.join([env_vars.get('PYTHONPATH', ''),
+                                          user_env_vars.get('PYTHONPATH', '')])
+            env_vars.update({'PYTHONPATH': pythonpath})
+
+        if CONF.get('main_interpreter', 'system_env_variables', False):
+            user_env_vars.pop('PYTHONPATH', None)
+            env_vars.update(user_env_vars)
 
         # List of paths declared by the user, plus project's path, to
         # add to PYTHONPATH
@@ -188,11 +204,6 @@ class SpyderKernelSpec(KernelSpec):
             env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
             env_vars['SPY_SYMPY_O'] = False
             env_vars['SPY_RUN_CYTHON'] = True
-
-        # App considerations
-        if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
-            env_vars.pop('PYTHONHOME', None)
-            env_vars.pop('PYTHONPATH', None)
 
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.

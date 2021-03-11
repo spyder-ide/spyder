@@ -129,6 +129,8 @@ DEFAULTS = [
               'umr/namelist': [],
               'custom_interpreters_list': [],
               'custom_interpreter': '',
+              'system_pythonpath': False,
+              'system_env_variables': False,
               }),
             ('ipython_console',
              {

@@ -1066,3 +1066,23 @@ def find_git():
         return find_program('git')
     else:
         return find_program('git')
+
+
+def get_user_env_variables():
+    cmdstr = ''
+    if sys.platform == 'darwin':
+        cmdstr = ('[[ -e /etc/profile ]] && source /etc/profile; '
+                  '[[ -e ~/.bash_profile ]] && source ~/.bash_profile; '
+                  'printenv')
+    elif sys.platform.startswith('linux'):
+        pass
+    elif os.name == 'nt':
+        pass
+
+    out, err = run_shell_command(cmdstr, env={}).communicate()
+
+    env_vars = {}
+    for item in out.decode().strip().split('\n'):
+        env_vars.update([item.split('=')])
+
+    return env_vars

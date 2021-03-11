@@ -117,6 +117,22 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
+
+        system_pythonpath = newcb(
+            _("Use system PYTHONPATH"),
+            'system_pythonpath',
+            msg_info=_("Please note that these changes will "
+                       "be applied only to new consoles"),
+        )
+        pyexec_layout.addWidget(system_pythonpath)
+        system_env_variables = newcb(
+            _("Use system environment variables"),
+            'system_env_variables',
+            msg_info=_("Please note that these changes will "
+                       "be applied only to new consoles"),
+        )
+        pyexec_layout.addWidget(system_env_variables)
+
         pyexec_group.setLayout(pyexec_layout)
 
         self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()
