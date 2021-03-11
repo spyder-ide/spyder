@@ -25,6 +25,7 @@ from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
@@ -270,6 +271,10 @@ class CompletionPlugin(SpyderPluginV2):
         # Do not start providers on tests unless necessary
         if running_under_pytest():
             if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                # Prevent providers from receiving configuration updates
+                for provider_name in self.providers:
+                    provider_info = self.providers[provider_name]
+                    CONF.unobserve_configuration(provider_info['instance'])
                 return
 
         self.start_all_providers()
