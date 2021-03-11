@@ -7,6 +7,7 @@
 """Custom text snippets completion plugin."""
 
 # Standard library imports
+import os
 import bisect
 import logging
 
