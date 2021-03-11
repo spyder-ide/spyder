@@ -91,3 +91,9 @@ def pytest_collection_modifyitems(config, items):
         else:
             if "slow" in item.keywords:
                 item.add_marker(skip_slow)
+
+
+@pytest.fixture(autouse=True)
+def reset_conf_before_test():
+    from spyder.config.manager import CONF
+    CONF.reset_to_defaults()
