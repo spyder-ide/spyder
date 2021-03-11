@@ -105,3 +105,17 @@ class GroupLight:
     B100 = '#CC2782'
     B110 = '#FF71BF'
     B120 = '#7EE8C7'
+
+
+class Logos:
+    """
+    Colors for the Python and Spyder logos
+    """
+
+    B10 = '#3775a9'
+    B20 = '#ffd444'
+    B30 = '#414141'
+    B40 = '#fafafa'
+    B50 = '#ee0000'
+
+
