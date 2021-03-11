@@ -9,6 +9,7 @@
 # Standard library imports
 import logging
 import functools
+import os
 import os.path as osp
 
 # Qt imports
