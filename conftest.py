@@ -97,3 +97,29 @@ def pytest_collection_modifyitems(config, items):
 def reset_conf_before_test():
     from spyder.config.manager import CONF
     CONF.reset_to_defaults()
+
+    from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
+    from spyder.plugins.completion.plugin import CompletionPlugin
+
+    # Restore completion clients default settings, since they
+    # don't have default values on the configuration.
+    from pkg_resources import iter_entry_points
+
+    provider_configurations = {}
+    for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
+        Provider = entry_point.resolve()
+        provider_name = Provider.COMPLETION_PROVIDER_NAME
+
+        (provider_conf_version,
+         current_conf_values,
+         provider_defaults) = CompletionPlugin._merge_default_configurations(
+            Provider, provider_name, provider_configurations)
+
+        new_provider_config = {
+            'version': provider_conf_version,
+            'values': current_conf_values,
+            'defaults': provider_defaults
+        }
+        provider_configurations[provider_name] = new_provider_config
+
+    CONF.set('completions', 'provider_configuration', provider_configurations)

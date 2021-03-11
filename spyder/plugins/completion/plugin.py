@@ -567,8 +567,8 @@ class CompletionPlugin(SpyderPluginV2):
         return wrapper
 
     # ---------- Completion provider registering/start/stop methods -----------
-    def _merge_default_configurations(self,
-                                      Provider: SpyderCompletionProvider,
+    @staticmethod
+    def _merge_default_configurations(Provider: SpyderCompletionProvider,
                                       provider_name: str,
                                       provider_configurations: dict):
         provider_defaults = dict(Provider.CONF_DEFAULTS)
