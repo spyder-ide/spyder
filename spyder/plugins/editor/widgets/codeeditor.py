@@ -4626,7 +4626,7 @@ class CodeEditor(TextEditBaseWidget):
             if key in ['file']:
                 fname = self._preprocess_file_uri(pattern_text)
                 if not osp.isfile(fname):
-                    color = QColor(255, 80, 80)
+                    color = QColor(SpyderPalette.COLOR_ERROR_2)
 
             self.clear_extra_selections('ctrl_click')
             self.highlight_selection(

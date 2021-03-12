@@ -35,15 +35,12 @@ from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils import icon_manager as ima
 
 
-if is_dark_interface():
-    MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(25, 35, 45)
-else:
-    MAIN_TOP_COLOR = QColor.fromRgb(230, 230, 230)
-    MAIN_BG_COLOR = QColor.fromRgb(255, 255, 255)
+
+MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
 
 MAC = sys.platform == 'darwin'
 
@@ -463,7 +460,7 @@ class FadingCanvas(FadingDialog):
         self.tour = tour
 
         self.color = color              # Canvas color
-        self.color_decoration = Qt.red  # Decoration color
+        self.color_decoration = SpyderPalette.COLOR_ERROR_2 # Decoration color
         self.stroke_decoration = 2      # width in pixels for decoration
 
         self.region_mask = None

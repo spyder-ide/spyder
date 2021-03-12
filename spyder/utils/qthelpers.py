@@ -33,6 +33,7 @@ from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_std_icon
+from spyder.utils.palette import QStylePalette
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 
@@ -269,7 +270,7 @@ def create_waitspinner(size=32, n=11, parent=None):
     spinner.setLineLength(dot_size)
     spinner.setLineWidth(dot_size)
     spinner.setInnerRadius(inner_radius)
-    spinner.setColor(Qt.white if is_dark_interface() else Qt.black)
+    spinner.setColor(QStylePalette.COLOR_TEXT_1)
 
     return spinner
 
