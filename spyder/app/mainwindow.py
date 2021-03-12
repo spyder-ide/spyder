@@ -692,7 +692,7 @@ class MainWindow(QMainWindow):
                            "restart your computer: <br><br><span "
                            "style=\'color: {color}\'><b>netsh winsock reset "
                            "</b></span><br>").format(
-                               color = QStylePalette.COLOR_BACKGROUND_4))
+                               color=QStylePalette.COLOR_BACKGROUND_4))
         else:
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,

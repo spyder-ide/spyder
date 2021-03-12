@@ -39,7 +39,6 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils import icon_manager as ima
 
 
-
 MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
 
 MAC = sys.platform == 'darwin'

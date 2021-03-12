@@ -117,5 +117,3 @@ class Logos:
     B30 = '#414141'
     B40 = '#fafafa'
     B50 = '#ee0000'
-
-

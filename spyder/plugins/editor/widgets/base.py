@@ -92,8 +92,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         # The color values may be overridden by the syntax highlighter
         # Highlight current line color
-        self.currentline_color = QColor(SpyderPalette.COLOR_ERROR_2).lighter(190)
-        self.currentcell_color = QColor(SpyderPalette.COLOR_ERROR_2).lighter(194)
+        self.currentline_color = QColor(
+            SpyderPalette.COLOR_ERROR_2).lighter(190)
+        self.currentcell_color = QColor(
+            SpyderPalette.COLOR_ERROR_2).lighter(194)
 
         # Brace matching
         self.bracepos = None

@@ -5,7 +5,8 @@
 # (see spyder/__init__.py for details)
 
 # Local imports
-from spyder.utils.color_system import Green, Red, Orange, GroupDark, GroupLight, Logos
+from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
+                                       GroupLight, Logos)
 from qdarkstyle.colorsystem import Blue, Gray
 from qdarkstyle.darkpalette import DarkPalette
 from spyder.config.gui import is_dark_interface
@@ -72,6 +73,7 @@ class SpyderPaletteDark:
     SPYDER_LOGO_BACKGROUND = Logos.B30
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
+
 
 class SpyderPaletteLight:
 
