@@ -32,6 +32,7 @@ from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import programs
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import start_file
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
@@ -45,10 +46,7 @@ _ = get_translation('spyder')
 
 # --- Constants
 # ----------------------------------------------------------------------------
-if is_dark_interface():
-    MAIN_BG_COLOR = '#19232D'
-else:
-    MAIN_BG_COLOR = 'white'
+MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
 
 
 class HelpWidgetActions:

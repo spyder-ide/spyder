@@ -97,6 +97,7 @@ from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
+from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_program_action, DialogManager,
@@ -689,8 +690,9 @@ class MainWindow(QMainWindow):
                            "by Spyder. Please, try to run as an Administrator "
                            "from cmd.exe the following command and then "
                            "restart your computer: <br><br><span "
-                           "style=\'color: #555555\'><b>netsh winsock reset"
-                           "</b></span><br>"))
+                           "style=\'color: {color}\'><b>netsh winsock reset "
+                           "</b></span><br>").format(
+                               color = QStylePalette.COLOR_BACKGROUND_4))
         else:
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,

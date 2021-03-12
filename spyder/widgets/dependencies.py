@@ -21,6 +21,7 @@ from spyder import __version__
 from spyder.config.base import _
 from spyder.dependencies import MANDATORY, OPTIONAL, PLUGIN
 from spyder.utils import icon_manager as ima
+from spyder.utils.palette import SpyderPalette
 
 
 class DependenciesTreeWidget(QTreeWidget):
@@ -59,10 +60,10 @@ class DependenciesTreeWidget(QTreeWidget):
                 item.setIcon(0, ima.icon('dependency_ok'))
             elif dependency.kind == OPTIONAL:
                 item.setIcon(0, ima.icon('dependency_warning'))
-                item.setForeground(2, QColor('#ff6a00'))
+                item.setForeground(2, QColor(SpyderPalette.COLOR_WARN_1))
             else:
                 item.setIcon(0, ima.icon('dependency_error'))
-                item.setForeground(2, QColor(Qt.darkRed))
+                item.setForeground(2, QColor(SpyderPalette.COLOR_ERROR_1))
 
             # Add to tree
             if dependency.kind == OPTIONAL:

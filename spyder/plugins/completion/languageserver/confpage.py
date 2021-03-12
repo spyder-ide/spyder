@@ -34,6 +34,7 @@ from spyder.plugins.completion.manager.api import LSP_LANGUAGES
 from spyder.plugins.preferences.api import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import check_connection_port
+from spyder.utils.palette import QStylePalette
 
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
@@ -134,7 +135,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         )
         if is_dark_interface():
             modules_textedit.textbox.setStyleSheet(
-                "border: 1px solid #32414B;"
+                f"border: 1px solid {QStylePalette.COLOR_BACKGROUND_2};"
             )
 
         advanced_layout = QVBoxLayout()
