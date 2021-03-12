@@ -128,11 +128,6 @@ class SpyderKernelSpec(KernelSpec):
         # Avoid IPython adding the virtualenv on which Spyder is running
         # to the kernel sys.path
         env_vars.pop('VIRTUAL_ENV', None)
-        env_vars.pop('PYTHONPATH', None)
-
-        # App considerations
-        if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
-            env_vars.pop('PYTHONHOME', None)
 
         # Add spyder-kernels subrepo path to PYTHONPATH
         if DEV or running_under_pytest():
@@ -142,16 +137,22 @@ class SpyderKernelSpec(KernelSpec):
 
             env_vars.update({'PYTHONPATH': subrepo_path})
 
-        user_env_vars = get_user_env_variables()
+        # App considerations
+        if (running_in_mac_app() or is_pynsist()):
+            env_vars.pop('PYTHONPATH', None)
 
-        if CONF.get('main_interpreter', 'system_pythonpath', False):
-            pythonpath = os.pathsep.join([env_vars.get('PYTHONPATH', ''),
-                                          user_env_vars.get('PYTHONPATH', '')])
-            env_vars.update({'PYTHONPATH': pythonpath})
+            if not default_interpreter:
+                env_vars.pop('PYTHONHOME', None)
 
-        if CONF.get('main_interpreter', 'system_env_variables', False):
-            user_env_vars.pop('PYTHONPATH', None)
-            env_vars.update(user_env_vars)
+            user_env_vars = get_user_env_variables()
+            if CONF.get('main_interpreter', 'system_pythonpath', False):
+                pythonpath = user_env_vars.get('PYTHONPATH', None)
+                if pythonpath is not None:
+                    env_vars.update({'PYTHONPATH': pythonpath})
+
+            if CONF.get('main_interpreter', 'system_env_variables', False):
+                user_env_vars.pop('PYTHONPATH', None)
+                env_vars.update(user_env_vars)
 
         # List of paths declared by the user, plus project's path, to
         # add to PYTHONPATH

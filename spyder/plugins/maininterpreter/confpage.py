@@ -23,6 +23,7 @@ from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
+from spyder.config.base import is_pynsist, running_in_mac_app
 
 # Localization
 _ = get_translation('spyder')
@@ -123,6 +124,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             'system_pythonpath',
             msg_info=_("Please note that these changes will "
                        "be applied only to new consoles"),
+            tip=_("For standalone applications, use your system PYTHONPATH")
         )
         pyexec_layout.addWidget(system_pythonpath)
         system_env_variables = newcb(
@@ -130,8 +132,14 @@ class MainInterpreterConfigPage(PluginConfigPage):
             'system_env_variables',
             msg_info=_("Please note that these changes will "
                        "be applied only to new consoles"),
+            tip=_("For standalone applications, use your "
+                  "system environment variables")
         )
         pyexec_layout.addWidget(system_env_variables)
+        if not running_in_mac_app() and not is_pynsist():
+            # Disable preference if not a standalone application
+            system_pythonpath.setEnabled(False)
+            system_env_variables.setEnabled(False)
 
         pyexec_group.setLayout(pyexec_layout)
 
