@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import (_, get_conf_path, running_under_pytest,
-                                running_in_mac_app)
+                                running_in_mac_app, is_pynsist)
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.utils.misc import check_connection_port
@@ -35,6 +35,7 @@ from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 from spyder.plugins.completion.providers.languageserver.widgets import (
     ClientStatus, LSPStatusWidget, ServerDisabledMessageBox)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
+from spyder.utils.programs import get_user_env_variables
 
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
@@ -787,8 +788,13 @@ class LanguageServerProvider(SpyderCompletionProvider):
         if not self.get_conf('default', section='main_interpreter'):
             environment = self.get_conf('custom_interpreter',
                                         section='main_interpreter')
-            if running_in_mac_app():
+
+        if running_in_mac_app():
+            if not self.get_conf('default', section='main_interpreter'):
                 env_vars.pop('PYTHONHOME', None)
+
+            if CONF.get('main_interpreter', 'system_pythonpath', False):
+                pythonpath = get_user_env_variables().get('PYTHONPATH', '')
 
         # PYTHONPATH must be added to extra_paths
         extra_paths.extend(pythonpath.split(os.pathsep))
