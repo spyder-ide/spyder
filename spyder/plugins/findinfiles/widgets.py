@@ -1403,12 +1403,15 @@ def test():
     # Standard library imports
     from os.path import dirname
     import sys
+    from unittest.mock import MagicMock
 
     # Local imports
     from spyder.utils.qthelpers import qapplication
 
     app = qapplication()
-    widget = FindInFilesWidget('find_in_files')
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'find_in_files'
+    widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
     widget.CONF_SECTION = 'find_in_files'
     widget._setup()
     widget.setup()

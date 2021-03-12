@@ -1016,6 +1016,7 @@ def test():
     from spyder.utils.qthelpers import qapplication
     import inspect
     import tempfile
+    from unittest.mock import MagicMock
 
     primes_sc = inspect.getsource(primes)
     fd, script = tempfile.mkstemp(suffix='.py')
@@ -1024,11 +1025,13 @@ def test():
         f.write(primes_sc + "\n\n")
         f.write("primes(100000)")
 
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'profiler'
+
     app = qapplication(test_time=5)
-    options = ProfilerWidget.DEFAULT_OPTIONS.copy()
-    widget = ProfilerWidget('test')
-    widget._setup(options)
-    widget.setup(options)
+    widget = ProfilerWidget('test', plugin=plugin_mock)
+    widget._setup()
+    widget.setup()
     widget.resize(800, 600)
     widget.show()
     widget.analyze(script)

@@ -904,12 +904,15 @@ class PylintWidget(PluginMainWidget):
 def test():
     """Run pylint widget test"""
     from spyder.utils.qthelpers import qapplication
+    from unittest.mock import MagicMock
+
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'pylint'
 
     app = qapplication(test_time=20)
-    options = PylintWidget.DEFAULT_OPTIONS.copy()
-    widget = PylintWidget(name="pylint", options=options)
-    widget._setup(options)
-    widget.setup(options)
+    widget = PylintWidget(name="pylint", plugin=plugin_mock)
+    widget._setup()
+    widget.setup()
     widget.resize(640, 480)
     widget.show()
     widget.start_code_analysis(filename=__file__)

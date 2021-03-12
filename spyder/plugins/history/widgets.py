@@ -316,12 +316,15 @@ class HistoryWidget(PluginMainWidget):
 def test():
     """Run history widget."""
     from spyder.utils.qthelpers import qapplication
+    from unittest.mock import MagicMock
+
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'historylog'
 
     app = qapplication(test_time=8)
-    options = HistoryWidget.DEFAULT_OPTIONS.copy()
-    widget = HistoryWidget('historylog', None, None, options=options)
-    widget._setup(options)
-    widget.setup(options)
+    widget = HistoryWidget('historylog', plugin_mock, None)
+    widget._setup()
+    widget.setup()
     widget.show()
     sys.exit(app.exec_())
 
