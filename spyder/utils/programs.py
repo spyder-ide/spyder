@@ -1069,6 +1069,7 @@ def find_git():
 
 
 def get_user_env_variables():
+    """Return local environment variables"""
     cmdstr = ''
     if sys.platform == 'darwin':
         cmdstr = ('[[ -e /etc/profile ]] && source /etc/profile; '
