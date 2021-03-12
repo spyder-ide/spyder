@@ -134,8 +134,10 @@ class SpyderKernelSpec(KernelSpec):
             repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
             subrepo_path = osp.join(repo_path, 'external-deps',
                                     'spyder-kernels')
-
-            env_vars.update({'PYTHONPATH': subrepo_path})
+            pythonpath = env_vars.get('PYTHONPATH', '') if DEV else ''
+            env_vars.update(
+                {'PYTHONPATH': os.pathsep.join([subrepo_path, pythonpath])}
+            )
 
         # App considerations
         if (running_in_mac_app() or is_pynsist()):
@@ -146,11 +148,13 @@ class SpyderKernelSpec(KernelSpec):
 
             user_env_vars = get_user_env_variables()
             if CONF.get('main_interpreter', 'system_pythonpath', False):
+                # Only get PYTHONPATH
                 pythonpath = user_env_vars.get('PYTHONPATH', None)
                 if pythonpath is not None:
                     env_vars.update({'PYTHONPATH': pythonpath})
 
             if CONF.get('main_interpreter', 'system_env_variables', False):
+                # Get all but PYTHONPATH
                 user_env_vars.pop('PYTHONPATH', None)
                 env_vars.update(user_env_vars)
 
