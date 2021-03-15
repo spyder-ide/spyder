@@ -142,6 +142,13 @@ class ToolbarContainer(PluginMainContainer):
 
         TOOLBAR_REGISTRY.register_reference(
             toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
+        toolbar.setStyleSheet(
+                "QToolButton {"
+                "width: 54px;"
+                "height: 54px;"
+                "padding: 0px;"
+                "icon-size: 24px;"
+                "}")
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
         return toolbar
@@ -175,8 +182,8 @@ class ToolbarContainer(PluginMainContainer):
                 'Toolbar with ID "{}" already added!'.format(toolbar_id))
 
         # TODO: Make the icon size adjustable in Preferences later on.
-        iconsize = 24
-        toolbar.setIconSize(QSize(iconsize, iconsize))
+        #iconsize = 24
+        #toolbar.setIconSize(QSize(iconsize, iconsize))
         toolbar.setObjectName(toolbar_id)
 
         self._ADDED_TOOLBARS[toolbar_id] = toolbar
