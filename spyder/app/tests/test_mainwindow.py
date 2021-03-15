@@ -3662,18 +3662,39 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     qtbot.wait(5000)
 
     expected_requests = [
-        (0, 'initialize'),
-        (1, 'initialized'),
-        (2, 'workspace/didChangeConfiguration'),
-        (3, 'workspace/didChangeWorkspaceFolders'),
-        (4, 'textDocument/didOpen'),
+        'initialize',
+        'initialized',
+        'workspace/didChangeConfiguration',
+        'workspace/didChangeWorkspaceFolders',
+        'textDocument/didOpen',
     ]
+
+    skip_intermediate = {
+        'initialized': {'workspace/didChangeConfiguration'}
+    }
 
     lsp_requests = python_client['instance']._requests
     start_idx = lsp_requests.index((0, 'initialize'))
-    # print(python_client['instance']._requests)
 
-    assert python_client['instance']._requests[start_idx:start_idx + 5] == expected_requests
+    request_order = []
+    expected_iter = iter(expected_requests)
+    current_expected = next(expected_iter)
+    for i in range(start_idx, len(lsp_requests)):
+        if current_expected is None:
+            break
+
+        _, req_type = lsp_requests[i]
+        if req_type == current_expected:
+            request_order.append(req_type)
+            current_expected = next(expected_iter, None)
+        else:
+            skip_set = skip_intermediate.get(current_expected, set({}))
+            if req_type in skip_set:
+                continue
+            else:
+                assert req_type == current_expected
+
+    assert request_order == expected_requests
 
 
 @pytest.mark.slow
