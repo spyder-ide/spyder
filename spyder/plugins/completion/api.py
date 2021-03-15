@@ -689,7 +689,6 @@ class CompletionConfigurationObserver(SpyderConfigurationObserver):
                     section_listeners[option] = option_listeners
                     self._configuration_listeners[section] = section_listeners
 
-
     def _wrap_provider_option(self, option):
         if isinstance(option, tuple):
             option = (
@@ -1192,7 +1191,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
             If None, then the option is retrieved from the local provider
             configuration. Otherwise, lookup on the global Spyder one.
         recursive_notification: bool
-            If True, all the objects that observe all the changes on the
+            If True, all objects that observe all changes on the
             configuration section and objects that observe partial tuple paths
             are notified. For example if the option `opt` of section `sec`
             changes, then the observers for section `sec` are notified.

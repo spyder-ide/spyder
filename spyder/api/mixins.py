@@ -26,12 +26,12 @@ BasicTypes = Union[bool, int, str, tuple, list, dict]
 
 class SpyderConfigurationAccessor:
     """
-    Mixin used to access options stored in the Spyder configuration.
+    Mixin used to access options stored in the Spyder configuration system.
     """
 
     # Name of the configuration section that's going to be
     # used to record the object's permanent data in Spyder
-    # config system (i.e. in spyder.ini)
+    # config system.
     CONF_SECTION = None
 
     def get_conf(self,
@@ -39,7 +39,7 @@ class SpyderConfigurationAccessor:
                  default: Union[NoDefault, BasicTypes] = NoDefault,
                  section: Optional[str] = None):
         """
-        Get an option from Spyder configuration system.
+        Get an option from the Spyder configuration system.
 
         Parameters
         ----------
@@ -90,7 +90,7 @@ class SpyderConfigurationAccessor:
             Section in the configuration system, e.g. `shortcuts`. If None,
             then the value of `CONF_SECTION` is used.
         recursive_notification: bool
-            If True, all the objects that observe all the changes on the
+            If True, all objects that observe all changes on the
             configuration section and objects that observe partial tuple paths
             are notified. For example if the option `opt` of section `sec`
             changes, then the observers for section `sec` are notified.
@@ -106,7 +106,6 @@ class SpyderConfigurationAccessor:
         CONF.set(section, option, value,
                  recursive_notification=recursive_notification)
 
-
     def remove_conf(self,
                     option: ConfigurationKey,
                     section: Optional[str] = None):
@@ -116,7 +115,7 @@ class SpyderConfigurationAccessor:
         Parameters
         ----------
         option: ConfigurationKey
-            Name/Tuple path of the option to set its value.
+            Name/Tuple path of the option to remove its value.
         section: Optional[str]
             Section in the configuration system, e.g. `shortcuts`. If None,
             then the value of `CONF_SECTION` is used.
@@ -157,7 +156,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         self._gather_observers()
         self._merge_none_observers()
 
-        # Register class to listen for changes in all the registered options
+        # Register class to listen for changes in all registered options
         for section in self._configuration_listeners:
             section = self.CONF_SECTION if section is None else section
             observed_options = self._configuration_listeners[section]
@@ -207,7 +206,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
                                 value: Any):
         """
         Handle configuration updates for the option `option` on the section
-        `section`, which its new value corresponds to `value`.
+        `section`, whose new value corresponds to `value`.
 
         Parameters
         ----------

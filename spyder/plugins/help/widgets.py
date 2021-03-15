@@ -374,8 +374,6 @@ class HelpWidget(PluginMainWidget):
             toggled=True,
             option='show_source'
         )
-        self.get_action(HelpWidgetActions.ToggleShowSource)
-
         self.rich_text_action = self.create_action(
             name=HelpWidgetActions.ToggleRichMode,
             text=_("Rich Text"),
@@ -465,6 +463,12 @@ class HelpWidget(PluginMainWidget):
         self.plain_text.sig_custom_context_menu_requested.connect(
             self._show_plain_text_context_menu)
 
+    def _should_display_welcome_page(self):
+        """Determine if the help welcome page should be displayed."""
+        return (self._last_editor_doc is None or
+                self._last_console_cb is None or
+                self._last_editor_cb is None)
+
     @on_conf_change(option='wrap')
     def on_wrap_option_update(self, value):
         self.plain_text.set_wrap_mode(value)
@@ -485,9 +489,7 @@ class HelpWidget(PluginMainWidget):
     @on_conf_change(option='automatic_import')
     def on_automatic_import_update(self, value):
         self.object_combo.validate_current_text()
-        if (self._last_editor_doc is None or
-                self._last_console_cb is None or
-                    self._last_editor_cb is None):
+        if self._should_display_welcome_page():
             self.show_intro_message()
         else:
             self.force_refresh()
@@ -505,9 +507,7 @@ class HelpWidget(PluginMainWidget):
             self.docstring = value
             self.stack_layout.setCurrentWidget(self.plain_text)
 
-        if (self._last_editor_doc is None or
-                self._last_console_cb is None or
-                    self._last_editor_cb is None):
+        if self._should_display_welcome_page():
             self.show_intro_message()
         else:
             self.force_refresh()
@@ -520,9 +520,7 @@ class HelpWidget(PluginMainWidget):
                 False)
 
         self.docstring = not value
-        if (self._last_editor_doc is None or
-                self._last_console_cb is None or
-                    self._last_editor_cb is None):
+        if self._should_display_welcome_page():
             self.show_intro_message()
         else:
             self.force_refresh()

@@ -56,6 +56,8 @@ def on_conf_change(func: Callable = None,
             on_conf_change, section=section, option=option)
 
     if option is None:
+        # Use special __section identifier to signal that the function
+        # observes any change on the section options.
         option = '__section'
 
     info = []

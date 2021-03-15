@@ -295,11 +295,11 @@ class SpyderActionMixin:
             the toggled signal.
         section: Optional[str]
             Name of the configuration section whose option is going to be
-            modified. If None, and option is not None, then it defaults to the
-            class `CONF_SECTION` attribute.
+            modified. If None, and `option` is not None, then it defaults to
+            the class `CONF_SECTION` attribute.
         option: ConfigurationKey
             Name of the configuration option whose value is reflected and
-            affected by the action
+            affected by the action.
         register_shortcut: bool, optional
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.

@@ -353,7 +353,7 @@ def setup_toggled_action(action, toggled, section, option):
 
 
 def wrap_toggled(toggled, section, option):
-    """"""
+    """Wrap a toggle function to set a value on a configuration option."""
     if section is not None and option is not None:
         @functools.wraps(toggled)
         def wrapped_toggled(value):

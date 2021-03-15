@@ -17,7 +17,7 @@ ConfigurationKey = Union[str, Tuple[str, ...]]
 
 class ConfigurationObserver:
     """
-    Stub typing class that represents a object that recieves updates on
+    Stub typing class that represents an object that receives updates on
     the values of configuration options that the object subscribed to.
     """
 
@@ -25,7 +25,7 @@ class ConfigurationObserver:
                                 value: Any):
         """
         Handle configuration updates for the option `option` on the section
-        `section`, which its new value corresponds to `value`.
+        `section`, whose new value corresponds to `value`.
 
         Parameters
         ----------

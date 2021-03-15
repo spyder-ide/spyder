@@ -241,7 +241,7 @@ class ConfigurationManager(object):
                                 section: Optional[str] = None,
                                 option: Optional[ConfigurationKey] = None):
         """
-        Remove an observer to prevent it to recieve further changes
+        Remove an observer to prevent it to receive further changes
         on the values of the option `option` of the configuration section
         `section`.
 
@@ -251,12 +251,12 @@ class ConfigurationManager(object):
             Object that conforms to the `ConfigurationObserver` protocol.
         section: Optional[str]
             Name of the configuration section that contains the option
-            :param:`option`. If None, the observer is deregistered from all the
-            options for all the sections that it has registered to.
+            :param:`option`. If None, the observer is unregistered from all
+            options for all sections that it has registered to.
         option: Optional[ConfigurationKey]
             Name of the configuration option on the configuration
             :param:`section` that the observer is going to be unsubscribed
-            from. If None, the observer is degistered from all the options of
+            from. If None, the observer is unregistered from all the options of
             the section `section`.
         """
         if observer not in self._observer_map_keys:
@@ -305,7 +305,7 @@ class ConfigurationManager(object):
         option: ConfigurationKey
             Name/Path to the option that did changed.
         recursive_notification: bool
-            If True, all the objects that observe all the changes on the
+            If True, all objects that observe all changes on the
             configuration section and objects that observe partial tuple paths
             are notified. For example if the option `opt` of section `sec`
             changes, then the observers for section `sec` are notified.
@@ -347,7 +347,7 @@ class ConfigurationManager(object):
             try:
                 observer.on_configuration_change(option, section, value)
             except RuntimeError:
-                # Prevent errors when QtObjects are destroyed
+                # Prevent errors when Qt Objects are destroyed
                 self.unobserve_configuration(observer)
 
     def _notify_section(self, section: str):
@@ -367,13 +367,16 @@ class ConfigurationManager(object):
                 try:
                     self.notify_observers(section, option)
                 except cp.NoOptionError:
+                    # Skip notification if the option/section does not exist.
+                    # This prevents unexpected errors in the test suite.
                     pass
         # Notify prefixed observers
         for prefix in section_prefix:
             try:
                 self.notify_observers(section, prefix)
             except cp.NoOptionError:
-                    pass
+                # See above explanation.
+                pass
 
     # --- Projects
     # ------------------------------------------------------------------------
