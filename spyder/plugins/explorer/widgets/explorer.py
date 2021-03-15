@@ -1156,11 +1156,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
                               "<br><br>Error message:<br>%s"
                               ) % (fname, str(error)))
 
+    def get_selected_dir(self):
+        """ Get selected dir
+        If file is selected the directory containing file is returned.
+        If multiple items are selected, first item is chosen.
+        """
+        selected_path = self.get_selected_filenames()[0]
+        if osp.isfile(selected_path):
+            selected_path = osp.dirname(selected_path)
+        return fixpath(selected_path)
+
     def new_folder(self, basedir=None):
         """New folder."""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _('New folder')
         subtitle = _('Folder name:')
@@ -1189,9 +1199,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def new_file(self, basedir=None):
         """New file"""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _("New file")
         filters = _("All files")+" (*)"
@@ -1602,9 +1612,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def new_package(self, basedir=None):
         """New package"""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _('New package')
         subtitle = _('Package name:')
@@ -1612,9 +1622,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def new_module(self, basedir=None):
         """New module"""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _("New module")
         filters = _("Python files")+" (*.py *.pyw *.ipy)"
