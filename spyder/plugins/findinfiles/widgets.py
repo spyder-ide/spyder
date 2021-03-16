@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
                             QTreeWidgetItem)
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.config.gui import get_font, is_dark_interface

@@ -17,7 +17,7 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
 from spyder.api.widgets.toolbars import ApplicationToolbar

@@ -14,7 +14,7 @@ import os.path as osp
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets import PluginMainContainer
 from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 from spyder.utils.misc import get_python_executable

@@ -19,7 +19,7 @@ from typing import Any, Optional, Tuple, Union
 from qtpy.QtCore import Signal, QObject, Slot, Qt
 
 # Local imports
-from spyder.api.mixins import SpyderConfigurationObserver
+from spyder.api.config.mixins import SpyderConfigurationObserver
 
 # Supported LSP programming languages
 SUPPORTED_LANGUAGES = [
@@ -657,7 +657,7 @@ COMPLETION_ENTRYPOINT = 'spyder.completions'
 
 class CompletionConfigurationObserver(SpyderConfigurationObserver):
     """
-    Extension to the :class:`spyder.api.mixins.SpyderConfigurationObserver`
+    Extension to the :class:`spyder.api.config.mixins.SpyderConfigurationObserver`
     mixin implementation to consider a nested provider configuration.
     """
 

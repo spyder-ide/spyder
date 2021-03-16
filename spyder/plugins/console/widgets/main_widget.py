@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.app.solver import find_internal_plugins
 from spyder.config.base import DEV, get_debug_level
 from spyder.plugins.console.widgets.internalshell import InternalShell

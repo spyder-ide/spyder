@@ -22,9 +22,9 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
-from spyder.api.mixins import (
+from spyder.api.config.mixins import (
     SpyderConfigurationObserver, SpyderConfigurationAccessor)
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
 from spyder.config.manager import CONF

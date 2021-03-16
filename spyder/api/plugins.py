@@ -34,12 +34,12 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import QApplication, QWidget
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.mixins import SpyderConfigurationObserver
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault

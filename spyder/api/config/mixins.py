@@ -136,8 +136,8 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
 
     This mixin enables a class to receive configuration updates seamlessly,
     by registering methods using the
-    :function:`spyder.api.decorators.on_conf_change` decorator, which receives
-    a configuration section and option to observe.
+    :function:`spyder.api.config.decorators.on_conf_change` decorator, which
+    receives a configuration section and option to observe.
 
     When a change occurs on any of the registered configuration options,
     the corresponding registered method is called with the new value.

@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QMessageBox,
                             QSizePolicy, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.config.base import get_conf_path, running_in_mac_app

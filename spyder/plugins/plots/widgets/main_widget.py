@@ -13,7 +13,7 @@ from qtpy.QtCore import QPoint, Qt, Signal
 from qtpy.QtWidgets import QHBoxLayout, QSpinBox, QStackedWidget
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidgetMenus, PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin

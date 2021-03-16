@@ -17,7 +17,7 @@ from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections

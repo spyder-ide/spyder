@@ -12,7 +12,7 @@ Status bar container.
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets import PluginMainContainer
 from spyder.plugins.statusbar.widgets.status import (
     ClockStatus, CPUStatus, MemoryStatus

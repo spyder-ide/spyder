@@ -16,7 +16,7 @@ from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.plugins.explorer.widgets.explorer import (

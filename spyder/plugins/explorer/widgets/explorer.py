@@ -30,7 +30,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QMessageBox, QTextEdit, QTreeView, QVBoxLayout)
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import SpyderWidgetMixin
 from spyder.config.base import get_home_dir, running_under_pytest

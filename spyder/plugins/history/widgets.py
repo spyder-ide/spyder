@@ -17,7 +17,7 @@ from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QInputDialog, QVBoxLayout, QWidget
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.py3compat import is_text_string, to_text_string

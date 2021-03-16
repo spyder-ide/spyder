@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.decorators import on_conf_change
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
