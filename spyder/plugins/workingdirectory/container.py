@@ -82,7 +82,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
     def setup(self):
 
         # Variables
-        self.history = self.get_conf('history')
+        self.history = self.get_conf('history', [])
         self.histindex = None
 
         # Widgets
@@ -299,7 +299,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         if history:
             self.pathedit.addItems(history)
 
-        if self.get_conf('workdir') is None:
+        if self.get_conf('workdir', None) is None:
             workdir = self.get_workdir()
         else:
             workdir = self.get_conf('workdir')
