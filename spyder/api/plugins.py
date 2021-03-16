@@ -717,6 +717,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     FONT_SIZE_DELTA = 0
     RICH_FONT_SIZE_DELTA = 0
 
+    # Define context to store actions, toolbars, toolbuttons and menus.
+    CONTEXT_NAME = None
+
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
     # Signals here are automatically connected by the Spyder main window and
@@ -811,6 +814,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         self.is_compatible = None
         self.is_registered = None
         self.main = parent
+
+        # Attribute used to access the action, toolbar, toolbutton and menu
+        # registries
+        self.PLUGIN_NAME = self.NAME
 
         if self.CONTAINER_CLASS is not None:
             self._container = container = self.CONTAINER_CLASS(

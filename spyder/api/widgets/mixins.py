@@ -15,7 +15,7 @@ Spyder API Mixins.
 import functools
 from collections import OrderedDict
 import types
-from typing import Any
+from typing import Any, Optional
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -24,6 +24,7 @@ from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 # Local imports
 from spyder.api.config.mixins import (
     SpyderConfigurationObserver, SpyderConfigurationAccessor)
+from spyder.api.registries import ACTION_REGISTRY
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
@@ -368,7 +369,11 @@ class SpyderActionMixin:
             triggered=triggered,
             context=context,
             section=section,
-            option=option
+            option=option,
+            key=name,
+            plugin=self.PLUGIN_NAME,
+            context_name=self.CONTEXT_NAME,
+            register_action=True
         )
         action.name = name
         if icon_text:
@@ -394,21 +399,26 @@ class SpyderActionMixin:
         self._actions[name] = action
         return action
 
-    def get_action(self, name):
+    def get_action(self, name, context: Optional[str] = None,
+                   plugin: Optional[str] = None) -> Any:
         """
-        Return an action by name.
+        Return an action by name, context and plugin.
+
+        Parameters
+        ----------
+        name: str
+            Name of the action to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the action was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the action was defined. If None, then
+            `PLUGIN_NAME` is used.
         """
-        actions = getattr(self, '_actions', None)
-        if actions is None:
-            self._actions = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
 
-        if name not in self._actions:
-            raise SpyderAPIError(
-                'Inavlid action name "{0}", valid names are: {1}'.format(
-                    name, list(self._actions.keys()))
-            )
-
-        return self._actions.get(name)
+        return ACTION_REGISTRY.get_reference(name, plugin, context)
 
     def get_actions(self):
         """
@@ -457,11 +467,21 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
     This provides a simple management of widget options, as well as Qt helpers
     for defining the actions a widget provides.
     """
+
+    # Plugin name identifier used to store actions, toolbars, toolbuttons
+    # and menus
+    PLUGIN_NAME = None
+
+    # Context name used to store actions, toolbars, toolbuttons and menus
+    CONTEXT_NAME = None
+
     def __init__(self, class_parent=None):
-        if getattr(self, 'CONF_SECTION', None) is None:
-            if hasattr(class_parent, 'CONF_SECTION'):
-                # Inherit class_parent CONF_SECTION value
-                self.CONF_SECTION = class_parent.CONF_SECTION
+        for attr in ['CONF_SECTION', 'PLUGIN_NAME']:
+            if getattr(self, attr, None) is None:
+                if hasattr(class_parent, attr):
+                    # Inherit class_parent CONF_SECTION/PLUGIN_NAME value
+                    setattr(self, attr, getattr(class_parent, attr))
+
         super().__init__()
 
     @staticmethod

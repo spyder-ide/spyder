@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.config.base import get_image_path, MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
@@ -301,7 +302,9 @@ def toggle_actions(actions, enable):
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
-                  context=Qt.WindowShortcut, option=None, section=None):
+                  context=Qt.WindowShortcut, option=None, section=None,
+                  key=None, plugin=None, context_name=None,
+                  register_action=False):
     """Create a QAction"""
     action = SpyderAction(text, parent)
     if triggered is not None:
@@ -340,6 +343,8 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
             action.setShortcut(shortcut)
         action.setShortcutContext(context)
 
+    if register_action:
+        ACTION_REGISTRY.register_reference(action, key, plugin, context_name)
     return action
 
 

@@ -23,6 +23,7 @@ from collections import OrderedDict
 import os
 import sys
 import textwrap
+from typing import Any, Optional
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
@@ -33,6 +34,7 @@ import qdarkstyle
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.registries import ACTION_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
@@ -77,6 +79,22 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     -----
     All Spyder non dockable plugins can define a plugin container that must
     subclass this.
+    """
+
+    CONTEXT_NAME = None
+    """
+    This attribute defines the context name under which actions, toolbars,
+    toolbuttons and menus should be registered on Spyder global registry.
+
+    If actions, toolbars, toolbuttons or menus belong to the global scope of
+    the plugin, then this attribute should have a `None` value.
+
+    Parameters
+    ----------
+    CONTEXT_NAME: Optional[str]
+        Name of the context that is used to store this container actions,
+        toolbars, toolbuttons and menus. If None, then it defaults to the
+        global plugin context.
     """
 
     # --- Signals
@@ -145,6 +163,10 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._name = name
         self._plugin = plugin
         self._parent = parent
+
+        # Attribute used to access the action, toolbar, toolbutton and menu
+        # registries
+        self.PLUGIN_NAME = name
 
         # Widget setup
         # A PluginMainContainer inherits from QWidget so it can be a parent
@@ -215,6 +237,22 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         spinner is not moving) to avoid items jumping to the left/right when
         the spinner appears. If `False` no extra space will be added. Default
         is False.
+    """
+
+    CONTEXT_NAME = None
+    """
+    This attribute defines the context name under which actions, toolbars,
+    toolbuttons and menus should be registered on Spyder global registry.
+
+    If actions, toolbars, toolbuttons or menus belong to the global scope of
+    the plugin, then this attribute should have a `None` value.
+
+    Parameters
+    ----------
+    CONTEXT_NAME: Optional[str]
+        Name of the context that is used to store this container actions,
+        toolbars, toolbuttons and menus. If None, then it defaults to the
+        global plugin context.
     """
 
     # --- Signals
@@ -311,6 +349,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.undock_action = None
         self.close_action = None
         self._toolbars_already_rendered = False
+
+        # Attribute used to access the action, toolbar, toolbutton and menu
+        # registries
+        self.PLUGIN_NAME = name
 
         # We create our toggle action instead of using the one that comes with
         # dockwidget because it was not possible to raise and focus the plugin
@@ -554,62 +596,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         return self._plugin
 
-    def get_action(self, name):
+    def get_action(self, name, context: Optional[str] = None,
+                   plugin: Optional[str] = None):
         """
         Return action by name.
         """
-        actions = self.get_actions(filter_actions=False)
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
 
-        if name in actions:
-            return actions[name]
-        else:
-            raise SpyderAPIError(
-                '{} not found in {}'.format(name, list(actions.keys()))
-            )
-
-    def get_actions(self, filter_actions=True):
-        """
-        Return all actions defined by the central widget and all child
-        widgets subclassing SpyderWidgetMixin.
-        """
-        all_children = self._find_children(self, [self])
-        actions = OrderedDict()
-        actions_excludelist = [
-            self.dock_action,
-            self.undock_action,
-            self.close_action,
-            self.toggle_view_action,
-        ]
-
-        for child in set(all_children):
-            get_actions_method = getattr(child, 'get_actions', None)
-            _actions = getattr(child, '_actions', None)
-
-            if get_actions_method and _actions:
-                for key, action in child._actions.items():
-                    # These are actions that we want to skip from exposing to
-                    # make things simpler, but avoid creating specific
-                    # variables for this
-                    if filter_actions:
-                        if action not in actions_excludelist:
-                            if key in actions:
-                                raise SpyderAPIError(
-                                    '{} or a child widget has already '
-                                    'defined an action "{}"!'.format(self,
-                                                                     key)
-                                )
-                            else:
-                                actions[key] = action
-                    else:
-                        if key in actions:
-                            raise SpyderAPIError(
-                                '{} or a child widget has already defined an '
-                                'action "{}"!'.format(self, key)
-                            )
-                        else:
-                            actions[key] = action
-
-        return actions
+        return ACTION_REGISTRY.get_reference(name, plugin, context)
 
     def add_corner_widget(self, widget_id, widget, before=None):
         """
