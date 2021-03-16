@@ -46,9 +46,11 @@ class ConfigAccessMixin(object):
     """Namespace for methods that access config storage"""
     CONF_SECTION = None
 
-    def set_option(self, option, value, section=None):
+    def set_option(self, option, value, section=None,
+                   recursive_notification=False):
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, option, value, recursive_notification=False)
+        CONF.set(section, option, value,
+                 recursive_notification=recursive_notification)
 
     def get_option(self, option, default=NoDefault, section=None):
         section = self.CONF_SECTION if section is None else section
