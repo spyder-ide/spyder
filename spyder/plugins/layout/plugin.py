@@ -113,8 +113,7 @@ class Layout(SpyderPluginV2):
         toolbars = self.get_plugin(Plugins.Toolbar)
         if toolbars:
             # Add actions to Main application toolbar
-            for main_layout_action in [container._maximize_dockwidget_action,
-                                       container._fullscreen_action]:
+            for main_layout_action in [container._maximize_dockwidget_action]:
                 toolbars.add_item_to_application_toolbar(
                     main_layout_action,
                     toolbar_id=ApplicationToolbars.Main,
