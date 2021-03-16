@@ -74,6 +74,12 @@ class SpyderToolButtonMixin:
             option=option
         )
         toolbutton.name = name
+
+        if toggled:
+            if section is not None and option is not None:
+                value = CONF.get(section, option)
+                toolbutton.setChecked(value)
+
         self._toolbuttons[name] = toolbutton
         return toolbutton
 
