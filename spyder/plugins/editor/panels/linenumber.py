@@ -33,8 +33,8 @@ class LineNumberArea(Panel):
     # --- Qt Overrides
     # -----------------------------------------------------------------
 
-    def __init__(self, editor):
-        Panel.__init__(self, editor)
+    def __init__(self):
+        Panel.__init__(self)
 
         self.setMouseTracking(True)
         self.scrollable = True

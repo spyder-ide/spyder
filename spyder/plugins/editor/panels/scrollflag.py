@@ -32,8 +32,8 @@ class ScrollFlagArea(Panel):
     FLAGS_DX = 4
     FLAGS_DY = 2
 
-    def __init__(self, editor):
-        Panel.__init__(self, editor)
+    def __init__(self):
+        Panel.__init__(self)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.scrollable = True
         self.setMouseTracking(True)
@@ -43,6 +43,21 @@ class ScrollFlagArea(Panel):
         self._range_indicator_is_visible = False
         self._alt_key_is_down = False
 
+        self._slider_range_color = QColor(Qt.gray)
+        self._slider_range_color.setAlphaF(.85)
+        self._slider_range_brush = QColor(Qt.gray)
+        self._slider_range_brush.setAlphaF(.5)
+
+        self._update_list_timer = QTimer(self)
+        self._update_list_timer.setSingleShot(True)
+        self._update_list_timer.timeout.connect(self.update_flags)
+
+        # Dictionary with flag lists
+        self._dict_flag_list = {}
+
+    def on_install(self, editor):
+        """Manages install setup of the pane."""
+        super().on_install(editor)
         # Define permanent Qt colors that are needed for painting the flags
         # and the slider range.
         self._facecolors = {
@@ -55,11 +70,8 @@ class ScrollFlagArea(Panel):
             }
         self._edgecolors = {key: color.darker(120) for
                             key, color in self._facecolors.items()}
-        self._slider_range_color = QColor(Qt.gray)
-        self._slider_range_color.setAlphaF(.85)
-        self._slider_range_brush = QColor(Qt.gray)
-        self._slider_range_brush.setAlphaF(.5)
 
+        # Signals
         editor.sig_focus_changed.connect(self.update)
         editor.sig_key_pressed.connect(self.keyPressEvent)
         editor.sig_key_released.connect(self.keyReleaseEvent)
@@ -68,12 +80,6 @@ class ScrollFlagArea(Panel):
         editor.sig_leave_out.connect(self.update)
         editor.sig_flags_changed.connect(self.delayed_update_flags)
         editor.sig_theme_colors_changed.connect(self.update_flag_colors)
-
-        self._update_list_timer = QTimer(self)
-        self._update_list_timer.setSingleShot(True)
-        self._update_list_timer.timeout.connect(self.update_flags)
-        # Dictionary with flag lists
-        self._dict_flag_list = {}
 
     @property
     def slider(self):
