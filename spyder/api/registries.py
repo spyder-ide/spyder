@@ -10,7 +10,7 @@
 # Standard library imports
 import inspect
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 import warnings
 import weakref
 
@@ -123,6 +123,37 @@ class SpyderRegistry:
         plugin_contexts = self.registry_map[plugin]
         context_references = plugin_contexts[context]
         return context_references[key]
+
+    def get_references(self, plugin: Optional[str] = None,
+                       context: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Retrieve all stored object references under the context of a
+        given plugin key.
+
+        Parameters
+        ----------
+        plugin: Optional[str]
+            Plugin key used to store the reference. Should belong to
+            :class:`spyder.api.plugins.Plugins`. If None, then the object will
+            be retrieved from the global `main` key.
+        context: Optional[str]
+            Additional key that was used to store the object reference.
+            In any Spyder plugin implementation, this context may refer to an
+            identifier of a widget. This context enables plugins to define
+            multiple actions with the same key that live on different widgets.
+            If None, this context will default to the special `__general`
+            identifier.
+
+        Returns
+        -------
+        objs: Dict[str, Any]
+            A dict that contains the actions mapped by their corresponding
+            keys.
+        """
+        plugin_contexts = self.registry_map.get(plugin, {})
+        context_references = plugin_contexts.get(
+            context, weakref.WeakValueDictionary())
+        return context_references
 
     def reset_registry(self):
         self.registry_map = {}

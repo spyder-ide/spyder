@@ -1143,45 +1143,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
         return get_font(option=option, font_size_delta=font_size_delta)
 
-    def get_actions(self):
-        """
-        Return a dictionary of actions exposed by the plugin and child widgets.
-        It returns all actions defined by the Spyder plugin widget, wheter it
-        is a PluginMainWidget or PluginMainContainer subclass.
-
-        Notes
-        -----
-        1. Actions should be created once. Creating new actions on menu popup
-           is *highly* discouraged.
-        2. Actions can be created directly on a PluginMainWidget or
-           PluginMainContainer subclass. Child widgets can also create
-           actions, but they need to subclass SpyderWidgetMixin.
-        3. The PluginMainWidget or PluginMainContainer will collect any
-           actions defined in subwidgets (if defined) and expose them in
-           the get_actions method at the plugin level.
-        4. Any action created this way is now exposed as a possible shortcut
-           automatically without manual shortcut registration.
-           If an option is found in the config system then it is assigned,
-           otherwise it's left with an empty shortcut.
-        5. There is no need to override this method.
-        """
-        container = self.get_container()
-        actions = container.get_actions() if container is not None else {}
-        actions.update(super().get_actions())
-        return actions
-
-    def get_action(self, name):
-        """
-        Return action defined in any of the child widgets by name.
-        """
-        actions = self.get_actions()
-
-        if name in actions:
-            return actions[name]
-        else:
-            raise SpyderAPIError('Action "{0}" not found! Available '
-                                 'actions are: {1}'.format(name, actions))
-
     # --- API: Mandatory methods to define -----------------------------------
     # ------------------------------------------------------------------------
     def get_name(self):

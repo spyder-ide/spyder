@@ -420,9 +420,19 @@ class SpyderActionMixin:
 
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
-    def get_actions(self):
+    def get_actions(self, context: Optional[str] = None,
+                    plugin: Optional[str] = None):
         """
-        Return all actions defined by the widget.
+        Return all actions defined by a context on a given plugin.
+
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the action was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the action was defined. If None, then
+            `PLUGIN_NAME` is used.
 
         Notes
         -----
@@ -440,11 +450,9 @@ class SpyderActionMixin:
            otherwise it's left with an empty shortcut.
         5. There is no need to override this method.
         """
-        actions = getattr(self, '_actions', None)
-        if actions is None:
-            self._actions = OrderedDict()
-
-        return self._actions
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return ACTION_REGISTRY.get_references(plugin, context)
 
     def update_actions(self, options):
         """
