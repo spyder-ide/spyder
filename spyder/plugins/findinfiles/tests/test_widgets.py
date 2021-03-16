@@ -60,15 +60,12 @@ def findinfiles(qtbot, request):
     plugin_mock = MagicMock()
     plugin_mock.CONF_SECTION = 'find_in_files'
     if param:
-        # print(param)
         prev_values = {}
         for param_name in param:
             value = param[param_name]
             prev_values[param_name] = CONF.get('find_in_files', param_name)
             CONF.set('find_in_files', param_name, value)
 
-        # options = FindInFilesWidget.DEFAULT_OPTIONS.copy()
-        # options.update(param)
         widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
         widget._setup()
         widget.setup()
@@ -141,11 +138,6 @@ def test_find_in_files_search(findinfiles, qtbot):
     The results of the test should be equal to the expected search result
     values.
     """
-    print(CONF.items('find_in_files'))
-    CONF.set('find_in_files', 'exclude',
-             ['*.csv', '*.dat', '*.log', '*.tmp', '*.bak', '*.orig'])
-    CONF.set('find_in_files', 'path_history', [])
-    print(CONF.items('find_in_files'))
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
@@ -593,7 +585,6 @@ def test_max_history(searchin_combobox, mocker):
 def test_max_results(findinfiles, qtbot):
     """Test max results correspond to expected results."""
     value = 2
-    # findinfiles.set_conf('max_results', value)
     findinfiles.set_max_results(value)
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))

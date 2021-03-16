@@ -344,6 +344,10 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 
 def setup_toggled_action(action, toggled, section, option):
+    """
+    Setup a checkable action and wrap the toggle function to receive
+    configuration.
+    """
     toggled = wrap_toggled(toggled, section, option)
     action.toggled.connect(toggled)
     action.setCheckable(True)
