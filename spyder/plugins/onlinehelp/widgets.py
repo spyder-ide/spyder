@@ -126,11 +126,6 @@ class PydocServer(QThread):
 class PydocBrowser(PluginMainWidget):
     """PyDoc browser widget."""
 
-    DEFAULT_OPTIONS = {
-        'handle_links': False,
-        'max_history_entries': 10,
-        'zoom_factor': 1,
-    }
     ENABLE_SPINNER = True
 
     # --- Signals
@@ -487,12 +482,14 @@ class PydocBrowser(PluginMainWidget):
 def test():
     """Run web browser."""
     from spyder.utils.qthelpers import qapplication
+    from unittest.mock import MagicMock
 
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'onlinehelp'
     app = qapplication(test_time=8)
-    options = PydocBrowser.DEFAULT_OPTIONS.copy()
-    widget = PydocBrowser(None)
-    widget._setup(options)
-    widget.setup(options)
+    widget = PydocBrowser(None, plugin=plugin_mock)
+    widget._setup()
+    widget.setup()
     widget.show()
     sys.exit(app.exec_())
 

@@ -54,18 +54,6 @@ class WorkingDirectoryToolbar(ApplicationToolbar):
 class WorkingDirectoryContainer(PluginMainContainer):
     """Container for the working directory toolbar."""
 
-    DEFAULT_OPTIONS = {
-        'history': [],
-        'console/fixed_directory': '',
-        'console/use_cwd': True,
-        'console/use_project_or_home_directory': False,
-        'startup/fixed_directory': '',
-        'startup/use_fixed_directory': False,
-        'workdir': None,
-        'working_dir_adjusttocontents': False,
-        'working_dir_history': 20,
-    }
-
     # Signals
     sig_current_directory_changed = Signal(str)
     """

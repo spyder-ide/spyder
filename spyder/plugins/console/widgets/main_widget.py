@@ -79,22 +79,6 @@ class ConsoleWidgetInternalSettingsSubMenuSections:
 # --- Widgets
 # ----------------------------------------------------------------------------
 class ConsoleWidget(PluginMainWidget):
-    DEFAULT_OPTIONS = {
-        'codecompletion/auto': True,
-        'commands': [],
-        'external_editor/gotoline': '',
-        'external_editor/path': '',
-        'max_line_count': 300,
-        'message': 'Internal console\n\n',
-        'multithreaded': False,
-        'namespace': None,
-        'profile': False,
-        'show_internal_errors': True,
-        'wrap': True,
-        # From appearance
-        'color_theme': 'spyder/dark',
-    }
-
     # --- Signals
     # This signal emits a parsed error traceback text so we can then
     # request opening the file that traceback comes from in the Editor.

@@ -209,11 +209,6 @@ class PylintWidget(PluginMainWidget):
     """
     Pylint widget.
     """
-    DEFAULT_OPTIONS = {
-        "history_filenames": [],
-        "max_entries": 30,
-        "project_dir": None,
-    }
     ENABLE_SPINNER = True
 
     DATAPATH = get_conf_path("pylint.results")

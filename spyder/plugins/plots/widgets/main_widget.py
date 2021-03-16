@@ -127,13 +127,6 @@ class PlotsStackedWidget(QStackedWidget, SpyderWidgetMixin):
 
 
 class PlotsWidget(PluginMainWidget):
-    DEFAULT_OPTIONS = {
-        'auto_fit_plotting': True,
-        'mute_inline_plotting': True,
-        'show_plot_outline': True,
-        'save_dir': getcwd_or_home()
-    }
-
     sig_figure_loaded = Signal()
     """This signal is emitted when a figure is loaded succesfully"""
 

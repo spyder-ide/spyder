@@ -44,11 +44,6 @@ class ToolbarActions:
 
 
 class ToolbarContainer(PluginMainContainer):
-    DEFAULT_OPTIONS = {
-        'last_visible_toolbars': [],
-        'toolbars_visible': True,
-    }
-
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent=parent)
 
@@ -95,7 +90,7 @@ class ToolbarContainer(PluginMainContainer):
 
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         self.show_toolbars_action = self.create_action(
             ToolbarActions.ShowToolbars,
             text=_("Show toolbars"),
@@ -109,9 +104,6 @@ class ToolbarContainer(PluginMainContainer):
             ToolbarMenus.ToolbarsMenu,
             _("Toolbars"),
         )
-
-    def on_option_update(self, options, value):
-        pass
 
     def update_actions(self):
         if self.get_conf("toolbars_visible"):

@@ -139,16 +139,6 @@ class ExplorerTreeWidgetActions:
 class DirView(QTreeView, SpyderWidgetMixin):
     """Base file/directory tree view."""
 
-    DEFAULT_OPTIONS = {
-        'date_column': True,
-        'type_column': False,
-        'size_column': False,
-        'name_filters': ['*.py'],
-        'show_hidden': False,
-        'single_click_to_open': False,
-        'file_associations': {},
-    }
-
     # Signals
     sig_file_created = Signal(str)
     """
@@ -1775,16 +1765,6 @@ class ExplorerTreeWidget(DirView):
     """
     File/directory explorer tree widget.
     """
-
-    DEFAULT_OPTIONS = {
-        'date_column': True,
-        'type_column': False,
-        'size_column': False,
-        'name_filters': ['*.py'],
-        'show_hidden': False,
-        'single_click_to_open': False,
-        'file_associations': {},
-    }
 
     sig_dir_opened = Signal(str)
     """

@@ -1062,28 +1062,6 @@ class FindInFilesWidget(PluginMainWidget):
             self.extras_toolbar.setVisible(
                 self.more_options_action.isChecked())
 
-    def on_option_update(self, option, value):
-        if option == 'more_options':
-            self.exclude_pattern_edit.setMinimumWidth(
-                self.search_text_edit.width())
-
-            if value:
-                icon = self.create_icon('options_less')
-                tip = _('Hide advanced options')
-            else:
-                icon = self.create_icon('options_more')
-                tip = _('Show advanced options')
-
-            if self.extras_toolbar:
-                self.extras_toolbar.setVisible(value)
-
-            if self.more_options_action:
-                self.more_options_action.setIcon(icon)
-                self.more_options_action.setToolTip(tip)
-
-        elif option == 'max_results':
-            self.result_browser.set_max_results(value)
-
     @on_conf_change(option='more_options')
     def on_more_options_update(self, value):
         self.exclude_pattern_edit.setMinimumWidth(

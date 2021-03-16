@@ -43,16 +43,6 @@ class ExplorerWidgetMainToolbarSections:
 class ExplorerWidget(PluginMainWidget):
     """Explorer widget"""
 
-    DEFAULT_OPTIONS = {
-        'date_column': True,
-        'type_column': False,
-        'size_column': False,
-        'file_associations': {},
-        'name_filters': ['*.py'],
-        'single_click_to_open': False,
-        'show_hidden': False,
-    }
-
     # --- Signals
     # ------------------------------------------------------------------------
     sig_dir_opened = Signal(str)

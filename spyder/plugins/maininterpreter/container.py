@@ -21,11 +21,6 @@ from spyder.utils.misc import get_python_executable
 
 
 class MainInterpreterContainer(PluginMainContainer):
-    DEFAULT_OPTIONS = {
-        'default': True,
-        'custom': False,
-        'custom_interpreter': '',
-    }
 
     sig_open_preferences_requested = Signal()
     """

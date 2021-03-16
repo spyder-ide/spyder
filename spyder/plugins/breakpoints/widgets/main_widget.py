@@ -310,8 +310,6 @@ class BreakpointWidget(PluginMainWidget):
     Breakpoints widget.
     """
 
-    DEFAULT_OPTIONS = {}
-
     # --- Signals
     # ------------------------------------------------------------------------
     sig_clear_all_breakpoints_requested = Signal()

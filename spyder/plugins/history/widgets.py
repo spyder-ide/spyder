@@ -56,13 +56,6 @@ class HistoryWidget(PluginMainWidget):
     History plugin main widget.
     """
 
-    DEFAULT_OPTIONS = {
-        'color_scheme_name': 'spyder/dark',
-        'go_to_eof': True,
-        'line_numbers': True,
-        'wrap': True,
-    }
-
     # Signals
     sig_focus_changed = Signal()
     """

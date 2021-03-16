@@ -20,15 +20,6 @@ from spyder.plugins.statusbar.widgets.status import (
 
 
 class StatusBarContainer(PluginMainContainer):
-    DEFAULT_OPTIONS = {
-        'show_status_bar': True,
-        'memory_usage/enable': True,
-        'memory_usage/timeout': 2000,
-        'cpu_usage/enable': False,
-        'cpu_usage/timeout': 2000,
-        'clock/enable': False,
-        'clock/timeout': 1000,
-    }
 
     sig_show_status_bar_requested = Signal(bool)
     """
@@ -41,22 +32,6 @@ class StatusBarContainer(PluginMainContainer):
         self.mem_status = MemoryStatus(parent=self)
         self.cpu_status = CPUStatus(parent=self)
         self.clock_status = ClockStatus(parent=self)
-
-    def on_option_update(self, option, value):
-        if option == 'memory_usage/enable':
-            self.mem_status.setVisible(value)
-        elif option == 'memory_usage/timeout':
-            self.mem_status.set_interval(value)
-        elif option == 'cpu_usage/enable':
-            self.cpu_status.setVisible(value)
-        elif option == 'cpu_usage/timeout':
-            self.cpu_status.set_interval(value)
-        elif option == 'clock/enable':
-            self.clock_status.setVisible(value)
-        elif option == 'clock/timeout':
-            self.clock_status.set_interval(value)
-        elif option == 'show_status_bar':
-            self.sig_show_status_bar_requested.emit(value)
 
     @on_conf_change(option='memory_usage/enable')
     def enable_mem_status(self, value):

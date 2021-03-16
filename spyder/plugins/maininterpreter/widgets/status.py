@@ -34,11 +34,6 @@ class InterpreterStatus(BaseTimerStatus):
     """Status bar widget for displaying the current conda environment."""
     ID = 'interpreter_status'
 
-    DEFAULT_OPTIONS = {
-        'default': True,
-        'custom': False,
-    }
-
     CONF_SECTION = 'main_interpreter'
 
     sig_open_preferences_requested = Signal()
@@ -70,9 +65,6 @@ class InterpreterStatus(BaseTimerStatus):
 
         # Update the list of envs at startup
         self.get_envs()
-
-    def on_option_update(self, option, value):
-        pass
 
     # ---- BaseTimerStatus API
     def get_value(self):

@@ -122,9 +122,6 @@ class ProfilerWidget(PluginMainWidget):
     """
     Profiler widget.
     """
-    DEFAULT_OPTIONS = {
-        'text_color': MAIN_TEXT_COLOR,
-    }
     ENABLE_SPINNER = True
     DATAPATH = get_conf_path('profiler.results')
 
