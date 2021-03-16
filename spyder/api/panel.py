@@ -122,7 +122,7 @@ class Panel(QWidget, EditorExtension):
         Notes
         -----
         Please remember to extend this method in the child class to
-        paint the desired information of the panel.
+        paint the panel's desired information.
         """
         if self.isVisible() and self.position != self.Position.FLOATING:
             # fill background
@@ -142,15 +142,15 @@ class Panel(QWidget, EditorExtension):
 
         Notes
         -----
-        This size hint will define the QSize, i.e. it is where the
-        width and height are defined.
-        If the size of your panel depends on displayed text, please
-        use the LineNumberArea one as reference on how to implement
-        this method.
-        If the size is not dependent on the displayed information
-        please use the debugger panel as reference.
-        If your panel is in a floating position, please use the
-        IndentationGuide one as reference.
+        * This size hint will define the QSize of the panel, i.e. it is
+          where its width and height are defined.
+        * If the size of your panel depends on displayed text, please
+          use the LineNumberArea one as reference on how to implement
+          this method.
+        * If the size is not dependent on displayed text, please use
+          the debugger panel as reference.
+        * If your panel is in a floating position, please use the
+          IndentationGuide one as reference.
         """
         if self.position != self.Position.FLOATING:
             raise NotImplementedError(
