@@ -39,7 +39,8 @@ class SpyderToolButtonMixin:
 
     def create_toolbutton(self, name, text=None, icon=None,
                           tip=None, toggled=None, triggered=None,
-                          autoraise=True, text_beside_icon=False):
+                          autoraise=True, text_beside_icon=False,
+                          section=None, option=None):
         """
         Create a Spyder toolbutton.
         """
@@ -52,6 +53,13 @@ class SpyderToolButtonMixin:
                 'Tool button name "{}" already in use!'.format(name)
             )
 
+        if toggled and not callable(toggled):
+            toggled = lambda value: None
+
+        if toggled is not None:
+            if section is None and option is not None:
+                section = self.CONF_SECTION
+
         toolbutton = create_toolbutton(
             self,
             text=text,
@@ -62,6 +70,8 @@ class SpyderToolButtonMixin:
             triggered=triggered,
             autoraise=autoraise,
             text_beside_icon=text_beside_icon,
+            section=section,
+            option=option
         )
         toolbutton.name = name
         self._toolbuttons[name] = toolbutton

@@ -228,7 +228,8 @@ def restore_keyevent(event):
 
 def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
                       toggled=None, triggered=None,
-                      autoraise=True, text_beside_icon=False):
+                      autoraise=True, text_beside_icon=False,
+                      section=None, option=None):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
@@ -245,8 +246,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if triggered is not None:
         button.clicked.connect(triggered)
     if toggled is not None:
-        button.toggled.connect(toggled)
-        button.setCheckable(True)
+        setup_toggled_action(button, toggled, section, option)
     if shortcut is not None:
         button.setShortcut(shortcut)
     return button
