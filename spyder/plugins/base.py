@@ -58,10 +58,12 @@ class BasePluginMixin(object):
         """Register plugin configuration."""
         CONF.register_plugin(self)
 
-    def _set_option(self, option, value, section=None):
+    def _set_option(self, option, value, section=None,
+                    recursive_notification=True):
         """Set option in spyder.ini"""
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, str(option), value)
+        CONF.set(section, str(option), value,
+                 recursive_notification=recursive_notification)
 
     def _get_option(self, option, default=NoDefault, section=None):
         """Get option from spyder.ini."""

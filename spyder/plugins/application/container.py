@@ -63,29 +63,7 @@ class ApplicationActions:
 
 
 class ApplicationContainer(PluginMainContainer):
-
-    DEFAULT_OPTIONS = {
-        # Screen resolution section
-        'normal_screen_resolution': True,
-        'high_dpi_scaling': False,
-        'high_dpi_custom_scale_factor': False,
-        'high_dpi_custom_scale_factors': '1.5',
-        # Panes section
-        'vertical_tabs': False,
-        'use_custom_margin': True,
-        'custom_margin': 0,
-        'use_custom_cursor_blinking': False,
-        'custom_cursor_blinking': 0,
-        # Advanced tab
-        'interface_language': 'en',
-        'opengl': 'software',
-        'single_instance': True,
-        'prompt_on_exit': False,
-        'check_updates_on_startup': True,
-        'show_internal_errors': True,
-    }
-
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         # Attributes
         self.dialog_manager = DialogManager()
         self.give_updates_feedback = False
@@ -162,12 +140,9 @@ class ApplicationContainer(PluginMainContainer):
             register_shortcut=True)
 
         # Initialize
-        if DEV is None and options.get('check_updates_on_startup'):
+        if DEV is None and self.get_conf('check_updates_on_startup'):
             self.give_updates_feedback = False
             self.check_updates(startup=True)
-
-    def on_option_update(self, option, value):
-        pass
 
     def update_actions(self):
         pass
@@ -202,7 +177,7 @@ class ApplicationContainer(PluginMainContainer):
 
         # Adjust the checkbox depending on the stored configuration
         option = 'check_updates_on_startup'
-        check_updates = self.get_option(option)
+        check_updates = self.get_conf(option)
         box.set_checked(check_updates)
 
         if error_msg is not None:
@@ -248,7 +223,7 @@ class ApplicationContainer(PluginMainContainer):
                 check_updates = box.is_checked()
 
         # Update checkbox based on user interaction
-        self.set_option(option, check_updates)
+        self.set_conf(option, check_updates)
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)

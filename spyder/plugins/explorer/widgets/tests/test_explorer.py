@@ -222,12 +222,10 @@ def test_single_click_to_open(qtbot, file_explorer):
 
     # Test single click to open
     treewidget.set_single_click_to_open(True)
-    assert 'True' in file_explorer.label3.text()
     run_test_helper(single_click=True, initial_index=initial_index)
 
     # Test double click to open
     treewidget.set_single_click_to_open(False)
-    assert 'False' in file_explorer.label3.text()
     run_test_helper(single_click=False, initial_index=initial_index)
 
 

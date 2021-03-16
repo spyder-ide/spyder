@@ -99,10 +99,10 @@ class Preferences(SpyderPluginV2):
                                 new_value: BasicType,
                                 current_version: Version, plugin):
         """Add a versioned additional option to a configuration section."""
-        current_value = self.get_conf_option(conf_key, section=conf_section)
-        section_additional = self.get_conf_option('additional_configuration',
-                                                  section=conf_section,
-                                                  default={})
+        current_value = self.get_conf(conf_key, section=conf_section)
+        section_additional = self.get_conf('additional_configuration',
+                                           section=conf_section,
+                                           default={})
         plugin_additional = section_additional.get(plugin.NAME, {})
 
         if conf_key in plugin_additional:
@@ -119,7 +119,7 @@ class Preferences(SpyderPluginV2):
             if current_value != NoDefault:
                 new_value = self.merge_configurations(current_value, new_value)
 
-            self.set_conf_option(
+            self.set_conf(
                 conf_key, new_value, section=conf_section)
 
             conf_key_info['version'] = str(current_version)
@@ -127,7 +127,7 @@ class Preferences(SpyderPluginV2):
             plugin_additional[conf_key] = conf_key_info
             section_additional[plugin.NAME] = plugin_additional
 
-            self.set_conf_option(
+            self.set_conf(
                 'additional_configuration', section_additional,
                 section=conf_section)
         else:
@@ -137,14 +137,14 @@ class Preferences(SpyderPluginV2):
             }
             section_additional[plugin.NAME] = plugin_additional
 
-            self.set_conf_option(
+            self.set_conf(
                 'additional_configuration', section_additional,
                 section=conf_section)
 
             if current_value != NoDefault:
                 new_value = self.merge_configurations(current_value, new_value)
 
-            self.set_conf_option(
+            self.set_conf(
                 conf_key, new_value, section=conf_section)
 
 

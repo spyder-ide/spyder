@@ -63,7 +63,7 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
     assert path_selection_combo.get_external_paths() == expected_results
 
     findinfiles.on_close()
-    path_history = findinfiles.get_widget().get_option('path_history')
+    path_history = findinfiles.get_widget().get_conf('path_history')
     assert path_history == expected_results
 
     # Close the plugin and assert that the external_path_history

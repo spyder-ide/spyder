@@ -119,5 +119,5 @@ jobs:
         run: codecov
       # Enable this if SSH debugging is required
       # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+      #   uses: andfoy/action-tmate@69bac54a5cc0abe008e87d7470fbf65733745aea
       #   if: ${{ failure() }}

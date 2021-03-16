@@ -106,7 +106,7 @@ startup/run_lines =
 
     # Change an option in the console
     console = Console(None, configuration=manager)
-    console.set_conf_option('max_line_count', 600)
+    console.set_conf('max_line_count', 600)
 
     # Read config filew directly
     user_path = manager.get_user_config_path()

@@ -22,8 +22,10 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
                             QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_image_path, get_module_source_path
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
@@ -98,7 +100,7 @@ class ObjectComboBox(EditableComboBox):
             return False
         objtxt = to_text_string(qstr)
         shell_is_defined = False
-        if self.help.get_option('automatic_import'):
+        if self.help.get_conf('automatic_import'):
             shell = self.help.internal_shell
             if shell is not None:
                 shell_is_defined = shell.is_defined(objtxt, force_import=True)
@@ -137,14 +139,14 @@ class ObjectComboBox(EditableComboBox):
                     self.valid.emit(False, False)
 
 
-class RichText(QWidget):
+class RichText(QWidget, SpyderWidgetMixin):
     """
     WebView widget with find dialog
     """
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
+        super().__init__(parent, class_parent=parent)
 
         self.webview = FrameWebView(self)
         self.webview.setup()
@@ -263,23 +265,6 @@ class PlainText(QWidget):
 
 class HelpWidget(PluginMainWidget):
 
-    DEFAULT_OPTIONS = {
-        'automatic_import': True,
-        'connect/editor': False,
-        'connect/ipython_console': False,
-        'css_path': DARK_CSS_PATH,
-        'locked': False,
-        'math': True,
-        'max_history_entries': 20,
-        'plain_mode': False,
-        'rich_mode': True,
-        'show_source': False,
-        'wrap': True,
-        # Shortcut CONF
-        'editor_shortcut': 'Ctrl+I',
-        # Shortcut CONF
-        'console_shortcut': 'Ctrl+I',
-    }
     ENABLE_SPINNER = True
 
     # Signals
@@ -292,9 +277,8 @@ class HelpWidget(PluginMainWidget):
     sig_render_finished = Signal()
     """This signal is emitted to inform a help text rendering has finished."""
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent, options)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
 
         # Attributes
         self._starting_up = True
@@ -303,7 +287,7 @@ class HelpWidget(PluginMainWidget):
         self._last_editor_doc = None
         self._last_console_cb = None
         self._last_editor_cb = None
-        self.css_path = self.get_option('css_path')
+        self.css_path = self.get_conf('css_path')
         self.no_docs = _("No documentation available")
         self.docstring = True  # TODO: What is this used for?
 
@@ -325,9 +309,9 @@ class HelpWidget(PluginMainWidget):
 
         # Setup
         self.object_edit.setReadOnly(True)
-        self.object_combo.setMaxCount(self.get_option('max_history_entries'))
+        self.object_combo.setMaxCount(self.get_conf('max_history_entries'))
         self.object_combo.setItemText(0, '')
-        self.plain_text.set_wrap_mode(self.get_option('wrap'))
+        self.plain_text.set_wrap_mode(self.get_conf('wrap'))
         self.source_combo.addItems([_("Console"), _("Editor")])
         if (not programs.is_module_installed('rope') and
                 not programs.is_module_installed('jedi', '>=0.11.0')):
@@ -357,12 +341,13 @@ class HelpWidget(PluginMainWidget):
     def get_title(self):
         return _('Help')
 
-    def setup(self, options):
+    def setup(self):
         self.wrap_action = self.create_action(
             name=HelpWidgetActions.ToggleWrap,
             text=_("Wrap lines"),
-            toggled=lambda value: self.set_option('wrap', value),
-            initial=self.get_option('wrap'),
+            toggled=True,
+            initial=self.get_conf('wrap'),
+            option='wrap'
         )
         self.copy_action = self.create_action(
             name=HelpWidgetActions.CopyAction,
@@ -379,32 +364,37 @@ class HelpWidget(PluginMainWidget):
         self.auto_import_action = self.create_action(
             name=HelpWidgetActions.ToggleAutomaticImport,
             text=_("Automatic import"),
-            toggled=lambda value: self.set_option('automatic_import', value),
-            initial=self.get_option('automatic_import'),
+            toggled=True,
+            initial=self.get_conf('automatic_import'),
+            option='automatic_import'
         )
         self.show_source_action = self.create_action(
             name=HelpWidgetActions.ToggleShowSource,
             text=_("Show Source"),
-            toggled=lambda value: self.set_option('show_source', value),
+            toggled=True,
+            option='show_source'
         )
         self.rich_text_action = self.create_action(
             name=HelpWidgetActions.ToggleRichMode,
             text=_("Rich Text"),
-            toggled=lambda value: self.set_option('rich_mode', value),
-            initial=self.get_option('rich_mode'),
+            toggled=True,
+            initial=self.get_conf('rich_mode'),
+            option='rich_mode'
         )
         self.plain_text_action = self.create_action(
             name=HelpWidgetActions.TogglePlainMode,
             text=_("Plain Text"),
-            toggled=lambda value: self.set_option('plain_mode', value),
-            initial=self.get_option('plain_mode'),
+            toggled=True,
+            initial=self.get_conf('plain_mode'),
+            option='plain_mode'
         )
         self.locked_action = self.create_action(
             name=HelpWidgetActions.ToggleLocked,
             text=_("Lock/Unlock"),
-            toggled=lambda value: self.set_option('locked', value),
+            toggled=True,
             icon=self.create_icon('lock_open'),
-            initial=self.get_option('locked'),
+            initial=self.get_conf('locked'),
+            option='locked'
         )
         self.home_action = self.create_action(
             name=HelpWidgetActions.Home,
@@ -473,46 +463,66 @@ class HelpWidget(PluginMainWidget):
         self.plain_text.sig_custom_context_menu_requested.connect(
             self._show_plain_text_context_menu)
 
-    def on_option_update(self, option, value):
-        if option == 'wrap':
-            self.plain_text.set_wrap_mode(value)
-        elif option == 'locked':
-            if value:
-                icon = self.create_icon('lock')
-                tip = _("Unlock")
-            else:
-                icon = self.create_icon('lock_open')
-                tip = _("Lock")
+    def _should_display_welcome_page(self):
+        """Determine if the help welcome page should be displayed."""
+        return (self._last_editor_doc is None or
+                self._last_console_cb is None or
+                self._last_editor_cb is None)
 
-            action = self.get_action(HelpWidgetActions.ToggleLocked)
-            action.setIcon(icon)
-            action.setToolTip(tip)
-        elif option == 'automatic_import':
-            self.object_combo.validate_current_text()
+    @on_conf_change(option='wrap')
+    def on_wrap_option_update(self, value):
+        self.plain_text.set_wrap_mode(value)
+
+    @on_conf_change(option='locked')
+    def on_lock_update(self, value):
+        if value:
+            icon = self.create_icon('lock')
+            tip = _("Unlock")
+        else:
+            icon = self.create_icon('lock_open')
+            tip = _("Lock")
+
+        action = self.get_action(HelpWidgetActions.ToggleLocked)
+        action.setIcon(icon)
+        action.setToolTip(tip)
+
+    @on_conf_change(option='automatic_import')
+    def on_automatic_import_update(self, value):
+        self.object_combo.validate_current_text()
+        if self._should_display_welcome_page():
+            self.show_intro_message()
+        else:
             self.force_refresh()
-        elif option == 'rich_mode':
-            if value:
-                # Plain Text OFF / Rich text ON
-                self.docstring = not value
-                self.stack_layout.setCurrentWidget(self.rich_text)
-                self.get_action(HelpWidgetActions.ToggleShowSource).setChecked(
-                    False)
-            else:
-                # Plain Text ON / Rich text OFF
-                self.docstring = value
-                self.stack_layout.setCurrentWidget(self.plain_text)
 
-            self.force_refresh()
-        elif option == 'plain_mode':
-            # Handled on rich mode option
-            pass
-        elif option == 'show_source':
-            if value:
-                self.switch_to_plain_text()
-                self.get_action(HelpWidgetActions.ToggleRichMode).setChecked(
-                    False)
-
+    @on_conf_change(option='rich_mode')
+    def on_rich_mode_update(self, value):
+        if value:
+            # Plain Text OFF / Rich text ON
             self.docstring = not value
+            self.stack_layout.setCurrentWidget(self.rich_text)
+            self.get_action(HelpWidgetActions.ToggleShowSource).setChecked(
+                False)
+        else:
+            # Plain Text ON / Rich text OFF
+            self.docstring = value
+            self.stack_layout.setCurrentWidget(self.plain_text)
+
+        if self._should_display_welcome_page():
+            self.show_intro_message()
+        else:
+            self.force_refresh()
+
+    @on_conf_change(option='show_source')
+    def on_show_source_update(self, value):
+        if value:
+            self.switch_to_plain_text()
+            self.get_action(HelpWidgetActions.ToggleRichMode).setChecked(
+                False)
+
+        self.docstring = not value
+        if self._should_display_welcome_page():
+            self.show_intro_message()
+        else:
             self.force_refresh()
 
     def update_actions(self):
@@ -630,7 +640,7 @@ class HelpWidget(PluginMainWidget):
             cb = self._last_editor_cb
 
         if cb is None:
-            if self.get_option('plain_mode'):
+            if self.get_conf('plain_mode'):
                 self.switch_to_plain_text()
             else:
                 self.switch_to_rich_text()
@@ -646,7 +656,7 @@ class HelpWidget(PluginMainWidget):
     @property
     def find_widget(self):
         """Show find widget."""
-        if self.get_option('plain_mode'):
+        if self.get_conf('plain_mode'):
             return self.plain_text.find_widget
         else:
             return self.rich_text.find_widget
@@ -747,14 +757,16 @@ class HelpWidget(PluginMainWidget):
             "activate this behavior in %s.")
         prefs = _("Preferences > Help")
 
-        shortcut_editor = self.get_option('editor_shortcut')
-        shortcut_console = self.get_option('console_shortcut')
+        shortcut_editor = self.get_conf('editor/inspect current object',
+                                        section='shortcuts')
+        shortcut_console = self.get_conf('console/inspect current object',
+                                         section='shortcuts')
 
         if sys.platform == 'darwin':
             shortcut_editor = shortcut_editor.replace('Ctrl', 'Cmd')
             shortcut_console = shortcut_console.replace('Ctrl', 'Cmd')
 
-        if self.get_option('rich_mode'):
+        if self.get_conf('rich_mode'):
             title = _("Usage")
             tutorial_message = _("New to Spyder? Read our")
             tutorial = _("tutorial")
@@ -882,7 +894,7 @@ class HelpWidget(PluginMainWidget):
         --------
         :py:meth:spyder.widgets.mixins.GetHelpMixin.show_object_info
         """
-        if self.get_option('locked') and not force_refresh:
+        if self.get_conf('locked') and not force_refresh:
             return
 
         self.switch_to_console_source()
@@ -926,14 +938,14 @@ class HelpWidget(PluginMainWidget):
             'path': str,
         }
         """
-        if self.get_option('locked') and not force_refresh:
+        if self.get_conf('locked') and not force_refresh:
             return
 
         self.switch_to_editor_source()
         self._last_editor_doc = help_data
         self.object_edit.setText(help_data['obj_text'])
 
-        if self.get_option('rich_mode'):
+        if self.get_conf('rich_mode'):
             self.render_sphinx_doc(help_data)
         else:
             self.set_plain_text(help_data, is_code=False)
@@ -981,7 +993,7 @@ class HelpWidget(PluginMainWidget):
             dname = ''
 
         # Math rendering option could have changed
-        self._sphinx_thread.render(help_data, context, self.get_option('math'),
+        self._sphinx_thread.render(help_data, context, self.get_conf('math'),
                                    dname, css_path=self.css_path)
         self.show_loading_message()
 
@@ -1005,7 +1017,7 @@ class HelpWidget(PluginMainWidget):
         obj_text = to_text_string(obj_text)
 
         if not shell.is_defined(obj_text):
-            if (self.get_option('automatic_import')
+            if (self.get_conf('automatic_import')
                     and self.internal_shell.is_defined(obj_text,
                                                        force_import=True)):
                 shell = self.internal_shell
@@ -1020,7 +1032,7 @@ class HelpWidget(PluginMainWidget):
 
         is_code = False
 
-        if self.get_option('rich_mode'):
+        if self.get_conf('rich_mode'):
             self.render_sphinx_doc(doc, css_path=self.css_path)
             return doc is not None
         elif self.docstring:

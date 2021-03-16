@@ -240,13 +240,11 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.editor.set_current_project_path())
 
         # Connect to file explorer to keep single click to open files in sync
-        self.main.explorer.sig_option_changed.connect(
-            self.set_single_click_to_open
-        )
-
+        # TODO: Remove this once projects is migrated
+        CONF.observe_configuration(self, 'explorer', 'single_click_to_open')
         self.register_project_type(self, EmptyProject)
 
-    def set_single_click_to_open(self, option, value):
+    def on_configuration_change(self, option, section, value):
         """Set single click to open files and directories."""
         if option == 'single_click_to_open':
             self.explorer.treewidget.set_single_click_to_open(value)

@@ -34,10 +34,7 @@ class InterpreterStatus(BaseTimerStatus):
     """Status bar widget for displaying the current conda environment."""
     ID = 'interpreter_status'
 
-    DEFAULT_OPTIONS = {
-        'default': True,
-        'custom': False,
-    }
+    CONF_SECTION = 'main_interpreter'
 
     sig_open_preferences_requested = Signal()
     """
@@ -69,9 +66,6 @@ class InterpreterStatus(BaseTimerStatus):
         # Update the list of envs at startup
         self.get_envs()
 
-    def on_option_update(self, option, value):
-        pass
-
     # ---- BaseTimerStatus API
     def get_value(self):
         """
@@ -82,16 +76,16 @@ class InterpreterStatus(BaseTimerStatus):
 
         if not osp.isdir(env_dir):
             # Env was removed on Mac or Linux
-            self.set_option('custom', False)
-            self.set_option('default', True)
+            self.set_conf('custom', False)
+            self.set_conf('default', True)
             self.update_interpreter(sys.executable)
         elif not osp.isfile(self._interpreter):
             # This can happen on Windows because the interpreter was
             # renamed to .conda_trash
             if not osp.isdir(osp.join(env_dir, 'conda-meta')):
                 # If conda-meta is missing, it means the env was removed
-                self.set_option('custom', False)
-                self.set_option('default', True)
+                self.set_conf('custom', False)
+                self.set_conf('default', True)
                 self.update_interpreter(sys.executable)
             else:
                 # If not, it means the interpreter is being updated so

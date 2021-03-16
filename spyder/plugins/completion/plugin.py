@@ -25,6 +25,7 @@ from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
@@ -217,7 +218,7 @@ class CompletionPlugin(SpyderPluginV2):
         self.source_priority = {}
 
         # Timeout limit for a response to be received
-        self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
+        self.wait_for_ms = self.get_conf('completions_wait_for_ms')
 
         # Find and instantiate all completion providers registered via
         # entrypoints
@@ -270,6 +271,10 @@ class CompletionPlugin(SpyderPluginV2):
         # Do not start providers on tests unless necessary
         if running_under_pytest():
             if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                # Prevent providers from receiving configuration updates
+                for provider_name in self.providers:
+                    provider_info = self.providers[provider_name]
+                    CONF.unobserve_configuration(provider_info['instance'])
                 return
 
         self.start_all_providers()
@@ -305,12 +310,12 @@ class CompletionPlugin(SpyderPluginV2):
         providers_to_update = set({})
         for option in options:
             if option == 'completions_wait_for_ms':
-                self.wait_for_ms = self.get_conf_option(
+                self.wait_for_ms = self.get_conf(
                     'completions_wait_for_ms')
             elif isinstance(option, tuple):
                 option_name, provider_name, *__ = option
                 if option_name == 'enabled_providers':
-                    provider_status = self.get_conf_option(
+                    provider_status = self.get_conf(
                         ('enabled_providers', provider_name))
                     if provider_status:
                         self.start_provider_instance(provider_name)
@@ -318,9 +323,6 @@ class CompletionPlugin(SpyderPluginV2):
                         self.shutdown_provider_instance(provider_name)
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
-
-        for provider in self.providers:
-            self.update_provider_configuration(provider)
 
         # FIXME: Remove this after migrating the ConfManager to an observer
         # pattern.
@@ -360,13 +362,14 @@ class CompletionPlugin(SpyderPluginV2):
             if len(opt) == 1:
                 opt = opt[0]
             if opt in options:
-                opt_value = self.get_conf_option(opt, section=sec)
+                opt_value = self.get_conf(opt, section=sec)
                 self.sig_editor_rpc.emit('call_all_editorstacks',
                                          (method_name, (opt_value,)),
                                          {})
 
         # Update entries in the source menu
         # FIXME: Delete this after CONF is moved to an observer pattern.
+        # and the editor migration starts
         self.sig_editor_rpc.emit('update_source_menu', (options,), {})
 
     def on_mainwindow_visible(self):
@@ -463,7 +466,7 @@ class CompletionPlugin(SpyderPluginV2):
                 else:
                     option = ('provider_configuration', provider, 'values',
                               option)
-            return plugin.get_conf_option(option, default, section)
+            return plugin.get_conf(option, default, section)
         return wrapper
 
     def wrap_set_option(self, provider):
@@ -477,7 +480,8 @@ class CompletionPlugin(SpyderPluginV2):
         """
         plugin = self
 
-        def wrapper(self, option, value, section=None):
+        def wrapper(self, option, value, section=None,
+                    recursive_notification=False):
             if section is None:
                 if isinstance(option, tuple):
                     option = ('provider_configuration', provider, 'values',
@@ -485,7 +489,9 @@ class CompletionPlugin(SpyderPluginV2):
                 else:
                     option = ('provider_configuration', provider, 'values',
                               option)
-            return plugin.set_conf_option(option, value, section)
+            return plugin.set_conf(
+                option, value, section,
+                recursive_notification=recursive_notification)
         return wrapper
 
     def wrap_remove_option(self, provider):
@@ -507,7 +513,7 @@ class CompletionPlugin(SpyderPluginV2):
                 else:
                     option = ('provider_configuration', provider, 'values',
                               option)
-                return plugin.remove_conf_option(option, section)
+                return plugin.remove_conf(option, section)
         return wrapper
 
     def wrap_create_op(self, create_name, opt_pos, provider):
@@ -561,8 +567,8 @@ class CompletionPlugin(SpyderPluginV2):
         return wrapper
 
     # ---------- Completion provider registering/start/stop methods -----------
-    def _merge_default_configurations(self,
-                                      Provider: SpyderCompletionProvider,
+    @staticmethod
+    def _merge_default_configurations(Provider: SpyderCompletionProvider,
                                       provider_name: str,
                                       provider_configurations: dict):
         provider_defaults = dict(Provider.CONF_DEFAULTS)
@@ -615,7 +621,7 @@ class CompletionPlugin(SpyderPluginV2):
                                    provider_name: str) -> dict:
         """Get provider configuration dictionary."""
 
-        provider_configurations = self.get_conf_option(
+        provider_configurations = self.get_conf(
             'provider_configuration')
 
         (provider_conf_version,
@@ -631,13 +637,13 @@ class CompletionPlugin(SpyderPluginV2):
         provider_configurations[provider_name] = new_provider_config
 
         # Update provider configurations
-        self.set_conf_option('provider_configuration', provider_configurations)
+        self.set_conf('provider_configuration', provider_configurations)
         return new_provider_config
 
     def update_request_priorities(self, Provider: SpyderCompletionProvider,
                                   provider_name: str):
         """Sort request priorities based on Provider declared order."""
-        source_priorities = self.get_conf_option('request_priorities')
+        source_priorities = self.get_conf('request_priorities')
         provider_priority = Provider.DEFAULT_ORDER
 
         for request in COMPLETION_REQUESTS:
@@ -647,7 +653,7 @@ class CompletionPlugin(SpyderPluginV2):
             source_priorities[request] = request_priorities
 
         self.source_priority = source_priorities
-        self.set_conf_option('request_priorities', source_priorities)
+        self.set_conf('request_priorities', source_priorities)
 
     def connect_provider_signals(self, provider_instance):
         """Connect SpyderCompletionProvider signals."""
@@ -709,7 +715,7 @@ class CompletionPlugin(SpyderPluginV2):
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.STOPPED:
-                provider_enabled = self.get_conf_option(
+                provider_enabled = self.get_conf(
                     ('enabled_providers', provider_name), True)
                 if provider_enabled:
                     provider_info['instance'].start()
@@ -790,16 +796,6 @@ class CompletionPlugin(SpyderPluginV2):
         if provider_info['status'] == self.RUNNING:
             provider_info['instance'].shutdown()
             provider_info['status'] = self.STOPPED
-
-    def update_provider_configuration(self, provider_name: str):
-        """Update a provider configuration."""
-        provider_configurations = self.get_conf_option(
-            'provider_configuration')
-        provider_info = self.providers[provider_name]
-        if provider_info['status'] == self.RUNNING:
-            provider_configuration = provider_configurations[provider_name]
-            config = provider_configuration['values']
-            provider_info['instance'].update_configuration(config)
 
     # ---------- Methods to create/access graphical elements -----------
     def create_action(self, *args, **kwargs):
@@ -997,12 +993,6 @@ class CompletionPlugin(SpyderPluginV2):
                 provider_info['instance'].register_file(
                     language, filename, codeeditor
                 )
-
-    def update_configuration(self):
-        """Handle completion option configuration updates."""
-        self.wait_for_ms = self.get_conf_option('completions_wait_for_ms')
-        for provider_name in self.providers:
-            self.update_provider_configuration(provider_name)
 
     # ----------------- Completion result processing methods ------------------
     @Slot(str, int, dict)

@@ -411,7 +411,7 @@ class MainWindow(QMainWindow):
         next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
 
         # First time plugin starts
-        if plugin.get_conf_option('first_time', True):
+        if plugin.get_conf('first_time', True):
             if (isinstance(plugin, SpyderDockablePlugin)
                     and plugin.NAME != Plugins.Console):
                 logger.info(
@@ -419,8 +419,8 @@ class MainWindow(QMainWindow):
                         plugin.NAME))
                 tabify_helper(plugin, next_to_plugins)
 
-            plugin.set_conf_option('enable', True)
-            plugin.set_conf_option('first_time', False)
+            plugin.set_conf('enable', True)
+            plugin.set_conf('first_time', False)
         else:
             # This is needed to ensure new plugins are placed correctly
             # without the need for a layout reset.
@@ -3215,6 +3215,9 @@ def create_window(app, splash, options, args):
         namespace = CONF.get('internal_console', 'namespace', {})
         main.console.start_interpreter(namespace)
         main.console.set_namespace_item('spy', Spy(app=app, window=main))
+
+    # Propagate current configurations to all configuration observers
+    CONF.notify_all_observers()
 
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':
