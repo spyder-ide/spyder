@@ -384,8 +384,10 @@ def get_icon(name, default=None, resample=False, adjust_for_interface=False):
     """
 
     if adjust_for_interface:
-        name = (name + '_dark.svg' if is_dark_interface()
-                else name + '_light.svg')
+        folder_name = 'dark' if is_dark_interface else 'light'
+        name = osp.join(folder_name, name)
+        # name = (name + '_dark.svg' if is_dark_interface()
+        #         else name + '_light.svg')
 
     icon_path = get_image_path(name, default=None)
     if icon_path is not None:
@@ -411,14 +413,19 @@ def get_icon(name, default=None, resample=False, adjust_for_interface=False):
 def icon(name, scale_factor=None, resample=False, icon_path=None):
     theme = CONF.get('appearance', 'icon_theme')
     if theme == 'spyder 3':
-        if not _resource['loaded']:
-            qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
-                          directory=_resource['directory'])
-            _resource['loaded'] = True
-        args, kwargs = _qtaargs[name]
-        if scale_factor is not None:
-            kwargs['scale_factor'] = scale_factor
-        return qta.icon(*args, **kwargs)
+        try:
+            # Try to load the icons from QtAwesome
+            if not _resource['loaded']:
+                qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
+                            directory=_resource['directory'])
+                _resource['loaded'] = True
+            args, kwargs = _qtaargs[name]
+            if scale_factor is not None:
+                kwargs['scale_factor'] = scale_factor
+            return qta.icon(*args, **kwargs)
+        except:
+            # Load custom icons
+            pass
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
         if icon_path:
@@ -461,6 +468,7 @@ def get_icon_by_extension_or_type(fname, scale_factor):
             elif extension == '.tex':
                 icon_by_extension = get_icon('file_type_tex',
                                              adjust_for_interface=True)
+                print('************', icon_by_extension)
             elif is_text_file(fname):
                 icon_by_extension = icon('TextFileIcon', scale_factor)
             elif mime_type is not None:

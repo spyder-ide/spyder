@@ -328,10 +328,12 @@ def is_pynsist():
     return False
 
 
-#==============================================================================
+# =============================================================================
 # Image path list
-#==============================================================================
+# =============================================================================
 IMG_PATH = []
+
+
 def add_image_path(path):
     if not osp.isdir(path):
         return
@@ -341,10 +343,13 @@ def add_image_path(path):
         for dirname in dirnames:
             IMG_PATH.append(osp.join(dirpath, dirname))
 
+
 add_image_path(get_module_data_path('spyder', relpath='images'))
+
 
 def get_image_path(name, default="not_found.png"):
     """Return image absolute path"""
+    print('*****', IMG_PATH, name)
     for img_path in IMG_PATH:
         full_path = osp.join(img_path, name)
         if osp.isfile(full_path):
