@@ -32,7 +32,7 @@ class IndentationGuide(Panel):
 
     def on_install(self, editor):
         """Manages install setup of the pane."""
-        super(IndentationGuide, self).on_install(editor)
+        super().on_install(editor)
         horizontal_scrollbar = editor.horizontalScrollBar()
         horizontal_scrollbar.valueChanged.connect(self.update_bar_position)
         horizontal_scrollbar.sliderReleased.connect(self.update)

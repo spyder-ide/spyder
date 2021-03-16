@@ -30,7 +30,7 @@ class ClassFunctionDropdown(Panel):
     """
 
     def __init__(self):
-        super(ClassFunctionDropdown, self).__init__()
+        super().__init__()
 
         # Internal data
         self._tree = IntervalTree()
@@ -60,7 +60,7 @@ class ClassFunctionDropdown(Panel):
 
     def on_install(self, editor):
         """Manages install setup of the pane."""
-        super(ClassFunctionDropdown, self).on_install(editor)
+        super().on_install(editor)
         # Define the editor
         self._editor = editor
 

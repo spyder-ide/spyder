@@ -408,7 +408,8 @@ class FoldingPanel(Panel):
         draw_order = DRAW_ORDERS.get('codefolding')
         d = TextDecoration(self.editor.document(),
                            start_line=max(0, start - 1),
-                           end_line=end, draw_order=draw_order)
+                           end_line=end,
+                           draw_order=draw_order)
         d.set_background(color)
         d.set_full_width(True, clear=False)
         self.editor.decorations.add(d)

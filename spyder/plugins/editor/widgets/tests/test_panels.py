@@ -45,9 +45,13 @@ class EmojiPanel(Panel):
 
     def _draw_red(self, top, painter):
         """Draw emojis.
-        Args:
-            top (int): top of the line to draw the breakpoint icon.
-            painter (QPainter)
+
+        Arguments
+        ---------
+        top: int
+            top of the line to draw the emoji
+        painter: QPainter
+            QPainter instance
         """
         painter.setPen(QColor('white'))
         font_height = self.editor.fontMetrics().height()
@@ -106,15 +110,15 @@ def test_activate_panels(setting, panelclass, state):
     Panel.Position.LEFT, Panel.Position.RIGHT, Panel.Position.TOP,
     Panel.Position.BOTTOM, Panel.Position.FLOATING])
 def test_register_panel(setup_editor, position):
-    """Test for register an example external panel in the editor."""
+    """Test registering an example external panel in the editor."""
     editor_stack, editor = setup_editor
 
     # Register the panel
     editor_stack.register_panel(EmojiPanel, position=position)
 
     # Verify the panel is added in the panel manager
-    new_pane = editor.panels.get(EmojiPanel)
-    assert new_pane is not None
+    new_panel = editor.panels.get(EmojiPanel)
+    assert new_panel is not None
 
     # Verify the panel is in the editorstack
     assert (EmojiPanel, (), {}, position) in editor_stack.external_panels
@@ -123,8 +127,8 @@ def test_register_panel(setup_editor, position):
     finfo = editor_stack.new('foo.py', 'utf-8', 'hola = 3\n')
     editor2 = finfo.editor
 
-    new_pane = editor2.panels.get(EmojiPanel)
-    assert new_pane is not None
+    new_panel = editor2.panels.get(EmojiPanel)
+    assert new_panel is not None
 
     # Remove external panel
     editor_stack.external_panels = []

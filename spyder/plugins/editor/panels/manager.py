@@ -87,7 +87,7 @@ class PanelsManager(Manager):
         :param name_or_class: Name or class of the panel to remove.
         :return: The removed panel
         """
-        logger.debug('removing panel %s' % name_or_class)
+        logger.debug('Removing panel %s' % name_or_class)
         panel = self.get(name_or_class)
         panel.on_uninstall()
         panel.hide()
@@ -95,7 +95,7 @@ class PanelsManager(Manager):
         return self._panels[panel.position].pop(panel.name, None)
 
     def clear(self):
-        """Removes all panel from the CodeEditor."""
+        """Removes all panels from the CodeEditor."""
         for i in range(5):
             while len(self._panels[i]):
                 key = sorted(list(self._panels[i].keys()))[0]

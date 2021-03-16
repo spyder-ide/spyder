@@ -51,12 +51,13 @@ class ScrollFlagArea(Panel):
         self._update_list_timer = QTimer(self)
         self._update_list_timer.setSingleShot(True)
         self._update_list_timer.timeout.connect(self.update_flags)
+
         # Dictionary with flag lists
         self._dict_flag_list = {}
 
     def on_install(self, editor):
         """Manages install setup of the pane."""
-        super(ScrollFlagArea, self).on_install(editor)
+        super().on_install(editor)
         # Define permanent Qt colors that are needed for painting the flags
         # and the slider range.
         self._facecolors = {

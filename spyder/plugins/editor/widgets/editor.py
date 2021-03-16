@@ -2826,7 +2826,7 @@ class EditorStack(QWidget):
 
     def register_panel(self, panel_class, *args,
                        position=Panel.Position.LEFT, **kwargs):
-        """Register a panel in all the codeeditors."""
+        """Register a panel in all codeeditors."""
         if (panel_class, args, kwargs, position) not in self.external_panels:
             self.external_panels.append((panel_class, args, kwargs, position))
         for finfo in self.data:
