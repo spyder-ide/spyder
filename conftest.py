@@ -96,7 +96,9 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(autouse=True)
 def reset_conf_before_test():
     from spyder.config.manager import CONF
+    from spyder.api.registries import ACTION_REGISTRY
     CONF.reset_to_defaults(notification=False)
+    ACTION_REGISTRY.reset_registry()
 
     from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
     from spyder.plugins.completion.plugin import CompletionPlugin

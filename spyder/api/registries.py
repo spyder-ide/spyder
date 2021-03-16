@@ -124,6 +124,8 @@ class SpyderRegistry:
         context_references = plugin_contexts[context]
         return context_references[key]
 
+    def reset_registry(self):
+        self.registry_map = {}
 
     def __str__(self) -> str:
         return f'SpyderRegistry[{self.obj_type}, {self.registry_map}]'
