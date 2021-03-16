@@ -293,8 +293,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def setup(self):
         self.setup_view()
 
-        self.set_name_filters(self.get_conf('name_filters'))
-        self.set_name_filters(self.get_conf('file_associations'))
+        self.set_name_filters(self.get_conf('name_filters', []))
+        self.set_name_filters(self.get_conf('file_associations', {}))
 
         # New actions
         new_file_action = self.create_action(
@@ -425,7 +425,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ToggleHiddenFiles,
             text=_("Show hidden files"),
             toggled=True,
-            initial=self.get_conf('show_hidden'),
+            initial=self.get_conf('show_hidden', False),
             option='show_hidden'
         )
 
@@ -440,7 +440,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ToggleSingleClick,
             text=_("Single click to open"),
             toggled=True,
-            initial=self.get_conf('single_click_to_open'),
+            initial=self.get_conf('single_click_to_open', False),
             option='single_click_to_open'
         )
 
@@ -473,7 +473,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ToggleSizeColumn,
             text=_('Size'),
             toggled=True,
-            initial=self.get_conf('size_column'),
+            initial=self.get_conf('size_column', False),
             register_shortcut=False,
             option='size_column'
         )
@@ -481,7 +481,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ToggleTypeColumn,
             text=_('Type') if sys.platform == 'darwin' else _('Type'),
             toggled=True,
-            initial=self.get_conf('type_column'),
+            initial=self.get_conf('type_column', False),
             register_shortcut=False,
             option='type_column'
         )
@@ -489,7 +489,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ToggleDateColumn,
             text=_("Date modified"),
             toggled=True,
-            initial=self.get_conf('date_column'),
+            initial=self.get_conf('date_column', True),
             register_shortcut=False,
             option='date_column'
         )
@@ -769,7 +769,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def mouseReleaseEvent(self, event):
         """Reimplement Qt method."""
         super().mouseReleaseEvent(event)
-        if self.get_conf('single_click_to_open'):
+        if self.get_conf('single_click_to_open', False):
             self.clicked()
 
     def dragEnterEvent(self, event):
@@ -894,7 +894,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
               'want to show, separated by commas.'))
         description_label.setOpenExternalLinks(True)
         description_label.setWordWrap(True)
-        filters = QTextEdit(", ".join(self.get_conf('name_filters')))
+        filters = QTextEdit(", ".join(self.get_conf('name_filters', [])))
         layout = QVBoxLayout()
         layout.addWidget(description_label)
         layout.addWidget(filters)
@@ -908,7 +908,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         def handle_reset():
             self.set_name_filters(NAME_FILTERS)
-            filters.setPlainText(", ".join(self.get_conf('name_filters')))
+            filters.setPlainText(", ".join(self.get_conf('name_filters', [])))
 
         # Dialog buttons
         button_box = QDialogButtonBox(QDialogButtonBox.Reset |
@@ -1377,7 +1377,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def filter_files(self, name_filters=None):
         """Filter files given the defined list of filters."""
         if name_filters is None:
-            name_filters = self.get_conf('name_filters')
+            name_filters = self.get_conf('name_filters', [])
 
         if self.filter_on:
             self.fsmodel.setNameFilters(name_filters)
@@ -1402,7 +1402,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def get_file_associations(self, fname):
         """Return the list of matching file associations for `fname`."""
-        for exts, values in self.get_conf('file_associations').items():
+        for exts, values in self.get_conf('file_associations', {}).items():
             clean_exts = [ext.strip() for ext in exts.split(',')]
             for ext in clean_exts:
                 if fname.endswith((ext, ext[1:])):
@@ -1552,7 +1552,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def set_name_filters(self, name_filters):
         """Set name filters"""
-        if self.get_conf('name_filters') == ['']:
+        if self.get_conf('name_filters', []) == ['']:
             self.set_conf('name_filters', [])
         else:
             if running_under_pytest():
