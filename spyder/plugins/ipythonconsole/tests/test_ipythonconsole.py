@@ -1339,6 +1339,7 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
 
 
+@flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
 def test_console_working_directory(ipyconsole, qtbot):
     """Test for checking the working directory."""
