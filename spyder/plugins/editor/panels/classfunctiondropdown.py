@@ -29,8 +29,8 @@ class ClassFunctionDropdown(Panel):
         The editor to act on.
     """
 
-    def __init__(self, editor):
-        super(ClassFunctionDropdown, self).__init__(editor)
+    def __init__(self):
+        super().__init__()
 
         # Internal data
         self._tree = IntervalTree()
@@ -39,7 +39,6 @@ class ClassFunctionDropdown(Panel):
         self.funcs = []
 
         # Widgets
-        self._editor = editor
         self.class_cb = QComboBox()
         self.method_cb = QComboBox()
 
@@ -56,11 +55,19 @@ class ClassFunctionDropdown(Panel):
         self.setLayout(hbox)
 
         # Signals
+        self.class_cb.activated.connect(self.combobox_activated)
+        self.method_cb.activated.connect(self.combobox_activated)
+
+    def on_install(self, editor):
+        """Manages install setup of the pane."""
+        super().on_install(editor)
+        # Define the editor
+        self._editor = editor
+
+        # Connect signals to the editor
         self._editor.sig_cursor_position_changed.connect(
             self._handle_cursor_position_change_event
         )
-        self.class_cb.activated.connect(self.combobox_activated)
-        self.method_cb.activated.connect(self.combobox_activated)
 
     def _getVerticalSize(self):
         """Get the default height of a QComboBox."""

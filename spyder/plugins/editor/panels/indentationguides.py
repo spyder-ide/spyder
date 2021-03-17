@@ -21,20 +21,28 @@ class IndentationGuide(Panel):
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor):
+    def __init__(self):
         """Initialize IndentationGuide panel.
         i_width(int): identation width in characters.
         """
-        Panel.__init__(self, editor)
+        Panel.__init__(self)
         self.color = Qt.darkGray
         self.i_width = 4
         self.bar_offset = 0
+
+    def on_install(self, editor):
+        """Manages install setup of the pane."""
+        super().on_install(editor)
         horizontal_scrollbar = editor.horizontalScrollBar()
         horizontal_scrollbar.valueChanged.connect(self.update_bar_position)
         horizontal_scrollbar.sliderReleased.connect(self.update)
 
     def update_bar_position(self, value):
         self.bar_offset = value
+
+    def sizeHint(self):
+        """Override Qt method."""
+        return self.size()
 
     def paintEvent(self, event):
         """

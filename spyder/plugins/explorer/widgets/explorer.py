@@ -30,6 +30,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QMessageBox, QTextEdit, QTreeView, QVBoxLayout)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import SpyderWidgetMixin
 from spyder.config.base import get_home_dir, running_under_pytest
@@ -138,16 +139,6 @@ class ExplorerTreeWidgetActions:
 class DirView(QTreeView, SpyderWidgetMixin):
     """Base file/directory tree view."""
 
-    DEFAULT_OPTIONS = {
-        'date_column': True,
-        'type_column': False,
-        'size_column': False,
-        'name_filters': ['*.py'],
-        'show_hidden': False,
-        'single_click_to_open': False,
-        'file_associations': {},
-    }
-
     # Signals
     sig_file_created = Signal(str)
     """
@@ -241,18 +232,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         Folder to remove.
     """
 
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is emitted when an option is changed.
-
-    Parameters
-    ----------
-    option: str
-        Option that is changed.
-    object: Any
-        New value fot the option.
-    """
-
     sig_open_file_requested = Signal(str)
     """
     This signal is emitted to request opening a new file with Spyder.
@@ -263,7 +242,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         File path to run.
     """
 
-    def __init__(self, parent=None, options=DEFAULT_OPTIONS):
+    def __init__(self, parent=None):
         """Initialize the DirView.
 
         Parameters
@@ -273,7 +252,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         options: dict
             Dictionary with all the options of the widget.
         """
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, class_parent=parent)
 
         # Attributes
         self._parent = parent
@@ -298,15 +277,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.setup_fs_model()
         self.setSelectionMode(self.ExtendedSelection)
         header.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.change_options(options)
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         self.setup_view()
 
-        self.set_name_filters(self.get_option('name_filters'))
-        self.set_name_filters(self.get_option('file_associations'))
+        self.set_name_filters(self.get_conf('name_filters', []))
+        self.set_name_filters(self.get_conf('file_associations', {}))
 
         # New actions
         new_file_action = self.create_action(
@@ -436,8 +414,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.hidden_action = self.create_action(
             DirViewActions.ToggleHiddenFiles,
             text=_("Show hidden files"),
-            toggled=lambda val: self.set_option('show_hidden', val),
-            initial=self.get_option('show_hidden')
+            toggled=True,
+            initial=self.get_conf('show_hidden', False),
+            option='show_hidden'
         )
 
         self.filters_action = self.create_action(
@@ -450,8 +429,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.create_action(
             DirViewActions.ToggleSingleClick,
             text=_("Single click to open"),
-            toggled=lambda val: self.set_option('single_click_to_open', val),
-            initial=self.get_option('single_click_to_open')
+            toggled=True,
+            initial=self.get_conf('single_click_to_open', False),
+            option='single_click_to_open'
         )
 
         # IPython console actions
@@ -482,23 +462,26 @@ class DirView(QTreeView, SpyderWidgetMixin):
         size_column_action = self.create_action(
             DirViewActions.ToggleSizeColumn,
             text=_('Size'),
-            toggled=lambda val: self.set_option('size_column', val),
-            initial=self.get_option('size_column'),
+            toggled=True,
+            initial=self.get_conf('size_column', False),
             register_shortcut=False,
+            option='size_column'
         )
         type_column_action = self.create_action(
             DirViewActions.ToggleTypeColumn,
             text=_('Type') if sys.platform == 'darwin' else _('Type'),
-            toggled=lambda val: self.set_option('type_column', val),
-            initial=self.get_option('type_column'),
+            toggled=True,
+            initial=self.get_conf('type_column', False),
             register_shortcut=False,
+            option='type_column'
         )
         date_column_action = self.create_action(
             DirViewActions.ToggleDateColumn,
             text=_("Date modified"),
-            toggled=lambda val: self.set_option('date_column', val),
-            initial=self.get_option('date_column'),
+            toggled=True,
+            initial=self.get_conf('date_column', True),
             register_shortcut=False,
+            option='date_column'
         )
 
         # Header Context Menu
@@ -582,7 +565,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Signals
         self.context_menu.aboutToShow.connect(self.update_actions)
 
-    def on_option_update(self, option, value):
+    @on_conf_change(option=['size_column', 'type_column', 'date_column',
+                            'name_filters', 'show_hidden'])
+    def on_conf_update(self, option, value):
         if option == 'size_column':
             self.setColumnHidden(DirViewColumns.Size, not value)
         elif option == 'type_column':
@@ -593,7 +578,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             if self.filter_on:
                 self.filter_files(value)
         elif option == 'show_hidden':
-            self.set_show_hidden(self.get_option('show_hidden'))
+            self.set_show_hidden(self.get_conf('show_hidden'))
 
     def update_actions(self):
         fnames = self.get_selected_filenames()
@@ -774,7 +759,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def mouseReleaseEvent(self, event):
         """Reimplement Qt method."""
         super().mouseReleaseEvent(event)
-        if self.get_option('single_click_to_open'):
+        if self.get_conf('single_click_to_open', False):
             self.clicked()
 
     def dragEnterEvent(self, event):
@@ -899,7 +884,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
               'want to show, separated by commas.'))
         description_label.setOpenExternalLinks(True)
         description_label.setWordWrap(True)
-        filters = QTextEdit(", ".join(self.get_option('name_filters')))
+        filters = QTextEdit(", ".join(self.get_conf('name_filters', [])))
         layout = QVBoxLayout()
         layout.addWidget(description_label)
         layout.addWidget(filters)
@@ -913,7 +898,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         def handle_reset():
             self.set_name_filters(NAME_FILTERS)
-            filters.setPlainText(", ".join(self.get_option('name_filters')))
+            filters.setPlainText(", ".join(self.get_conf('name_filters', [])))
 
         # Dialog buttons
         button_box = QDialogButtonBox(QDialogButtonBox.Reset |
@@ -1156,11 +1141,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
                               "<br><br>Error message:<br>%s"
                               ) % (fname, str(error)))
 
+    def get_selected_dir(self):
+        """ Get selected dir
+        If file is selected the directory containing file is returned.
+        If multiple items are selected, first item is chosen.
+        """
+        selected_path = self.get_selected_filenames()[0]
+        if osp.isfile(selected_path):
+            selected_path = osp.dirname(selected_path)
+        return fixpath(selected_path)
+
     def new_folder(self, basedir=None):
         """New folder."""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _('New folder')
         subtitle = _('Folder name:')
@@ -1189,9 +1184,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def new_file(self, basedir=None):
         """New file"""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _("New file")
         filters = _("All files")+" (*)"
@@ -1382,7 +1377,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def filter_files(self, name_filters=None):
         """Filter files given the defined list of filters."""
         if name_filters is None:
-            name_filters = self.get_option('name_filters')
+            name_filters = self.get_conf('name_filters', [])
 
         if self.filter_on:
             self.fsmodel.setNameFilters(name_filters)
@@ -1407,7 +1402,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def get_file_associations(self, fname):
         """Return the list of matching file associations for `fname`."""
-        for exts, values in self.get_option('file_associations').items():
+        for exts, values in self.get_conf('file_associations', {}).items():
             clean_exts = [ext.strip() for ext in exts.split(',')]
             for ext in clean_exts:
                 if fname.endswith((ext, ext[1:])):
@@ -1549,22 +1544,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
     # ------------------------------------------------------------------------
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
-        self.set_option('single_click_to_open', value)
+        self.set_conf('single_click_to_open', value)
 
     def set_file_associations(self, value):
         """Set file associations open items."""
-        self.set_option('file_associations', value)
+        self.set_conf('file_associations', value)
 
     def set_name_filters(self, name_filters):
         """Set name filters"""
-        if self.get_option('name_filters') == ['']:
-            self.set_option('name_filters', [])
+        if self.get_conf('name_filters', []) == ['']:
+            self.set_conf('name_filters', [])
         else:
             if running_under_pytest():
-                self.change_option('name_filters', name_filters)
-                self.set_option('name_filters', name_filters)
+                self.set_conf('name_filters', name_filters)
             else:
-                self.set_option('name_filters', name_filters)
+                self.set_conf('name_filters', name_filters)
 
     def set_show_hidden(self, state):
         """Toggle 'show hidden files' state"""
@@ -1602,9 +1596,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def new_package(self, basedir=None):
         """New package"""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _('New package')
         subtitle = _('Package name:')
@@ -1612,9 +1606,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def new_module(self, basedir=None):
         """New module"""
+
         if basedir is None:
-            fnames = self.get_selected_filenames()
-            basedir = fixpath(osp.dirname(fnames[0]))
+            basedir = self.get_selected_dir()
 
         title = _("New module")
         filters = _("Python files")+" (*.py *.pyw *.ipy)"
@@ -1782,16 +1776,6 @@ class ExplorerTreeWidget(DirView):
     File/directory explorer tree widget.
     """
 
-    DEFAULT_OPTIONS = {
-        'date_column': True,
-        'type_column': False,
-        'size_column': False,
-        'name_filters': ['*.py'],
-        'show_hidden': False,
-        'single_click_to_open': False,
-        'file_associations': {},
-    }
-
     sig_dir_opened = Signal(str)
     """
     This signal is emitted when the current directory of the explorer tree
@@ -1808,7 +1792,7 @@ class ExplorerTreeWidget(DirView):
     a folder, turning this folder in the new root parent of the tree.
     """
 
-    def __init__(self, parent=None, options=DEFAULT_OPTIONS):
+    def __init__(self, parent=None):
         """Initialize the widget.
 
         Parameters
@@ -1818,7 +1802,7 @@ class ExplorerTreeWidget(DirView):
         options: dict, optional
             Dictionary with all the options used by the widget.
         """
-        super().__init__(parent=parent, options=options)
+        super().__init__(parent=parent)
 
         # Attributes
         self._parent = parent
@@ -1832,7 +1816,7 @@ class ExplorerTreeWidget(DirView):
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         """
         Perform the setup of the widget.
 
@@ -1841,7 +1825,7 @@ class ExplorerTreeWidget(DirView):
         options: dict, optional
             Dictionary with all the options used by the widget.
         """
-        super().setup(options=options)
+        super().setup()
 
         # Actions
         self.previous_action = self.create_action(
@@ -1875,19 +1859,6 @@ class ExplorerTreeWidget(DirView):
     def update_actions(self):
         """Update the widget actions."""
         super().update_actions()
-
-    def on_option_update(self, option, value):
-        """
-        Handles the update or change of an option.
-
-        Parameters
-        ----------
-        option: str
-            String that define the option.
-        value: Any
-            The new value for the given option.
-        """
-        super().on_option_update(option, value)
 
     # ---- API
     # ------------------------------------------------------------------------

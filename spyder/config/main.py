@@ -261,11 +261,16 @@ DEFAULTS = [
               'connect/ipython_console': False,
               'math': True,
               'automatic_import': True,
+              'plain_mode': False,
+              'rich_mode': True,
+              'show_source': False,
+              'locked': False,
               }),
             ('onlinehelp',
              {
               'enable': True,
               'zoom_factor': .8,
+              'handle_links': False,
               'max_history_entries': 20,
               }),
             ('outline_explorer',
@@ -285,7 +290,7 @@ DEFAULTS = [
               'show_all': True,
               'show_hscrollbar': True,
               'max_recent_projects': 10,
-              'visible_if_project_open': True
+              'visible_if_project_open': True,
               }),
             ('explorer',
              {
@@ -306,6 +311,7 @@ DEFAULTS = [
               'search_text_samples': [TASKS_PATTERN],
               'more_options': False,
               'case_sensitive': False,
+              'exclude_case_sensitive': False,
               'max_results': 1000,
               }),
             ('breakpoints',
@@ -560,6 +566,8 @@ NAME_MAP = {
         ('find_in_files', [
             'path_history'
             'search_text',
+            'exclude_index',
+            'search_in_index',
             ]
          ),
         ('main_interpreter', [

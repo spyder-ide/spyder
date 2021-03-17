@@ -194,7 +194,7 @@ class Help(SpyderDockablePlugin):
             The shell widget that is going to be connected to Help.
         """
         shellwidget._control.set_help_enabled(
-            self.get_conf_option('connect/ipython_console'))
+            self.get_conf('connect/ipython_console'))
         self.get_widget().set_shell(shellwidget)
 
     def load_history(self, obj=None):

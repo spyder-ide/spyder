@@ -44,13 +44,8 @@ class ToolbarActions:
 
 
 class ToolbarContainer(PluginMainContainer):
-    DEFAULT_OPTIONS = {
-        'last_visible_toolbars': [],
-        'toolbars_visible': True,
-    }
-
-    def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent=parent, options=options)
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(name, plugin, parent=parent)
 
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._ADDED_TOOLBARS = OrderedDict()
@@ -65,7 +60,7 @@ class ToolbarContainer(PluginMainContainer):
         for toolbar in self._visible_toolbars:
             toolbars.append(toolbar.objectName())
 
-        self.set_option('last_visible_toolbars', toolbars)
+        self.set_conf('last_visible_toolbars', toolbars)
 
     def _get_visible_toolbars(self):
         """Collect the visible toolbars."""
@@ -80,8 +75,8 @@ class ToolbarContainer(PluginMainContainer):
     @Slot()
     def _show_toolbars(self):
         """Show/Hide toolbars."""
-        value = not self.get_option("toolbars_visible")
-        self.set_option("toolbars_visible", value)
+        value = not self.get_conf("toolbars_visible")
+        self.set_conf("toolbars_visible", value)
         if value:
             self._save_visible_toolbars()
         else:
@@ -95,7 +90,7 @@ class ToolbarContainer(PluginMainContainer):
 
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         self.show_toolbars_action = self.create_action(
             ToolbarActions.ShowToolbars,
             text=_("Show toolbars"),
@@ -110,11 +105,8 @@ class ToolbarContainer(PluginMainContainer):
             _("Toolbars"),
         )
 
-    def on_option_update(self, options, value):
-        pass
-
     def update_actions(self):
-        if self.get_option("toolbars_visible"):
+        if self.get_conf("toolbars_visible"):
             text = _("Hide toolbars")
             tip = _("Hide toolbars")
         else:
@@ -277,7 +269,7 @@ class ToolbarContainer(PluginMainContainer):
 
     def load_last_visible_toolbars(self):
         """Load the last visible toolbars from our preferences.."""
-        toolbars_names = self.get_option('last_visible_toolbars')
+        toolbars_names = self.get_conf('last_visible_toolbars')
 
         if toolbars_names:
             toolbars_dict = {}

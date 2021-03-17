@@ -122,9 +122,6 @@ class ProfilerWidget(PluginMainWidget):
     """
     Profiler widget.
     """
-    DEFAULT_OPTIONS = {
-        'text_color': MAIN_TEXT_COLOR,
-    }
     ENABLE_SPINNER = True
     DATAPATH = get_conf_path('profiler.results')
 
@@ -162,9 +159,9 @@ class ProfilerWidget(PluginMainWidget):
     sig_finished = Signal()
     """This signal is emitted to inform the profile profiling has finished."""
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent, options)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
+        self.set_conf('text_color', MAIN_TEXT_COLOR)
 
         # Attributes
         self._last_wdir = None
@@ -173,7 +170,7 @@ class ProfilerWidget(PluginMainWidget):
         self.error_output = None
         self.output = None
         self.running = False
-        self.text_color = self.get_option('text_color')
+        self.text_color = self.get_conf('text_color')
 
         # Widgets
         self.process = None
@@ -198,7 +195,7 @@ class ProfilerWidget(PluginMainWidget):
     def get_focus_widget(self):
         return self.datatree
 
-    def setup(self, options):
+    def setup(self):
         self.start_action = self.create_action(
             ProfilerWidgetActions.Run,
             text=_("Run profiler"),
@@ -309,9 +306,6 @@ class ProfilerWidget(PluginMainWidget):
         self.start_action.setIconText(text)
 
         self.start_action.setEnabled(bool(self.filecombo.currentText()))
-
-    def on_option_update(self, option, value):
-        pass
 
     # --- Private API
     # ------------------------------------------------------------------------
@@ -667,7 +661,7 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
     sig_edit_goto_requested = Signal(str, int, str)
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__(parent, class_parent=parent)
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]
@@ -1019,6 +1013,7 @@ def test():
     from spyder.utils.qthelpers import qapplication
     import inspect
     import tempfile
+    from unittest.mock import MagicMock
 
     primes_sc = inspect.getsource(primes)
     fd, script = tempfile.mkstemp(suffix='.py')
@@ -1027,11 +1022,13 @@ def test():
         f.write(primes_sc + "\n\n")
         f.write("primes(100000)")
 
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'profiler'
+
     app = qapplication(test_time=5)
-    options = ProfilerWidget.DEFAULT_OPTIONS.copy()
-    widget = ProfilerWidget('test')
-    widget._setup(options)
-    widget.setup(options)
+    widget = ProfilerWidget('test', plugin=plugin_mock)
+    widget._setup()
+    widget.setup()
     widget.resize(800, 600)
     widget.show()
     widget.analyze(script)

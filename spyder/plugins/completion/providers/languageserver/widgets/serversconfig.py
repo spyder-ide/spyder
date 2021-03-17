@@ -98,7 +98,8 @@ class LSPServer(object):
             dict_repr.pop('set_option')
             dict_repr.pop('get_option')
             dict_repr.pop('remove_option')
-            self.set_option(language, dict_repr)
+            self.set_option(language, dict_repr,
+                            recursive_notification=False)
 
     def delete(self):
         if self.language is not None:

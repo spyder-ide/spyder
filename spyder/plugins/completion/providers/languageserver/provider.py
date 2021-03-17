@@ -21,6 +21,7 @@ from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import (_, get_conf_path, running_under_pytest,
                                 running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
@@ -296,7 +297,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         if language == 'python':
             return self.generate_python_config()
         else:
-            return self.get_option(language)
+            return self.get_conf(language)
 
     def get_root_path(self, language):
         """
@@ -412,7 +413,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         self.update_status(language, ClientStatus.DOWN)
 
-        if not self.get_option('show_lsp_down_warning'):
+        if not self.get_conf('show_lsp_down_warning'):
             return
 
         if os.name == 'nt':
@@ -434,7 +435,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
             _("Do you want to restart Spyder now?")
         )
 
-        wrapper = ServerDisabledMessageBox.instance(warn_str, self.set_option)
+        wrapper = ServerDisabledMessageBox.instance(warn_str, self.set_conf)
         self.sig_show_widget.emit(wrapper)
 
     def start_completion_services_for_language(self, language):
@@ -544,8 +545,42 @@ class LanguageServerProvider(SpyderCompletionProvider):
         self.sig_call_statusbar.emit(
             LSPStatusWidget.ID, 'set_current_language', (language,), {})
 
+    @on_conf_change
     def update_configuration(self, config):
         self.config = config
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+        self.update_lsp_configuration()
+
+    @on_conf_change(section='outline_explorer',
+                    option=['group_cells', 'show_comments'])
+    def on_pyls_spyder_configuration_change(self, option, value):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+        self.update_lsp_configuration()
+
+    @on_conf_change(section='completions', option='enable_code_snippets')
+    def on_code_snippets_enabled_disabled(self, value):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+        self.update_lsp_configuration()
+
+    @on_conf_change(section='main', option='spyder_pythonpath')
+    def on_pythonpath_option_update(self, value):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+        self.update_lsp_configuration(python_only=True)
+
+    @on_conf_change(section='main_interpreter',
+                    option=['default', 'custom_interpreter'])
+    def on_main_interpreter_change(self, option, value):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
         self.update_lsp_configuration()
 
     def update_lsp_configuration(self, python_only=False):
@@ -659,19 +694,19 @@ class LanguageServerProvider(SpyderCompletionProvider):
         python_config = PYTHON_CONFIG.copy()
 
         # Server options
-        cmd = self.get_option('advanced/module')
-        host = self.get_option('advanced/host')
-        port = self.get_option('advanced/port')
+        cmd = self.get_conf('advanced/module', 'pyls')
+        host = self.get_conf('advanced/host', '127.0.0.1')
+        port = self.get_conf('advanced/port', 2087)
 
         # Pycodestyle
-        cs_exclude = self.get_option('pycodestyle/exclude').split(',')
-        cs_filename = self.get_option('pycodestyle/filename').split(',')
-        cs_select = self.get_option('pycodestyle/select').split(',')
-        cs_ignore = self.get_option('pycodestyle/ignore').split(',')
-        cs_max_line_length = self.get_option('pycodestyle/max_line_length')
+        cs_exclude = self.get_conf('pycodestyle/exclude', '').split(',')
+        cs_filename = self.get_conf('pycodestyle/filename', '').split(',')
+        cs_select = self.get_conf('pycodestyle/select', '').split(',')
+        cs_ignore = self.get_conf('pycodestyle/ignore', '').split(',')
+        cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
 
         pycodestyle = {
-            'enabled': self.get_option('pycodestyle'),
+            'enabled': self.get_conf('pycodestyle'),
             'exclude': [exclude.strip() for exclude in cs_exclude if exclude],
             'filename': [filename.strip()
                          for filename in cs_filename if filename],
@@ -683,25 +718,25 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Linting - Pyflakes
         pyflakes = {
-            'enabled': self.get_option('pyflakes')
+            'enabled': self.get_conf('pyflakes')
         }
 
         # Pydocstyle
-        convention = self.get_option('pydocstyle/convention')
+        convention = self.get_conf('pydocstyle/convention')
 
         if convention == 'Custom':
-            ds_ignore = self.get_option('pydocstyle/ignore').split(',')
-            ds_select = self.get_option('pydocstyle/select').split(',')
+            ds_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
+            ds_select = self.get_conf('pydocstyle/select', '').split(',')
             ds_add_ignore = []
             ds_add_select = []
         else:
             ds_ignore = []
             ds_select = []
-            ds_add_ignore = self.get_option('pydocstyle/ignore').split(',')
-            ds_add_select = self.get_option('pydocstyle/select').split(',')
+            ds_add_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
+            ds_add_select = self.get_conf('pydocstyle/select', '').split(',')
 
         pydocstyle = {
-            'enabled': self.get_option('pydocstyle'),
+            'enabled': self.get_conf('pydocstyle'),
             'convention': convention,
             'addIgnore': [ignore.strip()
                           for ignore in ds_add_ignore if ignore],
@@ -709,12 +744,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
                           for select in ds_add_select if select],
             'ignore': [ignore.strip() for ignore in ds_ignore if ignore],
             'select': [select.strip() for select in ds_select if select],
-            'match': self.get_option('pydocstyle/match'),
-            'matchDir': self.get_option('pydocstyle/match_dir')
+            'match': self.get_conf('pydocstyle/match'),
+            'matchDir': self.get_conf('pydocstyle/match_dir')
         }
 
         # Autoformatting configuration
-        formatter = self.get_option('formatting')
+        formatter = self.get_conf('formatting')
         formatter = 'pyls_black' if formatter == 'black' else formatter
         formatters = ['autopep8', 'yapf', 'pyls_black']
         formatter_options = {
@@ -728,11 +763,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
             formatter_options['pyls_black']['line_length'] = cs_max_line_length
 
         # PyLS-Spyder configuration
-        group_cells = self.get_option(
+        group_cells = self.get_conf(
             'group_cells',
             section='outline_explorer'
         )
-        display_block_comments = self.get_option(
+        display_block_comments = self.get_conf(
             'show_comments',
             section='outline_explorer'
         )
@@ -742,12 +777,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
 
         # Jedi configuration
-        if self.get_option('default', section='main_interpreter'):
+        if self.get_conf('default', section='main_interpreter'):
             environment = None
             env_vars = None
         else:
-            environment = self.get_option('custom_interpreter',
-                                          section='main_interpreter')
+            environment = self.get_conf('custom_interpreter',
+                                        section='main_interpreter')
             env_vars = os.environ.copy()
             # external interpreter should not use internal PYTHONPATH
             env_vars.pop('PYTHONPATH', None)
@@ -756,26 +791,26 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         jedi = {
             'environment': environment,
-            'extra_paths': self.get_option('spyder_pythonpath',
-                                           section='main', default=[]),
+            'extra_paths': self.get_conf('spyder_pythonpath',
+                                         section='main', default=[]),
             'env_vars': env_vars,
         }
         jedi_completion = {
-            'enabled': self.get_option('code_completion'),
-            'include_params': self.get_option('enable_code_snippets',
-                                              section='completions')
+            'enabled': self.get_conf('code_completion'),
+            'include_params': self.get_conf('enable_code_snippets',
+                                            section='completions')
         }
         jedi_signature_help = {
-            'enabled': self.get_option('jedi_signature_help')
+            'enabled': self.get_conf('jedi_signature_help')
         }
         jedi_definition = {
-            'enabled': self.get_option('jedi_definition'),
-            'follow_imports': self.get_option('jedi_definition/follow_imports')
+            'enabled': self.get_conf('jedi_definition'),
+            'follow_imports': self.get_conf('jedi_definition/follow_imports')
         }
 
         # Advanced
-        external_server = self.get_option('advanced/external')
-        stdio = self.get_option('advanced/stdio')
+        external_server = self.get_conf('advanced/external')
+        stdio = self.get_conf('advanced/stdio')
 
         # Setup options in json
         python_config['cmd'] = cmd
@@ -798,7 +833,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         plugins['jedi_completion'].update(jedi_completion)
         plugins['jedi_signature_help'].update(jedi_signature_help)
         plugins['jedi_definition'].update(jedi_definition)
-        plugins['preload']['modules'] = self.get_option('preload_modules')
+        plugins['preload']['modules'] = self.get_conf('preload_modules')
 
         for formatter in formatters:
             plugins[formatter] = formatter_options[formatter]

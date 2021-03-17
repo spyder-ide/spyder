@@ -9,6 +9,7 @@
 # Standard library imports
 import logging
 import functools
+import os
 import os.path as osp
 
 # Qt imports
@@ -16,6 +17,7 @@ from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
@@ -76,7 +78,7 @@ class KiteProvider(SpyderCompletionProvider):
         ]
 
         # Config
-        self.update_configuration(self.config)
+        self.update_kite_configuration(self.config)
 
         # Menus
         self.setup_menus()
@@ -110,7 +112,7 @@ class KiteProvider(SpyderCompletionProvider):
             installed, path = check_if_kite_installed()
             logger.debug(
                 'Error starting Kite service at {path}...'.format(path=path))
-            if self.get_option('show_installation_error_message'):
+            if self.get_conf('show_installation_error_message'):
                 err_str = _(
                     "It seems that your Kite installation is faulty. "
                     "If you want to use Kite, please remove the "
@@ -120,7 +122,7 @@ class KiteProvider(SpyderCompletionProvider):
                         kite_dir=osp.dirname(path))
 
                 dialog_wrapper = KiteInstallationErrorMessage.instance(
-                    err_str, self.set_option)
+                    err_str, self.set_conf)
                 self.sig_show_widget.emit(dialog_wrapper)
         finally:
             # Always start client to support possibly undetected Kite builds
@@ -153,10 +155,22 @@ class KiteProvider(SpyderCompletionProvider):
         """Request status for the given file."""
         self.client.sig_perform_status_request.emit(filename)
 
-    def update_configuration(self, config):
-        self.client.enable_code_snippets = self.get_option(
+    @on_conf_change(section='completions', option='enable_code_snippets')
+    def on_code_snippets_changed(self, value):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+
+        self.client.enable_code_snippets = self.get_conf(
             'enable_code_snippets', section='completions')
-        self._show_onboarding = self.get_option('show_onboarding')
+
+    @on_conf_change
+    def update_kite_configuration(self, config):
+        if running_under_pytest():
+            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                return
+
+        self._show_onboarding = self.get_conf('show_onboarding')
 
     def _kite_onboarding(self):
         """Request the onboarding file."""
@@ -181,7 +195,7 @@ class KiteProvider(SpyderCompletionProvider):
             # retry
             self._show_onboarding = True
             return
-        self.set_option('show_onboarding', False)
+        self.set_conf('show_onboarding', False)
         self.sig_open_file.emit(onboarding_file)
 
     @Slot(str, object)

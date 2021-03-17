@@ -13,15 +13,11 @@ import os
 import json
 import os.path as osp
 import sys
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Qt imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
-
 
 # Third party imports
 import pytest
@@ -46,21 +42,21 @@ CASES = {
 
 
 def get_tree_elements(treewidget):
-        """Get elements present in the Outline tree widget."""
-        root_item = treewidget.get_top_level_items()[0]
-        root_ref = root_item.ref
-        filename = osp.basename(root_ref.name)
-        root_tree = {filename: []}
-        stack = [(root_tree[filename], node) for node in root_ref.children]
+    """Get elements present in the Outline tree widget."""
+    root_item = treewidget.get_top_level_items()[0]
+    root_ref = root_item.ref
+    filename = osp.basename(root_ref.name)
+    root_tree = {filename: []}
+    stack = [(root_tree[filename], node) for node in root_ref.children]
 
-        while len(stack) > 0:
-            parent_tree, node = stack.pop(0)
-            this_tree = {node.name: []}
-            parent_tree.append(this_tree)
-            this_stack = [(this_tree[node.name], child)
-                          for child in node.children]
-            stack = this_stack + stack
-        return root_tree
+    while len(stack) > 0:
+        parent_tree, node = stack.pop(0)
+        this_tree = {node.name: []}
+        parent_tree.append(this_tree)
+        this_stack = [(this_tree[node.name], child)
+                        for child in node.children]
+        stack = this_stack + stack
+    return root_tree
 
 
 # ---- Qt Test Fixtures

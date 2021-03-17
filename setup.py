@@ -301,6 +301,8 @@ spyder_completions_entry_points = [
      'SnippetsProvider'),
     ('kite = spyder.plugins.completion.providers.kite.provider:'
      'KiteProvider'),
+    ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
+     'LanguageServerProvider'),
 ]
 
 

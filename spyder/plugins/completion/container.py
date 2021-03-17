@@ -29,9 +29,6 @@ class CompletionContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
-    def on_option_update(self, _option, _value):
-        pass
-
     def show_widget(self, Widget):
         widget = Widget(self)
 

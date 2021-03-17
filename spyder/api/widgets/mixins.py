@@ -12,200 +12,24 @@ Spyder API Mixins.
 """
 
 # Standard library imports
+import functools
 from collections import OrderedDict
+import types
+from typing import Any
 
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 
 # Local imports
+from spyder.api.config.mixins import (
+    SpyderConfigurationObserver, SpyderConfigurationAccessor)
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
+from spyder.config.types import ConfigurationKey
+from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, create_toolbutton
-
-
-class SpyderOptionMixin:
-    """
-    This mixin provides option handling tools for any widget that needs to
-    track options, their state and methods to call on option change.
-
-    These options will usually be tied to configuration options in the Spyder
-    configuration files (e.g. spyder.ini). Some options might not be connected
-    to configuration options, and in this case using DEFAULT_OPTIONS is
-    preferred instead of using class attributes.
-    """
-    # EXAMPLE: {'option_1': value_1, 'option_2': value_2, ...}
-    DEFAULT_OPTIONS = {}
-
-    @staticmethod
-    def _find_option_mixin_children(obj, all_children):
-        """
-        Find all children of `obj` that use SpyderOptionMixin recursively.
-
-        `all_children` is a list on which to append the results.
-        """
-        children = obj.findChildren(SpyderOptionMixin)
-        all_children.extend(children)
-
-        if obj not in all_children:
-            all_children.append(obj)
-
-        for child in children:
-            children = child.findChildren(SpyderOptionMixin)
-            all_children.extend(children)
-
-        return all_children
-
-    def _check_options_dictionary_exist(self):
-        """
-        Helper method to check the options dictionary has been initialized.
-        """
-        options = getattr(self, '_options', None)
-        if not options:
-            self._options = self.DEFAULT_OPTIONS
-
-    def _check_options_exist(self, options):
-        """
-        Helper method to check that an option was defined in the
-        DEFAULT_OPTIONS dictionary.
-        """
-        for option in options:
-            if option not in self.DEFAULT_OPTIONS:
-                raise SpyderAPIError(
-                    'Option "{0}" has not been defined in the the widget '
-                    'DEFAULT_OPTIONS attribute! Options are: '
-                    '{1}'.format(option, self.DEFAULT_OPTIONS)
-                )
-
-    def _set_option(self, option, value, emit):
-        """
-        Helper method to set/change options with option to emit signal.
-        """
-        # Check if a togglable action exists with this name and update state
-        try:
-            action_name = 'toggle_{}_action'.format(option)
-            self._update_action_state(action_name, value)
-        except SpyderAPIError:
-            pass
-
-        self._check_options_dictionary_exist()
-        if option in self.DEFAULT_OPTIONS:
-            self._options[option] = value
-
-            if emit:
-                # This eventually calls on_option_update too.
-                self.sig_option_changed.emit(option, value)
-            else:
-                self.on_option_update(option, value)
-        else:
-            raise SpyderAPIError(
-                'Option "{}" has not been defined in the widget '
-                'DEFAULT_OPTIONS attribute!'
-                ''.format(option)
-            )
-
-    def get_option(self, option):
-        """
-        Return option for this widget.
-
-        `option` must be defined in the DEFAULT_OPTIONS class attribute.
-        """
-        self._check_options_dictionary_exist()
-        if option in self.DEFAULT_OPTIONS:
-            return self._options[option]
-
-        raise SpyderAPIError(
-            'Option "{0}" has not been defined in the widget DEFAULT_OPTIONS '
-            'attribute {1}'.format(option, self.DEFAULT_OPTIONS)
-        )
-
-    def get_options(self):
-        """
-        Return the current options dictionary.
-        """
-        self._check_options_dictionary_exist()
-        return self._options
-
-    def set_option(self, option, value):
-        """
-        Set option for this widget.
-
-        `option` must be defined in the DEFAULT_OPTIONS class attribute.
-        Setting an option will emit the sig_option_changed signal and will
-        call the `on_option_update` method.
-        """
-        signal = getattr(self, 'sig_option_changed', None)
-        if signal is None:
-            raise SpyderAPIError(
-                'A Spyder widget must define a '
-                '"sig_option_changed = Signal(str, object)" signal!'
-            )
-        self._set_option(option, value, emit=True)
-
-    def set_options(self, options):
-        """
-        Set options for this widget.
-
-        `options` must be defined in the DEFAULT_OPTIONS class attribute.
-        Setting each option will emit the sig_option_changed signal and will
-        call the `on_option_update` method.
-
-        This method will propagate the options on all children.
-        """
-        parent_and_children = self._find_option_mixin_children(self, [self])
-        for child in parent_and_children:
-            child_options = self.options_from_keys(options,
-                                                   child.DEFAULT_OPTIONS)
-            child._check_options_exist(child_options)
-
-            for option, value in child_options.items():
-                child.set_option(option, value)
-
-    def change_option(self, option, value):
-        """
-        Change option for this widget.
-
-        `option` must be defined in the DEFAULT_OPTIONS class attribute.
-        Changing an option will call the `on_option_update` method.
-        """
-        self._set_option(option, value, emit=False)
-
-    def change_options(self, options):
-        """
-        Change options for this widget.
-
-        `options` must be defined in the DEFAULT_OPTIONS class attribute.
-        Changing each option will call the `on_option_update` method.
-
-        This method will propagate the options on all children.
-        """
-        parent_and_children = self._find_option_mixin_children(self, [self])
-        for child in parent_and_children:
-            child_options = self.options_from_keys(options,
-                                                   child.DEFAULT_OPTIONS)
-            child._check_options_exist(child_options)
-
-            for option, value in child_options.items():
-                child.change_option(option, value)
-
-    def options_from_keys(self, options, keys):
-        """
-        Create an options dictionary that only contains given `keys`.
-        """
-        new_options = {}
-        for option in keys:
-            if option in options:
-                new_options[option] = options[option]
-
-        return new_options
-
-    def on_option_update(self, option, value):
-        """
-        When an option is set or changed, this method is called.
-        """
-        raise NotImplementedError(
-            'Widget must define a `on_option_update` method!')
 
 
 class SpyderToolButtonMixin:
@@ -215,7 +39,8 @@ class SpyderToolButtonMixin:
 
     def create_toolbutton(self, name, text=None, icon=None,
                           tip=None, toggled=None, triggered=None,
-                          autoraise=True, text_beside_icon=False):
+                          autoraise=True, text_beside_icon=False,
+                          section=None, option=None):
         """
         Create a Spyder toolbutton.
         """
@@ -228,6 +53,13 @@ class SpyderToolButtonMixin:
                 'Tool button name "{}" already in use!'.format(name)
             )
 
+        if toggled and not callable(toggled):
+            toggled = lambda value: None
+
+        if toggled is not None:
+            if section is None and option is not None:
+                section = self.CONF_SECTION
+
         toolbutton = create_toolbutton(
             self,
             text=text,
@@ -238,8 +70,16 @@ class SpyderToolButtonMixin:
             triggered=triggered,
             autoraise=autoraise,
             text_beside_icon=text_beside_icon,
+            section=section,
+            option=option
         )
         toolbutton.name = name
+
+        if toggled:
+            if section is not None and option is not None:
+                value = CONF.get(section, option)
+                toolbutton.setChecked(value)
+
         self._toolbuttons[name] = toolbutton
         return toolbutton
 
@@ -441,7 +281,8 @@ class SpyderActionMixin:
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
-                      register_shortcut=False, parent=None):
+                      register_shortcut=False, section=None, option=None,
+                      parent=None):
         """
         name: str
             unique identifiable name for the action
@@ -454,8 +295,11 @@ class SpyderActionMixin:
             the tooltip on this toolbutton if part of a toolbar.
         tip: str
             Tooltip to define for action on menu or toolbar.
-        toggled: callable
-            The callable to use when toggling this action
+        toggled: Optional[Union[Callable, bool]]
+            If True, then the action modifies the configuration option on the
+            section specified. Otherwise, it should be a callable to use
+            when toggling this action. If None, then the action does not
+            behave like a checkbox.
         triggered: callable
             The callable to use when triggering this action.
         shortcut_context: str
@@ -465,6 +309,13 @@ class SpyderActionMixin:
         initial: object
             Sets the initial state of a togglable action. This does not emit
             the toggled signal.
+        section: Optional[str]
+            Name of the configuration section whose option is going to be
+            modified. If None, and `option` is not None, then it defaults to
+            the class `CONF_SECTION` attribute.
+        option: ConfigurationKey
+            Name of the configuration option whose value is reflected and
+            affected by the action.
         register_shortcut: bool, optional
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
@@ -501,6 +352,13 @@ class SpyderActionMixin:
         if parent is None:
             parent = self
 
+        if toggled and not callable(toggled):
+            toggled = lambda value: None
+
+        if toggled is not None:
+            if section is None and option is not None:
+                section = self.CONF_SECTION
+
         action = create_action(
             parent,
             text=text,
@@ -509,6 +367,8 @@ class SpyderActionMixin:
             toggled=toggled,
             triggered=triggered,
             context=context,
+            section=section,
+            option=option
         )
         action.name = name
         if icon_text:
@@ -521,12 +381,15 @@ class SpyderActionMixin:
 
         if initial is not None:
             if toggled:
-                self.blockSignals(True)
                 action.setChecked(initial)
-                self.blockSignals(False)
             elif triggered:
                 raise SpyderAPIError(
                     'Initial values can only apply to togglable actions!')
+        else:
+            if toggled:
+                if section is not None and option is not None:
+                    value = CONF.get(section, option)
+                    action.setChecked(value)
 
         self._actions[name] = action
         return action
@@ -583,7 +446,7 @@ class SpyderActionMixin:
 
 
 class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
-                        SpyderOptionMixin, SpyderToolButtonMixin):
+                        SpyderConfigurationObserver, SpyderToolButtonMixin):
     """
     Basic functionality for all Spyder widgets and Qt items.
 
@@ -594,6 +457,12 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
     This provides a simple management of widget options, as well as Qt helpers
     for defining the actions a widget provides.
     """
+    def __init__(self, class_parent=None):
+        if getattr(self, 'CONF_SECTION', None) is None:
+            if hasattr(class_parent, 'CONF_SECTION'):
+                # Inherit class_parent CONF_SECTION value
+                self.CONF_SECTION = class_parent.CONF_SECTION
+        super().__init__()
 
     @staticmethod
     def create_icon(name):

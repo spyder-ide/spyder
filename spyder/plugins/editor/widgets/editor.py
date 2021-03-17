@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QListWidgetItem)
 
 # Local imports
+from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
@@ -264,6 +265,9 @@ class EditorStack(QWidget):
         self.tabs_switcher = None
 
         self.stack_history = StackHistory(self)
+
+        # External panels
+        self.external_panels = []
 
         self.setup_editorstack(parent, layout)
 
@@ -2464,6 +2468,11 @@ class EditorStack(QWidget):
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
+        # Register external panels
+        for panel_class, args, kwargs, position in self.external_panels:
+            self.register_panel(
+                panel_class, *args, position=position, **kwargs)
+
         def perform_completion_request(lang, method, params):
             self.sig_perform_completion_request.emit(lang, method, params)
 
@@ -2819,6 +2828,17 @@ class EditorStack(QWidget):
             event.ignore()
         event.acceptProposedAction()
 
+    def register_panel(self, panel_class, *args,
+                       position=Panel.Position.LEFT, **kwargs):
+        """Register a panel in all codeeditors."""
+        if (panel_class, args, kwargs, position) not in self.external_panels:
+            self.external_panels.append((panel_class, args, kwargs, position))
+        for finfo in self.data:
+            cur_panel = finfo.editor.panels.register(
+                panel_class(*args, **kwargs), position=position)
+            if not cur_panel.isVisible():
+                cur_panel.setVisible(True)
+
 
 class EditorSplitter(QSplitter):
     """QSplitter for editor windows."""
@@ -2941,7 +2961,7 @@ class EditorSplitter(QSplitter):
                     register_editorstack_cb=self.register_editorstack_cb,
                     unregister_editorstack_cb=self.unregister_editorstack_cb)
         self.addWidget(editorsplitter)
-        editorsplitter.destroyed.connect(lambda: self.editorsplitter_closed())
+        editorsplitter.destroyed.connect(self.editorsplitter_closed)
         current_editor = editorsplitter.editorstack.get_current_editor()
         if current_editor is not None:
             current_editor.setFocus()

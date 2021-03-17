@@ -19,9 +19,9 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 class KiteInstallationErrorMessage(MessageCheckBox):
-    def __init__(self, parent, err_str, set_option):
+    def __init__(self, parent, err_str, set_conf):
         super().__init__(icon=QMessageBox.Critical, parent=parent)
-        self.set_option = set_option
+        self.set_conf = set_conf
 
         self.setWindowTitle(_("Kite installation error"))
         self.set_checkbox_text(_("Don't show again."))
@@ -34,11 +34,11 @@ class KiteInstallationErrorMessage(MessageCheckBox):
 
     def exec_(self):
         super().exec_()
-        self.set_option(
+        self.set_conf(
             'show_installation_error_message', not self.is_checked())
 
     @classmethod
-    def instance(cls, err_str, set_option):
+    def instance(cls, err_str, set_conf):
         def wrapper(parent):
-            return cls(parent, err_str, set_option)
+            return cls(parent, err_str, set_conf)
         return wrapper

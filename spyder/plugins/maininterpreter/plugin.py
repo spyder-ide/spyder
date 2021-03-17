@@ -78,12 +78,12 @@ class MainInterpreter(SpyderPluginV2):
 
         # Validate that the custom interpreter from the previous session
         # still exists
-        if self.get_conf_option('custom'):
-            interpreter = self.get_conf_option('custom_interpreter')
+        if self.get_conf('custom'):
+            interpreter = self.get_conf('custom_interpreter')
             if not osp.isfile(interpreter):
-                self.set_conf_option('custom', False)
-                self.set_conf_option('default', True)
-                self.set_conf_option('executable', get_python_executable())
+                self.set_conf('custom', False)
+                self.set_conf('default', True)
+                self.set_conf('executable', get_python_executable())
 
     # ---- Public API
     def get_interpreter(self):
@@ -108,8 +108,8 @@ class MainInterpreter(SpyderPluginV2):
     @Slot(str)
     def _add_to_custom_interpreters(self, interpreter):
         """Add a new interpreter to the list of saved ones."""
-        custom_list = self.get_conf_option('custom_interpreters_list')
+        custom_list = self.get_conf('custom_interpreters_list')
         if interpreter not in custom_list:
             custom_list.append(interpreter)
-            self.set_conf_option('custom_interpreters_list', custom_list)
-        self.set_conf_option('executable', interpreter)
+            self.set_conf('custom_interpreters_list', custom_list)
+        self.set_conf('executable', interpreter)
