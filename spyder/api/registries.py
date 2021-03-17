@@ -69,13 +69,17 @@ class SpyderRegistry:
             context, weakref.WeakValueDictionary())
 
         if key in context_references:
-            frames = get_createaction_caller()
-            warnings.warn(
-                f'There already exists a reference {context_references[key]} '
-                f'with key {key} under the context {context} of plugin '
-                f'{plugin}. The new reference {obj} will overwrite the '
-                f'previous reference. Hint: {obj} should have a different '
-                f'key. See {frames}')
+            try:
+                frames = get_createaction_caller()
+                warnings.warn(
+                    f'There already exists a reference {context_references[key]} '
+                    f'with key {key} under the context {context} of plugin '
+                    f'{plugin}. The new reference {obj} will overwrite the '
+                    f'previous reference. Hint: {obj} should have a different '
+                    f'key. See {frames}')
+            except RuntimeError:
+                # Do not raise exception if a wrapped Qt Object was deleted.
+                pass
 
         logger.debug(f'Registering {obj} ({key}) under context {context} for '
                      f'plugin {plugin}')
