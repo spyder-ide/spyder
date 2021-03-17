@@ -59,7 +59,7 @@ def test_init(historylog):
     hl = historylog
     assert hl.get_widget().editors == []
     assert hl.get_widget().filenames == []
-    assert len(hl.get_actions()) == 2
+    assert len(hl.get_actions()) == 6
 
 
 def test_add_history(historylog):

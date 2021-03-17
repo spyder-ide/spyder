@@ -58,11 +58,11 @@ class SpyderRegistry:
             In any Spyder plugin implementation, this context may refer to an
             identifier of a widget. This context enables plugins to define
             multiple actions with the same key that live on different widgets.
-            If None, this context will default to the special `__general`
+            If None, this context will default to the special `__global`
             identifier.
         """
         plugin = plugin if plugin is not None else 'main'
-        context = context if context is not None else '__general'
+        context = context if context is not None else '__global'
 
         plugin_contexts = self.registry_map.get(plugin, {})
         context_references = plugin_contexts.get(
@@ -103,7 +103,7 @@ class SpyderRegistry:
             In any Spyder plugin implementation, this context may refer to an
             identifier of a widget. This context enables plugins to define
             multiple actions with the same key that live on different widgets.
-            If None, this context will default to the special `__general`
+            If None, this context will default to the special `__global`
             identifier.
 
         Returns
@@ -118,7 +118,7 @@ class SpyderRegistry:
             registry.
         """
         plugin = plugin if plugin is not None else 'main'
-        context = context if context is not None else '__general'
+        context = context if context is not None else '__global'
 
         plugin_contexts = self.registry_map[plugin]
         context_references = plugin_contexts[context]
@@ -141,7 +141,7 @@ class SpyderRegistry:
             In any Spyder plugin implementation, this context may refer to an
             identifier of a widget. This context enables plugins to define
             multiple actions with the same key that live on different widgets.
-            If None, this context will default to the special `__general`
+            If None, this context will default to the special `__global`
             identifier.
 
         Returns
@@ -150,6 +150,9 @@ class SpyderRegistry:
             A dict that contains the actions mapped by their corresponding
             keys.
         """
+        plugin = plugin if plugin is not None else 'main'
+        context = context if context is not None else '__global'
+
         plugin_contexts = self.registry_map.get(plugin, {})
         context_references = plugin_contexts.get(
             context, weakref.WeakValueDictionary())
