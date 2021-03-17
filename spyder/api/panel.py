@@ -116,7 +116,14 @@ class Panel(QWidget, EditorExtension):
             self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
-        """Fills the panel background using QPalette."""
+        """
+        Fill the panel background using QPalette.
+
+        Notes
+        -----
+        Please remember to extend this method in the child class to
+        paint the panel's desired information.
+        """
         if self.isVisible() and self.position != self.Position.FLOATING:
             # fill background
             self._background_brush = QBrush(QColor(
@@ -125,6 +132,29 @@ class Panel(QWidget, EditorExtension):
                 self.palette().windowText().color()))
             painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
+        else:
+            raise NotImplementedError(
+                f'paintEvent method must be defined in {self}')
+
+    def sizeHint(self):
+        """
+        Return the widget size hint, overriding the Qt method.
+
+        Notes
+        -----
+        * This size hint will define the QSize of the panel, i.e. it is
+          where its width and height are defined.
+        * If the size of your panel depends on displayed text, please
+          use the LineNumberArea one as reference on how to implement
+          this method.
+        * If the size is not dependent on displayed text, please use
+          the debugger panel as reference.
+        * If your panel is in a floating position, please use the
+          IndentationGuide one as reference.
+        """
+        if self.position != self.Position.FLOATING:
+            raise NotImplementedError(
+                f'sizeHint method must be implemented in {self}')
 
     def setVisible(self, visible):
         """

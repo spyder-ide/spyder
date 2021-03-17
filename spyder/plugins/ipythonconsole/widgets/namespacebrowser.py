@@ -84,7 +84,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return
         if self.namespacebrowser:
             settings = self.namespacebrowser.get_view_settings()
-            self.call_kernel().set_namespace_view_settings(settings)
+            self.call_kernel(
+                interrupt=True
+            ).set_namespace_view_settings(settings)
 
     def get_value(self, name):
         """Ask kernel for a value"""
@@ -103,7 +105,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 timeout=CALL_KERNEL_TIMEOUT).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
-        except (PicklingError, UnpicklingError):
+        except (PicklingError, UnpicklingError, TypeError):
             raise ValueError(msg % reason_not_picklable)
         except RuntimeError:
             raise ValueError(msg % reason_dead)

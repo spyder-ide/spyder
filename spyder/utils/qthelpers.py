@@ -7,12 +7,14 @@
 """Qt utilities."""
 
 # Standard library imports
+import functools
 from math import pi
 import logging
 import os
 import os.path as osp
 import re
 import sys
+import types
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -227,7 +229,8 @@ def restore_keyevent(event):
 
 def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
                       toggled=None, triggered=None,
-                      autoraise=True, text_beside_icon=False):
+                      autoraise=True, text_beside_icon=False,
+                      section=None, option=None):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
@@ -244,8 +247,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if triggered is not None:
         button.clicked.connect(triggered)
     if toggled is not None:
-        button.toggled.connect(toggled)
-        button.setCheckable(True)
+        setup_toggled_action(button, toggled, section, option)
     if shortcut is not None:
         button.setShortcut(shortcut)
     return button
@@ -300,14 +302,13 @@ def toggle_actions(actions, enable):
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
-                  context=Qt.WindowShortcut):
+                  context=Qt.WindowShortcut, option=None, section=None):
     """Create a QAction"""
     action = SpyderAction(text, parent)
     if triggered is not None:
         action.triggered.connect(triggered)
     if toggled is not None:
-        action.toggled.connect(toggled)
-        action.setCheckable(True)
+        setup_toggled_action(action, toggled, section, option)
     if icon is not None:
         if is_text_string(icon):
             icon = get_icon(icon)
@@ -341,6 +342,40 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setShortcutContext(context)
 
     return action
+
+
+def setup_toggled_action(action, toggled, section, option):
+    """
+    Setup a checkable action and wrap the toggle function to receive
+    configuration.
+    """
+    toggled = wrap_toggled(toggled, section, option)
+    action.toggled.connect(toggled)
+    action.setCheckable(True)
+    if section is not None and option is not None:
+        CONF.observe_configuration(action, section, option)
+        add_configuration_update(action)
+
+
+def wrap_toggled(toggled, section, option):
+    """Wrap a toggle function to set a value on a configuration option."""
+    if section is not None and option is not None:
+        @functools.wraps(toggled)
+        def wrapped_toggled(value):
+            CONF.set(section, option, value, recursive_notification=True)
+            toggled(value)
+        return wrapped_toggled
+    return toggled
+
+
+def add_configuration_update(action):
+    """Add on_configuration_change to a SpyderAction that depends on CONF."""
+    def on_configuration_change(self, _option, _section, value):
+        self.blockSignals(True)
+        self.setChecked(value)
+        self.blockSignals(False)
+    method = types.MethodType(on_configuration_change, action)
+    setattr(action, 'on_configuration_change', method)
 
 
 def add_shortcut_to_tooltip(action, context, name):

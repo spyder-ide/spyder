@@ -16,10 +16,13 @@ from typing import Tuple, Union, Set
 from qtpy.QtWidgets import QWidget
 
 # Local imports
+from spyder.config.manager import CONF
+from spyder.config.types import ConfigurationKey
+from spyder.api.utils import PrefixedTuple
 from spyder.plugins.preferences.api import SpyderConfigPage, BaseConfigTab
 
 
-OptionSet = Set[Union[str, Tuple[str, ...]]]
+OptionSet = Set[ConfigurationKey]
 
 
 class SpyderPreferencesTab(BaseConfigTab):
@@ -96,7 +99,9 @@ class PluginConfigPage(SpyderConfigPage):
         """
         def wrapper(self, options):
             opts = self.previous_apply_settings()
-            func(options | opts)
+            opts |= options
+            self.aggregate_sections_partials(opts)
+            func(opts)
         return types.MethodType(wrapper, self)
 
     def _patch_apply_settings(self, plugin):
@@ -104,9 +109,9 @@ class PluginConfigPage(SpyderConfigPage):
         try:
             # New API
             self.apply_settings = self._wrap_apply_settings(plugin.apply_conf)
-            self.get_option = plugin.get_conf_option
-            self.set_option = plugin.set_conf_option
-            self.remove_option = plugin.remove_conf_option
+            self.get_option = plugin.get_conf
+            self.set_option = plugin.set_conf
+            self.remove_option = plugin.remove_conf
         except AttributeError:
             # Old API
             self.apply_settings = self._wrap_apply_settings(
@@ -114,6 +119,35 @@ class PluginConfigPage(SpyderConfigPage):
             self.get_option = plugin.get_option
             self.set_option = plugin.set_option
             self.remove_option = plugin.remove_option
+
+    def aggregate_sections_partials(self, opts):
+        """Aggregate options by sections in order to notify observers."""
+        to_update = {}
+        for opt in opts:
+            section = self.CONF_SECTION
+            if opt in self.cross_section_options:
+                section = self.cross_section_options[opt]
+            section_options = to_update.get(section, [])
+            section_options.append(opt)
+            to_update[section] = section_options
+
+        for section in to_update:
+            section_prefix = PrefixedTuple()
+            # Notify section observers
+            CONF.notify_observers(section, '__section',
+                                  recursive_notification=False)
+            for opt in to_update[section]:
+                if isinstance(opt, tuple):
+                    opt = opt[:-1]
+                    section_prefix.add_path(opt)
+            # Notify prefixed observers
+            for prefix in section_prefix:
+                try:
+                    CONF.notify_observers(section, prefix,
+                                          recursive_notification=False)
+                except Exception:
+                    # Prevent unexpected failures on tests
+                    pass
 
     def get_name(self):
         """

@@ -44,6 +44,7 @@ from spyder_kernels.utils.nsview import (
     get_type_string, NUMERIC_NUMPY_TYPES)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
@@ -51,8 +52,7 @@ from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
                               is_type_text_string, NUMERIC_TYPES)
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    mimedata2url)
+from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
@@ -126,10 +126,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     sig_setting_data = Signal()
 
     def __init__(self, parent, data, title="", names=False,
-                 minmax=False, dataframe_format=None,
-                 show_callable_attributes=None,
-                 show_special_attributes=None,
-                 remote=False):
+                 minmax=False, remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
@@ -137,9 +134,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.scores = []
         self.names = names
         self.minmax = minmax
-        self.dataframe_format = dataframe_format
-        self.show_callable_attributes = show_callable_attributes
-        self.show_special_attributes = show_special_attributes
         self.remote = remote
         self.header0 = None
         self._data = None
@@ -530,17 +524,19 @@ class BaseHeaderView(QHeaderView):
             self.sig_user_resized_section.emit(logicalIndex, oldSize, newSize)
 
 
-class BaseTableView(QTableView):
+class BaseTableView(QTableView, SpyderConfigurationAccessor):
     """Base collection editor table view"""
-    sig_option_changed = Signal(str, object)
+    CONF_SECTION = 'variable_explorer'
+
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
-    sig_free_memory = Signal()
-    sig_open_editor = Signal()
+    sig_free_memory_requested = Signal()
+    sig_editor_creation_started = Signal()
     sig_editor_shown = Signal()
 
     def __init__(self, parent):
-        QTableView.__init__(self, parent)
+        super().__init__(parent=parent)
+
         self.array_filename = None
         self.menu = None
         self.empty_ws_menu = None
@@ -577,12 +573,8 @@ class BaseTableView(QTableView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
 
-    def setup_menu(self, minmax):
+    def setup_menu(self):
         """Setup context menu"""
-        if self.minmax_action is not None:
-            self.minmax_action.setChecked(minmax)
-            return
-
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         resize_columns_action = create_action(
@@ -632,10 +624,6 @@ class BaseTableView(QTableView):
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
-        self.minmax_action = create_action(self, _("Show arrays min/max"),
-                                           toggled=self.toggle_minmax)
-        self.minmax_action.setChecked(minmax)
-        self.toggle_minmax(minmax)
         self.rename_action = create_action(self, _("Rename"),
                                            icon=ima.icon('rename'),
                                            triggered=self.rename_item)
@@ -656,15 +644,14 @@ class BaseTableView(QTableView):
                         self.paste_action, self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
-        if ndarray is not FakeObject:
-            menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
-        add_actions(self.empty_ws_menu,
-                    [self.insert_action_above, self.insert_action_below,
-                     self.insert_action, self.paste_action, None,
-                     resize_action, resize_columns_action])
+        add_actions(
+            self.empty_ws_menu,
+            [self.insert_action, self.paste_action]
+        )
         return menu
+
 
     # ------ Remote/local API -------------------------------------------------
     def remove_values(self, keys):
@@ -852,35 +839,6 @@ class BaseTableView(QTableView):
             self.sig_files_dropped.emit(urls)
         else:
             event.ignore()
-
-    @Slot(bool)
-    def toggle_show_callable_attributes(self, state):
-        """Toggle callable attributes for the Object Explorer."""
-        self.sig_option_changed.emit('show_callable_attributes', state)
-        self.model.show_callable_attributes = state
-
-    @Slot(bool)
-    def toggle_show_special_attributes(self, state):
-        """Toggle special attributes for the Object Explorer."""
-        self.sig_option_changed.emit('show_special_attributes', state)
-        self.model.show_special_attributes = state
-
-    @Slot(bool)
-    def toggle_minmax(self, state):
-        """Toggle min/max display for numpy arrays"""
-        self.sig_option_changed.emit('minmax', state)
-        self.model.minmax = state
-
-    @Slot(str)
-    def set_dataframe_format(self, new_format):
-        """
-        Set format to use in DataframeEditor.
-
-        Args:
-            new_format (string): e.g. "%.3f"
-        """
-        self.sig_option_changed.emit('dataframe_format', new_format)
-        self.model.dataframe_format = new_format
 
     @Slot()
     def edit_item(self):
@@ -1160,22 +1118,26 @@ class BaseTableView(QTableView):
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, minmax=False):
+                 names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
                                  else CollectionsModel)
-        self.source_model = CollectionsModelClass(self, data, title,
-                                                  names=names,
-                                                  minmax=minmax)
+        self.source_model = CollectionsModelClass(
+            self,
+            data,
+            title,
+            names=names,
+            minmax=self.get_conf('minmax')
+        )
         self.model = self.source_model
         self.setModel(self.source_model)
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(minmax)
+        self.menu = self.setup_menu()
 
         if isinstance(data, set):
             self.horizontalHeader().hideSection(0)
@@ -1437,10 +1399,8 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, minmax=False, shellwidget=None,
-                 remote_editing=False, dataframe_format=None,
-                 show_callable_attributes=None,
-                 show_special_attributes=None):
+    def __init__(self, parent, data, shellwidget=None, remote_editing=False,
+                 create_menu=False):
         BaseTableView.__init__(self, parent)
 
         self.shellwidget = shellwidget
@@ -1451,10 +1411,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.source_model = CollectionsModel(
             self, data, names=True,
-            minmax=minmax,
-            dataframe_format=dataframe_format,
-            show_callable_attributes=show_callable_attributes,
-            show_special_attributes=show_special_attributes,
+            minmax=self.get_conf('minmax'),
             remote=True)
 
         self.horizontalHeader().sectionClicked.connect(
@@ -1473,13 +1430,17 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.hideColumn(4)  # Column 4 for Score
 
         self.delegate = RemoteCollectionsDelegate(self)
-        self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
-        self.delegate.sig_open_editor.connect(self.sig_open_editor.emit)
-        self.delegate.sig_editor_shown.connect(self.sig_editor_shown.emit)
+        self.delegate.sig_free_memory_requested.connect(
+            self.sig_free_memory_requested)
+        self.delegate.sig_editor_creation_started.connect(
+            self.sig_editor_creation_started)
+        self.delegate.sig_editor_shown.connect(self.sig_editor_shown)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(minmax)
+
+        if create_menu:
+            self.menu = self.setup_menu()
 
     # ------ Remote/local API -------------------------------------------------
     def get_value(self, name):
@@ -1560,9 +1521,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         sw.execute(command)
 
     # ------ Other ------------------------------------------------------------
-    def setup_menu(self, minmax):
+    def setup_menu(self):
         """Setup context menu."""
-        menu = BaseTableView.setup_menu(self, minmax)
+        menu = BaseTableView.setup_menu(self)
         return menu
 
     def set_regex(self, regex=None, reset=False):
@@ -1605,46 +1566,6 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
     Reimplements 'filterAcceptsRow' to follow NamespaceBrowser model.
     Reimplements 'set_filter' to allow sorting while filtering
     """
-
-    @property
-    def show_callable_attributes(self):
-        """Get show_callable_attributes from source model."""
-        return self.sourceModel().show_callable_attributes
-
-    @show_callable_attributes.setter
-    def show_callable_attributes(self, value):
-        """Set show_callable_attributes to source model."""
-        self.sourceModel().show_callable_attributes = value
-
-    @property
-    def show_special_attributes(self):
-        """Get show_special_attributes from source model."""
-        return self.sourceModel().show_special_attributes
-
-    @show_special_attributes.setter
-    def show_special_attributes(self, value):
-        """Set show_special_attributes to source model."""
-        self.sourceModel().show_special_attributes = value
-
-    @property
-    def minmax(self):
-        """Get minmax from source model."""
-        return self.sourceModel().minmax
-
-    @minmax.setter
-    def minmax(self, value):
-        """Set minmax to source model."""
-        self.sourceModel().minmax = value
-
-    @property
-    def dataframe_format(self):
-        """Get dataframe_format from source model."""
-        return self.sourceModel().dataframe_format
-
-    @dataframe_format.setter
-    def dataframe_format(self, value):
-        """Set dataframe_format to source model."""
-        self.sourceModel().dataframe_format = value
 
     def get_key(self, index):
         """Return current key from source model."""

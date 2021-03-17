@@ -30,6 +30,7 @@ from qtpy.QtCore import Qt, QPoint
 from qtpy.QtWidgets import QWidget, QDateEdit
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
     CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
@@ -255,28 +256,14 @@ def test_filter_rows(qtbot):
 
 
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
-    MockDataFrameEditor = Mock()
-    mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionsdelegate.DataFrameEditor',
-                        MockDataFrameEditor)
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
-    editor.set_dataframe_format('%10d')
-    editor.delegate.createEditor(None, None, editor.model.index(0, 3))
-    mockDataFrameEditor_instance.dataModel.set_format.assert_called_once_with('%10d')
-
-def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
-    df = pandas.DataFrame(['foo', 'bar'])
-    editor = CollectionsEditorTableView(None, {'df': df})
-    qtbot.addWidget(editor)
-    editor.set_dataframe_format('%10d')
-    assert editor.source_model.dataframe_format == '%10d'
+    CONF.set('variable_explorer', 'dataframe_format', '10d')
     editor.delegate.createEditor(None, None, editor.model.index(0, 3))
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
-    dataframe_editor.sig_option_changed.emit('dataframe_format', '%5f')
-    assert editor.source_model.dataframe_format == '%5f'
+    dataframe_editor.dataModel._format == '%10d'
 
 def test_collectionsmodel_with_two_ints():
     coll = {'x': 1, 'y': 2}

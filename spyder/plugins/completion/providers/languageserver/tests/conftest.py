@@ -21,12 +21,13 @@ from spyder.plugins.completion.providers.languageserver.provider import (
 
 class CompletionPluginMock(QObject, MagicMock):
     """Mock for the completion plugin."""
+    CONF_SECTION = 'completions'
 
     def __init__(self, conf):
         super().__init__()
         self.conf = conf
 
-    def get_conf_option(self, option, default=None, section=None):
+    def get_conf(self, option, default=None, section=None):
         if section == 'completions':
             option = option[-1]
             return self.conf.get(option, default)

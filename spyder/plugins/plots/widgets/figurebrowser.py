@@ -73,7 +73,7 @@ def get_unique_figname(dirname, root, ext, start_at_zero=False):
             return osp.join(dirname, figname)
 
 
-class FigureBrowser(QWidget):
+class FigureBrowser(QWidget, SpyderWidgetMixin):
     """
     Widget to browse the figures that were sent by the kernel to the IPython
     console to be plotted inline.
@@ -138,7 +138,7 @@ class FigureBrowser(QWidget):
     """
 
     def __init__(self, parent=None, background_color=None):
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, class_parent=parent)
         self.shellwidget = None
         self.is_visible = True
         self.figviewer = None
@@ -321,7 +321,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        super().__init__(parent)
+        super().__init__(parent, class_parent=parent)
         self.setAlignment(Qt.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
@@ -827,7 +827,15 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.close()
 
         # See: spyder-ide/spyder#12459
-        QTimer.singleShot(150, lambda: thumbnail.setParent(None))
+        QTimer.singleShot(
+            150, lambda: self._remove_thumbnail_parent(thumbnail))
+
+    def _remove_thumbnail_parent(self, thumbnail):
+        try:
+            thumbnail.setParent(None)
+        except RuntimeError:
+            # Omit exception in case the thumbnail has been garbage-collected
+            pass
 
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""

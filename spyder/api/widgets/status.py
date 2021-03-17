@@ -41,12 +41,6 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     Custom widget class to add to the default layout.
     """
 
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is required when widgets need to change options in
-    Spyder's config system.
-    """
-
     sig_clicked = Signal()
     """
     This signal is emmitted when the widget is clicked.
@@ -79,7 +73,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         1. To use an icon, you need to redefine the ``get_icon`` method.
         2. To use a label, you need to call ``set_value``.
         """
-        super().__init__(parent)
+        super().__init__(parent, class_parent=parent)
         self._parent = parent
 
         self.show_icon = show_icon

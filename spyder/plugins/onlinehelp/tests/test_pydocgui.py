@@ -9,6 +9,7 @@ Tests for pydocgui.py
 """
 # Standard library imports
 import sys
+from unittest.mock import MagicMock
 
 # Test library imports
 import pytest
@@ -21,10 +22,11 @@ from spyder.plugins.onlinehelp.widgets import PydocBrowser
 @pytest.fixture
 def pydocbrowser(qtbot):
     """Set up pydocbrowser."""
-    widget = PydocBrowser(parent=None, name='pydoc')
-    options = PydocBrowser.DEFAULT_OPTIONS.copy()
-    widget._setup(options)
-    widget.setup(options)
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'onlinehelp'
+    widget = PydocBrowser(parent=None, plugin=plugin_mock, name='pydoc')
+    widget._setup()
+    widget.setup()
 
     with qtbot.waitSignal(widget.sig_load_finished, timeout=6000):
         widget.initialize()

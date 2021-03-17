@@ -4,10 +4,14 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-import pytest
+# Standard library imports
+import os
 
+# Testing imports
+import pytest
 from qtpy.QtCore import QObject, Signal
 
+# Local imports
 from spyder.plugins.completion.providers.snippets.provider import (
     SnippetsProvider)
 from spyder.plugins.completion.tests.conftest import qtbot_module
@@ -23,6 +27,8 @@ class CompletionManagerMock(QObject):
 
 @pytest.fixture(scope='module')
 def snippets_completions(qtbot_module, request):
+    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+
     snippets = SnippetsProvider(None, dict(SnippetsProvider.CONF_DEFAULTS))
     completions = CompletionManagerMock(None)
     qtbot_module.addWidget(snippets)
@@ -32,6 +38,7 @@ def snippets_completions(qtbot_module, request):
         snippets.start()
 
     def teardown():
+        os.environ.pop('SPY_TEST_USE_INTROSPECTION')
         snippets.shutdown()
 
     request.addfinalizer(teardown)

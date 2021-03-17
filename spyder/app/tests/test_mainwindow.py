@@ -863,7 +863,7 @@ def test_dedicated_consoles(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     assert len(main_window.ipyconsole.get_clients()) == 2
     assert main_window.ipyconsole.filenames == ['', test_file]
@@ -906,8 +906,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that there are no variables in the variable explorer
-    main_window.variableexplorer._visibility_changed(True)
-    nsb = main_window.variableexplorer.get_focus_widget()
+    main_window.variableexplorer.change_visibility(True)
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.wait(500)
     assert nsb.editor.source_model.rowCount() == 0
 
@@ -923,8 +923,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that a variable is visible in the variable explorer
-    main_window.variableexplorer._visibility_changed(True)
-    nsb = main_window.variableexplorer.get_focus_widget()
+    main_window.variableexplorer.change_visibility(True)
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.wait(500)
     assert nsb.editor.source_model.rowCount() == 1
 
@@ -977,8 +977,8 @@ def test_change_types_in_varexp(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer._visibility_changed(True)
-    nsb = main_window.variableexplorer.get_focus_widget()
+    main_window.variableexplorer.change_visibility(True)
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
@@ -1080,7 +1080,7 @@ def test_run_cython_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # Wait until an object appears
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -1197,7 +1197,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
 
     # Wait until all objects have appeared in the variable explorer
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
@@ -1273,7 +1273,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # ---- Run file ----
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1446,7 +1446,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # ---- Run cell and advance ----
     # Run the three cells present in file
@@ -1564,7 +1564,7 @@ def test_issue_4066(main_window, qtbot):
         shell.execute('myobj = [1, 2, 3]')
 
     # Open editor associated with that object and get a reference to it
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
@@ -1604,8 +1604,8 @@ def test_varexp_edit_inline(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer._visibility_changed(True)
-    nsb = main_window.variableexplorer.get_focus_widget()
+    main_window.variableexplorer.change_visibility(True)
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
@@ -1623,7 +1623,7 @@ def test_varexp_edit_inline(main_window, qtbot):
                     reason="It times out sometimes on Windows and macOS")
 def test_c_and_n_pdb_commands(main_window, qtbot):
     """Test that c and n Pdb commands update the Variable Explorer."""
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1782,7 +1782,7 @@ def test_change_cwd_dbg(main_window, qtbot):
 @pytest.mark.skipif(os.name == 'nt' or PY2, reason="It times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
     """Test that %varexp is working while debugging."""
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -2848,7 +2848,7 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # ---- Run file ----
     with qtbot.waitSignal(shell.executed):
@@ -2914,7 +2914,7 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # ---- Run file ----
     with qtbot.waitSignal(shell.executed):
@@ -2960,7 +2960,7 @@ def test_varexp_refresh(main_window, qtbot):
     qtbot.waitUntil(lambda: "i = 0" in control.toPlainText())
     qtbot.wait(300)
     # Get value object
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # This is empty
     assert len(nsb.editor.source_model._data) == 0
@@ -3402,7 +3402,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute('b = 10')
 
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: 'b' in nsb.editor.source_model._data)
     assert nsb.editor.source_model._data['b']['view'] == '10'
 
@@ -3502,7 +3502,7 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert the value is shown in the variable explorer
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
                     timeout=3000)
 
@@ -3531,7 +3531,7 @@ def test_varexp_cleared_after_reset(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert the value is shown in the variable explorer
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
                     timeout=3000)
 
@@ -3547,7 +3547,7 @@ def test_varexp_cleared_after_reset(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert the value is shown in the variable explorer
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
     qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
                     timeout=3000)
 
@@ -3604,7 +3604,7 @@ hello()
     code_editor.set_text(code)
     code_editor.debugger.toogle_breakpoint(line_number=4)
 
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # Start debugging
     with qtbot.waitSignal(shell.executed):
@@ -3662,14 +3662,39 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     qtbot.wait(5000)
 
     expected_requests = [
-        (0, 'initialize'),
-        (1, 'initialized'),
-        (2, 'workspace/didChangeConfiguration'),
-        (3, 'workspace/didChangeWorkspaceFolders'),
-        (4, 'textDocument/didOpen'),
+        'initialize',
+        'initialized',
+        'workspace/didChangeConfiguration',
+        'workspace/didChangeWorkspaceFolders',
+        'textDocument/didOpen',
     ]
 
-    assert python_client['instance']._requests[:5] == expected_requests
+    skip_intermediate = {
+        'initialized': {'workspace/didChangeConfiguration'}
+    }
+
+    lsp_requests = python_client['instance']._requests
+    start_idx = lsp_requests.index((0, 'initialize'))
+
+    request_order = []
+    expected_iter = iter(expected_requests)
+    current_expected = next(expected_iter)
+    for i in range(start_idx, len(lsp_requests)):
+        if current_expected is None:
+            break
+
+        _, req_type = lsp_requests[i]
+        if req_type == current_expected:
+            request_order.append(req_type)
+            current_expected = next(expected_iter, None)
+        else:
+            skip_set = skip_intermediate.get(current_expected, set({}))
+            if req_type in skip_set:
+                continue
+            else:
+                assert req_type == current_expected
+
+    assert request_order == expected_requests
 
 
 @pytest.mark.slow
@@ -3932,7 +3957,7 @@ def test_print_comms(main_window, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     control = main_window.ipyconsole.get_focus_widget()
-    nsb = main_window.variableexplorer.get_focus_widget()
+    nsb = main_window.variableexplorer.current_widget()
 
     # Create some output from spyder call
     with qtbot.waitSignal(shell.executed):

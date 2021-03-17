@@ -19,8 +19,9 @@ import numpy as np
 import pytest
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
-        ObjectExplorer)
+    ObjectExplorer)
 from spyder.py3compat import PY2
 
 # =============================================================================
@@ -55,11 +56,9 @@ def test_objectexplorer(objectexplorer):
             raise AttributeError
 
     foobar = Foobar()
-    editor = objectexplorer(foobar,
-                            name='foobar',
-                            show_callable_attributes=False,
-                            show_special_attributes=False)
+
     # Editor was created
+    editor = objectexplorer(foobar, name='foobar')
     assert editor
 
     # Check header data and default hidden sections
@@ -118,11 +117,10 @@ def test_objectexplorer(objectexplorer):
 def test_objectexplorer_collection_types(objectexplorer, params):
     """Test to validate proper handling of collection data types."""
     test, row_count = params
-    editor = objectexplorer(test,
-                            name='variable',
-                            show_callable_attributes=True,
-                            show_special_attributes=True)
+    CONF.set('variable_explorer', 'show_special_attributes', True)
+
     # Editor was created
+    editor = objectexplorer(test, name='variable')
     assert editor
 
     # Check number of rows and row content
@@ -159,11 +157,11 @@ def test_objectexplorer_types(objectexplorer, params):
     foo = Foobar()
 
     show_callable, show_special, row_count = params
-    editor = objectexplorer(foo,
-                            name='foo',
-                            show_callable_attributes=show_callable,
-                            show_special_attributes=show_special)
+    CONF.set('variable_explorer', 'show_callable_attributes', show_callable)
+    CONF.set('variable_explorer', 'show_special_attributes', show_special)
+
     # Editor was created
+    editor = objectexplorer(foo, name='foo')
     assert editor
 
     # Check number of rows and row content
