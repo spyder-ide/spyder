@@ -60,7 +60,7 @@ $ workon spyder-dev
 After you have created your development environment, you need to install Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 
 ```bash
-$ conda install -c spyder-ide/label/dev --file requirements/conda.txt
+$ conda install -c spyder-ide/label/dev --file requirements/conda.txt python.app
 ```
 
 This installs all Spyder's dependencies into the environment.
@@ -78,6 +78,7 @@ To start Spyder directly from your clone, i.e. without installing it into your e
 ```bash
 $ python bootstrap.py
 ```
+Note that if you are running on macOS, you will need to call `pythonw` instead of `python`.
 
 To start Spyder in debug mode, useful for tracking down an issue, you can run:
 
