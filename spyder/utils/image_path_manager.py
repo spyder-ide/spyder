@@ -7,6 +7,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import warnings
 
 # Local imports
 from spyder.config.base import get_module_data_path, get_module_path
@@ -37,7 +38,12 @@ class ImagePathManager():
                 continue
             for filename in _filenames:
                 name, __ = osp.splitext(osp.basename(filename))
-                self.IMG_PATH[name] = osp.join(dirpath, filename)
+                complete_path = osp.join(dirpath, filename)
+                if name in self.IMG_PATH:
+                    warnings.warn(
+                        f'The icon located in {complete_path} is overriding '
+                        f'the existing {name}')
+                self.IMG_PATH[name] = complete_path
 
     def get_image_path(self, name):
         """Get path of the image given the name."""

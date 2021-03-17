@@ -126,8 +126,8 @@ class FindReplace(QWidget):
         self.words_button.toggled.connect(lambda state: self.find())
 
         self.highlight_button = create_toolbutton(self,
-                                              icon=get_icon("highlight"),
-                                              tip=_("Highlight matches"))
+                                                  icon=get_icon("highlight"),
+                                                  tip=_("Highlight matches"))
         self.highlight_button.setCheckable(True)
         self.highlight_button.toggled.connect(self.toggle_highlighting)
 

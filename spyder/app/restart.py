@@ -178,7 +178,6 @@ def main():
     app = qapplication()
     restarter = Restarter()
 
-
     APP_ICON = QIcon(get_image_path("spyder"))
     app.setWindowIcon(APP_ICON)
     restarter.set_splash_message(_('Closing Spyder'))

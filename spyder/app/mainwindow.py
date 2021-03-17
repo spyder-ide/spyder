@@ -99,7 +99,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
 from spyder.utils.programs import is_module_installed
-from spyder.utils.qthelpers import (create_action, add_actions,
+from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
                                     MENU_SEPARATOR, qapplication, start_file)
@@ -2728,7 +2728,7 @@ class MainWindow(QMainWindow):
         else:
             icon = ima.icon('window_fullscreen')
         if is_text_string(icon):
-            icon = ima.icon(icon)
+            icon = get_icon(icon)
         self.fullscreen_action.setIcon(icon)
 
     @Slot()

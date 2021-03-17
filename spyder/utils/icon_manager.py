@@ -393,7 +393,7 @@ def get_icon(name, resample=False):
         return icon
 
 
-def icon(name, scale_factor=None, resample=False, icon_path=None):
+def icon(name, scale_factor=None, resample=False):
     theme = CONF.get('appearance', 'icon_theme')
     if theme == 'spyder 3':
         try:
@@ -412,10 +412,6 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
             return icon if icon is not None else QIcon()
     elif theme == 'spyder 2':
         icon = get_icon(name, resample=resample)
-        if icon_path:
-            icon_path = osp.join(icon_path, name + '.png')
-            if osp.isfile(icon_path):
-                icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()
 
 

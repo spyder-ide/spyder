@@ -26,6 +26,7 @@ from collections import OrderedDict
 import inspect
 import logging
 import os
+import os.path as osp
 from typing import List, Union
 
 # Third party imports
@@ -45,6 +46,7 @@ from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.py3compat import configparser as cp
 from spyder.utils import icon_manager as ima
+from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
 # Localization
 _ = get_translation('spyder')
@@ -715,7 +717,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     # A Python package can include one or several Spyder plugins. In this case
     # the package may be using images from a global folder outside the plugin
     # folder
-    IMG_PATH = 'images'
+    IMG_PATH = None
 
     # Control the font size relative to the global fonts defined in Spyder
     FONT_SIZE_DELTA = 0
@@ -864,6 +866,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
 
             # ---- Widget setup
             container._setup(options=options)
+
+        # Load the custom images of the plugin
+        if self.IMG_PATH:
+            plugin_path = osp.join(self.get_path(), self.IMG_PATH)
+            IMAGE_PATH_MANAGER.add_image_path(plugin_path)
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
@@ -1177,11 +1184,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             return get_color_scheme(self._conf.get('appearance', 'selected'))
 
     @staticmethod
-    def create_icon(name, path=None):
+    def create_icon(name):
         """
         Provide icons from the theme and icon manager.
         """
-        return ima.icon(name, icon_path=path)
+        return ima.icon(name)
 
     @classmethod
     def get_font(cls, rich_text=False):
