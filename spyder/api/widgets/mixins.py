@@ -15,7 +15,7 @@ Spyder API Mixins.
 import functools
 from collections import OrderedDict
 import types
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 # Local imports
 from spyder.api.config.mixins import (
     SpyderConfigurationObserver, SpyderConfigurationAccessor)
-from spyder.api.registries import ACTION_REGISTRY
+from spyder.api.registries import ACTION_REGISTRY, MENU_REGISTRY
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
@@ -208,48 +208,62 @@ class SpyderMenuMixin:
         """
         from spyder.api.widgets.menus import SpyderMenu
 
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
-
-        if name in self._menus:
-            raise SpyderAPIError(
-                'Menu name "{}" already in use!'.format(name)
-            )
-
         menu = SpyderMenu(parent=self, title=text)
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)
             menu.setIcon(icon)
 
-        self._menus[name] = menu
+        MENU_REGISTRY.register_reference(
+            menu, name, self.PLUGIN_NAME, self.CONTEXT_NAME,)
         return menu
 
-    def get_menu(self, name):
+    def get_menu(self, name: str, context: Optional[str] = None,
+                 plugin: Optional[str] = None) -> SpyderMenu:
         """
-        Return name for menu.
+        Return a menu by name, plugin and context.
+
+        Parameters
+        ----------
+        name: str
+            Name of the action to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the action was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the action was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        menu: SpyderMenu
+            The corresponding menu registered by its key.
         """
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return MENU_REGISTRY.get_reference(name, plugin, context)
 
-        if name not in self._menus:
-            raise SpyderAPIError(
-                'Invalid menu name, valid names are: {}'.format(
-                    list(self._menus.keys()))
-            )
-
-        return self._menus.get(name)
-
-    def get_menus(self, name):
+    def get_menus(self, context: Optional[str] = None,
+                  plugin: Optional[str] = None) -> Dict[str, SpyderMenu]:
         """
-        Return menus dictionary.
-        """
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
+        Return all actions defined by a context on a given plugin.
 
-        return self._menus
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the action was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the action was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        menus: Dict[str, SpyderMenu]
+            A dictionary that maps string keys to their corresponding menu.
+        """
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return MENU_REGISTRY.get_references(plugin, context)
 
 
 class SpyderActionMixin:
@@ -335,19 +349,9 @@ class SpyderActionMixin:
         If a shortcut is found in the default config then it is assigned,
         otherwise it's left blank for the user to define one for it.
         """
-        actions = getattr(self, '_actions', None)
-        if actions is None:
-            self._actions = OrderedDict()
-
         if triggered is None and toggled is None:
             raise SpyderAPIError(
                 'Action must provide the toggled or triggered parameters!'
-            )
-
-        # Check name
-        if name in self._actions:
-            raise SpyderAPIError(
-                'Action name "{}" already in use!'.format(name)
             )
 
         if parent is None:
@@ -396,10 +400,9 @@ class SpyderActionMixin:
                     value = CONF.get(section, option)
                     action.setChecked(value)
 
-        self._actions[name] = action
         return action
 
-    def get_action(self, name, context: Optional[str] = None,
+    def get_action(self, name: str, context: Optional[str] = None,
                    plugin: Optional[str] = None) -> Any:
         """
         Return an action by name, context and plugin.
@@ -414,6 +417,11 @@ class SpyderActionMixin:
         plugin: Optional[str]
             Name of the plugin where the action was defined. If None, then
             `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        action: SpyderAction
+            The corresponding action registered by name.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -421,7 +429,7 @@ class SpyderActionMixin:
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
     def get_actions(self, context: Optional[str] = None,
-                    plugin: Optional[str] = None):
+                    plugin: Optional[str] = None) -> dict:
         """
         Return all actions defined by a context on a given plugin.
 

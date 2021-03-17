@@ -17,14 +17,12 @@ import weakref
 logger = logging.getLogger(__name__)
 
 
-def get_createaction_caller():
+def get_caller(func):
     """Get file and line where `create_action` is called."""
     frames = []
     for frame in inspect.stack():
         code_context = frame.code_context[0]
-        if 'create_action' in code_context:
-            frames.append(f'{frame.filename}:{frame.lineno}')
-        elif 'self.create_action' in code_context:
+        if func in code_context:
             frames.append(f'{frame.filename}:{frame.lineno}')
     frames = ', '.join(frames)
     return frames
@@ -33,9 +31,10 @@ def get_createaction_caller():
 class SpyderRegistry:
     """General registry for global references (per plugin) in Spyder."""
 
-    def __init__(self, obj_type: str = ''):
+    def __init__(self, creation_func: str, obj_type: str = ''):
         self.registry_map = {}
         self.obj_type = obj_type
+        self.creation_func = creation_func
 
     def register_reference(self, obj: Any, key: str,
                            plugin: Optional[str] = None,
@@ -70,7 +69,7 @@ class SpyderRegistry:
 
         if key in context_references:
             try:
-                frames = get_createaction_caller()
+                frames = get_caller(self.creation_func)
                 warnings.warn(
                     f'There already exists a reference {context_references[key]} '
                     f'with key {key} under the context {context} of plugin '
@@ -169,7 +168,7 @@ class SpyderRegistry:
         return f'SpyderRegistry[{self.obj_type}, {self.registry_map}]'
 
 
-ACTION_REGISTRY = SpyderRegistry('SpyderAction')
-TOOLBUTTON_REGISTRY = SpyderRegistry('QToolButton')
-TOOLBAR_REGISTRY = SpyderRegistry('QToolBar')
-MENU_REGISTRY = SpyderRegistry('QMenu')
+ACTION_REGISTRY = SpyderRegistry('create_action', 'SpyderAction')
+TOOLBUTTON_REGISTRY = SpyderRegistry('', 'QToolButton')
+TOOLBAR_REGISTRY = SpyderRegistry('', 'QToolBar')
+MENU_REGISTRY = SpyderRegistry('create_menu', 'SpyderMenu')
