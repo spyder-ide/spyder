@@ -32,7 +32,7 @@ class SpyderPaletteDark:
 
     ICON_1 = Gray.B140
     ICON_2 = Blue.B70
-    ICON_3 = Green.B70
+    ICON_3 = Green.B60
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B30
