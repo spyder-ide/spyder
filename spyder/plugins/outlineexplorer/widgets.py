@@ -934,7 +934,7 @@ class OutlineExplorerWidget(QWidget):
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
-                                           icon='outline_explorer_vis.png',
+                                           icon='outline_explorer_vis',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
 

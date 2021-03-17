@@ -142,7 +142,7 @@ class ApplicationContainer(PluginMainContainer):
             self.winenv_action = self.create_action(
                 ApplicationActions.SpyderWindowsEnvVariables,
                 _("Current user environment variables..."),
-                icon=self.create_icon('win_env.png', image_file=True),
+                icon=self.create_icon('win_env'),
                 tip=_("Show and edit current user environment "
                       "variables in Windows registry "
                       "(i.e. for all sessions)"),

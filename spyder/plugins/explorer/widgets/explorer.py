@@ -375,7 +375,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.move_action = self.create_action(
             DirViewActions.Move,
             text=_("Move..."),
-            icon="move.png",  # TODO:Update image
+            icon=self.create_icon('move'),
             triggered=lambda: self.move(),
         )
 

@@ -16,9 +16,9 @@ from qtpy.QtGui import QIcon, QImage, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
-from spyder.config.base import get_image_path
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import is_text_file
 import qtawesome as qta
 
@@ -373,7 +373,7 @@ def get_std_icon(name, size=None):
         return QIcon(icon.pixmap(size, size))
 
 
-def get_icon(name, default=None, resample=False, adjust_for_interface=False):
+def get_icon(name, resample=False):
     """Return image inside a QIcon object.
 
     default: default image name or icon
@@ -382,25 +382,8 @@ def get_icon(name, default=None, resample=False, adjust_for_interface=False):
     created from SVG images on non-Windows platforms due to a Qt bug.
     See spyder-ide/spyder#1314.
     """
-
-    if adjust_for_interface:
-        folder_name = 'dark' if is_dark_interface else 'light'
-        name = osp.join(folder_name, name)
-        # name = (name + '_dark.svg' if is_dark_interface()
-        #         else name + '_light.svg')
-
-    icon_path = get_image_path(name, default=None)
-    if icon_path is not None:
-        icon = QIcon(icon_path)
-    elif isinstance(default, QIcon):
-        icon = default
-    elif default is None:
-        try:
-            icon = get_std_icon(name[:-4])
-        except AttributeError:
-            icon = QIcon(get_image_path(name, default))
-    else:
-        icon = QIcon(get_image_path(name, default))
+    icon_path = get_image_path(name)
+    icon = QIcon(icon_path)
     if resample:
         icon0 = QIcon()
         for size in (16, 24, 32, 48, 96, 128, 256, 512):
@@ -423,11 +406,12 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
             if scale_factor is not None:
                 kwargs['scale_factor'] = scale_factor
             return qta.icon(*args, **kwargs)
-        except:
+        except KeyError:
             # Load custom icons
-            pass
+            icon = QIcon(get_icon(name))
+            return icon if icon is not None else QIcon()
     elif theme == 'spyder 2':
-        icon = get_icon(name + '.png', resample=resample)
+        icon = get_icon(name, resample=resample)
         if icon_path:
             icon_path = osp.join(icon_path, name + '.png')
             if osp.isfile(icon_path):
@@ -454,7 +438,7 @@ def get_icon_by_extension_or_type(fname, scale_factor):
     if osp.isdir(fname):
         icon_by_extension = icon('DirOpenIcon', scale_factor)
     else:
-        icon_by_extension = get_icon('binary', adjust_for_interface=True)
+        icon_by_extension = icon('binary')
 
         if extension in OFFICE_FILES:
             icon_by_extension = icon(OFFICE_FILES[extension], scale_factor)
@@ -463,12 +447,9 @@ def get_icon_by_extension_or_type(fname, scale_factor):
             icon_by_extension = icon(LANGUAGE_ICONS[extension], scale_factor)
         else:
             if extension == '.ipynb':
-                icon_by_extension = get_icon('notebook',
-                                             adjust_for_interface=True)
+                icon_by_extension = icon('notebook')
             elif extension == '.tex':
-                icon_by_extension = get_icon('file_type_tex',
-                                             adjust_for_interface=True)
-                print('************', icon_by_extension)
+                icon_by_extension = icon('file_type_tex')
             elif is_text_file(fname):
                 icon_by_extension = icon('TextFileIcon', scale_factor)
             elif mime_type is not None:
@@ -484,8 +465,7 @@ def get_icon_by_extension_or_type(fname, scale_factor):
                 except ValueError:
                     file_type = None
                 if file_type is None:
-                    icon_by_extension = get_icon('binary',
-                                                 adjust_for_interface=True)
+                    icon_by_extension = icon('binary')
                 elif file_type == 'audio':
                     icon_by_extension = icon('AudioFileIcon', scale_factor)
                 elif file_type == 'video':

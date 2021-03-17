@@ -87,7 +87,7 @@ class KiteStatusWidget(StatusBarWidget):
         return self.tooltip
 
     def get_icon(self):
-        return ima.get_icon('kite', adjust_for_interface=True)
+        return ima.get_icon('kite')
 
     @Slot()
     def show_installation_dialog(self):

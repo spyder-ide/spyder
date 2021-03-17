@@ -26,13 +26,14 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_image_path, MAC_APP_NAME
+from spyder.config.base import MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_std_icon
+from spyder.utils.image_path_manager import get_image_path
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 
@@ -77,7 +78,7 @@ def start_file(filename):
     return QDesktopServices.openUrl(url)
 
 
-def get_image_label(name, default="not_found.png"):
+def get_image_label(name, default="not_found"):
     """Return image inside a QLabel object"""
     label = QLabel()
     label.setPixmap(QPixmap(get_image_path(name, default)))

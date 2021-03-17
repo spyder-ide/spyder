@@ -225,7 +225,7 @@ class CompletionWidget(QListWidget):
             icon_height = img_height
             icon_width = icon_scale * icon_height
             icon_provider = ima.get_icon(
-                icon_provider, adjust_for_interface=True)
+                icon_provider)
             icon_provider = ima.base64_from_icon_obj(
                 icon_provider, icon_width, icon_height)
 

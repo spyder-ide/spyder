@@ -17,7 +17,8 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
                             QWidget)
 
 # Local imports
-from spyder.config.base import _, get_image_path
+from spyder.config.base import _
+from spyder.utils.image_path_manager import get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
 from spyder.plugins.completion.providers.kite.utils.install import (
@@ -45,7 +46,7 @@ class KiteIntegrationInfo(QWidget):
         super(KiteIntegrationInfo, self).__init__(parent)
         # Images
         images_layout = QHBoxLayout()
-        icon_filename = 'kite_completions.png'
+        icon_filename = 'kite_completions'
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
@@ -202,7 +203,7 @@ class KiteInstallation(QWidget):
         action_layout.addStretch()
 
         # Right side
-        copilot_image_source = get_image_path('kite_copilot.png')
+        copilot_image_source = get_image_path('kite_copilot')
 
         copilot_image = QPixmap(copilot_image_source)
         copilot_label = QLabel()

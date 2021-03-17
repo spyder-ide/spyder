@@ -82,10 +82,11 @@ from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
                               get_python_doc_path, qt_message_handler,
                               setup_logging, set_opengl_implementation, Spy)
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
-                                get_home_dir, get_image_path, get_module_path,
+                                get_home_dir, get_module_path,
                                 get_module_source_path, get_safe_mode,
                                 is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
+from spyder.utils.image_path_manager import get_image_path
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
@@ -98,7 +99,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
 from spyder.utils.programs import is_module_installed
-from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
+from spyder.utils.qthelpers import (create_action, add_actions,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
                                     MENU_SEPARATOR, qapplication, start_file)
@@ -2727,7 +2728,7 @@ class MainWindow(QMainWindow):
         else:
             icon = ima.icon('window_fullscreen')
         if is_text_string(icon):
-            icon = get_icon(icon)
+            icon = ima.icon(icon)
         self.fullscreen_action.setIcon(icon)
 
     @Slot()
@@ -3156,7 +3157,7 @@ def create_application():
     app = qapplication()
 
     # --- Set application icon
-    app_icon = QIcon(get_image_path("spyder.svg"))
+    app_icon = QIcon(get_image_path("spyder"))
     app.setWindowIcon(app_icon)
 
     # Required for correct icon on GNOME/Wayland:

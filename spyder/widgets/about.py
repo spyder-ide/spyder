@@ -19,9 +19,9 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 from spyder import (__project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions)
 from spyder.config.base import _
-from spyder.config.base import get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
+from spyder.utils.image_path_manager import get_image_path
 
 
 class AboutDialog(QDialog):
@@ -137,11 +137,7 @@ class AboutDialog(QDialog):
         self.label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.label.setFixedWidth(350)
 
-        if is_dark_interface():
-            icon_filename = "spyder.svg"
-        else:
-            icon_filename = "spyder_dark.svg"
-
+        icon_filename = "spyder"
         pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
         self.label_pic.setPixmap(

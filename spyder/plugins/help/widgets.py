@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
-from spyder.config.base import get_image_path, get_module_source_path
+from spyder.config.base import get_module_source_path
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
                                                  generate_context, loading,
@@ -32,6 +32,7 @@ from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import programs
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import start_file
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
@@ -722,7 +723,7 @@ class HelpWidget(PluginMainWidget):
         """Create html page to show while the documentation is generated."""
         self.sig_render_started.emit()
         loading_message = _("Retrieving documentation")
-        loading_img = get_image_path('loading_sprites.png')
+        loading_img = get_image_path('loading_sprites')
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
 

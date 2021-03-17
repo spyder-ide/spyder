@@ -22,7 +22,8 @@ from qtpy.QtWidgets import QSplashScreen
 
 # Local imports
 from spyder.config.base import (DEV, get_conf_path, get_debug_level,
-                                get_image_path, running_under_pytest)
+                                running_under_pytest)
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import file_uri
 from spyder.utils.external.dafsa.dafsa import DAFSA
 
@@ -174,7 +175,7 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 def create_splash_screen():
     """Create splash screen."""
     if not running_under_pytest():
-        splash = QSplashScreen(QPixmap(get_image_path('splash.svg')))
+        splash = QSplashScreen(QPixmap(get_image_path('splash')))
         splash_font = splash.font()
         splash_font.setPixelSize(10)
         splash.setFont(splash_font)

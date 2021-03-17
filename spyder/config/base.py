@@ -28,9 +28,8 @@ import warnings
 
 # Local imports
 from spyder import __version__
-from spyder.utils import encoding
 from spyder.py3compat import is_unicode, PY3, to_text_string, is_text_string
-
+from spyder.utils import encoding
 
 #==============================================================================
 # Only for development
@@ -326,38 +325,6 @@ def is_pynsist():
     if os.environ.get('PYTHONPATH') is not None:
         return pkgs_path in os.environ.get('PYTHONPATH')
     return False
-
-
-# =============================================================================
-# Image path list
-# =============================================================================
-IMG_PATH = []
-
-
-def add_image_path(path):
-    if not osp.isdir(path):
-        return
-    global IMG_PATH
-    IMG_PATH.append(path)
-    for dirpath, dirnames, _filenames in os.walk(path):
-        for dirname in dirnames:
-            IMG_PATH.append(osp.join(dirpath, dirname))
-
-
-add_image_path(get_module_data_path('spyder', relpath='images'))
-
-
-def get_image_path(name, default="not_found.png"):
-    """Return image absolute path"""
-    print('*****', IMG_PATH, name)
-    for img_path in IMG_PATH:
-        full_path = osp.join(img_path, name)
-        if osp.isfile(full_path):
-            return osp.abspath(full_path)
-    if default is not None:
-        img_path = osp.join(get_module_path('spyder'), 'images')
-        return osp.abspath(osp.join(img_path, default))
-
 
 #==============================================================================
 # Translations
