@@ -224,23 +224,20 @@ class MainWidgetToolbar(SpyderToolbar):
         """
         Set the style of this toolbar with a stylesheet.
         """
-        if is_dark_interface():
-            stylesheet = r"""
-                QToolBar QToolButton:!hover:!pressed {
-                    border-color: transparent;
-                }
-                QToolBar {
-                    border: 0px;
-                    background: rgb(25, 35, 45);
-                }
-                QToolButton {
-                    background-color: transparent;
-                }
-                QToolButton:checked {
-                    background-color: rgb(49, 64, 75);
-                }
-            """
-        else:
-            stylesheet = r"QToolBar {border: 0px;}"
+        stylesheet = r"""
+            QToolBar QToolButton:!hover:!pressed:!checked {
+                border-color: transparent;
+                background-color: transparent;
+            }
+            QToolBar {
+                border: 0px;
+                background: rgb(25, 35, 45);
+                spacing: 0.5em;
+            }
+            QToolButton {
+                height: 2.3em;
+                width: 2.3em;
+            }
+        """
 
         self.setStyleSheet(textwrap.dedent(stylesheet))
