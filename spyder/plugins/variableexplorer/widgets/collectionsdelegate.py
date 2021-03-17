@@ -46,8 +46,8 @@ LARGE_ARRAY = 5e6
 
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
-    sig_free_memory = Signal()
-    sig_open_editor = Signal()
+    sig_free_memory_requested = Signal()
+    sig_editor_creation_started = Signal()
     sig_editor_shown = Signal()
 
     def __init__(self, parent=None):
@@ -98,7 +98,7 @@ class CollectionsDelegate(QItemDelegate):
     def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
         val_type = index.sibling(index.row(), 1).data()
-        self.sig_open_editor.emit()
+        self.sig_editor_creation_started.emit()
         if index.column() < 3:
             return None
         if self.show_warning(index):
@@ -108,6 +108,7 @@ class CollectionsDelegate(QItemDelegate):
                   "Do you want to continue anyway?"),
                 QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
+                self.sig_editor_shown.emit()
                 return None
         try:
             value = self.get_value(index)
@@ -197,8 +198,6 @@ class CollectionsDelegate(QItemDelegate):
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
-            editor.dataModel.set_format(index.model().dataframe_format)
-            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -251,26 +250,13 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         # ObjectExplorer for an arbitrary Python object
         else:
-            show_callable_attributes = index.model().show_callable_attributes
-            show_special_attributes = index.model().show_special_attributes
-            dataframe_format = index.model().dataframe_format
-
-            if show_callable_attributes is None:
-                show_callable_attributes = False
-            if show_special_attributes is None:
-                show_special_attributes = False
-
             from spyder.plugins.variableexplorer.widgets.objectexplorer \
                 import ObjectExplorer
             editor = ObjectExplorer(
                 value,
                 name=key,
                 parent=parent,
-                show_callable_attributes=show_callable_attributes,
-                show_special_attributes=show_special_attributes,
-                dataframe_format=dataframe_format,
                 readonly=readonly)
-            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
@@ -284,22 +270,6 @@ class CollectionsDelegate(QItemDelegate):
                      lambda eid=id(editor): self.editor_rejected(eid))
         self.sig_editor_shown.emit()
         editor.show()
-
-    @Slot(str, object)
-    def change_option(self, option_name, new_value):
-        """
-        Change configuration option.
-
-        This function is called when a `sig_option_changed` signal is received.
-        At the moment, this signal can only come from a DataFrameEditor
-        or an ObjectExplorer.
-        """
-        if option_name == 'dataframe_format':
-            self.parent().set_dataframe_format(new_value)
-        elif option_name == 'show_callable_attributes':
-            self.parent().toggle_show_callable_attributes(new_value)
-        elif option_name == 'show_special_attributes':
-            self.parent().toggle_show_special_attributes(new_value)
 
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]
@@ -328,7 +298,7 @@ class CollectionsDelegate(QItemDelegate):
     def free_memory(self):
         """Free memory after closing an editor."""
         try:
-            self.sig_free_memory.emit()
+            self.sig_free_memory_requested.emit()
         except RuntimeError:
             pass
 
@@ -517,8 +487,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
-            editor.dataModel.set_format(index.model().dataframe_format)
-            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None

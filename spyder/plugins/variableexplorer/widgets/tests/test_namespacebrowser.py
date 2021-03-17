@@ -30,16 +30,6 @@ from spyder.widgets.collectionseditor import ROWS_TO_LOAD
 from spyder.widgets.tests.test_collectioneditor import data, data_table
 
 
-def test_setup_sets_dataframe_format(qtbot):
-    browser = NamespaceBrowser(None)
-    browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False, dataframe_format='%10.5f')
-    assert browser.editor.source_model.dataframe_format == '%10.5f'
-
-
 @flaky(max_runs=5)
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and PY2,
@@ -48,10 +38,8 @@ def test_setup_sets_dataframe_format(qtbot):
 def test_automatic_column_width(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False)
+    browser.setup()
+
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
     browser.set_data({'a_variable':
             {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}})
@@ -74,10 +62,8 @@ def test_sort_by_column(qtbot):
     browser = NamespaceBrowser(None)
     qtbot.addWidget(browser)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False)
+    browser.setup()
+
     browser.set_data(
         {'a_variable':
             {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'},
@@ -121,14 +107,10 @@ def test_keys_sorted_and_sort_with_large_rows(qtbot):
     browser = NamespaceBrowser(None)
     qtbot.addWidget(browser)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False)
-
-    variables = {}
+    browser.setup()
 
     # Create variables.
+    variables = {}
     variables['i'] = (
         {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
     )
@@ -170,10 +152,7 @@ def test_filtering_with_large_rows(qtbot):
     browser = NamespaceBrowser(None)
     qtbot.addWidget(browser)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False)
+    browser.setup()
 
     # Create data
     variables = {}
