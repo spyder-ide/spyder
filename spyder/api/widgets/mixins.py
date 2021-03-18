@@ -19,19 +19,20 @@ from typing import Any, Optional, Dict
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
+from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget, QToolButton
 
 # Local imports
 from spyder.api.config.mixins import (
     SpyderConfigurationObserver, SpyderConfigurationAccessor)
 from spyder.api.registries import (
-    ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY)
+    ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
 from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action, create_toolbutton
+from spyder.utils.qthelpers import (
+    create_action, create_toolbutton, SpyderAction)
 
 
 class SpyderToolButtonMixin:
@@ -46,15 +47,6 @@ class SpyderToolButtonMixin:
         """
         Create a Spyder toolbutton.
         """
-        toolbuttons = getattr(self, '_toolbuttons', None)
-        if toolbuttons is None:
-            self._toolbuttons = OrderedDict()
-
-        if name in self._toolbuttons:
-            raise SpyderAPIError(
-                'Tool button name "{}" already in use!'.format(name)
-            )
-
         if toggled and not callable(toggled):
             toggled = lambda value: None
 
@@ -73,7 +65,10 @@ class SpyderToolButtonMixin:
             autoraise=autoraise,
             text_beside_icon=text_beside_icon,
             section=section,
-            option=option
+            option=option,
+            plugin=self.PLUGIN_NAME,
+            context_name=self.CONTEXT_NAME,
+            register_toolbutton=True
         )
         toolbutton.name = name
 
@@ -82,34 +77,63 @@ class SpyderToolButtonMixin:
                 value = CONF.get(section, option)
                 toolbutton.setChecked(value)
 
-        self._toolbuttons[name] = toolbutton
         return toolbutton
 
-    def get_toolbutton(self, name):
+    def get_toolbutton(self, name: str, context: Optional[str] = None,
+                       plugin: Optional[str] = None) -> QToolButton:
         """
-        Return toolbutton by name.
+        Return toolbutton by name, plugin and context.
+
+        Parameters
+        ----------
+        name: str
+            Name of the toolbutton to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the toolbutton was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbutton was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbutton: QToolButton
+            The corresponding toolbutton stored under the given `name`,
+            `context` and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbutton registry.
         """
-        toolbuttons = getattr(self, '_toolbuttons', None)
-        if toolbuttons is None:
-            self._toolbuttons = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBUTTON_REGISTRY.get_reference(name, plugin, context)
 
-        if name in self._toolbuttons:
-            raise SpyderAPIError(
-                'Tool button name "{0}" not found! Available names are: {1}'
-                ''.format(name, list(self._toolbuttons.keys()))
-            )
-
-        return self._toolbuttons[name]
-
-    def get_toolbuttons(self):
+    def get_toolbuttons(self, context: Optional[str] = None,
+                        plugin: Optional[str] = None) -> Dict[str, QToolButton]:
         """
-        Return all toolbuttons.
-        """
-        toolbuttons = getattr(self, '_toolbuttons', None)
-        if toolbuttons is None:
-            self._toolbuttons = OrderedDict()
+        Return all toolbuttons defined by a context on a given plugin.
 
-        return self._toolbuttons
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the toolbuttons were
+            stored. If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbuttons were defined.
+            If None, then `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbuttons: Dict[str, QToolButton]
+            A dictionary that maps string keys to their corresponding
+            toolbutton.
+        """
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBUTTON_REGISTRY.get_references(plugin, context)
 
 
 class SpyderToolbarMixin:
