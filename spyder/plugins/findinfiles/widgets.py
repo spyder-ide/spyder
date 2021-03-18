@@ -954,7 +954,6 @@ class FindInFilesWidget(PluginMainWidget):
         )
         self.find_action = self.create_action(
             FindInFilesWidgetActions.Find,
-            icon_text=_('Search'),
             text=_("&Find in files"),
             tip=_("Search text in multiple files"),
             icon=self.create_icon('find'),

@@ -426,7 +426,6 @@ class PylintWidget(PluginMainWidget):
         )
         self.code_analysis_action = self.create_action(
             PylintWidgetActions.RunCodeAnalysis,
-            icon_text=_("Analyze"),
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
@@ -444,7 +443,6 @@ class PylintWidget(PluginMainWidget):
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
             text=_("Output"),
-            icon_text=_("Output"),
             tip=_("Complete output"),
             icon=self.create_icon("log"),
             triggered=self.show_log,

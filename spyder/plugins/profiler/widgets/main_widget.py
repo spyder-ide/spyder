@@ -209,7 +209,6 @@ class ProfilerWidget(PluginMainWidget):
         self.log_action = self.create_action(
             ProfilerWidgetActions.ShowOutput,
             text=_("Output"),
-            icon_text=_("Output"),
             tip=_("Show program's output"),
             icon=self.create_icon('log'),
             triggered=self.show_log,
@@ -231,7 +230,6 @@ class ProfilerWidget(PluginMainWidget):
         self.save_action = self.create_action(
             ProfilerWidgetActions.SaveData,
             text=_("Save data"),
-            icon_text=_("Save data"),
             tip=_('Save profiling data'),
             icon=self.create_icon('filesave'),
             triggered=self.save_data,
@@ -239,7 +237,6 @@ class ProfilerWidget(PluginMainWidget):
         self.load_action = self.create_action(
             ProfilerWidgetActions.LoadData,
             text=_("Load data"),
-            icon_text=_("Load data"),
             tip=_('Load profiling data for comparison'),
             icon=self.create_icon('fileimport'),
             triggered=self.compare,
@@ -247,7 +244,6 @@ class ProfilerWidget(PluginMainWidget):
         self.clear_action = self.create_action(
             ProfilerWidgetActions.Clear,
             text=_("Clear comparison"),
-            icon_text=_("Clear comparison"),
             tip=_("Clear comparison"),
             icon=self.create_icon('editdelete'),
             triggered=self.clear,
