@@ -56,7 +56,7 @@ class ConfigAccessMixin(object):
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default)
 
-    def remove_option(option, section=None):
+    def remove_option(self, option, section=None):
         section = self.CONF_SECTION if section is None else section
         CONF.remove_option(section, option)
 

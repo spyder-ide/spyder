@@ -75,7 +75,7 @@ class Plots(SpyderDockablePlugin):
     # ------------------------------------------------------------------------
     def current_widget(self):
         """
-        Return the current shellwidget.
+        Return the current widget displayed at the moment.
 
         Returns
         -------
@@ -86,7 +86,7 @@ class Plots(SpyderDockablePlugin):
 
     def add_shellwidget(self, shellwidget):
         """
-        Add a new shellwidget registered with the plots plugin.
+        Add a new shellwidget to be registered with the Plots plugin.
 
         This function registers a new FigureBrowser for browsing the figures
         in the shellwidget.
@@ -107,7 +107,6 @@ class Plots(SpyderDockablePlugin):
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
         """
-
         self.get_widget().remove_shellwidget(shellwidget)
 
     def set_shellwidget(self, shellwidget):

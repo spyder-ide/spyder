@@ -998,14 +998,6 @@ class MainWindow(QMainWindow):
                     before_section=FileMenuSections.Restart)
         self.set_splash("")
 
-        # Namespace browser
-        self.set_splash(_("Loading namespace browser..."))
-        from spyder.plugins.variableexplorer.plugin import VariableExplorer
-        self.variableexplorer = VariableExplorer(self)
-        self.variableexplorer.register_plugin()
-        self.add_plugin(self.variableexplorer)
-        self.preferences.register_plugin_preferences(self.variableexplorer)
-
         # IPython console
         self.set_splash(_("Loading IPython console..."))
         from spyder.plugins.ipythonconsole.plugin import IPythonConsole
@@ -1013,6 +1005,12 @@ class MainWindow(QMainWindow):
         self.ipyconsole.register_plugin()
         self.add_plugin(self.ipyconsole)
         self.preferences.register_plugin_preferences(self.ipyconsole)
+
+        # Variable Explorer
+        self.set_splash(_("Loading Variable Explorer..."))
+        from spyder.plugins.variableexplorer.plugin import VariableExplorer
+        self.variableexplorer = VariableExplorer(self, configuration=CONF)
+        self.register_plugin(self.variableexplorer)
 
         # Help plugin
         # TODO: There is a circular dependency between help and ipython since

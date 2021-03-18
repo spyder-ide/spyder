@@ -229,9 +229,9 @@ install_requires = [
     'pyls-spyder>=0.3.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
-    'qdarkstyle>=2.8',
+    'qdarkstyle>=2.8,<3.0',
     'qtawesome>=0.5.7',
-    'qtconsole>=5.0.1',
+    'qtconsole>=5.0.3',
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
@@ -301,6 +301,8 @@ spyder_completions_entry_points = [
      'SnippetsProvider'),
     ('kite = spyder.plugins.completion.providers.kite.provider:'
      'KiteProvider'),
+    ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
+     'LanguageServerProvider'),
 ]
 
 
