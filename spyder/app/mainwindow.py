@@ -1640,8 +1640,17 @@ class MainWindow(QMainWindow):
 
         # Window layout
         if hexstate:
-            self.restoreState( QByteArray().fromHex(
-                    str(hexstate).encode('utf-8')) )
+            hexstate_valid = self.restoreState(
+                QByteArray().fromHex(str(hexstate).encode('utf-8')))
+
+            # Check layout validity. Spyder 4 uses the default version 0 state
+            # whereas Spyder 5 will use version 1 state. For more info see the
+            # version argument for QMainWindow.restoreState:
+            # https://doc.qt.io/qt-5/qmainwindow.html#restoreState
+            if not hexstate_valid:
+                self.setUpdatesEnabled(True)
+                self.setup_layout(default=True)
+                return
             # Workaround for spyder-ide/spyder#880.
             # QDockWidget objects are not painted if restored as floating
             # windows, so we must dock them before showing the mainwindow.
