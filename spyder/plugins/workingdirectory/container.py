@@ -80,9 +80,8 @@ class WorkingDirectoryContainer(PluginMainContainer):
                 "QToolButton {"
                 "width: 2.8em;"
                 "height: 2.8em;"
-                "}"+ 
-                "QToolBar {"
-                "spacing: 0.5em;"
+                "margin-right: 0.25em;"
+                "margin-left: 0.25em;"
                 "}")
         self.pathedit = PathComboBox(
             self,
