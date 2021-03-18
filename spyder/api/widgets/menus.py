@@ -61,6 +61,13 @@ class SpyderMenu(QMenu):
             # See spyder-ide/spyder#14612
             self.addAction(QAction(self))
         self.aboutToShow.connect(self._render)
+        self.setStyleSheet(
+            "QMenu::item {"
+            "height: 1.4em;"
+            "font-size: 0.7em;"
+            "icon-size: 0.8em;"
+            "}")
+
 
     def add_action(self, action, section=None, before=None,
                    before_section=None):
