@@ -95,6 +95,10 @@ jobs:
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
+      - name: Use QtAwesome 1.0.1
+        if: env.RUN_BUILD == 'true'
+        shell: bash -l {0}
+        run: conda install -q -y qtawesome=1.0.1
       - name: Show test environment
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
