@@ -112,5 +112,5 @@ class IconProvider(QFileIconProvider):
                 icon = ima.get_icon_by_extension_or_type(fname,
                                                          scale_factor=1.0)
             else:
-                icon = ima.get_icon('binary')
+                icon = ima.icon('binary')
             return icon

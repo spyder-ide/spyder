@@ -228,7 +228,7 @@ class KiteProvider(SpyderCompletionProvider):
             install_kite_action = self.create_action(
                 KiteProviderActions.Installation,
                 _("Install Kite completion engine"),
-                icon=ima.get_icon('kite'),
+                icon=ima.icon('kite'),
                 triggered=self.show_kite_installation)
 
             self.add_item_to_application_menu(
