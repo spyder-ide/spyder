@@ -413,25 +413,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     # --- Private Methods
     # ------------------------------------------------------------------------
-    @staticmethod
-    def _find_children(obj, all_children):
-        """
-        Find all children of `obj` that use SpyderWidgetMixin recursively.
-
-        `all_children` is a list on which to append the results.
-        """
-        children = obj.findChildren(SpyderWidgetMixin)
-        all_children.extend(children)
-
-        if obj not in all_children:
-            all_children.append(obj)
-
-        for child in children:
-            children = child.findChildren(SpyderWidgetMixin)
-            all_children.extend(children)
-
-        return all_children
-
     def _setup(self):
         """
         Setup default actions, create options menu, and connect signals.
