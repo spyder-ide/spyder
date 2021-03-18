@@ -16,6 +16,7 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import QMenu, QToolBar
 
 # Local imports
+from spyder.api.registries import TOOLBAR_REGISTRY
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
@@ -141,6 +142,9 @@ class ToolbarContainer(PluginMainContainer):
         toolbar = ApplicationToolbar(self, title)
         toolbar.ID = toolbar_id
         toolbar.setObjectName(toolbar_id)
+
+        TOOLBAR_REGISTRY.register_reference(
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
         return toolbar
