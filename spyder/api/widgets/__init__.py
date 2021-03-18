@@ -544,7 +544,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.dock_action.setVisible(not show_dock_actions)
 
         if sys.platform == 'darwin':
-            set_menu_icons(self.get_menu(PluginMainWidgetMenus.Options), True)
+            try:
+                set_menu_icons(
+                    self.get_menu(PluginMainWidgetMenus.Options), True)
+            except KeyError:
+                # Prevent unexpected errors on the test suite.
+                pass
 
         # Widget setup
         # --------------------------------------------------------------------
