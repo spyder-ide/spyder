@@ -411,7 +411,7 @@ class IconManager():
                 icon = QIcon(self.get_icon(name))
                 return icon if icon is not None else QIcon()
         elif theme == 'spyder 2':
-            icon = get_icon(name, resample=resample)
+            icon = self.get_icon(name, resample=resample)
             return icon if icon is not None else QIcon()
 
     def get_icon_by_extension_or_type(self, fname, scale_factor):
