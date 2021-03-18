@@ -24,7 +24,8 @@ from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
 # Local imports
 from spyder.api.config.mixins import (
     SpyderConfigurationObserver, SpyderConfigurationAccessor)
-from spyder.api.registries import ACTION_REGISTRY, MENU_REGISTRY
+from spyder.api.registries import (
+    ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY)
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
@@ -133,43 +134,69 @@ class SpyderToolbarMixin:
         stretcher.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         return stretcher
 
-    def create_toolbar(self, name):
+    def create_toolbar(self, name: str) -> QToolBar:
         """
         Create a Spyder toolbar.
         """
-        toolbars = getattr(self, '_toolbars', None)
-        if toolbars is None:
-            self._toolbars = OrderedDict()
-
-        if name in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" already created!'.format(name))
-
         toolbar = QToolBar(self)
-        self._toolbars[name] = toolbar
+        TOOLBAR_REGISTRY.register_reference(
+            toolbar, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
         return toolbar
 
-    def get_toolbar(self, name):
+    def get_toolbar(self, name: str, context: Optional[str] = None,
+                    plugin: Optional[str] = None) -> QToolBar:
         """
-        Return toolbar by name.
+        Return toolbar by name, plugin and context.
+
+        Parameters
+        ----------
+        name: str
+            Name of the toolbar to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the toolbar was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbar was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbar: QToolBar
+            The corresponding toolbar stored under the given `name`, `context`
+            and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbar registry.
         """
-        toolbars = getattr(self, '_toolbars', None)
-        if toolbars is None:
-            self._toolbars = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBAR_REGISTRY.get_reference(name, plugin, context)
 
-        if name not in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" not found!'.format(name))
-
-        return self._toolbars[name]
-
-    def get_toolbars(self):
+    def get_toolbars(self, context: Optional[str] = None,
+                     plugin: Optional[str] = None) -> Dict[str, QToolBar]:
         """
-        Return all toolbars.
-        """
-        toolbars = getattr(self, '_toolbars', None)
-        if toolbars is None:
-            self._toolbars = OrderedDict()
+        Return all toolbars defined by a context on a given plugin.
 
-        return self._toolbars
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the toolbars were stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbars were defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbars: Dict[str, QToolBar]
+            A dictionary that maps string keys to their corresponding toolbar.
+        """
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBAR_REGISTRY.get_references(plugin, context)
 
 
 class SpyderMenuMixin:
@@ -214,7 +241,7 @@ class SpyderMenuMixin:
             menu.setIcon(icon)
 
         MENU_REGISTRY.register_reference(
-            menu, name, self.PLUGIN_NAME, self.CONTEXT_NAME,)
+            menu, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
         return menu
 
     def get_menu(self, name: str, context: Optional[str] = None,
@@ -225,18 +252,25 @@ class SpyderMenuMixin:
         Parameters
         ----------
         name: str
-            Name of the action to retrieve.
+            Name of the menu to retrieve.
         context: Optional[str]
-            Widget or context identifier under which the action was stored.
+            Widget or context identifier under which the menu was stored.
             If None, then `CONTEXT_NAME` is used instead
         plugin: Optional[str]
-            Name of the plugin where the action was defined. If None, then
+            Name of the plugin where the menu was defined. If None, then
             `PLUGIN_NAME` is used.
 
         Returns
         -------
         menu: SpyderMenu
-            The corresponding menu registered by its key.
+            The corresponding menu stored under the given `name`, `context`
+            and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbar registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -245,15 +279,15 @@ class SpyderMenuMixin:
     def get_menus(self, context: Optional[str] = None,
                   plugin: Optional[str] = None) -> Dict[str, SpyderMenu]:
         """
-        Return all actions defined by a context on a given plugin.
+        Return all menus defined by a context on a given plugin.
 
         Parameters
         ----------
         context: Optional[str]
-            Widget or context identifier under which the action was stored.
+            Widget or context identifier under which the menus were stored.
             If None, then `CONTEXT_NAME` is used instead
         plugin: Optional[str]
-            Name of the plugin where the action was defined. If None, then
+            Name of the plugin where the menus were defined. If None, then
             `PLUGIN_NAME` is used.
 
         Returns
@@ -421,7 +455,14 @@ class SpyderActionMixin:
         Returns
         -------
         action: SpyderAction
-            The corresponding action registered by name.
+            The corresponding action stored under the given `name`, `context`
+            and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbar registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -436,11 +477,16 @@ class SpyderActionMixin:
         Parameters
         ----------
         context: Optional[str]
-            Widget or context identifier under which the action was stored.
+            Widget or context identifier under which the actions were stored.
             If None, then `CONTEXT_NAME` is used instead
         plugin: Optional[str]
-            Name of the plugin where the action was defined. If None, then
+            Name of the plugin where the actions were defined. If None, then
             `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        actions: Dict[str, SpyderAction]
+            A dictionary that maps string keys to their corresponding action.
 
         Notes
         -----

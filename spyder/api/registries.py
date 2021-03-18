@@ -170,5 +170,5 @@ class SpyderRegistry:
 
 ACTION_REGISTRY = SpyderRegistry('create_action', 'SpyderAction')
 TOOLBUTTON_REGISTRY = SpyderRegistry('', 'QToolButton')
-TOOLBAR_REGISTRY = SpyderRegistry('', 'QToolBar')
+TOOLBAR_REGISTRY = SpyderRegistry('create_toolbar', 'QToolBar')
 MENU_REGISTRY = SpyderRegistry('create_menu', 'SpyderMenu')

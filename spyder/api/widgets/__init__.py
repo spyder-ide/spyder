@@ -34,7 +34,7 @@ import qdarkstyle
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.registries import ACTION_REGISTRY
+from spyder.api.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
@@ -655,13 +655,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             The auxiliary toolbar that was created and added to the plugin
             interface.
         """
-        if toolbar_id in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" already exists!'.format(
-                toolbar_id))
-
         toolbar = MainWidgetToolbar(parent=self)
         toolbar.ID = toolbar_id
-        self._toolbars[toolbar_id] = toolbar
+
+        TOOLBAR_REGISTRY.register_reference(
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
+
         self._auxiliary_toolbars[toolbar_id] = toolbar
         self._toolbars_layout.addWidget(toolbar)
 
