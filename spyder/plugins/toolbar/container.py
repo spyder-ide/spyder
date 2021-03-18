@@ -16,13 +16,13 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import QMenu, QToolBar
 
 # Local imports
-from spyder.api.registries import TOOLBAR_REGISTRY
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.registries import TOOLBAR_REGISTRY
 
 # Localization
 _ = get_translation('spyder')

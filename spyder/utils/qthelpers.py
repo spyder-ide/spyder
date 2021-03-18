@@ -28,7 +28,6 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.config.base import get_image_path, MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
@@ -36,6 +35,7 @@ from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_std_icon
+from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 

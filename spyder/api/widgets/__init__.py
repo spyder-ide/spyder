@@ -34,7 +34,6 @@ import qdarkstyle
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
@@ -43,6 +42,7 @@ from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
+from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 

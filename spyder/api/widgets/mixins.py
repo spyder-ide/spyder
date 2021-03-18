@@ -24,8 +24,6 @@ from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget, QToolButton
 # Local imports
 from spyder.api.config.mixins import (
     SpyderConfigurationObserver, SpyderConfigurationAccessor)
-from spyder.api.registries import (
-    ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
@@ -33,6 +31,8 @@ from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (
     create_action, create_toolbutton, SpyderAction)
+from spyder.utils.registries import (
+    ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 
 
 class SpyderToolButtonMixin:
