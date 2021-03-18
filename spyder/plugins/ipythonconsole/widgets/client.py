@@ -34,7 +34,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 from spyder.config.base import (_, get_module_source_path,
                                 running_under_pytest)
 from spyder.config.manager import CONF
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import get_coding

@@ -6,7 +6,7 @@
 
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,

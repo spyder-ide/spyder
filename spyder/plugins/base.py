@@ -26,7 +26,7 @@ from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
     toggle_actions, set_menu_icons)

@@ -19,7 +19,7 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
 from spyder.plugins.shortcuts.widgets.table import (ShortcutFinder,
                                                     ShortcutsTable)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 # Localization
 _ = get_translation('spyder')

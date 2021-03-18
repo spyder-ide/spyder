@@ -50,7 +50,7 @@ from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
                               is_type_text_string, NUMERIC_TYPES)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.stringmatching import get_search_scores, get_search_regex

@@ -30,7 +30,7 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
     TreeItem)
 from spyder.py3compat import to_unichr
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
 

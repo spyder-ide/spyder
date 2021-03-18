@@ -95,7 +95,7 @@ from spyder.otherplugins import get_spyderplugins_mods
 from spyder.py3compat import (configparser as cp, is_text_string,
                               PY3, qbytearray_to_str, to_text_string)
 from spyder.utils import encoding, programs
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
 from spyder.utils.programs import is_module_installed

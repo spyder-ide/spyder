@@ -25,7 +25,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.preferences.api import PreferencePages
 from spyder.plugins.preferences.plugin import Preferences
 from spyder.plugins.shortcuts.widgets.table import load_shortcuts_data
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 class MainWindowMock(QMainWindow):

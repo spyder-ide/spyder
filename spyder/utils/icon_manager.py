@@ -408,7 +408,7 @@ class IconManager():
                 return qta.icon(*args, **kwargs)
             except KeyError:
                 # Load custom icons
-                icon = QIcon(get_icon(name))
+                icon = QIcon(self.get_icon(name))
                 return icon if icon is not None else QIcon()
         elif theme == 'spyder 2':
             icon = get_icon(name, resample=resample)
@@ -497,6 +497,10 @@ class IconManager():
 ima = IconManager()
 
 
+# -----------------------------------------------------------------------------
+# TODO: Remove the following code once external plugins have been updated to
+# the new icon manager.
+# -----------------------------------------------------------------------------
 def get_std_icon(name, size=None):
     return ima.get_std_icon(name, size=size)
 

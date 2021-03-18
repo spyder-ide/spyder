@@ -28,7 +28,7 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
 from spyder.config.manager import CONF
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, create_toolbutton
 
 

@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QToolTip)
 
 # Local imports
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate

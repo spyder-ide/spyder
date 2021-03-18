@@ -23,7 +23,7 @@ from spyder.plugins.completion.providers.kite.utils.install import (
     KiteInstallationThread)
 from spyder.plugins.completion.providers.kite.widgets.install import (
     KiteInstallerDialog)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
 

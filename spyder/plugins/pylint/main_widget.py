@@ -35,7 +35,7 @@ from spyder.config.base import get_conf_path, running_in_mac_app
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)

@@ -10,7 +10,7 @@ import os.path as osp
 import warnings
 
 # Local imports
-from spyder.config.base import get_module_data_path, get_module_path
+from spyder.config.base import get_module_data_path
 from spyder.config.gui import is_dark_interface
 
 # =============================================================================
@@ -37,6 +37,8 @@ class ImagePathManager():
             elif not is_dark_interface() and osp.basename(dirpath) == 'dark':
                 continue
             for filename in _filenames:
+                if filename.startswith('.'):
+                    continue
                 name, __ = osp.splitext(osp.basename(filename))
                 complete_path = osp.join(dirpath, filename)
                 if name in self.IMG_PATH:

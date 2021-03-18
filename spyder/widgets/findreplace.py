@@ -24,10 +24,10 @@ from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
-from spyder.utils.qthelpers import create_toolbutton, get_icon
+from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.sourcecode import get_eol_chars
 from spyder.widgets.comboboxes import PatternComboBox
 

@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
 from spyder.config.gui import is_dark_interface
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.providers.kite.utils.install import (
     ERRORED, INSTALLING, FINISHED, CANCELLED)
 

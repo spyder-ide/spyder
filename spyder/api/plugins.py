@@ -46,7 +46,7 @@ from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.py3compat import configparser as cp
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
 # Localization
