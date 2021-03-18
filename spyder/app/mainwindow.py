@@ -2237,7 +2237,12 @@ class MainWindow(QMainWindow):
 
     def update_source_menu(self):
         """Update source menu options that vary dynamically."""
-        self.editor.refresh_formatter_name()
+        # This is necessary to avoid an error at startup.
+        # Fixes spyder-ide/spyder#14901
+        try:
+            self.editor.refresh_formatter_name()
+        except AttributeError:
+            pass
 
     def free_memory(self):
         """Free memory after event."""
