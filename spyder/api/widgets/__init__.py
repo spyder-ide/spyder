@@ -703,20 +703,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._menus[menu_id] = menu
         return menu
 
-    def get_toolbar(self, name):
-        """
-        Return one of plugin's toolbars by name.
-
-        Returns
-        -------
-        QToolBar
-            The selected toolbar.
-        """
-        if name not in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" not found!'.format(name))
-
-        return self._toolbars[name]
-
     def get_options_menu(self):
         """
         Return the main options menu of the widget.
