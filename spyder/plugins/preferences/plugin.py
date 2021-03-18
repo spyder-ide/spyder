@@ -21,11 +21,13 @@ from pkg_resources import parse_version
 from qtpy.QtGui import QIcon
 
 # Local imports
-from spyder.api.plugins import SpyderPluginV2, SpyderPlugin
+from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
 from spyder.config.base import _
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
+from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
 from spyder.plugins.preferences.widgets.container import PreferencesContainer
+from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,7 @@ class Preferences(SpyderPluginV2):
 
     NAME = 'preferences'
     CONF_SECTION = 'preferences'
+    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
 
@@ -239,7 +242,32 @@ class Preferences(SpyderPluginV2):
     def register(self):
         container = self.get_container()
         main = self.get_main()
-        container.sig_reset_spyder.connect(main.reset_spyder)
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        toolbar = self.get_plugin(Plugins.Toolbar)
+
+        container.sig_reset_preferences_requested.connect(main.reset_spyder)
+        container.sig_show_preferences_requested.connect(
+            lambda: self.open_dialog(main.prefs_dialog_size))
+
+        if main_menu:
+            main_menu.add_item_to_application_menu(
+                container.show_action,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Tools,
+            )
+
+            main_menu.add_item_to_application_menu(
+                container.reset_action,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Extras,
+            )
+
+        if toolbar:
+            toolbar.add_item_to_application_toolbar(
+                container.show_action,
+                toolbar_id=ApplicationToolbars.Main,
+                section=MainToolbarSections.ApplicationSection
+            )
 
     def unregister(self):
         pass
