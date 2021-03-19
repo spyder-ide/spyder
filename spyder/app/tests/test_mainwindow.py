@@ -2683,7 +2683,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] is None
-    assert jedi['extra_paths'] == []
+    assert jedi['extra_paths'] == os.environ.get('PYTHONPATH', '').split(os.pathsep)
 
     # Change main interpreter on preferences
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
@@ -2698,7 +2698,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] == sys.executable
-    assert jedi['extra_paths'] == []
+    assert jedi['extra_paths'] == os.environ.get('PYTHONPATH', '').split(os.pathsep)
 
 
 @pytest.mark.slow
