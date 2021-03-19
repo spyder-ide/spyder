@@ -578,7 +578,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         self.update_lsp_configuration(python_only=True)
 
     @on_conf_change(section='main_interpreter',
-                    option=['default', 'custom_interpreter'])
+                    option=['default', 'custom_interpreter',
+                            'system_pythonpath'])
     def on_main_interpreter_change(self, option, value):
         if running_under_pytest():
             if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):

@@ -123,7 +123,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
             _("Use system PYTHONPATH"),
             'system_pythonpath',
             msg_info=_("Please note that these changes will "
-                       "be applied only to new consoles"),
+                       "be applied only to new consoles but "
+                       "and immediately to completions"),
             tip=_("For standalone applications, use your system PYTHONPATH")
         )
         pyexec_layout.addWidget(system_pythonpath)

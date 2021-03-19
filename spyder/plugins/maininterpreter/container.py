@@ -51,7 +51,8 @@ class MainInterpreterContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
-    @on_conf_change(option=['default', 'custom_interpreter', 'custom'])
+    @on_conf_change(option=['default', 'custom_interpreter', 'custom',
+                            'system_pythonpath'])
     def section_conf_update(self, option, value):
         if option in ['default', 'custom_interpreter', 'custom'] and value:
             self._update_status()
