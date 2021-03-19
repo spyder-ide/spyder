@@ -32,7 +32,7 @@ from spyder.config.base import (get_home_dir, get_project_config_folder,
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.projects.api import (BaseProjectType, EmptyProject,

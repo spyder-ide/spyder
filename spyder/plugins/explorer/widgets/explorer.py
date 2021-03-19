@@ -39,7 +39,7 @@ from spyder.plugins.explorer.widgets.utils import (
     create_script, fixpath, IconProvider, show_in_external_file_explorer)
 from spyder.py3compat import to_binary_string
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import file_uri, start_file
@@ -353,7 +353,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.move_action = self.create_action(
             DirViewActions.Move,
             text=_("Move..."),
-            icon="move.png",  # TODO:Update image
+            icon=self.create_icon('move'),
             triggered=lambda: self.move(),
         )
 

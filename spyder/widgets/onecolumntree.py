@@ -11,7 +11,7 @@ from qtpy.QtWidgets import QTreeWidget, QMenu
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     get_item_user_text)
 

@@ -18,7 +18,7 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 from spyder.config.base import _
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.encoding import to_unicode_from_fs
 
 

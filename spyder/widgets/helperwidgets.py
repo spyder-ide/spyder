@@ -23,8 +23,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import get_std_icon
+from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 
 # Valid finder chars. To be improved
@@ -37,7 +36,7 @@ class HelperToolButton(QToolButton):
     """
     def __init__(self):
         QToolButton.__init__(self)
-        self.setIcon(get_std_icon('MessageBoxInformation'))
+        self.setIcon(ima.get_std_icon('MessageBoxInformation'))
         style = """
             QToolButton {
               padding:0px;

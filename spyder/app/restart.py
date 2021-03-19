@@ -27,7 +27,8 @@ from qtpy.QtGui import QColor, QPixmap, QIcon
 from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 
 # Local imports
-from spyder.config.base import _, get_image_path
+from spyder.config.base import _
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication
 from spyder.config.manager import CONF
@@ -90,7 +91,7 @@ class Restarter(QWidget):
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = QSplashScreen(QPixmap(get_image_path('splash.svg'),
+        self.splash = QSplashScreen(QPixmap(get_image_path('splash'),
                                     'svg'))
 
         # Widget setup
@@ -177,10 +178,7 @@ def main():
     app = qapplication()
     restarter = Restarter()
 
-    if PYQT5:
-        APP_ICON = QIcon(get_image_path("spyder.svg"))
-    else:
-        APP_ICON = QIcon(get_image_path("spyder.png"))
+    APP_ICON = QIcon(get_image_path("spyder"))
     app.setWindowIcon(APP_ICON)
     restarter.set_splash_message(_('Closing Spyder'))
 

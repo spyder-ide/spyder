@@ -134,4 +134,6 @@ def test_solve_internal_plugins():
     assert solve_plugin_dependencies(internal, testing=False) == []
 
     # Test that solver doesn't crash and returns all available plugins
-    assert len(solve_plugin_dependencies(internal, testing=True)) == 26
+    solved_dependencies = solve_plugin_dependencies(internal, testing=True)
+    print(solved_dependencies)
+    assert len(solved_dependencies) == 26

@@ -27,7 +27,7 @@ from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
 from spyder.plugins.completion.providers.kite.widgets import (
     KiteInstallationErrorMessage, KiteStatusWidget)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_program
 
 
@@ -228,7 +228,7 @@ class KiteProvider(SpyderCompletionProvider):
             install_kite_action = self.create_action(
                 KiteProviderActions.Installation,
                 _("Install Kite completion engine"),
-                icon=ima.get_icon('kite', adjust_for_interface=True),
+                icon=ima.icon('kite'),
                 triggered=self.show_kite_installation)
 
             self.add_item_to_application_menu(

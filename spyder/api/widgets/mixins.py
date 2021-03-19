@@ -28,7 +28,7 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.types import ConfigurationKey
 from spyder.config.manager import CONF
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     create_action, create_toolbutton, SpyderAction)
 from spyder.utils.registries import (
@@ -572,15 +572,11 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
         super().__init__()
 
     @staticmethod
-    def create_icon(name, image_file=False):
+    def create_icon(name):
         """
         Create an icon by name using the spyder Icon manager.
         """
-        if image_file:
-            icon = ima.get_icon(name)
-        else:
-            icon = ima.icon(name)
-        return icon
+        return ima.icon(name)
 
     def update_style(self):
         """

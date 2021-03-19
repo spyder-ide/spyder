@@ -31,11 +31,12 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import (_, get_image_path, get_module_source_path,
+from spyder.config.base import (_, get_module_source_path,
                                 running_under_pytest)
 from spyder.config.manager import CONF
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.programs import get_temp_dir
@@ -786,7 +787,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def _create_loading_page(self):
         """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
-        loading_img = get_image_path('loading_sprites.png')
+        loading_img = get_image_path('loading_sprites')
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
         message = _("Connecting to kernel...")

@@ -32,7 +32,7 @@ from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
                               PY3, str_lower, to_text_string)
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
                                     restore_keyevent)
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,

@@ -19,7 +19,7 @@ from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.plugins.completion.providers.languageserver.widgets import (
     LSPServerTable)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 

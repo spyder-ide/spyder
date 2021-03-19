@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text, create_plugin_layout,
@@ -938,7 +938,7 @@ class OutlineExplorerWidget(QWidget):
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
-                                           icon='outline_explorer_vis.png',
+                                           icon='outline_explorer_vis',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
 

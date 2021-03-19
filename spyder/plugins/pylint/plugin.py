@@ -62,8 +62,7 @@ class Pylint(SpyderDockablePlugin):
         return _("Run Code Analysis.")
 
     def get_icon(self):
-        path = osp.join(self.get_path(), self.IMG_PATH)
-        return self.create_icon("pylint", path=path)
+        return self.create_icon("pylint")
 
     def register(self):
         widget = self.get_widget()

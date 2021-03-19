@@ -23,7 +23,7 @@ from spyder.plugins.completion.providers.kite.utils.install import (
     KiteInstallationThread)
 from spyder.plugins.completion.providers.kite.widgets.install import (
     KiteInstallerDialog)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ class KiteStatusWidget(StatusBarWidget):
         return self.tooltip
 
     def get_icon(self):
-        return ima.get_icon('kite', adjust_for_interface=True)
+        return ima.icon('kite')
 
     @Slot()
     def show_installation_dialog(self):

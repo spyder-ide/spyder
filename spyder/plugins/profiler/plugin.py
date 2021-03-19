@@ -67,8 +67,7 @@ class Profiler(SpyderDockablePlugin):
         return _("Profile your scripts and find bottlenecks.")
 
     def get_icon(self):
-        path = osp.join(self.get_path(), self.IMG_PATH)
-        return self.create_icon('profiler', path=path)
+        return self.create_icon('profiler')
 
     def register(self):
         widget = self.get_widget()
