@@ -79,8 +79,9 @@ class SpyderRegistry:
                     f'{plugin}. The new reference {obj} will overwrite the '
                     f'previous reference. Hint: {obj} should have a different '
                     f'id_. See {frames}')
-            except RuntimeError:
+            except (RuntimeError, KeyError):
                 # Do not raise exception if a wrapped Qt Object was deleted.
+                # Or if the object reference dissapeared concurrently.
                 pass
 
         logger.debug(f'Registering {obj} ({id_}) under context {context} for '
