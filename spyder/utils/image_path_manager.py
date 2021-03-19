@@ -21,7 +21,7 @@ from spyder.config.gui import is_dark_interface
 class ImagePathManager():
     """Manager of the image path in the project."""
     def __init__(self):
-        """Initialize the path with all the images."""
+        """Initialize main path with all the images."""
         self.IMG_PATH = {}
         self.add_image_path(get_module_data_path('spyder', relpath='images'))
         self.default = 'not_found'
@@ -48,7 +48,7 @@ class ImagePathManager():
                 self.IMG_PATH[name] = complete_path
 
     def get_image_path(self, name):
-        """Get path of the image given the name."""
+        """Get path of the image given its name."""
         try:
             act_image = self.IMG_PATH[name]
             if osp.isfile(act_image):
@@ -61,5 +61,5 @@ IMAGE_PATH_MANAGER = ImagePathManager()
 
 
 def get_image_path(name):
-    """Return image absolute path"""
+    """Return absolute image path."""
     return IMAGE_PATH_MANAGER.get_image_path(name)

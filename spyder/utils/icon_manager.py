@@ -364,8 +364,7 @@ class IconManager():
         }
 
     def get_std_icon(self, name, size=None):
-        """Get standard platform icon
-        Call 'show_std_icons()' for details"""
+        """Get standard platform icon."""
         if not name.startswith('SP_'):
             name = 'SP_' + name
         icon = QWidget().style().standardIcon(getattr(QStyle, name))
@@ -438,7 +437,6 @@ class IconManager():
             if extension in self.OFFICE_FILES:
                 icon_by_extension = self.icon(
                     self.OFFICE_FILES[extension], scale_factor)
-
             elif extension in self.LANGUAGE_ICONS:
                 icon_by_extension = self.icon(
                     self.LANGUAGE_ICONS[extension], scale_factor)
