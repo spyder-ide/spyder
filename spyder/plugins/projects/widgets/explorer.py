@@ -182,15 +182,6 @@ class ProjectExplorerWidget(QWidget):
         self.show_hscrollbar = show_hscrollbar
 
         self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        options = {
-            'date_column': False,
-            'kind_column': True,
-            'size_column': False,
-            'name_filters': name_filters,
-            'show_hidden': False,
-            'single_click_to_open': single_click_to_open,
-            'file_associations': {},
-        }
         self.treewidget.setup()
         self.treewidget.setup_view()
         self.treewidget.hide()
