@@ -1518,7 +1518,7 @@ class MainWindow(QMainWindow):
         pos = (self.window_position.x(), self.window_position.y())
         prefs_dialog_size = (self.prefs_dialog_size.width(),
                              self.prefs_dialog_size.height())
-        hexstate = qbytearray_to_str(self.saveState())
+        hexstate = qbytearray_to_str(self.saveState(version=1))
         return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
                 is_fullscreen)
 
@@ -1541,10 +1541,12 @@ class MainWindow(QMainWindow):
         # Window layout
         if hexstate:
             hexstate_valid = self.restoreState(
-                QByteArray().fromHex(str(hexstate).encode('utf-8')))
+                QByteArray().fromHex(str(hexstate).encode('utf-8')),
+                version=1
+            )
 
-            # Check layout validity. Spyder 4 uses the default version 0 state
-            # whereas Spyder 5 will use version 1 state. For more info see the
+            # Check layout validity. Spyder 4 uses the version 1 state,
+            # whereas Spyder 5 will use version 2 state. For more info see the
             # version argument for QMainWindow.restoreState:
             # https://doc.qt.io/qt-5/qmainwindow.html#restoreState
             if not hexstate_valid:
