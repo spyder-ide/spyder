@@ -1,5 +1,15 @@
 # History of changes
 
+## Version 5.0alpha7 (2021-03-19)
+
+### Important fixes
+* This is exactly the same as 5.0alpha6 but avoids reporting an error with
+  an incompatible version of spyder-kernels.
+
+
+----
+
+
 ## Version 5.0alpha6 (2021-03-19)
 
 ### Issues Closed
