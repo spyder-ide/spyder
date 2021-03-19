@@ -213,6 +213,37 @@ In this release 47 pull requests were closed.
 ----
 
 
+## Version 4.2.4 (2021-03-19)
+
+### Important fixes
+* Fix an important error when restarting kernels.
+* Add compatibility with the future Spyder 5.
+
+### Issues Closed
+
+* [Issue 14901](https://github.com/spyder-ide/spyder/issues/14901) - AttributeError: no attribute 'refresh_formatter_name' when opening Spyder ([PR 14943](https://github.com/spyder-ide/spyder/pull/14943) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 14886](https://github.com/spyder-ide/spyder/issues/14886) - KeyError after failed import in debugger
+* [Issue 14701](https://github.com/spyder-ide/spyder/issues/14701) - Spyder.ttf font has print and preview only restrictions ([PR 14904](https://github.com/spyder-ide/spyder/pull/14904) by [@juliangilbey](https://github.com/juliangilbey))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 14957](https://github.com/spyder-ide/spyder/pull/14957) - PR: Use version arg explicitly in saveState/restoreState (Main Window), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14956](https://github.com/spyder-ide/spyder/pull/14956) - PR: Update hexstate handling to fallback to default layout when moving from Spyder 5 to Spyder 4, by [@dalthviz](https://github.com/dalthviz)
+* [PR 14950](https://github.com/spyder-ide/spyder/pull/14950) - PR: Use QtAwesome 1.0.1 for the file tests, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14943](https://github.com/spyder-ide/spyder/pull/14943) - PR: Catch an error when updating the Source menu at startup, by [@ccordoba12](https://github.com/ccordoba12) ([14901](https://github.com/spyder-ide/spyder/issues/14901))
+* [PR 14941](https://github.com/spyder-ide/spyder/pull/14941) - PR: Update required versions on qtconsole and qdarkstyle, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14904](https://github.com/spyder-ide/spyder/pull/14904) - PR: Mark spyder.ttf as an unrestricted font, by [@juliangilbey](https://github.com/juliangilbey) ([14701](https://github.com/spyder-ide/spyder/issues/14701))
+* [PR 14903](https://github.com/spyder-ide/spyder/pull/14903) - PR: Add TypeError as a Picklingerror (Variable Explorer), by [@impact27](https://github.com/impact27)
+* [PR 14884](https://github.com/spyder-ide/spyder/pull/14884) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
 ## Version 4.2.3 (2021-03-04)
 
 ### Important fixes
