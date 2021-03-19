@@ -1,5 +1,35 @@
 # History of changes
 
+## Version 5.0alpha6 (2021-03-19)
+
+### Issues Closed
+
+* [Issue 14923](https://github.com/spyder-ide/spyder/issues/14923) - Language server does not start in macOS application (master) ([PR 14930](https://github.com/spyder-ide/spyder/pull/14930) by [@mrclary](https://github.com/mrclary))
+* [Issue 12192](https://github.com/spyder-ide/spyder/issues/12192) - Move Completion plugin to use new API ([PR 14314](https://github.com/spyder-ide/spyder/pull/14314) by [@andfoy](https://github.com/andfoy))
+* [Issue 12184](https://github.com/spyder-ide/spyder/issues/12184) - Move Variable Explorer plugin to use new API ([PR 14709](https://github.com/spyder-ide/spyder/pull/14709) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 14955](https://github.com/spyder-ide/spyder/pull/14955) - PR: Move actions to open preferences and reset to defaults to the Preferences plugin, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14942](https://github.com/spyder-ide/spyder/pull/14942) - PR: Add missing "self" argument in a method, by [@novaya](https://github.com/novaya)
+* [PR 14940](https://github.com/spyder-ide/spyder/pull/14940) - PR: Add missing recursive_notification argument to set_option calls in old API preference pages, by [@andfoy](https://github.com/andfoy)
+* [PR 14930](https://github.com/spyder-ide/spyder/pull/14930) - PR: Add lsp to spyder.completions entry-points, by [@mrclary](https://github.com/mrclary) ([14923](https://github.com/spyder-ide/spyder/issues/14923))
+* [PR 14874](https://github.com/spyder-ide/spyder/pull/14874) - PR: Add external panels API to the editor, by [@steff456](https://github.com/steff456)
+* [PR 14872](https://github.com/spyder-ide/spyder/pull/14872) - PR: Add support for custom status bar widgets, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14852](https://github.com/spyder-ide/spyder/pull/14852) - PR: Refactor Spyder configuration system to use an observer pattern, by [@andfoy](https://github.com/andfoy)
+* [PR 14831](https://github.com/spyder-ide/spyder/pull/14831) - PR: Fix location of newly created file and directory in Files, by [@novaya](https://github.com/novaya)
+* [PR 14810](https://github.com/spyder-ide/spyder/pull/14810) - PR: Panels and extensions cleanup (Editor), by [@steff456](https://github.com/steff456)
+* [PR 14709](https://github.com/spyder-ide/spyder/pull/14709) - PR: Migrate Variable Explorer to the new API, by [@ccordoba12](https://github.com/ccordoba12) ([12184](https://github.com/spyder-ide/spyder/issues/12184))
+* [PR 14314](https://github.com/spyder-ide/spyder/pull/14314) - PR: Migrate completion plugin to the new API, by [@andfoy](https://github.com/andfoy) ([12192](https://github.com/spyder-ide/spyder/issues/12192))
+
+In this release 11 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0alpha5 (2021-02-23)
 
 ### Pull Requests Merged
