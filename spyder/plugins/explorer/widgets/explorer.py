@@ -249,8 +249,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         ----------
         parent: QWidget
             Parent QWidget of the widget.
-        options: dict
-            Dictionary with all the options of the widget.
         """
         super().__init__(parent=parent, class_parent=parent)
 
@@ -1799,8 +1797,6 @@ class ExplorerTreeWidget(DirView):
         ----------
         parent: PluginMainWidget, optional
             Parent widget of the explorer tree widget.
-        options: dict, optional
-            Dictionary with all the options used by the widget.
         """
         super().__init__(parent=parent)
 
@@ -1819,11 +1815,6 @@ class ExplorerTreeWidget(DirView):
     def setup(self):
         """
         Perform the setup of the widget.
-
-        Parameters
-        ----------
-        options: dict, optional
-            Dictionary with all the options used by the widget.
         """
         super().setup()
 
