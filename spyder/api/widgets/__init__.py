@@ -23,6 +23,7 @@ from collections import OrderedDict
 import os
 import sys
 import textwrap
+from typing import Any, Optional
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
@@ -41,6 +42,7 @@ from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
+from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -77,6 +79,16 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     -----
     All Spyder non dockable plugins can define a plugin container that must
     subclass this.
+    """
+
+    CONTEXT_NAME = None
+    """
+    This optional attribute defines the context name under which actions,
+    toolbars, toolbuttons and menus should be registered on the
+    Spyder global registry.
+
+    If actions, toolbars, toolbuttons or menus belong to the global scope of
+    the plugin, then this attribute should have a `None` value.
     """
 
     # --- Signals
@@ -145,6 +157,10 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._name = name
         self._plugin = plugin
         self._parent = parent
+
+        # Attribute used to access the action, toolbar, toolbutton and menu
+        # registries
+        self.PLUGIN_NAME = name
 
         # Widget setup
         # A PluginMainContainer inherits from QWidget so it can be a parent
@@ -215,6 +231,16 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         spinner is not moving) to avoid items jumping to the left/right when
         the spinner appears. If `False` no extra space will be added. Default
         is False.
+    """
+
+    CONTEXT_NAME = None
+    """
+    This optional attribute defines the context name under which actions,
+    toolbars, toolbuttons and menus should be registered on the
+    Spyder global registry.
+
+    If actions, toolbars, toolbuttons or menus belong to the global scope of
+    the plugin, then this attribute should have a `None` value.
     """
 
     # --- Signals
@@ -312,6 +338,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.close_action = None
         self._toolbars_already_rendered = False
 
+        # Attribute used to access the action, toolbar, toolbutton and menu
+        # registries
+        self.PLUGIN_NAME = name
+
         # We create our toggle action instead of using the one that comes with
         # dockwidget because it was not possible to raise and focus the plugin
         self.toggle_view_action = None
@@ -371,25 +401,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     # --- Private Methods
     # ------------------------------------------------------------------------
-    @staticmethod
-    def _find_children(obj, all_children):
-        """
-        Find all children of `obj` that use SpyderWidgetMixin recursively.
-
-        `all_children` is a list on which to append the results.
-        """
-        children = obj.findChildren(SpyderWidgetMixin)
-        all_children.extend(children)
-
-        if obj not in all_children:
-            all_children.append(obj)
-
-        for child in children:
-            children = child.findChildren(SpyderWidgetMixin)
-            all_children.extend(children)
-
-        return all_children
-
     def _setup(self):
         """
         Setup default actions, create options menu, and connect signals.
@@ -521,7 +532,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.dock_action.setVisible(not show_dock_actions)
 
         if sys.platform == 'darwin':
-            set_menu_icons(self.get_menu(PluginMainWidgetMenus.Options), True)
+            try:
+                set_menu_icons(
+                    self.get_menu(PluginMainWidgetMenus.Options), True)
+            except KeyError:
+                # Prevent unexpected errors on the test suite.
+                pass
 
         # Widget setup
         # --------------------------------------------------------------------
@@ -554,62 +570,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         return self._plugin
 
-    def get_action(self, name):
+    def get_action(self, name, context: Optional[str] = None,
+                   plugin: Optional[str] = None):
         """
         Return action by name.
         """
-        actions = self.get_actions(filter_actions=False)
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
 
-        if name in actions:
-            return actions[name]
-        else:
-            raise SpyderAPIError(
-                '{} not found in {}'.format(name, list(actions.keys()))
-            )
-
-    def get_actions(self, filter_actions=True):
-        """
-        Return all actions defined by the central widget and all child
-        widgets subclassing SpyderWidgetMixin.
-        """
-        all_children = self._find_children(self, [self])
-        actions = OrderedDict()
-        actions_excludelist = [
-            self.dock_action,
-            self.undock_action,
-            self.close_action,
-            self.toggle_view_action,
-        ]
-
-        for child in set(all_children):
-            get_actions_method = getattr(child, 'get_actions', None)
-            _actions = getattr(child, '_actions', None)
-
-            if get_actions_method and _actions:
-                for key, action in child._actions.items():
-                    # These are actions that we want to skip from exposing to
-                    # make things simpler, but avoid creating specific
-                    # variables for this
-                    if filter_actions:
-                        if action not in actions_excludelist:
-                            if key in actions:
-                                raise SpyderAPIError(
-                                    '{} or a child widget has already '
-                                    'defined an action "{}"!'.format(self,
-                                                                     key)
-                                )
-                            else:
-                                actions[key] = action
-                    else:
-                        if key in actions:
-                            raise SpyderAPIError(
-                                '{} or a child widget has already defined an '
-                                'action "{}"!'.format(self, key)
-                            )
-                        else:
-                            actions[key] = action
-
-        return actions
+        return ACTION_REGISTRY.get_reference(name, plugin, context)
 
     def add_corner_widget(self, widget_id, widget, before=None):
         """
@@ -674,13 +643,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             The auxiliary toolbar that was created and added to the plugin
             interface.
         """
-        if toolbar_id in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" already exists!'.format(
-                toolbar_id))
-
         toolbar = MainWidgetToolbar(parent=self)
         toolbar.ID = toolbar_id
-        self._toolbars[toolbar_id] = toolbar
+
+        TOOLBAR_REGISTRY.register_reference(
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
+
         self._auxiliary_toolbars[toolbar_id] = toolbar
         self._toolbars_layout.addWidget(toolbar)
 
@@ -722,20 +690,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         self._menus[menu_id] = menu
         return menu
-
-    def get_toolbar(self, name):
-        """
-        Return one of plugin's toolbars by name.
-
-        Returns
-        -------
-        QToolBar
-            The selected toolbar.
-        """
-        if name not in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" not found!'.format(name))
-
-        return self._toolbars[name]
 
     def get_options_menu(self):
         """

@@ -35,6 +35,7 @@ from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 
@@ -229,7 +230,8 @@ def restore_keyevent(event):
 def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
                       toggled=None, triggered=None,
                       autoraise=True, text_beside_icon=False,
-                      section=None, option=None):
+                      section=None, option=None, id_=None, plugin=None,
+                      context_name=None, register_toolbutton=False):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
@@ -249,6 +251,10 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         setup_toggled_action(button, toggled, section, option)
     if shortcut is not None:
         button.setShortcut(shortcut)
+
+    if register_toolbutton:
+        TOOLBUTTON_REGISTRY.register_reference(
+            button, id_, plugin, context_name)
     return button
 
 
@@ -301,7 +307,9 @@ def toggle_actions(actions, enable):
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
-                  context=Qt.WindowShortcut, option=None, section=None):
+                  context=Qt.WindowShortcut, option=None, section=None,
+                  id_=None, plugin=None, context_name=None,
+                  register_action=False):
     """Create a QAction"""
     action = SpyderAction(text, parent)
     if triggered is not None:
@@ -340,6 +348,8 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
             action.setShortcut(shortcut)
         action.setShortcutContext(context)
 
+    if register_action:
+        ACTION_REGISTRY.register_reference(action, id_, plugin, context_name)
     return action
 
 

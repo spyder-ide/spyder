@@ -275,6 +275,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     sig_hide_spinner = Signal()
     sig_update_configuration = Signal()
 
+    CONTEXT_NAME = 'outline_explorer'
+
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True, display_variables=False,
                  sort_files_alphabetically=False, follow_cursor=True):

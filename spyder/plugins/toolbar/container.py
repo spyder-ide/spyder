@@ -22,6 +22,7 @@ from spyder.api.widgets import PluginMainContainer
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.registries import TOOLBAR_REGISTRY
 
 # Localization
 _ = get_translation('spyder')
@@ -138,6 +139,9 @@ class ToolbarContainer(PluginMainContainer):
         toolbar = ApplicationToolbar(self, title)
         toolbar.ID = toolbar_id
         toolbar.setObjectName(toolbar_id)
+
+        TOOLBAR_REGISTRY.register_reference(
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
         return toolbar

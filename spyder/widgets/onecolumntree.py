@@ -41,9 +41,6 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
 
         self.__expanded_state = None
 
-        # Widgets
-        self.menu = self.create_menu("context_menu")
-
         # Widget setup
         self.setItemsExpandable(True)
         self.setColumnCount(1)
@@ -66,6 +63,8 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     # --- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
     def setup(self):
+        self.menu = self.create_menu("context_menu")
+
         self.collapse_all_action = self.create_action(
             OneColumnTreeActions.CollapseAllAction,
             text=_("Collapse all"),
