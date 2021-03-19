@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 def get_caller(func):
-    """Get file and line where `create_action` is called."""
+    """
+    Get file and line where the methods that create actions, toolbuttons,
+    toolbars and menus are called.
+    """
     frames = []
     for frame in inspect.stack():
         code_context = frame.code_context[0]
@@ -36,20 +39,20 @@ class SpyderRegistry:
         self.obj_type = obj_type
         self.creation_func = creation_func
 
-    def register_reference(self, obj: Any, key: str,
+    def register_reference(self, obj: Any, id_: str,
                            plugin: Optional[str] = None,
                            context: Optional[str] = None):
         """
-        Register a reference `obj` for a given plugin key on a given context.
+        Register a reference `obj` for a given plugin name on a given context.
 
         Parameters
         ----------
         obj: Any
             Object to register as a reference.
-        key: str
+        id_: str
             String identifier used to store the object reference.
         plugin: Optional[str]
-            Plugin key used to store the reference. Should belong to
+            Plugin name used to store the reference. Should belong to
             :class:`spyder.api.plugins.Plugins`. If None, then the object will
             be stored under the global `main` key.
         context: Optional[str]
@@ -67,38 +70,38 @@ class SpyderRegistry:
         context_references = plugin_contexts.get(
             context, weakref.WeakValueDictionary())
 
-        if key in context_references:
+        if id_ in context_references:
             try:
                 frames = get_caller(self.creation_func)
                 warnings.warn(
-                    f'There already exists a reference {context_references[key]} '
-                    f'with key {key} under the context {context} of plugin '
+                    f'There already exists a reference {context_references[id_]} '
+                    f'with id {id_} under the context {context} of plugin '
                     f'{plugin}. The new reference {obj} will overwrite the '
                     f'previous reference. Hint: {obj} should have a different '
-                    f'key. See {frames}')
+                    f'id_. See {frames}')
             except RuntimeError:
                 # Do not raise exception if a wrapped Qt Object was deleted.
                 pass
 
-        logger.debug(f'Registering {obj} ({key}) under context {context} for '
+        logger.debug(f'Registering {obj} ({id_}) under context {context} for '
                      f'plugin {plugin}')
-        context_references[key] = obj
+        context_references[id_] = obj
         plugin_contexts[context] = context_references
         self.registry_map[plugin] = plugin_contexts
 
-    def get_reference(self, key: str,
+    def get_reference(self, id_: str,
                       plugin: Optional[str] = None,
                       context: Optional[str] = None) -> Any:
         """
-        Retrieve an stored object reference under a given key of a specific
-        context of a given plugin key.
+        Retrieve a stored object reference under a given id of a specific
+        context of a given plugin name.
 
         Parameters
         ----------
-        key: str
+        id_: str
             String identifier used to retrieve the object.
         plugin: Optional[str]
-            Plugin key used to store the reference. Should belong to
+            Plugin name used to store the reference. Should belong to
             :class:`spyder.api.plugins.Plugins`. If None, then the object will
             be retrieved from the global `main` key.
         context: Optional[str]
@@ -112,12 +115,12 @@ class SpyderRegistry:
         Returns
         -------
         obj: Any
-            The object that was stored under the given key identifier.
+            The object that was stored under the given identifier.
 
         Raises
         ------
         KeyError
-            If neither of `key`, `plugin` or `context` were found in the
+            If neither of `id_`, `plugin` or `context` were found in the
             registry.
         """
         plugin = plugin if plugin is not None else 'main'
@@ -125,18 +128,18 @@ class SpyderRegistry:
 
         plugin_contexts = self.registry_map[plugin]
         context_references = plugin_contexts[context]
-        return context_references[key]
+        return context_references[id_]
 
     def get_references(self, plugin: Optional[str] = None,
                        context: Optional[str] = None) -> Dict[str, Any]:
         """
         Retrieve all stored object references under the context of a
-        given plugin key.
+        given plugin name.
 
         Parameters
         ----------
         plugin: Optional[str]
-            Plugin key used to store the reference. Should belong to
+            Plugin name used to store the reference. Should belong to
             :class:`spyder.api.plugins.Plugins`. If None, then the object will
             be retrieved from the global `main` key.
         context: Optional[str]
@@ -151,7 +154,7 @@ class SpyderRegistry:
         -------
         objs: Dict[str, Any]
             A dict that contains the actions mapped by their corresponding
-            keys.
+            identifiers.
         """
         plugin = plugin if plugin is not None else 'main'
         context = context if context is not None else '__global'

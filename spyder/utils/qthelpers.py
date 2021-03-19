@@ -230,7 +230,7 @@ def restore_keyevent(event):
 def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
                       toggled=None, triggered=None,
                       autoraise=True, text_beside_icon=False,
-                      section=None, option=None, key=None, plugin=None,
+                      section=None, option=None, id_=None, plugin=None,
                       context_name=None, register_toolbutton=False):
     """Create a QToolButton"""
     button = QToolButton(parent)
@@ -254,7 +254,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
 
     if register_toolbutton:
         TOOLBUTTON_REGISTRY.register_reference(
-            button, key, plugin, context_name)
+            button, id_, plugin, context_name)
     return button
 
 
@@ -308,7 +308,7 @@ def toggle_actions(actions, enable):
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
                   context=Qt.WindowShortcut, option=None, section=None,
-                  key=None, plugin=None, context_name=None,
+                  id_=None, plugin=None, context_name=None,
                   register_action=False):
     """Create a QAction"""
     action = SpyderAction(text, parent)
@@ -349,7 +349,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setShortcutContext(context)
 
     if register_action:
-        ACTION_REGISTRY.register_reference(action, key, plugin, context_name)
+        ACTION_REGISTRY.register_reference(action, id_, plugin, context_name)
     return action
 
 

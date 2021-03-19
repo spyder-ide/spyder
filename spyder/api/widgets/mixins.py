@@ -66,6 +66,7 @@ class SpyderToolButtonMixin:
             text_beside_icon=text_beside_icon,
             section=section,
             option=option,
+            id_=name,
             plugin=self.PLUGIN_NAME,
             context_name=self.CONTEXT_NAME,
             register_toolbutton=True
@@ -129,7 +130,7 @@ class SpyderToolButtonMixin:
         -------
         toolbuttons: Dict[str, QToolButton]
             A dictionary that maps string keys to their corresponding
-            toolbutton.
+            toolbuttons.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -216,7 +217,7 @@ class SpyderToolbarMixin:
         Returns
         -------
         toolbars: Dict[str, QToolBar]
-            A dictionary that maps string keys to their corresponding toolbar.
+            A dictionary that maps string keys to their corresponding toolbars.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -317,7 +318,7 @@ class SpyderMenuMixin:
         Returns
         -------
         menus: Dict[str, SpyderMenu]
-            A dictionary that maps string keys to their corresponding menu.
+            A dictionary that maps string keys to their corresponding menus.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -432,7 +433,7 @@ class SpyderActionMixin:
             context=context,
             section=section,
             option=option,
-            key=name,
+            id_=name,
             plugin=self.PLUGIN_NAME,
             context_name=self.CONTEXT_NAME,
             register_action=True
@@ -510,7 +511,7 @@ class SpyderActionMixin:
         Returns
         -------
         actions: Dict[str, SpyderAction]
-            A dictionary that maps string keys to their corresponding action.
+            A dictionary that maps string keys to their corresponding actions.
 
         Notes
         -----

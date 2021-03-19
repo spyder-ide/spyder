@@ -83,18 +83,12 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     CONTEXT_NAME = None
     """
-    This attribute defines the context name under which actions, toolbars,
-    toolbuttons and menus should be registered on Spyder global registry.
+    This optional attribute defines the context name under which actions,
+    toolbars, toolbuttons and menus should be registered on the
+    Spyder global registry.
 
     If actions, toolbars, toolbuttons or menus belong to the global scope of
     the plugin, then this attribute should have a `None` value.
-
-    Parameters
-    ----------
-    CONTEXT_NAME: Optional[str]
-        Name of the context that is used to store this container actions,
-        toolbars, toolbuttons and menus. If None, then it defaults to the
-        global plugin context.
     """
 
     # --- Signals
@@ -241,18 +235,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     CONTEXT_NAME = None
     """
-    This attribute defines the context name under which actions, toolbars,
-    toolbuttons and menus should be registered on Spyder global registry.
+    This optional attribute defines the context name under which actions,
+    toolbars, toolbuttons and menus should be registered on the
+    Spyder global registry.
 
     If actions, toolbars, toolbuttons or menus belong to the global scope of
     the plugin, then this attribute should have a `None` value.
-
-    Parameters
-    ----------
-    CONTEXT_NAME: Optional[str]
-        Name of the context that is used to store this container actions,
-        toolbars, toolbuttons and menus. If None, then it defaults to the
-        global plugin context.
     """
 
     # --- Signals
