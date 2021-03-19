@@ -18,7 +18,7 @@ from qtpy.QtGui import QPainter, QColor
 
 # Local imports
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity

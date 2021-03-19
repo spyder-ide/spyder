@@ -11,7 +11,7 @@ import pytest
 from qtpy.QtGui import QIcon
 
 # Local imports
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import qapplication
 
 

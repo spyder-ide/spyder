@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QComboBox, QHBoxLayout
 from spyder.api.panel import Panel
 from spyder.config.base import _
 from spyder.plugins.completion.api import SymbolKind
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 class ClassFunctionDropdown(Panel):

@@ -30,7 +30,7 @@ from spyder.api.translations import get_translation
 from spyder.plugins.console.utils.interpreter import Interpreter
 from spyder.py3compat import (builtins, to_binary_string,
                               to_text_string)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.misc import get_error_match, getcwd_or_home
 from spyder.utils.qthelpers import create_action

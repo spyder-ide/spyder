@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QVBoxLayout
 from spyder.config.base import _
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.py3compat import is_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 
 

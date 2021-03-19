@@ -25,7 +25,7 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.utils import is_ubuntu
 from spyder.py3compat import TEXT_TYPES, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HTMLDelegate
 

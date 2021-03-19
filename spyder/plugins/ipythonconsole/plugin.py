@@ -48,7 +48,7 @@ from spyder.plugins.ipythonconsole.widgets import (
     PageControlWidget)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.programs import get_temp_dir

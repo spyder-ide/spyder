@@ -39,7 +39,7 @@ from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
@@ -3199,7 +3199,7 @@ class EditorMainWindow(QMainWindow):
                 self.toolbars.append(toolbar)
         if menu_list:
             quit_action = create_action(self, _("Close window"),
-                                        icon="close_panel.png",
+                                        icon="close_panel",
                                         tip=_("Close this window"),
                                         triggered=self.close)
             self.menus = []

@@ -25,7 +25,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.preferences.api import PreferencePages
 from spyder.plugins.preferences.plugin import Preferences
 from spyder.plugins.shortcuts.widgets.table import load_shortcuts_data
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 class MainWindowMock(QMainWindow):
@@ -152,7 +152,7 @@ def global_config_dialog(qtbot):
 
 @pytest.fixture
 def config_dialog(qtbot, request, mocker):
-    mocker.patch.object(ima, 'icon', lambda x, icon_path=None: QIcon())
+    mocker.patch.object(ima, 'icon', lambda x: QIcon())
     main_ref = ConfigDialogTester(request.param)
     preferences = main_ref._main.preferences
     preferences.open_dialog(None)

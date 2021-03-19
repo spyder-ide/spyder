@@ -97,7 +97,7 @@ QTabBar::tab:only-one#plugin-tab {
 }
 
 QTabBar::close-button {
-    image: url($IMAGE_PATH/CloseButton.png);
+    image: url($IMAGE_PATH/mac_light_icons/close_button.png);
     border-radius: 2px;
 }
 

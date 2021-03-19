@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.widgets.helperwidgets import HelperToolButton
 
 # Constants

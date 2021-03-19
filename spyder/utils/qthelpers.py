@@ -28,13 +28,13 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_image_path, MAC_APP_NAME
+from spyder.config.base import MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import programs
-from spyder.utils.icon_manager import get_icon, get_std_icon
+from spyder.utils.image_path_manager import get_image_path
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 
@@ -79,7 +79,7 @@ def start_file(filename):
     return QDesktopServices.openUrl(url)
 
 
-def get_image_label(name, default="not_found.png"):
+def get_image_label(name, default="not_found"):
     """Return image inside a QLabel object"""
     label = QLabel()
     label.setPixmap(QPixmap(get_image_path(name, default)))
@@ -236,7 +236,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         button.setText(text)
     if icon is not None:
         if is_text_string(icon):
-            icon = get_icon(icon)
+            icon = ima.get_icon(icon)
         button.setIcon(icon)
     if text is not None or tip is not None:
         button.setToolTip(text if tip is None else tip)
@@ -310,7 +310,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         setup_toggled_action(action, toggled, section, option)
     if icon is not None:
         if is_text_string(icon):
-            icon = get_icon(icon)
+            icon = ima.get_icon(icon)
         action.setIcon(icon)
     if tip is not None:
         action.setToolTip(tip)
@@ -475,7 +475,7 @@ def create_module_bookmark_actions(parent, bookmarks):
 def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
     if is_text_string(icon):
-        icon = get_icon(icon)
+        icon = ima.get_icon(icon)
     if os.name == 'nt' and nt_name is not None:
         name = nt_name
     path = programs.find_program(name)
@@ -487,7 +487,7 @@ def create_program_action(parent, text, name, icon=None, nt_name=None):
 def create_python_script_action(parent, text, icon, package, module, args=[]):
     """Create action to run a GUI based Python script"""
     if is_text_string(icon):
-        icon = get_icon(icon)
+        icon = ima.get_icon(icon)
     if programs.python_script_exists(package, module):
         return create_action(parent, text, icon=icon,
                              triggered=lambda:
@@ -535,7 +535,7 @@ def get_filetype_icon(fname):
     ext = osp.splitext(fname)[1]
     if ext.startswith('.'):
         ext = ext[1:]
-    return get_icon( "%s.png" % ext, ima.icon('FileIcon') )
+    return ima.get_icon( "%s.png" % ext, ima.icon('FileIcon') )
 
 
 class SpyderAction(QAction):
@@ -568,7 +568,7 @@ class ShowStdIcons(QWidget):
                 if cindex == 0:
                     col_layout = QVBoxLayout()
                 icon_layout = QHBoxLayout()
-                icon = get_std_icon(child)
+                icon = ima.get_std_icon(child)
                 label = QLabel()
                 label.setPixmap(icon.pixmap(32, 32))
                 icon_layout.addWidget( label )
@@ -579,7 +579,7 @@ class ShowStdIcons(QWidget):
                     layout.addLayout(col_layout)
         self.setLayout(layout)
         self.setWindowTitle('Standard Platform Icons')
-        self.setWindowIcon(get_std_icon('TitleBarMenuButton'))
+        self.setWindowIcon(ima.get_std_icon('TitleBarMenuButton'))
 
 
 def show_std_icons():
