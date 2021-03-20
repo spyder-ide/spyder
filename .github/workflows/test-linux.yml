@@ -112,7 +112,7 @@ jobs:
       - name: Run tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
-        run: xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py
+        run: xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py
       - name: Coverage
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
