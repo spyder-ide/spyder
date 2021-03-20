@@ -134,6 +134,9 @@ CWD = getcwd_or_home()
 # Set the index for the default tour
 DEFAULT_TOUR = 0
 
+# Version passed to saveState/restoreState
+WINDOW_STATE_VERSION = 0
+
 #==============================================================================
 # Install Qt messaage handler
 #==============================================================================
@@ -1518,7 +1521,9 @@ class MainWindow(QMainWindow):
         pos = (self.window_position.x(), self.window_position.y())
         prefs_dialog_size = (self.prefs_dialog_size.width(),
                              self.prefs_dialog_size.height())
-        hexstate = qbytearray_to_str(self.saveState(version=0))
+        hexstate = qbytearray_to_str(
+            self.saveState(version=WINDOW_STATE_VERSION)
+        )
         return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
                 is_fullscreen)
 
@@ -1542,7 +1547,7 @@ class MainWindow(QMainWindow):
         if hexstate:
             hexstate_valid = self.restoreState(
                 QByteArray().fromHex(str(hexstate).encode('utf-8')),
-                version=0
+                version=WINDOW_STATE_VERSION
             )
 
             # Check layout validity. Spyder 4 uses the version 0 state,
@@ -1596,7 +1601,7 @@ class MainWindow(QMainWindow):
         if none_state:
             CONF.set(section, prefix + 'state', None)
         else:
-            qba = self.saveState(version=0)
+            qba = self.saveState(version=WINDOW_STATE_VERSION)
             CONF.set(section, prefix + 'state', qbytearray_to_str(qba))
         CONF.set(section, prefix + 'statusbar',
                  not self.statusBar().isHidden())
@@ -2542,7 +2547,9 @@ class MainWindow(QMainWindow):
                 return
 
             # Select plugin to maximize
-            self.state_before_maximizing = self.saveState(version=0)
+            self.state_before_maximizing = self.saveState(
+                version=WINDOW_STATE_VERSION
+            )
             focus_widget = QApplication.focusWidget()
             for plugin in (self.widgetlist + self.thirdparty_plugins):
                 plugin.dockwidget.hide()
@@ -2579,7 +2586,8 @@ class MainWindow(QMainWindow):
             self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.setCentralWidget(None)
             self.last_plugin._ismaximized = False
-            self.restoreState(self.state_before_maximizing, version=0)
+            self.restoreState(self.state_before_maximizing,
+                              version=WINDOW_STATE_VERSION)
             self.state_before_maximizing = None
             self.last_plugin.get_focus_widget().setFocus()
         self.__update_maximize_action()
