@@ -676,6 +676,10 @@ class CodeEditor(TextEditBaseWidget):
         # such as line stripping
         self.is_undoing = False
         self.is_redoing = False
+        
+        # Diagnostics
+        self.update_diagnostics = None
+        self.restart_diagnostics = None
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -1296,6 +1300,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
+        if (
+                self.update_diagnostics is not None
+                and self.update_diagnostics.isRunning()):
+            self.restart_diagnostics = diagnostics
+            return
+          
+        self.restart_diagnostics = None
+        
         self.cleanup_code_analysis()
         self._diagnostics = diagnostics
 
@@ -1349,6 +1361,8 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
+        if self.restart_diagnostics is not None:
+            self.process_code_analysis(self.restart_diagnostics)
 
     def _process_code_analysis(self, underline):
         """
