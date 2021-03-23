@@ -1303,8 +1303,7 @@ class CodeEditor(TextEditBaseWidget):
         if (
                 self.update_diagnostics is not None
                 and self.update_diagnostics.isRunning()):
-            self.restart_diagnostics = None
- = diagnostics
+            self.restart_diagnostics = diagnostics
             return
 
         self.restart_diagnostics = None
