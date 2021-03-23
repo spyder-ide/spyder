@@ -26,7 +26,7 @@ from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
     toggle_actions, set_menu_icons)
@@ -58,15 +58,22 @@ class BasePluginMixin(object):
         """Register plugin configuration."""
         CONF.register_plugin(self)
 
-    def _set_option(self, option, value, section=None):
+    def _set_option(self, option, value, section=None,
+                    recursive_notification=True):
         """Set option in spyder.ini"""
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, str(option), value)
+        CONF.set(section, str(option), value,
+                 recursive_notification=recursive_notification)
 
     def _get_option(self, option, default=NoDefault, section=None):
         """Get option from spyder.ini."""
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default)
+
+    def _remove_option(self, option, section=None):
+        """Remove option from spyder.ini."""
+        section = self.CONF_SECTION if section is None else section
+        CONF.remove_option(section, option)
 
     def _show_status_message(self, message, timeout=0):
         """Show message in main window's status bar."""

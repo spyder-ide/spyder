@@ -11,6 +11,7 @@ Tests for findinfiles.py
 # Test library imports
 import os
 import os.path as osp
+from unittest.mock import MagicMock
 
 # Third party imports
 from flaky import flaky
@@ -18,6 +19,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.findinfiles.widgets import (FindInFilesWidget,
                                                 SearchInComboBox,
                                                 EXTERNAL_PATHS, SELECT_OTHER,
@@ -55,14 +57,27 @@ def findinfiles(qtbot, request):
     else:
         param = None
 
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'find_in_files'
     if param:
-        options = FindInFilesWidget.DEFAULT_OPTIONS.copy()
-        options.update(param)
-        widget = FindInFilesWidget('find_in_files', options=options)
-        widget._setup(options=options)
-        widget.setup(options=options)
+        prev_values = {}
+        for param_name in param:
+            value = param[param_name]
+            prev_values[param_name] = CONF.get('find_in_files', param_name)
+            CONF.set('find_in_files', param_name, value)
+
+        widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
+        widget._setup()
+        widget.setup()
+
+        def teardown():
+            for param_name in prev_values:
+                value = prev_values[param_name]
+                CONF.set('find_in_files', param_name, value)
+
+        request.addfinalizer(teardown)
     else:
-        widget = FindInFilesWidget('find_in_files')
+        widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
         widget._setup()
         widget.setup()
 
@@ -570,7 +585,7 @@ def test_max_history(searchin_combobox, mocker):
 def test_max_results(findinfiles, qtbot):
     """Test max results correspond to expected results."""
     value = 2
-    findinfiles.change_option('max_results', value)
+    findinfiles.set_max_results(value)
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
 

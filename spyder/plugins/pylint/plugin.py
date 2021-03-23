@@ -62,8 +62,7 @@ class Pylint(SpyderDockablePlugin):
         return _("Run Code Analysis.")
 
     def get_icon(self):
-        path = osp.join(self.get_path(), self.IMG_PATH)
-        return self.create_icon("pylint", path=path)
+        return self.create_icon("pylint")
 
     def register(self):
         widget = self.get_widget()
@@ -88,9 +87,9 @@ class Pylint(SpyderDockablePlugin):
         projects = self.get_plugin(Plugins.Projects)
         if projects:
             projects.sig_project_loaded.connect(
-                lambda value: widget.change_option("project_dir", value))
+                lambda value: widget.set_conf("project_dir", value))
             projects.sig_project_closed.connect(
-                lambda value: widget.change_option("project_dir", None))
+                lambda value: widget.set_conf("project_dir", None))
 
         # Add action to application menus
         pylint_act = self.get_action(PylintWidgetActions.RunCodeAnalysis)
@@ -146,7 +145,7 @@ class Pylint(SpyderDockablePlugin):
         """
         editor = self.get_plugin(Plugins.Editor)
         if editor:
-            if self.get_conf_option("save_before", True) and not editor.save():
+            if self.get_conf("save_before", True) and not editor.save():
                 return
 
         if filename is None:

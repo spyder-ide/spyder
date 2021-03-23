@@ -13,7 +13,6 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QPainter, QColor
 
 # Local imports
-from spyder.py3compat import is_text_string
 from spyder.api.panel import Panel
 
 
@@ -22,8 +21,8 @@ class EdgeLine(Panel):
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor):
-        Panel.__init__(self, editor)
+    def __init__(self):
+        Panel.__init__(self)
         self.columns = (79,)
         self.color = Qt.darkGray
 
@@ -39,6 +38,10 @@ class EdgeLine(Panel):
         for column in self.columns:
             x = self.editor.fontMetrics().width(column * '9')
             painter.drawLine(x, 0, x, size.height())
+
+    def sizeHint(self):
+        """Override Qt method."""
+        return self.size()
 
     # --- Other methods
     # -----------------------------------------------------------------

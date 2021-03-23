@@ -13,15 +13,11 @@ import os
 import json
 import os.path as osp
 import sys
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Qt imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
-
 
 # Third party imports
 import pytest
@@ -46,21 +42,21 @@ CASES = {
 
 
 def get_tree_elements(treewidget):
-        """Get elements present in the Outline tree widget."""
-        root_item = treewidget.get_top_level_items()[0]
-        root_ref = root_item.ref
-        filename = osp.basename(root_ref.name)
-        root_tree = {filename: []}
-        stack = [(root_tree[filename], node) for node in root_ref.children]
+    """Get elements present in the Outline tree widget."""
+    root_item = treewidget.get_top_level_items()[0]
+    root_ref = root_item.ref
+    filename = osp.basename(root_ref.name)
+    root_tree = {filename: []}
+    stack = [(root_tree[filename], node) for node in root_ref.children]
 
-        while len(stack) > 0:
-            parent_tree, node = stack.pop(0)
-            this_tree = {node.name: []}
-            parent_tree.append(this_tree)
-            this_stack = [(this_tree[node.name], child)
-                          for child in node.children]
-            stack = this_stack + stack
-        return root_tree
+    while len(stack) > 0:
+        parent_tree, node = stack.pop(0)
+        this_tree = {node.name: []}
+        parent_tree.append(this_tree)
+        this_stack = [(this_tree[node.name], child)
+                        for child in node.children]
+        stack = this_stack + stack
+    return root_tree
 
 
 # ---- Qt Test Fixtures
@@ -106,8 +102,8 @@ def outlineexplorer(qtbot):
 
 
 @pytest.fixture
-def lsp_codeeditor_outline(lsp_codeeditor, outlineexplorer):
-    editor, _ = lsp_codeeditor
+def completions_codeeditor_outline(completions_codeeditor, outlineexplorer):
+    editor, _ = completions_codeeditor
     editor.oe_proxy = OutlineExplorerProxyEditor(editor, editor.filename)
     outlineexplorer.register_editor(editor.oe_proxy)
     outlineexplorer.set_current_editor(
@@ -288,9 +284,9 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
 
 @pytest.mark.slow
 @pytest.mark.second
-def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
+def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
-    code_editor, outlineexplorer = lsp_codeeditor_outline
+    code_editor, outlineexplorer = completions_codeeditor_outline
     treewidget = outlineexplorer.treewidget
 
     case_info = CASES['text']
@@ -337,7 +333,8 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     # Add "d" symbol elsewhere
     code_editor.go_to_line(36)
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_Return)
         qtbot.keyPress(code_editor, Qt.Key_Return)
 
@@ -368,7 +365,8 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     # Add method1
     code_editor.go_to_line(49)
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_Return)
         qtbot.keyPress(code_editor, Qt.Key_Return)
 
@@ -386,7 +384,8 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     cursor.movePosition(QTextCursor.EndOfBlock)
     code_editor.setTextCursor(cursor)
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_Return)
         qtbot.keyClicks(code_editor, 'self.y = None')
         qtbot.keyPress(code_editor, Qt.Key_Return)
@@ -401,12 +400,12 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
 
 @pytest.mark.slow
 @pytest.mark.second
-def test_empty_file(qtbot, lsp_codeeditor_outline):
+def test_empty_file(qtbot, completions_codeeditor_outline):
     """
     Test that the outline explorer is updated correctly when
     it's associated file is empty.
     """
-    code_editor, outlineexplorer = lsp_codeeditor_outline
+    code_editor, outlineexplorer = completions_codeeditor_outline
     treewidget = outlineexplorer.treewidget
 
     code_editor.toggle_automatic_completions(False)
@@ -435,7 +434,8 @@ def foo():
     code_editor.selectAll()
     qtbot.keyPress(code_editor, Qt.Key_Delete)
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     qtbot.wait(3000)

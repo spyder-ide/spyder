@@ -30,7 +30,7 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
     TreeItem)
 from spyder.py3compat import to_unichr
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
 
@@ -501,7 +501,6 @@ class TreeProxyModel(QSortFilterProxyModel):
     def __init__(self,
                  show_callable_attributes=True,
                  show_special_attributes=True,
-                 dataframe_format=None,
                  parent=None):
         """
         Constructor
@@ -512,14 +511,12 @@ class TreeProxyModel(QSortFilterProxyModel):
         :param show_special_attributes: if True the objects special attributes,
             i.e. methods with a name that starts and ends with two underscores,
             will be displayed (in italics). If False they are hidden.
-        :param dataframe_format: the dataframe format from config.
         :param parent: the parent widget
         """
         super(TreeProxyModel, self).__init__(parent)
 
         self._show_callables = show_callable_attributes
         self._show_special_attributes = show_special_attributes
-        self.dataframe_format = dataframe_format
 
     def get_key(self, proxy_index):
         """Get item handler for the given index."""

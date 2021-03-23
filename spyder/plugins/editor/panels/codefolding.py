@@ -29,13 +29,12 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
                         QCursor)
 
 # Local imports
-from spyder.plugins.editor.panels.utils import (
-    FoldingRegion, merge_folding, collect_folding_regions)
+from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.api.panel import Panel
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
-import spyder.utils.icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 
 
@@ -141,7 +140,7 @@ class FoldingPanel(Panel):
                         # clones
                         pass
 
-    def __init__(self, highlight_caret_scope=False):
+    def __init__(self):
         Panel.__init__(self)
         self._native_icons = False
         self._indicators_icons = (
@@ -152,7 +151,7 @@ class FoldingPanel(Panel):
         )
         self._block_nbr = -1
         self._highlight_caret = False
-        self.highlight_caret_scope = highlight_caret_scope
+        self.highlight_caret_scope = False
         self._indic_size = 16
         #: the list of deco used to highlight the current fold region (
         #: surrounding regions are darker)
@@ -408,8 +407,10 @@ class FoldingPanel(Panel):
         """
         color = self._get_scope_highlight_color()
         draw_order = DRAW_ORDERS.get('codefolding')
-        d = TextDecoration(self.editor.document(), start_line=max(0, start - 1),
-                           end_line=end, draw_order=draw_order)
+        d = TextDecoration(self.editor.document(),
+                           start_line=max(0, start - 1),
+                           end_line=end,
+                           draw_order=draw_order)
         d.set_background(color)
         d.set_full_width(True, clear=False)
         self.editor.decorations.add(d)

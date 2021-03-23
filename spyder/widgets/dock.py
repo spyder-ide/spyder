@@ -14,7 +14,7 @@ from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
                             QWidget)
 
 from spyder.config.gui import is_dark_interface
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 
 

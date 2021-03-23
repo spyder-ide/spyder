@@ -5,15 +5,29 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 
 # Local imports
-from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
+from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer
+from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
+
+
+# Localization
+_ = get_translation('spyder')
+
+
+class PreferencesActions:
+    Show = 'show_action'
+    Reset = 'reset_action'
 
 
 class PreferencesContainer(PluginMainContainer):
-    sig_reset_spyder = Signal()
+    sig_reset_preferences_requested = Signal()
+    """Request a reset of preferences."""
+
+    sig_show_preferences_requested = Signal()
+    """Request showing preferences."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,18 +85,30 @@ class PreferencesContainer(PluginMainContainer):
         """Preference page index has changed."""
         self.dialog_index = index
 
-    def reset_spyder(self):
-        self.sig_reset_spyder.emit()
+    def reset(self):
+        self.sig_reset_preferences_requested.emit()
 
     def is_dialog_open(self):
         return self.dialog is not None and self.dialog.isVisible()
 
+    def show_preferences(self):
+        """Show preferences."""
+        self.sig_show_preferences_requested.emit()
+
     # ---- PluginMainContainer API
-    def setup(self, options=None):
-        pass
+    def setup(self):
+        self.show_action = self.create_action(
+            PreferencesActions.Show,
+            _("Preferences"),
+            icon=self.create_icon('configure'),
+            triggered=self.show_preferences
+        )
+
+        self.reset_action = self.create_action(
+            PreferencesActions.Reset,
+            _("Reset Spyder to factory defaults"),
+            triggered=self.reset
+        )
 
     def update_actions(self):
-        pass
-
-    def on_option_update(self, _option, _value):
         pass

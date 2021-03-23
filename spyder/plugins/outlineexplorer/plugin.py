@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QVBoxLayout
 from spyder.config.base import _
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.py3compat import is_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 
 
@@ -57,8 +57,6 @@ class OutlineExplorer(SpyderPluginWidget):
            follow_cursor=follow_cursor,
            options_button=self.options_button)
 
-        self.explorer.sig_update_configuration.connect(
-            self.trigger_completion_config_update)
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
         self.setLayout(layout)
@@ -91,6 +89,10 @@ class OutlineExplorer(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
+        self.main.completions.sig_language_completions_available.connect(
+            self.start_symbol_services)
+        self.main.completions.sig_stop_completions.connect(
+            self.stop_symbol_services)
         self.add_dockwidget()
 
     def closing_plugin(self, cancelable=False):
@@ -146,6 +148,3 @@ class OutlineExplorer(SpyderPluginWidget):
     def update_all_editors(self):
         """Update all editors with an associated LSP server."""
         self.explorer.update_all_editors()
-
-    def trigger_completion_config_update(self):
-        self.main.completions.update_configuration()

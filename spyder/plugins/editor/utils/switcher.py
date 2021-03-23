@@ -14,10 +14,9 @@ import os.path as osp
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.switcher import shorten_paths, get_file_icon
-from spyder.plugins.completion.manager.api import (
-    SymbolKind, SYMBOL_KIND_ICON)
+from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 
 
 class EditorSwitcherManager(object):

@@ -28,13 +28,14 @@ from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QMessageBox,
                             QSizePolicy, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.config.base import get_conf_path, running_in_mac_app
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
@@ -206,11 +207,6 @@ class PylintWidget(PluginMainWidget):
     """
     Pylint widget.
     """
-    DEFAULT_OPTIONS = {
-        "history_filenames": [],
-        "max_entries": 30,
-        "project_dir": None,
-    }
     ENABLE_SPINNER = True
 
     DATAPATH = get_conf_path("pylint.results")
@@ -239,9 +235,8 @@ class PylintWidget(PluginMainWidget):
     level.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent, options)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
 
         # Attributes
         self._process = None
@@ -249,7 +244,7 @@ class PylintWidget(PluginMainWidget):
         self.error_output = None
         self.filename = None
         self.rdata = []
-        self.curr_filenames = self.get_option("history_filenames")
+        self.curr_filenames = self.get_conf("history_filenames")
         self.code_analysis_action = None
         self.browse_action = None
 
@@ -382,7 +377,7 @@ class PylintWidget(PluginMainWidget):
 
     def _update_combobox_history(self):
         """Change the number of files listed in the history combobox."""
-        max_entries = self.get_option("max_entries")
+        max_entries = self.get_conf("max_entries")
         if self.filecombo.count() > max_entries:
             num_elements = self.filecombo.count()
             diff = num_elements - max_entries
@@ -409,7 +404,7 @@ class PylintWidget(PluginMainWidget):
                     list_save_files.append(fname)
 
             self.curr_filenames = list_save_files[:MAX_HISTORY_ENTRIES]
-            self.set_option("history_filenames", self.curr_filenames)
+            self.set_conf("history_filenames", self.curr_filenames)
         else:
             self.curr_filenames = []
 
@@ -421,7 +416,7 @@ class PylintWidget(PluginMainWidget):
     def get_focus_widget(self):
         return self.treewidget
 
-    def setup(self, options):
+    def setup(self):
         change_history_depth_action = self.create_action(
             PylintWidgetActions.ChangeHistory,
             text=_("History..."),
@@ -524,7 +519,8 @@ class PylintWidget(PluginMainWidget):
         # Signals
         self.filecombo.valid.connect(self.code_analysis_action.setEnabled)
 
-    def on_option_update(self, option, value):
+    @on_conf_change(option=['max_entries', 'history_filenames'])
+    def on_conf_update(self, option, value):
         if option == "max_entries":
             self._update_combobox_history()
         elif option == "history_filenames":
@@ -572,15 +568,15 @@ class PylintWidget(PluginMainWidget):
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(MIN_HISTORY_ENTRIES, MAX_HISTORY_ENTRIES)
             dialog.setIntStep(1)
-            dialog.setIntValue(self.get_option("max_entries"))
+            dialog.setIntValue(self.get_conf("max_entries"))
 
             # Connect slot
             dialog.intValueSelected.connect(
-                lambda value: self.set_option("max_entries", value))
+                lambda value: self.set_conf("max_entries", value))
 
             dialog.show()
         else:
-            self.set_option("max_entries", value)
+            self.set_conf("max_entries", value)
 
     def get_filename(self):
         """
@@ -623,7 +619,7 @@ class PylintWidget(PluginMainWidget):
             self.filecombo.setCurrentIndex(0)
 
         num_elements = self.filecombo.count()
-        if num_elements > self.get_option("max_entries"):
+        if num_elements > self.get_conf("max_entries"):
             self.filecombo.removeItem(num_elements - 1)
 
         self.filecombo.selected()
@@ -690,7 +686,7 @@ class PylintWidget(PluginMainWidget):
 
         self.rdata.insert(0, (filename, data))
 
-        while len(self.rdata) > self.get_option("max_entries"):
+        while len(self.rdata) > self.get_conf("max_entries"):
             self.rdata.pop(-1)
 
         with open(self.DATAPATH, "wb") as fh:
@@ -780,7 +776,7 @@ class PylintWidget(PluginMainWidget):
             # Working directory
             getcwd_or_home(),
             # Project directory
-            self.get_option("project_dir"),
+            self.get_conf("project_dir"),
             # Home directory
             osp.expanduser("~"),
         ]
@@ -901,12 +897,15 @@ class PylintWidget(PluginMainWidget):
 def test():
     """Run pylint widget test"""
     from spyder.utils.qthelpers import qapplication
+    from unittest.mock import MagicMock
+
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'pylint'
 
     app = qapplication(test_time=20)
-    options = PylintWidget.DEFAULT_OPTIONS.copy()
-    widget = PylintWidget(name="pylint", options=options)
-    widget._setup(options)
-    widget.setup(options)
+    widget = PylintWidget(name="pylint", plugin=plugin_mock)
+    widget._setup()
+    widget.setup()
     widget.resize(640, 480)
     widget.show()
     widget.start_code_analysis(filename=__file__)

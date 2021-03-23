@@ -40,25 +40,28 @@ def get_formatter_values(formatter, range_fmt=False):
 @pytest.mark.slow
 @pytest.mark.first
 @pytest.mark.parametrize('formatter', ['autopep8', 'yapf', 'black'])
-def test_document_formatting(formatter, lsp_codeeditor, qtbot):
+def test_document_formatting(formatter, completions_codeeditor, qtbot):
     """Validate text autoformatting via autopep8, yapf or black."""
-    code_editor, manager = lsp_codeeditor
+    code_editor, completion_plugin = completions_codeeditor
     text, expected = get_formatter_values(formatter)
 
     # After this call the manager needs to be reinitialized
-    CONF.set('lsp-server', 'formatting', formatter)
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values','formatting'),
+             formatter)
     qtbot.wait(2000)
 
-    manager.update_configuration()
     # Set text in editor
     code_editor.set_text(text)
 
     # Notify changes
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     # Perform formatting
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.format_document()
 
     # Wait to text to be formatted
@@ -70,21 +73,24 @@ def test_document_formatting(formatter, lsp_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @pytest.mark.parametrize('formatter', ['autopep8', 'yapf', 'black'])
-def test_document_range_formatting(formatter, lsp_codeeditor, qtbot):
+def test_document_range_formatting(formatter, completions_codeeditor, qtbot):
     """Validate text range autoformatting."""
-    code_editor, manager = lsp_codeeditor
+    code_editor, completion_plugin = completions_codeeditor
     text, expected = get_formatter_values(formatter, range_fmt=True)
 
     # After this call the manager needs to be reinitialized
-    CONF.set('lsp-server', 'formatting', formatter)
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values','formatting'),
+             formatter)
+    completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
-    manager.update_configuration()
     # Set text in editor
     code_editor.set_text(text)
 
     # Notify changes
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     # Select region to format
@@ -99,7 +105,8 @@ def test_document_range_formatting(formatter, lsp_codeeditor, qtbot):
     code_editor.setTextCursor(cursor)
 
     # Perform formatting
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
         code_editor.format_document_range()
 
     # Wait to text to be formatted

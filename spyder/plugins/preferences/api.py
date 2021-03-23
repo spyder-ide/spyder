@@ -31,23 +31,34 @@ from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
+
+
+class BaseConfigTab(QWidget):
+    """Stub class to declare a config tab."""
+    pass
 
 
 class ConfigAccessMixin(object):
     """Namespace for methods that access config storage"""
     CONF_SECTION = None
 
-    def set_option(self, option, value, section=None):
+    def set_option(self, option, value, section=None,
+                   recursive_notification=False):
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, option, value)
+        CONF.set(section, option, value,
+                 recursive_notification=recursive_notification)
 
     def get_option(self, option, default=NoDefault, section=None):
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default)
+
+    def remove_option(self, option, section=None):
+        section = self.CONF_SECTION if section is None else section
+        CONF.remove_option(section, option)
 
 
 class ConfigPage(QWidget):
@@ -128,7 +139,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def __init__(self, parent):
         ConfigPage.__init__(self, parent,
                             apply_callback=lambda:
-                            self.apply_settings(self.changed_options))
+                            self._apply_settings_tabs(self.changed_options))
         self.checkboxes = {}
         self.radiobuttons = {}
         self.lineedits = {}
@@ -139,11 +150,24 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.fontboxes = {}
         self.coloredits = {}
         self.scedits = {}
+        self.cross_section_options = {}
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
         self.main = parent.main
         self.tabs = None
+
+    def _apply_settings_tabs(self, options):
+        if self.tabs is not None:
+            for i in range(self.tabs.count()):
+                tab = self.tabs.widget(i)
+                layout = tab.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if hasattr(widget, 'apply_settings'):
+                        if issubclass(type(widget), BaseConfigTab):
+                            options |= widget.apply_settings()
+        self.apply_settings(options)
 
     def apply_settings(self, options):
         raise NotImplementedError
@@ -160,6 +184,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def is_valid(self):
         """Return True if all widget contents are valid"""
+        status = True
         for lineedit in self.lineedits:
             if lineedit in self.validate_data and lineedit.isEnabled():
                 validator, invalid_msg = self.validate_data[lineedit]
@@ -169,7 +194,18 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                      "%s:<br><b>%s</b>" % (invalid_msg, text),
                                      QMessageBox.Ok)
                     return False
-        return True
+
+        if self.tabs is not None and status:
+            for i in range(self.tabs.count()):
+                tab = self.tabs.widget(i)
+                layout = tab.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if issubclass(type(widget), BaseConfigTab):
+                        status &= widget.is_valid()
+                        if not status:
+                            return status
+        return status
 
     def load_from_conf(self):
         """Load settings from configuration file."""
@@ -290,11 +326,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 self.checkboxes.items()):
             if option in self.changed_options:
                 value = checkbox.isChecked()
-                self.set_option(option, value, section=sec)
+                self.set_option(option, value, section=sec,
+                                recursive_notification=False)
         for radiobutton, (sec, option, _default) in list(
                 self.radiobuttons.items()):
             if option in self.changed_options:
-                self.set_option(option, radiobutton.isChecked(), section=sec)
+                self.set_option(option, radiobutton.isChecked(), section=sec,
+                                recursive_notification=False)
         for lineedit, (sec, option, _default) in list(self.lineedits.items()):
             if option in self.changed_options:
                 data = lineedit.text()
@@ -303,7 +341,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     data = [item.strip() for item in data.split(',')]
                 else:
                     data = to_text_string(data)
-                self.set_option(option, data, section=sec)
+                self.set_option(option, data, section=sec,
+                                recursive_notification=False)
         for textedit, (sec, option, _default) in list(self.textedits.items()):
             if option in self.changed_options:
                 data = textedit.toPlainText()
@@ -317,15 +356,17 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     data = [item.strip() for item in data.split(',')]
                 else:
                     data = to_text_string(data)
-                self.set_option(option, data, section=sec)
+                self.set_option(option, data, section=sec,
+                                recursive_notification=False)
         for spinbox, (sec, option, _default) in list(self.spinboxes.items()):
             if option in self.changed_options:
-                self.set_option(option, spinbox.value(), section=sec)
+                self.set_option(option, spinbox.value(), section=sec,
+                                recursive_notification=False)
         for combobox, (sec, option, _default) in list(self.comboboxes.items()):
             if option in self.changed_options:
                 data = combobox.itemData(combobox.currentIndex())
                 self.set_option(option, from_qvariant(data, to_text_string),
-                                section=sec)
+                                section=sec, recursive_notification=False)
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
             if option in self.changed_options:
                 font = fontbox.currentFont()
@@ -335,14 +376,15 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if option in self.changed_options:
                 self.set_option(option,
                                 to_text_string(clayout.lineedit.text()),
-                                section=sec)
+                                section=sec, recursive_notification=False)
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
                 self.scedits.items()):
             if option in self.changed_options:
                 color = to_text_string(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
-                self.set_option(option, (color, bold, italic), section=sec)
+                self.set_option(option, (color, bold, italic), section=sec,
+                                recursive_notification=False)
 
     @Slot(str)
     def has_been_modified(self, option):
@@ -354,6 +396,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         msg_if_enabled=False, section=None):
         checkbox = QCheckBox(text)
         self.checkboxes[checkbox] = (section, option, default)
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         if tip is not None:
             checkbox.setToolTip(tip)
         if msg_warning is not None or msg_info is not None:
@@ -373,6 +417,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                            msg_if_enabled=False, button_group=None,
                            restart=False, section=None):
         radiobutton = QRadioButton(text)
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         if button_group is None:
             if self.default_button_group is None:
                 self.default_button_group = QButtonGroup(self)
@@ -399,6 +445,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
                         content_type=None, section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
@@ -425,6 +473,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_textedit(self, text, option, default=NoDefault,
                         tip=None, restart=False, content_type=None,
                         section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QPlainTextEdit()
@@ -510,6 +560,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None,
                        section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         widget = QWidget(self)
         if prefix:
             plabel = QLabel(prefix)
@@ -549,6 +601,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_coloredit(self, text, option, default=NoDefault, tip=None,
                          without_layout=False, section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         clayout = ColorLayout(QColor(Qt.black), self)
         clayout.lineedit.setMaximumWidth(80)
@@ -568,6 +622,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_scedit(self, text, option, default=NoDefault, tip=None,
                       without_layout=False, section=None):
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         clayout = ColorLayout(QColor(Qt.black), self)
         clayout.lineedit.setMaximumWidth(80)
@@ -598,6 +654,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_combobox(self, text, choices, option, default=NoDefault,
                         tip=None, restart=False, section=None):
         """choices: couples (name, key)"""
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         label = QLabel(text)
         combobox = QComboBox()
         if tip is not None:
@@ -632,6 +690,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                              default_line_edit=False, section=None,
                              validate_callback=None):
         """choices: couples (name, key)"""
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
         combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
                                 default_line_edit=default_line_edit)
         combobox.restart_required = restart
@@ -775,6 +835,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             self.tabs.addTab(self.create_tab(widget),
                              Widget.TITLE)
+        self.load_from_conf()
 
 
 class GeneralConfigPage(SpyderConfigPage):

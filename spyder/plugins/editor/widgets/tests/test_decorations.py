@@ -9,7 +9,6 @@
 # Third party imports
 import os.path as osp
 import random
-import sys
 from unittest.mock import patch
 
 from flaky import flaky
@@ -187,8 +186,6 @@ def test_update_decorations_when_scrolling(qtbot):
         # Simulate continuously pressing the down arrow key.
         for __ in range(200):
             qtbot.keyPress(editor, Qt.Key_Down)
-            if sys.platform.startswith('linux'):
-                qtbot.wait(5)
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
@@ -197,8 +194,6 @@ def test_update_decorations_when_scrolling(qtbot):
         # Simulate continuously pressing the up arrow key.
         for __ in range(200):
             qtbot.keyPress(editor, Qt.Key_Up)
-            if sys.platform.startswith('linux'):
-                qtbot.wait(5)
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)

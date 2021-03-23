@@ -13,8 +13,10 @@ from qtpy.QtCore import QPoint, Qt, Signal
 from qtpy.QtWidgets import QHBoxLayout, QSpinBox, QStackedWidget
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidgetMenus, PluginMainWidget
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
@@ -56,7 +58,7 @@ class PlotsWidgetMainToolbarSections:
 
 # --- Widgets
 # ----------------------------------------------------------------------------
-class PlotsStackedWidget(QStackedWidget):
+class PlotsStackedWidget(QStackedWidget, SpyderWidgetMixin):
     # Signals
     sig_thumbnail_menu_requested = Signal(QPoint, object)
     """
@@ -106,7 +108,7 @@ class PlotsStackedWidget(QStackedWidget):
     """
 
     def __init__(self, parent):
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, class_parent=parent)
 
     def addWidget(self, widget):
         """Override Qt method."""
@@ -123,16 +125,6 @@ class PlotsStackedWidget(QStackedWidget):
 
 
 class PlotsWidget(PluginMainWidget):
-    DEFAULT_OPTIONS = {
-        'auto_fit_plotting': True,
-        'mute_inline_plotting': True,
-        'show_plot_outline': True,
-        'save_dir': getcwd_or_home()
-    }
-
-    # Signals
-    sig_option_changed = Signal(str, object)
-
     sig_figure_loaded = Signal()
     """This signal is emitted when a figure is loaded succesfully"""
 
@@ -147,9 +139,8 @@ class PlotsWidget(PluginMainWidget):
         Start redirect (True) or stop redirect (False).
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent, options)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
 
         # Widgets
         self._stack = PlotsStackedWidget(parent=self)
@@ -180,7 +171,7 @@ class PlotsWidget(PluginMainWidget):
         self._stack.sig_zoom_changed.connect(self.zoom_disp.setValue)
         self._stack.sig_figure_loaded.connect(self.update_actions)
         self._stack.sig_save_dir_changed.connect(
-            lambda val: self.set_option('save_dir', val))
+            lambda val: self.set_conf('save_dir', val))
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -195,28 +186,31 @@ class PlotsWidget(PluginMainWidget):
 
         return widget
 
-    def setup(self, options):
+    def setup(self):
         # Menu actions
         self.mute_action = self.create_action(
             name=PlotsWidgetActions.ToggleMuteInlinePlotting,
             text=_("Mute inline plotting"),
             tip=_("Mute inline plotting in the ipython console."),
-            toggled=lambda val: self.set_option('mute_inline_plotting', val),
-            initial=options['mute_inline_plotting'],
+            toggled=True,
+            initial=self.get_conf('mute_inline_plotting'),
+            option='mute_inline_plotting'
         )
         self.outline_action = self.create_action(
             name=PlotsWidgetActions.ToggleShowPlotOutline,
             text=_("Show plot outline"),
             tip=_("Show the plot outline."),
-            toggled=lambda val: self.set_option('show_plot_outline', val),
-            initial=options['show_plot_outline'],
+            toggled=True,
+            initial=self.get_conf('show_plot_outline'),
+            option='show_plot_outline'
         )
         self.fit_action = self.create_action(
             name=PlotsWidgetActions.ToggleAutoFitPlotting,
             text=_("Fit plots to window"),
             tip=_("Automatically fit plots to Plot pane size."),
-            toggled=lambda val: self.set_option('auto_fit_plotting', val),
-            initial=options['auto_fit_plotting'],
+            toggled=True,
+            initial=self.get_conf('auto_fit_plotting'),
+            option='auto_fit_plotting'
         )
 
         # Toolbar actions
@@ -347,12 +341,14 @@ class PlotsWidget(PluginMainWidget):
 
         # Disable zoom buttons if autofit
         if value:
-            value = not self.get_option('auto_fit_plotting')
+            value = not self.get_conf('auto_fit_plotting')
             self.get_action(PlotsWidgetActions.ZoomIn).setEnabled(value)
             self.get_action(PlotsWidgetActions.ZoomOut).setEnabled(value)
             self.zoom_disp.setEnabled(value)
 
-    def on_option_update(self, option, value):
+    @on_conf_change(option=['auto_fit_plotting', 'mute_inline_plotting',
+                            'show_plot_outline', 'save_dir'])
+    def on_section_conf_change(self, option, value):
         for index in range(self.count()):
             widget = self._stack.widget(index)
             if widget:
@@ -465,10 +461,16 @@ class PlotsWidget(PluginMainWidget):
         shelwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
         """
+        option_keys = [('auto_fit_plotting', True),
+                       ('mute_inline_plotting', True),
+                       ('show_plot_outline', True),
+                       ('save_dir', getcwd_or_home())]
+
+        conf_values = {k: self.get_conf(k, d) for k, d in option_keys}
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
             fig_browser = self._shellwidgets[shellwidget_id]
-            fig_browser.setup(self._options)
+            fig_browser.setup(conf_values)
             self.set_current_widget(fig_browser)
 
     def show_figure_menu(self, qpoint):

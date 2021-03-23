@@ -80,23 +80,23 @@ class PanelsManager(Manager):
         logger.debug('panel %s installed' % panel.name)
         return panel
 
-    def remove(self, name_or_klass):
+    def remove(self, name_or_class):
         """
         Removes the specified panel.
 
-        :param name_or_klass: Name or class of the panel to remove.
+        :param name_or_class: Name or class of the panel to remove.
         :return: The removed panel
         """
-        logger.debug('removing panel %s' % name_or_klass)
-        panel = self.get(name_or_klass)
+        logger.debug('Removing panel %s' % name_or_class)
+        panel = self.get(name_or_class)
         panel.on_uninstall()
         panel.hide()
         panel.setParent(None)
         return self._panels[panel.position].pop(panel.name, None)
 
     def clear(self):
-        """Removes all panel from the CodeEditor."""
-        for i in range(4):
+        """Removes all panels from the CodeEditor."""
+        for i in range(5):
             while len(self._panels[i]):
                 key = sorted(list(self._panels[i].keys()))[0]
                 panel = self.remove(key)
@@ -111,7 +111,7 @@ class PanelsManager(Manager):
         """
         if not is_text_string(name_or_class):
             name_or_class = name_or_class.__name__
-        for zone in range(4):
+        for zone in range(5):
             try:
                 panel = self._panels[zone][name_or_class]
             except KeyError:

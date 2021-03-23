@@ -48,7 +48,7 @@ from spyder.plugins.ipythonconsole.widgets import (
     PageControlWidget)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
@@ -577,7 +577,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client:
             sw = client.shellwidget
-            self.main.variableexplorer.set_shellwidget_from_id(id(sw))
+            self.main.variableexplorer.set_shellwidget(sw)
             self.sig_pdb_state.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
@@ -1729,8 +1729,6 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def process_started(self, client):
-        self.sig_shellwidget_process_started.emit(client.shellwidget)
-
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.add_shellwidget(client.shellwidget)
 
@@ -1738,8 +1736,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def process_finished(self, client):
         if self.main.variableexplorer is not None:
-            self.main.variableexplorer.remove_shellwidget(
-                id(client.shellwidget))
+            self.main.variableexplorer.remove_shellwidget(client.shellwidget)
 
         self.sig_shellwidget_process_finished.emit(client.shellwidget)
 

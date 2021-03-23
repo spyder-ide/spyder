@@ -52,13 +52,14 @@ except ImportError:  # For pandas version < 0.20
 import numpy as np
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
                               to_text_string, perf_counter)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
@@ -518,7 +519,6 @@ class DataFrameView(QTableView):
 
     Signals
     -------
-    sig_option_changed(): Raised after a sort by column.
     sig_sort_by_column(): Raised after more columns are fetched.
     sig_fetch_more_rows(): Raised after more rows are fetched.
     """
@@ -885,20 +885,15 @@ class DataFrameLevelModel(QAbstractTableModel):
         return None
 
 
-class DataFrameEditor(BaseDialog):
+class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     """
     Dialog for displaying and editing DataFrame and related objects.
 
     Based on the gtabview project (ExtTableView).
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
-
-    Signals
-    -------
-    sig_option_changed(str, object): Raised if an option is changed.
-       Arguments are name of option and its new value.
     """
-    sig_option_changed = Signal(str, object)
+    CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -1010,6 +1005,9 @@ class DataFrameEditor(BaseDialog):
         self.layout.addLayout(btn_layout, 4, 0, 1, 2)
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
+
+        format = '%' + self.get_conf('dataframe_format')
+        self.dataModel.set_format(format)
 
         return True
 
@@ -1290,9 +1288,6 @@ class DataFrameEditor(BaseDialog):
     def change_format(self):
         """
         Ask user for display format for floats and use it.
-
-        This function also checks whether the format is valid and emits
-        `sig_option_changed`.
         """
         format, valid = QInputDialog.getText(self, _('Format'),
                                              _("Float formatting"),
@@ -1311,7 +1306,9 @@ class DataFrameEditor(BaseDialog):
                 QMessageBox.critical(self, _("Error"), msg)
                 return
             self.dataModel.set_format(format)
-            self.sig_option_changed.emit('dataframe_format', format)
+
+            format = format[1:]
+            self.set_conf('dataframe_format', format)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""

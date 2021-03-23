@@ -507,7 +507,7 @@ def _get_mac_applications():
 def get_application_icon(fpath):
     """Return application icon or default icon if not found."""
     from qtpy.QtGui import QIcon
-    from spyder.utils import icon_manager as ima
+    from spyder.utils.icon_manager import ima
 
     if os.path.isfile(fpath) or os.path.isdir(fpath):
         icon = ima.icon('no_match')

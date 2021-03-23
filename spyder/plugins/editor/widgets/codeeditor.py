@@ -53,11 +53,10 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.kite.widgets.calltoaction import (
-    KiteCallToAction)
-from spyder.plugins.completion.manager.api import (LSPRequestTypes,
-                                                   TextDocumentSyncKind,
-                                                   DiagnosticSeverity)
+from spyder.plugins.completion.providers.kite.widgets import KiteCallToAction
+from spyder.plugins.completion.api import (CompletionRequestTypes,
+                                           TextDocumentSyncKind,
+                                           DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -70,7 +69,7 @@ from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.panels.utils import (
     merge_folding, collect_folding_regions)
-from spyder.plugins.completion.manager.decorators import (
+from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
@@ -78,7 +77,7 @@ from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, sourcecode
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
@@ -193,10 +192,10 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when an LSP request is sent to the LSP manager
     sig_perform_completion_request = Signal(str, str, dict)
 
-    #: Signal emitted when a response is received from an LSP server
+    #: Signal emitted when a response is received from the completion plugin
     # For now it's only used on tests, but it could be used to track
-    # and profile LSP diagnostics.
-    lsp_response_signal = Signal(str, object)
+    # and profile completion diagnostics.
+    completions_response_signal = Signal(str, object)
 
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str, bool)
@@ -301,6 +300,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Request symbols and folding after a timeout.
         # See: process_diagnostics
+        self.update_diagnostics = None
         self._timer_sync_symbols_and_folding = QTimer(self)
         self._timer_sync_symbols_and_folding.setSingleShot(True)
         self._timer_sync_symbols_and_folding.setInterval(
@@ -313,11 +313,11 @@ class CodeEditor(TextEditBaseWidget):
         self._last_hover_pattern_text = None
 
         # 79-col edge line
-        self.edge_line = self.panels.register(EdgeLine(self),
+        self.edge_line = self.panels.register(EdgeLine(),
                                               Panel.Position.FLOATING)
 
         # indent guides
-        self.indent_guides = self.panels.register(IndentationGuide(self),
+        self.indent_guides = self.panels.register(IndentationGuide(),
                                                   Panel.Position.FLOATING)
         # Blanks enabled
         self.blanks_enabled = False
@@ -340,11 +340,11 @@ class CodeEditor(TextEditBaseWidget):
         self.blockCountChanged.connect(self.debugger.update_breakpoints)
 
         # Line number area management
-        self.linenumberarea = self.panels.register(LineNumberArea(self))
+        self.linenumberarea = self.panels.register(LineNumberArea())
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
-            ClassFunctionDropdown(self),
+            ClassFunctionDropdown(),
             Panel.Position.TOP,
         )
 
@@ -394,7 +394,7 @@ class CodeEditor(TextEditBaseWidget):
         self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
         # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
+        self.scrollflagarea = self.panels.register(ScrollFlagArea(),
                                                    Panel.Position.RIGHT)
         self.panels.refresh()
 
@@ -984,7 +984,7 @@ class CodeEditor(TextEditBaseWidget):
             handler(params)
             # This signal is only used on tests.
             # It could be used to track and profile LSP diagnostics.
-            self.lsp_response_signal.emit(method, params)
+            self.completions_response_signal.emit(method, params)
 
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
@@ -1025,7 +1025,7 @@ class CodeEditor(TextEditBaseWidget):
             additional_msg = ""
             self.document_did_open()
 
-        logger.debug(u"Completion services available for{0}: {1}".format(
+        logger.debug(u"Completion services available for {0}: {1}".format(
             additional_msg, self.filename))
 
     def register_completion_capabilities(self, capabilities):
@@ -1079,7 +1079,7 @@ class CodeEditor(TextEditBaseWidget):
         logger.debug('Stopping completion services for %s' % self.filename)
         self.completions_available = False
 
-    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
         cursor = self.textCursor()
@@ -1100,7 +1100,7 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     # ------------- LSP: Symbols ---------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
+    @request(method=CompletionRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
         """Request document symbols."""
         if not self.document_symbols_enabled:
@@ -1110,7 +1110,7 @@ class CodeEditor(TextEditBaseWidget):
         params = {'file': self.filename}
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
+    @handles(CompletionRequestTypes.DOCUMENT_SYMBOL)
     def process_symbols(self, params):
         """Handle symbols response."""
         try:
@@ -1128,7 +1128,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Linting ---------------------------------------
     @request(
-        method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
+        method=CompletionRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
@@ -1150,7 +1150,7 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    @handles(CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
         """Handle linting response."""
         # The LSP spec doesn't require that folding and symbols
@@ -1178,6 +1178,10 @@ class CodeEditor(TextEditBaseWidget):
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
+        if (self.update_diagnostics is not None and
+                self.update_diagnostics.isRunning()):
+            self.update_diagnostics.wait(1000)
+
         self.update_diagnostics = QThread()
         self.update_diagnostics.run = self.set_errors
         self.update_diagnostics.finished.connect(self.finish_code_analysis)
@@ -1284,7 +1288,7 @@ class CodeEditor(TextEditBaseWidget):
                 block.setUserData(data)
 
     # ------------- LSP: Completion ---------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
+    @request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion."""
         cursor = self.textCursor()
@@ -1305,7 +1309,7 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_args = (self.textCursor().position(), automatic)
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
+    @handles(CompletionRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
         args = self.completion_args
@@ -1399,7 +1403,7 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors('Error when processing completions')
 
     # ------------- LSP: Signature Hints ------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self):
         """Ask for signature."""
         self.document_did_change('')
@@ -1413,7 +1417,7 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def process_signatures(self, params):
         """Handle signature response."""
         try:
@@ -1424,6 +1428,9 @@ class CodeEditor(TextEditBaseWidget):
                 self.sig_signature_invoked.emit(signature_params)
                 signature_data = signature_params['signatures']
                 documentation = signature_data['documentation']
+
+                if isinstance(documentation, dict):
+                    documentation = documentation['value']
 
                 # The language server returns encoded text with
                 # spaces defined as `\xa0`
@@ -1453,7 +1460,7 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover/Mouse ---------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
+    @request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
     def request_cursor_event(self):
         text = self.toPlainText()
         cursor = self.textCursor()
@@ -1467,7 +1474,7 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
-    @request(method=LSPRequestTypes.DOCUMENT_HOVER)
+    @request(method=CompletionRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
@@ -1480,7 +1487,7 @@ class CodeEditor(TextEditBaseWidget):
         self._request_hover_clicked = clicked
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_HOVER)
+    @handles(CompletionRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         """Handle hover response."""
         if running_under_pytest():
@@ -1518,7 +1525,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Go To Definition ----------------------------
     @Slot()
-    @request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
+    @request(method=CompletionRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)."""
         if (not self.go_to_definition_enabled or
@@ -1543,7 +1550,7 @@ class CodeEditor(TextEditBaseWidget):
             }
             return params
 
-    @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
+    @handles(CompletionRequestTypes.DOCUMENT_DEFINITION)
     def handle_go_to_definition(self, position):
         """Handle go to definition response."""
         try:
@@ -1575,7 +1582,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.format_document()
 
-    @request(method=LSPRequestTypes.DOCUMENT_FORMATTING)
+    @request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):
         if not self.formatting_enabled:
             return
@@ -1603,7 +1610,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return params
 
-    @request(method=LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def format_document_range(self):
         if not self.range_formatting_enabled or not self.has_selected_text():
             return
@@ -1646,7 +1653,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
+    @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
     def handle_document_formatting(self, edits):
         try:
             self._apply_document_edits(edits)
@@ -1665,7 +1672,7 @@ class CodeEditor(TextEditBaseWidget):
             self.sig_stop_operation_in_progress.emit()
             self.operation_in_progress = False
 
-    @handles(LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def handle_document_range_formatting(self, edits):
         try:
             self._apply_document_edits(edits)
@@ -1759,7 +1766,7 @@ class CodeEditor(TextEditBaseWidget):
         folding_panel = self.panels.get(FoldingPanel)
         folding_panel.folding_regions = {}
 
-    @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @request(method=CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
@@ -1767,7 +1774,7 @@ class CodeEditor(TextEditBaseWidget):
         params = {'file': self.filename}
         return params
 
-    @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @handles(CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
         ranges = response['params']
@@ -1825,7 +1832,7 @@ class CodeEditor(TextEditBaseWidget):
             self.update_whitespace_count(line, column)
 
     # ------------- LSP: Save/close file -----------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
              requires_response=False)
     def notify_save(self):
         """Send save request."""
@@ -1834,7 +1841,7 @@ class CodeEditor(TextEditBaseWidget):
             params['text'] = self.toPlainText()
         return params
 
-    @request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
     def notify_close(self):
         """Send close request."""
@@ -4116,7 +4123,11 @@ class CodeEditor(TextEditBaseWidget):
             triggered=writer.write_docstring_at_first_line_of_function)
 
         # Document formatting
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'),
+            ''
+        )
         self.format_action = create_action(
             self,
             _('Format file or selection with {0}').format(
@@ -4968,7 +4979,11 @@ class CodeEditor(TextEditBaseWidget):
         self.re_run_last_cell_action.setVisible(self.is_python_or_ipython())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'),
+            ''
+        )
         self.format_action.setText(_(
             'Format file or selection with {0}').format(
                 formatter.capitalize()))

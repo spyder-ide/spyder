@@ -1,23 +1,22 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.2.2 is released!
+**Subject**: [ANN] Spyder 4.2.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.2.2** has been released and is available for
+I'm pleased to announce that Spyder **4.2.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two months after version 4.2.1 and it contains the
+This release comes two weeks after version 4.2.3 and it contains the
 following important fixes:
 
-* Improve performance when typing in the editor.
-* Make variable explorer work for kernels started in remote servers.
-* Fix using TKinter in the Windows and macOS installers.
+* Fix an important error when restarting kernels.
+* Add compatibility with the future Spyder 5.
 
-In this release we fixed 26 issues and merged 35 pull requests that amount
-to more than 135 commits. For a full list of fixes, please see our
+In this release we fixed 3 issues and merged 8 pull requests that amount
+to more than 20 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

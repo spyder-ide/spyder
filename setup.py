@@ -229,9 +229,9 @@ install_requires = [
     'pyls-spyder>=0.3.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
-    'qdarkstyle>=2.8',
+    'qdarkstyle>=2.8,<3.0',
     'qtawesome>=0.5.7',
-    'qtconsole>=5.0.1',
+    'qtconsole>=5.0.3',
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
     'sphinx>=0.6.6',
@@ -269,7 +269,7 @@ spyder_plugins_entry_points = [
     'appearance = spyder.plugins.appearance.plugin:Appearance',
     'application = spyder.plugins.application.plugin:Application',
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
-    'completions = spyder.plugins.completion.manager.plugin:CompletionManager',
+    'completions = spyder.plugins.completion.plugin:CompletionPlugin',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
@@ -294,6 +294,17 @@ spyder_plugins_entry_points = [
     'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]
 
+spyder_completions_entry_points = [
+    ('fallback = spyder.plugins.completion.providers.fallback.provider:'
+     'FallbackProvider'),
+    ('snippets = spyder.plugins.completion.providers.snippets.provider:'
+     'SnippetsProvider'),
+    ('kite = spyder.plugins.completion.providers.kite.provider:'
+     'KiteProvider'),
+    ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
+     'LanguageServerProvider'),
+]
+
 
 setup_args['install_requires'] = install_requires
 setup_args['extras_require'] = extras_require
@@ -302,6 +313,7 @@ setup_args['entry_points'] = {
             'spyder = spyder.app.start:main'
     ],
     'spyder.plugins': spyder_plugins_entry_points,
+    'spyder.completions': spyder_completions_entry_points
 }
 setup_args.pop('scripts', None)
 

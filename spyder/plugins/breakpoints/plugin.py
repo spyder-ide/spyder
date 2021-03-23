@@ -94,8 +94,7 @@ class Breakpoints(SpyderDockablePlugin):
         return _("Manage code breakpoints in a unified pane.")
 
     def get_icon(self):
-        path = osp.join(self.get_path(), self.IMG_PATH)
-        return self.create_icon('breakpoints', path=path)
+        return self.create_icon('breakpoints')
 
     def register(self):
         widget = self.get_widget()
@@ -139,7 +138,7 @@ class Breakpoints(SpyderDockablePlugin):
         """
         Load breakpoint data from configuration file.
         """
-        breakpoints_dict = self.get_conf_option(
+        breakpoints_dict = self.get_conf(
             'breakpoints',
             default={},
             section='run',

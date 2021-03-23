@@ -11,7 +11,7 @@ from qtpy.QtWidgets import QTreeWidget, QMenu
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     get_item_user_text)
 
@@ -35,15 +35,11 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     """
     One-column tree widget with context menu.
     """
-    DEFAULT_OPTIONS = {}
 
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, class_parent=parent)
 
         self.__expanded_state = None
-
-        # Widgets
-        self.menu = self.create_menu("context_menu")
 
         # Widget setup
         self.setItemsExpandable(True)
@@ -66,7 +62,9 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
 
     # --- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
+        self.menu = self.create_menu("context_menu")
+
         self.collapse_all_action = self.create_action(
             OneColumnTreeActions.CollapseAllAction,
             text=_("Collapse all"),
@@ -123,9 +121,6 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
                 self.menu,
                 section=OneColumnTreeContextMenuSections.Section,
             )
-
-    def on_option_update(self, option, value):
-        pass
 
     def update_actions(self):
         pass

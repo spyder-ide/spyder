@@ -59,7 +59,7 @@ def test_init(historylog):
     hl = historylog
     assert hl.get_widget().editors == []
     assert hl.get_widget().filenames == []
-    assert len(hl.get_actions()) == 2
+    assert len(hl.get_actions()) == 6
 
 
 def test_add_history(historylog):
@@ -80,8 +80,8 @@ def test_add_history(historylog):
     text1 = 'a = 5\nb= 10\na + b\n'
     path1 = create_file(name1, text1)
     tab1 = os.path.basename(path1)
-    hw.set_option('line_numbers', False)
-    hw.set_option('wrap', False)
+    hw.set_conf('line_numbers', False)
+    hw.set_conf('wrap', False)
     hl.add_history(path1)
 
     # Check tab and editor were created correctly.
@@ -104,8 +104,8 @@ def test_add_history(historylog):
     text2 = 'random text\nspam line\n\n\n\n'
     path2 = create_file(name2, text2)
     tab2 = os.path.basename(path2)
-    hw.set_option('line_numbers', True)
-    hw.set_option('wrap', True)
+    hw.set_conf('line_numbers', True)
+    hw.set_conf('wrap', True)
     hw.add_history(path2)
 
     # Check second tab and editor were created correctly.
@@ -142,7 +142,7 @@ def test_append_to_history(qtbot, historylog):
     hw = historylog.get_widget()
 
     # Toggle to move to the end of the file after appending.
-    hw.set_option('go_to_eof', True)
+    hw.set_conf('go_to_eof', True)
 
     # Force cursor to the beginning of the file.
     text1 = 'import re\n'
@@ -158,7 +158,7 @@ def test_append_to_history(qtbot, historylog):
     assert not hw.editors[0].linenumberarea.isVisible()
 
     # Toggle to not move cursor after appending.
-    hw.set_option('go_to_eof', False)
+    hw.set_conf('go_to_eof', False)
 
     # Force cursor to the beginning of the file.
     hw.editors[0].set_cursor_position('sof')
@@ -182,20 +182,20 @@ def test_toggle_wrap_mode(historylog):
     hw.add_history(path)
 
     # Starts with wrap mode off.
-    hw.change_option('wrap', False)
+    hw.set_conf('wrap', False)
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
-    assert not hw.get_option('wrap')
+    assert not hw.get_conf('wrap')
 
     # Toggles wrap mode on.
-    hw.change_option('wrap', True)
+    hw.set_conf('wrap', True)
     assert hw.editors[0].wordWrapMode() == (
         QTextOption.WrapAtWordBoundaryOrAnywhere)
-    assert hw.get_option('wrap')
+    assert hw.get_conf('wrap')
 
     # Toggles wrap mode off.
-    hw.change_option('wrap', False)
+    hw.set_conf('wrap', False)
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
-    assert not hw.get_option('wrap')
+    assert not hw.get_conf('wrap')
 
 
 def test_toggle_line_numbers(historylog):
@@ -209,19 +209,19 @@ def test_toggle_line_numbers(historylog):
     hw.add_history(path)
 
     # Starts without line numbers.
-    hw.change_option('line_numbers', False)
+    hw.set_conf('line_numbers', False)
     assert not hw.editors[0].linenumberarea.isVisible()
-    assert not hw.get_option('line_numbers')
+    assert not hw.get_conf('line_numbers')
 
     # Toggles line numbers on.
-    hw.change_option('line_numbers', True)
+    hw.set_conf('line_numbers', True)
     assert hw.editors[0].linenumberarea.isVisible()
-    assert hw.get_option('line_numbers')
+    assert hw.get_conf('line_numbers')
 
     # Toggles line numbers off.
-    hw.change_option('line_numbers', False)
+    hw.set_conf('line_numbers', False)
     assert not hw.editors[0].linenumberarea.isVisible()
-    assert not hw.get_option('line_numbers')
+    assert not hw.get_conf('line_numbers')
 
 
 if __name__ == "__main__":

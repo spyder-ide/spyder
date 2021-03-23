@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
@@ -35,7 +36,7 @@ from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
@@ -105,7 +106,21 @@ class Editor(SpyderPluginWidget):
     """
 
     breakpoints_saved = Signal()
-    open_file_update = Signal(str)
+
+    sig_file_opened_closed_or_updated = Signal(str, str)
+    """
+    This signal is emitted when a file is opened, closed or updated,
+    including switching among files.
+
+    Parameters
+    ----------
+    filename: str
+        Name of the file that was opened, closed or updated.
+    language: str
+        Name of the programming language of the file that was opened,
+        closed or updated.
+    """
+
     sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
@@ -322,7 +337,8 @@ class Editor(SpyderPluginWidget):
         language = options['language']
         codeeditor = options['codeeditor']
 
-        status = self.main.completions.start_client(language.lower())
+        status = self.main.completions.start_completion_services_for_language(
+            language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
@@ -359,6 +375,11 @@ class Editor(SpyderPluginWidget):
                 language, capabilities)
         )
 
+        # This is required to start workspace before completion
+        # services when Spyder starts with an open project.
+        # TODO: Find a better solution for it in the future!!
+        self.main.projects.start_workspace_services()
+
         self.completion_capabilities[language] = dict(capabilities)
         for editorstack in self.editorstacks:
             editorstack.register_completion_capabilities(
@@ -381,10 +402,10 @@ class Editor(SpyderPluginWidget):
             request, params['file']))
         self.main.completions.send_request(language, request, params)
 
-    def kite_completions_file_status(self):
-        """Connect open_file_update to Kite's status."""
-        self.open_file_update.connect(
-            self.main.completions.get_client('kite').send_status_request)
+    @Slot(str, tuple, dict)
+    def _rpc_call(self, method, args, kwargs):
+        meth = getattr(self, method)
+        meth(*args, **kwargs)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -850,7 +871,10 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'),
+            '')
         self.formatting_action = create_action(
             self,
             _('Format file or selection with {0}').format(
@@ -1190,6 +1214,15 @@ class Editor(SpyderPluginWidget):
         self.main.console.sig_edit_goto_requested.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.main.completions.sig_language_completions_available.connect(
+            self.register_completion_capabilities)
+        self.main.completions.sig_open_file.connect(self.load)
+        self.main.completions.sig_editor_rpc.connect(self._rpc_call)
+        self.main.completions.sig_stop_completions.connect(
+            self.stop_completion_services)
+
+        self.sig_file_opened_closed_or_updated.connect(
+            self.main.completions.file_opened_closed_or_updated)
 
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
@@ -1204,6 +1237,25 @@ class Editor(SpyderPluginWidget):
             lambda: self.get_current_editor(),
             lambda: self.get_current_editorstack(),
             section=self.get_plugin_title())
+
+    def update_source_menu(self, options, **kwargs):
+        option_names = [opt[-1] if isinstance(opt, tuple) else opt
+                        for opt in options]
+        named_options = dict(zip(option_names, options))
+        for name, action in self.checkable_actions.items():
+            if name in named_options:
+                section = 'completions'
+                if name == 'underline_errors':
+                    section = 'editor'
+
+                opt = named_options[name]
+                state = self.get_option(opt, section=section)
+
+                # Avoid triggering the action when this action changes state
+                # See: spyder-ide/spyder#9915
+                action.blockSignals(True)
+                action.setChecked(state)
+                action.blockSignals(False)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1254,7 +1306,12 @@ class Editor(SpyderPluginWidget):
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
-            action.setChecked(CONF.get('lsp-server', conf_name))
+            opt = CONF.get(
+                'completions',
+                ('provider_configuration', 'lsp', 'values', conf_name),
+                False
+            )
+            action.setChecked(opt)
 
         action.blockSignals(False)
 
@@ -1285,9 +1342,12 @@ class Editor(SpyderPluginWidget):
             self.set_option(conf_name, checked)
         else:
             if conf_name in ('pycodestyle', 'pydocstyle'):
-                CONF.set('lsp-server', conf_name, checked)
+                CONF.set(
+                    'completions',
+                    ('provider_configuration', 'lsp', 'values', conf_name),
+                    checked)
             completions = self.main.completions
-            completions.update_configuration()
+            completions.after_configuration_update([])
 
     #------ Focus tabwidget
     def __get_focused_editorstack(self):
@@ -1403,10 +1463,21 @@ class Editor(SpyderPluginWidget):
 
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
 
-        editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
-                                                     'enable_hover_hints'))
-        editorstack.set_format_on_save(
-            CONF.get('lsp-server', 'format_on_save'))
+        hover_hints = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values',
+                'enable_hover_hints'),
+            True
+        )
+
+        format_on_save = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            False
+        )
+
+        editorstack.set_hover_hints_enabled(hover_hints)
+        editorstack.set_format_on_save(format_on_save)
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 
@@ -1526,6 +1597,12 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
+    def call_all_editorstacks(self, method, *args, **kwargs):
+        """Call a method with arguments on all editorstacks."""
+        for editorstack in self.editorstacks:
+            method = getattr(editorstack, method)
+            method(*args, **kwargs)
+
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
@@ -1622,6 +1699,11 @@ class Editor(SpyderPluginWidget):
         if editorstack is not None:
             return editorstack.get_current_filename()
 
+    def get_current_language(self):
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            return editorstack.get_current_language()
+
     def is_file_opened(self, filename=None):
         return self.editorstacks[0].is_file_opened(filename)
 
@@ -1711,7 +1793,10 @@ class Editor(SpyderPluginWidget):
         self.formatting_action.setEnabled(status)
 
     def refresh_formatter_name(self):
-        formatter = CONF.get('lsp-server', 'formatting')
+        formatter = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'formatting'),
+            '')
         self.formatting_action.setText(
             _('Format file or selection with {0}').format(
                 formatter.capitalize()))
@@ -1739,7 +1824,8 @@ class Editor(SpyderPluginWidget):
                     action.setEnabled(enable and WINPDB_PATH is not None)
                 else:
                     action.setEnabled(enable)
-            self.open_file_update.emit(self.get_current_filename())
+            self.sig_file_opened_closed_or_updated.emit(
+                self.get_current_filename(), self.get_current_language())
 
     def update_code_analysis_actions(self):
         """Update actions in the warnings menu."""
@@ -3144,3 +3230,10 @@ class Editor(SpyderPluginWidget):
         """
         for editorstack in self.editorstacks:
             editorstack.set_current_project_path(root_path)
+
+    def register_panel(self, panel_class, *args, position=Panel.Position.LEFT,
+                       **kwargs):
+        """Register a panel in all the editorstacks in the given position."""
+        for editorstack in self.editorstacks:
+            editorstack.register_panel(
+                panel_class, *args, position=position, **kwargs)

@@ -32,13 +32,14 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QListWidgetItem)
 
 # Local imports
+from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
@@ -264,6 +265,9 @@ class EditorStack(QWidget):
         self.tabs_switcher = None
 
         self.stack_history = StackHistory(self)
+
+        # External panels
+        self.external_panels = []
 
         self.setup_editorstack(parent, layout)
 
@@ -1447,6 +1451,10 @@ class EditorStack(QWidget):
         if self.data:
             return self.data[self.get_stack_index()].filename
 
+    def get_current_language(self):
+        if self.data:
+            return self.data[self.get_stack_index()].editor.language
+
     def get_filenames(self):
         """
         Return a list with the names of all the files currently opened in
@@ -2460,6 +2468,11 @@ class EditorStack(QWidget):
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
+        # Register external panels
+        for panel_class, args, kwargs, position in self.external_panels:
+            self.register_panel(
+                panel_class, *args, position=position, **kwargs)
+
         def perform_completion_request(lang, method, params):
             self.sig_perform_completion_request.emit(lang, method, params)
 
@@ -2815,6 +2828,17 @@ class EditorStack(QWidget):
             event.ignore()
         event.acceptProposedAction()
 
+    def register_panel(self, panel_class, *args,
+                       position=Panel.Position.LEFT, **kwargs):
+        """Register a panel in all codeeditors."""
+        if (panel_class, args, kwargs, position) not in self.external_panels:
+            self.external_panels.append((panel_class, args, kwargs, position))
+        for finfo in self.data:
+            cur_panel = finfo.editor.panels.register(
+                panel_class(*args, **kwargs), position=position)
+            if not cur_panel.isVisible():
+                cur_panel.setVisible(True)
+
 
 class EditorSplitter(QSplitter):
     """QSplitter for editor windows."""
@@ -2937,7 +2961,7 @@ class EditorSplitter(QSplitter):
                     register_editorstack_cb=self.register_editorstack_cb,
                     unregister_editorstack_cb=self.unregister_editorstack_cb)
         self.addWidget(editorsplitter)
-        editorsplitter.destroyed.connect(lambda: self.editorsplitter_closed())
+        editorsplitter.destroyed.connect(self.editorsplitter_closed)
         current_editor = editorsplitter.editorstack.get_current_editor()
         if current_editor is not None:
             current_editor.setFocus()
@@ -3175,7 +3199,7 @@ class EditorMainWindow(QMainWindow):
                 self.toolbars.append(toolbar)
         if menu_list:
             quit_action = create_action(self, _("Close window"),
-                                        icon="close_panel.png",
+                                        icon="close_panel",
                                         tip=_("Close this window"),
                                         triggered=self.close)
             self.menus = []

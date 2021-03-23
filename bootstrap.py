@@ -24,13 +24,13 @@ import atexit
 import argparse
 import os
 import os.path as osp
+import pkg_resources
 import shutil
 import subprocess
 import sys
 import time
 
 time_start = time.time()
-
 
 # --- Parse command line
 
@@ -42,20 +42,20 @@ symbol (example: `python bootstrap.py -- --hide-console`).
 Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
 parser.add_argument('--gui', default=None,
-                  help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
-                       "pyside (for PySide, deprecated)")
+                    help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
+                    "pyside (for PySide, deprecated)")
 parser.add_argument('--show-console', action='store_true', default=False,
-                  help="(Deprecated) Does nothing, now the default behavior "
-                  "is to show the console")
-parser.add_argument('--hide-console', action='store_true',
-                  default=False, help="Hide parent console window (Windows only)")
+                    help="(Deprecated) Does nothing, now the default behavior "
+                    "is to show the console")
+parser.add_argument('--hide-console', action='store_true', default=False,
+                    help="Hide parent console window (Windows only)")
 parser.add_argument('--safe-mode', dest="safe_mode",
                     action='store_true', default=False,
                     help="Start Spyder with a clean configuration directory")
-parser.add_argument('--no-apport', action='store_true',
-                    default=False, help="Disable Apport exception hook (Ubuntu)")
+parser.add_argument('--no-apport', action='store_true', default=False,
+                    help="Disable Apport exception hook (Ubuntu)")
 parser.add_argument('--debug', action='store_true',
-                  default=False, help="Run Spyder in debug mode")
+                    default=False, help="Run Spyder in debug mode")
 parser.add_argument('--filter-log', default='',
                     help="Comma-separated module name hierarchies whose log "
                          "messages should be shown. e.g., "
@@ -102,16 +102,16 @@ except UnicodeDecodeError:
 # Warn if we're running under 3rd party exception hook, such as
 # apport_python_hook.py from Ubuntu
 if sys.excepthook != sys.__excepthook__:
-   if sys.excepthook.__name__ != 'apport_excepthook':
-     print("WARNING: 3rd party Python exception hook is active: '%s'"
-            % sys.excepthook.__name__)
-   else:
-     if not args.no_apport:
-       print("WARNING: Ubuntu Apport exception hook is detected")
-       print("         Use --no-apport option to disable it")
-     else:
-       sys.excepthook = sys.__excepthook__
-       print("NOTICE: Ubuntu Apport exception hook is disabed")
+    if sys.excepthook.__name__ != 'apport_excepthook':
+        print("WARNING: 3rd party Python exception hook is active: '%s'"
+              % sys.excepthook.__name__)
+    else:
+        if not args.no_apport:
+            print("WARNING: Ubuntu Apport exception hook is detected")
+            print("         Use --no-apport option to disable it")
+        else:
+            sys.excepthook = sys.__excepthook__
+            print("NOTICE: Ubuntu Apport exception hook is disabed")
 
 
 # --- Continue
@@ -178,6 +178,45 @@ subprocess.check_output(
 
 atexit.register(remove_pyls_installation)
 
+print("*. Declaring completion providers")
+
+# Register completion providers
+fallback = pkg_resources.EntryPoint.parse(
+    'fallback = spyder.plugins.completion.providers.fallback.provider:'
+    'FallbackProvider')
+
+snippets = pkg_resources.EntryPoint.parse(
+    'snippets = spyder.plugins.completion.providers.snippets.provider:'
+    'SnippetsProvider'
+)
+
+lsp = pkg_resources.EntryPoint.parse(
+    'lsp = spyder.plugins.completion.providers.languageserver.provider:'
+    'LanguageServerProvider'
+)
+
+kite = pkg_resources.EntryPoint.parse(
+    'kite = spyder.plugins.completion.providers.kite.provider:'
+    'KiteProvider'
+)
+
+# Create a fake Spyder distribution
+d = pkg_resources.Distribution(__file__)
+
+# Add the providers to the fake EntryPoint
+d._ep_map = {
+    'spyder.completions': {
+        'fallback': fallback,
+        'snippets': snippets,
+        'lsp': lsp,
+        'kite': kite
+    }
+}
+
+# Add the fake distribution to the global working_set
+pkg_resources.working_set.add(d, 'spyder')
+
+
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:
     try:
@@ -187,7 +226,7 @@ if args.gui is None:
     except ImportError:
         sys.exit("ERROR: No PyQt5 detected!")
 else:
-    print ("*. Skipping GUI toolkit detection")
+    print("*. Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
 
 

@@ -22,9 +22,8 @@ from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
-from spyder.plugins.completion.manager.api import (
-    SymbolKind, BLOCK_COMMENT, CELL, SYMBOL_KIND_ICON)
+from spyder.utils.icon_manager import ima
+from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text, create_plugin_layout,
                                     create_waitspinner)
@@ -58,8 +57,8 @@ SYMBOL_NAME_MAP = {
     SymbolKind.EVENT: _('Event'),
     SymbolKind.OPERATOR: _('Operator'),
     SymbolKind.TYPE_PARAMETER: _('Type parameter'),
-    CELL: _('Cell'),
-    BLOCK_COMMENT: _('Block comment')
+    SymbolKind.CELL: _('Cell'),
+    SymbolKind.BLOCK_COMMENT: _('Block comment')
 }
 
 ICON_CACHE = {}
@@ -275,6 +274,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     sig_display_spinner = Signal()
     sig_hide_spinner = Signal()
     sig_update_configuration = Signal()
+
+    CONTEXT_NAME = 'outline_explorer'
 
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True, display_variables=False,
@@ -915,6 +916,8 @@ class OutlineExplorerWidget(QWidget):
                  group_cells=True, show_comments=True,
                  sort_files_alphabetically=False, display_variables=False,
                  follow_cursor=True, options_button=None):
+        # TODO: Remove once the OutlineExplorer is migrated
+        self.CONF_SECTION = 'outline_explorer'
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(
@@ -935,7 +938,7 @@ class OutlineExplorerWidget(QWidget):
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
-                                           icon='outline_explorer_vis.png',
+                                           icon='outline_explorer_vis',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
 

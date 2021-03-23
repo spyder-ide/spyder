@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-02-16 17:48\n"
+"PO-Revision-Date: 2021-03-07 12:17\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1132,7 +1132,7 @@ msgstr "Für immer ausblenden"
 
 #: spyder/plugins/completion/kite/widgets/install.py:73
 msgid "Now Spyder can use Kite to provide better code completions for key packages in the scientific Python Ecosystem. Install Kite for a better editor experience in Spyder. <br><br>Kite is free to use but is not open source. <a href=\"{kite_url}\">Learn more about Kite </a>"
-msgstr ""
+msgstr "Spyder kann nun Kite nutzen, um bessere Code-Vervollständigungen für wichtige Pakete im wissenschaftlichen Python-Ökosystem bereitzustellen. Installieren Sie Kite für ein besseres Editor-Erlebnis in Spyder. <br><br>Kite kann kostenlos verwendet werden, ist aber nicht quelloffen. <a href=\"{kite_url}\">Mehr über Kite erfahren </a>"
 
 #: spyder/plugins/completion/kite/widgets/install.py:179
 msgid "Downloading"
@@ -6402,7 +6402,7 @@ msgstr "Instanz:"
 
 #: spyder/utils/syntaxhighlighters.py:75
 msgid "Magic:"
-msgstr ""
+msgstr "Magie:"
 
 #: spyder/widgets/about.py:151 spyder/widgets/dependencies.py:94
 msgid "Copy to clipboard"

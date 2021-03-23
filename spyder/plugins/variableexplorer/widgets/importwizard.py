@@ -34,7 +34,7 @@ from spyder.config.base import _
 from spyder.py3compat import (INT_TYPES, io, TEXT_TYPES, to_text_string,
                               zip_longest)
 from spyder.utils import programs
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 

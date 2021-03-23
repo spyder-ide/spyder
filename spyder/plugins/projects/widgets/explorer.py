@@ -174,22 +174,15 @@ class ProjectExplorerWidget(QWidget):
 
     def __init__(self, parent, name_filters=[], show_hscrollbar=True,
                  options_button=None, single_click_to_open=False):
+        # TODO: Remove once Projects is Migrated
+        self.CONF_SECTION = parent.CONF_SECTION
         QWidget.__init__(self, parent)
 
         self.name_filters = name_filters
         self.show_hscrollbar = show_hscrollbar
 
         self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        options = {
-            'date_column': False,
-            'kind_column': True,
-            'size_column': False,
-            'name_filters': name_filters,
-            'show_hidden': False,
-            'single_click_to_open': single_click_to_open,
-            'file_associations': {},
-        }
-        self.treewidget.setup(options)
+        self.treewidget.setup()
         self.treewidget.setup_view()
         self.treewidget.hide()
         self.treewidget.sig_open_file_requested.connect(
@@ -246,6 +239,7 @@ class ProjectExplorerWidget(QWidget):
 class ProjectExplorerTest(QWidget):
     def __init__(self, directory=None):
         QWidget.__init__(self)
+        self.CONF_SECTION = 'project_explorer'
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
 

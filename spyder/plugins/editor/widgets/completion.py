@@ -17,9 +17,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QToolTip)
 
 # Local imports
-from spyder.utils import icon_manager as ima
-from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
-from spyder.plugins.completion.manager.api import CompletionItemKind
+from spyder.utils.icon_manager import ima
+from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate
 
@@ -221,12 +220,13 @@ class CompletionWidget(QListWidget):
         img_height = height - 2
         img_width = img_height * 0.8
 
-        if item_provider == KITE_COMPLETION:
-            kite_height = img_height
-            kite_width = (416.14/526.8) * kite_height
-            icon_provider = ima.get_icon('kite', adjust_for_interface=True)
+        icon_provider, icon_scale = item_info.get('icon', (None, 1))
+        if icon_provider is not None:
+            icon_height = img_height
+            icon_width = icon_scale * icon_height
+            icon_provider = ima.icon(icon_provider)
             icon_provider = ima.base64_from_icon_obj(
-                icon_provider, kite_width, kite_height)
+                icon_provider, icon_width, icon_height)
 
         item_text = self.get_html_item_representation(
             item_label, item_type, icon_provider=icon_provider,
@@ -469,6 +469,9 @@ class CompletionWidget(QListWidget):
 
             for ch in chars:
                 insert_text = insert_text.split(ch)[0]
+
+        if isinstance(item['documentation'], dict):
+            item['documentation'] = item['documentation']['value']
 
         self.sig_completion_hint.emit(
             insert_text,

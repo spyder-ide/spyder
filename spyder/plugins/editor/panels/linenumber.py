@@ -18,10 +18,10 @@ from qtpy.QtGui import QPainter, QColor
 
 # Local imports
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
-from spyder.plugins.completion.manager.api import DiagnosticSeverity
+from spyder.plugins.completion.api import DiagnosticSeverity
 
 
 QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
@@ -33,8 +33,8 @@ class LineNumberArea(Panel):
     # --- Qt Overrides
     # -----------------------------------------------------------------
 
-    def __init__(self, editor):
-        Panel.__init__(self, editor)
+    def __init__(self):
+        Panel.__init__(self)
 
         self.setMouseTracking(True)
         self.scrollable = True

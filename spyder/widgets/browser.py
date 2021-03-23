@@ -24,7 +24,7 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets import SpyderWidgetMixin
 from spyder.config.base import DEV
 from spyder.py3compat import is_text_string, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (action2button, add_actions, create_action,
                                     create_plugin_layout, create_toolbutton)
 from spyder.widgets.comboboxes import UrlComboBox
@@ -89,8 +89,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
     Web view.
     """
 
-    def __init__(self, parent, handle_links=True):
-        super().__init__(parent)
+    def __init__(self, parent, handle_links=True, class_parent=None):
+        class_parent = parent if class_parent is None else class_parent
+        super().__init__(parent, class_parent=class_parent)
 
         self.zoom_factor = 1.
         self.context_menu = None
@@ -492,9 +493,9 @@ class FrameWebView(QFrame):
     linkClicked = Signal(QUrl)
 
     def __init__(self, parent):
-        QFrame.__init__(self, parent)
+        super().__init__(parent)
 
-        self._webview = WebView(self)
+        self._webview = WebView(self, class_parent=parent)
 
         layout = QHBoxLayout()
         layout.addWidget(self._webview)
@@ -509,7 +510,13 @@ class FrameWebView(QFrame):
             self._webview.linkClicked.connect(self.linkClicked)
 
     def __getattr__(self, name):
-        return getattr(self._webview, name)
+        if name == '_webview':
+            return super().__getattr__(name)
+
+        if hasattr(self._webview, name):
+            return getattr(self._webview, name)
+        else:
+            return super().__getattr__(name)
 
     @property
     def web_widget(self):

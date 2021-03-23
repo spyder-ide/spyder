@@ -12,200 +12,27 @@ Spyder API Mixins.
 """
 
 # Standard library imports
+import functools
 from collections import OrderedDict
+import types
+from typing import Any, Optional, Dict
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget
+from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget, QToolButton
 
 # Local imports
+from spyder.api.config.mixins import (
+    SpyderConfigurationObserver, SpyderConfigurationAccessor)
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action, create_toolbutton
-
-
-class SpyderOptionMixin:
-    """
-    This mixin provides option handling tools for any widget that needs to
-    track options, their state and methods to call on option change.
-
-    These options will usually be tied to configuration options in the Spyder
-    configuration files (e.g. spyder.ini). Some options might not be connected
-    to configuration options, and in this case using DEFAULT_OPTIONS is
-    preferred instead of using class attributes.
-    """
-    # EXAMPLE: {'option_1': value_1, 'option_2': value_2, ...}
-    DEFAULT_OPTIONS = {}
-
-    @staticmethod
-    def _find_option_mixin_children(obj, all_children):
-        """
-        Find all children of `obj` that use SpyderOptionMixin recursively.
-
-        `all_children` is a list on which to append the results.
-        """
-        children = obj.findChildren(SpyderOptionMixin)
-        all_children.extend(children)
-
-        if obj not in all_children:
-            all_children.append(obj)
-
-        for child in children:
-            children = child.findChildren(SpyderOptionMixin)
-            all_children.extend(children)
-
-        return all_children
-
-    def _check_options_dictionary_exist(self):
-        """
-        Helper method to check the options dictionary has been initialized.
-        """
-        options = getattr(self, '_options', None)
-        if not options:
-            self._options = self.DEFAULT_OPTIONS
-
-    def _check_options_exist(self, options):
-        """
-        Helper method to check that an option was defined in the
-        DEFAULT_OPTIONS dictionary.
-        """
-        for option in options:
-            if option not in self.DEFAULT_OPTIONS:
-                raise SpyderAPIError(
-                    'Option "{0}" has not been defined in the the widget '
-                    'DEFAULT_OPTIONS attribute! Options are: '
-                    '{1}'.format(option, self.DEFAULT_OPTIONS)
-                )
-
-    def _set_option(self, option, value, emit):
-        """
-        Helper method to set/change options with option to emit signal.
-        """
-        # Check if a togglable action exists with this name and update state
-        try:
-            action_name = 'toggle_{}_action'.format(option)
-            self._update_action_state(action_name, value)
-        except SpyderAPIError:
-            pass
-
-        self._check_options_dictionary_exist()
-        if option in self.DEFAULT_OPTIONS:
-            self._options[option] = value
-
-            if emit:
-                # This eventually calls on_option_update too.
-                self.sig_option_changed.emit(option, value)
-            else:
-                self.on_option_update(option, value)
-        else:
-            raise SpyderAPIError(
-                'Option "{}" has not been defined in the widget '
-                'DEFAULT_OPTIONS attribute!'
-                ''.format(option)
-            )
-
-    def get_option(self, option):
-        """
-        Return option for this widget.
-
-        `option` must be defined in the DEFAULT_OPTIONS class attribute.
-        """
-        self._check_options_dictionary_exist()
-        if option in self.DEFAULT_OPTIONS:
-            return self._options[option]
-
-        raise SpyderAPIError(
-            'Option "{0}" has not been defined in the widget DEFAULT_OPTIONS '
-            'attribute {1}'.format(option, self.DEFAULT_OPTIONS)
-        )
-
-    def get_options(self):
-        """
-        Return the current options dictionary.
-        """
-        self._check_options_dictionary_exist()
-        return self._options
-
-    def set_option(self, option, value):
-        """
-        Set option for this widget.
-
-        `option` must be defined in the DEFAULT_OPTIONS class attribute.
-        Setting an option will emit the sig_option_changed signal and will
-        call the `on_option_update` method.
-        """
-        signal = getattr(self, 'sig_option_changed', None)
-        if signal is None:
-            raise SpyderAPIError(
-                'A Spyder widget must define a '
-                '"sig_option_changed = Signal(str, object)" signal!'
-            )
-        self._set_option(option, value, emit=True)
-
-    def set_options(self, options):
-        """
-        Set options for this widget.
-
-        `options` must be defined in the DEFAULT_OPTIONS class attribute.
-        Setting each option will emit the sig_option_changed signal and will
-        call the `on_option_update` method.
-
-        This method will propagate the options on all children.
-        """
-        parent_and_children = self._find_option_mixin_children(self, [self])
-        for child in parent_and_children:
-            child_options = self.options_from_keys(options,
-                                                   child.DEFAULT_OPTIONS)
-            child._check_options_exist(child_options)
-
-            for option, value in child_options.items():
-                child.set_option(option, value)
-
-    def change_option(self, option, value):
-        """
-        Change option for this widget.
-
-        `option` must be defined in the DEFAULT_OPTIONS class attribute.
-        Changing an option will call the `on_option_update` method.
-        """
-        self._set_option(option, value, emit=False)
-
-    def change_options(self, options):
-        """
-        Change options for this widget.
-
-        `options` must be defined in the DEFAULT_OPTIONS class attribute.
-        Changing each option will call the `on_option_update` method.
-
-        This method will propagate the options on all children.
-        """
-        parent_and_children = self._find_option_mixin_children(self, [self])
-        for child in parent_and_children:
-            child_options = self.options_from_keys(options,
-                                                   child.DEFAULT_OPTIONS)
-            child._check_options_exist(child_options)
-
-            for option, value in child_options.items():
-                child.change_option(option, value)
-
-    def options_from_keys(self, options, keys):
-        """
-        Create an options dictionary that only contains given `keys`.
-        """
-        new_options = {}
-        for option in keys:
-            if option in options:
-                new_options[option] = options[option]
-
-        return new_options
-
-    def on_option_update(self, option, value):
-        """
-        When an option is set or changed, this method is called.
-        """
-        raise NotImplementedError(
-            'Widget must define a `on_option_update` method!')
+from spyder.config.types import ConfigurationKey
+from spyder.config.manager import CONF
+from spyder.utils.icon_manager import ima
+from spyder.utils.qthelpers import (
+    create_action, create_toolbutton, SpyderAction)
+from spyder.utils.registries import (
+    ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 
 
 class SpyderToolButtonMixin:
@@ -215,18 +42,17 @@ class SpyderToolButtonMixin:
 
     def create_toolbutton(self, name, text=None, icon=None,
                           tip=None, toggled=None, triggered=None,
-                          autoraise=True, text_beside_icon=False):
+                          autoraise=True, text_beside_icon=False,
+                          section=None, option=None):
         """
         Create a Spyder toolbutton.
         """
-        toolbuttons = getattr(self, '_toolbuttons', None)
-        if toolbuttons is None:
-            self._toolbuttons = OrderedDict()
+        if toggled and not callable(toggled):
+            toggled = lambda value: None
 
-        if name in self._toolbuttons:
-            raise SpyderAPIError(
-                'Tool button name "{}" already in use!'.format(name)
-            )
+        if toggled is not None:
+            if section is None and option is not None:
+                section = self.CONF_SECTION
 
         toolbutton = create_toolbutton(
             self,
@@ -238,36 +64,77 @@ class SpyderToolButtonMixin:
             triggered=triggered,
             autoraise=autoraise,
             text_beside_icon=text_beside_icon,
+            section=section,
+            option=option,
+            id_=name,
+            plugin=self.PLUGIN_NAME,
+            context_name=self.CONTEXT_NAME,
+            register_toolbutton=True
         )
         toolbutton.name = name
-        self._toolbuttons[name] = toolbutton
+
+        if toggled:
+            if section is not None and option is not None:
+                value = CONF.get(section, option)
+                toolbutton.setChecked(value)
+
         return toolbutton
 
-    def get_toolbutton(self, name):
+    def get_toolbutton(self, name: str, context: Optional[str] = None,
+                       plugin: Optional[str] = None) -> QToolButton:
         """
-        Return toolbutton by name.
+        Return toolbutton by name, plugin and context.
+
+        Parameters
+        ----------
+        name: str
+            Name of the toolbutton to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the toolbutton was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbutton was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbutton: QToolButton
+            The corresponding toolbutton stored under the given `name`,
+            `context` and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbutton registry.
         """
-        toolbuttons = getattr(self, '_toolbuttons', None)
-        if toolbuttons is None:
-            self._toolbuttons = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBUTTON_REGISTRY.get_reference(name, plugin, context)
 
-        if name in self._toolbuttons:
-            raise SpyderAPIError(
-                'Tool button name "{0}" not found! Available names are: {1}'
-                ''.format(name, list(self._toolbuttons.keys()))
-            )
-
-        return self._toolbuttons[name]
-
-    def get_toolbuttons(self):
+    def get_toolbuttons(self, context: Optional[str] = None,
+                        plugin: Optional[str] = None) -> Dict[str, QToolButton]:
         """
-        Return all toolbuttons.
-        """
-        toolbuttons = getattr(self, '_toolbuttons', None)
-        if toolbuttons is None:
-            self._toolbuttons = OrderedDict()
+        Return all toolbuttons defined by a context on a given plugin.
 
-        return self._toolbuttons
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the toolbuttons were
+            stored. If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbuttons were defined.
+            If None, then `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbuttons: Dict[str, QToolButton]
+            A dictionary that maps string keys to their corresponding
+            toolbuttons.
+        """
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBUTTON_REGISTRY.get_references(plugin, context)
 
 
 class SpyderToolbarMixin:
@@ -292,43 +159,69 @@ class SpyderToolbarMixin:
         stretcher.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         return stretcher
 
-    def create_toolbar(self, name):
+    def create_toolbar(self, name: str) -> QToolBar:
         """
         Create a Spyder toolbar.
         """
-        toolbars = getattr(self, '_toolbars', None)
-        if toolbars is None:
-            self._toolbars = OrderedDict()
-
-        if name in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" already created!'.format(name))
-
         toolbar = QToolBar(self)
-        self._toolbars[name] = toolbar
+        TOOLBAR_REGISTRY.register_reference(
+            toolbar, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
         return toolbar
 
-    def get_toolbar(self, name):
+    def get_toolbar(self, name: str, context: Optional[str] = None,
+                    plugin: Optional[str] = None) -> QToolBar:
         """
-        Return toolbar by name.
+        Return toolbar by name, plugin and context.
+
+        Parameters
+        ----------
+        name: str
+            Name of the toolbar to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the toolbar was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbar was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbar: QToolBar
+            The corresponding toolbar stored under the given `name`, `context`
+            and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbar registry.
         """
-        toolbars = getattr(self, '_toolbars', None)
-        if toolbars is None:
-            self._toolbars = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBAR_REGISTRY.get_reference(name, plugin, context)
 
-        if name not in self._toolbars:
-            raise SpyderAPIError('Toolbar "{}" not found!'.format(name))
-
-        return self._toolbars[name]
-
-    def get_toolbars(self):
+    def get_toolbars(self, context: Optional[str] = None,
+                     plugin: Optional[str] = None) -> Dict[str, QToolBar]:
         """
-        Return all toolbars.
-        """
-        toolbars = getattr(self, '_toolbars', None)
-        if toolbars is None:
-            self._toolbars = OrderedDict()
+        Return all toolbars defined by a context on a given plugin.
 
-        return self._toolbars
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the toolbars were stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the toolbars were defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        toolbars: Dict[str, QToolBar]
+            A dictionary that maps string keys to their corresponding toolbars.
+        """
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return TOOLBAR_REGISTRY.get_references(plugin, context)
 
 
 class SpyderMenuMixin:
@@ -367,48 +260,69 @@ class SpyderMenuMixin:
         """
         from spyder.api.widgets.menus import SpyderMenu
 
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
-
-        if name in self._menus:
-            raise SpyderAPIError(
-                'Menu name "{}" already in use!'.format(name)
-            )
-
         menu = SpyderMenu(parent=self, title=text)
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)
             menu.setIcon(icon)
 
-        self._menus[name] = menu
+        MENU_REGISTRY.register_reference(
+            menu, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
         return menu
 
-    def get_menu(self, name):
+    def get_menu(self, name: str, context: Optional[str] = None,
+                 plugin: Optional[str] = None) -> SpyderMenu:
         """
-        Return name for menu.
+        Return a menu by name, plugin and context.
+
+        Parameters
+        ----------
+        name: str
+            Name of the menu to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the menu was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the menu was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        menu: SpyderMenu
+            The corresponding menu stored under the given `name`, `context`
+            and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbar registry.
         """
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return MENU_REGISTRY.get_reference(name, plugin, context)
 
-        if name not in self._menus:
-            raise SpyderAPIError(
-                'Invalid menu name, valid names are: {}'.format(
-                    list(self._menus.keys()))
-            )
-
-        return self._menus.get(name)
-
-    def get_menus(self, name):
+    def get_menus(self, context: Optional[str] = None,
+                  plugin: Optional[str] = None) -> Dict[str, SpyderMenu]:
         """
-        Return menus dictionary.
-        """
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
+        Return all menus defined by a context on a given plugin.
 
-        return self._menus
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the menus were stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the menus were defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        menus: Dict[str, SpyderMenu]
+            A dictionary that maps string keys to their corresponding menus.
+        """
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return MENU_REGISTRY.get_references(plugin, context)
 
 
 class SpyderActionMixin:
@@ -441,7 +355,8 @@ class SpyderActionMixin:
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
-                      register_shortcut=False, parent=None):
+                      register_shortcut=False, section=None, option=None,
+                      parent=None):
         """
         name: str
             unique identifiable name for the action
@@ -454,8 +369,11 @@ class SpyderActionMixin:
             the tooltip on this toolbutton if part of a toolbar.
         tip: str
             Tooltip to define for action on menu or toolbar.
-        toggled: callable
-            The callable to use when toggling this action
+        toggled: Optional[Union[Callable, bool]]
+            If True, then the action modifies the configuration option on the
+            section specified. Otherwise, it should be a callable to use
+            when toggling this action. If None, then the action does not
+            behave like a checkbox.
         triggered: callable
             The callable to use when triggering this action.
         shortcut_context: str
@@ -465,6 +383,13 @@ class SpyderActionMixin:
         initial: object
             Sets the initial state of a togglable action. This does not emit
             the toggled signal.
+        section: Optional[str]
+            Name of the configuration section whose option is going to be
+            modified. If None, and `option` is not None, then it defaults to
+            the class `CONF_SECTION` attribute.
+        option: ConfigurationKey
+            Name of the configuration option whose value is reflected and
+            affected by the action.
         register_shortcut: bool, optional
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
@@ -483,23 +408,20 @@ class SpyderActionMixin:
         If a shortcut is found in the default config then it is assigned,
         otherwise it's left blank for the user to define one for it.
         """
-        actions = getattr(self, '_actions', None)
-        if actions is None:
-            self._actions = OrderedDict()
-
         if triggered is None and toggled is None:
             raise SpyderAPIError(
                 'Action must provide the toggled or triggered parameters!'
             )
 
-        # Check name
-        if name in self._actions:
-            raise SpyderAPIError(
-                'Action name "{}" already in use!'.format(name)
-            )
-
         if parent is None:
             parent = self
+
+        if toggled and not callable(toggled):
+            toggled = lambda value: None
+
+        if toggled is not None:
+            if section is None and option is not None:
+                section = self.CONF_SECTION
 
         action = create_action(
             parent,
@@ -509,6 +431,12 @@ class SpyderActionMixin:
             toggled=toggled,
             triggered=triggered,
             context=context,
+            section=section,
+            option=option,
+            id_=name,
+            plugin=self.PLUGIN_NAME,
+            context_name=self.CONTEXT_NAME,
+            register_action=True
         )
         action.name = name
         if icon_text:
@@ -521,35 +449,69 @@ class SpyderActionMixin:
 
         if initial is not None:
             if toggled:
-                self.blockSignals(True)
                 action.setChecked(initial)
-                self.blockSignals(False)
             elif triggered:
                 raise SpyderAPIError(
                     'Initial values can only apply to togglable actions!')
+        else:
+            if toggled:
+                if section is not None and option is not None:
+                    value = CONF.get(section, option)
+                    action.setChecked(value)
 
-        self._actions[name] = action
         return action
 
-    def get_action(self, name):
+    def get_action(self, name: str, context: Optional[str] = None,
+                   plugin: Optional[str] = None) -> Any:
         """
-        Return an action by name.
+        Return an action by name, context and plugin.
+
+        Parameters
+        ----------
+        name: str
+            Name of the action to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the action was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the action was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        action: SpyderAction
+            The corresponding action stored under the given `name`, `context`
+            and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbar registry.
         """
-        actions = getattr(self, '_actions', None)
-        if actions is None:
-            self._actions = OrderedDict()
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
 
-        if name not in self._actions:
-            raise SpyderAPIError(
-                'Inavlid action name "{0}", valid names are: {1}'.format(
-                    name, list(self._actions.keys()))
-            )
+        return ACTION_REGISTRY.get_reference(name, plugin, context)
 
-        return self._actions.get(name)
-
-    def get_actions(self):
+    def get_actions(self, context: Optional[str] = None,
+                    plugin: Optional[str] = None) -> dict:
         """
-        Return all actions defined by the widget.
+        Return all actions defined by a context on a given plugin.
+
+        Parameters
+        ----------
+        context: Optional[str]
+            Widget or context identifier under which the actions were stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the actions were defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        actions: Dict[str, SpyderAction]
+            A dictionary that maps string keys to their corresponding actions.
 
         Notes
         -----
@@ -567,11 +529,9 @@ class SpyderActionMixin:
            otherwise it's left with an empty shortcut.
         5. There is no need to override this method.
         """
-        actions = getattr(self, '_actions', None)
-        if actions is None:
-            self._actions = OrderedDict()
-
-        return self._actions
+        plugin = self.PLUGIN_NAME if plugin is None else plugin
+        context = self.CONTEXT_NAME if context is None else context
+        return ACTION_REGISTRY.get_references(plugin, context)
 
     def update_actions(self, options):
         """
@@ -583,7 +543,7 @@ class SpyderActionMixin:
 
 
 class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
-                        SpyderOptionMixin, SpyderToolButtonMixin):
+                        SpyderConfigurationObserver, SpyderToolButtonMixin):
     """
     Basic functionality for all Spyder widgets and Qt items.
 
@@ -595,16 +555,28 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
     for defining the actions a widget provides.
     """
 
+    # Plugin name identifier used to store actions, toolbars, toolbuttons
+    # and menus
+    PLUGIN_NAME = None
+
+    # Context name used to store actions, toolbars, toolbuttons and menus
+    CONTEXT_NAME = None
+
+    def __init__(self, class_parent=None):
+        for attr in ['CONF_SECTION', 'PLUGIN_NAME']:
+            if getattr(self, attr, None) is None:
+                if hasattr(class_parent, attr):
+                    # Inherit class_parent CONF_SECTION/PLUGIN_NAME value
+                    setattr(self, attr, getattr(class_parent, attr))
+
+        super().__init__()
+
     @staticmethod
-    def create_icon(name, image_file=False):
+    def create_icon(name):
         """
         Create an icon by name using the spyder Icon manager.
         """
-        if image_file:
-            icon = ima.get_icon(name)
-        else:
-            icon = ima.icon(name)
-        return icon
+        return ima.icon(name)
 
     def update_style(self):
         """

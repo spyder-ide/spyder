@@ -22,8 +22,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_toolbutton, get_std_icon
+from spyder.utils.icon_manager import ima
+from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stringmatching import get_search_regex, get_search_scores
 from spyder.widgets.helperwidgets import (VALID_FINDER_CHARS,
                                           CustomSortFilterProxy,
@@ -161,7 +161,7 @@ class ShortcutEditor(QDialog):
         """Setup the ShortcutEditor with the provided arguments."""
         # Widgets
         icon_info = HelperToolButton()
-        icon_info.setIcon(get_std_icon('MessageBoxInformation'))
+        icon_info.setIcon(ima.get_std_icon('MessageBoxInformation'))
         layout_icon_info = QVBoxLayout()
         layout_icon_info.setContentsMargins(0, 0, 0, 0)
         layout_icon_info.setSpacing(0)
@@ -402,19 +402,19 @@ class ShortcutEditor(QDialog):
                 tip_override = _("Press 'Ok' to unbind them and assign it to")
             tip_override += ' <b>{}</b>.'.format(self.name)
             tip = template.format(tip_title, tip_body, tip_override)
-            icon = get_std_icon('MessageBoxWarning')
+            icon = ima.get_std_icon('MessageBoxWarning')
         elif new_sequence in BLACKLIST:
             warning = IN_BLACKLIST
             tip = _('This key sequence is forbidden.')
-            icon = get_std_icon('MessageBoxWarning')
+            icon = ima.get_std_icon('MessageBoxWarning')
         elif self.check_singlekey() is False or self.check_ascii() is False:
             warning = INVALID_KEY
             tip = _('This key sequence is invalid.')
-            icon = get_std_icon('MessageBoxWarning')
+            icon = ima.get_std_icon('MessageBoxWarning')
         else:
             warning = NO_WARNING
             tip = _('This key sequence is valid.')
-            icon = get_std_icon('DialogApplyButton')
+            icon = ima.get_std_icon('DialogApplyButton')
 
         self.warning = warning
         self.conflicts = conflicts

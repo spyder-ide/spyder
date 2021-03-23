@@ -27,6 +27,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
                             QTreeWidgetItem)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.config.gui import get_font
@@ -814,22 +815,6 @@ class FindInFilesWidget(PluginMainWidget):
     Find in files widget.
     """
 
-    DEFAULT_OPTIONS = {
-        'case_sensitive': False,
-        'exclude_case_sensitive': False,
-        'exclude': EXCLUDE_PATTERNS[0],
-        'exclude_index': None,
-        'exclude_regexp': False,
-        'path_history': [],
-        'max_results': 1000,
-        'hist_limit': MAX_PATH_HISTORY,
-        'more_options': False,
-        'search_in_index': None,
-        'search_text': '',
-        'search_text_regexp': False,
-        'supported_encodings': ("utf-8", "iso-8859-1", "cp1252"),
-        'text_color': MAIN_TEXT_COLOR,
-    }
     ENABLE_SPINNER = True
     REGEX_INVALID = f"background-color:{SpyderPalette.COLOR_ERROR_2};"
     REGEX_ERROR = _("Regular expression error")
@@ -865,21 +850,22 @@ class FindInFilesWidget(PluginMainWidget):
     to reaching the maximum number of results.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent=parent, options=options)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent=parent)
+        self.set_conf('text_color', MAIN_TEXT_COLOR)
+        self.set_conf('hist_limit', MAX_PATH_HISTORY)
 
         # Attributes
-        self.text_color = self.get_option('text_color')
-        self.supported_encodings = self.get_option('supported_encodings')
+        self.text_color = self.get_conf('text_color')
+        self.supported_encodings = self.get_conf('supported_encodings')
         self.search_thread = None
         self.running = False
         self.more_options_action = None
         self.extras_toolbar = None
 
-        search_text = self.get_option('search_text')
-        path_history = self.get_option('path_history')
-        exclude = self.get_option('exclude')
+        search_text = self.get_conf('search_text', '')
+        path_history = self.get_conf('path_history', [])
+        exclude = self.get_conf('exclude')
 
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -907,17 +893,17 @@ class FindInFilesWidget(PluginMainWidget):
         self.result_browser = ResultsBrowser(
             self,
             text_color=self.text_color,
-            max_results=self.get_option('max_results'),
+            max_results=self.get_conf('max_results'),
         )
 
         # Setup
         self.exclude_label.setBuddy(self.exclude_pattern_edit)
-        exclude_idx = self.get_option('exclude_index')
+        exclude_idx = self.get_conf('exclude_index', None)
         if (exclude_idx is not None and exclude_idx >= 0
                 and exclude_idx < self.exclude_pattern_edit.count()):
             self.exclude_pattern_edit.setCurrentIndex(exclude_idx)
 
-        search_in_index = self.get_option('search_in_index')
+        search_in_index = self.get_conf('search_in_index', None)
         self.path_selection_combo.set_current_searchpath_index(
             search_in_index)
 
@@ -947,22 +933,24 @@ class FindInFilesWidget(PluginMainWidget):
     def get_focus_widget(self):
         return self.search_text_edit
 
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         self.search_regexp_action = self.create_action(
             FindInFilesWidgetActions.ToggleSearchRegex,
             text=_('Regular expression'),
             tip=_('Regular expression'),
             icon=self.create_icon('regex'),
-            toggled=lambda val: self.set_option('search_text_regexp', val),
-            initial=self.get_option('search_text_regexp'),
+            toggled=True,
+            initial=self.get_conf('search_text_regexp'),
+            option='search_text_regexp'
         )
         self.case_action = self.create_action(
             FindInFilesWidgetActions.ToggleExcludeCase,
             text=_("Case sensitive"),
             tip=_("Case sensitive"),
             icon=self.create_icon("format_letter_case"),
-            toggled=lambda val: self.set_option('case_sensitive', val),
-            initial=self.get_option('case_sensitive'),
+            toggled=True,
+            initial=self.get_conf('case_sensitive'),
+            option='case_sensitive'
         )
         self.find_action = self.create_action(
             FindInFilesWidgetActions.Find,
@@ -978,24 +966,27 @@ class FindInFilesWidget(PluginMainWidget):
             text=_('Regular expression'),
             tip=_('Regular expression'),
             icon=self.create_icon('regex'),
-            toggled=lambda val: self.set_option('exclude_regexp', val),
-            initial=self.get_option('exclude_regexp'),
+            toggled=True,
+            initial=self.get_conf('exclude_regexp'),
+            option='exclude_regexp'
         )
         self.exclude_case_action = self.create_action(
             FindInFilesWidgetActions.ToggleCase,
             text=_("Exclude case sensitive"),
             tip=_("Exclude case sensitive"),
             icon=self.create_icon("format_letter_case"),
-            toggled=lambda val: self.set_option('exclude_case_sensitive', val),
-            initial=self.get_option('exclude_case_sensitive'),
+            toggled=True,
+            initial=self.get_conf('exclude_case_sensitive'),
+            option='exclude_case_sensitive'
         )
         self.more_options_action = self.create_action(
             FindInFilesWidgetActions.ToggleMoreOptions,
             text=_('Show advanced options'),
             tip=_('Show advanced options'),
             icon=self.create_icon("options_more"),
-            toggled=lambda val: self.set_option('more_options', val),
-            initial=self.get_option('more_options'),
+            toggled=True,
+            initial=self.get_conf('more_options'),
+            option='more_options'
         )
         self.set_max_results_action = self.create_action(
             FindInFilesWidgetActions.MaxResults,
@@ -1069,27 +1060,28 @@ class FindInFilesWidget(PluginMainWidget):
             self.extras_toolbar.setVisible(
                 self.more_options_action.isChecked())
 
-    def on_option_update(self, option, value):
-        if option == 'more_options':
-            self.exclude_pattern_edit.setMinimumWidth(
-                self.search_text_edit.width())
+    @on_conf_change(option='more_options')
+    def on_more_options_update(self, value):
+        self.exclude_pattern_edit.setMinimumWidth(
+            self.search_text_edit.width())
 
-            if value:
-                icon = self.create_icon('options_less')
-                tip = _('Hide advanced options')
-            else:
-                icon = self.create_icon('options_more')
-                tip = _('Show advanced options')
+        if value:
+            icon = self.create_icon('options_less')
+            tip = _('Hide advanced options')
+        else:
+            icon = self.create_icon('options_more')
+            tip = _('Show advanced options')
 
-            if self.extras_toolbar:
-                self.extras_toolbar.setVisible(value)
+        if self.extras_toolbar:
+            self.extras_toolbar.setVisible(value)
 
-            if self.more_options_action:
-                self.more_options_action.setIcon(icon)
-                self.more_options_action.setToolTip(tip)
+        if self.more_options_action:
+            self.more_options_action.setIcon(icon)
+            self.more_options_action.setToolTip(tip)
 
-        elif option == 'max_results':
-            self.result_browser.set_max_results(value)
+    @on_conf_change(option='max_results')
+    def on_max_results_update(self, value):
+        self.result_browser.set_max_results(value)
 
     # --- Private API
     # ------------------------------------------------------------------------
@@ -1168,20 +1160,20 @@ class FindInFilesWidget(PluginMainWidget):
         """
         Extract search options from widgets and set the corresponding option.
         """
-        hist_limit = self.get_option('hist_limit')
+        hist_limit = self.get_conf('hist_limit')
         search_texts = [str(self.search_text_edit.itemText(index))
                         for index in range(self.search_text_edit.count())]
         excludes = [str(self.search_text_edit.itemText(index))
                     for index in range(self.exclude_pattern_edit.count())]
         path_history = self.path_selection_combo.get_external_paths()
 
-        self.set_option('path_history', path_history)
-        self.set_option('search_text', search_texts[:hist_limit])
-        self.set_option('exclude', excludes[:hist_limit])
-        self.set_option('path_history', path_history[-hist_limit:])
-        self.set_option(
+        self.set_conf('path_history', path_history)
+        self.set_conf('search_text', search_texts[:hist_limit])
+        self.set_conf('exclude', excludes[:hist_limit])
+        self.set_conf('path_history', path_history[-hist_limit:])
+        self.set_conf(
             'exclude_index', self.exclude_pattern_edit.currentIndex())
-        self.set_option(
+        self.set_conf(
             'search_in_index', self.path_selection_combo.currentIndex())
 
     def _handle_search_complete(self, completed):
@@ -1373,11 +1365,11 @@ class FindInFilesWidget(PluginMainWidget):
 
             # Connect slot
             dialog.intValueSelected.connect(
-                lambda value: self.set_option('max_results', value))
+                lambda value: self.set_conf('max_results', value))
 
             dialog.show()
         else:
-            self.set_option('max_results', value)
+            self.set_conf('max_results', value)
 
 
 def test():
@@ -1387,15 +1379,18 @@ def test():
     # Standard library imports
     from os.path import dirname
     import sys
+    from unittest.mock import MagicMock
 
     # Local imports
     from spyder.utils.qthelpers import qapplication
 
     app = qapplication()
-    options = FindInFilesWidget.DEFAULT_OPTIONS.copy()
-    widget = FindInFilesWidget('find_in_files', options=options)
-    widget._setup(options=options)
-    widget.setup(options=options)
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'find_in_files'
+    widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
+    widget.CONF_SECTION = 'find_in_files'
+    widget._setup()
+    widget.setup()
     widget.resize(640, 480)
     widget.show()
     external_paths = [

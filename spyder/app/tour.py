@@ -31,12 +31,13 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 # Local imports
 from spyder import __docs_url__
 from spyder.api.panel import Panel
-from spyder.config.base import _, get_image_path
+from spyder.config.base import _
+from spyder.utils.image_path_manager import get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.utils import icon_manager as ima
 
 
 MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
@@ -663,7 +664,7 @@ class FadingTipBox(FadingDialog):
                         self.button_previous, self.button_end,
                         self.button_home, self.button_current]
 
-        arrow = get_image_path('hide.png')
+        arrow = get_image_path('hide')
 
         self.color_top = color_top
         self.color_back = color_back
@@ -1403,7 +1404,7 @@ class OpenTourDialog(QDialog):
 
         # Image
         images_layout = QHBoxLayout()
-        icon_filename = 'tour-spyder-logo.svg'
+        icon_filename = 'tour-spyder-logo'
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()

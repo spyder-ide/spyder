@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QGridLayout,
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.py3compat import to_text_string
 
@@ -53,10 +53,10 @@ class ProjectDialog(QDialog):
     ----------
     project_path: str
         Location of project.
-    project_type: str	
-        Type of project as defined by project types.	
-    project_packages: object	
-        Package to install. Currently not in use.	
+    project_type: str
+        Type of project as defined by project types.
+    project_packages: object
+        Package to install. Currently not in use.
     """
 
     def __init__(self, parent, project_types):

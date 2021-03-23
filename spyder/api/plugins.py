@@ -26,6 +26,8 @@ from collections import OrderedDict
 import inspect
 import logging
 import os
+import os.path as osp
+from typing import List, Union
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
@@ -33,17 +35,19 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import QApplication, QWidget
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
-from spyder.api.widgets.mixins import SpyderActionMixin, SpyderOptionMixin
+from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.py3compat import configparser as cp
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
+from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
 # Localization
 _ = get_translation('spyder')
@@ -99,7 +103,8 @@ class BasePlugin(BasePluginMixin):
         super(BasePlugin, self)._show_status_message(message, timeout)
 
     @Slot(str, object)
-    def set_option(self, option, value, section=None):
+    def set_option(self, option, value, section=None,
+                   recursive_notification=True):
         """
         Set an option in Spyder configuration file.
 
@@ -117,7 +122,9 @@ class BasePlugin(BasePluginMixin):
           same or another plugin.
         * CONF_SECTION needs to be defined for this to work.
         """
-        super(BasePlugin, self)._set_option(option, value, section=section)
+        super(BasePlugin, self)._set_option(
+            option, value, section=section,
+            recursive_notification=recursive_notification)
 
     def get_option(self, option, default=NoDefault, section=None):
         """
@@ -135,6 +142,19 @@ class BasePlugin(BasePluginMixin):
         """
         return super(BasePlugin, self)._get_option(option, default,
                                                    section=section)
+
+    def remove_option(self, option, section=None):
+        """
+        Remove an option from the Spyder configuration file.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            A string or a Tuple of strings containing an option name to remove.
+        section: Optional[str]
+            Name of the section where the option belongs to.
+        """
+        return super(BasePlugin, self)._remove_option(option, section=section)
 
     def starting_long_process(self, message):
         """
@@ -602,7 +622,7 @@ class Plugins:
 
 # --- Base API plugins
 # ----------------------------------------------------------------------------
-class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
+class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     """
     A Spyder plugin to extend functionality without a dockable widget.
 
@@ -677,14 +697,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     # Widget to be used as entry in Spyder Preferences dialog.
     CONF_WIDGET_CLASS = None
 
-    # Some widgets may use configuration options from other plugins.
-    # This variable helps translate CONF to options when the option comes
-    # from another plugin.
-    # Example:
-    # CONF_FROM_OPTIONS = {'widget_option': ('section', 'option'), ...}
-    # See:  spyder/plugins/console/plugin.py
-    CONF_FROM_OPTIONS = None
-
     # Some plugins may add configuration options for other plugins.
     # Example:
     # ADDITIONAL_CONF_OPTIONS = {'section': <new value to add>}
@@ -701,11 +713,14 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     # A Python package can include one or several Spyder plugins. In this case
     # the package may be using images from a global folder outside the plugin
     # folder
-    IMG_PATH = 'images'
+    IMG_PATH = None
 
     # Control the font size relative to the global fonts defined in Spyder
     FONT_SIZE_DELTA = 0
     RICH_FONT_SIZE_DELTA = 0
+
+    # Define context to store actions, toolbars, toolbuttons and menus.
+    CONTEXT_NAME = None
 
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
@@ -782,19 +797,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     This signal is automatically connected to the main container/widget.
     """
 
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is emitted when an option has been set on the main container
-    or the main widget.
-
-    Parameters
-    ----------
-    option: str
-        Option name.
-    value: object
-        New value of the changed option.
-    """
-
     # --- Private attributes -------------------------------------------------
     # ------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration
@@ -815,23 +817,20 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         self.is_registered = None
         self.main = parent
 
+        # Attribute used to access the action, toolbar, toolbutton and menu
+        # registries
+        self.PLUGIN_NAME = self.NAME
+
         if self.CONTAINER_CLASS is not None:
-            options = self.options_from_conf(
-                self.CONTAINER_CLASS.DEFAULT_OPTIONS)
             self._container = container = self.CONTAINER_CLASS(
                 name=self.NAME,
                 plugin=self,
-                parent=parent,
-                options=options,
+                parent=parent
             )
 
             if isinstance(container, SpyderWidgetMixin):
-                container.setup(options=options)
+                container.setup()
                 container.update_actions()
-
-                # Set options without emitting a signal
-                container.change_options(options=options)
-                container.sig_option_changed.connect(self.sig_option_changed)
 
             if isinstance(container, PluginMainContainer):
                 # Default signals to connect in main container or main widget.
@@ -848,8 +847,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
 
             self.after_container_creation()
 
-            # ---- Widget setup
-            container._setup(options=options)
+            if hasattr(container, '_setup'):
+                container._setup()
+
+        # Load the custom images of the plugin
+        if self.IMG_PATH:
+            plugin_path = osp.join(self.get_path(), self.IMG_PATH)
+            IMAGE_PATH_MANAGER.add_image_path(plugin_path)
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
@@ -875,7 +879,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
 
         # Signals
         # --------------------------------------------------------------------
-        self.sig_option_changed.connect(self.set_conf_option)
         self.is_registered = True
 
         self.update_font()
@@ -885,10 +888,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         Disconnect signals and clean up the plugin to be able to stop it while
         Spyder is running.
         """
-        try:
-            self.sig_option_changed.disconnect()
-        except TypeError:
-            pass
 
         if self._conf is not None:
             self._conf.unregister_plugin()
@@ -953,53 +952,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 'OPTIONAL requirements!'.format(plugin_name)
             )
 
-    def options_from_conf(self, options):
-        """
-        Get `options` values from the configuration system.
-
-        Returns
-        -------
-        Dictionary of {str: object}
-        """
-        conf_from_options = self.CONF_FROM_OPTIONS or {}
-        config_options = {}
-        if self._conf is not None:
-            # options could be a list, or a dictionary
-            for option in options:
-                if option in conf_from_options:
-                    section, new_option = conf_from_options[option]
-                else:
-                    section, new_option = (self.CONF_SECTION, option)
-
-                try:
-                    config_options[option] = self.get_conf_option(
-                        new_option,
-                        section=section,
-                    )
-                except (cp.NoSectionError, cp.NoOptionError):
-                    # TODO: Remove when migration is done, move to logger.
-                    # Needed to check how the options API needs to cover
-                    # options from all plugins
-                    print('\nspyder.api.plugins.options_from_conf\n'
-                          'Warning: option "{}" not found in section "{}" '
-                          'of configuration!'.format(option, self.NAME))
-
-                    # Currently when the preferences dialog is used, a set of
-                    # changed options is passed.
-
-                    # This method can get the values from the DEFAULT_OPTIONS
-                    # of the PluginMainWidget or the PluginMainContainer
-                    # subclass if `options`is a dictionary instead of a set
-                    # of options.
-                    if isinstance(options, (dict, OrderedDict)):
-                        try:
-                            config_options[option] = options[option]
-                        except Exception:
-                            pass
-
-        return config_options
-
-    def get_conf_option(self, option, default=NoDefault, section=None):
+    def get_conf(self, option, default=NoDefault, section=None):
         """
         Get an option from Spyder configuration system.
 
@@ -1030,7 +983,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
 
     @Slot(str, object)
     @Slot(str, object, str)
-    def set_conf_option(self, option, value, section=None):
+    def set_conf(self, option, value, section=None,
+                 recursive_notification=True):
         """
         Set an option in Spyder configuration system.
 
@@ -1043,6 +997,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             Python object.
         section: str
             Section in the configuration system, e.g. `shortcuts`.
+        recursive_notification: bool
+            If True, all objects that observe all changes on the
+            configuration section and objects that observe partial tuple paths
+            are notified. For example if the option `opt` of section `sec`
+            changes, then the observers for section `sec` are notified.
+            Likewise, if the option `(a, b, c)` changes, then observers for
+            `(a, b, c)`, `(a, b)` and a are notified as well.
         """
         if self._conf is not None:
             section = self.CONF_SECTION if section is None else section
@@ -1052,28 +1013,40 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                     'attribute!'
                 )
 
-            self._conf.set(section, str(option), value)
-            self.apply_conf({str(option)})
+            self._conf.set(section, option, value,
+                           recursive_notification=recursive_notification)
+            self.apply_conf({option}, False)
 
-    def apply_conf(self, options_set):
+    def remove_conf(self, option, section=None):
+        """
+        Delete an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            Name of the option, either a string or a tuple of strings.
+        section: str
+            Section in the configuration system.
+        """
+        if self._conf is not None:
+            section = self.CONF_SECTION if section is None else section
+            if section is None:
+                raise SpyderAPIError(
+                    'A spyder plugin must define a `CONF_SECTION` class '
+                    'attribute!'
+                )
+
+            self._conf.remove_option(section, option)
+            self.apply_conf({option}, False)
+
+    def apply_conf(self, options_set, notify=True):
         """
         Apply `options_set` to this plugin's widget.
         """
         if self._conf is not None and options_set:
             container = self.get_container()
-            # The container might not implement the SpyderWidgetMixin API
-            # for example a completion client that only implements the
-            # completion client interface without any options.
-            if isinstance(container, SpyderWidgetMixin):
-                options = self.options_from_conf(options_set)
-                new_options = self.options_from_keys(
-                    options,
-                    container.DEFAULT_OPTIONS,
-                )
-                # By using change_options we will not emit sig_option_changed
-                # when setting the options
-                # This will also cascade on all children
-                container.change_options(new_options)
+            if notify:
+                self.after_configuration_update(list(options_set))
 
     @Slot(str)
     @Slot(str, int)
@@ -1139,11 +1112,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             return get_color_scheme(self._conf.get('appearance', 'selected'))
 
     @staticmethod
-    def create_icon(name, path=None):
+    def create_icon(name):
         """
         Provide icons from the theme and icon manager.
         """
-        return ima.icon(name, icon_path=path)
+        return ima.icon(name)
 
     @classmethod
     def get_font(cls, rich_text=False):
@@ -1176,45 +1149,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             font_size_delta = cls.FONT_SIZE_DELTA
 
         return get_font(option=option, font_size_delta=font_size_delta)
-
-    def get_actions(self):
-        """
-        Return a dictionary of actions exposed by the plugin and child widgets.
-        It returns all actions defined by the Spyder plugin widget, wheter it
-        is a PluginMainWidget or PluginMainContainer subclass.
-
-        Notes
-        -----
-        1. Actions should be created once. Creating new actions on menu popup
-           is *highly* discouraged.
-        2. Actions can be created directly on a PluginMainWidget or
-           PluginMainContainer subclass. Child widgets can also create
-           actions, but they need to subclass SpyderWidgetMixin.
-        3. The PluginMainWidget or PluginMainContainer will collect any
-           actions defined in subwidgets (if defined) and expose them in
-           the get_actions method at the plugin level.
-        4. Any action created this way is now exposed as a possible shortcut
-           automatically without manual shortcut registration.
-           If an option is found in the config system then it is assigned,
-           otherwise it's left with an empty shortcut.
-        5. There is no need to override this method.
-        """
-        container = self.get_container()
-        actions = container.get_actions() if container is not None else {}
-        actions.update(super().get_actions())
-        return actions
-
-    def get_action(self, name):
-        """
-        Return action defined in any of the child widgets by name.
-        """
-        actions = self.get_actions()
-
-        if name in actions:
-            return actions[name]
-        else:
-            raise SpyderAPIError('Action "{0}" not found! Available '
-                                 'actions are: {1}'.format(name, actions))
 
     # --- API: Mandatory methods to define -----------------------------------
     # ------------------------------------------------------------------------
@@ -1357,6 +1291,20 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         pass
 
+    def after_configuration_update(self, options: List[Union[str, tuple]]):
+        """
+        Perform additional operations after updating the plugin configuration
+        values.
+
+        This can be implemented by plugins that do not have a container and
+        need to act on configuration updates.
+
+        Parameters
+        ----------
+        options: List[Union[str, tuple]]
+            A list that contains the options that were updated.
+        """
+        pass
 
 
 class SpyderDockablePlugin(SpyderPluginV2):
