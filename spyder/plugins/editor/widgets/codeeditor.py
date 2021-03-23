@@ -676,7 +676,7 @@ class CodeEditor(TextEditBaseWidget):
         # such as line stripping
         self.is_undoing = False
         self.is_redoing = False
-        
+
         # Diagnostics
         self.update_diagnostics = None
         self.restart_diagnostics = None
@@ -1303,11 +1303,12 @@ class CodeEditor(TextEditBaseWidget):
         if (
                 self.update_diagnostics is not None
                 and self.update_diagnostics.isRunning()):
-            self.restart_diagnostics = diagnostics
+            self.restart_diagnostics = None
+ = diagnostics
             return
-          
+
         self.restart_diagnostics = None
-        
+
         self.cleanup_code_analysis()
         self._diagnostics = diagnostics
 
