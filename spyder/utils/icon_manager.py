@@ -114,7 +114,7 @@ class IconManager():
             'format_letter_case':      [('mdi.format-letter-case',), {'color': self.COLOR_ICON_1}],
             'regex':                   [('mdi.regex',), {'color': self.COLOR_ICON_1}],
             'log':                     [('mdi.file-document',), {'color': self.COLOR_ICON_1}],
-            'configure':               [('mdi.wrench',), {'color': self.COLOR_ICON_1}],
+            'configure':               [('mdi.wrench',), {'color': self.COLOR_ICON_1, 'rotate': (270)}],
             'bold':                    [('mdi.format-bold',), {'color': self.COLOR_ICON_1}],
             'italic':                  [('mdi.format-italic',), {'color': self.COLOR_ICON_1}],
             'genprefs':                [('fa.cogs',), {'color': self.COLOR_ICON_1}],
