@@ -971,13 +971,10 @@ class MainWindow(QMainWindow):
         self.completions = CompletionPlugin(self, configuration=CONF)
         self.register_plugin(self.completions)
 
-        # Outline explorer widget
-        if CONF.get('outline_explorer', 'enable'):
-            self.set_splash(_("Loading outline explorer..."))
-            from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
-            self.outlineexplorer = OutlineExplorer(self)
-            self.outlineexplorer.register_plugin()
-            self.add_plugin(self.outlineexplorer)
+        # Outline explorer
+        from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
+        self.outlineexplorer = OutlineExplorer(self, configuration=CONF)
+        self.register_plugin(self.outlineexplorer)
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
