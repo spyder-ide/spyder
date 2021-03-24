@@ -1129,10 +1129,9 @@ class MainWindow(QMainWindow):
         # Project explorer widget
         self.set_splash(_("Loading project explorer..."))
         from spyder.plugins.projects.plugin import Projects
-        self.projects = Projects(self)
-        self.projects.register_plugin()
+        self.projects = Projects(self, configuration=CONF)
+        self.register_plugin(self.projects)
         self.project_path = self.projects.get_pythonpath(at_start=True)
-        self.add_plugin(self.projects)
 
         # Find in files
         if CONF.get('find_in_files', 'enable'):
