@@ -973,6 +973,8 @@ class OutlineExplorerWidget(PluginMainWidget):
         self.treewidget.sig_update_configuration.connect(
             self.sig_update_configuration)
 
+        self.treewidget.header().hide()
+
         layout = QHBoxLayout()
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
