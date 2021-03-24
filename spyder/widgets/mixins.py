@@ -21,7 +21,6 @@ import sys
 import textwrap
 
 # Third party imports
-import qdarkstyle
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
