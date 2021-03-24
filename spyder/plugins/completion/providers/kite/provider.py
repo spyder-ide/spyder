@@ -155,6 +155,12 @@ class KiteProvider(SpyderCompletionProvider):
         """Request status for the given file."""
         self.client.sig_perform_status_request.emit(filename)
 
+    @on_conf_change(
+        section='completions', option=('enabled_providers', 'kite'))
+    def on_kite_enable_changed(self, value):
+        self.sig_call_statusbar.emit(
+            KiteStatusWidget.ID, 'set_value', (None,), {})
+
     @on_conf_change(section='completions', option='enable_code_snippets')
     def on_code_snippets_changed(self, value):
         if running_under_pytest():
