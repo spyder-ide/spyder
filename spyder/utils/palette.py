@@ -4,18 +4,22 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+"""
+Palettes for dark and light themes used in Spyder.
+"""
+
+# Third-party imports
+from qdarkstyle.colorsystem import Blue, Gray
+from qdarkstyle.darkpalette import DarkPalette
+
 # Local imports
 from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
                                        GroupLight, Logos)
-from qdarkstyle.colorsystem import Blue, Gray
-from qdarkstyle.darkpalette import DarkPalette
 from spyder.config.gui import is_dark_interface
-
 
 class SpyderPaletteDark:
 
     # Colors for information and feedback in dialogs
-
     COLOR_SUCCESS_1 = Green.B40
     COLOR_SUCCESS_2 = Green.B70
     COLOR_SUCCESS_3 = Green.B110
@@ -29,7 +33,6 @@ class SpyderPaletteDark:
     COLOR_WARN_3 = Orange.B110
 
     # Icon colors
-
     ICON_1 = Gray.B140
     ICON_2 = Blue.B70
     ICON_3 = Green.B60
@@ -38,7 +41,6 @@ class SpyderPaletteDark:
     ICON_6 = Gray.B30
 
     # Colors for icons and variable explorer in dark mode
-
     GROUP_1 = GroupDark.B10
     GROUP_2 = GroupDark.B20
     GROUP_3 = GroupDark.B30
@@ -53,21 +55,18 @@ class SpyderPaletteDark:
     GROUP_12 = GroupDark.B120
 
     # Colors for highlight in editor
-
     COLOR_HIGHLIGHT_1 = Blue.B10
     COLOR_HIGHLIGHT_2 = Blue.B20
     COLOR_HIGHLIGHT_3 = Blue.B30
     COLOR_HIGHLIGHT_4 = Blue.B50
 
     # Colors for ocurrences from find widget
-
     COLOR_OCCURRENCE_1 = Gray.B10
     COLOR_OCCURRENCE_2 = Gray.B20
     COLOR_OCCURRENCE_3 = Gray.B30
     COLOR_OCCURRENCE_4 = Gray.B50
 
     # Colors for Spyder and Python logos
-
     PYTHON_LOGO_UP = Logos.B10
     PYTHON_LOGO_DOWN = Logos.B20
     SPYDER_LOGO_BACKGROUND = Logos.B30
@@ -78,7 +77,6 @@ class SpyderPaletteDark:
 class SpyderPaletteLight:
 
     # Colors for information and feedback in dialogs
-
     COLOR_SUCCESS_1 = Green.B40
     COLOR_SUCCESS_2 = Green.B70
     COLOR_SUCCESS_3 = Green.B110
@@ -92,7 +90,6 @@ class SpyderPaletteLight:
     COLOR_WARN_3 = Orange.B110
 
     # Icon colors
-
     ICON_1 = Gray.B30
     ICON_2 = Blue.B70
     ICON_3 = Green.B70
@@ -101,7 +98,6 @@ class SpyderPaletteLight:
     ICON_6 = Gray.B140
 
     # Colors for icons and variable explorer in light mode
-
     GROUP_1 = GroupLight.B10
     GROUP_2 = GroupLight.B20
     GROUP_3 = GroupLight.B30
@@ -116,21 +112,18 @@ class SpyderPaletteLight:
     GROUP_12 = GroupLight.B120
 
     # Colors for highlight in editor
-
     COLOR_HIGHLIGHT_1 = Blue.B140
     COLOR_HIGHLIGHT_2 = Blue.B130
     COLOR_HIGHLIGHT_3 = Blue.B120
     COLOR_HIGHLIGHT_4 = Blue.B110
 
     # Colors for ocurrences from find widget
-
     COLOR_OCCURRENCE_1 = Gray.B120
     COLOR_OCCURRENCE_2 = Gray.B110
     COLOR_OCCURRENCE_3 = Gray.B100
     COLOR_OCCURRENCE_4 = Gray.B90
 
     # Colors for Spyder and Python logos
-
     PYTHON_LOGO_UP = Logos.B10
     PYTHON_LOGO_DOWN = Logos.B20
     SPYDER_LOGO_BACKGROUND = Logos.B30

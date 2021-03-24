@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Extra colors used for the dark and light palettes in Spyder.
+Extra colors used for the dark and light themes in Spyder.
 """
 
 class Green:
@@ -109,7 +109,7 @@ class GroupLight:
 
 class Logos:
     """
-    Colors for the Python and Spyder logos
+    Colors for the Python and Spyder logos.
     """
 
     B10 = '#3775a9'
