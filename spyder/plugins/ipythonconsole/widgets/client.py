@@ -622,6 +622,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 sw.kernel_manager.autorestart = False
 
                 # Create and run restarting thread
+                if (self.restart_thread is not None
+                        and self.restart_thread.isRunning()):
+                    self.restart_thread.finished.disconnect()
+                    self.restart_thread.terminate()
+                    self.restart_thread.wait()
                 self.restart_thread = QThread()
                 self.restart_thread.run = self._restart_thread_main
                 self.restart_thread.error = None
