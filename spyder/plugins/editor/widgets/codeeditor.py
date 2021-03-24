@@ -299,7 +299,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Request symbols and folding after a timeout.
         # See: process_diagnostics
-        self.update_diagnostics = None
         self._timer_sync_symbols_and_folding = QTimer(self)
         self._timer_sync_symbols_and_folding.setSingleShot(True)
         self._timer_sync_symbols_and_folding.setInterval(
@@ -551,6 +550,10 @@ class CodeEditor(TextEditBaseWidget):
         # such as line stripping
         self.is_undoing = False
         self.is_redoing = False
+
+        # Diagnostics
+        self.update_diagnostics = None
+        self.restart_diagnostics = None
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -1173,14 +1176,17 @@ class CodeEditor(TextEditBaseWidget):
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
+        if (self.update_diagnostics is not None
+                and self.update_diagnostics.isRunning()):
+            self.restart_diagnostics = diagnostics
+            return
+
+        self.restart_diagnostics = None
+
         self.cleanup_code_analysis()
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
-        if (self.update_diagnostics is not None and
-                self.update_diagnostics.isRunning()):
-            self.update_diagnostics.wait(1000)
-
         self.update_diagnostics = QThread()
         self.update_diagnostics.run = self.set_errors
         self.update_diagnostics.finished.connect(self.finish_code_analysis)
@@ -1230,6 +1236,8 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
+        if self.restart_diagnostics is not None:
+            self.process_code_analysis(self.restart_diagnostics)
 
     def _process_code_analysis(self, underline):
         """
