@@ -1390,7 +1390,8 @@ class Editor(SpyderPluginWidget):
             self.set_last_focused_editorstack(self, editorstack)
             editorstack.set_closable(len(self.editorstacks) > 1)
             if self.outlineexplorer is not None:
-                editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
+                editorstack.set_outlineexplorer(
+                    self.outlineexplorer.get_widget())
             editorstack.set_find_widget(self.find_widget)
             editorstack.reset_statusbar.connect(self.readwrite_status.hide)
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
@@ -1644,7 +1645,7 @@ class Editor(SpyderPluginWidget):
             super(Editor, self).switch_to_plugin()
 
     def create_new_window(self):
-        oe_options = self.outlineexplorer.explorer.get_options()
+        oe_options = self.outlineexplorer.get_widget().get_options()
         window = EditorMainWindow(
             self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
             outline_explorer_options=oe_options)
