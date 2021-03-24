@@ -70,8 +70,9 @@ class ProjectDialog(QDialog):
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Variables
-        current_python_version = '.'.join([to_text_string(sys.version_info[0]),
-                                           to_text_string(sys.version_info[1])])
+        current_python_version = '.'.join(
+            [to_text_string(sys.version_info[0]),
+             to_text_string(sys.version_info[1])])
         python_versions = ['2.7', '3.4', '3.5']
         if current_python_version not in python_versions:
             python_versions.append(current_python_version)

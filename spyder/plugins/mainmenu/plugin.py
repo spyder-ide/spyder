@@ -221,8 +221,7 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Source: self._main.source_menu_actions,
             ApplicationMenus.Run: self._main.run_menu_actions,
             ApplicationMenus.Debug: self._main.debug_menu_actions,
-            ApplicationMenus.Consoles: self._main.consoles_menu_actions,
-            ApplicationMenus.Projects: self._main.projects_menu_actions,
+            ApplicationMenus.Consoles: self._main.consoles_menu_actions
         }
 
         menu_id = menu_id if menu_id else menu.menu_id

@@ -83,8 +83,7 @@ class Projects(SpyderDockablePlugin):
     TABIFY = Plugins.Help
     REQUIRES = []
     OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
-                Plugins.OutlineExplorer, Plugins.WorkingDirectory,
-                Plugins.MainMenu]
+                Plugins.OutlineExplorer, Plugins.MainMenu]
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals
@@ -161,7 +160,6 @@ class Projects(SpyderDockablePlugin):
         self.completions = self.get_plugin(Plugins.Completions)
         self.editor = self.get_plugin(Plugins.Editor)
         outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
-        self.working_directory = self.get_plugin(Plugins.WorkingDirectory)
         treewidget = widget.treewidget
 
         treewidget.sig_delete_project.connect(self.delete_project)
@@ -203,14 +201,6 @@ class Projects(SpyderDockablePlugin):
         # New project connections
         # Order matters!
         # ---------------------------------------------------------------------
-        if self.working_directory:
-            self.sig_project_loaded.connect(
-                lambda path:
-                self.workingdirectory.chdir(
-                    directory=path,
-                    sender_plugin=self
-                )
-            )
         if self.main:
             self.sig_project_loaded.connect(
                 lambda v: self.main.set_window_title())
@@ -226,13 +216,6 @@ class Projects(SpyderDockablePlugin):
         if outline_explorer:
             self.sig_project_loaded.connect(
                 lambda v: outline_explorer.update_all_editors())
-        if self.working_directory:
-            self.sig_project_closed[object].connect(
-                lambda path: self.working_directory.chdir(
-                    directory=self.get_last_working_dir(),
-                    sender_plugin=self
-                )
-            )
         if self.main:
             self.sig_project_closed.connect(
                 lambda v: self.main.set_window_title())
