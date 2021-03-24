@@ -1,0 +1,41 @@
+*.pyc
+*.orig
+
+dist/
+build/
+
+*.egg-info/
+__pycache__
+.coverage
+
+*.tar
+*.tar.*
+*.log
+*.log.*
+*.sig
+
+pkg/
+src/
+
+# stdeb files
+*.tar.gz
+deb_dist
+/gpg_key
+
+# gedit temp files
+*~
+
+# hackedit project files
+.hackedit
+
+# vs code project files
+.vscode
+.mypy_cache
+.cache
+.env
+./.idea
+/.idea/
+.tox
+
+# OSX files
+.DS_Store
