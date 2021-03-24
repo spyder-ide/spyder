@@ -3902,13 +3902,13 @@ def test_outline_no_init(main_window, qtbot):
 
     # Show outline explorer
     outline_explorer = main_window.outlineexplorer
-    outline_explorer._toggle_view_action.setChecked(True)
+    outline_explorer.toggle_view_action.setChecked(True)
 
     # Wait a bit for trees to be filled
     qtbot.wait(5000)
 
     # Get tree length
-    treewidget = outline_explorer.explorer.treewidget
+    treewidget = outline_explorer.get_widget().treewidget
     editor_id = list(treewidget.editor_ids.values())[1]
 
     # Assert symbols in the file are detected and shown
