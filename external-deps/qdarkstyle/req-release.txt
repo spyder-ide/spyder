@@ -1,0 +1,10 @@
+# See tox.ini file to know how to use them via command line
+
+# Main packages to make sure they are there
+setuptools
+pip
+wheel
+virtualenv
+
+# To release
+twine>=1.13
