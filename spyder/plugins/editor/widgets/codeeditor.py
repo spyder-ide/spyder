@@ -1300,8 +1300,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
-        if (
-                self.update_diagnostics is not None
+        if (self.update_diagnostics is not None
                 and self.update_diagnostics.isRunning()):
             self.restart_diagnostics = diagnostics
             return
