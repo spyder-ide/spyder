@@ -66,14 +66,17 @@ class OutlineExplorer(SpyderDockablePlugin):
     @Slot(dict, str)
     def start_symbol_services(self, capabilities, language):
         """Enable LSP symbols functionality."""
+        explorer = self.get_widget()
         symbol_provider = capabilities.get('documentSymbolProvider', False)
         if symbol_provider:
-            self.explorer.start_symbol_services(language)
+            explorer.start_symbol_services(language)
 
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
-        self.explorer.stop_symbol_services(language)
+        explorer = self.get_widget()
+        explorer.stop_symbol_services(language)
 
     def update_all_editors(self):
         """Update all editors with an associated LSP server."""
-        self.explorer.update_all_editors()
+        explorer = self.get_widget()
+        explorer.update_all_editors()
