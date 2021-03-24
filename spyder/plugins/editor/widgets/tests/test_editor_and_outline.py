@@ -421,7 +421,7 @@ def test_empty_file(qtbot, completions_codeeditor_outline):
     qtbot.wait(3000)
 
     # Assert the spinner is not shown.
-    assert not outlineexplorer.loading_widget.isSpinning()
+    assert not outlineexplorer._spinner.isSpinning()
 
     # Add some content
     code_editor.set_text("""
@@ -447,7 +447,7 @@ def foo():
     # Assert the tree is empty and the spinner is not shown.
     root_tree = get_tree_elements(treewidget)
     assert root_tree == {'test.py': []}
-    assert not outlineexplorer.loading_widget.isSpinning()
+    assert not outlineexplorer._spinner.isSpinning()
 
 
 if __name__ == "__main__":
