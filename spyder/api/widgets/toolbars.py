@@ -229,12 +229,18 @@ class MainWidgetToolbar(SpyderToolbar):
                 border-color: transparent;
                 background-color: transparent;
             }
+            QToolBar QToolButton:pressed {
+                margin: 0px;
+            }
             QToolBar {
                 border: 0px;
-                background: rgb(25, 35, 45);
+                background: '#19232D';
+                border-botom: '#19232D';
                 spacing: 0.3em;
+                padding: 0px;
             }
             QToolButton {
+                border: 0px;
                 height: 1.7em;
                 width: 1.7em;
             }
