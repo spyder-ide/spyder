@@ -57,13 +57,10 @@ class KiteCallToAction(QFrame):
         actions.setLayout(actions_layout)
 
         self._install_button = QPushButton(_("Install Kite"))
-        self._learn_button = QPushButton(_("Learn More"))
         self._dismiss_button = QPushButton(_("Dismiss Forever"))
         self._install_button.clicked.connect(self._install_kite)
-        self._learn_button.clicked.connect(self._learn_more)
         self._dismiss_button.clicked.connect(self._dismiss_forever)
         actions_layout.addWidget(self._install_button)
-        actions_layout.addWidget(self._learn_button)
         actions_layout.addWidget(self._dismiss_button)
 
         # main layout: message + horizontally aligned links
@@ -132,16 +129,8 @@ class KiteCallToAction(QFrame):
         self._enabled = False
         CONF.set('completions', 'kite_call_to_action', False)
 
-    def _learn_more(self):
-        self.hide()
-        self._enabled = False
-        kite = self.parent().completions.get_client('kite')
-        kite.installer.welcome()
-        kite.installer.show()
-
     def _install_kite(self):
         self.hide()
         self._enabled = False
-        kite = self.parent().completions.get_client('kite')
-        kite.installer.install()
-        kite.installer.show()
+        kite = self.parent().completions.get_provider('kite')
+        kite.show_kite_installation()
