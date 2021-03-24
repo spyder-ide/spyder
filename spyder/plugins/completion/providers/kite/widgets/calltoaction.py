@@ -91,7 +91,7 @@ class KiteCallToAction(QFrame):
         self.hide()
 
     def handle_processed_completions(self, completions):
-        if not self._enabled:
+        if not CONF.get('completions', 'kite_call_to_action'):
             return
         if self._escaped:
             return

@@ -195,8 +195,9 @@ class KiteProvider(SpyderCompletionProvider):
             # retry
             self._show_onboarding = True
             return
-        self.set_conf('show_onboarding', False)
+        print(onboarding_file)
         self.sig_open_file.emit(onboarding_file)
+        self.set_conf('show_onboarding', False)
 
     @Slot(str, object)
     def _wrong_response_error(self, method, resp):
