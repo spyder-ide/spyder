@@ -10,6 +10,7 @@ from qtpy.QtWidgets import (QLabel, QVBoxLayout, QFrame,
 
 from spyder.config.base import _
 from spyder.config.manager import CONF
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.plugins.completion.providers.kite.bloomfilter import (
     KiteBloomFilter)
 from spyder.plugins.completion.providers.kite.parsing import (
@@ -27,7 +28,9 @@ COVERAGE_MESSAGE = (
 )
 
 
-class KiteCallToAction(QFrame):
+class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
+    CONF_SECTION = 'completions'
+
     def __init__(self, textedit, ancestor):
         super(KiteCallToAction, self).__init__(ancestor)
         self.textedit = textedit
@@ -73,7 +76,7 @@ class KiteCallToAction(QFrame):
         main_layout.addWidget(actions)
         main_layout.addStretch()
 
-        self._enabled = CONF.get('completions', 'kite_call_to_action')
+        self._enabled = self.get_conf('kite_call_to_action')
         self._escaped = False
         self.hide()
 
@@ -91,7 +94,7 @@ class KiteCallToAction(QFrame):
         self.hide()
 
     def handle_processed_completions(self, completions):
-        if not CONF.get('completions', 'kite_call_to_action'):
+        if not self.get_conf('kite_call_to_action'):
             return
         if self._escaped:
             return
@@ -127,7 +130,7 @@ class KiteCallToAction(QFrame):
     def _dismiss_forever(self):
         self.hide()
         self._enabled = False
-        CONF.set('completions', 'kite_call_to_action', False)
+        self.set_conf('kite_call_to_action', False)
 
     def _install_kite(self):
         self.hide()
