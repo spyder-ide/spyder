@@ -8,9 +8,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QLabel, QVBoxLayout, QFrame,
                             QHBoxLayout, QPushButton)
 
-from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.config.base import _
 from spyder.plugins.completion.providers.kite.bloomfilter import (
     KiteBloomFilter)
 from spyder.plugins.completion.providers.kite.parsing import (
@@ -21,6 +20,7 @@ from spyder.plugins.completion.providers.fallback.actor import (
     FALLBACK_COMPLETION)
 from spyder.utils.icon_manager import is_dark_interface
 from spyder.utils.palette import QStylePalette
+
 
 COVERAGE_MESSAGE = (
     _("No completions found."
