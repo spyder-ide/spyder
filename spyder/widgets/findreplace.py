@@ -43,10 +43,10 @@ def is_position_inf(pos1, pos2):
 
 class FindReplace(QWidget):
     """Find widget"""
-    STYLE = {False: "background-color:rgb(255, 175, 90);",
+    STYLE = {False: "background-color:'#F37E12';",
              True: "",
              None: "",
-             'regexp_error': "background-color:rgb(255, 80, 80);",
+             'regexp_error': "background-color:'#E74C3C';",
              }
     TOOLTIP = {False: _("No matches"),
                True: _("Search string"),
