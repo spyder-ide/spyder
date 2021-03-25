@@ -328,78 +328,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
-    def setup_actions_menus(self):
-        """
-        Setup actions and menus.
-
-        This method cannot be invoked as part of `setup()`, since it depends
-        on the options menu of the plugin container, which is not available
-        at the time `setup()` is invoked.
-        """
-        fromcursor_act = self.create_action(
-            OutlineExplorerActions.GoToCursor,
-            text=_('Go to cursor position'),
-            icon=ima.icon('fromcursor'),
-            triggered=self.go_to_cursor_position)
-
-        fullpath_act = self.create_action(
-            OutlineExplorerActions.ShowFullPath,
-            text=_('Show absolute path'),
-            toggled=True,
-            option='show_fullpath')
-
-        allfiles_act = self.create_action(
-            OutlineExplorerActions.ShowAllFiles,
-            text=_('Show all files'),
-            toggled=True,
-            option='show_all_files')
-
-        comment_act = self.create_action(
-            OutlineExplorerActions.ShowSpecialComments,
-            text=_('Show special comments'),
-            toggled=True,
-            option='show_comments')
-
-        group_cells_act = self.create_action(
-            OutlineExplorerActions.GroupCodeCells,
-            text=_('Group code cells'),
-            toggled=True,
-            option='group_cells')
-
-        display_variables_act = self.create_action(
-            OutlineExplorerActions.DisplayVariables,
-            text=_('Display variables and attributes'),
-            toggled=True,
-            option='display_variables'
-        )
-
-        follow_cursor_act = self.create_action(
-            OutlineExplorerActions.FollowCursor,
-            text=_('Follow cursor position'),
-            toggled=True,
-            option='follow_cursor'
-        )
-
-        sort_files_alphabetically_act = self.create_action(
-            OutlineExplorerActions.SortFiles,
-            text=_('Sort files alphabetically'),
-            toggled=True,
-            option='sort_files_alphabetically'
-        )
-
-        actions = [fullpath_act, allfiles_act, group_cells_act,
-                   display_variables_act, follow_cursor_act, comment_act,
-                   sort_files_alphabetically_act, fromcursor_act]
-
-        option_menu = self.get_menu(PluginMainWidgetMenus.Options)
-        for action in actions:
-            self.add_item_to_menu(
-                action,
-                option_menu,
-                section=OutlineExplorerSections.DisplayOptions,
-                # before=OptionsMenuSections.Bottom
-            )
-
     @property
     def current_editor(self):
         """Get current editor."""
@@ -994,7 +922,8 @@ class OutlineExplorerWidget(PluginMainWidget):
         # Toolbar buttons
         toolbar = self.get_main_toolbar()
         fromcursor_btn = self.create_toolbutton(
-            OutlineExplorerToolbuttons.GoToCursor, icon=ima.icon('fromcursor'),
+            OutlineExplorerToolbuttons.GoToCursor,
+            icon=self.create_icon('fromcursor'),
             tip=_('Go to cursor position'),
             triggered=self.treewidget.go_to_cursor_position)
 
@@ -1007,7 +936,69 @@ class OutlineExplorerWidget(PluginMainWidget):
             self.add_item_to_toolbar(item, toolbar=toolbar,
                                      section=OutlineExplorerSections.Main)
 
-        self.treewidget.setup_actions_menus()
+        # Actions
+        fromcursor_act = self.create_action(
+            OutlineExplorerActions.GoToCursor,
+            text=_('Go to cursor position'),
+            icon=self.create_icon('fromcursor'),
+            triggered=self.treewidget.go_to_cursor_position)
+
+        fullpath_act = self.create_action(
+            OutlineExplorerActions.ShowFullPath,
+            text=_('Show absolute path'),
+            toggled=True,
+            option='show_fullpath')
+
+        allfiles_act = self.create_action(
+            OutlineExplorerActions.ShowAllFiles,
+            text=_('Show all files'),
+            toggled=True,
+            option='show_all_files')
+
+        comment_act = self.create_action(
+            OutlineExplorerActions.ShowSpecialComments,
+            text=_('Show special comments'),
+            toggled=True,
+            option='show_comments')
+
+        group_cells_act = self.create_action(
+            OutlineExplorerActions.GroupCodeCells,
+            text=_('Group code cells'),
+            toggled=True,
+            option='group_cells')
+
+        display_variables_act = self.create_action(
+            OutlineExplorerActions.DisplayVariables,
+            text=_('Display variables and attributes'),
+            toggled=True,
+            option='display_variables'
+        )
+
+        follow_cursor_act = self.create_action(
+            OutlineExplorerActions.FollowCursor,
+            text=_('Follow cursor position'),
+            toggled=True,
+            option='follow_cursor'
+        )
+
+        sort_files_alphabetically_act = self.create_action(
+            OutlineExplorerActions.SortFiles,
+            text=_('Sort files alphabetically'),
+            toggled=True,
+            option='sort_files_alphabetically'
+        )
+
+        actions = [fullpath_act, allfiles_act, group_cells_act,
+                   display_variables_act, follow_cursor_act, comment_act,
+                   sort_files_alphabetically_act, fromcursor_act]
+
+        option_menu = self.get_options_menu()
+        for action in actions:
+            self.add_item_to_menu(
+                action,
+                option_menu,
+                section=OutlineExplorerSections.DisplayOptions,
+            )
 
     def update_actions(self):
         pass
@@ -1023,24 +1014,6 @@ class OutlineExplorerWidget(PluginMainWidget):
 
     def register_editor(self, editor):
         self.treewidget.register_editor(editor)
-
-    # def get_options(self):
-    #     """
-    #     Return outline explorer options
-    #     """
-    #     return dict(
-    #         show_fullpath=self.treewidget.show_fullpath,
-    #         show_all_files=self.treewidget.show_all_files,
-    #         group_cells=self.treewidget.group_cells,
-    #         display_variables=self.treewidget.display_variables,
-    #         follow_cursor=self.treewidget.follow_cursor,
-    #         show_comments=self.treewidget.show_comments,
-    #         sort_files_alphabetically=(
-    #             self.treewidget.sort_files_alphabetically),
-    #         expanded_state=self.treewidget.get_expanded_state(),
-    #         scrollbar_position=self.treewidget.get_scrollbar_position(),
-    #         visibility=self.isVisible(),
-    #     )
 
     def file_renamed(self, editor, new_filename):
         self.treewidget.file_renamed(editor, new_filename)
