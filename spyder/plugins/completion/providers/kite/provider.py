@@ -234,4 +234,5 @@ class KiteProvider(SpyderCompletionProvider):
             self.add_item_to_application_menu(
                 install_kite_action,
                 menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools)
+                section=ToolsMenuSections.External,
+                before_section=ToolsMenuSections.Extras)
