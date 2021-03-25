@@ -1132,17 +1132,18 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select notebook in the project explorer
-    idx = projects.explorer.treewidget.get_index('notebook.ipynb')
-    projects.explorer.treewidget.setCurrentIndex(idx)
+    idx = projects.get_widget().treewidget.get_index('notebook.ipynb')
+    projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Prese Enter there
-    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
 
     # Convert notebook to a Python file
-    projects.explorer.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
+    projects.get_widget().treewidget.convert_notebook(
+        osp.join(project_dir, 'notebook.ipynb'))
 
     # Assert notebook was open
     assert 'untitled' in editorstack.get_current_filename()
@@ -1179,17 +1180,17 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select file in the project explorer
-    idx = projects.explorer.treewidget.get_index('script.py')
-    projects.explorer.treewidget.setCurrentIndex(idx)
+    idx = projects.get_widget().treewidget.get_index('script.py')
+    projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Press Enter there
-    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     # Assert that the file was open
     assert 'script.py' in editorstack.get_current_filename()
 
     # Run Python file
-    projects.explorer.treewidget.run([osp.join(project_dir, 'script.py')])
+    projects.get_widget().treewidget.run([osp.join(project_dir, 'script.py')])
 
     # Wait until the new console is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
