@@ -38,7 +38,7 @@ from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.projects.api import (BaseProjectType, EmptyProject,
                                          WORKSPACE)
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
+from spyder.plugins.projects.widgets.main_widget import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, FileChangeType, WorkspaceUpdateKind)
@@ -52,7 +52,7 @@ _ = get_translation("spyder")
 class ProjectsApplicationMenu:
     New = 'new_section'
     Secundary = 'secundary_section'
-    RecentProjects = 'recent_projects'
+    RecentProjects = 'recent_projects_section'
 
 
 class RecentProjectMenu:
@@ -130,7 +130,7 @@ class Projects(SpyderDockablePlugin):
     def __init__(self, parent=None, configuration=None):
         """Initialization."""
         super().__init__(parent, configuration)
-        self.recent_projects = self.get_conf('recent_projects', default=[])
+        self.recent_projects = self.get_conf('recent_projects', [])
         self.current_active_project = None
         self.latest_project = None
         self.watcher = WorkspaceWatcher(self)
@@ -514,10 +514,10 @@ class Projects(SpyderDockablePlugin):
             self.sig_project_closed.emit(path)
             self.sig_pythonpath_changed.emit()
 
-            if self.dockwidget is not None:
+            if self.get_widget() is not None:
                 self.set_conf('visible_if_project_open',
-                              self.dockwidget.isVisible())
-                self.dockwidget.close()
+                              self.get_widget().isVisible())
+                self.get_widget().close()
 
             self.get_widget().clear()
             self.restart_consoles()
@@ -638,11 +638,11 @@ class Projects(SpyderDockablePlugin):
         self.set_conf('recent_projects', self.recent_projects)
         self.set_conf('expanded_state',
                       self.get_widget().treewidget.get_expanded_state())
-        self.set_cinf('scrollbar_position',
+        self.set_conf('scrollbar_position',
                       self.get_widget().treewidget.get_scrollbar_position())
-        if self.current_active_project and self.dockwidget:
+        if self.current_active_project and self.get_widget():
             self.set_conf('visible_if_project_open',
-                          self.dockwidget.isVisible())
+                          self.get_widget().isVisible())
 
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
@@ -667,11 +667,11 @@ class Projects(SpyderDockablePlugin):
 
     def show_explorer(self):
         """Show the explorer"""
-        if self.dockwidget is not None:
-            if self.dockwidget.isHidden():
-                self.dockwidget.show()
-            self.dockwidget.raise_()
-            self.dockwidget.update()
+        if self.get_widget() is not None:
+            if self.get_widget().isHidden():
+                self.get_widget().show()
+            self.get_widget().raise_()
+            self.get_widget().update()
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
