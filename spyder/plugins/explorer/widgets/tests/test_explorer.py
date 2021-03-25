@@ -20,9 +20,9 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QInputDialog, QMessageBox, QTextEdit)
 
 # Local imports
-from spyder.plugins.explorer.widgets.main_widget import (
-    FileExplorerTest, ProjectExplorerTest)
-from spyder.plugins.projects.widgets.explorer import (
+from spyder.plugins.explorer.widgets.main_widget import FileExplorerTest
+from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
+from spyder.plugins.projects.widgets.main_widget import (
     ProjectExplorerTest as ProjectExplorerTest2)
 
 

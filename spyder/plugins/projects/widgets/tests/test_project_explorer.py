@@ -15,7 +15,7 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest
+from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
 from spyder.py3compat import to_text_string
 
 
