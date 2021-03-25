@@ -842,7 +842,6 @@ class MainWindow(QMainWindow):
             plugin_name = plugin_class.NAME
             # Non-migrated plugins
             if plugin_name in [
-                    Plugins.OutlineExplorer,
                     Plugins.Editor,
                     Plugins.IPythonConsole,
                     Plugins.Projects]:
