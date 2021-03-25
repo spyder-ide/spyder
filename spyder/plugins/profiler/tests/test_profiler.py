@@ -22,6 +22,11 @@ import mock
 
 # Local imports
 from spyder.plugins.profiler.widgets.main_widget import ProfilerDataTree
+from spyder.utils.palette import SpyderPalette
+
+
+ERROR = SpyderPalette.COLOR_ERROR_1
+SUCESS = SpyderPalette.COLOR_SUCCESS_1
 
 
 # --- Fixtures
@@ -69,8 +74,8 @@ def test_color_string(profiler_datatree_bot):
     tree.compare_file = 'test'
     assert cs([5.0]) == ['5.00 s', ['', 'black']]
     assert cs([1.251e-5, 1.251e-5]) == [u'12.51 \u03BCs', ['', 'black']]
-    assert cs([5.0, 4.0]) == ['5.00 s', ['+1000.00 ms', 'red']]
-    assert cs([4.0, 5.0]) == ['4.00 s', ['-1000.00 ms', 'green']]
+    assert cs([5.0, 4.0]) == ['5.00 s', ['+1000.00 ms', ERROR]]
+    assert cs([4.0, 5.0]) == ['4.00 s', ['-1000.00 ms', SUCESS]]
 
     tree.compare_file = None
     assert cs([4.0, 5.0]) == ['4.00 s', ['', 'black']]
@@ -95,11 +100,11 @@ def test_format_output(profiler_datatree_bot):
 
     tree.compare_file = 'test'
     assert list((fo('key1'))) == [['1000', ['', 'black']],
-                                  ['3.50 s', ['-200.00 ms', 'green']],
-                                  ['1.50 s', ['+200.00 ms', 'red']]]
-    assert list((fo('key2'))) == [['1200', ['+1', 'red']],
-                                  ['2.00 s', ['-400.00 ms', 'green']],
-                                  ['2.00 s', ['-400.00 ms', 'green']]]
+                                  ['3.50 s', ['-200.00 ms', SUCESS]],
+                                  ['1.50 s', ['+200.00 ms', ERROR]]]
+    assert list((fo('key2'))) == [['1200', ['+1', ERROR]],
+                                  ['2.00 s', ['-400.00 ms', SUCESS]],
+                                  ['2.00 s', ['-400.00 ms', SUCESS]]]
 
 
 if __name__ == "__main__":

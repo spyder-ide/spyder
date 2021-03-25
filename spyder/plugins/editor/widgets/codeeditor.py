@@ -79,6 +79,7 @@ from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
+from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
@@ -384,12 +385,12 @@ class CodeEditor(TextEditBaseWidget):
         self.setVerticalScrollBar(QScrollBar())
 
         # Highlights and flag colors
-        self.warning_color = "#FFAD07"
-        self.error_color = "#EA2B0E"
-        self.todo_color = "#B4D4F3"
-        self.breakpoint_color = "#30E62E"
-        self.occurrence_color = QColor(Qt.yellow).lighter(160)
-        self.found_results_color = QColor(Qt.magenta).lighter(180)
+        self.warning_color = SpyderPalette.COLOR_WARN_2
+        self.error_color = SpyderPalette.COLOR_ERROR_1
+        self.todo_color = SpyderPalette.ICON_2
+        self.breakpoint_color = SpyderPalette.ICON_3
+        self.occurrence_color = QColor(SpyderPalette.GROUP_2).lighter(160)
+        self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
         # Scrollbar flag area
         self.scrollflagarea = self.panels.register(ScrollFlagArea(),
@@ -2898,7 +2899,7 @@ class CodeEditor(TextEditBaseWidget):
             self.show_tooltip(
                 title=_("Code analysis"),
                 text='\n'.join(msglist),
-                title_color='#129625',
+                title_color=QStylePalette.COLOR_ACCENT_4,
                 at_line=line_number,
                 with_html_format=True
             )
@@ -3027,7 +3028,7 @@ class CodeEditor(TextEditBaseWidget):
         self.show_tooltip(
             title=_("To do"),
             text=data.todo,
-            title_color='#3096FC',
+            title_color=QStylePalette.COLOR_ACCENT_4,
             at_line=line_number,
         )
 
@@ -4644,7 +4645,7 @@ class CodeEditor(TextEditBaseWidget):
             if key in ['file']:
                 fname = self._preprocess_file_uri(pattern_text)
                 if not osp.isfile(fname):
-                    color = QColor(255, 80, 80)
+                    color = QColor(SpyderPalette.COLOR_ERROR_2)
 
             self.clear_extra_selections('ctrl_click')
             self.highlight_selection(

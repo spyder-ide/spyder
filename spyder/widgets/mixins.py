@@ -21,7 +21,6 @@ import sys
 import textwrap
 
 # Third party imports
-import qdarkstyle
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
@@ -36,6 +35,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 QT55_VERSION = programs.check_version(QT_VERSION, "5.5", ">=")
@@ -48,10 +48,10 @@ else:
 
 class BaseEditMixin(object):
 
-    _PARAMETER_HIGHLIGHT_COLOR = '#DAA520'
-    _DEFAULT_TITLE_COLOR = '#2D62FF'
-    _CHAR_HIGHLIGHT_COLOR = 'red'
-    _DEFAULT_TEXT_COLOR = '#999999'
+    _PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
+    _DEFAULT_TITLE_COLOR = QStylePalette.COLOR_ACCENT_4
+    _CHAR_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
+    _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
@@ -134,21 +134,16 @@ class BaseEditMixin(object):
         if id(widget) in self._styled_widgets:
             return
         self._styled_widgets.add(id(widget))
-
-        if is_dark_interface():
-            css = qdarkstyle.load_stylesheet(qt_api='')
-            widget.setStyleSheet(css)
-            palette = widget.palette()
-            background = palette.color(palette.Window).lighter(150).name()
-            border = palette.color(palette.Window).lighter(200).name()
-            name = widget.__class__.__name__
-            widget.setObjectName(name)
-            extra_css = '''
-                {0}#{0} {{
-                    background-color:{1};
-                    border: 1px solid {2};
-                }}'''.format(name, background, border)
-            widget.setStyleSheet(css + extra_css)
+        background = QStylePalette.COLOR_BACKGROUND_4
+        border = QStylePalette.COLOR_TEXT_4
+        name = widget.__class__.__name__
+        widget.setObjectName(name)
+        css = '''
+            {0}#{0} {{
+                background-color:{1};
+                border: 1px solid {2};
+            }}'''.format(name, background, border)
+        widget.setStyleSheet(css)
 
     def _get_inspect_shortcut(self):
         """
@@ -299,7 +294,8 @@ class BaseEditMixin(object):
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
                     base_style = (
-                        'background-color:#fafbfc;color:#444d56;'
+                        f'background-color:{QStylePalette.COLOR_BACKGROUND_4};'
+                        f'color:{QStylePalette.COLOR_TEXT_1};'
                         'font-size:11px;'
                     )
                     help_text = ''
@@ -316,7 +312,8 @@ class BaseEditMixin(object):
                 template += (
                     '<hr>'
                     '<div align="left">'
-                    '<span style="color:#148CD2;text-decoration:none;'
+                    f'<span style="color: {QStylePalette.COLOR_ACCENT_4};'
+                    'text-decoration:none;'
                     'font-family:"{font_family}";font-size:{size}pt;><i>'
                     ''.format(font_family=font_family,
                               size=text_size)

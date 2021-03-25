@@ -37,6 +37,7 @@ from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
@@ -50,19 +51,16 @@ _ = get_translation("spyder")
 PYLINT_VER = pylint.__version__
 MIN_HISTORY_ENTRIES = 5
 MAX_HISTORY_ENTRIES = 100
-DANGER_COLOR = "#FF0000"
-WARNING_COLOR = "#EE5500"
-SUCCESS_COLOR = "#22AA22"
+DANGER_COLOR = SpyderPalette.COLOR_ERROR_1
+WARNING_COLOR = SpyderPalette.COLOR_WARN_1
+SUCCESS_COLOR = SpyderPalette.COLOR_SUCCESS_1
 
 
 # TODO: There should be some palette from the appearance plugin so this
 # is easier to use
-if is_dark_interface():
-    MAIN_TEXT_COLOR = "white"
-    MAIN_PREVRATE_COLOR = "white"
-else:
-    MAIN_TEXT_COLOR = "#444444"
-    MAIN_PREVRATE_COLOR = "#666666"
+MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
+MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
+
 
 
 class PylintWidgetActions:

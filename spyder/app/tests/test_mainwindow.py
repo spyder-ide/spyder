@@ -3489,6 +3489,8 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     """
     Test that the variable explorer is cleared after a kernel restart.
@@ -3645,6 +3647,8 @@ hello()
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a

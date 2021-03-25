@@ -98,6 +98,7 @@ from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
+from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (create_action, add_actions,
                                     create_program_action, DialogManager,
@@ -691,8 +692,9 @@ class MainWindow(QMainWindow):
                            "by Spyder. Please, try to run as an Administrator "
                            "from cmd.exe the following command and then "
                            "restart your computer: <br><br><span "
-                           "style=\'color: #555555\'><b>netsh winsock reset"
-                           "</b></span><br>"))
+                           "style=\'color: {color}\'><b>netsh winsock reset "
+                           "</b></span><br>").format(
+                               color=QStylePalette.COLOR_BACKGROUND_4))
         else:
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
@@ -767,7 +769,7 @@ class MainWindow(QMainWindow):
                 # Set style proxy to fix combobox popup on mac and qdark
                 qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
-            dark_qss = qdarkstyle.load_stylesheet_from_environment()
+            dark_qss = qdarkstyle.load_stylesheet()
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
@@ -777,7 +779,7 @@ class MainWindow(QMainWindow):
                     # Set style proxy to fix combobox popup on mac and qdark
                     qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
-                dark_qss = qdarkstyle.load_stylesheet_from_environment()
+                dark_qss = qdarkstyle.load_stylesheet()
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH

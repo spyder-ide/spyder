@@ -79,7 +79,7 @@ COLOR_SCHEME_DEFAULT_VALUES = {
     "background":  "#19232D",
     "currentline": "#3a424a",
     "currentcell": "#292d3e",
-    "occurrence":  "#4734b3",
+    "occurrence":  "#1A72BB",
     "ctrlclick":   "#179ae0",
     "sideareas":   "#222b35",
     "matched_p":   "#0bbe0b",

@@ -67,35 +67,35 @@ def test_format_signature(code_editor_bot):
 
     format_signature = editor._format_signature(signature, parameter="(a1")
 
-    assert "color:#DAA520'><b>a1</b></span>" in format_signature
+    assert "color:#259AE9'><b>a1</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="a2")
-    assert "color:#DAA520'><b>a2</b></span>" in format_signature
+    assert "color:#259AE9'><b>a2</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="a...")
     print(format_signature)
-    assert "color:#DAA520'><b>a...</b></span>" in format_signature
+    assert "color:#259AE9'><b>a...</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="[b1")
-    assert "color:#DAA520'><b>b1</b></span>" in format_signature
+    assert "color:#259AE9'><b>b1</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="b2")
-    assert "color:#DAA520'><b>b2</b></span>" in format_signature
+    assert "color:#259AE9'><b>b2</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="b...")
-    assert "color:#DAA520'><b>b...</b></span>" in format_signature
+    assert "color:#259AE9'><b>b...</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="axis")
-    assert "color:#DAA520'><b>axis</b></span>" in format_signature
+    assert "color:#259AE9'><b>axis</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="index")
-    assert "color:#DAA520'><b>index</b></span>" in format_signature
+    assert "color:#259AE9'><b>index</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="*args")
-    assert "color:#DAA520'><b>*args</b></span>" in format_signature
+    assert "color:#259AE9'><b>*args</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="**kargs")
-    assert "color:#DAA520'><b>**kargs</b></span>" in format_signature
+    assert "color:#259AE9'><b>**kargs</b></span>" in format_signature
 
 
 def test_delete(code_editor_bot, mocker):
