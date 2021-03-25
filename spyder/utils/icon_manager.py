@@ -27,7 +27,7 @@ import qtawesome as qta
 class IconManager():
     """Class that manages all the icons."""
     def __init__(self):
-        self.MAIN_FG_COLOR = SpyderPalette.COLOR_ICON_1
+        self.MAIN_FG_COLOR = SpyderPalette.ICON_1
         self.BIN_FILES = {x: 'ArchiveFileIcon' for x in [
             'zip', 'x-tar', 'x-7z-compressed', 'rar']}
 
@@ -143,9 +143,6 @@ class IconManager():
             'arrow-step-out':          [('mdi.debug-step-out',), {'color': SpyderPalette.ICON_2}],
             'stop_debug':              [('mdi.stop',), {'color': SpyderPalette.ICON_2}],
             'run':                     [('mdi.play',), {'color': SpyderPalette.ICON_3}],
-                                        {'options': [{'color': SpyderPalette.ICON_5}, {'color': self.MAIN_FG_COLOR}, {'color': SpyderPalette.ICON_3}]}],
-                                        {'options': [{'color': SpyderPalette.ICON_5}, {'color': self.MAIN_FG_COLOR}, {'color': SpyderPalette.ICON_2}]}],
-                                        {'options': [{'color': SpyderPalette.ICON_5}, {'color': self.MAIN_FG_COLOR,}, {'color': SpyderPalette.ICON_3}, {'color': SpyderPalette.ICON_4}]}],
             'todo_list':               [('mdi.check-bold',), {'color': self.MAIN_FG_COLOR}],
             'wng_list':                [('mdi.alert',), {'options': [{'color': SpyderPalette.COLOR_WARN_2, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
             'prev_wng':                [('mdi.arrow-left',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
@@ -164,8 +161,8 @@ class IconManager():
             'hint':                    [('mdi.lightbulb',), {'color': SpyderPalette.ICON_2}],
             'todo':                    [('mdi.check-bold',), {'color': SpyderPalette.ICON_2}],
             'ipython_console':         [('mdi.console',), {'color': self.MAIN_FG_COLOR}],
-            'python':                  [('mdi.language-python',), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
-            'pythonpath':              [('mdi.language-python',), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
+            'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
+            'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
             'findf':                   [('mdi.file-find',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
             'help':                    [('mdi.help-circle',), {'color': self.MAIN_FG_COLOR}],
@@ -214,7 +211,7 @@ class IconManager():
             'close_panel':             [('mdi.close-box-outline',), {'color': self.MAIN_FG_COLOR}],
             'fromcursor':              [('mdi.cursor-pointer',), {'color': self.MAIN_FG_COLOR}],
             'filter':                  [('mdi.filter',), {'color': self.MAIN_FG_COLOR}],
-            'folder_new':              [('mdi.folder-plus'), {'color': self.MAIN_FG_COLOR}],
+            'folder_new':              [('mdi.folder-plus',), {'color': self.MAIN_FG_COLOR}],
             'vcs_commit':              [('mdi.source-commit',), {'color': SpyderPalette.ICON_3}],
             'vcs_browse':              [('mdi.source-repository',), {'color': SpyderPalette.ICON_3}],
             'fileimport':              [('mdi.download',), {'color': self.MAIN_FG_COLOR}],
@@ -314,8 +311,8 @@ class IconManager():
             'function':                [('mdi.alpha-f-box',), {'color': SpyderPalette.COLOR_WARN_1, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'blockcomment':            [('mdi.pound',), {'color':'grey', 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'cell':                    [('mdi.percent',), {'color':SpyderPalette.GROUP_9, 'scale_factor': self.SMALL_ATTR_FACTOR}],
-            'no_match':                [('mdi.checkbox-blank-circle,), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
-            'github':                  [('mdi.github-circle',), {'color': self.MAIN_FG_COLOR}],
+            'no_match':                [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
+            'github':                  [('mdi.github',), {'color': self.MAIN_FG_COLOR}],
             # --- Spyder Tour --------------------------------------------------------
             'tour.close':              [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
             'tour.home':               [('mdi.skip-backward',), {'color': self.MAIN_FG_COLOR}],
