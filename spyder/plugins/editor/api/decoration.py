@@ -22,6 +22,9 @@ from qtpy.QtCore import QObject, Signal, Qt
 from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
                         QTextCharFormat)
 
+# Local imports
+from spyder.utils.palette import QStylePalette, SpyderPalette
+
 
 # DRAW_ORDERS are used for make some decorations appear in top of others,
 # and avoid a decoration from overlapping/hiding other decorations.
@@ -212,7 +215,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
             QTextCharFormat.SpellCheckUnderline)
         self.format.setUnderlineColor(color)
 
-    def set_as_error(self, color=Qt.red):
+    def set_as_error(self, color=SpyderPalette.COLOR_ERROR_2):
         """
         Highlights text as a syntax error.
 
@@ -223,7 +226,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
             QTextCharFormat.WaveUnderline)
         self.format.setUnderlineColor(color)
 
-    def set_as_warning(self, color=QColor("orange")):
+    def set_as_warning(self, color=QColor(SpyderPalette.COLOR_WARN_1)):
         """
         Highlights text as a syntax warning.
 

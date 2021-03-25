@@ -277,6 +277,7 @@ spyder_plugins_entry_points = [
     'historylog = spyder.plugins.history.plugin:HistoryLog',
     'internal_console = spyder.plugins.console.plugin:Console',
     'ipython_console = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
+    'layout = spyder.plugins.layout.plugin:Layout',
     'main_interpreter = spyder.plugins.maininterpreter.plugin:MainInterpreter',
     'mainmenu = spyder.plugins.mainmenu.plugin:MainMenu',
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',

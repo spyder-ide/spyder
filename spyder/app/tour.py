@@ -37,13 +37,10 @@ from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette, SpyderPalette
 
 
-if is_dark_interface():
-    MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(25, 35, 45)
-else:
-    MAIN_TOP_COLOR = QColor.fromRgb(230, 230, 230)
-    MAIN_BG_COLOR = QColor.fromRgb(255, 255, 255)
+MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
 
 MAC = sys.platform == 'darwin'
 
@@ -463,7 +460,7 @@ class FadingCanvas(FadingDialog):
         self.tour = tour
 
         self.color = color              # Canvas color
-        self.color_decoration = Qt.red  # Decoration color
+        self.color_decoration = SpyderPalette.COLOR_ERROR_2 # Decoration color
         self.stroke_decoration = 2      # width in pixels for decoration
 
         self.region_mask = None
@@ -1253,7 +1250,8 @@ class AnimatedTour(QWidget):
         self.is_tour_set = True
 
     def _handle_fullscreen(self):
-        if self.spy_window.isFullScreen() or self.spy_window.fullscreen_flag:
+        if (self.spy_window.isFullScreen() or
+                self.spy_window.layouts._fullscreen_flag):
             if sys.platform == 'darwin':
                 self.spy_window.setUpdatesEnabled(True)
                 msg_title = _("Request")
@@ -1263,8 +1261,8 @@ class AnimatedTour(QWidget):
                 QMessageBox.information(self, msg_title, msg,
                                         QMessageBox.Ok)
                 return True
-            if self.spy_window.fullscreen_flag:
-                self.spy_window.toggle_fullscreen()
+            if self.spy_window.layouts._fullscreen_flag:
+                self.spy_window.layouts.toggle_fullscreen()
             else:
                 self.spy_window.setWindowState(
                     self.spy_window.windowState()
@@ -1276,11 +1274,11 @@ class AnimatedTour(QWidget):
         self.spy_window.setUpdatesEnabled(False)
         if self._handle_fullscreen():
             return
-        self.spy_window.save_current_window_settings(
+        self.spy_window.layouts.save_current_window_settings(
             'layout_current_temp/',
             section="quick_layouts",
         )
-        self.spy_window.quick_layout_switch('default')
+        self.spy_window.layouts.quick_layout_switch('default')
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
 #        self.parent_x = x
@@ -1318,7 +1316,7 @@ class AnimatedTour(QWidget):
             pass
 
         self.is_running = False
-        self.spy_window.quick_layout_switch('current_temp')
+        self.spy_window.layouts.quick_layout_switch('current_temp')
         self.spy_window.setUpdatesEnabled(True)
 
     def hide_tips(self):
@@ -1438,9 +1436,10 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        start_tour_color = '#3775A9'
-        dismiss_tour_color = '#60798B'
-        font_color = 'white'
+        dialog_tour_color = QStylePalette.COLOR_BACKGROUND_2
+        start_tour_color = QStylePalette.COLOR_ACCENT_3
+        dismiss_tour_color = QStylePalette.COLOR_BACKGROUND_6
+        font_color = QStylePalette.COLOR_TEXT_1
         self.launch_tour_button = QPushButton(_('Start tour'))
         self.launch_tour_button.setStyleSheet(
           f"background-color: {start_tour_color};"
@@ -1502,8 +1501,7 @@ class OpenTourDialog(QDialog):
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
-        if is_dark_interface():
-            self.setStyleSheet("background-color: #262E38")
+        self.setStyleSheet(f"background-color:{dialog_tour_color}")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(640, 280)

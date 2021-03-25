@@ -60,7 +60,7 @@ class Projects(SpyderPluginWidget):
     # This is required for the new API
     NAME = 'project_explorer'
     REQUIRES = []
-    OPTIONAL = [Plugins.Completions]
+    OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Explorer]
 
     # Signals
     sig_project_created = Signal(str, str, object)

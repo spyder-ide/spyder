@@ -36,7 +36,7 @@ from zmq.ssh import tunnel as zmqtunnel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
-from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -51,6 +51,7 @@ from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
+from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
 from spyder.widgets.browser import WebView
@@ -58,11 +59,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
-if is_dark_interface():
-    MAIN_BG_COLOR = '#19232D'
-else:
-    MAIN_BG_COLOR = 'white'
-
+MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
 
 class IPythonConsole(SpyderPluginWidget):
     """
@@ -235,8 +232,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         self.pager_label.setStyleSheet(
-            "background-color: #3775A9;"
-            "color: white;"
+            f"background-color: {QStylePalette.COLOR_ACCENT_2};"
+            f"color: {QStylePalette.COLOR_TEXT_1};"
             "margin: 0px 4px 4px 4px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"

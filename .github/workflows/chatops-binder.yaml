@@ -37,6 +37,6 @@ jobs:
               issue_number: context.payload.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/binder-environments/${BASE_NAME}?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252F${USER_NAME}%252Fspyder%26urlpath%3Ddesktop%252F%26branch%3D${BRANCH_NAME}) :point_left: Launch a Binder instance on this branch`
+              body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/binder-environments/${BASE_NAME}?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252F${USER_NAME}%252Fspyder%26urlpath%3Ddesktop%252F%26branch%3D${BRANCH_NAME}%26depth%3D500) :point_left: Launch a Binder instance on this branch`
             })
           })
