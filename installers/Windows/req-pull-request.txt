@@ -1,5 +1,6 @@
-# Spyder external dependencies (spyder-kernels)
+# Spyder external dependencies (spyder-kernels and qdarkstyle)
 ./external-deps/spyder-kernels
+./external-deps/qdarkstyle
 
 # Rtree from external wheel
 ./installers/Windows/assets/rtree/Rtree-0.9.4-cp37-cp37m-win_amd64.whl

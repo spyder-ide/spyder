@@ -18,8 +18,9 @@ matplotlib
 cython
 sympy
 
-# Spyder external dependencies (spyder-kernels)
+# Spyder external dependencies (spyder-kernels and qdarkstyle)
 ./external-deps/spyder-kernels
+./external-deps/qdarkstyle
 
 # Dependencies without wheels in PyPI
 # Rtree
