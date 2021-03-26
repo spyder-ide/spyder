@@ -1051,7 +1051,7 @@ class Editor(SpyderPluginWidget):
                                 self.save_action, self.save_all_action] +
                                 self.main.file_toolbar_actions)
 
-        self.main.file_toolbar_actions = file_toolbar_actions
+        self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
         self.main.search_menu_actions = [find_action,
