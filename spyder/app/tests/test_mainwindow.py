@@ -1133,7 +1133,8 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select notebook in the project explorer
-    idx = projects.get_widget().treewidget.get_index('notebook.ipynb')
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'notebook.ipynb'))
     projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Prese Enter there
@@ -1182,7 +1183,8 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select file in the project explorer
-    idx = projects.get_widget().treewidget.get_index('script.py')
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'script.py'))
     projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Press Enter there
