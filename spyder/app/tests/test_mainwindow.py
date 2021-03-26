@@ -1118,6 +1118,7 @@ def test_run_cython_code(main_window, qtbot):
 def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
@@ -1166,6 +1167,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that file are run from the Project explorer."""
     projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
