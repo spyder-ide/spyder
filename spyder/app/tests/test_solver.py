@@ -120,20 +120,16 @@ def test_solve_plugin_dependencies_3():
 
 def test_find_internal_plugins():
     internal = find_internal_plugins()
-    assert len(internal) == 26
+    assert len(internal) == 27
 
     # Assert we have the same number of plugins declared in our enum
-    assert len(get_class_values(Plugins)) == 26
+    # 27 internal plugins + the 'All' extra entry
+    assert len(get_class_values(Plugins)) == 27 + 1
 
 
 def test_solve_internal_plugins():
     internal = [p for p in find_internal_plugins().values()]
-
-    # For now we're not computing dependencies for internal plugins
-    # TODO: Remove when the migration is complete
-    assert solve_plugin_dependencies(internal, testing=False) == []
-
     # Test that solver doesn't crash and returns all available plugins
-    solved_dependencies = solve_plugin_dependencies(internal, testing=True)
+    solved_dependencies = solve_plugin_dependencies(internal)
     print(solved_dependencies)
-    assert len(solved_dependencies) == 26
+    assert len(solve_plugin_dependencies(internal)) == 27

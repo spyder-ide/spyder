@@ -1,0 +1,41 @@
+# See tox.ini file to know how to use them via command line
+
+# Main packages to make sure they are there
+setuptools
+pip
+wheel
+virtualenv
+pipdeptree
+
+# Testers
+tox
+pytest
+pytest-qt
+
+# Coverage
+coverage
+pytest-cov
+
+# Code, bug checker
+# mypy - not for now
+pyflakes
+pycycle
+
+# Code style checker
+pylint
+pycodestyle
+
+# Doc style checker
+pydocstyle
+doc8
+
+# Wrappers for some previous tools
+pylama
+pylama_pylint
+
+# Safety checks
+safety
+bandit
+
+# Code metrics
+radon

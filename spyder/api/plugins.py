@@ -592,8 +592,9 @@ class Plugins:
     """
     Convenience class for accessing Spyder internal plugins.
     """
+    All = "all"   # Wildcard to populate REQUIRES with all available plugins
     Appearance = 'appearance'
-    Application = 'main'  # This name is different for historical reasons
+    Application = 'application'
     Breakpoints = 'breakpoints'
     Completions = 'completions'
     Console = 'internal_console'
@@ -603,9 +604,10 @@ class Plugins:
     Help = 'help'
     History = 'historylog'
     IPythonConsole = 'ipython_console'
+    Layout = 'layout'
     MainInterpreter = 'main_interpreter'
     MainMenu = 'mainmenu'
-    OnlineHelp = 'online_help'
+    OnlineHelp = 'onlinehelp'
     OutlineExplorer = 'outline_explorer'
     Plots = 'plots'
     Preferences = 'preferences'
@@ -627,7 +629,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     A Spyder plugin to extend functionality without a dockable widget.
 
     If you want to create a plugin that adds a new pane, please use
-    SpyderDockableWidget.
+    SpyderDockablePlugin.
     """
 
     # --- API: Mandatory attributes ------------------------------------------
@@ -952,6 +954,22 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
                 'OPTIONAL requirements!'.format(plugin_name)
             )
 
+    def get_dockable_plugins(self):
+        """
+        Return a list of the required plugin instances.
+
+        Only required plugins that extend SpyderDockablePlugin are returned.
+        """
+        requires = self.REQUIRES or []
+        dockable_plugins_required = []
+        PLUGINS = self._main._PLUGINS
+        for name, plugin_instance in PLUGINS.items():
+            if name in requires and isinstance(
+                    plugin_instance,
+                    (SpyderDockablePlugin, SpyderPluginWidget)):
+                dockable_plugins_required.append(plugin_instance)
+        return dockable_plugins_required
+
     def get_conf(self, option, default=NoDefault, section=None):
         """
         Get an option from Spyder configuration system.
@@ -1238,6 +1256,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         """
         pass
 
+    def before_mainwindow_visible(self):
+        """
+        Actions to be performed after setup but before the main window's has
+        been shown.
+        """
+        pass
+
     def on_mainwindow_visible(self):
         """
         Actions to be performed after the main window's has been shown.
@@ -1320,7 +1345,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # ------------------------------------------------------------------------
     # Define a list of plugins next to which we want to to tabify this plugin.
     # Example: ['Plugins.Editor']
-    TABIFY = [Plugins.Console]
+    TABIFY = []
 
     # Disable actions in Spyder main menus when the plugin is not visible
     DISABLE_ACTIONS_WHEN_HIDDEN = True

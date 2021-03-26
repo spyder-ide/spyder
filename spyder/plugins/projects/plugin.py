@@ -79,8 +79,6 @@ class Projects(SpyderDockablePlugin):
     NAME = 'project_explorer'
     CONF_SECTION = NAME
     CONF_FILE = False
-    # TODO: Try to define the plugin location in the left side of the editor.
-    TABIFY = Plugins.Help
     REQUIRES = []
     OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
                 Plugins.OutlineExplorer, Plugins.MainMenu]

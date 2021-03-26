@@ -361,11 +361,11 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 def test_lock_action(main_window):
     """Test the lock interface action."""
-    action = main_window.lock_interface_action
+    action = main_window.layouts.lock_interface_action
     plugins = main_window.widgetlist
 
     # By default the interface is locked.
-    assert main_window.interface_locked
+    assert main_window.layouts._interface_locked
 
     # In this state the title bar is an empty QWidget
     for plugin in plugins:
@@ -379,11 +379,11 @@ def test_lock_action(main_window):
     for plugin in plugins:
         title_bar = plugin.dockwidget.titleBarWidget()
         assert isinstance(title_bar, DockTitleBar)
-    assert not main_window.interface_locked
+    assert not main_window.layouts._interface_locked
 
     # Restore default state
     action.trigger()
-    assert main_window.interface_locked
+    assert main_window.layouts._interface_locked
 
 
 @pytest.mark.slow
@@ -1536,7 +1536,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     main_window.editor.get_focus_widget().setFocus()
 
     # Click the maximize button
-    max_action = main_window.maximize_action
+    max_action = main_window.layouts.maximize_action
     max_button = main_window.main_toolbar.widgetForAction(max_action)
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
@@ -2183,12 +2183,12 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     HELP_STR = "Help"
 
     help_pane_menuitem = None
-    for action in main_window.plugins_menu.actions():
+    for action in main_window.layouts.plugins_menu.get_actions():
         if action.text() == HELP_STR:
             help_pane_menuitem = action
             break
 
-    # Test opening tutorial with Help plguin closed
+    # Test opening tutorial with Help plugin closed
     main_window.help.toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
@@ -2250,31 +2250,30 @@ def test_custom_layouts(main_window, qtbot):
     mw = main_window
     mw.first_spyder_run = False
     prefix = 'window' + '/'
-    settings = mw.load_window_settings(prefix=prefix, default=True)
+    settings = mw.layouts.load_window_settings(prefix=prefix, default=True)
 
     # Test layout changes
     for layout_idx in ['default'] + list(range(4)):
         with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
-            layout = mw.setup_default_layouts(layout_idx, settings=settings)
+            layout = mw.layouts.setup_default_layouts(
+                layout_idx, settings=settings)
 
             with qtbot.waitSignal(None, timeout=500, raising=False):
                 # Add a wait to see changes
                 pass
 
-            widgets_layout = layout['widgets']
-            hidden_widgets = layout['hidden widgets']
-            for column in widgets_layout:
-                for row in column:
-                    for idx, widget in enumerate(row):
-                        if idx == 0:
-                            if widget not in hidden_widgets:
-                                print(widget)  # spyder: test-skip
-                                try:
-                                    # New API
-                                    assert widget.get_widget().isVisible()
-                                except AttributeError:
-                                    # Old API
-                                    assert widget.isVisible()
+            for area in layout._areas:
+                if area['visible']:
+                    for plugin_id in area['plugin_ids']:
+                        if plugin_id not in area['hidden_plugin_ids']:
+                            plugin = mw.get_plugin(plugin_id)
+                            print(plugin)  # spyder: test-skip
+                            try:
+                                # New API
+                                assert plugin.get_widget().isVisible()
+                            except AttributeError:
+                                # Old API
+                                assert plugin.isVisible()
 
 
 @pytest.mark.slow
@@ -3494,6 +3493,8 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     """
     Test that the variable explorer is cleared after a kernel restart.
@@ -3650,6 +3651,8 @@ hello()
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a

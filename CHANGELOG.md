@@ -253,6 +253,31 @@ In this release 47 pull requests were closed.
 ----
 
 
+## Version 4.2.5 (2021-03-25)
+
+### Important fixes
+* Fix restoring window properties at startup.
+* Fix a segfault when restarting kernels.
+* Fix a segfault when processing linting results.
+
+### Issues Closed
+
+* [Issue 15002](https://github.com/spyder-ide/spyder/issues/15002) - Segfault when restarting the kernel while restarting ([PR 15001](https://github.com/spyder-ide/spyder/pull/15001) by [@impact27](https://github.com/impact27))
+* [Issue 14962](https://github.com/spyder-ide/spyder/issues/14962) - Spyder 4.2.4 Regression - Custom Layouts Broken ([PR 14970](https://github.com/spyder-ide/spyder/pull/14970) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 14798](https://github.com/spyder-ide/spyder/issues/14798) - Spyder crashes without warning ([PR 14985](https://github.com/spyder-ide/spyder/pull/14985) by [@impact27](https://github.com/impact27))
+
+In this release 3 issues were closed.
+
+* [PR 15001](https://github.com/spyder-ide/spyder/pull/15001) - PR: Avoid segfault when restarting kernel, by [@impact27](https://github.com/impact27) ([15002](https://github.com/spyder-ide/spyder/issues/15002))
+* [PR 14985](https://github.com/spyder-ide/spyder/pull/14985) - PR: Avoid segfault when processing code analysis results, by [@impact27](https://github.com/impact27) ([14798](https://github.com/spyder-ide/spyder/issues/14798))
+* [PR 14970](https://github.com/spyder-ide/spyder/pull/14970) - PR: Pass version kwarg in every call to saveState/restoreState (Main Window), by [@ccordoba12](https://github.com/ccordoba12) ([14962](https://github.com/spyder-ide/spyder/issues/14962))
+
+In this release 3 pull requests were closed.
+
+
+----
+
+
 ## Version 4.2.4 (2021-03-19)
 
 ### Important fixes

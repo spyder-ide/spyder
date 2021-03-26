@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.translations import get_translation

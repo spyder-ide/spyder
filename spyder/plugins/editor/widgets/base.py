@@ -32,7 +32,7 @@ from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
-
+from spyder.utils.palette import SpyderPalette
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
@@ -92,13 +92,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         # The color values may be overridden by the syntax highlighter
         # Highlight current line color
-        self.currentline_color = QColor(Qt.red).lighter(190)
-        self.currentcell_color = QColor(Qt.red).lighter(194)
+        self.currentline_color = QColor(
+            SpyderPalette.COLOR_ERROR_2).lighter(190)
+        self.currentcell_color = QColor(
+            SpyderPalette.COLOR_ERROR_2).lighter(194)
 
         # Brace matching
         self.bracepos = None
-        self.matched_p_color = QColor(Qt.green)
-        self.unmatched_p_color = QColor(Qt.red)
+        self.matched_p_color = QColor(SpyderPalette.COLOR_SUCCESS_1)
+        self.unmatched_p_color = QColor(SpyderPalette.COLOR_ERROR_2)
 
         self.decorations = TextDecorationsManager(self)
 

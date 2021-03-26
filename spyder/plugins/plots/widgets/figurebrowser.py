@@ -23,13 +23,13 @@ from qtpy.QtGui import QKeySequence, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
                             QMenu, QScrollArea, QScrollBar, QSpinBox,
                             QSplitter, QStyle, QVBoxLayout, QWidget)
-import qdarkstyle
 
 # Local library imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets import SpyderWidgetMixin
 from spyder.config.gui import is_dark_interface
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.palette import QStylePalette
 
 
 # TODO:
@@ -217,14 +217,10 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     def show_fig_outline_in_viewer(self, state):
         """Draw a frame around the figure viewer if state is True."""
         if state is True:
-            if is_dark_interface():
-                self.figviewer.figcanvas.setStyleSheet(
-                    "FigureCanvas{border: 2px solid %s;}" %
-                    qdarkstyle.palette.DarkPalette.COLOR_BACKGROUND_NORMAL)
-            else:
-                self.figviewer.figcanvas.setStyleSheet(
-                    "FigureCanvas{border: 2px solid %s;}" %
-                    self.figviewer.figcanvas.palette().shadow().color().name())
+            self.figviewer.figcanvas.setStyleSheet(
+                "FigureCanvas{border: 2px solid %s;}" %
+                QStylePalette.COLOR_BACKGROUND_4
+            )
         else:
             self.figviewer.figcanvas.setStyleSheet(
                 "FigureCanvas{border: 0px;}")
@@ -986,15 +982,10 @@ class FigureThumbnail(QWidget):
         if highlight:
             # Highlighted figure is not clear in dark mode with blue color.
             # See spyder-ide/spyder#10255.
-            if is_dark_interface():
-                self.canvas.setStyleSheet(
-                    "FigureCanvas{border: 2px solid %s;}" %
-                    qdarkstyle.palette.DarkPalette.COLOR_SELECTION_LIGHT
-                    )
-            else:
-                self.canvas.setStyleSheet(
-                    "FigureCanvas{border: 2px solid %s;}" %
-                    self.canvas.palette().highlight().color().name())
+            self.canvas.setStyleSheet(
+                "FigureCanvas{border: 2px solid %s;}" %
+                QStylePalette.COLOR_ACCENT_3
+            )
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
 

@@ -1,22 +1,23 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.2.4 is released!
+**Subject**: [ANN] Spyder 4.2.5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.2.4** has been released and is available for
+I'm pleased to announce that Spyder **4.2.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two weeks after version 4.2.3 and it contains the
+This release comes less than one week after version 4.2.4 and it contains the
 following important fixes:
 
-* Fix an important error when restarting kernels.
-* Add compatibility with the future Spyder 5.
+* Fix restoring window properties at startup.
+* Fix a segfault when restarting kernels.
+* Fix a segfault when processing linting results..
 
-In this release we fixed 3 issues and merged 8 pull requests that amount
-to more than 20 commits. For a full list of fixes, please see our
+In this release we fixed 3 issues and merged 3 pull requests that amount
+to more than 15 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
