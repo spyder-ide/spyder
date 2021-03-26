@@ -24,6 +24,9 @@ from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
                     reason="Only meant for CIs")
 def test_status_bar_conda_interpreter_status(status_bar, qtbot):
     """Test status bar message with conda interpreter."""
+    # Set env var to use worker
+    os.environ['SPY_TEST_USE_WORKERS'] = 'True'
+
     # We patch where the method is used not where it is imported from
     plugin, window = status_bar
     w = InterpreterStatus(window)
@@ -49,6 +52,9 @@ def test_status_bar_conda_interpreter_status(status_bar, qtbot):
     expected = 'conda: test ({})'.format(version)
     assert w.get_tooltip() == path_foo
     assert expected == w._get_env_info(path_foo)
+
+    # Remove env var to use worker
+    os.environ.pop('SPY_TEST_USE_WORKERS')
 
 
 def test_status_bar_pyenv_interpreter_status(status_bar, qtbot):

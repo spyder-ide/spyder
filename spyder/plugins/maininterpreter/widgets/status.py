@@ -19,6 +19,7 @@ from qtpy.QtWidgets import QMenu
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
+from spyder.config.base import running_under_pytest
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
@@ -132,10 +133,12 @@ class InterpreterStatus(BaseTimerStatus):
         Get the list of environments in a thread to keep them up to
         date.
         """
-        self._worker_manager.terminate_all()
-        worker = self._worker_manager.create_python_worker(self._get_envs)
-        worker.sig_finished.connect(self.update_envs)
-        worker.start()
+        if (not running_under_pytest() or
+                os.environ.get('SPY_TEST_USE_WORKERS')):
+            self._worker_manager.terminate_all()
+            worker = self._worker_manager.create_python_worker(self._get_envs)
+            worker.sig_finished.connect(self.update_envs)
+            worker.start()
 
     def update_envs(self, worker, output, error):
         """Update the list of environments in the system."""
