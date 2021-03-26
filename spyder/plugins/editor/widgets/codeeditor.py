@@ -653,6 +653,9 @@ class CodeEditor(TextEditBaseWidget):
         self.folding_supported = False
         self.is_cloned = False
         self.operation_in_progress = False
+
+        # Diagnostics
+        self.update_diagnostics_thread = QThread()
         self._diagnostics = []
 
         # Editor Extensions
@@ -676,10 +679,6 @@ class CodeEditor(TextEditBaseWidget):
         # such as line stripping
         self.is_undoing = False
         self.is_redoing = False
-
-        # Diagnostics
-        self.update_diagnostics = None
-        self.restart_diagnostics = None
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -1300,21 +1299,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
-        if (self.update_diagnostics is not None
-                and self.update_diagnostics.isRunning()):
-            self.restart_diagnostics = diagnostics
-            return
-
-        self.restart_diagnostics = None
-
         self.cleanup_code_analysis()
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
-        self.update_diagnostics = QThread()
-        self.update_diagnostics.run = self.set_errors
-        self.update_diagnostics.finished.connect(self.finish_code_analysis)
-        self.update_diagnostics.start()
+        self.update_diagnostics_thread.run = self.set_errors
+        self.update_diagnostics_thread.finished.connect(
+            self.finish_code_analysis)
+        self.update_diagnostics_thread.start()
 
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
@@ -1360,8 +1352,6 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
-        if self.restart_diagnostics is not None:
-            self.process_code_analysis(self.restart_diagnostics)
 
     def _process_code_analysis(self, underline):
         """

@@ -3207,6 +3207,8 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_runcell_after_restart(main_window, qtbot):
     """Test runcell after a kernel restart."""
     # Write code to a file
@@ -3404,6 +3406,8 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     """
     Test that the variable explorer is cleared after a kernel restart.
