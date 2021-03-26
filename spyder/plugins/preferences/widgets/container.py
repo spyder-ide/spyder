@@ -107,7 +107,8 @@ class PreferencesContainer(PluginMainContainer):
         self.reset_action = self.create_action(
             PreferencesActions.Reset,
             _("Reset Spyder to factory defaults"),
-            triggered=self.reset
+            triggered=self.reset,
+            icon=self.create_icon('reset_factory_defaults'),
         )
 
     def update_actions(self):
