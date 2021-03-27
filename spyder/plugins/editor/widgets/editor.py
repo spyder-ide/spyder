@@ -697,15 +697,12 @@ class EditorStack(QWidget):
             self.tabs.setDocumentMode(True)
         self.tabs.currentChanged.connect(self.current_changed)
 
-        if sys.platform == 'darwin':
-            tab_container = QWidget()
-            tab_container.setObjectName('tab-container')
-            tab_layout = QHBoxLayout(tab_container)
-            tab_layout.setContentsMargins(0, 0, 0, 0)
-            tab_layout.addWidget(self.tabs)
-            layout.addWidget(tab_container)
-        else:
-            layout.addWidget(self.tabs)
+        tab_container = QWidget()
+        tab_container.setObjectName('tab-container')
+        tab_layout = QHBoxLayout(tab_container)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.addWidget(self.tabs)
+        layout.addWidget(tab_container)
 
         # Show/hide icons in plugin menus for Mac
         if sys.platform == 'darwin':

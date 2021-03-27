@@ -238,11 +238,13 @@ class MainWidgetToolbar(SpyderToolbar):
                 border-bottom: '#19232D';
                 spacing: 0.3em;
                 padding: 0px;
+                border-radius: 0px;
             }
             QToolButton {
                 border: 0px;
                 height: 1.7em;
                 width: 1.7em;
+                border-radius: 0px;
             }
             QToolButton:hover {
                 background-color: '#293544';

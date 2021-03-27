@@ -40,7 +40,11 @@ STYLE_BUTTON_CSS = ("QToolButton::menu-indicator{image: none;}"
                  "padding: 3px;"
                  "border: 0px;"
                  "height: 1.7em;"
-                 "width: 1.7em;}"
+                 "width: 1.7em;"
+                 "border-radius:0px}"
+                 "QToolBar QToolButton:!hover:!pressed:!checked {"
+                  "border-color: transparent;"
+                  "background-color: transparent;}"
                  )
 
 

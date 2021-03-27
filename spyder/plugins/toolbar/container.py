@@ -148,6 +148,7 @@ class ToolbarContainer(PluginMainContainer):
                 "height: 2.8em;"
                 "margin-right: 0.25em;"
                 "margin-left: 0.25em;"
+                "border-radius: 0px"
                 "}")
 
 
