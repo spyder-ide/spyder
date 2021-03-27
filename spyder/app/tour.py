@@ -459,9 +459,12 @@ class FadingCanvas(FadingDialog):
         self.parent = parent
         self.tour = tour
 
-        self.color = color              # Canvas color
-        self.color_decoration = SpyderPalette.COLOR_ERROR_2 # Decoration color
-        self.stroke_decoration = 2      # width in pixels for decoration
+        # Canvas color
+        self.color = color
+        # Decoration color
+        self.color_decoration = QColor(SpyderPalette.COLOR_ERROR_2)
+        # Width in pixels for decoration
+        self.stroke_decoration = 2
 
         self.region_mask = None
         self.region_subtract = None
