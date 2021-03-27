@@ -15,9 +15,9 @@ from qtpy.QtWidgets import QHBoxLayout, QSpinBox, QStackedWidget
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidgetMenus, PluginMainWidget
+from spyder.api.widgets.main_widget import (PluginMainWidgetMenus,
+                                            PluginMainWidget)
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette

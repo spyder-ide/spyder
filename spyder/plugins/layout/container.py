@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.layout.api import BaseGridLayoutType
 from spyder.plugins.layout.widgets.dialog import (
     LayoutSaveDialog, LayoutSettingsDialog)

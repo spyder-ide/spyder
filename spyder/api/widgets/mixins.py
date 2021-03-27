@@ -12,9 +12,6 @@ Spyder API Mixins.
 """
 
 # Standard library imports
-import functools
-from collections import OrderedDict
-import types
 from typing import Any, Optional, Dict
 
 # Third party imports
@@ -22,15 +19,12 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget, QToolButton
 
 # Local imports
-from spyder.api.config.mixins import (
-    SpyderConfigurationObserver, SpyderConfigurationAccessor)
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.types import ConfigurationKey
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (
-    create_action, create_toolbutton, SpyderAction)
+from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
     ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 

@@ -8,8 +8,8 @@
 Main container widget.
 
 SpyderPluginV2 plugins must provide a CONTAINER_CLASS attribute that is a
-subclass of PluginMainContainer, if they provide additional widgets, like
-status bars or toolbars.
+subclass of PluginMainContainer, if they provide additional widgets like
+status bar widgets or toolbars.
 """
 
 from qtpy.QtCore import Signal
