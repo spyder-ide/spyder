@@ -216,7 +216,7 @@ class MainWindow(QMainWindow):
         """
         Register a plugin in Spyder Main Window.
         """
-        self.set_splash(_("Loading {}...".format(plugin.get_name())))
+        self.set_splash(_("Loading {}...").format(plugin.get_name()))
         logger.info("Loading {}...".format(plugin.NAME))
 
         # Check plugin compatibility

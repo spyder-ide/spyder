@@ -281,8 +281,8 @@ class LayoutContainer(PluginMainContainer):
                 answer = QMessageBox.warning(
                     self,
                     _("Warning"),
-                    _("Layout <b>{0}</b> will be overwritten."
-                      "Do you want to continue?".format(name)),
+                    _("Layout <b>{0}</b> will be overwritten. "
+                      "Do you want to continue?").format(name),
                     QMessageBox.Yes | QMessageBox.No,
                 )
                 index = order.index(name)

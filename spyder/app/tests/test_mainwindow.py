@@ -3646,8 +3646,6 @@ hello()
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Fails sometimes on macOS")
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a
@@ -3702,6 +3700,8 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 @pytest.mark.parametrize(
     'main_window',
     [{'spy_config': ('main', 'show_tour_message', 2)}],
