@@ -490,11 +490,10 @@ class VariableExplorerWidget(PluginMainWidget):
             self.layout().addWidget(self.finder)
         else:
             # Just update references to the same text_finder (Custom QLineEdit)
-            # widget to the new current NamespaceBrowser
+            # widget to the new current NamespaceBrowser and save current
+            # finder state in the previous NamespaceBrowser
             if old_nsb is not None:
-                last_find = self.text_finder.text()
-                finder_visibility = self.finder.isVisible()
-                old_nsb.save_finder_state(last_find, finder_visibility)
+                self.save_finder_state(old_nsb)
             self.text_finder.update_parent(
                 nsb.editor,
                 callback=nsb.editor.set_regex,
@@ -578,6 +577,7 @@ class VariableExplorerWidget(PluginMainWidget):
             if checked:
                 self.finder.text_finder.setText(nsb.last_find)
             else:
+                self.save_finder_state(nsb)
                 self.finder.text_finder.setText('')
             self.finder.setVisible(checked)
             if self.finder.isVisible():
@@ -589,7 +589,19 @@ class VariableExplorerWidget(PluginMainWidget):
     def hide_finder(self):
         action = self.get_action(VariableExplorerWidgetActions.Search)
         action.setChecked(False)
+        nsb = self.current_widget()
+        self.save_finder_state(nsb)
         self.finder.text_finder.setText('')
+
+    def save_finder_state(self, nsb):
+        """
+        Save finder state (last input text and visibility).
+
+        The values are saved in the given NamespaceBrowser.
+        """
+        last_find = self.text_finder.text()
+        finder_visibility = self.finder.isVisible()
+        nsb.save_finder_state(last_find, finder_visibility)
 
     def refresh_table(self):
         if self.count():

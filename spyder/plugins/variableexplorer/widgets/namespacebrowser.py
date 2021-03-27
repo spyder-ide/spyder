@@ -126,7 +126,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def save_finder_state(self, last_find, finder_visibility):
         """Save last finder/search text input and finder visibility."""
-        if last_find:
+        if last_find and finder_visibility:
             self.last_find = last_find
         self.finder_is_visible = finder_visibility
 
