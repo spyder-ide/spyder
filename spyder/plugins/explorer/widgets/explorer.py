@@ -309,6 +309,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         new_package_action = self.create_action(
             DirViewActions.NewPackage,
             text=_("Python Package..."),
+            icon=self.create_icon('package_new'),
             triggered=lambda: self.new_package(),
         )
 
