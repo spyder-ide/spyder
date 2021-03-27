@@ -62,6 +62,11 @@ class FindReplace(QWidget):
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None
+        self.setStyleSheet(
+             "QComboBox {"
+             "padding-right: 0px;"
+             "padding-left: 0px;"
+             "}")
 
         glayout = QGridLayout()
         glayout.setContentsMargins(0, 0, 0, 0)
