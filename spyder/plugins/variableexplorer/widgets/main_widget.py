@@ -10,14 +10,15 @@ Variable Explorer Main Plugin Widget.
 
 # Third party imports
 from qtpy.QtCore import QTimer, Signal, Slot
-from qtpy.QtWidgets import QAction, QStackedWidget, QVBoxLayout
+from qtpy.QtWidgets import (
+    QAction, QHBoxLayout, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespaceBrowser)
+    NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
 from spyder.utils.programs import is_module_installed
 
 # Localization
@@ -136,9 +137,13 @@ class VariableExplorerWidget(PluginMainWidget):
         self.context_menu = None
         self.empty_context_menu = None
 
+        # --- Finder
+        self.finder = None
+
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(self._stack)
+        # layout.addWidget(self.finder)
         self.setLayout(layout)
 
         # Signals
@@ -460,7 +465,40 @@ class VariableExplorerWidget(PluginMainWidget):
     def remove_widget(self, nsb):
         self._stack.removeWidget(nsb)
 
-    def set_current_widget(self, nsb):
+    def set_current_widget(self, nsb, old_nsb):
+        if self.finder is None:
+            self.finder = QWidget(self)
+            self.text_finder = NamespacesBrowserFinder(
+                nsb.editor,
+                callback=nsb.editor.set_regex,
+                main=nsb,
+                regex_base=VALID_VARIABLE_CHARS)
+            self.finder.text_finder = self.text_finder
+            self.finder_close_button = self.create_toolbutton(
+                'close_finder',
+                triggered=self.hide_finder,
+                icon=self.create_icon('DialogCloseButton'),
+            )
+            finder_layout = QHBoxLayout()
+            finder_layout.addWidget(self.finder_close_button)
+            finder_layout.addWidget(self.text_finder)
+            finder_layout.setContentsMargins(0, 0, 0, 0)
+            self.finder.setLayout(finder_layout)
+            self.layout().addWidget(self.finder)
+        else:
+            if old_nsb is not None:
+                old_nsb.last_find = self.text_finder.text()
+            self.text_finder.update_parent(
+                nsb.editor,
+                callback=nsb.editor.set_regex,
+                main=nsb,
+            )
+            self.finder.text_finder = self.text_finder
+
+        nsb.set_text_finder(self.text_finder)
+        self.finder.text_finder = self.text_finder
+        # self.finder.setVisible(False)
+
         self._stack.setCurrentWidget(nsb)
 
     # ---- Public API
@@ -480,7 +518,8 @@ class VariableExplorerWidget(PluginMainWidget):
             self.add_widget(nsb)
             self._set_actions_and_menus(nsb)
             self._shellwidgets[shellwidget_id] = nsb
-            self.set_current_widget(nsb)
+            old_nsb = self.current_widget()
+            self.set_current_widget(nsb, old_nsb)
             self.update_actions()
             return nsb
 
@@ -495,7 +534,8 @@ class VariableExplorerWidget(PluginMainWidget):
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
             nsb = self._shellwidgets[shellwidget_id]
-            self.set_current_widget(nsb)
+            old_nsb = self.current_widget()
+            self.set_current_widget(nsb, old_nsb)
 
     def import_data(self, filenames=None):
         """
@@ -521,8 +561,16 @@ class VariableExplorerWidget(PluginMainWidget):
     def show_finder(self, checked):
         if self.count():
             nsb = self.current_widget()
-            nsb.show_finder(checked)
+            self.finder.text_finder.setText('')
+            self.finder.setVisible(checked)
+    
+            if self.finder.isVisible():
+                self.finder.text_finder.setFocus()
+            else:
+                nsb.editor.setFocus()
+            # nsb.show_finder(checked)
 
+    @Slot()
     def hide_finder(self):
         action = self.get_action(VariableExplorerWidgetActions.Search)
         action.setChecked(False)
