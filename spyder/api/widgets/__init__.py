@@ -42,7 +42,8 @@ from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
-from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
+from spyder.utils.registries import (
+    ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -368,11 +369,21 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             title=_("Main widget toolbar"),
         )
         self._main_toolbar.ID = 'main_toolbar'
+
+        TOOLBAR_REGISTRY.register_reference(
+            self._main_toolbar, self._main_toolbar.ID,
+            self.PLUGIN_NAME, self.CONTEXT_NAME)
+
         self._corner_toolbar = MainWidgetToolbar(
             parent=self,
             title=_("Main widget corner toolbar"),
         )
         self._corner_toolbar.ID = 'corner_toolbar',
+
+        TOOLBAR_REGISTRY.register_reference(
+            self._corner_toolbar, self._corner_toolbar.ID,
+            self.PLUGIN_NAME, self.CONTEXT_NAME)
+
         self._corner_toolbar.setSizePolicy(QSizePolicy.Minimum,
                                            QSizePolicy.Expanding)
         self._options_menu = self.create_menu(
@@ -683,6 +694,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         menu = MainWidgetMenu(parent=self, title=title)
         menu.ID = menu_id
+
+        MENU_REGISTRY.register_reference(
+            menu, menu.ID, self.PLUGIN_NAME, self.CONTEXT_NAME)
 
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)
@@ -1006,7 +1020,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         raise NotImplementedError(
             'A PluginMainWidget subclass must define an `update_actions` '
-            'method!')
+            f'method! Hint: {type(self)} should implement `update_actions`')
 
 
 def run_test():

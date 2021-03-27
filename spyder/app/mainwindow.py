@@ -842,7 +842,6 @@ class MainWindow(QMainWindow):
             plugin_name = plugin_class.NAME
             # Non-migrated plugins
             if plugin_name in [
-                    Plugins.OutlineExplorer,
                     Plugins.Editor,
                     Plugins.IPythonConsole,
                     Plugins.Projects]:
@@ -869,6 +868,7 @@ class MainWindow(QMainWindow):
                     Plugins.Shortcuts,
                     Plugins.StatusBar,
                     Plugins.Completions,
+                    Plugins.OutlineExplorer,
                     Plugins.Console,
                     Plugins.MainInterpreter,
                     Plugins.Breakpoints,
@@ -1017,7 +1017,6 @@ class MainWindow(QMainWindow):
         self.edit_menu_actions = [self.undo_action, self.redo_action,
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
-
         switcher_actions = [
             self.file_switcher_action,
             self.symbol_finder_action

@@ -313,7 +313,7 @@ def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     assert editorstack.get_current_filename() == 'secondtab.py'
 
     # Add an outline explorer to the editor stack and refresh it.
-    editorstack.set_outlineexplorer(OutlineExplorerWidget())
+    editorstack.set_outlineexplorer(OutlineExplorerWidget(None, None, None))
     qtbot.addWidget(editorstack.outlineexplorer)
     for finfo in editorstack.data:
         editorstack.outlineexplorer.register_editor(finfo.editor.oe_proxy)

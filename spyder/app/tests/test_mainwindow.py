@@ -3758,10 +3758,10 @@ def test_update_outline(main_window, qtbot, tmpdir):
     """
     # Show outline explorer
     outline_explorer = main_window.outlineexplorer
-    outline_explorer._toggle_view_action.setChecked(True)
+    outline_explorer.toggle_view_action.setChecked(True)
 
     # Get Python editor trees
-    treewidget = outline_explorer.explorer.treewidget
+    treewidget = outline_explorer.get_widget().treewidget
     editors_py = [
         editor for editor in treewidget.editor_ids.keys()
         if editor.get_language() == 'Python'
@@ -3796,7 +3796,7 @@ def test_update_outline(main_window, qtbot, tmpdir):
     assert len(tree) == 0
 
     # Assert spinner is not shown
-    assert not outline_explorer.explorer.loading_widget.isSpinning()
+    assert not outline_explorer.get_widget()._spinner.isSpinning()
 
     # Set one file as session without projects
     prev_file = tmpdir.join("foo.py")
@@ -3905,13 +3905,13 @@ def test_outline_no_init(main_window, qtbot):
 
     # Show outline explorer
     outline_explorer = main_window.outlineexplorer
-    outline_explorer._toggle_view_action.setChecked(True)
+    outline_explorer.toggle_view_action.setChecked(True)
 
     # Wait a bit for trees to be filled
     qtbot.wait(5000)
 
     # Get tree length
-    treewidget = outline_explorer.explorer.treewidget
+    treewidget = outline_explorer.get_widget().treewidget
     editor_id = list(treewidget.editor_ids.values())[1]
 
     # Assert symbols in the file are detected and shown
