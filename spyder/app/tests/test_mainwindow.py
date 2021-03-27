@@ -3573,8 +3573,6 @@ def test_immediate_debug(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Fails sometimes on macOS")
 def test_local_namespace(main_window, qtbot, tmpdir):
     """
     Test that the local namespace is not reset.
