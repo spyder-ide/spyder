@@ -3642,6 +3642,7 @@ hello()
             nsb.editor.source_model._data['test']['view'] == '3')
 
 
+@pytest.mark.first
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
