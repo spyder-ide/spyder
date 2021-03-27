@@ -533,8 +533,6 @@ class Layout(SpyderPluginV2):
         """Expose maximize current dockwidget action."""
         return self.get_container()._maximize_dockwidget_action
 
-    @Slot()
-    @Slot(bool)
     def maximize_dockwidget(self, restore=False):
         """
         Maximize current dockwidget.
@@ -544,7 +542,7 @@ class Layout(SpyderPluginV2):
         Second call (or restore=True): restore original window layout
         """
         if self._state_before_maximizing is None:
-            if not restore:
+            if restore:
                 return
 
             # Select plugin to maximize
