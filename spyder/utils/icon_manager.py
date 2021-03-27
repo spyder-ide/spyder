@@ -135,7 +135,7 @@ class IconManager():
             'breakpoint_big':          [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9} ],
             'breakpoint_cond_big':     [('mdi.help-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9},],
             'breakpoints':             [('mdi.dots-vertical',), {'color': self.MAIN_FG_COLOR}],
-            'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': SpyderPalette.ICON_2, 'scale_factor': 2.0}],
+            'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': SpyderPalette.ICON_2, 'scale_factor': 1.5}],
             'debug':                   [('mdi.step-forward-2',), {'color': SpyderPalette.ICON_2}],
             'arrow-step-over':         [('mdi.debug-step-over',), {'color': SpyderPalette.ICON_2}],
             'arrow-continue':          [('mdi.fast-forward',), {'color': SpyderPalette.ICON_2}],
