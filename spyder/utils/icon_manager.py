@@ -316,7 +316,7 @@ class IconManager():
             'tour.next':               [('mdi.skip-next',), {'color': self.MAIN_FG_COLOR}],
             'tour.end':                [('mdi.skip-forward',), {'color': self.MAIN_FG_COLOR}],
             # --- Third party plugins ------------------------------------------------
-            'profiler':                [('mdi.timer',), {'color': self.MAIN_FG_COLOR}],
+            'profiler':                [('mdi.timer-outline',), {'color': self.MAIN_FG_COLOR}],
             'condapackages':           [('mdi.archive',), {'color': self.MAIN_FG_COLOR}],
             'spyder.example':          [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'spyder.autopep8':         [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
