@@ -280,7 +280,7 @@ class LayoutContainer(PluginMainContainer):
                 answer = QMessageBox.warning(
                     self,
                     _("Warning"),
-                    _("Layout <b>{0}</b> will be overwritten."
+                    _("Layout <b>{0}</b> will be overwritten. "
                       "Do you want to continue?").format(name),
                     QMessageBox.Yes | QMessageBox.No,
                 )
