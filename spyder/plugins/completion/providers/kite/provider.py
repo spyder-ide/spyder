@@ -65,10 +65,6 @@ class KiteProvider(SpyderCompletionProvider):
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_PROVIDER_NAME))
 
-        self.client.sig_response_ready.connect(self._kite_onboarding)
-        self.client.sig_status_response_ready.connect(self._kite_onboarding)
-        self.client.sig_onboarding_response_ready.connect(
-            self._show_onboarding_file)
         self.client.sig_client_wrong_response.connect(
             self._wrong_response_error)
 
@@ -136,6 +132,10 @@ class KiteProvider(SpyderCompletionProvider):
     def on_mainwindow_visible(self):
         self.sig_call_statusbar.emit(
             KiteStatusWidget.ID, 'mainwindow_setup_finished', tuple(), {})
+        self.client.sig_response_ready.connect(self._kite_onboarding)
+        self.client.sig_status_response_ready.connect(self._kite_onboarding)
+        self.client.sig_onboarding_response_ready.connect(
+            self._show_onboarding_file)
 
     @Slot(list)
     def http_client_ready(self, languages):
@@ -154,6 +154,12 @@ class KiteProvider(SpyderCompletionProvider):
     def file_opened_closed_or_updated(self, filename, _language):
         """Request status for the given file."""
         self.client.sig_perform_status_request.emit(filename)
+
+    @on_conf_change(
+        section='completions', option=('enabled_providers', 'kite'))
+    def on_kite_enable_changed(self, value):
+        self.sig_call_statusbar.emit(
+            KiteStatusWidget.ID, 'set_value', (None,), {})
 
     @on_conf_change(section='completions', option='enable_code_snippets')
     def on_code_snippets_changed(self, value):
@@ -195,8 +201,8 @@ class KiteProvider(SpyderCompletionProvider):
             # retry
             self._show_onboarding = True
             return
-        self.set_conf('show_onboarding', False)
         self.sig_open_file.emit(onboarding_file)
+        self.set_conf('show_onboarding', False)
 
     @Slot(str, object)
     def _wrong_response_error(self, method, resp):
