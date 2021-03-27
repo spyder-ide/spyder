@@ -87,8 +87,9 @@ class LayoutContainer(PluginMainContainer):
         # Maximize current dockable plugin
         self._maximize_dockwidget_action = self.create_action(
             LayoutContainerActions.MaximizeCurrentDockwidget,
-            text='',
-            triggered=self._plugin.maximize_dockwidget,
+            text=_('Maximize current pane'),
+            icon=self.create_icon('maximize'),
+            toggled=lambda state: self._plugin.maximize_dockwidget(),
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_')

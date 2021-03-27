@@ -986,7 +986,7 @@ class MainWindow(QMainWindow):
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
-        self.file_toolbar_actions = [self.file_switcher_action,
+        self.file_toolbar_actions += [self.file_switcher_action,
                                      self.symbol_finder_action]
 
         def create_edit_action(text, tr_text, icon):
