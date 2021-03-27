@@ -143,7 +143,8 @@ class VariableExplorerWidget(PluginMainWidget):
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(self._stack)
-        # layout.addWidget(self.finder)
+        # Note: Later with the addition of the first NamespaceBrowser the
+        # find/search widget is added. See 'set_current_widget'
         self.setLayout(layout)
 
         # Signals
@@ -465,8 +466,10 @@ class VariableExplorerWidget(PluginMainWidget):
     def remove_widget(self, nsb):
         self._stack.removeWidget(nsb)
 
-    def set_current_widget(self, nsb, old_nsb):
+    def update_finder(self, nsb, old_nsb):
+        """Initialize or update finder widget."""
         if self.finder is None:
+            # Initialize finder/search related widgets
             self.finder = QWidget(self)
             self.text_finder = NamespacesBrowserFinder(
                 nsb.editor,
@@ -486,17 +489,26 @@ class VariableExplorerWidget(PluginMainWidget):
             self.finder.setLayout(finder_layout)
             self.layout().addWidget(self.finder)
         else:
+            # Just update references to the same text_finder (Custom QLineEdit)
+            # widget to the new current NamespaceBrowser
             if old_nsb is not None:
                 last_find = self.text_finder.text()
                 finder_visibility = self.finder.isVisible()
                 old_nsb.save_finder_state(last_find, finder_visibility)
-
             self.text_finder.update_parent(
                 nsb.editor,
                 callback=nsb.editor.set_regex,
                 main=nsb,
             )
 
+    def set_current_widget(self, nsb, old_nsb):
+        """
+        Set the current NamespaceBrowser.
+
+        This also setup the finder widget to work with the current
+        NamespaceBrowser.
+        """
+        self.update_finder(nsb, old_nsb)
         finder_visible = nsb.set_text_finder(self.text_finder)
         self._stack.setCurrentWidget(nsb)
         self.finder.setVisible(finder_visible)
@@ -568,7 +580,6 @@ class VariableExplorerWidget(PluginMainWidget):
             else:
                 self.finder.text_finder.setText('')
             self.finder.setVisible(checked)
-    
             if self.finder.isVisible():
                 self.finder.text_finder.setFocus()
             else:
