@@ -104,16 +104,16 @@ class VCSStatus(StatusBarWidget):
         if self._git_is_working:
             self._git_job_queue = (fname, index)
         else:
-            if (not running_under_pytest() or
-                    os.environ.get('SPY_TEST_USE_WORKERS')):
-                self._worker_manager.terminate_all()
-                worker = self._worker_manager.create_python_worker(
-                    self.get_git_refs, fname)
-                worker.sig_finished.connect(self.process_git_data)
-                self._last_git_job = (fname, index)
-                self._git_job_queue = None
-                self._git_is_working = True
-                worker.start()
+            #if (not running_under_pytest() or
+            #        os.environ.get('SPY_TEST_USE_WORKERS')):
+            self._worker_manager.terminate_all()
+            worker = self._worker_manager.create_python_worker(
+                self.get_git_refs, fname)
+            worker.sig_finished.connect(self.process_git_data)
+            self._last_git_job = (fname, index)
+            self._git_job_queue = None
+            self._git_is_working = True
+            worker.start()
 
     def get_git_refs(self, fname):
         """Get Git active branch, state, branches (plus tags)."""

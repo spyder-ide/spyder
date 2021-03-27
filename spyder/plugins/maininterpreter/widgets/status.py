@@ -133,12 +133,12 @@ class InterpreterStatus(BaseTimerStatus):
         Get the list of environments in a thread to keep them up to
         date.
         """
-        if (not running_under_pytest() or
-                os.environ.get('SPY_TEST_USE_WORKERS')):
-            self._worker_manager.terminate_all()
-            worker = self._worker_manager.create_python_worker(self._get_envs)
-            worker.sig_finished.connect(self.update_envs)
-            worker.start()
+        #if (not running_under_pytest() or
+        #        os.environ.get('SPY_TEST_USE_WORKERS')):
+        self._worker_manager.terminate_all()
+        worker = self._worker_manager.create_python_worker(self._get_envs)
+        worker.sig_finished.connect(self.update_envs)
+        worker.start()
 
     def update_envs(self, worker, output, error):
         """Update the list of environments in the system."""
