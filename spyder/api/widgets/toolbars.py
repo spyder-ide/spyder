@@ -235,7 +235,7 @@ class MainWidgetToolbar(SpyderToolbar):
             QToolBar {
                 border: 0px;
                 background: '#19232D';
-                border-botom: '#19232D';
+                border-bottom: '#19232D';
                 spacing: 0.3em;
                 padding: 0px;
             }

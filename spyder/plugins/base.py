@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
+from spyder.config.gui import get_color_scheme, get_font, is_dark_interface, STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
@@ -177,13 +177,8 @@ class BasePluginWidgetMixin(object):
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
         # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+
+        self.options_button.setStyleSheet(STYLE_BUTTON_CSS)
 
         # Options menu
         self._options_menu = QMenu(self)
