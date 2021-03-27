@@ -3700,6 +3700,8 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 @pytest.mark.parametrize(
     'main_window',
     [{'spy_config': ('main', 'show_tour_message', 2)}],
