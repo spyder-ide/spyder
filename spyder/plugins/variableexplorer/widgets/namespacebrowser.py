@@ -63,6 +63,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.filename = None
         self.text_finder = None
         self.last_find = ''
+        self.finder_is_visible = False
 
         # Widgets
         self.editor = None
@@ -115,11 +116,19 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         shellwidget.set_namespacebrowser(self)
 
     def set_text_finder(self, text_finder):
-        """Binder NamespaceBrowsersFinder to namespace browser."""
+        """Bind NamespaceBrowsersFinder to namespace browser."""
         self.text_finder = text_finder
-        self.text_finder.setText(self.last_find)
-
+        if self.finder_is_visible:
+            self.text_finder.setText(self.last_find)
         self.editor.finder = text_finder
+
+        return self.finder_is_visible
+
+    def save_finder_state(self, last_find, finder_visibility):
+        """Save last finder/search text input and finder visibility."""
+        if last_find:
+            self.last_find = last_find
+        self.finder_is_visible = finder_visibility
 
     def refresh_table(self):
         """Refresh variable table"""

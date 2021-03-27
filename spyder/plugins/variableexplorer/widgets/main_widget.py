@@ -487,19 +487,21 @@ class VariableExplorerWidget(PluginMainWidget):
             self.layout().addWidget(self.finder)
         else:
             if old_nsb is not None:
-                old_nsb.last_find = self.text_finder.text()
+                last_find = self.text_finder.text()
+                finder_visibility = self.finder.isVisible()
+                old_nsb.save_finder_state(last_find, finder_visibility)
+
             self.text_finder.update_parent(
                 nsb.editor,
                 callback=nsb.editor.set_regex,
                 main=nsb,
             )
-            self.finder.text_finder = self.text_finder
 
-        nsb.set_text_finder(self.text_finder)
-        self.finder.text_finder = self.text_finder
-        # self.finder.setVisible(False)
-
+        finder_visible = nsb.set_text_finder(self.text_finder)
         self._stack.setCurrentWidget(nsb)
+        self.finder.setVisible(finder_visible)
+        search_action = self.get_action(VariableExplorerWidgetActions.Search)
+        search_action.setChecked(finder_visible)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -512,13 +514,13 @@ class VariableExplorerWidget(PluginMainWidget):
         """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self._shellwidgets:
+            old_nsb = self.current_widget()
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)
             nsb.setup()
             self.add_widget(nsb)
             self._set_actions_and_menus(nsb)
             self._shellwidgets[shellwidget_id] = nsb
-            old_nsb = self.current_widget()
             self.set_current_widget(nsb, old_nsb)
             self.update_actions()
             return nsb
@@ -532,9 +534,9 @@ class VariableExplorerWidget(PluginMainWidget):
 
     def set_shellwidget(self, shellwidget):
         shellwidget_id = id(shellwidget)
+        old_nsb = self.current_widget()
         if shellwidget_id in self._shellwidgets:
             nsb = self._shellwidgets[shellwidget_id]
-            old_nsb = self.current_widget()
             self.set_current_widget(nsb, old_nsb)
 
     def import_data(self, filenames=None):
@@ -561,19 +563,22 @@ class VariableExplorerWidget(PluginMainWidget):
     def show_finder(self, checked):
         if self.count():
             nsb = self.current_widget()
-            self.finder.text_finder.setText('')
+            if checked:
+                self.finder.text_finder.setText(nsb.last_find)
+            else:
+                self.finder.text_finder.setText('')
             self.finder.setVisible(checked)
     
             if self.finder.isVisible():
                 self.finder.text_finder.setFocus()
             else:
                 nsb.editor.setFocus()
-            # nsb.show_finder(checked)
 
     @Slot()
     def hide_finder(self):
         action = self.get_action(VariableExplorerWidgetActions.Search)
         action.setChecked(False)
+        self.finder.text_finder.setText('')
 
     def refresh_table(self):
         if self.count():
