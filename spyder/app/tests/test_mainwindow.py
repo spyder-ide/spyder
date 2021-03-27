@@ -3573,6 +3573,8 @@ def test_immediate_debug(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_local_namespace(main_window, qtbot, tmpdir):
     """
     Test that the local namespace is not reset.
@@ -3642,13 +3644,10 @@ hello()
             nsb.editor.source_model._data['test']['view'] == '3')
 
 
-@pytest.mark.first
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Fails sometimes on macOS")
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a
