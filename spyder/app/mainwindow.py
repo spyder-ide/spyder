@@ -65,7 +65,6 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
-import qdarkstyle
 from qtawesome.iconic_font import FontError
 
 #==============================================================================
@@ -104,6 +103,7 @@ from spyder.utils.qthelpers import (create_action, add_actions,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
                                     MENU_SEPARATOR, qapplication, start_file)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 from spyder.app.solver import (
@@ -764,7 +764,7 @@ class MainWindow(QMainWindow):
                 # Set style proxy to fix combobox popup on mac and qdark
                 qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
-            dark_qss = qdarkstyle.load_stylesheet()
+            dark_qss = str(APP_STYLESHEET)
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
@@ -774,7 +774,7 @@ class MainWindow(QMainWindow):
                     # Set style proxy to fix combobox popup on mac and qdark
                     qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
-                dark_qss = qdarkstyle.load_stylesheet()
+                dark_qss = str(APP_STYLESHEET)
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH

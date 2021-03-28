@@ -21,7 +21,6 @@ import functools
 import unicodedata
 
 # Third party imports
-import qdarkstyle
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
@@ -45,6 +44,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
                                     mimedata2url, set_menu_icons,
                                     create_waitspinner)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.findreplace import FindReplace
@@ -3176,7 +3176,7 @@ class EditorMainWindow(QMainWindow):
 
         # Setting interface theme
         if is_dark_interface():
-            self.setStyleSheet(qdarkstyle.load_stylesheet())
+            self.setStyleSheet(str(APP_STYLESHEET))
 
         # Give focus to current editor to update/show all status bar widgets
         editorstack = self.editorwidget.editorsplitter.editorstack

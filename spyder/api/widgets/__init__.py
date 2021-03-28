@@ -30,7 +30,6 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
                             QWidget)
-import qdarkstyle
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -44,6 +43,7 @@ from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -1041,7 +1041,7 @@ def run_test():
     widget.start_spinner()
     dock, location = widget.create_dockwidget(main)
     main.addDockWidget(location, dock)
-    main.setStyleSheet(qdarkstyle.load_stylesheet())
+    main.setStyleSheet(str(APP_STYLESHEET))
     main.show()
     app.exec_()
 

@@ -13,11 +13,15 @@ from qdarkstyle.colorsystem import Blue, Gray
 from qdarkstyle.darkpalette import DarkPalette
 
 # Local imports
+from spyder.config.gui import is_dark_interface
 from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
                                        GroupLight, Logos)
-from spyder.config.gui import is_dark_interface
 
+# =============================================================================
+# ---- Spyder palettes
+# =============================================================================
 class SpyderPaletteDark:
+    """Dark palette for Spyder."""
 
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
@@ -75,6 +79,7 @@ class SpyderPaletteDark:
 
 
 class SpyderPaletteLight:
+    """Light palette for Spyder."""
 
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
@@ -171,6 +176,9 @@ class LightPalette(object):
     W_STATUS_BAR_BACKGROUND_COLOR = COLOR_ACCENT_1
 
 
+# =============================================================================
+# ---- Exported classes
+# =============================================================================
 if is_dark_interface():
     SpyderPalette = SpyderPaletteDark
     QStylePalette = DarkPalette

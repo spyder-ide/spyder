@@ -18,7 +18,6 @@ import os
 import os.path as osp
 
 # Third party imports
-import qdarkstyle
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
@@ -28,6 +27,7 @@ from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.helperwidgets import IconLineEdit
 
 
@@ -256,7 +256,7 @@ class PathComboBox(EditableComboBox):
 
         completer = QCompleter(opts, self)
         if is_dark_interface():
-            dark_qss = qdarkstyle.load_stylesheet()
+            dark_qss = str(APP_STYLESHEET)
             completer.popup().setStyleSheet(dark_qss)
         self.setCompleter(completer)
 
@@ -371,7 +371,7 @@ class FileComboBox(PathComboBox):
 
         completer = QCompleter(opts, self)
         if is_dark_interface():
-            dark_qss = qdarkstyle.load_stylesheet()
+            dark_qss = str(APP_STYLESHEET)
             completer.popup().setStyleSheet(dark_qss)
         self.setCompleter(completer)
 

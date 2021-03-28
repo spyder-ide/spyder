@@ -14,11 +14,10 @@ import os
 import sys
 
 # Third party imports
-import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
-from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
-                            QMenu, QMessageBox, QShortcut, QToolButton)
+from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
+                            QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
@@ -30,6 +29,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
     toggle_actions, set_menu_icons)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.dock import SpyderDockWidget
 
 
@@ -134,7 +134,7 @@ class PluginWindow(QMainWindow):
 
         # Setting interface theme
         if is_dark_interface():
-            self.setStyleSheet(qdarkstyle.load_stylesheet())
+            self.setStyleSheet(str(APP_STYLESHEET))
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
