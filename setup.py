@@ -230,6 +230,7 @@ install_requires = [
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8,<3.0',
+    'qstylizer>=0.1.10',
     'qtawesome>=0.5.7',
     'qtconsole>=5.0.3',
     'qtpy>=1.5.0',
