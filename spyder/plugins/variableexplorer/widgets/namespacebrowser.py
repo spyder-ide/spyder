@@ -59,7 +59,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         super().__init__(parent=parent, class_parent=parent)
 
         # Attributes
-        self.is_visible = True
         self.filename = None
         self.text_finder = None
         self.last_find = ''
@@ -131,13 +130,12 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.finder_is_visible = finder_visibility
 
     def refresh_table(self):
-        """Refresh variable table"""
-        if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser()
-            try:
-                self.editor.resizeRowToContents()
-            except TypeError:
-                pass
+        """Refresh variable table."""
+        self.shellwidget.refresh_namespacebrowser()
+        try:
+            self.editor.resizeRowToContents()
+        except TypeError:
+            pass
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
