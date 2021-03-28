@@ -3303,8 +3303,7 @@ class EditorPluginExample(QSplitter):
         self.last_focused_editorstack = {} # fake
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
-                                                     show_all_files=False)
+        self.outlineexplorer = OutlineExplorerWidget(None, self, self)
         self.outlineexplorer.edit_goto.connect(self.go_to_file)
         self.editor_splitter = EditorSplitter(self, self, menu_actions,
                                               first=True)
@@ -3356,7 +3355,6 @@ class EditorPluginExample(QSplitter):
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
             oe_btn = create_toolbutton(self)
-            oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
             editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
 
         action = QAction(self)

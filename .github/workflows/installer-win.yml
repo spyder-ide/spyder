@@ -15,9 +15,9 @@ jobs:
       matrix:
         build_type: ['Lite', 'Full']
     env:
-      UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree' || 'pip python-slugify Rtree' }}
+      UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree QDarkStyle' || 'pip python-slugify Rtree' }}
       SKIP_PACKAGES: 'bcrypt slugify'
-      ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree' || 'blib2to3 _black_version blackd rtree' }}
+      ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle' || 'blib2to3 _black_version blackd rtree' }}
       PYNSIST_REQ: pynsist==2.5.1
       EXTRA_FLAG: ${{ matrix.build_type == 'Full' && github.event_name == 'pull_request' && '-ep installers/Windows/req-extras-pull-request.txt' || matrix.build_type == 'Lite' && github.event_name == 'pull_request' && '-ep installers/Windows/req-pull-request.txt' || matrix.build_type == 'Full' && '-ep installers/Windows/req-extras-release.txt' || '-ep installers/Windows/req-release.txt' }}
       SUFFIX_FLAG: ${{ matrix.build_type == 'Lite' && '-s lite' || '-s full' }}

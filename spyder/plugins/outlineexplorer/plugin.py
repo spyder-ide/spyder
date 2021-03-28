@@ -4,147 +4,79 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Outline Explorer Plugin
-
-Data for outline are provided by the outlineexplorer data of
-highlighter of assigned editor. For example, for Python files code editor uses
-highlighter spyder.utils.syntaxhighlighters.PythonSH
-"""
+"""Outline Explorer Plugin."""
 
 # Third party imports
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
-from spyder.config.base import _
-from spyder.api.plugins import Plugins, SpyderPluginWidget
+from spyder.api.translations import get_translation
+from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.py3compat import is_text_string
 from spyder.utils.icon_manager import ima
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 
+# Localization
+_ = get_translation('spyder')
 
-class OutlineExplorer(SpyderPluginWidget):
-    """Outline Explorer plugin."""
 
-    CONF_SECTION = 'outline_explorer'
-    CONF_FILE = False
-
-    # This is required for the new API
+class OutlineExplorer(SpyderDockablePlugin):
     NAME = 'outline_explorer'
+    CONF_SECTION = 'outline_explorer'
     REQUIRES = [Plugins.Completions]
     OPTIONAL = []
 
-    def __init__(self, parent=None):
-        SpyderPluginWidget.__init__(self, parent)
+    CONF_FILE = False
+    WIDGET_CLASS = OutlineExplorerWidget
 
-        show_fullpath = self.get_option('show_fullpath')
-        show_all_files = self.get_option('show_all_files')
-        group_cells = self.get_option('group_cells')
-        show_comments = self.get_option('show_comments')
-        sort_files_alphabetically = self.get_option(
-            'sort_files_alphabetically')
-        follow_cursor = self.get_option('follow_cursor')
-        display_variables = self.get_option('display_variables')
+    # ---- SpyderDockablePlugin API
+    # ------------------------------------------------------------------------
+    def get_name(self) -> str:
+        """Return widget title."""
+        return _('Outline Explorer')
 
-        self.explorer = OutlineExplorerWidget(
-           self,
-           show_fullpath=show_fullpath,
-           show_all_files=show_all_files,
-           group_cells=group_cells,
-           show_comments=show_comments,
-           sort_files_alphabetically=sort_files_alphabetically,
-           display_variables=display_variables,
-           follow_cursor=follow_cursor,
-           options_button=self.options_button)
+    def get_description(self) -> str:
+        """Return the description of the outline explorer widget."""
+        return _("Explore a file's functions, classes and methods")
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.explorer)
-        self.setLayout(layout)
+    def get_icon(self):
+        """Return the outline explorer icon."""
+        return self.create_icon('outline_explorer')
 
-        # Menu as corner widget
-        self.explorer.treewidget.header().hide()
-        self.load_config()
+    def register(self):
+        completions = self.get_plugin(Plugins.Completions)
+        if self.main:
+            self.main.restore_scrollbar_position.connect(
+                self.restore_scrollbar_position)
 
-    #------ SpyderPluginWidget API ---------------------------------------------
-    def get_plugin_title(self):
-        """Return widget title"""
-        return _("Outline")
-
-    def get_plugin_icon(self):
-        """Return widget icon"""
-        return ima.icon('outline_explorer')
-
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.explorer.treewidget
-
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return self.explorer.treewidget.get_menu_actions()
-
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.restore_scrollbar_position.connect(
-                                               self.restore_scrollbar_position)
-        self.main.completions.sig_language_completions_available.connect(
+        completions.sig_language_completions_available.connect(
             self.start_symbol_services)
-        self.main.completions.sig_stop_completions.connect(
+        completions.sig_stop_completions.connect(
             self.stop_symbol_services)
-        self.add_dockwidget()
-
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        self.save_config()
-        return True
-
-    #------ BasePluginWidgetMixin API ---------------------------------------------
-    def _visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
-        super(SpyderPluginWidget, self)._visibility_changed(enable)
-        if enable:
-            self.explorer.is_visible.emit()
 
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
-        scrollbar_pos = self.get_option('scrollbar_position', None)
+        scrollbar_pos = self.get_conf('scrollbar_position', None)
+        explorer = self.get_widget()
         if scrollbar_pos is not None:
-            self.explorer.treewidget.set_scrollbar_position(scrollbar_pos)
-
-    def save_config(self):
-        """Save configuration: tree widget state"""
-        for option, value in list(self.explorer.get_options().items()):
-            self.set_option(option, value)
-        self.set_option('expanded_state',
-                        self.explorer.treewidget.get_expanded_state())
-        self.set_option('scrollbar_position',
-                        self.explorer.treewidget.get_scrollbar_position())
-
-    def load_config(self):
-        """Load configuration: tree widget state"""
-        expanded_state = self.get_option('expanded_state', None)
-        # Sometimes the expanded state option may be truncated in .ini file
-        # (for an unknown reason), in this case it would be converted to a
-        # string by 'userconfig':
-        if is_text_string(expanded_state):
-            expanded_state = None
-        if expanded_state is not None:
-            self.explorer.treewidget.set_expanded_state(expanded_state)
+            explorer.treewidget.set_scrollbar_position(scrollbar_pos)
 
     @Slot(dict, str)
     def start_symbol_services(self, capabilities, language):
         """Enable LSP symbols functionality."""
+        explorer = self.get_widget()
         symbol_provider = capabilities.get('documentSymbolProvider', False)
         if symbol_provider:
-            self.explorer.start_symbol_services(language)
+            explorer.start_symbol_services(language)
 
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
-        self.explorer.stop_symbol_services(language)
+        explorer = self.get_widget()
+        explorer.stop_symbol_services(language)
 
     def update_all_editors(self):
         """Update all editors with an associated LSP server."""
-        self.explorer.update_all_editors()
+        explorer = self.get_widget()
+        explorer.update_all_editors()
