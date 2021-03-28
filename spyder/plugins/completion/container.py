@@ -9,11 +9,10 @@
 # Standard library imports
 
 # Third-party imports
-from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 
 
 class CompletionContainer(PluginMainContainer):

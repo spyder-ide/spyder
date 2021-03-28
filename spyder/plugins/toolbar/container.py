@@ -12,13 +12,12 @@ Toolbar Container.
 from collections import OrderedDict
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import QMenu, QToolBar
+from qtpy.QtCore import QSize, Slot
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars

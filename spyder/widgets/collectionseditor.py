@@ -1408,6 +1408,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.dictfilter = None
         self.delegate = None
         self.readonly = False
+        self.finder = None
 
         self.source_model = CollectionsModel(
             self, data, names=True,
@@ -1528,7 +1529,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the variable finder."""
-        if reset or not self.finder.text():
+        if reset or self.finder is None or not self.finder.text():
             text = ''
         else:
             text = self.finder.text().replace(' ', '').lower()

@@ -27,16 +27,13 @@ import gc
 import logging
 import os
 import os.path as osp
-import re
 import shutil
 import signal
 import socket
 import glob
-import subprocess
 import sys
 import threading
 import traceback
-import importlib
 
 #==============================================================================
 # Check requirements before proceeding
@@ -49,15 +46,12 @@ requirements.check_spyder_kernels()
 #==============================================================================
 # Third-party imports
 #==============================================================================
-from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
-                         QThread, QTimer, QUrl, Signal, Slot,
+from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence
-from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
-                            QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QStyleFactory, QCheckBox)
+from qtpy.QtGui import QColor, QIcon, QKeySequence
+from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QMenu,
+                            QMessageBox, QShortcut, QStyleFactory, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -73,39 +67,31 @@ from qtawesome.iconic_font import FontError
 # are needed in MainWindow to speed up perceived startup time (i.e. the time
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
-from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, get_versions, __docs_url__)
+from spyder import __version__
 from spyder import dependencies
 from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
-                              get_python_doc_path, qt_message_handler,
-                              setup_logging, set_opengl_implementation, Spy)
+                              qt_message_handler, setup_logging,
+                              set_opengl_implementation, Spy)
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
-                                get_home_dir, get_module_path,
-                                get_module_source_path, get_safe_mode,
-                                is_pynsist, running_in_mac_app,
+                                get_home_dir, get_module_source_path,
+                                get_safe_mode, is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
 from spyder.utils.image_path_manager import get_image_path
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
+from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.otherplugins import get_spyderplugins_mods
-from spyder.py3compat import (configparser as cp, is_text_string,
-                              PY3, qbytearray_to_str, to_text_string)
+from spyder.py3compat import configparser as cp, PY3, to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
 from spyder.utils.palette import QStylePalette
-from spyder.utils.programs import is_module_installed
-from spyder.utils.qthelpers import (create_action, add_actions,
-                                    create_program_action, DialogManager,
-                                    create_python_script_action, file_uri,
-                                    MENU_SEPARATOR, qapplication, start_file)
+from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
+                                    qapplication, start_file)
 from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.otherplugins import get_spyderplugins_mods
-from spyder.app import tour
 from spyder.app.solver import (
     find_external_plugins, find_internal_plugins, solve_plugin_dependencies)
 
@@ -121,7 +107,6 @@ is_attached_console_visible = None
 set_windows_appusermodelid = None
 if os.name == 'nt':
     from spyder.utils.windows import (set_attached_console_visible,
-                                      is_attached_console_visible,
                                       set_windows_appusermodelid)
 
 #==============================================================================
@@ -300,9 +285,10 @@ class MainWindow(QMainWindow):
             plugin.sig_redirect_stdio,
             plugin.sig_status_message_requested,
         ]
-        for signal in signals:
+
+        for sig in signals:
             try:
-                signal.disconnect()
+                sig.disconnect()
             except TypeError:
                 pass
 
@@ -500,9 +486,8 @@ class MainWindow(QMainWindow):
             # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
             self._proxy_style = SpyderProxyStyle(None)
 
-        if PYQT5:
-            # Enabling scaling for high dpi
-            qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        # Enabling scaling for high dpi
+        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         self.default_style = str(qapp.style().objectName())
 
@@ -680,7 +665,7 @@ class MainWindow(QMainWindow):
                 self.open_files_server = socket.socket(socket.AF_INET,
                                                        socket.SOCK_STREAM,
                                                        socket.IPPROTO_TCP)
-            except OSError as e:
+            except OSError:
                 self.open_files_server = None
                 QMessageBox.warning(None, "Spyder",
                          _("An error occurred while creating a socket needed "
@@ -1171,7 +1156,6 @@ class MainWindow(QMainWindow):
         """Create an action for each lsp log file."""
         self.menu_lsp_logs.clear()
         lsp_logs = []
-        regex = re.compile(r'.*_.*_(\d+)[.]log')
         files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
         for f in files:
             action = create_action(self, f, triggered=self.editor.load)
@@ -2131,10 +2115,9 @@ def create_application():
     sys.exit = fake_sys_exit
 
     # ----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
-    if PYQT5:
-        def spy_excepthook(type_, value, tback):
-            sys.__excepthook__(type_, value, tback)
-        sys.excepthook = spy_excepthook
+    def spy_excepthook(type_, value, tback):
+        sys.__excepthook__(type_, value, tback)
+    sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter
     sys.argv = ['']
