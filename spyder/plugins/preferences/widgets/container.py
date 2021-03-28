@@ -9,7 +9,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
 
 

@@ -14,22 +14,18 @@ import uuid
 # Third party imports
 from intervaltree import IntervalTree
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
+from qtpy.QtCore import Qt, QTimer, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem,
                             QTreeWidgetItemIterator)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.widgets import PluginMainWidget
-from spyder.api.widgets.menus import PluginMainWidgetMenus, OptionsMenuSections
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
-from spyder.utils.qthelpers import (create_action, create_toolbutton,
-                                    set_item_user_text, create_plugin_layout,
-                                    create_waitspinner)
+from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.onecolumntree import OneColumnTree
 
 

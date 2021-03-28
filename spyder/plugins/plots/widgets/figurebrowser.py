@@ -19,14 +19,14 @@ import sys
 from qtconsole.svg import svg_to_clipboard, svg_to_image
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QKeySequence, QPainter, QPixmap
+from qtpy.QtGui import QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
-                            QMenu, QScrollArea, QScrollBar, QSpinBox,
-                            QSplitter, QStyle, QVBoxLayout, QWidget)
+                            QScrollArea, QScrollBar, QSplitter, QStyle,
+                            QVBoxLayout, QWidget)
 
 # Local library imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import is_dark_interface
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette

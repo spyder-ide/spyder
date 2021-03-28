@@ -21,11 +21,8 @@ from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget
-from spyder.plugins.onlinehelp.pydoc_patch import (CustomHTMLDoc,
-                                                   _start_server,
-                                                   _url_handler)
-from spyder.utils.misc import select_port
+from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
 from spyder.widgets.browser import WebView, WebViewActions
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace

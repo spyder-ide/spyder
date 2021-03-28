@@ -29,9 +29,8 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.gui import get_font
-from spyder.config.main import EXCLUDE_PATTERNS  # This could be more general?
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import SpyderPalette, QStylePalette
