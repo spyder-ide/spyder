@@ -24,13 +24,11 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
-from spyder.config.gui import is_dark_interface
-from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
-                                                 generate_context, loading,
-                                                 usage, warning)
+from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
+                                                 loading, usage, warning)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import programs

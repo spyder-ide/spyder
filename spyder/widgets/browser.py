@@ -16,17 +16,16 @@ from qtpy.QtCore import Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
                                      QWebEngineSettings, QWebEngineView)
-from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QMenu, QProgressBar,
-                            QWidget)
+from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (action2button, add_actions, create_action,
-                                    create_plugin_layout, create_toolbutton)
+from spyder.utils.qthelpers import (action2button, create_plugin_layout,
+                                    create_toolbutton)
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
 
