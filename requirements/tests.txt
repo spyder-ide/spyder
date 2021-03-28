@@ -13,7 +13,7 @@ pytest <6.0
 pytest-cov
 pytest-lazy-fixture
 pytest-mock
-pytest-ordering
+pytest-order
 pytest-qt
 pyyaml
 scipy

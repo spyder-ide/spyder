@@ -256,7 +256,7 @@ extras_require = {
         'pytest-cov',
         'pytest-lazy-fixture',
         'pytest-mock',
-        'pytest-ordering',
+        'pytest-order',
         'pytest-qt',
         'pyyaml',
         'scipy',
