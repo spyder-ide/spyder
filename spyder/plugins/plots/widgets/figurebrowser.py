@@ -212,7 +212,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             The available splitter width.
         """
         min_sb_width = self.thumbnails_sb._min_scrollbar_width
-        self.splitter.setSizes([base_width - min_sb_width, min_sb_width])
+        if base_width - min_sb_width > 0:
+            self.splitter.setSizes([base_width - min_sb_width, min_sb_width])
 
     def show_fig_outline_in_viewer(self, state):
         """Draw a frame around the figure viewer if state is True."""
