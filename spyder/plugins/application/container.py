@@ -22,7 +22,7 @@ from spyder import (
     __docs_url__, __forum_url__, __project_url__, __trouble_url__)
 from spyder import dependencies
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import DEV
 from spyder.config.utils import is_anaconda
 from spyder.utils.qthelpers import start_file, DialogManager

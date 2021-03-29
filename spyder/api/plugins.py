@@ -38,14 +38,13 @@ from qtpy.QtWidgets import QApplication, QWidget
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer, PluginMainWidget
+from spyder.api.widgets.main_container import PluginMainContainer
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import get_color_scheme, get_font
-from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
-from spyder.py3compat import configparser as cp
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 

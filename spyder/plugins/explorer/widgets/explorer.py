@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.utils import (

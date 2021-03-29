@@ -98,7 +98,8 @@ packages=
     win32security
     ntsecuritycon
     {packages}
-files=black-20.8b1.dist-info > $INSTDIR/pkgs
+files={package_dist_info} > $INSTDIR/pkgs
+    black-20.8b1.dist-info > $INSTDIR/pkgs
     __main__.py > $INSTDIR/pkgs/jedi/inference/compiled/subprocess
     lib
     tcl86t.dll > $INSTDIR/pkgs
@@ -242,6 +243,7 @@ def create_pynsist_cfg(
     repo_package_name = repo_about_file["__title__"]
     repo_version = repo_about_file["__installer_version__"]
     repo_author = repo_about_file["__author__"]
+    repo_dist_info = "{}-{}.dist-info".format(package, repo_version)
 
     requirements = [
         # Those from pip freeze except the package itself and packages local
@@ -282,6 +284,7 @@ def create_pynsist_cfg(
         packages="\n    ".join(packages),
         installer_name=installer_exe,
         template=template,
+        package_dist_info=repo_dist_info
     )
     with open(filename, "wt", encoding=encoding) as f:
         f.write(pynsist_cfg_payload)
@@ -408,6 +411,18 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             subprocess_run([env_python, "-m",
                             "pip", "install", repo_root,
                             "--no-warn-script-location"])
+
+            print("Copy package .dist-info into the pynsist future "
+                  "build directory")
+            package_info = about_dict(repo_root, package)
+            dist_info_dir = "{}-{}.dist-info".format(
+                package,
+                package_info["__installer_version__"])
+            shutil.copytree(
+                os.path.join(
+                    work_dir, "packaging-env/Lib/site-packages",
+                    dist_info_dir),
+                os.path.join(work_dir, dist_info_dir))
 
             if extra_packages:
                 print("Installing extra packages.")

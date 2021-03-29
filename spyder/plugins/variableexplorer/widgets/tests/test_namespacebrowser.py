@@ -12,10 +12,7 @@ from __future__ import division
 # Standard library imports
 import string
 import sys
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 from flaky import flaky
@@ -24,7 +21,7 @@ from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespaceBrowser)
+    NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
 from spyder.py3compat import PY2
 from spyder.widgets.collectionseditor import ROWS_TO_LOAD
 from spyder.widgets.tests.test_collectioneditor import data, data_table
@@ -153,6 +150,12 @@ def test_filtering_with_large_rows(qtbot):
     qtbot.addWidget(browser)
     browser.set_shellwidget(Mock())
     browser.setup()
+    text_finder = NamespacesBrowserFinder(
+        browser.editor,
+        callback=browser .editor.set_regex,
+        main=browser,
+        regex_base=VALID_VARIABLE_CHARS)
+    browser.set_text_finder(text_finder)
 
     # Create data
     variables = {}
@@ -174,15 +177,15 @@ def test_filtering_with_large_rows(qtbot):
     assert data(model, 49, 0) == 'e49'
 
     # Assert we can filter variables not loaded yet.
-    qtbot.keyClicks(browser.finder.text_finder, "t19")
+    qtbot.keyClicks(text_finder, "t19")
     assert model.rowCount() == 10
 
     # Assert all variables effectively start with 't19'.
     for i in range(10):
         assert data(model, i, 0) == 't19{}'.format(i)
 
-    # Hide finder widget in order to reset it.
-    browser.show_finder(set_visible=False)
+    # Reset text_finder widget.
+    text_finder.setText('')
 
     # Create a new variable that starts with a different letter than
     # the rest.
@@ -196,7 +199,7 @@ def test_filtering_with_large_rows(qtbot):
     browser.process_remote_view(new_variables)
 
     # Assert that can find 'z' among the declared variables.
-    qtbot.keyClicks(browser.finder.text_finder, "z")
+    qtbot.keyClicks(text_finder, "z")
     assert model.rowCount() == 1
 
 

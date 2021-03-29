@@ -26,7 +26,7 @@ from spyder_kernels.utils.nsview import REMOTE_SETTINGS, get_supported_types
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
@@ -59,13 +59,14 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         super().__init__(parent=parent, class_parent=parent)
 
         # Attributes
-        self.is_visible = True
         self.filename = None
+        self.text_finder = None
+        self.last_find = ''
+        self.finder_is_visible = False
 
         # Widgets
         self.editor = None
         self.shellwidget = None
-        self.finder = None
 
     def setup(self):
         """
@@ -94,35 +95,10 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.editor.sig_editor_shown.connect(
                 self.sig_stop_spinner_requested)
 
-            # Finder
-            self.finder = QWidget(self)
-            text_finder = NamespacesBrowserFinder(
-                self.editor,
-                callback=self.editor.set_regex,
-                main=self,
-                regex_base=VALID_VARIABLE_CHARS,
-            )
-            close_button = self.create_toolbutton(
-                'close_finder',
-                triggered=self.sig_hide_finder_requested,
-                icon=self.create_icon('DialogCloseButton'),
-            )
-
-            self.editor.finder = text_finder
-            self.finder.text_finder = text_finder
-            self.finder.setVisible(False)
-
-            finder_layout = QHBoxLayout()
-            finder_layout.addWidget(close_button)
-            finder_layout.addWidget(text_finder)
-            finder_layout.setContentsMargins(0, 0, 0, 0)
-            self.finder.setLayout(finder_layout)
-
             # Layout
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.editor)
-            layout.addWidget(self.finder)
             self.setLayout(layout)
 
     def get_view_settings(self):
@@ -138,30 +114,34 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
 
-    def show_finder(self, set_visible=False):
-        """Handle showing/hiding the finder widget."""
-        self.finder.text_finder.setText('')
-        self.finder.setVisible(set_visible)
+    def set_text_finder(self, text_finder):
+        """Bind NamespaceBrowsersFinder to namespace browser."""
+        self.text_finder = text_finder
+        if self.finder_is_visible:
+            self.text_finder.setText(self.last_find)
+        self.editor.finder = text_finder
 
-        if self.finder.isVisible():
-            self.finder.text_finder.setFocus()
-        else:
-            self.editor.setFocus()
+        return self.finder_is_visible
+
+    def save_finder_state(self, last_find, finder_visibility):
+        """Save last finder/search text input and finder visibility."""
+        if last_find and finder_visibility:
+            self.last_find = last_find
+        self.finder_is_visible = finder_visibility
 
     def refresh_table(self):
-        """Refresh variable table"""
-        if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser()
-            try:
-                self.editor.resizeRowToContents()
-            except TypeError:
-                pass
+        """Refresh variable table."""
+        self.shellwidget.refresh_namespacebrowser()
+        try:
+            self.editor.resizeRowToContents()
+        except TypeError:
+            pass
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
         # To load all variables when a new filtering search is
         # started.
-        self.finder.text_finder.load_all = False
+        self.text_finder.load_all = False
 
         if remote_view is not None:
             self.set_data(remote_view)
@@ -296,6 +276,16 @@ class NamespacesBrowserFinder(FinderLineEdit):
     """Textbox for filtering listed variables in the table."""
     # To load all variables when filtering.
     load_all = False
+
+    def update_parent(self, parent, callback=None, main=None):
+        self._parent = parent
+        self.main = main
+        try:
+            self.textChanged.disconnect()
+        except TypeError:
+            pass
+        if callback:
+            self.textChanged.connect(callback)
 
     def load_all_variables(self):
         """Load all variables to correctly filter them."""

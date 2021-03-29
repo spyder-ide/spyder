@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.layout.api import BaseGridLayoutType
 from spyder.plugins.layout.widgets.dialog import (
     LayoutSaveDialog, LayoutSettingsDialog)
@@ -87,8 +87,9 @@ class LayoutContainer(PluginMainContainer):
         # Maximize current dockable plugin
         self._maximize_dockwidget_action = self.create_action(
             LayoutContainerActions.MaximizeCurrentDockwidget,
-            text='',
-            triggered=self._plugin.maximize_dockwidget,
+            text=_('Maximize current pane'),
+            icon=self.create_icon('maximize'),
+            toggled=lambda state: self._plugin.maximize_dockwidget(),
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_')
@@ -280,7 +281,7 @@ class LayoutContainer(PluginMainContainer):
                 answer = QMessageBox.warning(
                     self,
                     _("Warning"),
-                    _("Layout <b>{0}</b> will be overwritten."
+                    _("Layout <b>{0}</b> will be overwritten. "
                       "Do you want to continue?").format(name),
                     QMessageBox.Yes | QMessageBox.No,
                 )

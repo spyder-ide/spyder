@@ -20,19 +20,19 @@ import os.path as osp
 import re
 import sys
 import time
-from enum import Enum
 from itertools import islice
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
-                            QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QLabel, QMessageBox, QTreeWidget,
+                            QTreeWidgetItem, QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget, SpyderWidgetMixin
+from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string

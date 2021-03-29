@@ -9,7 +9,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
 
 
@@ -107,7 +107,8 @@ class PreferencesContainer(PluginMainContainer):
         self.reset_action = self.create_action(
             PreferencesActions.Reset,
             _("Reset Spyder to factory defaults"),
-            triggered=self.reset
+            triggered=self.reset,
+            icon=self.create_icon('reset_factory_defaults'),
         )
 
     def update_actions(self):
