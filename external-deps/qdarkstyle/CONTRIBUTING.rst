@@ -217,7 +217,7 @@ Modifying QSS File
 
 If you are changing the `stylesheet <./qdarkstyle/style.qss>`__, you
 will need to recompile the QRC files using
-`process\_qrc.py <./script/process_qrc.py>`__ script, inside script
+`utils/\_\_main\_\_.py <./qdarkstyle/utils/__main__.py>`__ script, inside script
 folder.
 
 .. code:: bash
