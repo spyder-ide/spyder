@@ -9,12 +9,8 @@ Tests for EditorSplitter class in editor.py
 """
 
 # Standard library imports
-try:
-    from unittest.mock import Mock
-    import pathlib
-except ImportError:
-    from mock import Mock  # Python 2
-    import pathlib2 as pathlib
+from unittest.mock import Mock
+import pathlib
 
 import os
 import os.path as osp

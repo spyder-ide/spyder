@@ -19,10 +19,7 @@ import shutil
 import sys
 import tempfile
 from textwrap import dedent
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import IPython

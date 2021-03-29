@@ -13,10 +13,7 @@ Tests for the array editor.
 # Standard library imports
 import os
 import sys
-try:
-    from unittest.mock import Mock, ANY
-except ImportError:
-    from mock import Mock, ANY  # Python 2
+from unittest.mock import Mock, ANY
 
 # Third party imports
 import numpy as np

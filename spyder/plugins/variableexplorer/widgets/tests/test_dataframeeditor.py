@@ -16,10 +16,7 @@ from __future__ import division
 import os
 import sys
 from datetime import datetime
-try:
-    from unittest.mock import Mock, ANY
-except ImportError:
-    from mock import Mock, ANY  # Python 2
+from unittest.mock import Mock, ANY
 
 # Third party imports
 from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,

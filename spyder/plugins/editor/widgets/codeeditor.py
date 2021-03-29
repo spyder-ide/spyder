@@ -1489,10 +1489,7 @@ class CodeEditor(TextEditBaseWidget):
     def handle_hover_response(self, contents):
         """Handle hover response."""
         if running_under_pytest():
-            try:
-                from unittest.mock import Mock
-            except ImportError:
-                from mock import Mock  # Python 2
+            from unittest.mock import Mock
 
             # On some tests this is returning a Mock
             if isinstance(contents, Mock):
