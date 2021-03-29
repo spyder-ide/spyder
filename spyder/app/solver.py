@@ -77,8 +77,8 @@ def find_internal_plugins():
             try:
                 mod = importlib.import_module(module)
                 internal_plugins[name] = getattr(mod, class_name, None)
-            except (ModuleNotFoundError, ImportError):
-                pass
+            except (ModuleNotFoundError, ImportError) as e:
+                raise e
     else:
         import spyder.plugins as plugin_mod
 
