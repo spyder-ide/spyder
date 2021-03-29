@@ -10,7 +10,7 @@ Palettes for dark and light themes used in Spyder.
 
 # Third-party imports
 from qdarkstyle.colorsystem import Blue, Gray
-from qdarkstyle.darkpalette import DarkPalette
+from qdarkstyle.dark.palette import DarkPalette
 
 # Local imports
 from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
