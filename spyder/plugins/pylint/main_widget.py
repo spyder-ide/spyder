@@ -22,8 +22,8 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Qt,
-                         Signal, Slot)
+from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
+                         Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout)
 
@@ -64,7 +64,7 @@ MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
-    RunCodeAnalysis = "run analysis"
+    RunCodeAnalysis = "run_analysis_action"
     BrowseFile = "browse_action"
     ShowLog = "log_action"
 
@@ -430,8 +430,6 @@ class PylintWidget(PluginMainWidget):
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
             triggered=lambda: self.sig_start_analysis_requested.emit(),
-            context=Qt.ApplicationShortcut,
-            register_shortcut=True
         )
         self.browse_action = self.create_action(
             PylintWidgetActions.BrowseFile,
