@@ -649,7 +649,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             self._default_margins = layout.getContentsMargins()
 
         if margin is not None:
-            layout.setContentsMargins(margin, margin + 3, margin, margin)
+            layout.setContentsMargins(margin, margin, margin, margin)
         else:
             layout.setContentsMargins(*self._default_margins)
 

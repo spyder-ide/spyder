@@ -60,11 +60,8 @@ class MainCornerWidget(QWidget):
         self._layout = QHBoxLayout()
         self.setLayout(self._layout)
 
-        spacing = 2
-        self._layout.setSpacing(2)
-
         # left, top, right, bottom
-        self._layout.setContentsMargins(spacing, 0, spacing, spacing)
+        self._layout.setContentsMargins(0, 0, 0, 0)
         self.setContentsMargins(0, 0, 0, 0)
 
     def add_widget(self, widget_id, widget):
