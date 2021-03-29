@@ -258,7 +258,6 @@ class ProfilerWidget(PluginMainWidget):
                 toolbar=toolbar,
                 section=ProfilerWidgetMainToolbarSections.Main,
             )
-        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         # Secondary Toolbar
         secondary_toolbar = self.create_toolbar(
@@ -289,13 +288,9 @@ class ProfilerWidget(PluginMainWidget):
     def update_actions(self):
         if self.running:
             icon = self.create_icon('stop')
-            text = _('Stop')
         else:
             icon = self.create_icon('run')
-            text = _('Start')
-
         self.start_action.setIcon(icon)
-        self.start_action.setIconText(text)
 
         self.start_action.setEnabled(bool(self.filecombo.currentText()))
 

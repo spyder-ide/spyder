@@ -525,18 +525,9 @@ class PylintWidget(PluginMainWidget):
             self._update_combobox_history()
 
     def update_actions(self):
-        fm = self.ratelabel.fontMetrics()
-        toolbar = self.get_main_toolbar()
-        width = max([fm.width(_("Stop")), fm.width(_("Analyze"))])
-        widget = toolbar.widgetForAction(self.code_analysis_action)
-        if widget:
-            widget.setMinimumWidth(width * 1.5)
-
         if self._is_running():
-            self.code_analysis_action.setIconText(_("Stop"))
             self.code_analysis_action.setIcon(self.create_icon("stop"))
         else:
-            self.code_analysis_action.setIconText(_("Analyze"))
             self.code_analysis_action.setIcon(self.create_icon("run"))
 
         self.remove_obsolete_items()
