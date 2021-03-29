@@ -12,10 +12,11 @@ Holds references for base actions in the Application of Spyder.
 
 # Standard library imports
 import os
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, Slot
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QMessageBox, QAction
 
 # Local imports
 from spyder import (
@@ -114,6 +115,8 @@ class ApplicationContainer(PluginMainContainer):
             _("About %s...") % "Spyder",
             icon=self.create_icon('MessageBoxInformation'),
             triggered=self.show_about)
+        if sys.platform == 'darwin':
+            self.about_action.setMenuRole(QAction.AboutRole)
 
         # Tools actions
         if WinUserEnvDialog is not None:

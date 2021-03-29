@@ -4,8 +4,12 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+# Standard library imports
+import sys
+
 # Third party imports
 from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -103,6 +107,9 @@ class PreferencesContainer(PluginMainContainer):
             icon=self.create_icon('configure'),
             triggered=self.show_preferences
         )
+
+        if sys.platform == 'darwin':
+            self.show_action.setMenuRole(QAction.PreferencesRole)
 
         self.reset_action = self.create_action(
             PreferencesActions.Reset,
