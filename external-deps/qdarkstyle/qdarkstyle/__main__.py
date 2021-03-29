@@ -6,9 +6,6 @@ import argparse
 import sys
 from os.path import abspath, dirname
 
-# Third party imports
-import helpdev
-
 # Local imports
 import qdarkstyle
 
@@ -17,7 +14,7 @@ sys.path.insert(0, abspath(dirname(abspath(__file__)) + '/..'))
 
 def main():
     """Execute QDarkStyle helper."""
-    parser = argparse.ArgumentParser(description="QDarkStyle helper. Use the option --all to report bugs",
+    parser = argparse.ArgumentParser(description="QDarkStyle helper. Use the option --all to report bugs (requires 'helpdev')",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-i', '--information', action='store_true',
                         help="Show information about environment")
@@ -42,20 +39,27 @@ def main():
     if no_args:
         parser.print_help()
 
-    if args.information or args.all:
-        info.update(helpdev.check_os())
-        info.update(helpdev.check_python())
+    try:
+        import helpdev
 
-    if args.bindings or args.all:
-        info.update(helpdev.check_qt_bindings())
+    except (ModuleNotFoundError, ImportError):
+        print("You need to install the package helpdev to retrieve detailed information (e.g pip install helpdev)")
 
-    if args.abstractions or args.all:
-        info.update(helpdev.check_qt_abstractions())
+    else:
+        if args.information or args.all:
+            info.update(helpdev.check_os())
+            info.update(helpdev.check_python())
 
-    if args.dependencies or args.all:
-        info.update(helpdev.check_python_packages(packages='helpdev,qdarkstyle'))
+        if args.bindings or args.all:
+            info.update(helpdev.check_qt_bindings())
 
-    helpdev.print_output(info)
+        if args.abstractions or args.all:
+            info.update(helpdev.check_qt_abstractions())
+
+        if args.dependencies or args.all:
+            info.update(helpdev.check_python_packages(packages='helpdev,qdarkstyle'))
+
+        helpdev.print_output(info)
 
 
 if __name__ == "__main__":

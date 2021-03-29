@@ -19,13 +19,17 @@ matrix:
       env: TOXENV=py38-pyqt5
     - python: 3.8
       env: TOXENV=py38-pyside2
+    - python: 3.9
+      env: TOXENV=py39-pyqt5
+    - python: 3.9
+      env: TOXENV=py39-pyside2
 
     - python: 3.8
       env: TOXENV=py38-test
-    - python: 3.8
-      env: TOXENV=py38-lint
-    - python: 3.8
-      env: TOXENV=py38-safety
+    # - python: 3.8
+    #   env: TOXENV=py38-lint
+    # - python: 3.8
+    #   env: TOXENV=py38-safety
     - python: 3.8
       env: TOXENV=py38-metric
     - python: 3.8
