@@ -15,12 +15,10 @@ from collections import OrderedDict
 
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt
-from qtpy.QtWidgets import (QAction, QSizePolicy, QToolBar, QToolButton,
-                            QWidget)
+from qtpy.QtWidgets import QAction, QToolBar, QToolButton
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
-from spyder.config.gui import is_dark_interface
+from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 
 
 # --- Constants
@@ -149,6 +147,10 @@ class ApplicationToolbar(SpyderToolbar):
 
     This is used by Qt to be able to save and restore the state of widgets.
     """
+
+    def __init__(self, parent, title):
+        super().__init__(parent=parent, title=title)
+        self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
 
 
 class MainWidgetToolbar(SpyderToolbar):

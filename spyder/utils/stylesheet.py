@@ -11,6 +11,7 @@ import copy
 
 # Third-party imports
 import qdarkstyle
+import qstylizer
 from qstylizer.parser import parse as parse_stylesheet
 
 
@@ -78,11 +79,48 @@ class AppStylesheet:
             padding='0px'
         )
 
+        # Remove border and padding for main toolbar
+        css.QToolBar.setValues(
+            borderBottom='0px',
+            padding='0px',
+        )
+
     def __str__(self):
         return self.as_string()
+
+
+# =============================================================================
+# ---- Other stylesheets
+# =============================================================================
+class ApplicationToolbarStylesheet:
+    """Stylesheet for application toolbars."""
+
+    def __init__(self):
+        self._stylesheet = None
+        self._get_stylesheet()
+
+    def _get_stylesheet(self):
+        """Get the stylesheet as a Qstylizer StyleSheet object."""
+        if self._stylesheet is None:
+            css = qstylizer.style.StyleSheet()
+
+            css.QToolButton.setValues(
+                width='2.8em',
+                height='2.8em',
+                marginRight='0.25em',
+                marginLeft='0.25em',
+                border='0px',
+                padding='0px',
+            )
+
+            self._stylesheet = css
+
+    def __str__(self):
+        return self._stylesheet.toString()
 
 
 # =============================================================================
 # ---- Exported constants
 # =============================================================================
 APP_STYLESHEET = AppStylesheet()
+APP_TOOLBAR_STYLESHEET = ApplicationToolbarStylesheet()

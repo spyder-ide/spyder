@@ -6,5 +6,4 @@
 
 """
 Widgets to extend Spyder through its API.
-from spyder.utils.stylesheet import APP_STYLESHEET
 """

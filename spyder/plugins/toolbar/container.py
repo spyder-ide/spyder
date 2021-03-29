@@ -23,12 +23,10 @@ from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.registries import TOOLBAR_REGISTRY
 
+
 # Localization
 _ = get_translation('spyder')
 
-
-# --- Constants
-# ------------------------------------------------------------------------
 
 class ToolbarMenus:
     ToolbarsMenu = "toolbars_menu"
@@ -52,7 +50,7 @@ class ToolbarContainer(PluginMainContainer):
         self._toolbarslist = []
         self._visible_toolbars = []
 
-    # --- Private Methods
+    # ---- Private Methods
     # ------------------------------------------------------------------------
     def _save_visible_toolbars(self):
         """Save the name of the visible toolbars in the options."""
@@ -88,7 +86,7 @@ class ToolbarContainer(PluginMainContainer):
 
         self.update_actions()
 
-    # --- PluginMainContainer API
+    # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
         self.show_toolbars_action = self.create_action(
@@ -113,7 +111,7 @@ class ToolbarContainer(PluginMainContainer):
         self.show_toolbars_action.setText(text)
         self.show_toolbars_action.setToolTip(tip)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def create_application_toolbar(self, toolbar_id, title):
         """
@@ -141,16 +139,6 @@ class ToolbarContainer(PluginMainContainer):
 
         TOOLBAR_REGISTRY.register_reference(
             toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
-        toolbar.setStyleSheet(
-                "QToolButton {"
-                "width: 2.8em;"
-                "height: 2.8em;"
-                "margin-right: 0.25em;"
-                "margin-left: 0.25em;"
-                "border-radius: 0px"
-                "}")
-
-
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
         return toolbar

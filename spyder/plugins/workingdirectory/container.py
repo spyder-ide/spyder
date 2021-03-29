@@ -76,13 +76,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Widgets
         title = _('Current working directory')
         self.toolbar = WorkingDirectoryToolbar(self, title)
-        self.toolbar.setStyleSheet(
-                "QToolButton {"
-                "width: 2.8em;"
-                "height: 2.8em;"
-                "margin-right: 0.25em;"
-                "margin-left: 0.25em;"
-                "}")
         self.pathedit = PathComboBox(
             self,
             adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
