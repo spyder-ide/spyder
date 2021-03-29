@@ -50,7 +50,33 @@ class AppStylesheet:
         if self._stylesheet is None:
             stylesheet = qdarkstyle.load_stylesheet()
             self._stylesheet = parse_stylesheet(stylesheet)
+
+            # Add our customizations
+            self._customize_stylesheet()
+
+            # Save stylesheet as a string for quick access
             self._stylesheet_as_string = self._stylesheet.toString()
+
+    def _customize_stylesheet(self):
+        """Apply our customizations to the stylesheet."""
+        css = self._stylesheet
+
+        # Remove padding and border for QStackedWidget (used in Plots
+        # and the Variable Explorer)
+        css['QStackedWidget'].setValues(
+            border='0px',
+            padding='0px',
+        )
+
+        # Remove margin when pressing buttons
+        css["QToolButton:pressed"].setValues(
+            margin='0px'
+        )
+
+        # Remove padding when pressing main menus
+        css['QMenuBar::item:pressed'].setValues(
+            padding='0px'
+        )
 
     def __str__(self):
         return self.as_string()
