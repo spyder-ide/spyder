@@ -113,8 +113,10 @@ class AppStylesheet:
         return self.as_string()
 
 
+APP_STYLESHEET = AppStylesheet()
+
 # =============================================================================
-# ---- Other stylesheets
+# ---- Toolbar stylesheets
 # =============================================================================
 class ApplicationToolbarStylesheet:
     """Stylesheet for application toolbars."""
@@ -152,8 +154,44 @@ class ApplicationToolbarStylesheet:
         return self._stylesheet.toString()
 
 
-# =============================================================================
-# ---- Exported constants
-# =============================================================================
-APP_STYLESHEET = AppStylesheet()
+class PanesToolbarStyleSheet:
+    """Stylesheet for pane toolbars."""
+
+    BUTTON_WIDTH = '2.2em'
+    BUTTON_HEIGHT = '2.2em'
+
+    def __init__(self):
+        self._stylesheet = None
+        self._get_stylesheet()
+
+    def _get_stylesheet(self):
+        """Get the stylesheet as a Qstylizer StyleSheet object."""
+        if self._stylesheet is None:
+            css = qstylizer.style.StyleSheet()
+            app_css = APP_STYLESHEET._stylesheet
+
+            css.QToolBar.setValues(
+                spacing='0.3em'
+            )
+
+            css.QToolButton.setValues(
+                height=self.BUTTON_HEIGHT,
+                width=self.BUTTON_WIDTH,
+                border='0px',
+                background=app_css.QToolButton.backgroundColor.value,
+            )
+
+            for state in ['hover', 'pressed', 'checked']:
+                color = app_css[f'QToolButton:{state}'].backgroundColor.value
+                css[f'QToolButton:{state}'].setValues(
+                    backgroundColor=color
+                )
+
+            self._stylesheet = css
+
+    def __str__(self):
+        return self._stylesheet.toString()
+
+
 APP_TOOLBAR_STYLESHEET = ApplicationToolbarStylesheet()
+PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()

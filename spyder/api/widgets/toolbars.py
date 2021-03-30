@@ -18,7 +18,8 @@ from qtpy.QtCore import QEvent, QObject, QSize, Qt
 from qtpy.QtWidgets import QAction, QToolBar, QToolButton
 
 # Local imports
-from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
+from spyder.utils.stylesheet import (
+    APP_TOOLBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
 
 
 # --- Constants
@@ -226,37 +227,4 @@ class MainWidgetToolbar(SpyderToolbar):
         """
         Set the style of this toolbar with a stylesheet.
         """
-        stylesheet = r"""
-            QToolBar QToolButton:!hover:!pressed:!checked {
-                border-color: transparent;
-                background-color: transparent;
-            }
-            QToolBar QToolButton:pressed {
-                margin: 0px;
-            }
-            QToolBar {
-                border: 0px;
-                background: '#19232D';
-                border-bottom: '#19232D';
-                spacing: 0.3em;
-                padding: 0px;
-                border-radius: 0px;
-            }
-            QToolButton {
-                border: 0px;
-                height: 1.7em;
-                width: 1.7em;
-                border-radius: 0px;
-            }
-            QToolButton:hover {
-                background-color: '#293544';
-            }
-            QToolButton:pressed {
-                background-color: '#37414F';
-            }
-            QToolButton:checked {
-                background-color: '#37414F';
-            }
-        """
-
-        self.setStyleSheet(textwrap.dedent(stylesheet))
+        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
