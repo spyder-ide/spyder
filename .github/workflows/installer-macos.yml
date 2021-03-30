@@ -53,7 +53,7 @@ jobs:
           cd ${PLS_REPO}
           python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
           cd ${QDK_REPO}
-          python3.9 setup.py develop --do-deps --install-dir=${SITE_PACKAGES}
+          python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
       - name: Show Build Environment
         run: |
           python3.9 -V -V
