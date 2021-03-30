@@ -13,7 +13,6 @@ from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
                             QSizePolicy, QStyle, QTabBar, QToolButton,
                             QWidget)
 
-from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 
@@ -105,15 +104,12 @@ class DragButton(QToolButton):
         self.setMaximumSize(button_size)
         self.setAutoRaise(True)
         self.setIcon(ima.icon('drag-horizontal'))
-        if is_dark_interface():
-            self.setStyleSheet((
+        self.setStyleSheet((
                 "QToolButton {{"
                 "border-radius: 0px;"
                 "border: 0px;"
                 "background-color: {color};}}").format(
                     color=QStylePalette.COLOR_BACKGROUND_3))
-        else:
-            self.setStyleSheet("QToolButton {border: 0px;}")
 
     def mouseReleaseEvent(self, event):
         self.parent.mouseReleaseEvent(event)
@@ -135,19 +131,15 @@ class CloseButton(QToolButton):
         self.setMaximumSize(button_size)
         self.setAutoRaise(True)
         self.setCursor(Qt.ArrowCursor)
-        if is_dark_interface():
-            self.setStyleSheet((
-                "QToolButton {{"
-                "border-radius: 0px;"
-                "border: 0px;"
-                "image: url(:/qss_icons/rc/close.png);"
-                "background-color: {color};}}"
-                "QToolButton:hover {{"
-                "image: url(:/qss_icons/rc/close-hover.png);}}").format(
-                    color=QStylePalette.COLOR_BACKGROUND_3))
-        else:
-            self.setIcon(QApplication.style().standardIcon(
-                QStyle.SP_DockWidgetCloseButton))
+        self.setStyleSheet((
+            "QToolButton {{"
+            "border-radius: 0px;"
+            "border: 0px;"
+            "image: url(:/qss_icons/rc/close.png);"
+            "background-color: {color};}}"
+            "QToolButton:hover {{"
+            "image: url(:/qss_icons/rc/close-hover.png);}}").format(
+                color=QStylePalette.COLOR_BACKGROUND_3))
 
 
 class DockTitleBar(QWidget):
@@ -167,17 +159,15 @@ class DockTitleBar(QWidget):
 
         left_spacer = QWidget(self)
         left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        if is_dark_interface():
-            left_spacer.setStyleSheet(
-                f"background-color: {QStylePalette.COLOR_BACKGROUND_3}")
+        left_spacer.setStyleSheet(
+            f"background-color: {QStylePalette.COLOR_BACKGROUND_3}")
 
         drag_button = DragButton(self, button_size)
 
         right_spacer = QWidget(self)
         right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        if is_dark_interface():
-            right_spacer.setStyleSheet(
-                f"background-color: {QStylePalette.COLOR_BACKGROUND_3}")
+        right_spacer.setStyleSheet(
+            f"background-color: {QStylePalette.COLOR_BACKGROUND_3}")
 
         close_button = CloseButton(self, button_size)
         close_button.clicked.connect(parent.sig_plugin_closed.emit)

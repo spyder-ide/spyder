@@ -33,7 +33,6 @@ from spyder import __docs_url__
 from spyder.api.panel import Panel
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
-from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.icon_manager import ima

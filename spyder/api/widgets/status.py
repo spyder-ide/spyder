@@ -15,7 +15,6 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.gui import is_dark_interface
 from spyder.utils.qthelpers import create_waitspinner
 
 
@@ -134,10 +133,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         if self.show_spinner:
             layout.addWidget(self.spinner)
 
-        if is_dark_interface():
-            layout.addSpacing(0)
-        else:
-            layout.addSpacing(10)
+        layout.addSpacing(0)
 
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignVCenter)

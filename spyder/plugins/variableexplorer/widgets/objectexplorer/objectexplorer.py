@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
@@ -204,13 +204,9 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         self.show_cols_submenu = QMenu(self)
         self.options_button.setMenu(self.show_cols_submenu)
         # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+        self.options_button.setStyleSheet(
+            ("QToolButton::menu-indicator{image: none;}\n"
+             "QToolButton{padding: 3px;}"))
         self.tools_layout.addWidget(self.options_button)
 
     @Slot()

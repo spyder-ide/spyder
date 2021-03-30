@@ -33,7 +33,6 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -3176,8 +3175,7 @@ class EditorMainWindow(QMainWindow):
         self.setCentralWidget(self.editorwidget)
 
         # Setting interface theme
-        if is_dark_interface():
-            self.setStyleSheet(str(APP_STYLESHEET))
+        self.setStyleSheet(str(APP_STYLESHEET))
 
         # Give focus to current editor to update/show all status bar widgets
         editorstack = self.editorwidget.editorsplitter.editorstack

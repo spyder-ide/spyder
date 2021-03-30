@@ -13,7 +13,6 @@ from qtpy.QtCore import Signal
 from qtpy.QtGui import QColor, QFont, QTextCharFormat, QTextCursor
 from qtpy.QtWidgets import QApplication
 
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.console.utils.ansihandler import ANSIEscapeCodeHandler
 from spyder.utils.palette import QStylePalette, SpyderPalette

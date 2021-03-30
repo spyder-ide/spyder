@@ -14,7 +14,6 @@ from qtpy.QtWidgets import QHBoxLayout, QMainWindow, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.config.gui import is_dark_interface
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 
@@ -37,8 +36,7 @@ class SpyderWindowWidget(QMainWindow):
         self.widget = widget
 
         # Setting interface theme
-        if is_dark_interface():
-            self.setStyleSheet(str(APP_STYLESHEET))
+        self.setStyleSheet(str(APP_STYLESHEET))
 
     def closeEvent(self, event):
         """Override Qt method to emit a custom `sig_close` signal."""
