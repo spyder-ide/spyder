@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Stylesheet used in the entire application."""
+"""Custom stylesheets used in Spyder."""
 
 # Standard library imports
 import copy
@@ -82,11 +82,22 @@ class AppStylesheet:
             padding='0px'
         )
 
-        # Remove border and padding for main toolbar
+        # Remove border, padding and spacing for main toolbar
         css.QToolBar.setValues(
             borderBottom='0px',
             padding='0px',
             spacing='0px',
+        )
+
+        css['QMainWindow::separator:horizontal'].setValues(
+            marginTop='0px',
+            marginBottom='0px'
+        )
+
+        css['QMainWindow::separator:vertical'].setValues(
+            marginLeft='0px',
+            marginRight='0px',
+            height='3px'
         )
 
     def __str__(self):

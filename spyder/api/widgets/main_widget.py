@@ -257,11 +257,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         # Layout
         # --------------------------------------------------------------------
+        # These margins are necessary to give some space between the widgets
+        # inside this widget and the window vertical separator.
+        self._margin_left = 1
+        self._margin_right = 1
+
         self._main_layout = QVBoxLayout()
         self._toolbars_layout = QVBoxLayout()
         self._main_toolbar_layout = QHBoxLayout()
 
-        self._toolbars_layout.setContentsMargins(0, 0, 0, 0)
+        self._toolbars_layout.setContentsMargins(
+            self._margin_left, 0, self._margin_right, 0)
         self._toolbars_layout.setSpacing(0)
         self._main_toolbar_layout.setContentsMargins(0, 0, 0, 0)
         self._main_toolbar_layout.setSpacing(0)
@@ -434,7 +440,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         self._main_layout.addLayout(layout, stretch=1000000)
         super().setLayout(self._main_layout)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(self._margin_left, 0, self._margin_right, 0)
         layout.setSpacing(0)
 
     # --- Public methods to use
