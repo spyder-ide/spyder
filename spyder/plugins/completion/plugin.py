@@ -648,8 +648,7 @@ class CompletionPlugin(SpyderPluginV2):
 
         for request in COMPLETION_REQUESTS:
             request_priorities = source_priorities.get(request, {})
-            if provider_name not in request_priorities:
-                request_priorities[provider_name] = provider_priority - 1
+            request_priorities[provider_name] = provider_priority - 1
             source_priorities[request] = request_priorities
 
         self.source_priority = source_priorities
