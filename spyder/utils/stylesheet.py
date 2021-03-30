@@ -14,6 +14,9 @@ import qdarkstyle
 import qstylizer
 from qstylizer.parser import parse as parse_stylesheet
 
+# Local imports
+from spyder.utils.palette import QStylePalette
+
 
 # =============================================================================
 # ---- Application stylesheet
@@ -83,6 +86,7 @@ class AppStylesheet:
         css.QToolBar.setValues(
             borderBottom='0px',
             padding='0px',
+            spacing='0px',
         )
 
     def __str__(self):
@@ -111,6 +115,10 @@ class ApplicationToolbarStylesheet:
                 marginLeft='0.25em',
                 border='0px',
                 padding='0px',
+            )
+
+            css.QToolBar.setValues(
+                backgroundColor=QStylePalette.COLOR_BACKGROUND_4
             )
 
             self._stylesheet = css
