@@ -212,7 +212,7 @@ class ShortcutEditor(QDialog):
             tip=_("Clear all entered key sequences"),
             triggered=self.clear_new_sequence)
         self.button_back_sequence = create_toolbutton(
-            self, icon=ima.icon('ArrowBack'),
+            self, icon=ima.icon('previous'),
             tip=_("Remove last key sequence entered"),
             triggered=self.back_new_sequence)
 

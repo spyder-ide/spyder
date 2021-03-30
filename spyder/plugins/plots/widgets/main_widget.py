@@ -257,7 +257,7 @@ class PlotsWidget(PluginMainWidget):
             name=PlotsWidgetActions.MoveToPreviousFigure,
             text=_("Previous plot"),
             tip=_("Previous plot"),
-            icon=self.create_icon('ArrowBack'),
+            icon=self.create_icon('previous'),
             triggered=self.previous_plot,
             register_shortcut=True,
         )
@@ -265,7 +265,7 @@ class PlotsWidget(PluginMainWidget):
             name=PlotsWidgetActions.MoveToNextFigure,
             text=_("Next plot"),
             tip=_("Next plot"),
-            icon=self.create_icon('ArrowForward'),
+            icon=self.create_icon('next'),
             triggered=self.next_plot,
             register_shortcut=True,
         )
