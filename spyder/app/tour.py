@@ -115,7 +115,7 @@ def get_tour(index):
                          environment. This tip panel supports rich text. <br>\
                          <br> it also supports image insertion to the right so\
                          far",
-             'image': 'tour-spyder-logo.png'},
+             'image': 'spyder_about'},
 
             {'title': "Widget display",
              'content': ("This show how a widget is displayed. The tip panel "
@@ -152,7 +152,7 @@ def get_tour(index):
                            "important features.<br><br>"
                            "Please use the arrow keys or click on the buttons "
                            "below to move along the tour."),
-              'image': 'tour-spyder-logo.png'},
+              'image': 'spyder_about'},
 
              {'title': _("Editor"),
               'content': _("This is where you write Python code before "
@@ -274,7 +274,7 @@ def get_tour(index):
                            'information, check out our '
                            '<a href="{}">documentation</a>.'
                            '<br><br>').format(__docs_url__),
-              'image': 'tour-spyder-logo.png'
+              'image': 'spyder_about'
               },
 
              ]
@@ -323,7 +323,7 @@ def get_tour(index):
     feat30 = [{'title': "New features in Spyder 3.0",
                'content': _("<b>Spyder</b> is an interactive development "
                             "environment based on bla"),
-               'image': 'spyder.png'},
+               'image': 'spyder_about'},
 
               {'title': _("Welcome to Spyder introduction tour"),
                'content': _("Spyder is an interactive development environment "
