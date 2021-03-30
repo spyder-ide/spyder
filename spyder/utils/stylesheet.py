@@ -89,6 +89,7 @@ class AppStylesheet:
             spacing='0px',
         )
 
+        # Remove margins around separators
         css['QMainWindow::separator:horizontal'].setValues(
             marginTop='0px',
             marginBottom='0px'
@@ -98,6 +99,14 @@ class AppStylesheet:
             marginLeft='0px',
             marginRight='0px',
             height='3px'
+        )
+
+        # Set menu item properties
+        css["QMenu::item"].setValues(
+            height='1.4em',
+            fontSize='0.7em',
+            # TODO: This requires a fix in qstylizer
+            #iconSize='0.8em'
         )
 
     def __str__(self):
