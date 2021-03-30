@@ -28,10 +28,7 @@ class TabFilter(QObject):
         self.dock_tabbar = dock_tabbar
         self.main = main
         self.from_index = None
-
-        # Center dockwidget tabs to differentiate them from plugin tabs.
-        # See spyder-ide/spyder#9763
-        self.dock_tabbar.setStyleSheet("QTabBar {alignment: center;}")
+        self.dock_tabbar.setStyleSheet(self._tabbar_stylesheet)
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.
@@ -70,6 +67,24 @@ class TabFilter(QObject):
         """Show the context menu assigned to nontabs section."""
         menu = self.main.createPopupMenu()
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
+
+    @property
+    def _tabbar_stylesheet(self):
+        # - Center tabs to differentiate them from plugin ones.
+        #   See spyder-ide/spyder#9763
+        # - Also add a border below selected tabs so they don't touch
+        #   either the window separator or the status bar.
+        stylesheet = """
+            QTabBar {
+                alignment: center;
+            }
+
+            QTabBar::tab:bottom:selected {
+                border-bottom: 2px solid %s;
+            }
+        """ % QStylePalette.COLOR_BACKGROUND_1
+
+        return stylesheet
 
 
 # =============================================================================
