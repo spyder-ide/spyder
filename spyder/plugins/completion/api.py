@@ -858,6 +858,10 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
     # Status: Required
     DEFAULT_ORDER = -1
 
+    # Define if the provider response time is not constant and may take
+    # a long time for some requests.
+    SLOW = False
+
     # Define configuration options for the provider.
     # List of tuples with the first item being the option name and the second
     # one its default value.

@@ -41,6 +41,7 @@ class KiteProviderActions:
 class KiteProvider(SpyderCompletionProvider):
     COMPLETION_PROVIDER_NAME = 'kite'
     DEFAULT_ORDER = 1
+    SLOW = True
     CONF_DEFAULTS = [
         ('spyder_runs', 1),
         ('show_installation_dialog', True),
