@@ -99,6 +99,11 @@ class AppStylesheet:
 class ApplicationToolbarStylesheet:
     """Stylesheet for application toolbars."""
 
+    BUTTON_WIDTH = '2.8em'
+    BUTTON_HEIGHT = '2.8em'
+    BUTTON_MARGIN_LEFT = '0.25em'
+    BUTTON_MARGIN_RIGHT = '0.25em'
+
     def __init__(self):
         self._stylesheet = None
         self._get_stylesheet()
@@ -109,10 +114,10 @@ class ApplicationToolbarStylesheet:
             css = qstylizer.style.StyleSheet()
 
             css.QToolButton.setValues(
-                width='2.8em',
-                height='2.8em',
-                marginRight='0.25em',
-                marginLeft='0.25em',
+                width=self.BUTTON_WIDTH,
+                height=self.BUTTON_HEIGHT,
+                marginLeft=self.BUTTON_MARGIN_RIGHT,
+                marginRight=self.BUTTON_MARGIN_RIGHT,
                 border='0px',
                 padding='0px',
             )
