@@ -250,7 +250,6 @@ extras_require = {
         'cython',
         'flaky',
         'matplotlib',
-        'mock',
         'pandas',
         'pillow',
         'pytest<6.0',

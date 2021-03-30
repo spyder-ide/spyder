@@ -13,7 +13,7 @@ from setuptools import find_packages, setup
 from qdarkstyle import __doc__ as long_desc
 from qdarkstyle import __version__
 
-install_requires = ['helpdev>=0.6.10', 'qtpy>=1.9']
+install_requires = ['qtpy>=1.9']
 
 extras_require = {
     'develop': ['qtsass', 'watchdog'],
@@ -43,7 +43,7 @@ setup(
     license='MIT',
     author='Colin Duquesnoy',
     author_email='colin.duquesnoy@gmail.com',
-    description='The most complete dark stylesheet for Python and Qt applications',
+    description='The most complete dark/light style sheet for C++/Python and Qt applications',
     long_description=long_desc,
     long_description_content_type='text/x-rst',
     classifiers=[
@@ -55,16 +55,16 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Software Development :: Libraries :: Application Frameworks'
     ],
     zip_safe=False,  # don't use eggs
-    entry_points={"console_scripts": ["qdarkstyle=qdarkstyle.__main__:main"]},
+    entry_points={"console_scripts": ["qdarkstyle=qdarkstyle.__main__:main",
+                                      "qdarkstyle.example=qdarkstyle.example.__main__:main",
+                                      "qdarkstyle.utils=qdarkstyle.utils.__main__:main"]},
     extras_require=extras_require,
     install_requires=install_requires,
     project_urls={
