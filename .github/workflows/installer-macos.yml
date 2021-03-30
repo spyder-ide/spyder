@@ -51,6 +51,10 @@ jobs:
           python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
           cd ${PLS_REPO}
           python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
+      - name: Show Build Environment
+        run: |
+          python3.9 -V -V
+          python3.9 -m pip list
       - name: Build Application Bundle
         run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Build Disk Image
