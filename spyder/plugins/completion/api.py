@@ -966,6 +966,11 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
             }
         req_id: int
             Request identifier for response
+
+        Notes
+        -----
+        A completion client should always reply to the
+        `textDocument/completion` request, even if the answer is empty.
         """
         pass
 
