@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 class SnippetsProvider(SpyderCompletionProvider):
     COMPLETION_PROVIDER_NAME = 'snippets'
-    DEFAULT_ORDER = 2
+    DEFAULT_ORDER = 3
     CONF_DEFAULTS = [(lang, SNIPPETS[lang]) for lang in SNIPPETS]
     CONF_VERSION = "0.1.0"
     CONF_TABS = [SnippetsConfigTab]
