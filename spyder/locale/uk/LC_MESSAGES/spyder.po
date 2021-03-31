@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-31 19:52\n"
+"PO-Revision-Date: 2021-03-31 20:02\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -4205,28 +4205,29 @@ msgstr "Очистити консоль"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:597
 msgid "Are you sure you want to restart the kernel?"
-msgstr ""
+msgstr "Ви дійсно хочете перезапустити ядро?"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:599
 msgid "Restart kernel?"
-msgstr ""
+msgstr "Перезапустити ядро?"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:634
 msgid "Cannot restart a kernel not started by Spyder\n"
-msgstr ""
+msgstr "Не вдалося перезапустити ядро не запущене Spyder\n"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:657
 msgid "Error restarting kernel: %s\n"
-msgstr ""
+msgstr "Помилка перезапуску ядра: %s\n"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:674
 msgid "<br>Restarting kernel...\n"
 "<hr><br>"
-msgstr ""
+msgstr "<br>Перезапуск ядра...\n"
+"<hr><br>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:793
 msgid "Connecting to kernel..."
-msgstr ""
+msgstr "Підключення до ядра..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:858
 msgid "Your Python environment or installation doesn't have the <tt>{missing_dependency}</tt> module installed or it occurred a problem importing it. Due to that, it is not possible for Spyder to create this special console for you."
@@ -4244,11 +4245,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:48
 msgid "Connection file:"
-msgstr ""
+msgstr "Файл підключення:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:50
 msgid "Kernel connection file path"
-msgstr ""
+msgstr "Шлях до файла підключення ядра"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:52 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:86
 msgid "Browse"
@@ -4256,7 +4257,7 @@ msgstr "Оглянути"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:61
 msgid "This is a remote kernel (via SSH)"
-msgstr ""
+msgstr "Це віддалене ядро (через SSH)"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:64
 msgid "Hostname:"
@@ -4308,7 +4309,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:93
 msgid "The kernel is dead"
-msgstr ""
+msgstr "Ядро мертве"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:94
 msgid "An error occured, see the console."
@@ -4385,11 +4386,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:782
 msgid "Kernel restarting"
-msgstr ""
+msgstr "Перезапуск ядра"
 
 #: spyder/plugins/onlinehelp/plugin.py:74
 msgid "Online help"
-msgstr ""
+msgstr "Онлайн-довідка"
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:802
 msgid "There was an error while retrieving documentation for the object you requested: Object could not be found"
@@ -4425,23 +4426,23 @@ msgstr "Модуль"
 
 #: spyder/plugins/outlineexplorer/widgets.py:37
 msgid "Namespace"
-msgstr ""
+msgstr "Простір імен"
 
 #: spyder/plugins/outlineexplorer/widgets.py:38
 msgid "Package"
-msgstr ""
+msgstr "Пакунок"
 
 #: spyder/plugins/outlineexplorer/widgets.py:39
 msgid "Class"
-msgstr ""
+msgstr "Клас"
 
 #: spyder/plugins/outlineexplorer/widgets.py:40
 msgid "Method"
-msgstr ""
+msgstr "Метод"
 
 #: spyder/plugins/outlineexplorer/widgets.py:41
 msgid "Property"
-msgstr ""
+msgstr "Властивість"
 
 #: spyder/plugins/outlineexplorer/widgets.py:42 spyder/plugins/variableexplorer/widgets/collectionseditor.py:198
 msgid "Attribute"
@@ -4449,39 +4450,39 @@ msgstr "Атрибут"
 
 #: spyder/plugins/outlineexplorer/widgets.py:43
 msgid "constructor"
-msgstr ""
+msgstr "конструктор"
 
 #: spyder/plugins/outlineexplorer/widgets.py:44
 msgid "Enum"
-msgstr ""
+msgstr "Перелік"
 
 #: spyder/plugins/outlineexplorer/widgets.py:46
 msgid "Function"
-msgstr ""
+msgstr "Функція"
 
 #: spyder/plugins/outlineexplorer/widgets.py:47
 msgid "Variable"
-msgstr ""
+msgstr "Змінна"
 
 #: spyder/plugins/outlineexplorer/widgets.py:48
 msgid "Constant"
-msgstr ""
+msgstr "Константа"
 
 #: spyder/plugins/outlineexplorer/widgets.py:49
 msgid "String"
-msgstr ""
+msgstr "Рядок"
 
 #: spyder/plugins/outlineexplorer/widgets.py:50
 msgid "Number"
-msgstr ""
+msgstr "Число"
 
 #: spyder/plugins/outlineexplorer/widgets.py:51
 msgid "Boolean"
-msgstr ""
+msgstr "Логічний тип"
 
 #: spyder/plugins/outlineexplorer/widgets.py:52
 msgid "Array"
-msgstr ""
+msgstr "Масив"
 
 #: spyder/plugins/outlineexplorer/widgets.py:54 spyder/plugins/variableexplorer/widgets/collectionseditor.py:193
 msgid "Key"
@@ -4513,11 +4514,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:61
 msgid "Cell"
-msgstr ""
+msgstr "Комірка"
 
 #: spyder/plugins/outlineexplorer/widgets.py:62
 msgid "Block comment"
-msgstr ""
+msgstr "Блочний коментар"
 
 #: spyder/plugins/outlineexplorer/widgets.py:252
 msgid "Line %s"
@@ -4525,11 +4526,11 @@ msgstr "Рядок %s"
 
 #: spyder/plugins/outlineexplorer/widgets.py:326 spyder/plugins/outlineexplorer/widgets.py:967
 msgid "Go to cursor position"
-msgstr ""
+msgstr "Перейти до позиції курсору"
 
 #: spyder/plugins/outlineexplorer/widgets.py:329
 msgid "Show absolute path"
-msgstr ""
+msgstr "Показати абсолютний шлях"
 
 #: spyder/plugins/outlineexplorer/widgets.py:332
 msgid "Show all files"
@@ -4537,7 +4538,7 @@ msgstr "Показати всі файли"
 
 #: spyder/plugins/outlineexplorer/widgets.py:335
 msgid "Show special comments"
-msgstr ""
+msgstr "Показати спеціальні коментарі"
 
 #: spyder/plugins/outlineexplorer/widgets.py:338
 msgid "Group code cells"
@@ -4545,7 +4546,7 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:343
 msgid "Display variables and attributes"
-msgstr ""
+msgstr "Показати змінні та атрибути"
 
 #: spyder/plugins/outlineexplorer/widgets.py:349
 msgid "Follow cursor position"
@@ -4561,31 +4562,31 @@ msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:168 spyder/plugins/plots/widgets/figurebrowser.py:1113
 msgid "Save plot as..."
-msgstr ""
+msgstr "Зберегти діаграму як..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:175
 msgid "Save all plots..."
-msgstr ""
+msgstr "Зберегти всі діаграми..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:182
 msgid "Copy plot to clipboard as image"
-msgstr ""
+msgstr "Копіювати діаграму в буфер обміну як зображення"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:189 spyder/plugins/plots/widgets/figurebrowser.py:1123
 msgid "Remove plot"
-msgstr ""
+msgstr "Видалити діаграму"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:196
 msgid "Remove all plots"
-msgstr ""
+msgstr "Видалити всі діаграми"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:206
 msgid "Previous plot"
-msgstr ""
+msgstr "Попередня діаграма"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:213
 msgid "Next plot"
-msgstr ""
+msgstr "Наступна діаграма"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:261
 msgid "Mute inline plotting"
@@ -4605,11 +4606,11 @@ msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:276
 msgid "Fit plots to window"
-msgstr ""
+msgstr "Підлаштовувати діаграми до розміру вікна"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:277
 msgid "Automatically fit plots to Plot pane size."
-msgstr ""
+msgstr "Автоматично підлаштовувати діаграми до розміру панелі Графіків."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:627
 msgid "The image is broken, please try to generate it again"
