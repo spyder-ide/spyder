@@ -233,7 +233,7 @@ class ArrayBuilderDialog(QDialog):
                   stop: 0 {stop_0}, stop: 1 {stop_1});
             }}
             """).format(stop_0=QStylePalette.COLOR_BACKGROUND_4,
-                       stop_1=QStylePalette.COLOR_BACKGROUND_2))
+                        stop_1=QStylePalette.COLOR_BACKGROUND_2))
 
         self._button_help.setStyleSheet(style)
 
