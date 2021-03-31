@@ -35,7 +35,7 @@ class SpyderPaletteDark:
 
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
-    COLOR_WARN_3 = Orange.B110
+    COLOR_WARN_3 = Orange.B90
 
     # Icon colors
     ICON_1 = Gray.B140
@@ -93,7 +93,7 @@ class SpyderPaletteLight:
 
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
-    COLOR_WARN_3 = Orange.B110
+    COLOR_WARN_3 = Orange.B50
 
     # Icon colors
     ICON_1 = Gray.B30
