@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-31 19:18\n"
+"PO-Revision-Date: 2021-03-31 19:34\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3092,7 +3092,7 @@ msgstr "Тека..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:470
 msgid "Python Package..."
-msgstr ""
+msgstr "Пакунок Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:491
 msgid "Open in Spyder"
@@ -3280,35 +3280,35 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1266
 msgid "No file in clipboard"
-msgstr ""
+msgstr "Немає файлу в буфері обміну"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1267
 msgid "No file in the clipboard. Please copy a file to the clipboard first."
-msgstr ""
+msgstr "Немає файлу в буфері обміну. Будь ласка, спочатку скопіюйте файл в буфер обміну."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1271
 msgid "Blank area"
-msgstr ""
+msgstr "Порожня область"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1272
 msgid "Cannot paste in the blank area."
-msgstr ""
+msgstr "Не вдалося вставити в порожню область."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1322
 msgid "For %s support, please install one of the<br/> following tools:<br/><br/>  %s"
-msgstr ""
+msgstr "Для підтримки %s будь ласка, встановіть один з<br/> наступних інструментів:<br/><br/>  %s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1326
 msgid "<b>Unable to find external program.</b><br><br>%s"
-msgstr ""
+msgstr "<b>Не вдалося знайти зовнішню програму.</b><br><br>%s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1556
 msgid "Show current directory only"
-msgstr ""
+msgstr "Показувати лише поточний каталог"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1678
 msgid "You don't have the right permissions to open this directory"
-msgstr ""
+msgstr "У вас немає прав на відкриття цього каталогу"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1716 spyder/plugins/variableexplorer/widgets/importwizard.py:543
 msgid "Previous"
@@ -3324,27 +3324,27 @@ msgstr "Батьківський"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1738
 msgid "Display kind"
-msgstr ""
+msgstr "Показувати вид"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1738
 msgid "Display type"
-msgstr ""
+msgstr "Показувати тип"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1740
 msgid "Display size"
-msgstr ""
+msgstr "Показувати розмір"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1741
 msgid "Display date modified"
-msgstr ""
+msgstr "Показувати дату редагування"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1798
 msgid "Filter filenames"
-msgstr ""
+msgstr "Фільтрувати назви файлів"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
-msgstr ""
+msgstr "Огляд..."
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:120
 msgid "Applications"
@@ -3684,7 +3684,7 @@ msgstr "Історія"
 
 #: spyder/plugins/ipythonconsole/confpage.py:27 spyder/plugins/ipythonconsole/plugin.py:441
 msgid "IPython console"
-msgstr ""
+msgstr "Командний рядок IPython"
 
 #: spyder/plugins/ipythonconsole/confpage.py:33 spyder/plugins/outlineexplorer/widgets.py:45 spyder/preferences/general.py:106 spyder/preferences/general.py:291
 msgid "Interface"
@@ -3692,25 +3692,27 @@ msgstr "Інтерфейс"
 
 #: spyder/plugins/ipythonconsole/confpage.py:34
 msgid "Display initial banner"
-msgstr ""
+msgstr "Відображати початковий банер"
 
 #: spyder/plugins/ipythonconsole/confpage.py:35
 msgid "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
-msgstr ""
+msgstr "Цей параметр дозволяє приховати повідомлення, яке відображається у\n"
+"верхній частині командного рядка після його відкриття."
 
 #: spyder/plugins/ipythonconsole/confpage.py:39
 msgid "Ask for confirmation before closing"
-msgstr ""
+msgstr "Запитувати підтвердження перед закриттям"
 
 #: spyder/plugins/ipythonconsole/confpage.py:42
 msgid "Ask for confirmation before removing all user-defined variables"
-msgstr ""
+msgstr "Запитувати підтвердження перед видаленням всіх користувацьких змінних"
 
 #: spyder/plugins/ipythonconsole/confpage.py:45
 msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
-msgstr ""
+msgstr "Цей параметр дозволяє приховати попереджувальні повідомлення показувані\n"
+"при скиданні простору імен з Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:47 spyder/plugins/ipythonconsole/widgets/client.py:155
 msgid "Show elapsed time"
@@ -3718,7 +3720,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:49
 msgid "Ask for confirmation before restarting"
-msgstr ""
+msgstr "Запитувати підтвердження перед перезапуском"
 
 #: spyder/plugins/ipythonconsole/confpage.py:51
 msgid "This option lets you hide the warning message shown\n"
