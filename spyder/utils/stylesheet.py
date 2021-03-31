@@ -140,8 +140,8 @@ APP_STYLESHEET = AppStylesheet()
 class ApplicationToolbarStylesheet(SpyderStyleSheet):
     """Stylesheet for application toolbars."""
 
-    BUTTON_WIDTH = '2.8em'
-    BUTTON_HEIGHT = '2.8em'
+    BUTTON_WIDTH = '2.7em'
+    BUTTON_HEIGHT = '2.7em'
     BUTTON_MARGIN_LEFT = '0.25em'
     BUTTON_MARGIN_RIGHT = '0.25em'
 
