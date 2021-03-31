@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-31 19:34\n"
+"PO-Revision-Date: 2021-03-31 19:52\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3711,7 +3711,7 @@ msgstr "Запитувати підтвердження перед видале�
 #: spyder/plugins/ipythonconsole/confpage.py:45
 msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
-msgstr "Цей параметр дозволяє приховати попереджувальні повідомлення показувані\n"
+msgstr "Ця опція дозволяє приховати попереджувальні повідомлення показувані\n"
 "при скиданні простору імен з Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:47 spyder/plugins/ipythonconsole/widgets/client.py:155
@@ -3725,23 +3725,24 @@ msgstr "Запитувати підтвердження перед переза�
 #: spyder/plugins/ipythonconsole/confpage.py:51
 msgid "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
-msgstr ""
+msgstr "Ця опція дозволяє приховати попереджувальні повідомлення показувані\n"
+"при перезапуску ядра."
 
 #: spyder/plugins/ipythonconsole/confpage.py:63
 msgid "Completion type"
-msgstr ""
+msgstr "Тип завершення"
 
 #: spyder/plugins/ipythonconsole/confpage.py:64
 msgid "Decide what type of completion to use"
-msgstr ""
+msgstr "Визначте, який тип завершення використовувати"
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Graphical"
-msgstr ""
+msgstr "Графічний"
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Plain"
-msgstr ""
+msgstr "Звичайний"
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Terminal"
@@ -3786,11 +3787,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:106
 msgid "Inline"
-msgstr ""
+msgstr "Вбудований"
 
 #: spyder/plugins/ipythonconsole/confpage.py:107
 msgid "Automatic"
-msgstr ""
+msgstr "Автоматично"
 
 #: spyder/plugins/ipythonconsole/confpage.py:108
 msgid "Graphics backend"
@@ -3818,19 +3819,19 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
 msgid "Format:"
-msgstr ""
+msgstr "Формат:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:153
 msgid "Resolution:"
-msgstr ""
+msgstr "Роздільна здатність:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:153
 msgid "dpi"
-msgstr ""
+msgstr "dpi"
 
 #: spyder/plugins/ipythonconsole/confpage.py:155
 msgid "Only used when the format is PNG. Default is 72"
-msgstr ""
+msgstr "Використовується тільки для формату PNG. Типово - 72"
 
 #: spyder/plugins/ipythonconsole/confpage.py:158
 msgid "Width:"
@@ -3882,7 +3883,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:221
 msgid "Use the following file:"
-msgstr ""
+msgstr "Використовувати наступний файл:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:235
 msgid "Run code while debugging"
@@ -3894,7 +3895,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:252
 msgid "Debug"
-msgstr ""
+msgstr "Зневадження"
 
 #: spyder/plugins/ipythonconsole/confpage.py:256
 msgid "Prevent editor from closing files while debugging"
@@ -4010,7 +4011,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:384
 msgid "Prompts"
-msgstr ""
+msgstr "Підказки"
 
 #: spyder/plugins/ipythonconsole/confpage.py:385
 msgid "Modify how Input and Output prompts are shown in the console."
@@ -4050,7 +4051,7 @@ msgstr "Запуск"
 
 #: spyder/plugins/ipythonconsole/confpage.py:432
 msgid "Debugger"
-msgstr ""
+msgstr "Зневаджувач"
 
 #: spyder/plugins/ipythonconsole/plugin.py:84
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4082,23 +4083,23 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:550
 msgid "Restart kernel"
-msgstr ""
+msgstr "Перезапустити ядро"
 
 #: spyder/plugins/ipythonconsole/plugin.py:555 spyder/plugins/ipythonconsole/widgets/client.py:492 spyder/plugins/ipythonconsole/widgets/client.py:529 spyder/plugins/ipythonconsole/widgets/shell.py:449 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:263
 msgid "Remove all variables"
-msgstr ""
+msgstr "Видалити всі змінні"
 
 #: spyder/plugins/ipythonconsole/plugin.py:564
 msgid "Interrupt kernel"
-msgstr ""
+msgstr "Перервати роботу ядра"
 
 #: spyder/plugins/ipythonconsole/plugin.py:573 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:33
 msgid "Connect to an existing kernel"
-msgstr ""
+msgstr "Підключитися до існуючого ядра"
 
 #: spyder/plugins/ipythonconsole/plugin.py:574
 msgid "Open a new IPython console connected to an existing kernel"
-msgstr ""
+msgstr "Відкрити нову консоль IPython підключену до існуючого ядра"
 
 #: spyder/plugins/ipythonconsole/plugin.py:577
 msgid "Rename tab"
@@ -4106,11 +4107,11 @@ msgstr "Перейменувати вкладку"
 
 #: spyder/plugins/ipythonconsole/plugin.py:716
 msgid "No IPython console is currently available to run <b>%s</b>.<br><br>Please open a new one and try again."
-msgstr ""
+msgstr "В даний час немає консолі IPython доступної для запуску <b>%s</b>.<br><br>Будь ласка, відкрийте нову консоль і спробуйте знову."
 
 #: spyder/plugins/ipythonconsole/plugin.py:756
 msgid "No IPython console is currently available to run <b>{}</b>.<br><br>Please open a new one and try again."
-msgstr ""
+msgstr "В даний час немає консолі IPython доступної для запуску <b>{}</b>.<br><br>Будь ласка, відкрийте нову консоль і спробуйте знову."
 
 #: spyder/plugins/ipythonconsole/plugin.py:920
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.10.0 and < 1.11.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
@@ -4118,27 +4119,27 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:1214
 msgid "Do you want to close this console?"
-msgstr ""
+msgstr "Ви хочете закрити цю консоль?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1220
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
-msgstr ""
+msgstr "Ви хочете закрити всі інші командні рядки, під'єднані до того ж ядра, що і цей?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1293
 msgid "It was not possible to restart the IPython console when switching to this project. The error was<br><br><tt>{0}</tt>"
-msgstr ""
+msgstr "Неможливо перезапустити командний рядок IPython при перемиканні на цей проект. Помилка<br><br><tt>{0}</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1414 spyder/plugins/ipythonconsole/plugin.py:1425
 msgid "The error is:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "Помилка:<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1684
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1685
 msgid "Unable to connect to <b>%s</b>"
-msgstr ""
+msgstr "Неможливо підключитися до <b>%s</b>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1752 spyder/plugins/ipythonconsole/plugin.py:1774
 msgid "Connection error"
@@ -4168,39 +4169,39 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/ssh.py:84
 msgid "Tunnel '%s' failed to start"
-msgstr ""
+msgstr "Тунель '%s' не вдалося почати"
 
 #: spyder/plugins/ipythonconsole/utils/ssh.py:89
 msgid "Could not connect to remote host"
-msgstr ""
+msgstr "Не вдалося з’єднатися з віддаленим сервером"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:394
 msgid "An error ocurred while starting the kernel"
-msgstr ""
+msgstr "Сталася помилка під час запуску ядра"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:444
 msgid "Show environment variables"
-msgstr ""
+msgstr "Показати змінні середовища"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:451
 msgid "Show sys.path contents"
-msgstr ""
+msgstr "Показати вміст sys.path"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:479
 msgid "Stop the current command"
-msgstr ""
+msgstr "Зупинити поточну команду"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:515
 msgid "Inspect current object"
-msgstr ""
+msgstr "Дослідити поточний об'єкт"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:523
 msgid "Clear line or block"
-msgstr ""
+msgstr "Очистити рядок або блок"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:537
 msgid "Clear console"
-msgstr ""
+msgstr "Очистити консоль"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:597
 msgid "Are you sure you want to restart the kernel?"
@@ -4251,7 +4252,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:52 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:86
 msgid "Browse"
-msgstr ""
+msgstr "Оглянути"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:61
 msgid "This is a remote kernel (via SSH)"
