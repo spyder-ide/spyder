@@ -104,7 +104,7 @@ class SnippetsActor(QObject):
                                 'kind': CompletionItemKind.SNIPPET,
                                 'insertText': text,
                                 'label': f'{trigger} ({description})',
-                                'sortText': trigger,
+                                'sortText': f'zzz{trigger}',
                                 'filterText': trigger,
                                 'documentation': '',
                                 'provider': SNIPPETS_COMPLETION,

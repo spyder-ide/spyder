@@ -412,7 +412,8 @@ class ConsoleWidget(PluginMainWidget):
                     self.get_conf('selected', section='appearance'))
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
-                self.error_dlg.details.go_to_error.connect(self.go_to_error)
+                self.error_dlg.details.sig_go_to_error_requested.connect(
+                    self.go_to_error)
 
             # Set the report repository
             self.error_dlg.set_github_repo_org(repo)

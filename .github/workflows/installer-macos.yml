@@ -45,12 +45,19 @@ jobs:
         run: |
           SPK_REPO=${GITHUB_WORKSPACE}/external-deps/spyder-kernels
           PLS_REPO=${GITHUB_WORKSPACE}/external-deps/python-language-server
+          QDK_REPO=${GITHUB_WORKSPACE}/external-deps/qdarkstyle
           SITE_PACKAGES=`python3.9 -c 'import site; print(site.getsitepackages()[0])'`
-          python3.9 -m pip uninstall -q -y spyder-kernels python-language-server
+          python3.9 -m pip uninstall -q -y spyder-kernels python-language-server qdarkstyle
           cd ${SPK_REPO}
           python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
           cd ${PLS_REPO}
           python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
+          cd ${QDK_REPO}
+          python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
+      - name: Show Build Environment
+        run: |
+          python3.9 -V -V
+          python3.9 -m pip list
       - name: Build Application Bundle
         run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Build Disk Image
