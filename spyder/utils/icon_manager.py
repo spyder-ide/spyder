@@ -191,8 +191,6 @@ class IconManager():
             'window_fullscreen':       [('mdi.arrow-expand-all',), {'color': self.MAIN_FG_COLOR}],
             'MessageBoxWarning':       [('mdi.alert',), {'color': self.MAIN_FG_COLOR}],
             'arredit':                 [('mdi.table-edit',), {'color': self.MAIN_FG_COLOR}],
-            'zoom_out':                [('mdi.magnify-minus',), {'color': self.MAIN_FG_COLOR}],
-            'zoom_in':                 [('mdi.magnify-plus',), {'color': self.MAIN_FG_COLOR}],
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
             'plot':                    [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
