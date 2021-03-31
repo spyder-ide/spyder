@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-26 18:07\n"
+"PO-Revision-Date: 2021-03-31 18:52\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -611,7 +611,7 @@ msgstr ""
 
 #: spyder/app/tour.py:197
 msgid "Variable Explorer"
-msgstr ""
+msgstr "Оглядач змінних"
 
 #: spyder/app/tour.py:198
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
@@ -659,7 +659,7 @@ msgstr ""
 
 #: spyder/app/tour.py:258 spyder/plugins/profiler/plugin.py:55
 msgid "Profiler"
-msgstr ""
+msgstr "Профілювальник"
 
 #: spyder/app/tour.py:259
 msgid "The Profiler helps you optimize your code by determining the run time and number of calls for every function and method used in a file. It also allows you to save and compare your results between runs."
@@ -723,7 +723,7 @@ msgstr ""
 
 #: spyder/app/tour.py:1443
 msgid "Start tour"
-msgstr ""
+msgstr "Почати знайомство"
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -1329,7 +1329,7 @@ msgstr "Стиль коду"
 
 #: spyder/plugins/completion/languageserver/confpage.py:247
 msgid "Line length"
-msgstr ""
+msgstr "Довжина рядка"
 
 #: spyder/plugins/completion/languageserver/confpage.py:264
 msgid "Spyder can use {0}, {1} or {2} to format your code for conformance to the {3} convention."
@@ -1341,7 +1341,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:279
 msgid "Autoformat files on save"
-msgstr ""
+msgstr "Автоматичне форматування файлів при збереженні"
 
 #: spyder/plugins/completion/languageserver/confpage.py:281
 msgid "If enabled, autoformatting will take place when saving a file"
@@ -1349,11 +1349,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:285
 msgid "Code formatting"
-msgstr ""
+msgstr "Форматування коду"
 
 #: spyder/plugins/completion/languageserver/confpage.py:306
 msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
-msgstr ""
+msgstr "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>сторінка</a>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:310
 msgid "Here you can decide if you want to perform style analysis on your docstrings according to the {} or {} conventions. You can also decide if you want to show or ignore specific errors, according to the codes found on this {}."
@@ -1413,7 +1413,7 @@ msgstr "Мова"
 
 #: spyder/plugins/completion/languageserver/confpage.py:425
 msgid "Available snippets"
-msgstr ""
+msgstr "Доступні фрагменти"
 
 #: spyder/plugins/completion/languageserver/confpage.py:431 spyder/plugins/completion/languageserver/confpage.py:596 spyder/plugins/explorer/confpage.py:59 spyder/preferences/shortcuts.py:857
 msgid "Reset to default values"
@@ -1421,19 +1421,19 @@ msgstr "Відновити типові значення"
 
 #: spyder/plugins/completion/languageserver/confpage.py:432
 msgid "Create a new snippet"
-msgstr ""
+msgstr "Створити новий фрагмент"
 
 #: spyder/plugins/completion/languageserver/confpage.py:434
 msgid "Delete currently selected snippet"
-msgstr ""
+msgstr "Видалити вибраний фрагмент"
 
 #: spyder/plugins/completion/languageserver/confpage.py:436
 msgid "Export snippets to JSON"
-msgstr ""
+msgstr "Експортувати фрагменти в JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:437
 msgid "Import snippets from JSON"
-msgstr ""
+msgstr "Імпортувати фрагменти з JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:471
 msgid "Providers"
