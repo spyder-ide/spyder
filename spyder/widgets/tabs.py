@@ -24,13 +24,13 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 
 class EditTabNamePopup(QLineEdit):
@@ -264,20 +264,7 @@ class BaseTabs(QTabWidget):
         else:
             self.menu = menu
 
-        # QTabBar forces the corner widgets to be smaller than they should on
-        # some plugins, like History. The top margin added allows the
-        # toolbuttons to expand to their normal size.
-        # See: spyder-ide/spyder#13600
-        top_margin = 9 if os.name == "nt" else 5
-        self.setStyleSheet(
-            f"""
-            QTabBar::tab {{
-                margin-top: {top_margin}px;
-            }}
-            QTabWidget::tab-bar {{
-                alignment: left;
-            }}
-            """)
+        self.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
         # Corner widgets
         if corner_widgets is None:
@@ -287,7 +274,7 @@ class BaseTabs(QTabWidget):
 
         self.browse_button = create_toolbutton(
             self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
-        self.browse_button.setStyleSheet(STYLE_BUTTON_CSS)
+        self.browse_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)

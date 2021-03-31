@@ -33,7 +33,6 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 # Local imports
 from spyder.config.base import (_, get_module_source_path,
                                 running_under_pytest)
-from spyder.config.gui import STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
@@ -47,6 +46,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
@@ -484,7 +484,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.stop_button.clicked.connect(self.stop_button_click_handler)
         if self.stop_button is not None:
             buttons.append(self.stop_button)
-        self.stop_button.setStyleSheet(STYLE_BUTTON_CSS)
+        self.stop_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
         # Reset namespace button
         if self.reset_button is None:
@@ -496,14 +496,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                     triggered=self.reset_namespace)
         if self.reset_button is not None:
             buttons.append(self.reset_button)
-        self.reset_button.setStyleSheet(STYLE_BUTTON_CSS)
+        self.reset_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         if self.options_button is None:
             options = self.get_options_menu()
             if options:
                 self.options_button = create_toolbutton(self,
                         text=_('Options'), icon=ima.icon('tooloptions'))
                 self.options_button.setPopupMode(QToolButton.InstantPopup)
-                self.options_button.setStyleSheet(STYLE_BUTTON_CSS)
                 menu = QMenu(self)
                 add_actions(menu, options)
                 self.options_button.setMenu(menu)

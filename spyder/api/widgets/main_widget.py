@@ -36,7 +36,7 @@ from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
-from spyder.utils.stylesheet import APP_STYLESHEET
+from spyder.utils.stylesheet import APP_STYLESHEET, PANES_TABBAR_STYLESHEET
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -294,17 +294,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 # For widgets that use tabs, we add the corner widget using
                 # the setCornerWidget method.
                 child.setCornerWidget(self._corner_widget)
-
-                # This is needed to ensure the corner ToolButton (hamburguer
-                # menu) is aligned with plugins that use Toolbars vs
-                # CornerWidgets
-                # See: spyder-ide/spyder#13600
-                # left, top, right, bottom
-                if os.name == "nt":
-                    self._corner_widget.setContentsMargins(0, 0, 2, 0)
-                else:
-                    self._corner_widget.setContentsMargins(0, 2, 2, 0)
-
+                self._corner_widget.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
                 break
 
         self._options_button = self.create_toolbutton(

@@ -195,8 +195,47 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
                     backgroundColor=color
                 )
 
+            css['QToolButton::menu-indicator'].setValues(
+                image='none'
+            )
+
             self._stylesheet = css
 
 
 APP_TOOLBAR_STYLESHEET = ApplicationToolbarStylesheet()
 PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
+
+
+# =============================================================================
+# ---- Tabbar stylesheet
+# =============================================================================
+class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
+
+    # TODO: This needs to be changed to 0.9em when the IPython console
+    # and the Editor are migrated.
+    TOP_MARGIN = '0.8em'
+
+    def set_stylesheet(self):
+        super().set_stylesheet()
+        css = self.get_stylesheet()
+
+        # QTabBar forces the corner widgets to be smaller than they should
+        # on The top margin added allows the toolbuttons to expand to their
+        # normal size.
+        # See: spyder-ide/spyder#13600
+        css['QTabBar::tab'].setValues(
+            marginTop=self.TOP_MARGIN,
+            paddingTop='4px',
+            paddingBottom='4px',
+            paddingLeft='10px',
+            paddingRight='4px'
+        )
+
+        # This crops the close button a bit at the bottom in order to
+        # center it. But a bigger negative padding-bottom crops it even
+        # more.
+        css['QTabBar::close-button'].setValues(
+            paddingBottom='-6px',
+        )
+
+PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()

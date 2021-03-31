@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
+from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -61,6 +61,7 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 from spyder.plugins.outlineexplorer.api import cell_name
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 
 logger = logging.getLogger(__name__)
@@ -673,7 +674,7 @@ class EditorStack(QWidget):
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
         self.spinner = create_waitspinner(size=20, parent=self)
-        menu_btn.setStyleSheet(STYLE_BUTTON_CSS)
+        menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)

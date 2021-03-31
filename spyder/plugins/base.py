@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_color_scheme, get_font, is_dark_interface, STYLE_BUTTON_CSS
+from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
@@ -175,10 +175,6 @@ class BasePluginWidgetMixin(object):
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
-
-        # Don't show menu arrow and remove padding
-
-        self.options_button.setStyleSheet(STYLE_BUTTON_CSS)
 
         # Options menu
         self._options_menu = QMenu(self)
