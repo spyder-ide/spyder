@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-31 19:00\n"
+"PO-Revision-Date: 2021-03-31 19:18\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3084,7 +3084,7 @@ msgstr "Файл..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:462
 msgid "Python file..."
-msgstr ""
+msgstr "Файл Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:466
 msgid "Folder..."
@@ -3140,7 +3140,7 @@ msgstr "Показати в теці"
 
 #: spyder/plugins/explorer/widgets/explorer.py:620
 msgid "Commit"
-msgstr ""
+msgstr "Зафіксувати зміни"
 
 #: spyder/plugins/explorer/widgets/explorer.py:623
 msgid "Browse repository"
