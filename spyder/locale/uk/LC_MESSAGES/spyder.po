@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-31 18:52\n"
+"PO-Revision-Date: 2021-03-31 19:00\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1517,19 +1517,19 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:631
 msgid "Introspection"
-msgstr ""
+msgstr "Самоаналіз"
 
 #: spyder/plugins/completion/languageserver/confpage.py:633
 msgid "Code style and formatting"
-msgstr ""
+msgstr "Стиль та форматування коду"
 
 #: spyder/plugins/completion/languageserver/confpage.py:635
 msgid "Docstring style"
-msgstr ""
+msgstr "Стиль Docstring"
 
 #: spyder/plugins/completion/languageserver/confpage.py:636
 msgid "Snippets"
-msgstr ""
+msgstr "Фрагменти"
 
 #: spyder/plugins/completion/languageserver/confpage.py:641
 msgid "Other languages"
@@ -1549,31 +1549,31 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:769
 msgid "Save snippets"
-msgstr ""
+msgstr "Зберегти фрагменти"
 
 #: spyder/plugins/completion/languageserver/confpage.py:782
 msgid "Load snippets"
-msgstr ""
+msgstr "Завантажити фрагменти"
 
 #: spyder/plugins/completion/languageserver/confpage.py:796
 msgid "All snippets imported"
-msgstr ""
+msgstr "Всі фрагменти імпортовані"
 
 #: spyder/plugins/completion/languageserver/confpage.py:797
 msgid "{0} snippets were loaded successfully"
-msgstr ""
+msgstr "{0} фрагментів успішно завантажено"
 
 #: spyder/plugins/completion/languageserver/confpage.py:804
 msgid "JSON malformed"
-msgstr ""
+msgstr "JSON неправильно сформований"
 
 #: spyder/plugins/completion/languageserver/confpage.py:805
 msgid "There was an error when trying to load the provided JSON file: <tt>{0}</tt>"
-msgstr ""
+msgstr "Сталася помилка при спробі завантажити вказаний файл JSON: <tt>{0}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:814
 msgid "Invalid snippet file"
-msgstr ""
+msgstr "Невірний файл фрагмента"
 
 #: spyder/plugins/completion/languageserver/confpage.py:815
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
@@ -1581,7 +1581,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:832
 msgid "Incorrect snippet format"
-msgstr ""
+msgstr "Некоректний формат фрагмента"
 
 #: spyder/plugins/completion/languageserver/confpage.py:833
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
@@ -1781,7 +1781,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
-msgstr ""
+msgstr "запускається"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:37
 msgid "ready"
@@ -1789,7 +1789,7 @@ msgstr "готово"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:38
 msgid "restarting"
-msgstr ""
+msgstr "перезавантажується"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:39
 msgid "down"
@@ -3028,11 +3028,11 @@ msgstr "Гілка Git"
 
 #: spyder/plugins/explorer/confpage.py:32
 msgid "General options"
-msgstr ""
+msgstr "Загальні налаштування"
 
 #: spyder/plugins/explorer/confpage.py:33 spyder/plugins/explorer/widgets/explorer.py:335
 msgid "Show hidden files"
-msgstr ""
+msgstr "Показувати приховані файли"
 
 #: spyder/plugins/explorer/confpage.py:34
 msgid "Single click to open files"
