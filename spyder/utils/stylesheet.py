@@ -19,35 +19,60 @@ from spyder.utils.palette import QStylePalette
 
 
 # =============================================================================
+# ---- Base stylesheet class
+# =============================================================================
+class SpyderStyleSheet:
+    """Base class for Spyder stylesheets."""
+
+    def __init__(self):
+        self._stylesheet = None
+        self.set_stylesheet()
+
+    def get_stylesheet(self):
+        return self._stylesheet
+
+    def to_string(self):
+        return self._stylesheet.toString()
+
+    def get_copy(self):
+        """
+        Return a copy of the sytlesheet.
+
+        This allows us to be modified for specific widgets.
+        """
+        return copy.deepcopy(self._stylesheet)
+
+    def set_stylesheet(self):
+        raise NotImplementedError(
+            "Subclasses need to implement this method to set the _stylesheet "
+            "attribute as a Qstylizer StyleSheet object"
+        )
+
+    def __str__(self):
+        return self.to_string()
+
+
+# =============================================================================
 # ---- Application stylesheet
 # =============================================================================
-class AppStylesheet:
+class AppStylesheet(SpyderStyleSheet):
     """
     Class to build and access the stylesheet we use in the entire
     application.
     """
 
     def __init__(self):
-        self._stylesheet = None
+        super().__init__()
         self._stylesheet_as_string = None
-        self._get_stylesheet()
 
-    def as_string(self):
-        """Return the stylesheet as a string."""
+    def to_string(self):
+        "Save stylesheet as a string for quick access."
+        if self._stylesheet_as_string is None:
+            self._stylesheet_as_string = self._stylesheet.toString()
         return self._stylesheet_as_string
 
-    def as_object(self):
+    def set_stylesheet(self):
         """
-        Return the stylesheet as an object.
-
-        This allows us to be modified for specific widgets.
-        """
-        return copy.deepcopy(self._stylesheet)
-
-    def _get_stylesheet(self):
-        """
-        Get the stylesheet as a Qstylizer StyleSheet object.
-
         This takes the stylesheet from QDarkstyle and applies our
         customizations to it.
         """
@@ -57,9 +82,6 @@ class AppStylesheet:
 
             # Add our customizations
             self._customize_stylesheet()
-
-            # Save stylesheet as a string for quick access
-            self._stylesheet_as_string = self._stylesheet.toString()
 
     def _customize_stylesheet(self):
         """Apply our customizations to the stylesheet."""
@@ -109,16 +131,13 @@ class AppStylesheet:
             #iconSize='0.8em'
         )
 
-    def __str__(self):
-        return self.as_string()
-
 
 APP_STYLESHEET = AppStylesheet()
 
 # =============================================================================
 # ---- Toolbar stylesheets
 # =============================================================================
-class ApplicationToolbarStylesheet:
+class ApplicationToolbarStylesheet(SpyderStyleSheet):
     """Stylesheet for application toolbars."""
 
     BUTTON_WIDTH = '2.8em'
@@ -126,11 +145,7 @@ class ApplicationToolbarStylesheet:
     BUTTON_MARGIN_LEFT = '0.25em'
     BUTTON_MARGIN_RIGHT = '0.25em'
 
-    def __init__(self):
-        self._stylesheet = None
-        self._get_stylesheet()
-
-    def _get_stylesheet(self):
+    def set_stylesheet(self):
         """Get the stylesheet as a Qstylizer StyleSheet object."""
         if self._stylesheet is None:
             css = qstylizer.style.StyleSheet()
@@ -150,25 +165,18 @@ class ApplicationToolbarStylesheet:
 
             self._stylesheet = css
 
-    def __str__(self):
-        return self._stylesheet.toString()
 
-
-class PanesToolbarStyleSheet:
+class PanesToolbarStyleSheet(SpyderStyleSheet):
     """Stylesheet for pane toolbars."""
 
     BUTTON_WIDTH = '2.2em'
     BUTTON_HEIGHT = '2.2em'
 
-    def __init__(self):
-        self._stylesheet = None
-        self._get_stylesheet()
-
-    def _get_stylesheet(self):
+    def set_stylesheet(self):
         """Get the stylesheet as a Qstylizer StyleSheet object."""
         if self._stylesheet is None:
             css = qstylizer.style.StyleSheet()
-            app_css = APP_STYLESHEET._stylesheet
+            app_css = APP_STYLESHEET.get_stylesheet()
 
             css.QToolBar.setValues(
                 spacing='0.3em'
@@ -188,9 +196,6 @@ class PanesToolbarStyleSheet:
                 )
 
             self._stylesheet = css
-
-    def __str__(self):
-        return self._stylesheet.toString()
 
 
 APP_TOOLBAR_STYLESHEET = ApplicationToolbarStylesheet()
