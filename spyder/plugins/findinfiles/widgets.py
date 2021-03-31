@@ -953,7 +953,6 @@ class FindInFilesWidget(PluginMainWidget):
         )
         self.find_action = self.create_action(
             FindInFilesWidgetActions.Find,
-            icon_text=_('Search'),
             text=_("&Find in files"),
             tip=_("Search text in multiple files"),
             icon=self.create_icon('find'),
@@ -1033,27 +1032,10 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
     def update_actions(self):
-        stop_text = _('Stop')
-        search_text = _('Search')
         if self.running:
-            icon_text = stop_text
             icon = self.create_icon('stop')
         else:
-            icon_text = search_text
             icon = self.create_icon('find')
-
-        self.find_action.setIconText(icon_text)
-        self.find_action.setIcon(icon)
-        widget = self.get_main_toolbar().widgetForAction(self.find_action)
-        if widget:
-            w1 = widget.fontMetrics().width(stop_text)
-            w2 = widget.fontMetrics().width(search_text)
-
-            # Ensure the search/stop button has the same size independent on
-            # the length of the words.
-            width = (self.get_options_menu_button().width() + max([w1, w2])
-                     + EXTRA_BUTTON_PADDING)
-            widget.setMinimumWidth(width)
 
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(

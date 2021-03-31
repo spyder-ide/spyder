@@ -425,7 +425,6 @@ class PylintWidget(PluginMainWidget):
         )
         self.code_analysis_action = self.create_action(
             PylintWidgetActions.RunCodeAnalysis,
-            icon_text=_("Analyze"),
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
@@ -441,7 +440,6 @@ class PylintWidget(PluginMainWidget):
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
             text=_("Output"),
-            icon_text=_("Output"),
             tip=_("Complete output"),
             icon=self.create_icon("log"),
             triggered=self.show_log,
@@ -525,18 +523,9 @@ class PylintWidget(PluginMainWidget):
             self._update_combobox_history()
 
     def update_actions(self):
-        fm = self.ratelabel.fontMetrics()
-        toolbar = self.get_main_toolbar()
-        width = max([fm.width(_("Stop")), fm.width(_("Analyze"))])
-        widget = toolbar.widgetForAction(self.code_analysis_action)
-        if widget:
-            widget.setMinimumWidth(width * 1.5)
-
         if self._is_running():
-            self.code_analysis_action.setIconText(_("Stop"))
             self.code_analysis_action.setIcon(self.create_icon("stop"))
         else:
-            self.code_analysis_action.setIconText(_("Analyze"))
             self.code_analysis_action.setIcon(self.create_icon("run"))
 
         self.remove_obsolete_items()

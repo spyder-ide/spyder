@@ -23,7 +23,6 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
                             QWidget)
-import qdarkstyle
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -37,6 +36,7 @@ from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
+from spyder.utils.stylesheet import APP_STYLESHEET, PANES_TABBAR_STYLESHEET
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -257,11 +257,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         # Layout
         # --------------------------------------------------------------------
+        # These margins are necessary to give some space between the widgets
+        # inside this widget and the window vertical separator.
+        self._margin_left = 1
+        self._margin_right = 1
+
         self._main_layout = QVBoxLayout()
         self._toolbars_layout = QVBoxLayout()
         self._main_toolbar_layout = QHBoxLayout()
 
-        self._toolbars_layout.setContentsMargins(0, 0, 0, 0)
+        self._toolbars_layout.setContentsMargins(
+            self._margin_left, 0, self._margin_right, 0)
         self._toolbars_layout.setSpacing(0)
         self._main_toolbar_layout.setContentsMargins(0, 0, 0, 0)
         self._main_toolbar_layout.setSpacing(0)
@@ -288,17 +294,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 # For widgets that use tabs, we add the corner widget using
                 # the setCornerWidget method.
                 child.setCornerWidget(self._corner_widget)
-
-                # This is needed to ensure the corner ToolButton (hamburguer
-                # menu) is aligned with plugins that use Toolbars vs
-                # CornerWidgets
-                # See: spyder-ide/spyder#13600
-                # left, top, right, bottom
-                if os.name == "nt":
-                    self._corner_widget.setContentsMargins(0, 0, 2, 0)
-                else:
-                    self._corner_widget.setContentsMargins(0, 2, 2, 0)
-
+                self._corner_widget.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
                 break
 
         self._options_button = self.create_toolbutton(
@@ -434,7 +430,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         self._main_layout.addLayout(layout, stretch=1000000)
         super().setLayout(self._main_layout)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(self._margin_left, 0, self._margin_right, 0)
         layout.setSpacing(0)
 
     # --- Public methods to use
@@ -649,7 +645,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             self._default_margins = layout.getContentsMargins()
 
         if margin is not None:
-            layout.setContentsMargins(margin, margin + 3, margin, margin)
+            layout.setContentsMargins(margin, margin, margin, margin)
         else:
             layout.setContentsMargins(*self._default_margins)
 
@@ -905,7 +901,7 @@ def run_test():
     widget.start_spinner()
     dock, location = widget.create_dockwidget(main)
     main.addDockWidget(location, dock)
-    main.setStyleSheet(qdarkstyle.load_stylesheet())
+    main.setStyleSheet(str(APP_STYLESHEET))
     main.show()
     app.exec_()
 

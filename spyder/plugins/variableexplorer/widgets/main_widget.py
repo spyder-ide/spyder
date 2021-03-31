@@ -482,12 +482,16 @@ class VariableExplorerWidget(PluginMainWidget):
                 triggered=self.hide_finder,
                 icon=self.create_icon('DialogCloseButton'),
             )
+
             finder_layout = QHBoxLayout()
             finder_layout.addWidget(self.finder_close_button)
             finder_layout.addWidget(self.text_finder)
             finder_layout.setContentsMargins(0, 0, 0, 0)
             self.finder.setLayout(finder_layout)
-            self.layout().addWidget(self.finder)
+
+            layout = self.layout()
+            layout.addSpacing(1)
+            layout.addWidget(self.finder)
         else:
             # Just update references to the same text_finder (Custom QLineEdit)
             # widget to the new current NamespaceBrowser and save current

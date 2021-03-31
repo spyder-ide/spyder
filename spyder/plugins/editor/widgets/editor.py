@@ -21,7 +21,6 @@ import functools
 import unicodedata
 
 # Third party imports
-import qdarkstyle
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
@@ -34,7 +33,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
+from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -45,6 +44,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
                                     mimedata2url, set_menu_icons,
                                     create_waitspinner)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.findreplace import FindReplace
@@ -61,6 +61,7 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 from spyder.plugins.outlineexplorer.api import cell_name
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 
 logger = logging.getLogger(__name__)
@@ -673,7 +674,7 @@ class EditorStack(QWidget):
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
         self.spinner = create_waitspinner(size=20, parent=self)
-        menu_btn.setStyleSheet(STYLE_BUTTON_CSS)
+        menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
@@ -697,15 +698,12 @@ class EditorStack(QWidget):
             self.tabs.setDocumentMode(True)
         self.tabs.currentChanged.connect(self.current_changed)
 
-        if sys.platform == 'darwin':
-            tab_container = QWidget()
-            tab_container.setObjectName('tab-container')
-            tab_layout = QHBoxLayout(tab_container)
-            tab_layout.setContentsMargins(0, 0, 0, 0)
-            tab_layout.addWidget(self.tabs)
-            layout.addWidget(tab_container)
-        else:
-            layout.addWidget(self.tabs)
+        tab_container = QWidget()
+        tab_container.setObjectName('tab-container')
+        tab_layout = QHBoxLayout(tab_container)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.addWidget(self.tabs)
+        layout.addWidget(tab_container)
 
         # Show/hide icons in plugin menus for Mac
         if sys.platform == 'darwin':
@@ -3179,7 +3177,7 @@ class EditorMainWindow(QMainWindow):
 
         # Setting interface theme
         if is_dark_interface():
-            self.setStyleSheet(qdarkstyle.load_stylesheet())
+            self.setStyleSheet(str(APP_STYLESHEET))
 
         # Give focus to current editor to update/show all status bar widgets
         editorstack = self.editorwidget.editorsplitter.editorstack

@@ -56,6 +56,7 @@ PYLS_SPYDER_REQVER = '>=0.3.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
 QDARKSTYLE_REQVER = '>=2.8;<3.0'
+QSTYLIZER_REQVER = '>=0.1.10'
 QTAWESOME_REQVER = '>=0.5.7'
 QTCONSOLE_REQVER = '>=5.0.3'
 QTPY_REQVER = '>=1.5.0'
@@ -197,6 +198,10 @@ DESCRIPTIONS = [
      'package_name': "qdarkstyle",
      'features': _("Dark style for the entire interface"),
      'required_version': QDARKSTYLE_REQVER},
+    {'modname': "qstylizer",
+     'package_name': "qstylizer",
+     'features': _("Customize Qt stylesheets"),
+     'required_version': QSTYLIZER_REQVER},
     {'modname': "qtawesome",
      'package_name': "qtawesome",
      'features': _("Icon theme based on FontAwesome and Material Design icons"),

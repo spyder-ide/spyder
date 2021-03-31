@@ -59,7 +59,6 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
-import qdarkstyle
 from qtawesome.iconic_font import FontError
 
 #==============================================================================
@@ -92,6 +91,7 @@ from spyder.utils.misc import (select_port, getcwd_or_home,
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
                                     qapplication, start_file)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.app.solver import (
     find_external_plugins, find_internal_plugins, solve_plugin_dependencies)
 
@@ -749,7 +749,7 @@ class MainWindow(QMainWindow):
                 # Set style proxy to fix combobox popup on mac and qdark
                 qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
-            dark_qss = qdarkstyle.load_stylesheet()
+            dark_qss = str(APP_STYLESHEET)
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
@@ -759,7 +759,7 @@ class MainWindow(QMainWindow):
                     # Set style proxy to fix combobox popup on mac and qdark
                     qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
-                dark_qss = qdarkstyle.load_stylesheet()
+                dark_qss = str(APP_STYLESHEET)
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH
@@ -971,8 +971,6 @@ class MainWindow(QMainWindow):
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
-        self.file_toolbar_actions += [self.file_switcher_action,
-                                     self.symbol_finder_action]
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
