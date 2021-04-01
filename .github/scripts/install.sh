@@ -8,6 +8,9 @@ fi
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
+    # Use conda-forge as highest priority channel
+    conda config --append channels conda-forge
+
     if [ "$OS" != "win" ]; then
         # Install nomkl to avoid installing Intel MKL libraries
         conda install nomkl -q -y
