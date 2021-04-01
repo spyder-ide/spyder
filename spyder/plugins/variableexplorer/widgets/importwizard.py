@@ -37,6 +37,7 @@ from spyder.utils import programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.utils.palette import SpyderPalette
 
 
 def try_to_parse(value):
@@ -86,16 +87,16 @@ def datestr_to_datetime(value, dayfirst=True):
 
 #----Background colors for supported types
 COLORS = {
-          bool: Qt.magenta,
-          tuple([float] + list(INT_TYPES)): Qt.blue,
-          list: Qt.yellow,
-          set: Qt.darkGreen,
-          dict: Qt.cyan,
-          tuple: Qt.lightGray,
-          TEXT_TYPES: Qt.darkRed,
-          ndarray: Qt.green,
-          datetime.date: Qt.darkYellow,
-          }
+    bool: SpyderPalette.GROUP_1,
+    tuple([float] + list(INT_TYPES)): SpyderPalette.GROUP_2,
+    TEXT_TYPES: SpyderPalette.GROUP_3,
+    datetime.date: SpyderPalette.GROUP_4,
+    list: SpyderPalette.GROUP_5,
+    set: SpyderPalette.GROUP_6,
+    tuple: SpyderPalette.GROUP_7,
+    dict: SpyderPalette.GROUP_8,
+    ndarray: SpyderPalette.GROUP_9,
+}
 
 def get_color(value, alpha):
     """Return color depending on value type"""
@@ -296,7 +297,8 @@ class PreviewTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return self._display_data(index)
         elif role == Qt.BackgroundColorRole:
-            return to_qvariant(get_color(self._data[index.row()][index.column()], .2))
+            return to_qvariant(get_color(
+                self._data[index.row()][index.column()], 0.5))
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignRight|Qt.AlignVCenter))
         return to_qvariant()
