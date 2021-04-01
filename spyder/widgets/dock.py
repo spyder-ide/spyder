@@ -105,11 +105,11 @@ class DragButton(QToolButton):
         self.setAutoRaise(True)
         self.setIcon(ima.icon('drag-horizontal'))
         self.setStyleSheet((
-                "QToolButton {{"
-                "border-radius: 0px;"
-                "border: 0px;"
-                "background-color: {color};}}").format(
-                    color=QStylePalette.COLOR_BACKGROUND_3))
+            "QToolButton {{"
+            "border-radius: 0px;"
+            "border: 0px;"
+            "background-color: {color};}}").format(
+                color=QStylePalette.COLOR_BACKGROUND_3))
 
     def mouseReleaseEvent(self, event):
         self.parent.mouseReleaseEvent(event)

@@ -136,7 +136,6 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
             layout.addWidget(self.spinner)
 
         layout.addSpacing(0)
-
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignVCenter)
 
