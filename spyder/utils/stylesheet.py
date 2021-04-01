@@ -41,7 +41,7 @@ class SpyderStyleSheet:
 
         This allows it to be modified for specific widgets.
         """
-        return copy.deepcopy(self._stylesheet)
+        return copy.deepcopy(self)
 
     def set_stylesheet(self):
         raise NotImplementedError(

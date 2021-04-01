@@ -25,6 +25,7 @@ from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 from spyder.widgets.tabs import Tabs
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 # Localization
 _ = get_translation('spyder')
@@ -81,6 +82,7 @@ class HistoryWidget(PluginMainWidget):
         self.find_widget = FindReplace(self)
 
         # Setup
+        self.tabwidget.setStyleSheet(self._tabs_stylesheet)
         self.find_widget.hide()
 
         # Layout
@@ -303,6 +305,16 @@ class HistoryWidget(PluginMainWidget):
             editor = None
 
         self.find_widget.set_editor(editor)
+
+    @property
+    def _tabs_stylesheet(self):
+        """
+        Change style of tabs because we don't have a close button here.
+        """
+        tabs_stylesheet = PANES_TABBAR_STYLESHEET.get_copy()
+        css = tabs_stylesheet.get_stylesheet()
+        css['QTabBar::tab'].setValues(padding='4px')
+        return tabs_stylesheet.to_string()
 
 
 def test():
