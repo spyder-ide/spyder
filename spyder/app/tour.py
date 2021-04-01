@@ -1440,24 +1440,52 @@ class OpenTourDialog(QDialog):
         # Buttons
         buttons_layout = QHBoxLayout()
         dialog_tour_color = QStylePalette.COLOR_BACKGROUND_2
-        start_tour_color = QStylePalette.COLOR_ACCENT_3
-        dismiss_tour_color = QStylePalette.COLOR_BACKGROUND_6
+        start_tour_color = QStylePalette.COLOR_ACCENT_2
+        start_tour_hover = QStylePalette.COLOR_ACCENT_3
+        start_tour_pressed = QStylePalette.COLOR_ACCENT_4
+        dismiss_tour_color = QStylePalette.COLOR_BACKGROUND_4
+        dismiss_tour_hover = QStylePalette.COLOR_BACKGROUND_5
+        dismiss_tour_pressed = QStylePalette.COLOR_BACKGROUND_6
         font_color = QStylePalette.COLOR_TEXT_1
         self.launch_tour_button = QPushButton(_('Start tour'))
-        self.launch_tour_button.setStyleSheet(
-          f"background-color: {start_tour_color};"
-          f"font-size: {self.BUTTONS_FONT_SIZE};"
-          f"color: {font_color};"
-          f"padding: {self.BUTTONS_PADDING}"
-        )
+        self.launch_tour_button.setStyleSheet((
+          "QPushButton {{ "
+          "background-color: {background_color};"
+          "border-color: {border_color};"
+          "font-size: {font_size};"
+          "color: {font_color};"
+          "padding: {padding}}}"
+          "QPushButton:hover:!pressed {{ "
+          "background-color: {color_hover}}}"
+          "QPushButton:pressed {{ "
+          "background-color: {color_pressed}}}"
+        ).format(background_color=start_tour_color,
+                 border_color=start_tour_color,
+                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_color=font_color,
+                 padding=self.BUTTONS_PADDING,
+                 color_hover=start_tour_hover,
+                 color_pressed=start_tour_pressed))
         self.launch_tour_button.setAutoDefault(False)
         self.dismiss_button = QPushButton(_('Dismiss'))
-        self.dismiss_button.setStyleSheet(
-          f"background-color: {dismiss_tour_color};"
-          f"font-size: {self.BUTTONS_FONT_SIZE};"
-          f"color: {font_color};"
-          f"padding: {self.BUTTONS_PADDING}"
-        )
+        self.dismiss_button.setStyleSheet((
+          "QPushButton {{ "
+          "background-color: {background_color};"
+          "border-color: {border_color};"
+          "font-size: {font_size};"
+          "color: {font_color};"
+          "padding: {padding}}}"
+          "QPushButton:hover:!pressed {{ "
+          "background-color: {color_hover}}}"
+          "QPushButton:pressed {{ "
+          "background-color: {color_pressed}}}"
+        ).format(background_color=dismiss_tour_color,
+                 border_color=dismiss_tour_color,
+                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_color=font_color,
+                 padding=self.BUTTONS_PADDING,
+                 color_hover=dismiss_tour_hover,
+                 color_pressed=dismiss_tour_pressed))
         self.dismiss_button.setAutoDefault(False)
 
         buttons_layout.addStretch()
