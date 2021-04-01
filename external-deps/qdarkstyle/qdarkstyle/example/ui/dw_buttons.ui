@@ -261,7 +261,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -296,7 +296,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -310,8 +310,8 @@
        <string>Icon</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/${ID}/style.qrc">
-        <normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</iconset>
+       <iconset resource="../../dark/style.qrc">
+        <normaloff>:/qss_icons/dark/rc/window_undock_focus.png</normaloff>:/qss_icons/dark/rc/window_undock_focus.png</iconset>
       </property>
      </widget>
     </item>
@@ -324,7 +324,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -362,7 +362,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -379,7 +379,7 @@
        <string>Icon</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/${ID}/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</iconset>
       </property>
      </widget>
@@ -397,7 +397,7 @@
        <string>Checked</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="checkable">
@@ -417,7 +417,7 @@
        <string>Checked</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="checkable">
@@ -440,8 +440,8 @@
        <string>Icon Checked</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/${ID}/style.qrc">
-        <normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</iconset>
+       <iconset resource="../../dark/style.qrc">
+        <normaloff>:/qss_icons/dark/rc/window_undock_focus.png</normaloff>:/qss_icons/dark/rc/window_undock_focus.png</iconset>
       </property>
       <property name="checkable">
        <bool>true</bool>
@@ -460,7 +460,7 @@
        <string>Checked</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="checkable">
@@ -483,7 +483,7 @@
        <string>Checked</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="checkable">
@@ -509,7 +509,7 @@
        <string>Icon Checked</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/${ID}/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</iconset>
       </property>
       <property name="checkable">
@@ -533,7 +533,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -547,7 +547,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -561,8 +561,8 @@
        <string>...</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
-        <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
+       <iconset resource="../../dark/style.qrc">
+        <normaloff>:/qss_icons/dark/rc/window_undock_focus.png</normaloff>:/qss_icons/dark/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
        <enum>Qt::ToolButtonFollowStyle</enum>
@@ -578,7 +578,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -595,7 +595,7 @@
        <string>Tool</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -612,7 +612,7 @@
        <string>...</string>
       </property>
       <property name="icon">
-       <iconset resource="../../qdarkstyle/style.qrc">
+       <iconset>
         <normaloff>:/qss_icons/rc/window_undock_focus.png</normaloff>:/qss_icons/rc/window_undock_focus.png</iconset>
       </property>
       <property name="toolButtonStyle">
@@ -1341,7 +1341,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../qdarkstyle/${ID}/style.qrc"/>
+  <include location="../../dark/style.qrc"/>
  </resources>
  <connections>
   <connection>

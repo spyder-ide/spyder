@@ -418,14 +418,9 @@ QMenu {
         color: $COLOR_TEXT_1;
     }
 
-    &::icon {
-        margin: 0px;
-        padding-left: 8px;
-    }
-
     &::item {
         background-color: $COLOR_BACKGROUND_3;
-        padding: 4px 24px 4px 8px;
+        padding: 4px 24px 4px 28px;
         /* Reserve space for selection border */
         border: 1px transparent $COLOR_BACKGROUND_4;
 
@@ -438,10 +433,16 @@ QMenu {
         }
     }
 
-    &::indicator {
+    &::icon {
+        padding-left: 10px;
         width: 14px;
         height: 14px;
-        padding-left: 6px;
+    }
+
+    &::indicator {
+        padding-left: 8px;
+        width: 12px;
+        height: 12px;
 
         /* non-exclusive indicator = check box style indicator (see QActionGroup::setExclusive) */
         &:non-exclusive {
@@ -815,41 +816,9 @@ QToolBar {
     font-weight: bold;
     spacing: 2px;
 
-    QToolButton {
+    &:disabled{
+        /* Fixes #272 */
         background-color: $COLOR_BACKGROUND_4;
-        border: $BORDER_2;
-
-        &:hover {
-            background-color: $COLOR_BACKGROUND_5;
-            border: $COLOR_BACKGROUND_5;
-        }
-
-        &:checked {
-            border: $COLOR_BACKGROUND_6;
-            background-color: $COLOR_BACKGROUND_6;
-
-            &:hover {
-                background-color: $COLOR_BACKGROUND_6;
-                border: $COLOR_BACKGROUND_6;
-            }
-        }
-
-        &:pressed {
-            border: $COLOR_BACKGROUND_6;
-            background-color: $COLOR_BACKGROUND_6;
-
-            &:hover {
-                background-color: $COLOR_BACKGROUND_6;
-                border: $COLOR_BACKGROUND_6;
-            }
-        }
-
-        /* This fixes 202 */
-        &:disabled {
-            border: $COLOR_BACKGROUND_4;
-            background-color: $COLOR_BACKGROUND_4;
-
-        }
     }
 
     &::handle {
@@ -1112,33 +1081,30 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qpushbutton
 --------------------------------------------------------------------------- */
 QPushButton {
     background-color: $COLOR_BACKGROUND_4;
-    border: $BORDER_2;
     color: $COLOR_TEXT_1;
     border-radius: $SIZE_BORDER_RADIUS;
-    padding: 3px;
+    padding: 2px;
     outline: none;
+    border: none;
 
     &:disabled {
         background-color: $COLOR_BACKGROUND_4;
-        border: $BORDER_2;
         color: $COLOR_TEXT_4;
         border-radius: $SIZE_BORDER_RADIUS;
-        padding: 3px;
+        padding: 2px;
     }
 
     &:checked {
         background-color: $COLOR_BACKGROUND_6;
-        border: $COLOR_BACKGROUND_6;
         border-radius: $SIZE_BORDER_RADIUS;
-        padding: 3px;
+        padding: 2px;
         outline: none;
 
         &:disabled {
             background-color: $COLOR_BACKGROUND_6;
-            border: $COLOR_BACKGROUND_6;
             color: $COLOR_TEXT_4;
             border-radius: $SIZE_BORDER_RADIUS;
-            padding: 3px;
+            padding: 2px;
             outline: none;
         }
 
@@ -1148,26 +1114,24 @@ QPushButton {
 
     }
 
-    &::menu-indicator {
-        subcontrol-origin: padding;
-        subcontrol-position: bottom right;
-        bottom: 4px;
-    }
-
     &:hover {
         background-color: $COLOR_BACKGROUND_5;
-        border: $COLOR_BACKGROUND_5;
         color: $COLOR_TEXT_1;
     }
 
     &:pressed {
         background-color: $COLOR_BACKGROUND_6;
-        border: $COLOR_BACKGROUND_6;
     }
 
     &:selected {
         background: $COLOR_BACKGROUND_6;
         color: $COLOR_TEXT_1;
+    }
+
+    &::menu-indicator {
+        subcontrol-origin: padding;
+        subcontrol-position: bottom right;
+        bottom: 4px;
     }
 
 }
@@ -1182,45 +1146,62 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtoolbutton
 
 --------------------------------------------------------------------------- */
 QToolButton {
-    background-color: transparent;
-    border: 1px solid transparent;
+    background-color: $COLOR_BACKGROUND_4;
+    color: $COLOR_TEXT_1;
     border-radius: $SIZE_BORDER_RADIUS;
-    margin: 0px;
     padding: 2px;
-
-    &:checked {
-        background-color: $COLOR_BACKGROUND_3;
-        border: $COLOR_BACKGROUND_3;
-
-        &:disabled {
-            background-color: $COLOR_BACKGROUND_4;
-            border: $COLOR_BACKGROUND_4;
-        }
-        &:hover {
-            background-color: $COLOR_BACKGROUND_3;
-            border: $COLOR_BACKGROUND_3;
-        }
-    }
-
-    &:pressed {
-        margin: 1px;
-        background-color: $COLOR_BACKGROUND_3;
-        border: $COLOR_BACKGROUND_3;
-        &:hover {
-            background-color: $COLOR_BACKGROUND_3;
-            border: $COLOR_BACKGROUND_3;
-        }
-    }
+    outline: none;
+    border: none;
 
     &:disabled {
-        border: none;
+        background-color: $COLOR_BACKGROUND_4;
+        color: $COLOR_TEXT_4;
+        border-radius: $SIZE_BORDER_RADIUS;
+        padding: 2px;
+    }
+
+    &:checked {
+        background-color: $COLOR_BACKGROUND_6;
+        border-radius: $SIZE_BORDER_RADIUS;
+        padding: 2px;
+        outline: none;
+
+        &:disabled {
+            background-color: $COLOR_BACKGROUND_6;
+            color: $COLOR_TEXT_4;
+            border-radius: $SIZE_BORDER_RADIUS;
+            padding: 2px;
+            outline: none;
+        }
+
+        &:hover {
+            background-color: $COLOR_BACKGROUND_5;
+            color: $COLOR_TEXT_1;
+        }
+
+        &:pressed {
+            background-color: $COLOR_BACKGROUND_6;
+        }
+
+        &:selected {
+            background: $COLOR_BACKGROUND_6;
+            color: $COLOR_TEXT_1;
+        }
 
     }
 
     &:hover {
-        background-color: $COLOR_BACKGROUND_2;
-        border: $COLOR_BACKGROUND_2;
+        background-color: $COLOR_BACKGROUND_5;
+        color: $COLOR_TEXT_1;
+    }
 
+    &:pressed {
+        background-color: $COLOR_BACKGROUND_6;
+    }
+
+    &:selected {
+        background: $COLOR_BACKGROUND_6;
+        color: $COLOR_TEXT_1;
     }
 
     /* The subcontrols below are used only in the DelayedPopup mode */
@@ -1239,7 +1220,7 @@ QToolButton {
 
             &:hover {
                 border: none;
-                border-left: 1px solid $COLOR_ACCENT_3;
+                border-left: 1px solid $COLOR_BACKGROUND_4;
                 border-radius: 0;
             }
         }
@@ -1254,8 +1235,8 @@ QToolButton {
     &::menu-button {
         padding: 2px;
         border-radius: $SIZE_BORDER_RADIUS;
-        border: $BORDER_2;
         width: 12px;
+        border: none;
         outline: none;
 
         &:hover {
@@ -1595,7 +1576,7 @@ QTabWidget {
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtabwidget-and-qtabbar
 
 --------------------------------------------------------------------------- */
-QTabBar {
+QTabBar, QDockWidget QTabBar {
     qproperty-drawBase: 0;
     border-radius: $SIZE_BORDER_RADIUS;
     margin: 0px;
@@ -1678,7 +1659,7 @@ QTabBar {
 
         &:bottom:!selected {
             border-top: 2px solid $COLOR_BACKGROUND_1;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         &:left:!selected {
@@ -1693,7 +1674,6 @@ QTabBar {
 
         &:top {
             background-color: $COLOR_BACKGROUND_4;
-            color: $COLOR_TEXT_1;
             margin-left: 2px;
             padding-left: 4px;
             padding-right: 4px;
@@ -1701,29 +1681,26 @@ QTabBar {
             padding-bottom: 2px;
             min-width: 5px;
             border-bottom: 3px solid $COLOR_BACKGROUND_4;
-            border-top-left-radius: 3px;
-            border-top-right-radius: 3px;
+            border-top-left-radius: $SIZE_BORDER_RADIUS;
+            border-top-right-radius: $SIZE_BORDER_RADIUS;
 
             &:selected {
                 background-color: $COLOR_BACKGROUND_5;
-                color: $COLOR_TEXT_1;
                 border-bottom: 3px solid $COLOR_ACCENT_4;
-                border-top-left-radius: 3px;
-                border-top-right-radius: 3px;
+                border-top-left-radius: $SIZE_BORDER_RADIUS;
+                border-top-right-radius: $SIZE_BORDER_RADIUS;
             }
 
             &:!selected:hover {
                 border: $BORDER_SELECTION_3;
                 border-bottom: 3px solid $COLOR_ACCENT_3;
-
-                /* Fixes spyder-ide/spyder#9766 */
-                padding-left: 4px;
-                padding-right: 4px;
+                /* Fixes spyder-ide/spyder#9766 and #243 */
+                padding-left: 3px;
+                padding-right: 3px;
             }
         }
 
         &:bottom {
-            color: $COLOR_TEXT_1;
             border-top: 3px solid $COLOR_BACKGROUND_4;
             background-color: $COLOR_BACKGROUND_4;
             margin-left: 2px;
@@ -1731,43 +1708,39 @@ QTabBar {
             padding-right: 4px;
             padding-top: 2px;
             padding-bottom: 2px;
-            border-bottom-left-radius: 3px;
-            border-bottom-right-radius: 3px;
+            border-bottom-left-radius: $SIZE_BORDER_RADIUS;
+            border-bottom-right-radius: $SIZE_BORDER_RADIUS;
             min-width: 5px;
 
             &:selected {
-                color: $COLOR_TEXT_1;
                 background-color: $COLOR_BACKGROUND_5;
                 border-top: 3px solid $COLOR_ACCENT_4;
-                border-bottom-left-radius: 3px;
-                border-bottom-right-radius: 3px;
+                border-bottom-left-radius: $SIZE_BORDER_RADIUS;
+                border-bottom-right-radius: $SIZE_BORDER_RADIUS;
             }
 
             &:!selected:hover {
                 border: $BORDER_SELECTION_3;
                 border-top: 3px solid $COLOR_ACCENT_3;
-
-                /* Fixes spyder-ide/spyder#9766 */
-                padding-left: 4px;
-                padding-right: 4px;
+                /* Fixes spyder-ide/spyder#9766 and #243 */
+                padding-left: 3px;
+                padding-right: 3px;
             }
 
         }
 
         &:left {
-            color: $COLOR_TEXT_1;
             background-color: $COLOR_BACKGROUND_4;
             margin-top: 2px;
             padding-left: 2px;
             padding-right: 2px;
             padding-top: 4px;
             padding-bottom: 4px;
-            border-top-left-radius: 3px;
-            border-bottom-left-radius: 3px;
+            border-top-left-radius: $SIZE_BORDER_RADIUS;
+            border-bottom-left-radius: $SIZE_BORDER_RADIUS;
             min-height: 5px;
 
             &:selected {
-                color: $COLOR_TEXT_1;
                 background-color: $COLOR_BACKGROUND_5;
                 border-right: 3px solid $COLOR_ACCENT_4;
             }
@@ -1775,24 +1748,24 @@ QTabBar {
             &:!selected:hover {
                 border: $BORDER_SELECTION_3;
                 border-right: 3px solid $COLOR_ACCENT_3;
-                padding: 0px;
+                /* Fixes different behavior #271 */
+                margin-right: 0px;
+                padding-right: -1px;
             }
         }
 
         &:right {
-            color: $COLOR_TEXT_1;
             background-color: $COLOR_BACKGROUND_4;
             margin-top: 2px;
             padding-left: 2px;
             padding-right: 2px;
             padding-top: 4px;
             padding-bottom: 4px;
-            border-top-right-radius: 3px;
-            border-bottom-right-radius: 3px;
+            border-top-right-radius: $SIZE_BORDER_RADIUS;
+            border-bottom-right-radius: $SIZE_BORDER_RADIUS;
             min-height: 5px;
 
             &:selected {
-                color: $COLOR_TEXT_1;
                 background-color: $COLOR_BACKGROUND_5;
                 border-left: 3px solid $COLOR_ACCENT_4;
 
@@ -1801,7 +1774,9 @@ QTabBar {
             &:!selected:hover {
                 border: $BORDER_SELECTION_3;
                 border-left: 3px solid $COLOR_ACCENT_3;
-                padding: 0px;
+                /* Fixes different behavior #271 */
+                margin-left: 0px;
+                padding-left: 0px;
             }
         }
     }
@@ -2032,6 +2007,11 @@ QColumnView {
             &:active {
                 background-color: $COLOR_ACCENT_2;
             }
+
+            &:!active {
+                color: $COLOR_TEXT_1;
+                background-color: $COLOR_BACKGROUND_3;
+            }
         }
 
         &:!selected {
@@ -2076,16 +2056,6 @@ QHeaderView {
         border-radius: 0;
         text-align: left;
         font-size: 13px;
-
-        &:checked {
-            color: $COLOR_TEXT_1;
-            background-color: $COLOR_ACCENT_2;
-
-            &:disabled {
-                color: $COLOR_TEXT_4;
-                background-color: $COLOR_ACCENT_1;
-            }
-        }
 
         &::horizontal {
             padding-top: 0;
@@ -2164,8 +2134,8 @@ QToolBox {
         background-color: $COLOR_BACKGROUND_1;
         border: $BORDER_2;
         color: $COLOR_TEXT_1;
-        border-top-left-radius: 4px;
-        border-top-right-radius: 4px;
+        border-top-left-radius: $SIZE_BORDER_RADIUS;
+        border-top-right-radius: $SIZE_BORDER_RADIUS;
 
         &:disabled {
             color: $COLOR_TEXT_4;
