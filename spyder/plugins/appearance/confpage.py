@@ -14,8 +14,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QFontComboBox,
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
-from spyder.config.gui import (get_font, is_dark_font_color, is_dark_interface,
-                               set_font)
+from spyder.config.gui import get_font, is_dark_font_color, set_font
 from spyder.config.manager import CONF
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
@@ -264,10 +263,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def update_qt_style_combobox(self):
         """Enable/disable the Qt style combobox."""
-        if is_dark_interface():
-            self.style_combobox.setEnabled(False)
-        else:
-            self.style_combobox.setEnabled(True)
+        self.style_combobox.setEnabled(False)
 
     def update_combobox(self):
         """Recreates the combobox contents."""

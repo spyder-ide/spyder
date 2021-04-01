@@ -27,7 +27,6 @@ from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
 # Local library imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.gui import is_dark_interface
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 
@@ -711,10 +710,7 @@ class ThumbnailScrollBar(QFrame):
             extra_padding -
             self.scrollarea.verticalScrollBar().sizeHint().width()
             )
-        if is_dark_interface():
-            # This is required to take into account some hard-coded padding
-            # and margin in qdarkstyle.
-            figure_canvas_width = figure_canvas_width - 6
+        figure_canvas_width = figure_canvas_width - 6
         return figure_canvas_width
 
     def _setup_thumbnail_size(self, thumbnail):

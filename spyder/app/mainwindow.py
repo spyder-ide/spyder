@@ -753,6 +753,17 @@ class MainWindow(QMainWindow):
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
+
+        elif ui_theme == 'light':
+            if not running_under_pytest():
+                # Set style proxy to fix combobox popup on mac and qdark
+                qapp = QApplication.instance()
+                qapp.setStyle(self._proxy_style)
+            light_qss = str(APP_STYLESHEET)
+            self.setStyleSheet(light_qss)
+            self.statusBar().setStyleSheet(light_qss)
+            css_path = CSS_PATH
+
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
                 if not running_under_pytest():
@@ -764,10 +775,10 @@ class MainWindow(QMainWindow):
                 self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH
             else:
+                light_qss = str(APP_STYLESHEET)
+                self.setStyleSheet(light_qss)
+                self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
-        else:
-            css_path = CSS_PATH
-
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")

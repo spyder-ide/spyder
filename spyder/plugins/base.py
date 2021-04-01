@@ -133,8 +133,7 @@ class PluginWindow(QMainWindow):
         self.plugin = plugin
 
         # Setting interface theme
-        if is_dark_interface():
-            self.setStyleSheet(str(APP_STYLESHEET))
+        self.setStyleSheet(str(APP_STYLESHEET))
 
     def closeEvent(self, event):
         """Reimplement Qt method."""

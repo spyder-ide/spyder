@@ -77,7 +77,7 @@ class AppStylesheet(SpyderStyleSheet):
         customizations to it.
         """
         if self._stylesheet is None:
-            stylesheet = qdarkstyle.load_stylesheet()
+            stylesheet = qdarkstyle.load_stylesheet(palette=QStylePalette)
             self._stylesheet = parse_stylesheet(stylesheet)
 
             # Add our customizations

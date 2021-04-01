@@ -30,7 +30,6 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
 # Local imports
 from spyder.config.base import MAC_APP_NAME
 from spyder.config.manager import CONF
-from spyder.config.gui import is_dark_interface
 from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
