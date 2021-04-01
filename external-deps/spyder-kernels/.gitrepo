@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = master
-	commit = b4d07e00dd2da5a0bb23f444e2919d2b6e9642d5
-	parent = ecca3fa403fd634ea634e1b4b9f2953f1b025021
+	branch = add-numpy-types-to-nsview
+	commit = ce1acbdc77629024ae6a43fc54a3099c3a10c760
+	parent = 0af96f64e6f0ac8a6c3f8dfb4648eda1ff1078a7
 	method = merge
 	cmdver = 0.4.3
