@@ -131,6 +131,15 @@ class AppStylesheet(SpyderStyleSheet):
             # iconSize='0.8em'
         )
 
+        if sys.platform == 'darwin':
+            css["QMenu::item"].setValues(
+                padding='4px 24px 4px 28px',
+            )
+
+        css["QMenu#checkbox-padding::item"].setValues(
+            padding='4px 24px 4px 28px',
+        )
+
 
 APP_STYLESHEET = AppStylesheet()
 
@@ -213,8 +222,8 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         css = self.get_stylesheet()
         is_macos = sys.platform == 'darwin'
 
-        # QTabBar forces the corner widgets to be smaller than they should
-        # on The top margin added allows the toolbuttons to expand to their
+        # QTabBar forces the corner widgets to be smaller than they should.
+        # The top margin added allows the toolbuttons to expand to their
         # normal size.
         # See: spyder-ide/spyder#13600
         css['QTabBar::tab'].setValues(
