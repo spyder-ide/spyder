@@ -27,8 +27,7 @@ REFRESH_RATE = 1000
 
 class ScrollFlagArea(Panel):
     """Source code editor's scroll flag area"""
-    if sys.platform == 'darwin':
-        WIDTH = 24
+    WIDTH = 24 if sys.platform == 'darwin' else 12
     FLAGS_DX = 4
     FLAGS_DY = 2
 
