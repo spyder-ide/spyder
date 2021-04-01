@@ -8,6 +8,7 @@
 
 # Standard library imports
 import copy
+import sys
 
 # Third-party imports
 import qdarkstyle
@@ -127,7 +128,7 @@ class AppStylesheet(SpyderStyleSheet):
             height='1.4em',
             fontSize='0.7em',
             # TODO: This requires a fix in qstylizer
-            #iconSize='0.8em'
+            # iconSize='0.8em'
         )
 
 
@@ -210,6 +211,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     def set_stylesheet(self):
         super().set_stylesheet()
         css = self.get_stylesheet()
+        is_macos = sys.platform == 'darwin'
 
         # QTabBar forces the corner widgets to be smaller than they should
         # on The top margin added allows the toolbuttons to expand to their
@@ -219,15 +221,27 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             marginTop=self.TOP_MARGIN,
             paddingTop='4px',
             paddingBottom='4px',
-            paddingLeft='10px',
-            paddingRight='4px'
+            paddingLeft='4px' if is_macos else '10px',
+            paddingRight='10px' if is_macos else '4px'
         )
 
         # This crops the close button a bit at the bottom in order to
         # center it. But a bigger negative padding-bottom crops it even
         # more.
         css['QTabBar::close-button'].setValues(
-            paddingBottom='-6px',
+            paddingBottom='-5px' if is_macos else '-6px',
         )
+
+    def to_string(self):
+        css_string = self._stylesheet.toString()
+
+        # TODO: We need to fix this in qstylizer
+        if sys.platform == 'darwin':
+            left_tabs = ("QTabWidget::tab-bar {alignment: left;}\n"
+                         "QTabBar {alignment: left;}")
+            css_string = css_string + left_tabs
+
+        return css_string
+
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
