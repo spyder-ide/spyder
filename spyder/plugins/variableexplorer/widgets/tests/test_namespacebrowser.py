@@ -39,7 +39,8 @@ def test_automatic_column_width(qtbot):
 
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
     browser.set_data({'a_variable':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}})
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}})
     new_col_width = [browser.editor.columnWidth(i) for i in range(4)]
     assert browser.editor.automatic_column_width
     assert col_width != new_col_width  # Automatic col width is on
@@ -47,7 +48,8 @@ def test_automatic_column_width(qtbot):
     browser.editor.setColumnWidth(0, 100)  # Simulate user changing col width
     assert browser.editor.automatic_column_width == False
     browser.set_data({'a_lengthy_variable_name_which_should_change_width':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}})
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}})
     assert browser.editor.columnWidth(0) == 100  # Automatic col width is off
 
 
@@ -63,9 +65,11 @@ def test_sort_by_column(qtbot):
 
     browser.set_data(
         {'a_variable':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'},
+            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+             'numpy_type': 'Unknown'},
          'b_variable':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '2'}}
+            {'type': 'int', 'size': 1, 'view': '2', 'python_type': 'int',
+             'numpy_type': 'Unknown'}}
     )
 
     header = browser.editor.horizontalHeader()
@@ -109,7 +113,8 @@ def test_keys_sorted_and_sort_with_large_rows(qtbot):
     # Create variables.
     variables = {}
     variables['i'] = (
-        {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}
     )
 
     for i in range(100):
@@ -118,7 +123,8 @@ def test_keys_sorted_and_sort_with_large_rows(qtbot):
         else:
             var = 'd_' + str(i)
         variables[var] = (
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+             'numpy_type': 'Unknown'}
         )
 
     # Set data
@@ -163,7 +169,8 @@ def test_filtering_with_large_rows(qtbot):
         letter = string.ascii_lowercase[i // 10]
         var = letter + str(i)
         variables[var] = (
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+             'numpy_type': 'Unknown'}
         )
 
     # Set data
@@ -191,7 +198,8 @@ def test_filtering_with_large_rows(qtbot):
     # the rest.
     new_variables = variables.copy()
     new_variables['z'] = (
-        {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}
     )
 
     # Emulate the process of loading those variables after the
