@@ -219,7 +219,7 @@ class IconManager():
             'DialogApplyButton':       [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
             'DialogCloseButton':       [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
             'DirClosedIcon':           [('mdi.folder',), {'color': self.MAIN_FG_COLOR}],
-            'DialogHelpButton':        [('mdi.lifebuoy',), {'color': SpyderPalette.COLOR_ERROR_1}],
+            'DialogHelpButton':        [('mdi.lifebuoy',), {'color': self.MAIN_FG_COLOR}],
             'VideoIcon':               [('mdi.video',), {'color': self.MAIN_FG_COLOR}],
             'MessageBoxInformation':   [('mdi.information',), {'color': self.MAIN_FG_COLOR}],
             'DirOpenIcon':             [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
