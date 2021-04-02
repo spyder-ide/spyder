@@ -99,6 +99,7 @@ class ToolbarContainer(PluginMainContainer):
             ToolbarMenus.ToolbarsMenu,
             _("Toolbars"),
         )
+        self.toolbars_menu.setObjectName('checkbox-padding')
 
     def update_actions(self):
         if self.get_conf("toolbars_visible"):

@@ -1,7 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""QDarkStyle is a dark stylesheet for Python and Qt applications.
+"""The most complete dark/light style sheet for Qt applications (Qt4, Qt5,
+PySide, PySide2, PyQt4, PyQt5, QtPy, PyQtGraph, Qt.Py) for Python 2/3 and C++.
+
+Python 2, as well as Qt4 (PyQt4 and PySide), will not be supported anymore.
+They still there as it is, but no back-compatibility, fixes, nor features
+will be implemented.
+
+We still preparing the portability to Qt6 since we need changes in
+`QtPy <https://github.com/spyder-ide/qtpy>`__ dependency project.
+
+Check the `documentation <https://qdarkstylesheet.readthedocs.io/en/stable>`__
+to see how to set the desirable theme palette.
 
 This module provides a function to load the stylesheets transparently
 with the right resources file.
@@ -142,14 +153,28 @@ def _apply_binding_patches():
     return binding_fix
 
 
-def _apply_version_patches():
+def _apply_version_patches(qt_version):
     """
     Apply version-only specific stylesheet patches for the same binding.
+
+    Args:
+        qt_version (str): Qt string version.
 
     Returns:
         str: stylesheet string (css).
     """
     version_fix = ""
+
+    major, minor, patch = qt_version.split('.')
+    major, minor, patch = int(major), int(minor), int(patch)
+
+    if major == 5 and minor >= 14:
+        # See issue #214
+        version_fix = '''
+        QMenu::item {
+            padding: 4px 24px 4px 6px;
+        }
+        '''
 
     if version_fix:
         _logger.info("Found version patches to be applied.")
@@ -218,6 +243,7 @@ def _load_stylesheet(qt_api='', palette=None):
     # Import is made after setting QT_API
     from qtpy.QtCore import QCoreApplication, QFile, QTextStream
     from qtpy.QtGui import QColor, QPalette
+    from qtpy import QT_VERSION
 
     # Then we import resources - binary qrc content
     if palette is None:
@@ -264,7 +290,7 @@ def _load_stylesheet(qt_api='', palette=None):
     stylesheet += _apply_binding_patches()
 
     # 3. Apply binding version specific patches
-    stylesheet += _apply_version_patches()
+    stylesheet += _apply_version_patches(QT_VERSION)
 
     # 4. Apply palette fix. See issue #139
     _apply_application_patches(QCoreApplication, QPalette, QColor, palette)

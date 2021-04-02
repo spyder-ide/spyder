@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1120</width>
-    <height>717</height>
+    <width>1226</width>
+    <height>719</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +15,16 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_7">
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_71">
+      <property name="text">
+       <string>Inside Central Widget</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
@@ -119,12 +129,12 @@
          </widget>
          <widget class="QWidget" name="tab_3">
           <attribute name="title">
-           <string>Page</string>
+           <string>Tab 3</string>
           </attribute>
          </widget>
          <widget class="QWidget" name="tab_4">
           <attribute name="title">
-           <string>Page</string>
+           <string>Colored tab text</string>
           </attribute>
          </widget>
          <widget class="QWidget" name="tab_5">
@@ -208,13 +218,78 @@
      </widget>
     </item>
     <item row="2" column="0">
-     <widget class="QLabel" name="label_71">
-      <property name="text">
-       <string>Inside Central Widget</string>
+     <widget class="QGroupBox" name="groupBoxDialogs">
+      <property name="title">
+       <string>Dialogs</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="1" column="0">
+        <widget class="QToolButton" name="toolButtonFileDialog">
+         <property name="text">
+          <string>FileDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QToolButton" name="toolButtonFileDialogStatic">
+         <property name="text">
+          <string>FileDialogStatic</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QToolButton" name="toolButtonMessageBox">
+         <property name="text">
+          <string>MessageBox</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QToolButton" name="toolButtonMessageBoxStatic">
+         <property name="text">
+          <string>MessageBoxStatic</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QToolButton" name="toolButtonFontDialog">
+         <property name="text">
+          <string>FontDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QToolButton" name="toolButtonColorDialog">
+         <property name="text">
+          <string>ColorDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QToolButton" name="toolButtonInputDialog">
+         <property name="text">
+          <string>InputDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QToolButton" name="toolButtonProgressDialog">
+         <property name="text">
+          <string>ProgressDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="4">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Click to open the dialogs.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -224,7 +299,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1120</width>
+     <width>1226</width>
      <height>23</height>
     </rect>
    </property>
@@ -313,11 +388,19 @@
      <string>Menu Disabled</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuMenuTranspIcon">
+    <property name="title">
+     <string>Menu Transp. Icon</string>
+    </property>
+    <addaction name="actionActionCheckableA"/>
+    <addaction name="actionActionTranspIcon"/>
+   </widget>
    <addaction name="menuMenu"/>
    <addaction name="menuMenuDelayed"/>
    <addaction name="menuMenuCheckale"/>
    <addaction name="menuMenuActionDis"/>
    <addaction name="menuMenuDisabled"/>
+   <addaction name="menuMenuTranspIcon"/>
    <addaction name="menuHelp"/>
    <addaction name="menuAbout"/>
   </widget>
@@ -327,6 +410,9 @@
     <bool>true</bool>
    </property>
    <property name="windowTitle">
+    <string>Tool bar actions</string>
+   </property>
+   <property name="toolTip">
     <string>Tool bar actions</string>
    </property>
    <property name="iconSize">
@@ -354,6 +440,9 @@
    <property name="windowTitle">
     <string>Tool bar actions delayed</string>
    </property>
+   <property name="toolTip">
+    <string>Tool bar actions delayed</string>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -368,6 +457,9 @@
    <property name="windowTitle">
     <string>Tool bar action checkable</string>
    </property>
+   <property name="toolTip">
+    <string>Toolbar actions checkable</string>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -381,7 +473,10 @@
   </widget>
   <widget class="QToolBar" name="toolBarActionDis">
    <property name="windowTitle">
-    <string>toolBar_2</string>
+    <string>Toolbar with actions disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Toolbar with actions disabled</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -392,6 +487,40 @@
    <addaction name="actionActionDis"/>
    <addaction name="actionActionCheckableCheckedDis"/>
    <addaction name="actionActionCheckableUncheckedDis"/>
+  </widget>
+  <widget class="QToolBar" name="toolBarMenus">
+   <property name="windowTitle">
+    <string>Toolbar with menu</string>
+   </property>
+   <property name="toolTip">
+    <string>Toolbar with menu</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QToolBar" name="toolBarDis">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Toolbar disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Toolbar disabled</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionActionA"/>
+   <addaction name="actionActionSubA"/>
+   <addaction name="actionActionCheckableCheckedDis"/>
   </widget>
   <action name="actionActionA">
    <property name="text">
@@ -429,6 +558,9 @@
   </action>
   <action name="actionActionCheckableA">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -488,8 +620,8 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../qdarkstyle/${ID}/style.qrc">
-     <normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</normaloff>:/qss_icons/${ID}/rc/window_undock_focus.png</iconset>
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/window_undock_focus.png</normaloff>:/qss_icons/dark/rc/window_undock_focus.png</iconset>
    </property>
    <property name="text">
     <string>Action Icon A</string>
@@ -500,11 +632,11 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../qdarkstyle/${ID}/style.qrc">
-     <normaloff>:/qss_icons/${ID}/rc/window_close_focus.png</normaloff>:/qss_icons/${ID}/rc/window_close_focus.png</iconset>
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/window_close_focus.png</normaloff>:/qss_icons/dark/rc/window_close_focus.png</iconset>
    </property>
    <property name="text">
-    <string>Action IconB</string>
+    <string>Action Icon B</string>
    </property>
    <property name="toolTip">
     <string>Action Icon B</string>
@@ -512,8 +644,8 @@
   </action>
   <action name="actionActionIconC">
    <property name="icon">
-    <iconset resource="../../qdarkstyle/${ID}/style.qrc">
-     <normaloff>:/qss_icons/${ID}/rc/arrow_right_focus.png</normaloff>:/qss_icons/${ID}/rc/arrow_right_focus.png</iconset>
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/window_grip_focus.png</normaloff>:/qss_icons/dark/rc/window_grip_focus.png</iconset>
    </property>
    <property name="text">
     <string>Action Icon C</string>
@@ -561,6 +693,15 @@
     <string>Action Checkable Unchecked Disabled</string>
    </property>
   </action>
+  <action name="actionActionTranspIcon">
+   <property name="icon">
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/transparent.png</normaloff>:/qss_icons/dark/rc/transparent.png</iconset>
+   </property>
+   <property name="text">
+    <string>Action Transp. Icon</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>lineEdit</tabstop>
@@ -568,7 +709,7 @@
   <tabstop>lineEdit_2</tabstop>
  </tabstops>
  <resources>
-  <include location="../../qdarkstyle/${ID}/style.qrc"/>
+  <include location="../../dark/style.qrc"/>
  </resources>
  <connections/>
 </ui>

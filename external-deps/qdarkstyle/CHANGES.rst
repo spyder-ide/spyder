@@ -1,15 +1,26 @@
 Changelog
 =========
 
-- **3.0**:
+- 3.0.2:
+    - Enable the use of setTabColor and add example, fixes #212
+    - Update description to inform about Python 2 and Qt4 unsupported versions
+    - Add missing examples #251
+- 3.0.1:
+    - Enhacement of state of active/non active itens in views #209
+    - Update manifest to include UI files
+- **3.0.0**:
     - New structure to create different palettes #268, #164
     - New light palette #240, #268
     - Improved dark palette #252, #266, #264, #265, #248
     - Improved tool buttons #260
-    - Improved tabs #270
+    - Improved tabs #270, #271, #267
+    - Improved combo boxes #263
     - Improved close/float sizes os-dependent #267
     - Fix checkbox problems #200, #259, #239
     - Fix indicators' colors in menus and tables #242
+    - Fix dock widget tab hover #243
+    - Workaround for menus with indicators and icons #214
+    - Update to be compatible with Qt 5.[12,13,14,15]
 - 2.8.1:
     - Fix rst file formats and links #229
     - Add .gitattributes for generated and documentation files

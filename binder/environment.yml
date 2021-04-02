@@ -34,7 +34,7 @@ dependencies:
 - python-language-server
 - pyxdg >=0.26
 - pyzmq >=17
-- qdarkstyle >=2.8,<3.0
+- qdarkstyle =3.0.2
 - qstylizer >=0.1.10
 - qtawesome >=0.5.7
 - qtconsole >=5.0.3

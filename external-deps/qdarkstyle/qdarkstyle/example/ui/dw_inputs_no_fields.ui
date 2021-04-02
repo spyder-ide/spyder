@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>380</width>
-    <height>364</height>
+    <width>455</width>
+    <height>377</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -483,8 +483,8 @@
         <string>Option 1 With Icon</string>
        </property>
        <property name="icon">
-        <iconset resource="../../qdarkstyle/${ID}/style.qrc">
-         <normaloff>:/qss_icons/${ID}/rc/window_undock.png</normaloff>:/qss_icons/${ID}/rc/window_undock.png</iconset>
+        <iconset resource="../../dark/style.qrc">
+         <normaloff>:/qss_icons/dark/rc/window_undock_focus.png</normaloff>:/qss_icons/dark/rc/window_undock_focus.png</iconset>
        </property>
       </item>
       <item>
@@ -492,8 +492,8 @@
         <string>Option 2 With Icon</string>
        </property>
        <property name="icon">
-        <iconset resource="../../qdarkstyle/${ID}/style.qrc">
-         <normaloff>:/qss_icons/${ID}/rc/window_undock_focus@2x.png</normaloff>:/qss_icons/${ID}/rc/window_undock_focus@2x.png</iconset>
+        <iconset resource="../../dark/style.qrc">
+         <normaloff>:/qss_icons/dark/rc/window_close_focus.png</normaloff>:/qss_icons/dark/rc/window_close_focus.png</iconset>
        </property>
       </item>
      </widget>
@@ -710,7 +710,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../qdarkstyle/${ID}/style.qrc"/>
+  <include location="../../dark/style.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -8,6 +8,7 @@
 
 # Standard library imports
 import copy
+import sys
 
 # Third-party imports
 import qdarkstyle
@@ -25,7 +26,7 @@ class SpyderStyleSheet:
     """Base class for Spyder stylesheets."""
 
     def __init__(self):
-        self._stylesheet = None
+        self._stylesheet = qstylizer.style.StyleSheet()
         self.set_stylesheet()
 
     def get_stylesheet(self):
@@ -38,9 +39,9 @@ class SpyderStyleSheet:
         """
         Return a copy of the sytlesheet.
 
-        This allows us to be modified for specific widgets.
+        This allows it to be modified for specific widgets.
         """
-        return copy.deepcopy(self._stylesheet)
+        return copy.deepcopy(self)
 
     def set_stylesheet(self):
         raise NotImplementedError(
@@ -76,12 +77,11 @@ class AppStylesheet(SpyderStyleSheet):
         This takes the stylesheet from QDarkstyle and applies our
         customizations to it.
         """
-        if self._stylesheet is None:
-            stylesheet = qdarkstyle.load_stylesheet(palette=QStylePalette)
-            self._stylesheet = parse_stylesheet(stylesheet)
+        stylesheet = qdarkstyle.load_stylesheet(palette=QStylePalette)
+        self._stylesheet = parse_stylesheet(stylesheet)
 
-            # Add our customizations
-            self._customize_stylesheet()
+        # Add our customizations
+        self._customize_stylesheet()
 
     def _customize_stylesheet(self):
         """Apply our customizations to the stylesheet."""
@@ -127,9 +127,47 @@ class AppStylesheet(SpyderStyleSheet):
         css["QMenu::item"].setValues(
             height='1.4em',
             fontSize='0.7em',
+            padding='4px 24px 4px 8px',
             # TODO: This requires a fix in qstylizer
-            #iconSize='0.8em'
+            # iconSize='0.8em'
         )
+
+        if sys.platform == 'darwin':
+            css["QMenu::item"].setValues(
+                padding='4px 24px 4px 28px',
+            )
+
+        css["QMenu#checkbox-padding::item"].setValues(
+            padding='4px 24px 4px 28px',
+        )
+
+        # Increase padding for QPushButton's
+        css.QPushButton.setValues(
+            padding='3px',
+        )
+
+        for state in ['disabled', 'checked', 'checked:disabled']:
+            css[f'QPushButton:{state}'].setValues(
+                padding='3px',
+            )
+
+        # Adjust QToolButton style to our needs.
+        # This affects not only the pane toolbars but also the
+        # find/replace widget, the finder in the Variable Explorer,
+        # and all QToolButton's that are not part of the main toolbar.
+        for element in ['QToolButton', 'QToolButton:disabled']:
+            css[f'{element}'].setValues(
+                backgroundColor='transparent'
+            )
+
+        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
+            if state == 'hover':
+                color = QStylePalette.COLOR_BACKGROUND_2
+            else:
+                color = QStylePalette.COLOR_BACKGROUND_3
+            css[f'QToolButton:{state}'].setValues(
+                backgroundColor=color
+            )
 
 
 APP_STYLESHEET = AppStylesheet()
@@ -146,24 +184,31 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
     BUTTON_MARGIN_RIGHT = '0.25em'
 
     def set_stylesheet(self):
-        """Get the stylesheet as a Qstylizer StyleSheet object."""
-        if self._stylesheet is None:
-            css = qstylizer.style.StyleSheet()
+        css = self._stylesheet
 
-            css.QToolButton.setValues(
-                width=self.BUTTON_WIDTH,
-                height=self.BUTTON_HEIGHT,
-                marginLeft=self.BUTTON_MARGIN_RIGHT,
-                marginRight=self.BUTTON_MARGIN_RIGHT,
-                border='0px',
-                padding='0px',
+        # Main background color
+        css.QToolBar.setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+        )
+
+        # Adjust QToolButton to follow the main toolbar style.
+        css.QToolButton.setValues(
+            width=self.BUTTON_WIDTH,
+            height=self.BUTTON_HEIGHT,
+            marginLeft=self.BUTTON_MARGIN_RIGHT,
+            marginRight=self.BUTTON_MARGIN_RIGHT,
+            border='0px',
+            padding='0px',
+        )
+
+        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
+            if state == 'hover':
+                color = QStylePalette.COLOR_BACKGROUND_5
+            else:
+                color = QStylePalette.COLOR_BACKGROUND_6
+            css[f'QToolBar QToolButton:{state}'].setValues(
+                backgroundColor=color
             )
-
-            css.QToolBar.setValues(
-                backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-            )
-
-            self._stylesheet = css
 
 
 class PanesToolbarStyleSheet(SpyderStyleSheet):
@@ -173,33 +218,21 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
     BUTTON_HEIGHT = '2.2em'
 
     def set_stylesheet(self):
-        """Get the stylesheet as a Qstylizer StyleSheet object."""
-        if self._stylesheet is None:
-            css = qstylizer.style.StyleSheet()
-            app_css = APP_STYLESHEET.get_stylesheet()
+        css = self._stylesheet
 
-            css.QToolBar.setValues(
-                spacing='0.3em'
-            )
+        css.QToolBar.setValues(
+            spacing='0.3em'
+        )
 
-            css.QToolButton.setValues(
-                height=self.BUTTON_HEIGHT,
-                width=self.BUTTON_WIDTH,
-                border='0px',
-                background=app_css.QToolButton.backgroundColor.value,
-            )
+        css.QToolButton.setValues(
+            height=self.BUTTON_HEIGHT,
+            width=self.BUTTON_WIDTH,
+            border='0px',
+        )
 
-            for state in ['hover', 'pressed', 'checked']:
-                color = app_css[f'QToolButton:{state}'].backgroundColor.value
-                css[f'QToolButton:{state}'].setValues(
-                    backgroundColor=color
-                )
-
-            css['QToolButton::menu-indicator'].setValues(
-                image='none'
-            )
-
-            self._stylesheet = css
+        css['QToolButton::menu-indicator'].setValues(
+            image='none'
+        )
 
 
 APP_TOOLBAR_STYLESHEET = ApplicationToolbarStylesheet()
@@ -210,6 +243,7 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 # ---- Tabbar stylesheet
 # =============================================================================
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
+    """Stylesheet for pane tabbars"""
 
     # TODO: This needs to be changed to 0.9em when the IPython console
     # and the Editor are migrated.
@@ -218,24 +252,37 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     def set_stylesheet(self):
         super().set_stylesheet()
         css = self.get_stylesheet()
+        is_macos = sys.platform == 'darwin'
 
-        # QTabBar forces the corner widgets to be smaller than they should
-        # on The top margin added allows the toolbuttons to expand to their
+        # QTabBar forces the corner widgets to be smaller than they should.
+        # The top margin added allows the toolbuttons to expand to their
         # normal size.
         # See: spyder-ide/spyder#13600
         css['QTabBar::tab'].setValues(
             marginTop=self.TOP_MARGIN,
             paddingTop='4px',
             paddingBottom='4px',
-            paddingLeft='10px',
-            paddingRight='4px'
+            paddingLeft='4px' if is_macos else '10px',
+            paddingRight='10px' if is_macos else '4px'
         )
 
         # This crops the close button a bit at the bottom in order to
         # center it. But a bigger negative padding-bottom crops it even
         # more.
         css['QTabBar::close-button'].setValues(
-            paddingBottom='-6px',
+            paddingBottom='-5px' if is_macos else '-6px',
         )
+
+    def to_string(self):
+        css_string = self._stylesheet.toString()
+
+        # TODO: We need to fix this in qstylizer
+        if sys.platform == 'darwin':
+            left_tabs = ("QTabWidget::tab-bar {alignment: left;}\n"
+                         "QTabBar {alignment: left;}")
+            css_string = css_string + left_tabs
+
+        return css_string
+
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()

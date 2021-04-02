@@ -53,8 +53,6 @@ def main():
 
         # Show window
         example = os.path.join(SCRIPTS_PATH, '../qdarkstyle/example/__main__.py')
-        call(['python', example, '--screenshots', '--palette', palette], shell=True)
-        call(['python', example, '--screenshots', '--palette', 'none'], shell=True)
 
         # Open styled window
         styled = call(['python', example, '--palette', palette] + sys.argv[1:], shell=True)

@@ -5,8 +5,6 @@ A dark style sheet for QtWidgets application.
 """
 
 # Standard library imports
-import glob
-import os
 from setuptools import find_packages, setup
 
 # Local imports
@@ -21,19 +19,21 @@ extras_require = {
     'example': ['pyqt5', 'pyside2']
 }
 
-
-def remove_all(dir_path, patterns='*.pyc'):
-    """Remove all files from `dir_path` matching the `patterns`.
-
-    Args:
-        dir_path (str): Directory path.
-        patterns (str): Pattern using regex. Defaults to '*.pyc'.
-    """
-
-    for pattern in patterns:
-        for filename in glob.iglob(dir_path + '/**/' + pattern, recursive=True):
-            os.remove(filename)
-
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: X11 Applications :: Qt',
+    'Environment :: Win32 (MS Windows)',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: MacOS',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Topic :: Software Development :: Libraries :: Application Frameworks'
+]
 
 setup(
     name='QDarkStyle',
@@ -46,21 +46,8 @@ setup(
     description='The most complete dark/light style sheet for C++/Python and Qt applications',
     long_description=long_desc,
     long_description_content_type='text/x-rst',
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: X11 Applications :: Qt',
-        'Environment :: Win32 (MS Windows)',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: MacOS',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Software Development :: Libraries :: Application Frameworks'
-    ],
+    include_package_data=True,  # add data file from MANIFEST.in #193
+    classifiers=classifiers,
     zip_safe=False,  # don't use eggs
     entry_points={"console_scripts": ["qdarkstyle=qdarkstyle.__main__:main",
                                       "qdarkstyle.example=qdarkstyle.example.__main__:main",

@@ -229,7 +229,7 @@ install_requires = [
     'pyls-spyder>=0.3.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
-    'qdarkstyle>=2.8,<3.0',
+    'qdarkstyle==3.0.2',
     'qstylizer>=0.1.10',
     'qtawesome>=0.5.7',
     'qtconsole>=5.0.3',
