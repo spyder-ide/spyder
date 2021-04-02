@@ -1,5 +1,79 @@
 # History of changes
 
+## Version 5.0.0 (2021-04-02)
+
+### New features
+* Improved dark theme based on QDarkstyle 3.0.
+* New light theme based on QDarkstyle 3.0.
+* New look and feel for toolbars.
+* New icon set based on Material Design.
+* New API to extend core plugins, with the exception of the Editor, IPython
+  console and Projects.
+* New plugins to manage menus, toolbars, layouts, shortcuts, preferences and
+  status bar.
+* New architecture to access and write configuration options.
+* New API to declare code completion providers.
+* New registries to access actions, tool buttons, toolbars and menus by their
+  identifiers.
+
+### Issues Closed
+
+* [Issue 15082](https://github.com/spyder-ide/spyder/issues/15082) - Project menu indicator overlapped by its text, missing icons ([PR 15081](https://github.com/spyder-ide/spyder/pull/15081) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15064](https://github.com/spyder-ide/spyder/issues/15064) - Project recent_files not respected in Spyder 5 ([PR 15065](https://github.com/spyder-ide/spyder/pull/15065) by [@mrclary](https://github.com/mrclary))
+* [Issue 15053](https://github.com/spyder-ide/spyder/issues/15053) - qdarkstyle.colorsystem requirement missing ([PR 15054](https://github.com/spyder-ide/spyder/pull/15054) by [@mrclary](https://github.com/mrclary))
+* [Issue 15010](https://github.com/spyder-ide/spyder/issues/15010) - Error report dialog pop ups when creating a new console ([PR 15032](https://github.com/spyder-ide/spyder/pull/15032) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 14996](https://github.com/spyder-ide/spyder/issues/14996) - Tour Icon not showing ([PR 15052](https://github.com/spyder-ide/spyder/pull/15052) by [@steff456](https://github.com/steff456))
+* [Issue 14888](https://github.com/spyder-ide/spyder/issues/14888) - Kite support migration issues ([PR 15012](https://github.com/spyder-ide/spyder/pull/15012) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 13629](https://github.com/spyder-ide/spyder/issues/13629) - Layout broken in master branch when using 4.x settings ([PR 13479](https://github.com/spyder-ide/spyder/pull/13479) by [@goanpeca](https://github.com/goanpeca))
+
+In this release 7 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 15087](https://github.com/spyder-ide/spyder/pull/15087) - PR: Increase required spyder-kernels version, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15083](https://github.com/spyder-ide/spyder/pull/15083) - PR: Update core dependencies for Spyder 5.0.0, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15081](https://github.com/spyder-ide/spyder/pull/15081) - PR: Some style fixes, by [@ccordoba12](https://github.com/ccordoba12) ([15082](https://github.com/spyder-ide/spyder/issues/15082))
+* [PR 15076](https://github.com/spyder-ide/spyder/pull/15076) - PR: Use group colors for objects in the Variable Explorer, by [@ccordoba12](https://github.com/ccordoba12) ([7](https://github.com/spyder-ide/ux-improvements/issues/7))
+* [PR 15072](https://github.com/spyder-ide/spyder/pull/15072) - PR: Add a new light theme for the interface, by [@juanis2112](https://github.com/juanis2112)
+* [PR 15067](https://github.com/spyder-ide/spyder/pull/15067) - PR: Fix hover and pressed states of buttons in Tour and Kite dialog, by [@juanis2112](https://github.com/juanis2112)
+* [PR 15065](https://github.com/spyder-ide/spyder/pull/15065) - PR: Check for recent_files in project's main configuration section, by [@mrclary](https://github.com/mrclary) ([15064](https://github.com/spyder-ide/spyder/issues/15064))
+* [PR 15063](https://github.com/spyder-ide/spyder/pull/15063) - PR: Fix issue with the report dialog that prevented to click on the traceback error, by [@andfoy](https://github.com/andfoy)
+* [PR 15062](https://github.com/spyder-ide/spyder/pull/15062) - PR: Prevent completion timeouts when a single slow provider is up, by [@andfoy](https://github.com/andfoy)
+* [PR 15060](https://github.com/spyder-ide/spyder/pull/15060) - PR: Send snippets provider completion results to last, by [@andfoy](https://github.com/andfoy)
+* [PR 15058](https://github.com/spyder-ide/spyder/pull/15058) - PR: Icon migration updates, by [@isabela-pf](https://github.com/isabela-pf)
+* [PR 15054](https://github.com/spyder-ide/spyder/pull/15054) - PR: Use qdarkstyle subrepo in macOS app, by [@mrclary](https://github.com/mrclary) ([15053](https://github.com/spyder-ide/spyder/issues/15053))
+* [PR 15052](https://github.com/spyder-ide/spyder/pull/15052) - PR: Fix tour icons, by [@steff456](https://github.com/steff456) ([14996](https://github.com/spyder-ide/spyder/issues/14996))
+* [PR 15051](https://github.com/spyder-ide/spyder/pull/15051) - PR: Add option to hide the date column from Projects, by [@steff456](https://github.com/steff456)
+* [PR 15050](https://github.com/spyder-ide/spyder/pull/15050) - PR: Prevent setting negative sizes in the Plots pane, by [@steff456](https://github.com/steff456)
+* [PR 15049](https://github.com/spyder-ide/spyder/pull/15049) - PR: Set right roles for some actions on macOS menu bar, by [@steff456](https://github.com/steff456)
+* [PR 15048](https://github.com/spyder-ide/spyder/pull/15048) - PR: Sync QDarkstyle subrepo, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15043](https://github.com/spyder-ide/spyder/pull/15043) - PR: Fix icons in several places, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15040](https://github.com/spyder-ide/spyder/pull/15040) - PR: Remove extra mock package, by [@bnavigator](https://github.com/bnavigator)
+* [PR 15038](https://github.com/spyder-ide/spyder/pull/15038) - PR: Move PluginMainContainer and PluginMainWidget to their own modules, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15037](https://github.com/spyder-ide/spyder/pull/15037) - PR: Fix icons for Pylint and Profiler actions in menus, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15036](https://github.com/spyder-ide/spyder/pull/15036) - PR: Fix a segfault with the intro tour, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15034](https://github.com/spyder-ide/spyder/pull/15034) - PR: Fix a segfault in the test suite, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15032](https://github.com/spyder-ide/spyder/pull/15032) - PR: Fix for search/find close button error (Variable Explorer), by [@dalthviz](https://github.com/dalthviz) ([15010](https://github.com/spyder-ide/spyder/issues/15010))
+* [PR 15029](https://github.com/spyder-ide/spyder/pull/15029) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 15028](https://github.com/spyder-ide/spyder/pull/15028) - PR: Update translation strings, by [@steff456](https://github.com/steff456)
+* [PR 15019](https://github.com/spyder-ide/spyder/pull/15019) - PR: Update Windows installer script to support new Spyder internal plugins entrypoints and qdarkstyle, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15012](https://github.com/spyder-ide/spyder/pull/15012) - PR: Fix Kite issues for Spyder 5, by [@dalthviz](https://github.com/dalthviz) ([14888](https://github.com/spyder-ide/spyder/issues/14888))
+* [PR 15006](https://github.com/spyder-ide/spyder/pull/15006) - PR: Change all icons to Material Design Icons, by [@isabela-pf](https://github.com/isabela-pf)
+* [PR 15005](https://github.com/spyder-ide/spyder/pull/15005) - PR: Add a subrepo for QDarkStyle, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 14998](https://github.com/spyder-ide/spyder/pull/14998) - PR: Migrate the Outline Explorer to the new API, by [@andfoy](https://github.com/andfoy)
+* [PR 14963](https://github.com/spyder-ide/spyder/pull/14963) - PR: Remove "options" variable from some unused places, by [@novaya](https://github.com/novaya)
+* [PR 14944](https://github.com/spyder-ide/spyder/pull/14944) - PR: Enhance icon manager, by [@steff456](https://github.com/steff456)
+* [PR 14939](https://github.com/spyder-ide/spyder/pull/14939) - PR: Introduce a global action/menu/toolbar/toolbutton registry, by [@andfoy](https://github.com/andfoy)
+* [PR 14933](https://github.com/spyder-ide/spyder/pull/14933) - PR: Change margins and sizes of buttons in toolbars, by [@juanis2112](https://github.com/juanis2112)
+* [PR 14665](https://github.com/spyder-ide/spyder/pull/14665) - PR: Add palette files with color roles, by [@juanis2112](https://github.com/juanis2112) ([26](https://github.com/spyder-ide/ux-improvements/issues/26), [13](https://github.com/spyder-ide/ux-improvements/issues/13))
+* [PR 13479](https://github.com/spyder-ide/spyder/pull/13479) - PR: Move layouts to the new API, by [@goanpeca](https://github.com/goanpeca) ([13629](https://github.com/spyder-ide/spyder/issues/13629))
+
+In this release 37 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0alpha7 (2021-03-19)
 
 ### Important fixes
