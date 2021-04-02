@@ -127,6 +127,7 @@ class AppStylesheet(SpyderStyleSheet):
         css["QMenu::item"].setValues(
             height='1.4em',
             fontSize='0.7em',
+            padding='4px 24px 4px 8px',
             # TODO: This requires a fix in qstylizer
             # iconSize='0.8em'
         )
@@ -139,6 +140,34 @@ class AppStylesheet(SpyderStyleSheet):
         css["QMenu#checkbox-padding::item"].setValues(
             padding='4px 24px 4px 28px',
         )
+
+        # Increase padding for QPushButton's
+        css.QPushButton.setValues(
+            padding='3px',
+        )
+
+        for state in ['disabled', 'checked', 'checked:disabled']:
+            css[f'QPushButton:{state}'].setValues(
+                padding='3px',
+            )
+
+        # Adjust QToolButton style to our needs.
+        # This affects not only the pane toolbars but also the
+        # find/replace widget, the finder in the Variable Explorer,
+        # and all QToolButton's that are not part of the main toolbar.
+        for element in ['QToolButton', 'QToolButton:disabled']:
+            css[f'{element}'].setValues(
+                backgroundColor='transparent'
+            )
+
+        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
+            if state == 'hover':
+                color = QStylePalette.COLOR_BACKGROUND_2
+            else:
+                color = QStylePalette.COLOR_BACKGROUND_3
+            css[f'QToolButton:{state}'].setValues(
+                backgroundColor=color
+            )
 
 
 APP_STYLESHEET = AppStylesheet()
@@ -157,6 +186,12 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
     def set_stylesheet(self):
         css = self._stylesheet
 
+        # Main background color
+        css.QToolBar.setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+        )
+
+        # Adjust QToolButton to follow the main toolbar style.
         css.QToolButton.setValues(
             width=self.BUTTON_WIDTH,
             height=self.BUTTON_HEIGHT,
@@ -166,9 +201,14 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
             padding='0px',
         )
 
-        css.QToolBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-        )
+        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
+            if state == 'hover':
+                color = QStylePalette.COLOR_BACKGROUND_5
+            else:
+                color = QStylePalette.COLOR_BACKGROUND_6
+            css[f'QToolBar QToolButton:{state}'].setValues(
+                backgroundColor=color
+            )
 
 
 class PanesToolbarStyleSheet(SpyderStyleSheet):
@@ -179,7 +219,6 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
 
     def set_stylesheet(self):
         css = self._stylesheet
-        app_css = APP_STYLESHEET.get_stylesheet()
 
         css.QToolBar.setValues(
             spacing='0.3em'
@@ -189,14 +228,7 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
             height=self.BUTTON_HEIGHT,
             width=self.BUTTON_WIDTH,
             border='0px',
-            background=app_css.QToolButton.backgroundColor.value,
         )
-
-        for state in ['hover', 'pressed', 'checked']:
-            color = app_css[f'QToolButton:{state}'].backgroundColor.value
-            css[f'QToolButton:{state}'].setValues(
-                backgroundColor=color
-            )
 
         css['QToolButton::menu-indicator'].setValues(
             image='none'
