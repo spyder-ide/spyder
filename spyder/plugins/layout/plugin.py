@@ -214,7 +214,7 @@ class Layout(SpyderPluginV2):
             # default layouts.
             # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
-            get_func = self.get_conf
+            get_func = self.get_conf_default if default else self.get_conf
             order = get_func(section, 'order')
 
             # Restore the original defaults if reset layouts is called
@@ -460,10 +460,13 @@ class Layout(SpyderPluginV2):
         """
         Save current window settings.
 
-        Takes config form *prefix* in the userconfig-based configuration,
-        under *section*.
+        It saves config with *prefix* in the userconfig-based,
+        configuration under *section*.
         """
-        win_size = self.window_size
+        # Use current size and position when saving window settings.
+        # Fixes spyder-ide/spyder#13882
+        win_size = self.main.size()
+        pos = self.main.pos()
         prefs_size = self.prefs_dialog_size
 
         self.set_conf(
@@ -486,8 +489,6 @@ class Layout(SpyderPluginV2):
             self.main.isFullScreen(),
             section=section,
         )
-
-        pos = self.window_position
         self.set_conf(
             prefix + 'position',
             (pos.x(), pos.y()),
