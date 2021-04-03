@@ -348,7 +348,7 @@ class Layout(SpyderPluginV2):
         *prefix*, under *section* default: if True, do not restore inner
         layout.
         """
-        get_func = self.get_conf
+        get_func = self.get_conf_default if default else self.get_conf
         window_size = get_func(prefix + 'size', section=section)
         prefs_dialog_size = get_func(
             prefix + 'prefs_dialog_size', section=section)
@@ -371,7 +371,7 @@ class Layout(SpyderPluginV2):
         current_width = screen_shape.width()
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
-            pos = get_func(prefix + 'position', section)
+            pos = self.get_conf_default(prefix + 'position', section)
 
         is_maximized = get_func(prefix + 'is_maximized', section=section)
         is_fullscreen = get_func(prefix + 'is_fullscreen', section=section)
