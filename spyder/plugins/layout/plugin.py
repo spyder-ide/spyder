@@ -148,7 +148,6 @@ class Layout(SpyderPluginV2):
         -------
         SpyderDockablePlugin
             The last focused dockable plugin.
-
         """
         return self._last_plugin
 
@@ -162,7 +161,6 @@ class Layout(SpyderPluginV2):
         -------
         bool
             True is the mainwindow is in fullscreen. False otherwise.
-
         """
         return self._fullscreen_flag
 
@@ -192,7 +190,6 @@ class Layout(SpyderPluginV2):
         -------
         Instance of a spyder.plugins.layout.api.BaseGridLayoutType subclass
             Layout.
-
         """
         return self.get_container().get_layout(layout_id)
 
@@ -345,8 +342,12 @@ class Layout(SpyderPluginV2):
     def load_window_settings(self, prefix, default=False, section='main'):
         """
         Load window layout settings from userconfig-based configuration with
-        *prefix*, under *section* default: if True, do not restore inner
-        layout.
+        *prefix*, under *section*.
+
+        Parameters
+        ----------
+        default: bool
+            if True, do not restore inner layout.
         """
         get_func = self.get_conf_default if default else self.get_conf
         window_size = get_func(prefix + 'size', section=section)
@@ -398,7 +399,8 @@ class Layout(SpyderPluginV2):
                              self.prefs_dialog_size.height())
 
         hexstate = qbytearray_to_str(
-            self.main.saveState(version=WINDOW_STATE_VERSION))
+            self.main.saveState(version=WINDOW_STATE_VERSION)
+        )
         return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
                 is_fullscreen)
 
@@ -423,9 +425,10 @@ class Layout(SpyderPluginV2):
         if hexstate:
             hexstate_valid = self.main.restoreState(
                 QByteArray().fromHex(str(hexstate).encode('utf-8')),
-                version=WINDOW_STATE_VERSION)
+                version=WINDOW_STATE_VERSION
+            )
 
-            # Check layout validity. Spyder 4 and below uses the version 0
+            # Check layout validity. Spyder 4 and below use the version 0
             # state (default), whereas Spyder 5 will use version 1 state.
             # For more info see the version argument for
             # QMainWindow.restoreState:
@@ -553,7 +556,8 @@ class Layout(SpyderPluginV2):
 
             # Select plugin to maximize
             self._state_before_maximizing = self.main.saveState(
-                version=WINDOW_STATE_VERSION)
+                version=WINDOW_STATE_VERSION
+            )
             focus_widget = QApplication.focusWidget()
 
             for plugin in self.get_dockable_plugins():
@@ -585,7 +589,6 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 self.main.setCentralWidget(self._last_plugin)
-
             self._last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
@@ -616,7 +619,6 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 self._last_plugin.dockwidget.setWidget(self._last_plugin)
-
             self._last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.main.setCentralWidget(None)
 
@@ -628,7 +630,8 @@ class Layout(SpyderPluginV2):
                 self._last_plugin._ismaximized = False
 
             self.main.restoreState(
-                self._state_before_maximizing, version=WINDOW_STATE_VERSION)
+                self._state_before_maximizing, version=WINDOW_STATE_VERSION
+            )
             self._state_before_maximizing = None
             try:
                 # New API
@@ -648,11 +651,6 @@ class Layout(SpyderPluginV2):
     def toggle_fullscreen(self):
         """
         Toggle option to show the mainwindow in fullscreen or windowed.
-
-        Returns
-        -------
-        None.
-
         """
         main = self.main
         if self._fullscreen_flag:
