@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-04-01 19:22\n"
+"PO-Revision-Date: 2021-04-04 19:53\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -870,7 +870,7 @@ msgstr "Документація Spyder"
 
 #: spyder/plugins/application/container.py:88
 msgid "Tutorial videos"
-msgstr ""
+msgstr "Навчальні відео"
 
 #: spyder/plugins/application/container.py:95
 msgid "Troubleshooting..."
@@ -1398,13 +1398,15 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:46
 msgid "Enable hover hints"
-msgstr ""
+msgstr "Увімкнути підказки при наведенні курсору"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:48
 msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
-msgstr ""
+msgstr "Якщо увімкнено, то наведення курсора миші на назву об’єкта\n"
+"буде відображати сигнатуру цього об'єкта та/або\n"
+"документацію (якщо є)."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:63
 msgid "Preload the following modules to make completion faster and more accurate:"
@@ -1841,7 +1843,7 @@ msgstr ""
 
 #: spyder/plugins/console/widgets/main_widget.py:196
 msgid "Buffer..."
-msgstr ""
+msgstr "Буфер..."
 
 #: spyder/plugins/console/widgets/main_widget.py:197
 msgid "Set maximum line count"
@@ -2019,7 +2021,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:122
 msgid "Automatically remove trailing spaces when saving files"
-msgstr ""
+msgstr "Автоматично видаляти кінцеві пробіли при збереженні файлів"
 
 #: spyder/plugins/editor/confpage.py:126
 msgid "Insert a newline at the end if one does not exist when saving a file"
@@ -2083,11 +2085,11 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:195
 msgid "Copy full cell contents to the console when running code cells"
-msgstr ""
+msgstr "Копіювати повний вміст комірки в консоль під час запуску комірок коду"
 
 #: spyder/plugins/editor/confpage.py:208
 msgid "Edit template for new files"
-msgstr ""
+msgstr "Редагувати шаблон для нових файлів"
 
 #: spyder/plugins/editor/confpage.py:212
 msgid "Autosave"
@@ -2107,11 +2109,11 @@ msgstr "секунд"
 
 #: spyder/plugins/editor/confpage.py:229
 msgid "Docstring type"
-msgstr ""
+msgstr "Тип документації"
 
 #: spyder/plugins/editor/confpage.py:234
 msgid "Here you can select the type of docstrings ({} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function/method/class declaration."
-msgstr ""
+msgstr "Тут ви можете вибрати тип документації ({} або {}), який бажаєте, щоб редактор автоматично вставляв при натисканні <tt>{}</tt> після оголошення функції/методу/класу."
 
 #: spyder/plugins/editor/confpage.py:242
 msgid "Numpy"
@@ -2159,15 +2161,15 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:286
 msgid "LF (UNIX)"
-msgstr ""
+msgstr "LF (UNIX)"
 
 #: spyder/plugins/editor/confpage.py:287
 msgid "CRLF (Windows)"
-msgstr ""
+msgstr "CRLF (Windows)"
 
 #: spyder/plugins/editor/confpage.py:288
 msgid "CR (Mac)"
-msgstr ""
+msgstr "CR (Mac)"
 
 #: spyder/plugins/editor/confpage.py:312 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:426 spyder/plugins/statusbar/confpage.py:26 spyder/plugins/variableexplorer/confpage.py:31
 msgid "Display"
@@ -2179,7 +2181,7 @@ msgstr "Джерельний код"
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:46 spyder/plugins/editor/panels/classfunctiondropdown.py:47 spyder/plugins/editor/panels/classfunctiondropdown.py:145 spyder/plugins/shortcuts/widgets/table.py:144
 msgid "<None>"
-msgstr ""
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:487
 msgid "&New file..."
@@ -2533,19 +2535,19 @@ msgstr "Змінити на нижній регістр поточного ря�
 
 #: spyder/plugins/editor/plugin.py:854
 msgid "Carriage return and line feed (Windows)"
-msgstr ""
+msgstr "Carriage return and line feed (Windows)"
 
 #: spyder/plugins/editor/plugin.py:857
 msgid "Line feed (UNIX)"
-msgstr ""
+msgstr "Line feed (UNIX)"
 
 #: spyder/plugins/editor/plugin.py:860
 msgid "Carriage return (Mac)"
-msgstr ""
+msgstr "Carriage return (Mac)"
 
 #: spyder/plugins/editor/plugin.py:866
 msgid "Convert end-of-line characters"
-msgstr ""
+msgstr "Перетворити символи кінця рядка"
 
 #: spyder/plugins/editor/plugin.py:871
 msgid "Remove trailing spaces"
