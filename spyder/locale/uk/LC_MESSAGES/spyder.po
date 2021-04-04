@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-04-04 19:53\n"
+"PO-Revision-Date: 2021-04-04 19:59\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -2109,11 +2109,11 @@ msgstr "секунд"
 
 #: spyder/plugins/editor/confpage.py:229
 msgid "Docstring type"
-msgstr "Тип документації"
+msgstr "Тип док-рядка"
 
 #: spyder/plugins/editor/confpage.py:234
 msgid "Here you can select the type of docstrings ({} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function/method/class declaration."
-msgstr "Тут ви можете вибрати тип документації ({} або {}), який бажаєте, щоб редактор автоматично вставляв при натисканні <tt>{}</tt> після оголошення функції/методу/класу."
+msgstr "Тут ви можете вибрати тип док-рядків ({} або {}), який бажаєте, щоб редактор автоматично вставляв при натисканні <tt>{}</tt> після оголошення функції/методу/класу."
 
 #: spyder/plugins/editor/confpage.py:242
 msgid "Numpy"
@@ -2551,19 +2551,19 @@ msgstr "Перетворити символи кінця рядка"
 
 #: spyder/plugins/editor/plugin.py:871
 msgid "Remove trailing spaces"
-msgstr ""
+msgstr "Вилучити кінцеві пробіли"
 
 #: spyder/plugins/editor/plugin.py:880 spyder/plugins/editor/plugin.py:1801 spyder/plugins/editor/widgets/codeeditor.py:4141 spyder/plugins/editor/widgets/codeeditor.py:4995
 msgid "Format file or selection with {0}"
-msgstr ""
+msgstr "Форматувати файл або вибране за допомогою {0}"
 
 #: spyder/plugins/editor/plugin.py:906
 msgid "Show code style warnings"
-msgstr ""
+msgstr "Показувати попередження щодо стилю коду"
 
 #: spyder/plugins/editor/plugin.py:909
 msgid "Show docstring style warnings"
-msgstr ""
+msgstr "Показати попередження до стилю док-рядка"
 
 #: spyder/plugins/editor/plugin.py:925
 msgid "Fix indentation"
