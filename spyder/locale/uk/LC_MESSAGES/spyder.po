@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-04-05 10:48\n"
+"PO-Revision-Date: 2021-04-05 10:54\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3988,7 +3988,7 @@ msgstr "Підказки"
 
 #: spyder/plugins/ipythonconsole/confpage.py:385
 msgid "Modify how Input and Output prompts are shown in the console."
-msgstr ""
+msgstr "Змініть відображення підказок введення та виведення у консолі."
 
 #: spyder/plugins/ipythonconsole/confpage.py:389
 msgid "Input prompt:"
