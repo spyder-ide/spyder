@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-04-05 10:34\n"
+"PO-Revision-Date: 2021-04-05 10:48\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3992,7 +3992,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:389
 msgid "Input prompt:"
-msgstr ""
+msgstr "Підказка введення:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:391
 msgid "Default is<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
@@ -4000,7 +4000,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:396
 msgid "Output prompt:"
-msgstr ""
+msgstr "Підказка введення:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:398
 msgid "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
