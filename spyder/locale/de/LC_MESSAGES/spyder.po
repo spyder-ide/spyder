@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-03-27 14:27\n"
+"PO-Revision-Date: 2021-04-05 00:27\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -91,7 +91,7 @@ msgstr "Spyder Interne Konsole\n\n"
 
 #: spyder/app/mainwindow.py:917
 msgid "Loading old third-party plugins..."
-msgstr ""
+msgstr "Alte Plugins von Drittanbietern werden geladen..."
 
 #: spyder/app/mainwindow.py:974 spyder/plugins/editor/widgets/editor.py:280
 msgid "File switcher..."
@@ -6378,7 +6378,7 @@ msgstr "Inspizieren"
 
 #: spyder/widgets/browser.py:172
 msgid "Refresh"
-msgstr ""
+msgstr "Aktualisieren"
 
 #: spyder/widgets/browser.py:430
 msgid "Address:"
