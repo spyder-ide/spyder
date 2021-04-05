@@ -3069,7 +3069,7 @@ class EditorSplitter(QSplitter):
 
 
 class EditorWidget(QSplitter):
-    def __init__(self, parent, plugin, menu_actions, outline_explorer_options):
+    def __init__(self, parent, plugin, menu_actions):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -3093,15 +3093,14 @@ class EditorWidget(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
+
+        # TODO: Check this initialization once the editor is migrated to the
+        # new API
         self.outlineexplorer = OutlineExplorerWidget(
-            self,
-            show_fullpath=outline_explorer_options['show_fullpath'],
-            show_all_files=outline_explorer_options['show_all_files'],
-            group_cells=outline_explorer_options['group_cells'],
-            show_comments=outline_explorer_options['show_comments'],
-            sort_files_alphabetically=outline_explorer_options[
-                'sort_files_alphabetically'],
-            )
+            'outline_explorer',
+            plugin,
+            self
+        )
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -3144,9 +3143,6 @@ class EditorWidget(QSplitter):
                      self.cursorpos_status.update_cursor_position)
         editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
         self.plugin.register_editorstack(editorstack)
-        oe_btn = create_toolbutton(self)
-        oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
-        editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
 
     def __print_editorstacks(self):
         logger.debug("%d editorstack(s) in editorwidget:" %
@@ -3162,16 +3158,14 @@ class EditorWidget(QSplitter):
 
 
 class EditorMainWindow(QMainWindow):
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 outline_explorer_options):
+    def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin
         self.window_size = None
 
-        self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         outline_explorer_options)
+        self.editorwidget = EditorWidget(self, plugin, menu_actions)
         self.setCentralWidget(self.editorwidget)
 
         # Setting interface theme

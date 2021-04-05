@@ -1644,10 +1644,8 @@ class Editor(SpyderPluginWidget):
             super(Editor, self).switch_to_plugin()
 
     def create_new_window(self):
-        oe_options = self.outlineexplorer.get_widget().get_options()
         window = EditorMainWindow(
-            self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
-            outline_explorer_options=oe_options)
+            self, self.stack_menu_actions, self.toolbar_list, self.menu_list)
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
