@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-04-04 19:59\n"
+"PO-Revision-Date: 2021-04-05 10:34\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -80,10 +80,10 @@ msgid "Spyder Internal Console\n\n"
 "internals with the following commands:\n"
 "  spy.app, spy.window, dir(spy)\n\n"
 "Please don't use it to run your code\n\n"
-msgstr "Внутрішній командний рядок Spyder\n\n"
-"Цей командний рядок використовується для звіту про внутрішні помилки програми та дослідження нутрощів Spyder за допомогою наступних команд:\n"
+msgstr "Внутрішня консоль Spyder\n\n"
+"Ця консоль використовується для звіту про внутрішні помилки програми та дослідження нутрощів Spyder за допомогою наступних команд:\n"
 " spy.app, spy.window, dir(spy)\n\n"
-"Будь ласка, не використовуйте його для запуску свого коду\n\n"
+"Будь ласка, не використовуйте її для запуску свого коду\n\n"
 
 #: spyder/app/mainwindow.py:917
 msgid "Loading old third-party plugins..."
@@ -159,7 +159,7 @@ msgstr "Швидке посилання"
 
 #: spyder/app/mainwindow.py:1130
 msgid "Console help"
-msgstr "Командний рядок довідки"
+msgstr "Консольна допомога"
 
 #: spyder/app/mainwindow.py:1356
 msgid "Hide this message during the current session"
@@ -265,7 +265,7 @@ msgstr ""
 
 #: spyder/app/tour.py:175 spyder/plugins/help/confpage.py:33
 msgid "IPython Console"
-msgstr "Командний рядок IPython"
+msgstr "Консоль IPython"
 
 #: spyder/app/tour.py:176
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
@@ -1755,7 +1755,7 @@ msgstr "Опис"
 
 #: spyder/plugins/console/plugin.py:83 spyder/plugins/console/widgets/main_widget.py:158
 msgid "Internal console"
-msgstr "Внутрішній командний рядок"
+msgstr "Внутрішня консоль"
 
 #: spyder/plugins/console/plugin.py:89
 msgid "Internal console running Spyder."
@@ -1867,7 +1867,7 @@ msgstr "Автозавершення коду"
 
 #: spyder/plugins/console/widgets/main_widget.py:222
 msgid "Internal console settings"
-msgstr "Внутрішні налаштування консолі"
+msgstr "Налаштування внутрішньої консолі"
 
 #: spyder/plugins/console/widgets/main_widget.py:489
 msgid "Run Python script"
@@ -3125,7 +3125,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:439
 msgid "Open IPython console here"
-msgstr "Відкрити командний рядок IPython тут"
+msgstr "Відкрити консоль IPython тут"
 
 #: spyder/plugins/explorer/widgets/explorer.py:470 spyder/widgets/collectionseditor.py:440
 msgid "Type"
@@ -3569,7 +3569,7 @@ msgstr "Об'єкт"
 
 #: spyder/plugins/help/widgets.py:314 spyder/plugins/ipythonconsole/widgets/client.py:415 spyder/plugins/run/confpage.py:47 spyder/plugins/run/widgets.py:177
 msgid "Console"
-msgstr "Командний рядок"
+msgstr "Консоль"
 
 #: spyder/plugins/help/widgets.py:365
 msgid "Automatic import"
@@ -3661,7 +3661,7 @@ msgstr "Надайте історію команд для консолей IPyth
 
 #: spyder/plugins/ipythonconsole/confpage.py:27 spyder/plugins/ipythonconsole/plugin.py:517
 msgid "IPython console"
-msgstr "Командний рядок IPython"
+msgstr "Консоль IPython"
 
 #: spyder/plugins/ipythonconsole/confpage.py:34
 msgid "Display initial banner"
@@ -3671,7 +3671,7 @@ msgstr "Відображати початковий банер"
 msgid "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
 msgstr "Цей параметр дозволяє приховати повідомлення, яке відображається у\n"
-"верхній частині командного рядка після його відкриття."
+"верхній частині консолі після її відкриття."
 
 #: spyder/plugins/ipythonconsole/confpage.py:39
 msgid "Ask for confirmation before closing"
@@ -3976,7 +3976,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:373
 msgid "Use symbolic math"
-msgstr ""
+msgstr "Використовувати символічну математику"
 
 #: spyder/plugins/ipythonconsole/confpage.py:374
 msgid "This option loads the Sympy library to work with.<br>Please refer to its documentation to learn how to use it."
@@ -4096,11 +4096,11 @@ msgstr "Ви хочете закрити цю консоль?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1292
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
-msgstr "Ви хочете закрити всі інші командні рядки, під'єднані до того ж ядра, що і цей?"
+msgstr "Ви хочете закрити всі інші консолі, під'єднані до того ж ядра, що і цей?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1365
 msgid "It was not possible to restart the IPython console when switching to this project. The error was<br><br><tt>{0}</tt>"
-msgstr "Неможливо перезапустити командний рядок IPython при перемиканні на цей проект. Помилка<br><br><tt>{0}</tt>"
+msgstr "Неможливо перезапустити консоль IPython при перемиканні на цей проект. Помилка<br><br><tt>{0}</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1486 spyder/plugins/ipythonconsole/plugin.py:1497
 msgid "The error is:<br><br><tt>{}</tt>"
