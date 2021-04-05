@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-04-05 00:27\n"
+"PO-Revision-Date: 2021-04-05 00:38\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1052,7 +1052,7 @@ msgstr "Vervollständigung und Lint"
 
 #: spyder/plugins/completion/plugin.py:249
 msgid "This plugin is in charge of handling and dispatching, as well as of receiving the responses of completion and linting requests sent to multiple providers."
-msgstr ""
+msgstr "Dieses Plugin ist für die Bearbeitung und den Versand sowie für den Empfang der Rückmeldungen von Vervollständigungs- und Linting-Anfragen zuständig, die an mehrere Anbieter gesendet werden."
 
 #: spyder/plugins/completion/providers/fallback/provider.py:42
 msgid "Fallback"
@@ -4432,7 +4432,7 @@ msgstr "Fensterlayouts"
 
 #: spyder/plugins/layout/container.py:283
 msgid "Layout <b>{0}</b> will be overwritten.Do you want to continue?"
-msgstr ""
+msgstr "Layout <b>{0}</b> wird überschrieben. Möchten Sie fortfahren?"
 
 #: spyder/plugins/layout/container.py:334
 msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
@@ -4462,7 +4462,7 @@ msgstr "Matlab"
 
 #: spyder/plugins/layout/layouts.py:250
 msgid "testing layout"
-msgstr ""
+msgstr "Test-Layout"
 
 #: spyder/plugins/layout/plugin.py:54
 msgid "Layout"
@@ -5310,7 +5310,7 @@ msgstr "Dialog Ausführungseinstellungen"
 
 #: spyder/plugins/run/plugin.py:43
 msgid "Manage run configuration."
-msgstr ""
+msgstr "Ausführungskonfiguration verwalten."
 
 #: spyder/plugins/run/widgets.py:31
 msgid "Execute in current console"
