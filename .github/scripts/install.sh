@@ -19,10 +19,13 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
+    # Install Pyzmq 19 because our tests are failing with version 20
     if [ "$OS" = "win" ]; then
-        # Install Pyzmq 19 because our tests are failing with version 20
         conda install pyzmq=19
     fi
+
+    # Install decorator 4.4.2 until spyder-kernels 2.0.1 is released in Anaconda
+    conda install -q -y decorator=4.4.2
 
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
