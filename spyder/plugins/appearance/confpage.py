@@ -170,7 +170,7 @@ class AppearanceConfigPage(PluginConfigPage):
         for plugin in plugins:
             plugin.update_font()
 
-    def apply_settings(self, options):
+    def apply_settings(self):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
         ui_theme = self.get_option('ui_theme')
