@@ -249,7 +249,7 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     """Stylesheet for pane tabbars"""
 
-    # TODO: This needs to be changed to 0.9em when the IPython console
+    # TODO: This needs to be changed to 1.0em when the IPython console
     # and the Editor are migrated.
     TOP_MARGIN = '0.8em'
 
@@ -259,7 +259,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         is_macos = sys.platform == 'darwin'
 
         # QTabBar forces the corner widgets to be smaller than they should.
-        # The top margin added allows the toolbuttons to expand to their
+        # be. The added top margin allows the toolbuttons to expand to their
         # normal size.
         # See: spyder-ide/spyder#13600
         css['QTabBar::tab'].setValues(
@@ -275,6 +275,24 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # more.
         css['QTabBar::close-button'].setValues(
             paddingBottom='-5px' if is_macos else '-6px',
+        )
+
+        # Remove border between selected tab and pane below
+        css['QTabWidget::pane'].setValues(
+            borderTop='0px',
+        )
+
+        # Adjust margins of corner widgets
+        css['QTabWidget::left-corner'].setValues(
+            top='-1px',
+            bottom='-2px',
+            left='1px',
+        )
+
+        css['QTabWidget::right-corner'].setValues(
+            top='-1px',
+            bottom='-2px',
+            right='1px'
         )
 
     def to_string(self):
