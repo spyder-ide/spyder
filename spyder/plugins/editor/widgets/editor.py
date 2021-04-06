@@ -3102,7 +3102,8 @@ class EditorWidget(QSplitter):
         self.outlineexplorer = OutlineExplorerWidget(
             'outline_explorer',
             plugin,
-            self
+            self,
+            context=f'editor_window_{str(id(self))}'
         )
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:

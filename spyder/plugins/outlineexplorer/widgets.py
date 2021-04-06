@@ -297,6 +297,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     CONF_SECTION = 'outline_explorer'
 
     def __init__(self, parent):
+        if hasattr(parent, 'CONTEXT_NAME'):
+            self.CONTEXT_NAME = parent.CONTEXT_NAME
+
         self.show_fullpath = self.get_conf('show_fullpath')
         self.show_all_files = self.get_conf('show_all_files')
         self.group_cells = self.get_conf('group_cells')
@@ -888,7 +891,10 @@ class OutlineExplorerWidget(PluginMainWidget):
     ENABLE_SPINNER = True
     CONF_SECTION = 'outline_explorer'
 
-    def __init__(self, name, plugin, parent=None):
+    def __init__(self, name, plugin, parent=None, context=None):
+        if context is not None:
+            self.CONTEXT_NAME = context
+
         super().__init__(name, plugin, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(self)
