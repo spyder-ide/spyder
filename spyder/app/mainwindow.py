@@ -1930,13 +1930,6 @@ class MainWindow(QMainWindow):
                 qapp.setStyle('gtk+')
             except:
                 pass
-        else:
-            style_name = CONF.get('appearance', 'windows_style',
-                                  self.default_style)
-            style = QStyleFactory.create(style_name)
-            if style is not None:
-                style.setProperty('name', style_name)
-                qapp.setStyle(style)
 
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
