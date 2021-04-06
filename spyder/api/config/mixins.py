@@ -128,6 +128,28 @@ class SpyderConfigurationAccessor:
             )
         CONF.remove_option(section, option)
 
+    def get_conf_default(self,
+                         option: ConfigurationKey,
+                         section: Optional[str] = None):
+        """
+        Get an option default value in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: ConfigurationKey
+            Name/Tuple path of the option to remove its value.
+        section: Optional[str]
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+        return CONF.get_default(section, option)
+
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     """
