@@ -249,7 +249,7 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     """Stylesheet for pane tabbars"""
 
-    # TODO: This needs to be changed to 0.9em when the IPython console
+    # TODO: This needs to be changed to 1.0em when the IPython console
     # and the Editor are migrated.
     TOP_MARGIN = '0.8em'
 
