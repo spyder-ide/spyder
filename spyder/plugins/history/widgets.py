@@ -313,8 +313,21 @@ class HistoryWidget(PluginMainWidget):
         """
         tabs_stylesheet = PANES_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
-        css['QTabBar::tab'].setValues(padding='4px')
-        return tabs_stylesheet.to_string()
+
+        css['QTabBar::tab'].setValues(
+            marginTop='1.0em',
+            padding='4px'
+        )
+
+        css['QTabWidget::left-corner'].setValues(
+            left='0px',
+        )
+
+        css['QTabWidget::right-corner'].setValues(
+            right='0px'
+        )
+
+        return str(tabs_stylesheet)
 
 
 def test():
