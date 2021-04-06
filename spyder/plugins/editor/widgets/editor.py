@@ -60,7 +60,8 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 from spyder.plugins.outlineexplorer.api import cell_name
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import (
+    APP_TOOLBAR_STYLESHEET, PANES_TABBAR_STYLESHEET)
 
 
 logger = logging.getLogger(__name__)
@@ -3069,6 +3070,8 @@ class EditorSplitter(QSplitter):
 
 
 class EditorWidget(QSplitter):
+    CONF_SECTION = 'editor'
+
     def __init__(self, parent, plugin, menu_actions):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -3185,6 +3188,8 @@ class EditorMainWindow(QMainWindow):
             for title, object_name, actions in toolbar_list:
                 toolbar = self.addToolBar(title)
                 toolbar.setObjectName(object_name)
+                toolbar.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
+                toolbar.setMovable(False)
                 add_actions(toolbar, actions)
                 self.toolbars.append(toolbar)
         if menu_list:
