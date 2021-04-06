@@ -304,8 +304,8 @@ class LayoutContainer(PluginMainContainer):
                 active.append(name)
 
             if answer:
-                self.save_current_window_settings('layout_{}/'.format(index),
-                                                  section='quick_layouts')
+                self._plugin.save_current_window_settings(
+                    'layout_{}/'.format(index), section='quick_layouts')
                 self.set_conf('names', names)
                 self.set_conf('order', order)
                 self.set_conf('active', active)
