@@ -782,8 +782,8 @@ the sympy module (e.g. plot)
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
         self.sig_kernel_restarted_message.emit(msg)
 
-    def _handle_kernel_restarted(self):
-        super(ShellWidget, self)._handle_kernel_restarted()
+    def _handle_kernel_restarted(self, *args, **kwargs):
+        super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
         self.sig_kernel_restarted.emit()
 
     def _syntax_style_changed(self):
