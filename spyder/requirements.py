@@ -6,9 +6,12 @@
 
 """Module checking Spyder installation requirements"""
 
+# Standard library imports
 import sys
 import os.path as osp
-from distutils.version import LooseVersion
+
+# Third-party imports
+from pkg_resources import parse_version
 
 
 def show_warning(message):
@@ -41,7 +44,7 @@ def check_qt():
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]
         actual_ver = qtpy.PYQT_VERSION
-        if LooseVersion(actual_ver) < LooseVersion(required_ver):
+        if parse_version(actual_ver) < parse_version(required_ver):
             show_warning("Please check Spyder installation requirements:\n"
                          "%s %s+ is required (found v%s)."
                          % (package_name, required_ver, actual_ver))
@@ -60,7 +63,7 @@ def check_spyder_kernels():
         import spyder_kernels
         required_ver = '1.0.0'
         actual_ver = spyder_kernels.__version__
-        if LooseVersion(actual_ver) < LooseVersion(required_ver):
+        if parse_version(actual_ver) < parse_version(required_ver):
             show_warning("Please check Spyder installation requirements:\n"
                          "spyder-kernels >= 1.0 is required (found %s)."
                          % actual_ver)

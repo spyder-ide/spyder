@@ -12,7 +12,6 @@ Tests for the IPython console plugin.
 
 # Standard library imports
 import codecs
-from distutils.version import LooseVersion
 import os
 import os.path as osp
 import shutil
@@ -26,6 +25,7 @@ import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
+from pkg_resources import parse_version
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
@@ -373,7 +373,7 @@ def test_sympy_client(ipyconsole, qtbot):
 @pytest.mark.cython_client
 @pytest.mark.skipif(
     (not sys.platform.startswith('linux') or
-     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+     parse_version(ipy_release.version) == parse_version('7.11.0')),
     reason="It only works reliably on Linux and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
