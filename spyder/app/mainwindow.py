@@ -362,7 +362,7 @@ class MainWindow(QMainWindow):
         None.
 
         """
-        self.layouts.maximize_dockwidget(restore=False)
+        self.layouts.maximize_dockwidget(restore=restore)
 
     def switch_to_plugin(self, plugin, force_focus=None):
         """
