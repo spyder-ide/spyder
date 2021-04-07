@@ -1203,8 +1203,7 @@ class MainWindow(QMainWindow):
         self.is_starting_up = False
 
         for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(
-                plugin_instance, Plugins.Console)
+            self.tabify_plugin(plugin_instance, Plugins.Console)
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 plugin_instance.get_widget().toggle_view(False)
 
