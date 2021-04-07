@@ -1218,9 +1218,9 @@ class MainWindow(QMainWindow):
         self.is_starting_up = False
 
         for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(
-                plugin_instance, self.get_plugin(Plugins.Console))
-            plugin_instance.toggle_view(False)
+            self.tabify_plugin(plugin_instance, Plugins.Console)
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                plugin_instance.get_widget().toggle_view(False)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
