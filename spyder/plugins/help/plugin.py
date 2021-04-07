@@ -146,7 +146,7 @@ class Help(SpyderDockablePlugin):
         self.save_history()
         return True
 
-    def apply_conf(self, options_set):
+    def apply_conf(self, options_set, notify=False):
         super().apply_conf(options_set)
         widget = self.get_widget()
 

@@ -344,6 +344,21 @@ class MainWindow(QMainWindow):
         # spyder/plugins/base::_switch_to_plugin
         return self.layouts.get_last_plugin()
 
+    def maximize_dockwidget(self, restore=False):
+        """
+        This is needed to prevent errors with the old API at
+        spyder/plugins/base::_switch_to_plugin.
+
+        See spyder-ide/spyder#15164
+
+        Parameters
+        ----------
+        restore : bool, optional
+            If the current dockwidget needs to be restored to its unmaximized
+            state. The default is False.
+        """
+        self.layouts.maximize_dockwidget(restore=restore)
+
     def switch_to_plugin(self, plugin, force_focus=None):
         """
         Switch to this plugin.
@@ -1930,13 +1945,6 @@ class MainWindow(QMainWindow):
                 qapp.setStyle('gtk+')
             except:
                 pass
-        else:
-            style_name = CONF.get('appearance', 'windows_style',
-                                  self.default_style)
-            style = QStyleFactory.create(style_name)
-            if style is not None:
-                style.setProperty('name', style_name)
-                qapp.setStyle(style)
 
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
