@@ -346,7 +346,10 @@ class MainWindow(QMainWindow):
 
     def maximize_dockwidget(self, restore=False):
         """
-        Maximize current dockwidget or restore it.
+        Needed to prevent errors with the old API at
+        spyder/plugins/base::_switch_to_plugin.
+
+        See spyder-ide/spyder#15164
 
         Parameters
         ----------
@@ -359,8 +362,6 @@ class MainWindow(QMainWindow):
         None.
 
         """
-        # Needed to prevent errors with the old API at
-        # spyder/plugins/base::_switch_to_plugin. See #spyder-ide/spyder#15164
         self.layouts.maximize_dockwidget(restore=False)
 
     def switch_to_plugin(self, plugin, force_focus=None):
