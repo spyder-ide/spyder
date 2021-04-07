@@ -60,7 +60,8 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 from spyder.plugins.outlineexplorer.api import cell_name
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import (
+    APP_TOOLBAR_STYLESHEET, PANES_TABBAR_STYLESHEET)
 
 
 logger = logging.getLogger(__name__)
@@ -3069,7 +3070,9 @@ class EditorSplitter(QSplitter):
 
 
 class EditorWidget(QSplitter):
-    def __init__(self, parent, plugin, menu_actions, outline_explorer_options):
+    CONF_SECTION = 'editor'
+
+    def __init__(self, parent, plugin, menu_actions):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -3093,15 +3096,15 @@ class EditorWidget(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
+
+        # TODO: Check this initialization once the editor is migrated to the
+        # new API
         self.outlineexplorer = OutlineExplorerWidget(
+            'outline_explorer',
+            plugin,
             self,
-            show_fullpath=outline_explorer_options['show_fullpath'],
-            show_all_files=outline_explorer_options['show_all_files'],
-            group_cells=outline_explorer_options['group_cells'],
-            show_comments=outline_explorer_options['show_comments'],
-            sort_files_alphabetically=outline_explorer_options[
-                'sort_files_alphabetically'],
-            )
+            context=f'editor_window_{str(id(self))}'
+        )
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -3144,9 +3147,6 @@ class EditorWidget(QSplitter):
                      self.cursorpos_status.update_cursor_position)
         editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
         self.plugin.register_editorstack(editorstack)
-        oe_btn = create_toolbutton(self)
-        oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
-        editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
 
     def __print_editorstacks(self):
         logger.debug("%d editorstack(s) in editorwidget:" %
@@ -3162,16 +3162,14 @@ class EditorWidget(QSplitter):
 
 
 class EditorMainWindow(QMainWindow):
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 outline_explorer_options):
+    def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin
         self.window_size = None
 
-        self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         outline_explorer_options)
+        self.editorwidget = EditorWidget(self, plugin, menu_actions)
         self.setCentralWidget(self.editorwidget)
 
         # Setting interface theme
@@ -3191,6 +3189,8 @@ class EditorMainWindow(QMainWindow):
             for title, object_name, actions in toolbar_list:
                 toolbar = self.addToolBar(title)
                 toolbar.setObjectName(object_name)
+                toolbar.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
+                toolbar.setMovable(False)
                 add_actions(toolbar, actions)
                 self.toolbars.append(toolbar)
         if menu_list:
@@ -3217,6 +3217,7 @@ class EditorMainWindow(QMainWindow):
         # Six is the position of the view menu in menus list
         # that you can find in plugins/editor.py setup_other_windows.
         view_menu = self.menus[6]
+        view_menu.setObjectName('checkbox-padding')
         if actions == self.toolbars and view_menu:
             toolbars = []
             for toolbar in self.toolbars:
