@@ -72,7 +72,7 @@ class Layout(SpyderPluginV2):
         # toggling out of fullscreen mode in Windows.
         self._saved_normal_geometry = None
         self._state_before_maximizing = None
-        self._interface_locked = self.get_conf('main', 'panes_locked')
+        self._interface_locked = self.get_conf('panes_locked', section='main')
 
         # Register default layouts
         self.register_layout(self, SpyderLayout)
@@ -212,13 +212,13 @@ class Layout(SpyderPluginV2):
             # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
             get_func = self.get_conf_default if default else self.get_conf
-            order = get_func(section, 'order')
+            order = get_func('order', section=section)
 
             # Restore the original defaults if reset layouts is called
             if default:
-                self.set_conf(section, 'active', order)
-                self.set_conf(section, 'order', order)
-                self.set_conf(section, 'names', order)
+                self.set_conf('active', order, section)
+                self.set_conf('order', order, section)
+                self.set_conf('names', order, section)
 
             for index, _name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
