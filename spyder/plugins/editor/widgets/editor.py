@@ -3195,7 +3195,7 @@ class EditorMainWindow(QMainWindow):
                 self.toolbars.append(toolbar)
         if menu_list:
             quit_action = create_action(self, _("Close window"),
-                                        icon="close_panel",
+                                        icon=ima.icon("close_pane"),
                                         tip=_("Close this window"),
                                         triggered=self.close)
             self.menus = []
