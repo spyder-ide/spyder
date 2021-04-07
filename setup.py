@@ -231,7 +231,7 @@ install_requires = [
     'pyzmq>=17',
     'qdarkstyle==3.0.2',
     'qstylizer>=0.1.10',
-    'qtawesome>=0.5.7',
+    'qtawesome>=1.0.2',
     'qtconsole>=5.0.3',
     'qtpy>=1.5.0',
     'setuptools>=39.0.0',
