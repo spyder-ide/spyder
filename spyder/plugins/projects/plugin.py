@@ -161,7 +161,9 @@ class Projects(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
         treewidget = self.explorer.treewidget
-        lspmgr = self.main.completions
+        lspmgr = self.main.get_plugin(Plugins.Completions, error=False)
+        outlineexplorer = self.main.get_plugin(
+            Plugins.OutlineExplorer, error=False)
 
         self.add_dockwidget()
         self.explorer.sig_open_file_requested.connect(self.main.open_file)
@@ -189,7 +191,8 @@ class Projects(SpyderPluginWidget):
         #lspmgr.sig_language_completions_available.connect(
         #    lambda settings, language:
         #        self.start_workspace_services())
-        lspmgr.sig_stop_completions.connect(self.stop_workspace_services)
+        if lspmgr:
+            lspmgr.sig_stop_completions.connect(self.stop_workspace_services)
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
@@ -201,15 +204,18 @@ class Projects(SpyderPluginWidget):
         )
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_loaded.connect(
-            functools.partial(lspmgr.project_path_update,
-                              update_kind=WorkspaceUpdateKind.ADDITION,
-                              instance=self))
+
+        if lspmgr:
+            self.sig_project_loaded.connect(
+                functools.partial(lspmgr.project_path_update,
+                                  update_kind=WorkspaceUpdateKind.ADDITION,
+                                  instance=self))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
-        self.sig_project_loaded.connect(
-            lambda v: self.main.outlineexplorer.update_all_editors())
+        if outlineexplorer:
+            self.sig_project_loaded.connect(
+                lambda v: self.main.outlineexplorer.update_all_editors())
         self.sig_project_closed[object].connect(
             lambda path:
             self.main.workingdirectory.chdir(
@@ -219,14 +225,16 @@ class Projects(SpyderPluginWidget):
         )
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_closed.connect(
-            functools.partial(lspmgr.project_path_update,
-                              update_kind=WorkspaceUpdateKind.DELETION,
-                              instance=self))
+        if lspmgr:
+            self.sig_project_closed.connect(
+                functools.partial(lspmgr.project_path_update,
+                                  update_kind=WorkspaceUpdateKind.DELETION,
+                                  instance=self))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
-        self.sig_project_closed.connect(
-            lambda v: self.main.outlineexplorer.update_all_editors())
+        if outlineexplorer:
+            self.sig_project_closed.connect(
+                lambda v: self.main.outlineexplorer.update_all_editors())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
         self.main.restore_scrollbar_position.connect(

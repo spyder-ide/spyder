@@ -168,32 +168,47 @@ def solve_plugin_dependencies(plugins):
     # example the Shortcuts plugin to all SpyderDockablePlugin's (shortcut for
     # the "switch to plugin" action).
     remaining_plugins = []
-    for plugin in plugins:
-        if issubclass(plugin, SpyderDockablePlugin):
-            if Plugins.Shortcuts not in plugin.REQUIRES:
-                plugin.REQUIRES.append(Plugins.Shortcuts)
-                plugin._REQUIRES = plugin.REQUIRES.copy()
-        for required in plugin.REQUIRES[:]:
-            # Check self references
-            if plugin.NAME == required:
-                raise SpyderAPIError("Plugin is self referencing!")
+    plugins_requiring_all_plugins = []
+    pruning_requires = True
+    import copy
+    while pruning_requires:
+        pruning_requires = False
+        remaining_plugins = []
+        current_plugins = copy.deepcopy(plugins)
+        for plugin in current_plugins:
+            if issubclass(plugin, (SpyderDockablePlugin, SpyderPluginWidget)):
+                if Plugins.Shortcuts not in plugin.REQUIRES:
+                    plugin.REQUIRES.append(Plugins.Shortcuts)
+                    plugin._REQUIRES = plugin.REQUIRES.copy()
+            for required in plugin.REQUIRES[:]:
+                # Check self references
+                if plugin.NAME == required:
+                    raise SpyderAPIError("Plugin is self referencing!")
 
-            if (required == Plugins.All and len(plugin.REQUIRES) == 1):
-                all_plugins = plugin_names.copy()
-                all_plugins.pop(plugin.NAME)
-                plugin.REQUIRES = list(all_plugins)
-                plugin._REQUIRES = plugin.REQUIRES.copy()
-                logger.info("Added all plugins as dependencies to plugin: " +
-                            plugin.NAME)
-                continue
+                if (required == Plugins.All and len(plugin.REQUIRES) == 1):
+                    all_plugins = plugin_names.copy()
+                    all_plugins.pop(plugin.NAME)
+                    plugin.REQUIRES = list(all_plugins)
+                    plugin._REQUIRES = plugin.REQUIRES.copy()
+                    logger.info(
+                        "Added all plugins as dependencies to plugin: " +
+                        plugin.NAME)
+                    plugins_requiring_all_plugins.append(plugin)
+                    continue
 
-            if required not in plugin_names:
-                plugin_names.pop(plugin.NAME)
-                logger.error("Pruned plugin: " + plugin.NAME)
-                break
-
-        else:
-            remaining_plugins.append(plugin)
+                if required not in plugin_names:
+                    plugin_names.pop(plugin.NAME)
+                    plugins.remove(plugin)
+                    for plugin_req_all in plugins_requiring_all_plugins:
+                        plugin_req_all.REQUIRES = [Plugins.All]
+                        plugin_req_all._REQUIRES = [Plugins.All]
+                    logger.info("Pruned plugin: " + plugin.NAME)
+                    logger.info("Restarting plugins REQUIRES pruning check")
+                    pruning_requires = True
+                    break
+            else:
+                if plugin.NAME in plugin_names:
+                    remaining_plugins.append(plugin)
 
     # Prune optional dependencies from remaining plugins
     for plugin in remaining_plugins:

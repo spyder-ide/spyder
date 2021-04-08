@@ -80,7 +80,7 @@ class Editor(SpyderPluginWidget):
 
     # This is required for the new API
     NAME = 'editor'
-    REQUIRES = []
+    REQUIRES = [Plugins.Console]
     OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
 
     # Signals
@@ -336,11 +336,13 @@ class Editor(SpyderPluginWidget):
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
-
-        status = self.main.completions.start_completion_services_for_language(
-            language.lower())
-        self.main.completions.register_file(
-            language.lower(), filename, codeeditor)
+        status = None
+        if self.main.get_plugin(Plugins.Completions, error=False):
+            status = (
+                self.main.completions.start_completion_services_for_language(
+                    language.lower()))
+            self.main.completions.register_file(
+                language.lower(), filename, codeeditor)
         if status:
             if language.lower() in self.completion_capabilities:
                 # When this condition is True, it means there's a server
@@ -1208,22 +1210,26 @@ class Editor(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
+        completions = self.main.get_plugin(Plugins.Completions, error=False)
+        outlineexplorer = self.main.get_plugin(
+            Plugins.OutlineExplorer, error=False)
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
         self.main.console.sig_edit_goto_requested.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.main.completions.sig_language_completions_available.connect(
-            self.register_completion_capabilities)
-        self.main.completions.sig_open_file.connect(self.load)
-        self.main.completions.sig_editor_rpc.connect(self._rpc_call)
-        self.main.completions.sig_stop_completions.connect(
-            self.stop_completion_services)
+        if completions:
+            self.main.completions.sig_language_completions_available.connect(
+                self.register_completion_capabilities)
+            self.main.completions.sig_open_file.connect(self.load)
+            self.main.completions.sig_editor_rpc.connect(self._rpc_call)
+            self.main.completions.sig_stop_completions.connect(
+                self.stop_completion_services)
 
-        self.sig_file_opened_closed_or_updated.connect(
-            self.main.completions.file_opened_closed_or_updated)
+            self.sig_file_opened_closed_or_updated.connect(
+                self.main.completions.file_opened_closed_or_updated)
 
-        if self.main.outlineexplorer is not None:
+        if outlineexplorer:
             self.set_outlineexplorer(self.main.outlineexplorer)
 
         self.add_dockwidget()
@@ -1345,7 +1351,8 @@ class Editor(SpyderPluginWidget):
                     'completions',
                     ('provider_configuration', 'lsp', 'values', conf_name),
                     checked)
-            completions = self.main.completions
+            if self.main.get_plugin(Plugins.Completions, error=False):
+                completions = self.main.completions
             completions.after_configuration_update([])
 
     #------ Focus tabwidget
@@ -1849,7 +1856,8 @@ class Editor(SpyderPluginWidget):
 
     @Slot(set)
     def update_active_languages(self, languages):
-        self.main.completions.update_client_status(languages)
+        if self.main.get_plugin(Plugins.Completions, error=False):
+            self.main.completions.update_client_status(languages)
 
 
     # ------ Bookmarks

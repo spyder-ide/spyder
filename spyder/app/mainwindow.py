@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
 
     # --- Plugin handling methods
     # ------------------------------------------------------------------------
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         """
         Return a plugin instance by providing the plugin class.
         """
@@ -165,7 +165,11 @@ class MainWindow(QMainWindow):
             if plugin_name == name:
                 return plugin
         else:
-            raise SpyderAPIError('Plugin "{}" not found!'.format(plugin_name))
+            if error:
+                raise SpyderAPIError(
+                    'Plugin "{}" not found!'.format(plugin_name))
+            else:
+                return None
 
     def show_status_message(self, message, timeout):
         """
@@ -848,7 +852,7 @@ class MainWindow(QMainWindow):
                 enabled_plugins[plugin_name] = plugin
 
         # Get ordered list of plugins classes and instantiate them
-        plugin_deps = solve_plugin_dependencies(enabled_plugins.values())
+        plugin_deps = solve_plugin_dependencies(list(enabled_plugins.values()))
         for plugin_class in plugin_deps:
             plugin_name = plugin_class.NAME
             # Non-migrated plugins
