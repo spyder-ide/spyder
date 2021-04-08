@@ -184,7 +184,7 @@ class IconManager():
             'editcut':                 [('mdi.content-cut',), {'color': self.MAIN_FG_COLOR}],
             'editclear':               [('mdi.delete',), {'color': self.MAIN_FG_COLOR}],
             'selectall':               [('mdi.select-all',), {'color': self.MAIN_FG_COLOR}],
-            'exit':                    [('mdi.power',), {'color': SpyderPalette.COLOR_ERROR_1}],
+            'exit':                    [('mdi.power',), {'color': self.MAIN_FG_COLOR}],
             'advanced':                [('mdi.package-variant',), {'color': self.MAIN_FG_COLOR}],
             'bug':                     [('mdi.bug',), {'color': self.MAIN_FG_COLOR}],
             'window_nofullscreen':     [('mdi.arrow-collapse-all',), {'color': self.MAIN_FG_COLOR}],

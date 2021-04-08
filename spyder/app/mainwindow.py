@@ -71,8 +71,8 @@ from spyder import __version__
 from spyder import dependencies
 from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
-                              qt_message_handler, setup_logging,
-                              set_opengl_implementation, Spy)
+                              qt_message_handler, set_links_color,
+                              setup_logging, set_opengl_implementation, Spy)
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_module_source_path,
                                 get_safe_mode, is_pynsist, running_in_mac_app,
@@ -2288,6 +2288,9 @@ def main(options, args):
         except Exception:
             pass
     CONF.set('main', 'previous_crash', previous_crash)
+
+    # **** Set color for links ****
+    set_links_color(app)
 
     # **** Create main window ****
     mainwindow = None
