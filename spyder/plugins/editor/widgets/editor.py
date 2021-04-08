@@ -21,6 +21,7 @@ import functools
 import unicodedata
 
 # Third party imports
+import qstylizer
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
@@ -53,6 +54,7 @@ from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
                                     mimedata2url, set_menu_icons,
@@ -2891,6 +2893,8 @@ class EditorSplitter(QSplitter):
         if not running_under_pytest():
             self.editorstack.set_color_scheme(plugin.get_color_scheme())
 
+        self.setStyleSheet(self._stylesheet)
+
     def closeEvent(self, event):
         """Override QWidget closeEvent().
 
@@ -3066,6 +3070,14 @@ class EditorSplitter(QSplitter):
         if editor is not None:
             editor.clearFocus()
             editor.setFocus()
+
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+        css.QSplitter.setValues(
+            background=QStylePalette.COLOR_BACKGROUND_1
+        )
+        return css.toString()
 
 
 class EditorWidget(QSplitter):
