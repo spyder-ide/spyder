@@ -36,17 +36,6 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
-from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils.icon_manager import ima
-from spyder.utils import encoding, sourcecode, syntaxhighlighters
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url, set_menu_icons,
-                                    create_waitspinner)
-from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
-from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
-from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -56,12 +45,22 @@ from spyder.plugins.editor.widgets.editorstack_helpers import (
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.widgets.tabs import BaseTabs
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
+from spyder.py3compat import qbytearray_to_str, to_text_string
+from spyder.utils import encoding, sourcecode, syntaxhighlighters
+from spyder.utils.icon_manager import ima
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton, MENU_SEPARATOR,
+                                    mimedata2url, set_menu_icons,
+                                    create_waitspinner)
 from spyder.utils.stylesheet import (
-    APP_TOOLBAR_STYLESHEET, PANES_TABBAR_STYLESHEET)
+    APP_STYLESHEET, APP_TOOLBAR_STYLESHEET, PANES_TABBAR_STYLESHEET)
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.tabs import BaseTabs
 
 
 logger = logging.getLogger(__name__)
