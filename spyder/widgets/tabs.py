@@ -141,10 +141,7 @@ class TabBar(QTabBar):
                  split_index=0):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.setObjectName('pane-tabbar')
 
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -249,10 +246,7 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         self.setUsesScrollButtons(True)
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.tabBar().setObjectName('pane-tabbar')
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
