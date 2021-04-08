@@ -12,7 +12,6 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
 import logging
 import os
 import os.path as osp
@@ -29,7 +28,7 @@ from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
                             QSplitter, QVBoxLayout, QWidget, QListWidget,
-                            QListWidgetItem)
+                            QListWidgetItem, QSizePolicy, QToolBar)
 
 # Local imports
 from spyder.api.panel import Panel
@@ -667,21 +666,22 @@ class EditorStack(QWidget):
         """Setup editorstack's layout"""
         layout.setSpacing(1)
 
-        self.fname_label = QLabel()
-        self.fname_label.setStyleSheet(
-            "QLabel {margin: 0px; padding: 3px;}")
-        layout.addWidget(self.fname_label)
+        # Create filename label, spinner and the toolbar that contains them
+        self.create_top_widgets()
 
+        # Add top toolbar
+        layout.addWidget(self.top_toolbar)
+
+        # Tabbar
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
-        self.spinner = create_waitspinner(size=20, parent=self)
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
-        corner_widgets = {Qt.TopRightCorner: [self.spinner, menu_btn]}
+        corner_widgets = {Qt.TopRightCorner: [menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
@@ -711,6 +711,32 @@ class EditorStack(QWidget):
             self.menu.aboutToHide.connect(
                 lambda menu=self.menu:
                 set_menu_icons(menu, False))
+
+    def create_top_widgets(self):
+        # Filename label
+        self.fname_label = QLabel()
+
+        # Spacer
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        # Spinner
+        self.spinner = create_waitspinner(size=16, parent=self.fname_label)
+
+        # Add widgets to toolbar
+        self.top_toolbar = QToolBar(self)
+        self.top_toolbar.addWidget(self.fname_label)
+        self.top_toolbar.addWidget(spacer)
+        self.top_toolbar.addWidget(self.spinner)
+
+        # Set toolbar style
+        css = qstylizer.style.StyleSheet()
+        css.QToolBar.setValues(
+            margin='0px',
+            padding='4px',
+            borderBottom=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}'
+        )
+        self.top_toolbar.setStyleSheet(css.toString())
 
     def hide_tooltip(self):
         """Hide any open tooltips."""
