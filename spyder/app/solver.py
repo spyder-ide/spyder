@@ -202,8 +202,9 @@ def solve_plugin_dependencies(plugins):
                     for plugin_req_all in plugins_requiring_all_plugins:
                         plugin_req_all.REQUIRES = [Plugins.All]
                         plugin_req_all._REQUIRES = [Plugins.All]
-                    logger.info("Pruned plugin: " + plugin.NAME)
-                    logger.info("Restarting plugins REQUIRES pruning check")
+                    logger.error("Pruned plugin: {}".format(plugin.NAME))
+                    logger.error("Missing requirement: {}".format(required))
+                    logger.error("Restart plugins pruning by REQUIRES check")
                     pruning_requires = True
                     break
             else:

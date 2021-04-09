@@ -1353,7 +1353,7 @@ class Editor(SpyderPluginWidget):
                     checked)
             if self.main.get_plugin(Plugins.Completions, error=False):
                 completions = self.main.completions
-            completions.after_configuration_update([])
+                completions.after_configuration_update([])
 
     #------ Focus tabwidget
     def __get_focused_editorstack(self):

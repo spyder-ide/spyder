@@ -161,7 +161,7 @@ class Projects(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
         treewidget = self.explorer.treewidget
-        lspmgr = self.main.get_plugin(Plugins.Completions, error=False)
+        completions = self.main.get_plugin(Plugins.Completions, error=False)
         outlineexplorer = self.main.get_plugin(
             Plugins.OutlineExplorer, error=False)
 
@@ -188,11 +188,12 @@ class Projects(SpyderPluginWidget):
 
         # TODO: This is not necessary anymore due to us starting workspace
         # services in the editor. However, we could restore it in the future.
-        #lspmgr.sig_language_completions_available.connect(
-        #    lambda settings, language:
-        #        self.start_workspace_services())
-        if lspmgr:
-            lspmgr.sig_stop_completions.connect(self.stop_workspace_services)
+        # completions.sig_language_completions_available.connect(
+        #     lambda settings, language:
+        #         self.start_workspace_services())
+        if completions:
+            completions.sig_stop_completions.connect(
+                self.stop_workspace_services)
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
@@ -205,9 +206,9 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
 
-        if lspmgr:
+        if completions:
             self.sig_project_loaded.connect(
-                functools.partial(lspmgr.project_path_update,
+                functools.partial(completions.project_path_update,
                                   update_kind=WorkspaceUpdateKind.ADDITION,
                                   instance=self))
         self.sig_project_loaded.connect(
@@ -225,9 +226,9 @@ class Projects(SpyderPluginWidget):
         )
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
-        if lspmgr:
+        if completions:
             self.sig_project_closed.connect(
-                functools.partial(lspmgr.project_path_update,
+                functools.partial(completions.project_path_update,
                                   update_kind=WorkspaceUpdateKind.DELETION,
                                   instance=self))
         self.sig_project_closed.connect(
@@ -663,9 +664,11 @@ class Projects(SpyderPluginWidget):
 
     def emit_request(self, method, params, requires_response):
         """Send request/notification/response to all LSP servers."""
-        params['requires_response'] = requires_response
-        params['response_instance'] = self
-        self.main.completions.broadcast_notification(method, params)
+        completions = self.main.get_plugin(Plugins.Completions, error=False)
+        if completions:
+            params['requires_response'] = requires_response
+            params['response_instance'] = self
+            self.main.completions.broadcast_notification(method, params)
 
     @Slot(str, dict)
     def handle_response(self, method, params):
