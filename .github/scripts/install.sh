@@ -57,7 +57,7 @@ else
     pip uninstall python-language-server -q -y
 
     # Provisional change to prevent error from jupyter_client 6.1.13
-    pip install jupyter_client==6.1.12
+    pip install https://github.com/davidbrochart/jupyter_client/archive/fix_threaded_client.zip --ignore-installed
 fi
 
 # This is necessary only for Windows (don't know why).
