@@ -3378,7 +3378,8 @@ class EditorMainWindow(QMainWindow):
 
         # Setting interface theme
         if is_dark_interface():
-            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
+            self.setStyleSheet(qdarkstyle.load_stylesheet(
+                qt_api=os.environ.get('QT_API', None)))
 
         # Give focus to current editor to update/show all status bar widgets
         editorstack = self.editorwidget.editorsplitter.editorstack

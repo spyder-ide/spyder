@@ -136,7 +136,8 @@ class BaseEditMixin(object):
         self._styled_widgets.add(id(widget))
 
         if is_dark_interface():
-            css = qdarkstyle.load_stylesheet(qt_api='')
+            css = qdarkstyle.load_stylesheet(
+                    qt_api=os.environ.get('QT_API', None))
             widget.setStyleSheet(css)
             palette = widget.palette()
             background = palette.color(palette.Window).lighter(150).name()

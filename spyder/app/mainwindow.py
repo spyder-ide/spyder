@@ -493,7 +493,8 @@ class MainWindow(QMainWindow):
                 # Set style proxy to fix combobox popup on mac and qdark
                 qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
-            dark_qss = qdarkstyle.load_stylesheet_from_environment()
+            dark_qss = qdarkstyle.load_stylesheet(
+                        qt_api=os.environ.get('QT_API', None))
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
@@ -503,7 +504,8 @@ class MainWindow(QMainWindow):
                     # Set style proxy to fix combobox popup on mac and qdark
                     qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
-                dark_qss = qdarkstyle.load_stylesheet_from_environment()
+                dark_qss = qdarkstyle.load_stylesheet(
+                            qt_api=os.environ.get('QT_API', None))
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH
