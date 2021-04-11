@@ -12,7 +12,6 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
 import logging
 import os
 import os.path as osp
@@ -21,6 +20,7 @@ import functools
 import unicodedata
 
 # Third party imports
+import qstylizer
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
@@ -28,7 +28,7 @@ from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
                             QSplitter, QVBoxLayout, QWidget, QListWidget,
-                            QListWidgetItem)
+                            QListWidgetItem, QSizePolicy, QToolBar)
 
 # Local imports
 from spyder.api.panel import Panel
@@ -36,17 +36,6 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
-from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils.icon_manager import ima
-from spyder.utils import encoding, sourcecode, syntaxhighlighters
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url, set_menu_icons,
-                                    create_waitspinner)
-from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
-from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
-from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -56,12 +45,23 @@ from spyder.plugins.editor.widgets.editorstack_helpers import (
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.widgets.tabs import BaseTabs
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
+from spyder.py3compat import qbytearray_to_str, to_text_string
+from spyder.utils import encoding, sourcecode, syntaxhighlighters
+from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton, MENU_SEPARATOR,
+                                    mimedata2url, set_menu_icons,
+                                    create_waitspinner)
 from spyder.utils.stylesheet import (
-    APP_TOOLBAR_STYLESHEET, PANES_TABBAR_STYLESHEET)
+    APP_STYLESHEET, APP_TOOLBAR_STYLESHEET, PANES_TABBAR_STYLESHEET)
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.tabs import BaseTabs
 
 
 logger = logging.getLogger(__name__)
@@ -666,24 +666,24 @@ class EditorStack(QWidget):
         """Setup editorstack's layout"""
         layout.setSpacing(1)
 
-        self.fname_label = QLabel()
-        self.fname_label.setStyleSheet(
-            "QLabel {margin: 0px; padding: 3px;}")
-        layout.addWidget(self.fname_label)
+        # Create filename label, spinner and the toolbar that contains them
+        self.create_top_widgets()
 
+        # Add top toolbar
+        layout.addWidget(self.top_toolbar)
+
+        # Tabbar
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
-        self.spinner = create_waitspinner(size=20, parent=self)
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
-        corner_widgets = {Qt.TopRightCorner: [self.spinner, menu_btn]}
+        corner_widgets = {Qt.TopRightCorner: [menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
-        self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
         self.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
         self.tabs.setMovable(True)
@@ -710,6 +710,32 @@ class EditorStack(QWidget):
             self.menu.aboutToHide.connect(
                 lambda menu=self.menu:
                 set_menu_icons(menu, False))
+
+    def create_top_widgets(self):
+        # Filename label
+        self.fname_label = QLabel()
+
+        # Spacer
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        # Spinner
+        self.spinner = create_waitspinner(size=16, parent=self.fname_label)
+
+        # Add widgets to toolbar
+        self.top_toolbar = QToolBar(self)
+        self.top_toolbar.addWidget(self.fname_label)
+        self.top_toolbar.addWidget(spacer)
+        self.top_toolbar.addWidget(self.spinner)
+
+        # Set toolbar style
+        css = qstylizer.style.StyleSheet()
+        css.QToolBar.setValues(
+            margin='0px',
+            padding='4px',
+            borderBottom=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}'
+        )
+        self.top_toolbar.setStyleSheet(css.toString())
 
     def hide_tooltip(self):
         """Hide any open tooltips."""
@@ -2892,6 +2918,8 @@ class EditorSplitter(QSplitter):
         if not running_under_pytest():
             self.editorstack.set_color_scheme(plugin.get_color_scheme())
 
+        self.setStyleSheet(self._stylesheet)
+
     def closeEvent(self, event):
         """Override QWidget closeEvent().
 
@@ -3067,6 +3095,14 @@ class EditorSplitter(QSplitter):
         if editor is not None:
             editor.clearFocus()
             editor.setFocus()
+
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+        css.QSplitter.setValues(
+            background=QStylePalette.COLOR_BACKGROUND_1
+        )
+        return css.toString()
 
 
 class EditorWidget(QSplitter):
