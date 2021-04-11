@@ -156,5 +156,30 @@ def test_paste_text(code_editor_bot, text, line_ending_char):
         assert editor.get_text_line(line_no) == txt
 
 
+def test_copy_paste_autoindent(code_editor_bot):
+    """Test copy pasting text into the editor at different indent."""
+    editor = code_editor_bot[0]
+    text = ("if a:\n    b\n    if c:\n        d\n    e\n")
+    expected_text = ("if a:\n    b\n    d\ne\n    if c:\n        d\n    e\n")
+    editor.set_text(text)
+    # Copy
+    cursor = editor.textCursor()
+    cursor.setPosition(30)
+    cursor.setPosition(45, QTextCursor.KeepAnchor)
+    editor.setTextCursor(cursor)
+    cb = QApplication.clipboard()
+    cb.setText("d\n    e", mode=cb.Clipboard)
+    editor.copy()
+    # Paste
+    for indent in [4, 8]:
+        editor.set_text(text)
+        cursor = editor.textCursor()
+        cursor.setPosition(11)
+        cursor.insertText("\n" + indent * ' ')
+        editor.setTextCursor(cursor)
+        editor.paste()
+        assert editor.toPlainText() == expected_text
+
+
 if __name__ == "__main__":
     pytest.main()
