@@ -1199,7 +1199,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.new_client.connect(self.create_new_client)
 
         # For tracebacks
-        control.go_to_error.connect(self.go_to_error)
+        control.sig_go_to_error_requested.connect(self.go_to_error)
 
         # For help requests
         control.sig_help_requested.connect(self.sig_help_requested)

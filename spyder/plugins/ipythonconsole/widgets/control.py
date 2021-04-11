@@ -22,7 +22,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
     """
     QT_CLASS = QTextEdit
     visibility_changed = Signal(bool)
-    go_to_error = Signal(str)
+    sig_go_to_error_requested = Signal(str)
     focus_changed = Signal()
 
     sig_help_requested = Signal(dict)

@@ -1015,9 +1015,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             try:
                 if 'matplotlib' not in sys.modules:
                     import matplotlib
-                    matplotlib.use("Qt4Agg")
                 return True
-            except:
+            except Exception:
                 QMessageBox.warning(self, _("Import error"),
                                     _("Please install <b>matplotlib</b>"
                                       " or <b>guiqwt</b>."))
