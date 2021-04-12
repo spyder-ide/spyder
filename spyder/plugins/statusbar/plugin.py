@@ -83,10 +83,9 @@ class StatusBar(SpyderPluginV2):
         ----------
         widget: StatusBarWidget
             Widget to be added to the status bar.
-        index: int
-            Position where the widget will be added among those already
-            present. This is counted from left to right in increasing
-            order and starting from 0.
+        position: int
+            Position where the widget will be added given the members of the
+            StatusBarWidgetPosition enum.
         """
         # Check widget class
         if not isinstance(widget, StatusBarWidget):
@@ -124,41 +123,6 @@ class StatusBar(SpyderPluginV2):
                 StatusBarWidgetPosition.Left, widget)
         self._statusbar.layout().setContentsMargins(0, 0, 0, 0)
         self._statusbar.layout().setSpacing(0)
-
-    def _organize_status_widgets(self):
-        """
-        Organize the status bar widgets once the application is loaded.
-        """
-        # Desired organization from
-        internal_layout = [
-            'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
-            'eol_status', 'encoding_status', 'cursor_position_status',
-            'vcs_status', 'interpreter_status', 'lsp_status', 'kite_status']
-        external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
-
-        # Remove all the widgets from the statusbar
-        for id_ in self.STATUS_WIDGETS:
-            self._statusbar.removeWidget(self.STATUS_WIDGETS[id_])
-
-        for id_ in self.EXTERNAL_LEFT_WIDGETS:
-            self._statusbar.removeWidget(self.EXTERNAL_LEFT_WIDGETS[id_])
-
-        # Don't remove the external right widgets because they are already at
-        # the right of the statusbar
-
-        # Add the internal widgets in the desired layout
-        for id_ in internal_layout:
-            print('******', id_)
-            self._statusbar.insertPermanentWidget(
-                StatusBarWidgetPosition.Left, self.STATUS_WIDGETS[id_])
-
-        # Add the external left widgets
-        for id_ in external_left:
-            self._statusbar.insertPermanentWidget(
-                StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_])
-
-    def before_mainwindow_visible(self):
-        self._organize_status_widgets()
 
     def remove_status_widget(self, id_):
         """
@@ -231,3 +195,41 @@ class StatusBar(SpyderPluginV2):
     def _statusbar(self):
         """Reference to main window status bar."""
         return self._main.statusBar()
+
+    def _organize_status_widgets(self):
+        """
+        Organize the status bar widgets once the application is loaded.
+        """
+        # Desired organization from
+        internal_layout = [
+            'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
+            'eol_status', 'encoding_status', 'cursor_position_status',
+            'vcs_status', 'interpreter_status', 'lsp_status', 'kite_status']
+        external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
+
+        # Remove all the widgets from the statusbar
+        for id_ in self.STATUS_WIDGETS:
+            self._statusbar.removeWidget(self.STATUS_WIDGETS[id_])
+
+        for id_ in self.EXTERNAL_LEFT_WIDGETS:
+            self._statusbar.removeWidget(self.EXTERNAL_LEFT_WIDGETS[id_])
+
+        # Don't remove the external right widgets because they are already at
+        # the right of the statusbar
+
+        # Add the internal widgets in the desired layout
+        for id_ in internal_layout:
+            self._statusbar.insertPermanentWidget(
+                StatusBarWidgetPosition.Left, self.STATUS_WIDGETS[id_])
+            self.STATUS_WIDGETS[id_].setVisible(True)
+
+        # Add the external left widgets
+        for id_ in external_left:
+            self._statusbar.insertPermanentWidget(
+                StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_])
+            self.EXTERNAL_LEFT_WIDGETS[id_].setVisible(True)
+
+    def before_mainwindow_visible(self):
+        """Perform actions before the mainwindow is visible"""
+        # Organize widgets in the expected order
+        self._organize_status_widgets()
