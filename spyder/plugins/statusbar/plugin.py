@@ -43,7 +43,8 @@ class StatusBar(SpyderPluginV2):
     STATUS_WIDGETS = {}
     EXTERNAL_RIGHT_WIDGETS = {}
     EXTERNAL_LEFT_WIDGETS = {}
-    INTERNAL_WIDGETS = {
+    INTERNAL_WIDGETS = {}
+    INTERNAL_WIDGETS_IDS = {
         'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
         'eol_status', 'encoding_status', 'cursor_position_status',
         'vcs_status', 'interpreter_status', 'lsp_status', 'kite_status'}
@@ -103,17 +104,19 @@ class StatusBar(SpyderPluginV2):
         # Check it was not added before
         in_widgets = (id_ in self.STATUS_WIDGETS or
                       id_ in self.EXTERNAL_LEFT_WIDGETS or
-                      id_ in self.EXTERNAL_LEFT_WIDGETS)
+                      id_ in self.EXTERNAL_LEFT_WIDGETS or
+                      id_ in self.INTERNAL_WIDGETS)
         if in_widgets and not running_under_pytest():
             raise SpyderAPIError(f'Status widget `{id_}` already added!')
 
-        if id_ in self.INTERNAL_WIDGETS:
-            self.STATUS_WIDGETS[id_] = widget
+        if id_ in self.INTERNAL_WIDGETS_IDS:
+            self.INTERNAL_WIDGETS[id_] = widget
         elif position == StatusBarWidgetPosition.Right:
             self.EXTERNAL_RIGHT_WIDGETS[id_] = widget
         else:
             self.EXTERNAL_LEFT_WIDGETS[id_] = widget
 
+        self.STATUS_WIDGETS[id_] = widget
         self._statusbar.setStyleSheet('QStatusBar::item {border: None;}')
 
         if position == StatusBarWidgetPosition.Right:
@@ -208,8 +211,8 @@ class StatusBar(SpyderPluginV2):
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 
         # Remove all the widgets from the statusbar
-        for id_ in self.STATUS_WIDGETS:
-            self._statusbar.removeWidget(self.STATUS_WIDGETS[id_])
+        for id_ in self.INTERNAL_WIDGETS:
+            self._statusbar.removeWidget(self.INTERNAL_WIDGETS[id_])
 
         for id_ in self.EXTERNAL_LEFT_WIDGETS:
             self._statusbar.removeWidget(self.EXTERNAL_LEFT_WIDGETS[id_])
@@ -220,8 +223,8 @@ class StatusBar(SpyderPluginV2):
         # Add the internal widgets in the desired layout
         for id_ in internal_layout:
             self._statusbar.insertPermanentWidget(
-                StatusBarWidgetPosition.Left, self.STATUS_WIDGETS[id_])
-            self.STATUS_WIDGETS[id_].setVisible(True)
+                StatusBarWidgetPosition.Left, self.INTERNAL_WIDGETS[id_])
+            self.INTERNAL_WIDGETS[id_].setVisible(True)
 
         # Add the external left widgets
         for id_ in external_left:
