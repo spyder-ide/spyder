@@ -162,6 +162,39 @@ Files covered:
 Source Code
 ===========
 
+QDarkStyleSheet
+---------------
+
+
+Copyright (c) 2013- Colin Duquesnoy and others (see QDarkStyleSheet/AUTHORS.rst)
+
+
+Author: Colin Duquesnoy and others | colin.duquesnoy@gmail.com
+https://github.com/ColinDuquesnoy/QDarkStyleSheet/graphs/contributors
+Site: https://github.com/ColinDuquesnoy/QDarkStyleSheet/
+Source: https://github.com/ColinDuquesnoy/QDarkStyleSheet
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to adapt each file to Spyder.
+
+
+See below for the full text of the MIT License.
+
+The current QDarkStyleSheet license can be viewed at:
+https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/LICENSE.rst
+
+The current versions of the original files can be viewed at:
+https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/__init__.py
+
+
+Files covered:
+
+spyder/app/utils.py
+
+
+-------------------------------------------------------------------------------
+
+
 
 MathJax 2.0
 -----------

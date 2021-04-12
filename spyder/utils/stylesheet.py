@@ -277,6 +277,28 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             paddingBottom='-5px' if is_macos else '-6px',
         )
 
+        # Set style for scroller buttons
+        css['QTabBar#pane-tabbar QToolButton'].setValues(
+            background=QStylePalette.COLOR_BACKGROUND_1,
+            borderRadius='0px',
+            borderRight=f'0.3em solid {QStylePalette.COLOR_BACKGROUND_1}'
+        )
+
+        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
+            if state == 'hover':
+                color = QStylePalette.COLOR_BACKGROUND_2
+            else:
+                color = QStylePalette.COLOR_BACKGROUND_3
+            css[f'QTabBar#pane-tabbar QToolButton:{state}'].setValues(
+                background=color
+            )
+
+        # This makes one button huge and the other very small in PyQt 5.9
+        if not OLD_PYQT:
+            css['QTabBar::scroller'].setValues(
+                width='4.0em',
+            )
+
         # Remove border between selected tab and pane below
         css['QTabWidget::pane'].setValues(
             borderTop='0px',

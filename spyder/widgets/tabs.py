@@ -141,10 +141,7 @@ class TabBar(QTabBar):
                  split_index=0):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.setObjectName('pane-tabbar')
 
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -249,10 +246,7 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         self.setUsesScrollButtons(True)
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.tabBar().setObjectName('pane-tabbar')
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
@@ -335,6 +329,13 @@ class BaseTabs(QTabWidget):
         for corner, widgets in list(self.corner_widgets.items()):
             cwidget = QWidget()
             cwidget.hide()
+
+            # This removes some white dots in our tabs (not all but most).
+            # See spyder-ide/spyder#15081
+            cwidget.setObjectName('corner-widget')
+            cwidget.setStyleSheet(
+                "QWidget#corner-widget {border-radius: '0px'}")
+
             prev_widget = self.cornerWidget(corner)
             if prev_widget:
                 prev_widget.close()
