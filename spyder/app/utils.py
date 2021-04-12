@@ -190,7 +190,7 @@ def set_links_color(app):
     """
     Fix color for links.
 
-    This is taken from QDarkstyle, which is MIT licensed.
+    This was taken from QDarkstyle, which is MIT licensed.
     """
     color = QStylePalette.COLOR_ACCENT_3
     qcolor = QColor(color)
