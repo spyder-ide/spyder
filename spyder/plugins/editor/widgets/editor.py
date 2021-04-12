@@ -664,7 +664,7 @@ class EditorStack(QWidget):
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
-        layout.setSpacing(1)
+        layout.setSpacing(0)
 
         # Create filename label, spinner and the toolbar that contains them
         self.create_top_widgets()
