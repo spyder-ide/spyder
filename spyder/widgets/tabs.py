@@ -329,6 +329,13 @@ class BaseTabs(QTabWidget):
         for corner, widgets in list(self.corner_widgets.items()):
             cwidget = QWidget()
             cwidget.hide()
+
+            # This removes some white dots in our tabs (not all but most).
+            # See spyder-ide/spyder#15081
+            cwidget.setObjectName('corner-widget')
+            cwidget.setStyleSheet(
+                "QWidget#corner-widget {border-radius: '0px'}")
+
             prev_widget = self.cornerWidget(corner)
             if prev_widget:
                 prev_widget.close()
