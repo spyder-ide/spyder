@@ -6,15 +6,17 @@
 
 """Module checking Spyder runtime dependencies"""
 
-
+# Standard library imports
 import os
+import os.path as osp
 import sys
 
 # Local imports
-from spyder.utils import programs
-from spyder.config.base import _, is_pynsist
+from spyder.config.base import _, DEV, is_pynsist, running_under_pytest
 from spyder.config.utils import is_anaconda
+from spyder.utils import programs
 
+HERE = osp.dirname(osp.abspath(__file__))
 
 # =============================================================================
 # Kind of dependency
@@ -401,6 +403,14 @@ def missing_dependencies():
     """Return the status of missing dependencies (if any)"""
     missing_deps = []
     for dependency in DEPENDENCIES:
+        # Skip checking dependencies for which we have subrepos
+        if DEV or running_under_pytest():
+            repo_path = osp.normpath(osp.join(HERE, '..'))
+            subrepos_path = osp.join(repo_path, 'external-deps')
+            subrepos = os.listdir(subrepos_path)
+            if dependency.package_name in subrepos:
+                continue
+
         if dependency.kind != OPTIONAL and not dependency.check():
             missing_deps.append(dependency)
 
