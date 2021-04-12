@@ -1376,8 +1376,9 @@ class MainWindow(QMainWindow):
                  "We recommend restarting Spyder to ensure that it's properly "
                  "displayed. If you don't want to do that, please be sure to "
                  "activate the option<br><br><tt>Enable auto high DPI scaling"
-                 "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
-                 "in case Spyder is not displayed correctly.<br><br>"
+                 "</tt><br><br>in <tt>Preferences > Application > "
+                 "Interface</tt>, in case Spyder is not displayed "
+                 "correctly.<br><br>"
                  "Do you want to restart Spyder?"))
             msgbox.addButton(_('Restart now'), QMessageBox.NoRole)
             dismiss_button = msgbox.addButton(
