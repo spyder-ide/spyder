@@ -1032,10 +1032,8 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
     def update_actions(self):
-        if self.running:
-            icon = self.create_icon('stop')
-        else:
-            icon = self.create_icon('find')
+        self.find_action.setIcon(self.create_icon(
+            'stop' if self.running else 'find'))
 
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(
