@@ -102,11 +102,7 @@ class StatusBar(SpyderPluginV2):
             )
 
         # Check it was not added before
-        in_widgets = (id_ in self.STATUS_WIDGETS or
-                      id_ in self.EXTERNAL_LEFT_WIDGETS or
-                      id_ in self.EXTERNAL_LEFT_WIDGETS or
-                      id_ in self.INTERNAL_WIDGETS)
-        if in_widgets and not running_under_pytest():
+        if id_ in self.STATUS_WIDGETS and not running_under_pytest():
             raise SpyderAPIError(f'Status widget `{id_}` already added!')
 
         if id_ in self.INTERNAL_WIDGETS_IDS:
@@ -203,22 +199,19 @@ class StatusBar(SpyderPluginV2):
         """
         Organize the status bar widgets once the application is loaded.
         """
-        # Desired organization from
+        # Desired organization
         internal_layout = [
             'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
             'eol_status', 'encoding_status', 'cursor_position_status',
             'vcs_status', 'interpreter_status', 'lsp_status', 'kite_status']
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 
-        # Remove all the widgets from the statusbar
+        # Remove all widgets from the statusbar, except the external right
         for id_ in self.INTERNAL_WIDGETS:
             self._statusbar.removeWidget(self.INTERNAL_WIDGETS[id_])
 
         for id_ in self.EXTERNAL_LEFT_WIDGETS:
             self._statusbar.removeWidget(self.EXTERNAL_LEFT_WIDGETS[id_])
-
-        # Don't remove the external right widgets because they are already at
-        # the right of the statusbar
 
         # Add the internal widgets in the desired layout
         for id_ in internal_layout:
