@@ -190,7 +190,7 @@ class LayoutContainer(PluginMainContainer):
 
                 # closure required so lambda works with the default parameter
                 def trigger(i=index, self=self):
-                    return lambda: self.quick_layout_switch(i)
+                    return lambda: self.quick_layout_switch(index=i)
 
                 try:
                     layout_switch_action = self.get_action(name)
@@ -203,6 +203,23 @@ class LayoutContainer(PluginMainContainer):
                     )
 
                 actions.append(layout_switch_action)
+
+        for registered_layout in self._spyder_layouts:
+            name = self._spyder_layouts[registered_layout].get_name()
+            # closure required so lambda works with the default parameter
+            def trigger(id=registered_layout, self=self):
+                return lambda: self.quick_layout_switch(layout_id=id)
+            try:
+                layout_switch_action = self.get_action(name)
+            except KeyError:
+                layout_switch_action = self.create_action(
+                    name,
+                    text=name,
+                    triggered=trigger(),
+                    register_shortcut=False,
+                )
+
+            actions.append(layout_switch_action)
 
         for item in actions:
             self.add_item_to_menu(item, menu, section="layouts_section")
@@ -382,7 +399,7 @@ class LayoutContainer(PluginMainContainer):
 
         self.quick_layout_switch(layout_index[new_index])
 
-    def quick_layout_switch(self, index):
+    def quick_layout_switch(self, index=None, layout_id=None):
         """
         Switch to quick layout number *index*.
 
@@ -390,6 +407,7 @@ class LayoutContainer(PluginMainContainer):
         ----------
         index: int
         """
-        possible_current_layout = self._plugin.quick_layout_switch(index)
+        possible_current_layout = self._plugin.quick_layout_switch(
+            index=index, layout_id=layout_id)
         if possible_current_layout is not None:
             self._current_quick_layout = possible_current_layout
