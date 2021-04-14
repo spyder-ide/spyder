@@ -265,7 +265,7 @@ class CompletionPlugin(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         if statusbar:
             for sb in container.all_statusbar_widgets():
-                statusbar.add_status_widget(sb, 0)
+                statusbar.add_status_widget(sb)
 
         if self.main:
             self.main.sig_pythonpath_changed.connect(

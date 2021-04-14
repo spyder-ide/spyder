@@ -207,11 +207,11 @@ class Editor(SpyderPluginWidget):
 
         # TODO: temporal fix while editor uses new API
         statusbar = self.main.statusbar
-        statusbar.add_status_widget(self.readwrite_status, 3)
-        statusbar.add_status_widget(self.eol_status, 3)
-        statusbar.add_status_widget(self.encoding_status, 3)
-        statusbar.add_status_widget(self.cursorpos_status, 3)
-        statusbar.add_status_widget(self.vcs_status, 3)
+        statusbar.add_status_widget(self.readwrite_status)
+        statusbar.add_status_widget(self.eol_status)
+        statusbar.add_status_widget(self.encoding_status)
+        statusbar.add_status_widget(self.cursorpos_status)
+        statusbar.add_status_widget(self.vcs_status)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
