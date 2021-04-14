@@ -228,4 +228,8 @@ class StatusBar(SpyderPluginV2):
     def before_mainwindow_visible(self):
         """Perform actions before the mainwindow is visible"""
         # Organize widgets in the expected order
+        self._statusbar.setVisible(False)
         self._organize_status_widgets()
+
+    def after_mainwindow_visible(self):
+        self._statusbar.setVisible(True)
