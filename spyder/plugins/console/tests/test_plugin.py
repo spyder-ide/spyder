@@ -97,8 +97,7 @@ def test_handle_exception(console_plugin, mocker):
 
     # --- Test internal errors in Spyder
     # Write error in the console
-    error = """
-Traceback (most recent call last):
+    error = """Traceback (most recent call last):
   File "/home/foo/miniconda3/envs/py37/lib/python3.7/code.py", line 90, in runcode
     exec(code, self.locals)
   File "<console>", line 2, in <module>
