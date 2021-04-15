@@ -152,5 +152,19 @@ ZeroDivisionError: division by zero
     console_plugin.set_conf('previous_crash', '', section='main')
 
 
+def test_handle_warnings(console_plugin):
+    """Test that we don't show warnings in our error dialog."""
+    widget = console_plugin.get_widget()
+    shell = widget.shell
+
+    # Write warning in the console
+    warning = ("/home/foo/bar.py:1926: UserWarning: baz\n"
+               "  warnings.warn('baz')")
+    shell.append_text_to_shell(warning, error=True, prompt=False)
+
+    # Make sure the error dialog was not generated.
+    assert widget.error_dlg is None
+
+
 if __name__ == "__main__":
     pytest.main()
