@@ -1,5 +1,64 @@
 # History of changes
 
+## Version 5.0.1 (2021-04-16)
+
+### Important fixes
+* Avoid false warning about incorrect spyder-kernels version.
+* Fix error when opening a new editor window.
+* Fix error when saving layouts.
+* Fix several style issues.
+* Fix clicking on tracebacks in the IPython console.
+
+### Issues Closed
+
+* [Issue 15177](https://github.com/spyder-ide/spyder/issues/15177) - Spyder fails to launch if completions are disabled ([PR 15194](https://github.com/spyder-ide/spyder/pull/15194) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 15176](https://github.com/spyder-ide/spyder/issues/15176) - Spyder 5 requires QtAwesome >1.0.0 ([PR 15178](https://github.com/spyder-ide/spyder/pull/15178) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15166](https://github.com/spyder-ide/spyder/issues/15166) - Can't click on tracebacks in the IPython console and go to the corresponding line in the editor ([PR 15238](https://github.com/spyder-ide/spyder/pull/15238) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15164](https://github.com/spyder-ide/spyder/issues/15164) - Shotcuts not working when pane is maximized ([PR 15172](https://github.com/spyder-ide/spyder/pull/15172) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 15148](https://github.com/spyder-ide/spyder/issues/15148) - Hyperlinks need special style (color) to be read in dark theme ([PR 15183](https://github.com/spyder-ide/spyder/pull/15183) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15146](https://github.com/spyder-ide/spyder/issues/15146) - Menu of the Object Explorer window: check boxes are overlapping the text ([PR 15183](https://github.com/spyder-ide/spyder/pull/15183) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15129](https://github.com/spyder-ide/spyder/issues/15129) - Error after saving layouts ([PR 15144](https://github.com/spyder-ide/spyder/pull/15144) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 15116](https://github.com/spyder-ide/spyder/issues/15116) - Menu text covered by icon(s) ([PR 15127](https://github.com/spyder-ide/spyder/pull/15127) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15104](https://github.com/spyder-ide/spyder/issues/15104) - Can't open new editor window ([PR 15124](https://github.com/spyder-ide/spyder/pull/15124) by [@andfoy](https://github.com/andfoy))
+* [Issue 15098](https://github.com/spyder-ide/spyder/issues/15098) - AttributeError when doing a right-click on a WebView widget ([PR 15120](https://github.com/spyder-ide/spyder/pull/15120) by [@steff456](https://github.com/steff456))
+* [Issue 15093](https://github.com/spyder-ide/spyder/issues/15093) - Setuptools warning due to distutils being imported first ([PR 15252](https://github.com/spyder-ide/spyder/pull/15252) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15091](https://github.com/spyder-ide/spyder/issues/15091) - spyder-kernels problem with Spyder 5 ([PR 15100](https://github.com/spyder-ide/spyder/pull/15100) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15090](https://github.com/spyder-ide/spyder/issues/15090) - TypeError when setting Preferences ([PR 15149](https://github.com/spyder-ide/spyder/pull/15149) by [@andfoy](https://github.com/andfoy))
+
+In this release 13 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 15297](https://github.com/spyder-ide/spyder/pull/15297) - PR: Add base plugin actions to validation (to not disable them) - Plots, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15272](https://github.com/spyder-ide/spyder/pull/15272) - PR: Correctly update search action's icon in "Find" pane, by [@jnsebgosselin](https://github.com/jnsebgosselin)
+* [PR 15261](https://github.com/spyder-ide/spyder/pull/15261) - PR: Update layout setup to discard areas where the base plugin doesn't exist, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15259](https://github.com/spyder-ide/spyder/pull/15259) - PR: Enhance statusbar API, by [@steff456](https://github.com/steff456)
+* [PR 15252](https://github.com/spyder-ide/spyder/pull/15252) - PR: Remove usage of distutils, by [@ccordoba12](https://github.com/ccordoba12) ([15093](https://github.com/spyder-ide/spyder/issues/15093))
+* [PR 15250](https://github.com/spyder-ide/spyder/pull/15250) - PR: Remove most small white dots around toolbuttons in tabwidgets, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15238](https://github.com/spyder-ide/spyder/pull/15238) - PR: Fix traceback links in the IPython console, by [@ccordoba12](https://github.com/ccordoba12) ([15166](https://github.com/spyder-ide/spyder/issues/15166))
+* [PR 15237](https://github.com/spyder-ide/spyder/pull/15237) - PR: Fix style of the tabbar scroller buttons, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15194](https://github.com/spyder-ide/spyder/pull/15194) - PR: Handle disabling completions and improve pruning (Solver), by [@dalthviz](https://github.com/dalthviz) ([15177](https://github.com/spyder-ide/spyder/issues/15177))
+* [PR 15183](https://github.com/spyder-ide/spyder/pull/15183) - PR: More style fixes, by [@ccordoba12](https://github.com/ccordoba12) ([15148](https://github.com/spyder-ide/spyder/issues/15148), [15146](https://github.com/spyder-ide/spyder/issues/15146))
+* [PR 15178](https://github.com/spyder-ide/spyder/pull/15178) - PR: Update QtAwesome requirement, by [@ccordoba12](https://github.com/ccordoba12) ([15176](https://github.com/spyder-ide/spyder/issues/15176))
+* [PR 15175](https://github.com/spyder-ide/spyder/pull/15175) - PR: Manage loading external SpyderPluginV2 plugins, by [@steff456](https://github.com/steff456)
+* [PR 15172](https://github.com/spyder-ide/spyder/pull/15172) - PR: Add maximize_dockwidget method for old API compatibility (main window), by [@dalthviz](https://github.com/dalthviz) ([15164](https://github.com/spyder-ide/spyder/issues/15164))
+* [PR 15150](https://github.com/spyder-ide/spyder/pull/15150) - PR: Use the right args order in get_conf/set_conf (Layout), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15149](https://github.com/spyder-ide/spyder/pull/15149) - PR: Fix some issues when applying Run/Help settings in the Preferences dialog, by [@andfoy](https://github.com/andfoy) ([15090](https://github.com/spyder-ide/spyder/issues/15090))
+* [PR 15144](https://github.com/spyder-ide/spyder/pull/15144) - PR: Fix call to plugin method when saving a custom layout, by [@dalthviz](https://github.com/dalthviz) ([15129](https://github.com/spyder-ide/spyder/issues/15129))
+* [PR 15131](https://github.com/spyder-ide/spyder/pull/15131) - PR: Fix a crash at startup when switching screens, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15130](https://github.com/spyder-ide/spyder/pull/15130) - PR: Improve the style of tabs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15127](https://github.com/spyder-ide/spyder/pull/15127) - PR: Increase padding in checkboxes for old PyQt versions, by [@ccordoba12](https://github.com/ccordoba12) ([15116](https://github.com/spyder-ide/spyder/issues/15116))
+* [PR 15125](https://github.com/spyder-ide/spyder/pull/15125) - PR: Sync spyder-kernels subrepo with the 2.x branch, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15124](https://github.com/spyder-ide/spyder/pull/15124) - PR: Fix OutlineExplorerWidget creation on separate editor window, by [@andfoy](https://github.com/andfoy) ([15104](https://github.com/spyder-ide/spyder/issues/15104))
+* [PR 15120](https://github.com/spyder-ide/spyder/pull/15120) - PR: Fix popup error in WebView, by [@steff456](https://github.com/steff456) ([15098](https://github.com/spyder-ide/spyder/issues/15098))
+* [PR 15100](https://github.com/spyder-ide/spyder/pull/15100) - PR: Fix error when detecting spyder-kernels version, by [@ccordoba12](https://github.com/ccordoba12) ([15091](https://github.com/spyder-ide/spyder/issues/15091))
+
+In this release 23 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0.0 (2021-04-02)
 
 ### New features
