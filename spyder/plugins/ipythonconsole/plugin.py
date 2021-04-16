@@ -156,6 +156,9 @@ class IPythonConsole(SpyderPluginWidget):
         The new working directory path.
     """
 
+    # Remove when this plugin is migrated
+    sig_exception_occurred = Signal(dict)
+
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
@@ -1063,7 +1066,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.set_kernel_client_and_manager(kc, km)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.handle_exception)
+            self.sig_exception_occurred)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -1852,7 +1855,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.handle_exception)
+            self.sig_exception_occurred)
 
         if external_kernel:
             shellwidget.sig_is_spykernel.connect(
