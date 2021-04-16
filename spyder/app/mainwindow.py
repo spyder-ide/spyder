@@ -59,7 +59,6 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
-import qdarkstyle
 from qtawesome.iconic_font import FontError
 
 #==============================================================================
@@ -72,8 +71,8 @@ from spyder import __version__
 from spyder import dependencies
 from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
-                              qt_message_handler, setup_logging,
-                              set_opengl_implementation, Spy)
+                              qt_message_handler, set_links_color,
+                              setup_logging, set_opengl_implementation, Spy)
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_module_source_path,
                                 get_safe_mode, is_pynsist, running_in_mac_app,
@@ -92,6 +91,7 @@ from spyder.utils.misc import (select_port, getcwd_or_home,
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
                                     qapplication, start_file)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.app.solver import (
     find_external_plugins, find_internal_plugins, solve_plugin_dependencies)
 
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
 
     # --- Plugin handling methods
     # ------------------------------------------------------------------------
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         """
         Return a plugin instance by providing the plugin class.
         """
@@ -165,7 +165,11 @@ class MainWindow(QMainWindow):
             if plugin_name == name:
                 return plugin
         else:
-            raise SpyderAPIError('Plugin "{}" not found!'.format(plugin_name))
+            if error:
+                raise SpyderAPIError(
+                    'Plugin "{}" not found!'.format(plugin_name))
+            else:
+                return None
 
     def show_status_message(self, message, timeout):
         """
@@ -343,6 +347,21 @@ class MainWindow(QMainWindow):
         # Needed to prevent errors with the old API at
         # spyder/plugins/base::_switch_to_plugin
         return self.layouts.get_last_plugin()
+
+    def maximize_dockwidget(self, restore=False):
+        """
+        This is needed to prevent errors with the old API at
+        spyder/plugins/base::_switch_to_plugin.
+
+        See spyder-ide/spyder#15164
+
+        Parameters
+        ----------
+        restore : bool, optional
+            If the current dockwidget needs to be restored to its unmaximized
+            state. The default is False.
+        """
+        self.layouts.maximize_dockwidget(restore=restore)
 
     def switch_to_plugin(self, plugin, force_focus=None):
         """
@@ -749,25 +768,36 @@ class MainWindow(QMainWindow):
                 # Set style proxy to fix combobox popup on mac and qdark
                 qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
-            dark_qss = qdarkstyle.load_stylesheet()
+            dark_qss = str(APP_STYLESHEET)
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
+
+        elif ui_theme == 'light':
+            if not running_under_pytest():
+                # Set style proxy to fix combobox popup on mac and qdark
+                qapp = QApplication.instance()
+                qapp.setStyle(self._proxy_style)
+            light_qss = str(APP_STYLESHEET)
+            self.setStyleSheet(light_qss)
+            self.statusBar().setStyleSheet(light_qss)
+            css_path = CSS_PATH
+
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
                 if not running_under_pytest():
                     # Set style proxy to fix combobox popup on mac and qdark
                     qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
-                dark_qss = qdarkstyle.load_stylesheet()
+                dark_qss = str(APP_STYLESHEET)
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH
             else:
+                light_qss = str(APP_STYLESHEET)
+                self.setStyleSheet(light_qss)
+                self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
-        else:
-            css_path = CSS_PATH
-
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
@@ -822,7 +852,7 @@ class MainWindow(QMainWindow):
                 enabled_plugins[plugin_name] = plugin
 
         # Get ordered list of plugins classes and instantiate them
-        plugin_deps = solve_plugin_dependencies(enabled_plugins.values())
+        plugin_deps = solve_plugin_dependencies(list(enabled_plugins.values()))
         for plugin_class in plugin_deps:
             plugin_name = plugin_class.NAME
             # Non-migrated plugins
@@ -970,8 +1000,6 @@ class MainWindow(QMainWindow):
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
-        self.file_toolbar_actions += [self.file_switcher_action,
-                                     self.symbol_finder_action]
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
@@ -1193,9 +1221,9 @@ class MainWindow(QMainWindow):
         self.is_starting_up = False
 
         for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(
-                plugin_instance, self.get_plugin(Plugins.Console))
-            plugin_instance.toggle_view(False)
+            self.tabify_plugin(plugin_instance, Plugins.Console)
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                plugin_instance.get_widget().toggle_view(False)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
@@ -1347,8 +1375,9 @@ class MainWindow(QMainWindow):
                  "We recommend restarting Spyder to ensure that it's properly "
                  "displayed. If you don't want to do that, please be sure to "
                  "activate the option<br><br><tt>Enable auto high DPI scaling"
-                 "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
-                 "in case Spyder is not displayed correctly.<br><br>"
+                 "</tt><br><br>in <tt>Preferences > Application > "
+                 "Interface</tt>, in case Spyder is not displayed "
+                 "correctly.<br><br>"
                  "Do you want to restart Spyder?"))
             msgbox.addButton(_('Restart now'), QMessageBox.NoRole)
             dismiss_button = msgbox.addButton(
@@ -1920,13 +1949,6 @@ class MainWindow(QMainWindow):
                 qapp.setStyle('gtk+')
             except:
                 pass
-        else:
-            style_name = CONF.get('appearance', 'windows_style',
-                                  self.default_style)
-            style = QStyleFactory.create(style_name)
-            if style is not None:
-                style.setProperty('name', style_name)
-                qapp.setStyle(style)
 
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
@@ -2270,6 +2292,9 @@ def main(options, args):
         except Exception:
             pass
     CONF.set('main', 'previous_crash', previous_crash)
+
+    # **** Set color for links ****
+    set_links_color(app)
 
     # **** Create main window ****
     mainwindow = None

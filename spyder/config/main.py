@@ -291,6 +291,7 @@ DEFAULTS = [
               'show_hscrollbar': True,
               'max_recent_projects': 10,
               'visible_if_project_open': True,
+              'date_column': False,
               }),
             ('explorer',
              {
@@ -545,10 +546,6 @@ NAME_MAP = {
             'last_visible_toolbars',
             ]
          ),
-        ('appearance', [
-            'windows_style',
-            ]
-         ),
         ('editor', [
             'autosave_mapping',
             'bookmarks',
@@ -622,4 +619,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '68.0.0'
+CONF_VERSION = '69.0.0'

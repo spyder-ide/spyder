@@ -29,7 +29,6 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs

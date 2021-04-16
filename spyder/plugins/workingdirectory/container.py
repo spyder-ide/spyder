@@ -129,7 +129,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
             triggered=self.parent_directory,
         )
 
-        for item in [self.previous_action, self.next_action, self.pathedit,
+        for item in [self.pathedit,
                      browse_action, parent_action]:
             self.add_item_to_toolbar(
                 item,

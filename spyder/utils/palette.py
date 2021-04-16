@@ -10,14 +10,19 @@ Palettes for dark and light themes used in Spyder.
 
 # Third-party imports
 from qdarkstyle.colorsystem import Blue, Gray
-from qdarkstyle.darkpalette import DarkPalette
+from qdarkstyle.dark.palette import DarkPalette
+from qdarkstyle.light.palette import LightPalette
 
 # Local imports
+from spyder.config.gui import is_dark_interface
 from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
                                        GroupLight, Logos)
-from spyder.config.gui import is_dark_interface
 
+# =============================================================================
+# ---- Spyder palettes
+# =============================================================================
 class SpyderPaletteDark:
+    """Dark palette for Spyder."""
 
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
@@ -30,7 +35,7 @@ class SpyderPaletteDark:
 
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
-    COLOR_WARN_3 = Orange.B110
+    COLOR_WARN_3 = Orange.B90
 
     # Icon colors
     ICON_1 = Gray.B140
@@ -75,6 +80,7 @@ class SpyderPaletteDark:
 
 
 class SpyderPaletteLight:
+    """Light palette for Spyder."""
 
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
@@ -87,7 +93,7 @@ class SpyderPaletteLight:
 
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
-    COLOR_WARN_3 = Orange.B110
+    COLOR_WARN_3 = Orange.B50
 
     # Icon colors
     ICON_1 = Gray.B30
@@ -131,46 +137,9 @@ class SpyderPaletteLight:
     SPYDER_LOGO_SNAKE = Logos.B50
 
 
-class LightPalette(object):
-    """Theme variables."""
-
-    # Color
-    COLOR_BACKGROUND_1 = Gray.B140
-    COLOR_BACKGROUND_2 = Gray.B130
-    COLOR_BACKGROUND_3 = Gray.B120
-    COLOR_BACKGROUND_4 = Gray.B110
-    COLOR_BACKGROUND_5 = Gray.B100
-    COLOR_BACKGROUND_6 = Gray.B90
-
-    COLOR_TEXT_1 = Gray.B10
-    COLOR_TEXT_2 = Gray.B20
-    COLOR_TEXT_3 = Gray.B50
-    COLOR_TEXT_4 = Gray.B80
-
-    COLOR_ACCENT_1 = Blue.B130
-    COLOR_ACCENT_2 = Blue.B100
-    COLOR_ACCENT_3 = Blue.B70
-    COLOR_ACCENT_4 = Blue.B60
-    COLOR_ACCENT_5 = Blue.B50
-
-    OPACITY_TOOLTIP = 230
-
-    # Size
-    SIZE_BORDER_RADIUS = '4px'
-
-    # Borders
-    BORDER_1 = '1px solid $COLOR_BACKGROUND_1'
-    BORDER_2 = '1px solid $COLOR_BACKGROUND_4'
-    BORDER_3 = '1px solid $COLOR_BACKGROUND_6'
-
-    BORDER_SELECTION_3 = '1px solid $COLOR_ACCENT_3'
-    BORDER_SELECTION_2 = '1px solid $COLOR_ACCENT_2'
-    BORDER_SELECTION_1 = '1px solid $COLOR_ACCENT_1'
-
-    # Example of additional widget specific variables
-    W_STATUS_BAR_BACKGROUND_COLOR = COLOR_ACCENT_1
-
-
+# =============================================================================
+# ---- Exported classes
+# =============================================================================
 if is_dark_interface():
     SpyderPalette = SpyderPaletteDark
     QStylePalette = DarkPalette

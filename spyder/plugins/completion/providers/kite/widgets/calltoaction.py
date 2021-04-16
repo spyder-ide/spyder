@@ -18,7 +18,6 @@ from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed)
 from spyder.plugins.completion.providers.fallback.actor import (
     FALLBACK_COMPLETION)
-from spyder.utils.icon_manager import is_dark_interface
 from spyder.utils.palette import QStylePalette
 
 
@@ -39,17 +38,16 @@ class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
         self.setAutoFillBackground(True)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.setFocusPolicy(Qt.NoFocus)
-        if is_dark_interface():
-            self.setObjectName("kite-call-to-action")
-            self.setStyleSheet(self.styleSheet() +
-                               ("#kite-call-to-action "
-                                "{{ border: 1px solid; "
-                                "  border-color: {border_color}; "
-                                "  border-radius: 4px;}} "
-                                "#kite-call-to-action:hover "
-                                "{{ border:1px solid {border}; }}").format(
-                                border_color=QStylePalette.COLOR_BACKGROUND_4,
-                                border=QStylePalette.COLOR_ACCENT_4))
+        self.setObjectName("kite-call-to-action")
+        self.setStyleSheet(self.styleSheet() +
+                           ("#kite-call-to-action "
+                            "{{ border: 1px solid; "
+                            "  border-color: {border_color}; "
+                            "  border-radius: 4px;}} "
+                            "#kite-call-to-action:hover "
+                            "{{ border:1px solid {border}; }}").format(
+                            border_color=QStylePalette.COLOR_BACKGROUND_4,
+                            border=QStylePalette.COLOR_ACCENT_4))
 
         # sub-layout: horizontally aligned links
         actions = QFrame(self)

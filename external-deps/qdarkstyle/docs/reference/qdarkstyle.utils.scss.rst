@@ -5,3 +5,4 @@ qdarkstyle.utils.scss module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

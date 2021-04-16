@@ -19,7 +19,6 @@ from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 # Local imports
 from spyder.api.panel import Panel
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.completion.api import DiagnosticSeverity
 
 
@@ -28,7 +27,7 @@ REFRESH_RATE = 1000
 
 class ScrollFlagArea(Panel):
     """Source code editor's scroll flag area"""
-    WIDTH = 24 if sys.platform == 'darwin' and is_dark_interface() else 12
+    WIDTH = 24 if sys.platform == 'darwin' else 12
     FLAGS_DX = 4
     FLAGS_DY = 2
 

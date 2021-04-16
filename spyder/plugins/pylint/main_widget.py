@@ -22,8 +22,8 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Qt,
-                         Signal, Slot)
+from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
+                         Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout)
 
@@ -64,7 +64,7 @@ MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
-    RunCodeAnalysis = "run analysis"
+    RunCodeAnalysis = "run_analysis_action"
     BrowseFile = "browse_action"
     ShowLog = "log_action"
 
@@ -425,13 +425,10 @@ class PylintWidget(PluginMainWidget):
         )
         self.code_analysis_action = self.create_action(
             PylintWidgetActions.RunCodeAnalysis,
-            icon_text=_("Analyze"),
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
             triggered=lambda: self.sig_start_analysis_requested.emit(),
-            context=Qt.ApplicationShortcut,
-            register_shortcut=True
         )
         self.browse_action = self.create_action(
             PylintWidgetActions.BrowseFile,
@@ -443,7 +440,6 @@ class PylintWidget(PluginMainWidget):
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
             text=_("Output"),
-            icon_text=_("Output"),
             tip=_("Complete output"),
             icon=self.create_icon("log"),
             triggered=self.show_log,
@@ -527,18 +523,9 @@ class PylintWidget(PluginMainWidget):
             self._update_combobox_history()
 
     def update_actions(self):
-        fm = self.ratelabel.fontMetrics()
-        toolbar = self.get_main_toolbar()
-        width = max([fm.width(_("Stop")), fm.width(_("Analyze"))])
-        widget = toolbar.widgetForAction(self.code_analysis_action)
-        if widget:
-            widget.setMinimumWidth(width * 1.5)
-
         if self._is_running():
-            self.code_analysis_action.setIconText(_("Stop"))
             self.code_analysis_action.setIcon(self.create_icon("stop"))
         else:
-            self.code_analysis_action.setIconText(_("Analyze"))
             self.code_analysis_action.setIcon(self.create_icon("run"))
 
         self.remove_obsolete_items()

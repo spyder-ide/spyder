@@ -46,6 +46,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
@@ -483,6 +484,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.stop_button.clicked.connect(self.stop_button_click_handler)
         if self.stop_button is not None:
             buttons.append(self.stop_button)
+        self.stop_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
         # Reset namespace button
         if self.reset_button is None:
@@ -494,7 +496,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                     triggered=self.reset_namespace)
         if self.reset_button is not None:
             buttons.append(self.reset_button)
-
+        self.reset_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         if self.options_button is None:
             options = self.get_options_menu()
             if options:

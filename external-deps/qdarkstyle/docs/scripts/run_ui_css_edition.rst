@@ -5,3 +5,4 @@ run\_ui\_css\_edition module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

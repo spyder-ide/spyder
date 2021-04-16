@@ -188,9 +188,6 @@ class Projects(SpyderDockablePlugin):
 
         # TODO: This is not necessary anymore due to us starting workspace
         # services in the editor. However, we could restore it in the future.
-        # lspmgr.sig_language_completions_available.connect(
-        #    lambda settings, language:
-        #        self.start_workspace_services())
         if self.completions:
             self.completions.sig_stop_completions.connect(
                 self.stop_workspace_services)
@@ -707,7 +704,8 @@ class Projects(SpyderDockablePlugin):
         """Send request/notification/response to all LSP servers."""
         params['requires_response'] = requires_response
         params['response_instance'] = self
-        self.completions.broadcast_notification(method, params)
+        if self.completions:
+            self.completions.broadcast_notification(method, params)
 
     @Slot(str, dict)
     def handle_response(self, method, params):

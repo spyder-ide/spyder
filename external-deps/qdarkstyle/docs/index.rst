@@ -10,11 +10,12 @@ Welcome to QDarkStyle's documentation!
    :maxdepth: 2
 
    readme.rst
-   example/modules.rst
-   reference/modules.rst
-   scripts/modules.rst
+   screenshots.rst
    known_issues.rst
    contributing.rst
+   color_reference.rst
+   reference/modules.rst
+   scripts/modules.rst
    changes.rst
    authors.rst
    license.rst

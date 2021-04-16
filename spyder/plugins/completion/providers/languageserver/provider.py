@@ -46,6 +46,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     """Language Server Protocol manager."""
     COMPLETION_PROVIDER_NAME = 'lsp'
     DEFAULT_ORDER = 1
+    SLOW = True
     CONF_DEFAULTS = [
         ('enable_hover_hints', True),
         ('show_lsp_down_warning', True),

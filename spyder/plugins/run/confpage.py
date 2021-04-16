@@ -138,5 +138,5 @@ class RunConfigPage(PluginConfigPage):
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
 
-    def apply_settings(self, options):
+    def apply_settings(self):
         pass

@@ -168,6 +168,7 @@ class LayoutContainer(PluginMainContainer):
 
         self._plugins_menu = self.create_menu(
             "plugins_menu", _("Panes"))
+        self._plugins_menu.setObjectName('checkbox-padding')
 
         # Signals
         self.update_actions()
@@ -303,8 +304,8 @@ class LayoutContainer(PluginMainContainer):
                 active.append(name)
 
             if answer:
-                self.save_current_window_settings('layout_{}/'.format(index),
-                                                  section='quick_layouts')
+                self._plugin.save_current_window_settings(
+                    'layout_{}/'.format(index), section='quick_layouts')
                 self.set_conf('names', names)
                 self.set_conf('order', order)
                 self.set_conf('active', active)

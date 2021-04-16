@@ -217,6 +217,9 @@ class CompletionPlugin(SpyderPluginV2):
         # Completion request priority
         self.source_priority = {}
 
+        # Completion provider speed: slow or fast
+        self.provider_speed = {}
+
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf('completions_wait_for_ms')
 
@@ -262,7 +265,7 @@ class CompletionPlugin(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         if statusbar:
             for sb in container.all_statusbar_widgets():
-                statusbar.add_status_widget(sb, 0)
+                statusbar.add_status_widget(sb)
 
         if self.main:
             self.main.sig_pythonpath_changed.connect(
@@ -648,8 +651,8 @@ class CompletionPlugin(SpyderPluginV2):
 
         for request in COMPLETION_REQUESTS:
             request_priorities = source_priorities.get(request, {})
-            if provider_name not in request_priorities:
-                request_priorities[provider_name] = provider_priority - 1
+            self.provider_speed[provider_name] = Provider.SLOW
+            request_priorities[provider_name] = provider_priority - 1
             source_priorities[request] = request_priorities
 
         self.source_priority = source_priorities
@@ -863,8 +866,14 @@ class CompletionPlugin(SpyderPluginV2):
             'timed_out': False,
         }
 
+        # Check if there are two or more slow completion providers
+        # in order to start the timeout counter.
+        providers = self.available_providers_for_language(language.lower())
+        slow_provider_count = sum([self.provider_speed[p] for p in providers])
+
+
         # Start the timer on this request
-        if req_type in self.AGGREGATE_RESPONSES:
+        if req_type in self.AGGREGATE_RESPONSES and slow_provider_count > 2:
             if self.wait_for_ms > 0:
                 QTimer.singleShot(self.wait_for_ms,
                                   lambda: self.receive_timeout(req_id))
@@ -872,7 +881,6 @@ class CompletionPlugin(SpyderPluginV2):
                 self.requests[req_id]['timed_out'] = True
 
         # Send request to all running completion providers
-        providers = self.available_providers_for_language(language.lower())
         for provider_name in providers:
             provider_info = self.providers[provider_name]
             provider_info['instance'].send_request(

@@ -55,14 +55,15 @@ PYLS_BLACK_REQVER = '>=0.4.6'
 PYLS_SPYDER_REQVER = '>=0.3.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
-QDARKSTYLE_REQVER = '>=2.8;<3.0'
-QTAWESOME_REQVER = '>=0.5.7'
+QDARKSTYLE_REQVER = '=3.0.2'
+QSTYLIZER_REQVER = '>=0.1.10'
+QTAWESOME_REQVER = '>=1.0.2'
 QTCONSOLE_REQVER = '>=5.0.3'
 QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
 SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.0.0dev0'
+SPYDER_KERNELS_REQVER = '>=2.0.1;<2.1.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
@@ -197,6 +198,10 @@ DESCRIPTIONS = [
      'package_name': "qdarkstyle",
      'features': _("Dark style for the entire interface"),
      'required_version': QDARKSTYLE_REQVER},
+    {'modname': "qstylizer",
+     'package_name': "qstylizer",
+     'features': _("Customize Qt stylesheets"),
+     'required_version': QSTYLIZER_REQVER},
     {'modname': "qtawesome",
      'package_name': "qtawesome",
      'features': _("Icon theme based on FontAwesome and Material Design icons"),

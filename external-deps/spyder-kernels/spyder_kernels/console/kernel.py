@@ -135,13 +135,25 @@ class SpyderKernel(IPythonKernel):
 
         This is a dictionary with the following structure
 
-        {'a': {'color': '#800000', 'size': 1, 'type': 'str', 'view': '1'}}
+        {'a':
+            {
+                'type': 'str',
+                'size': 1,
+                'view': '1',
+                'python_type': 'int',
+                'numpy_type': 'Unknown'
+            }
+        }
 
         Here:
-        * 'a' is the variable name
-        * 'color' is the color used to show it
-        * 'size' and 'type' are self-evident
-        * and'view' is its value or the text shown in the last column
+        * 'a' is the variable name.
+        * 'type' and 'size' are self-evident.
+        * 'view' is its value or its repr computed with
+          `value_to_display`.
+        * 'python_type' is its Python type computed with
+          `get_type_string`.
+        * 'numpy_type' is its Numpy type (if any) computed with
+          `get_numpy_type_string`.
         """
         from spyder_kernels.utils.nsview import make_remote_view
 

@@ -14,11 +14,10 @@ import os
 import sys
 
 # Third party imports
-import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
-from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
-                            QMenu, QMessageBox, QShortcut, QToolButton)
+from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
+                            QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
@@ -30,6 +29,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
     toggle_actions, set_menu_icons)
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.dock import SpyderDockWidget
 
 
@@ -133,8 +133,7 @@ class PluginWindow(QMainWindow):
         self.plugin = plugin
 
         # Setting interface theme
-        if is_dark_interface():
-            self.setStyleSheet(qdarkstyle.load_stylesheet())
+        self.setStyleSheet(str(APP_STYLESHEET))
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
@@ -175,15 +174,6 @@ class BasePluginWidgetMixin(object):
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
-
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
 
         # Options menu
         self._options_menu = QMenu(self)

@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1226</width>
+    <height>719</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_7">
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_71">
+      <property name="text">
+       <string>Inside Central Widget</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>Issue #115 - Tabs scroller buttons</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab">
+          <attribute name="title">
+           <string>Tab 1</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Issue #123 - Missing borders</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>TextLabel</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="lineEdit">
+                <property name="text">
+                 <string>Inside tab, outside frame</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QFrame" name="frame">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QFormLayout" name="formLayout">
+                 <property name="fieldGrowthPolicy">
+                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                 </property>
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_3">
+                   <property name="text">
+                    <string>TextLabel</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QLineEdit" name="lineEdit_2">
+                   <property name="text">
+                    <string>Inside tab and frame</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QListWidget" name="listWidget_2">
+                   <item>
+                    <property name="text">
+                     <string>ListWidget</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QListWidget" name="listWidget">
+                <item>
+                 <property name="text">
+                  <string>ListWidget</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_2">
+          <attribute name="title">
+           <string>Tab 2</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_3">
+          <attribute name="title">
+           <string>Tab 3</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_4">
+          <attribute name="title">
+           <string>Colored tab text</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_5">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_6">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_7">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_8">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_9">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_10">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_11">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+         </widget>
+         <widget class="QWidget" name="tab_12">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_3"/>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Issue #112 - Hyperlinks color</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/112&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;Hyperlink Example&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt; color:#7d7d7d;&quot;&gt;CSS for the documents (RichText) is not the same as the application. We cannot change the internal content CSS, e.g., hyperlinks. We suggest you use the middle tons (0-255, use 125), so this works for both white and dark theme (this color). The original color is the blue link on top.&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::RichText</enum>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextBrowserInteraction</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QGroupBox" name="groupBoxDialogs">
+      <property name="title">
+       <string>Dialogs</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="1" column="0">
+        <widget class="QToolButton" name="toolButtonFileDialog">
+         <property name="text">
+          <string>FileDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QToolButton" name="toolButtonFileDialogStatic">
+         <property name="text">
+          <string>FileDialogStatic</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QToolButton" name="toolButtonMessageBox">
+         <property name="text">
+          <string>MessageBox</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QToolButton" name="toolButtonMessageBoxStatic">
+         <property name="text">
+          <string>MessageBoxStatic</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QToolButton" name="toolButtonFontDialog">
+         <property name="text">
+          <string>FontDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QToolButton" name="toolButtonColorDialog">
+         <property name="text">
+          <string>ColorDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QToolButton" name="toolButtonInputDialog">
+         <property name="text">
+          <string>InputDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QToolButton" name="toolButtonProgressDialog">
+         <property name="text">
+          <string>ProgressDialog</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="4">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Click to open the dialogs.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1226</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMenu">
+    <property name="title">
+     <string>Menu</string>
+    </property>
+    <widget class="QMenu" name="menuMenuSub">
+     <property name="title">
+      <string>Menu Sub</string>
+     </property>
+     <addaction name="actionActionSubA"/>
+     <addaction name="actionActionSubB"/>
+    </widget>
+    <addaction name="actionActionA"/>
+    <addaction name="menuMenuSub"/>
+    <addaction name="actionActionIconADis"/>
+    <addaction name="actionActionIconB"/>
+    <addaction name="actionActionIconC"/>
+   </widget>
+   <widget class="QMenu" name="menuMenuDelayed">
+    <property name="title">
+     <string>Menu Delayed</string>
+    </property>
+    <widget class="QMenu" name="menuMenuSubDelayed">
+     <property name="title">
+      <string>Menu Sub Delayed</string>
+     </property>
+     <addaction name="actionActionDelayedSubA"/>
+    </widget>
+    <addaction name="actionActionDelayedA"/>
+    <addaction name="actionActionCheckableA"/>
+    <addaction name="menuMenuSubDelayed"/>
+   </widget>
+   <widget class="QMenu" name="menuMenuCheckale">
+    <property name="title">
+     <string>Menu Checkable</string>
+    </property>
+    <widget class="QMenu" name="menuNew">
+     <property name="title">
+      <string>New</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionNewB"/>
+     <addaction name="actionNewD"/>
+     <addaction name="actionNewC"/>
+     <addaction name="separator"/>
+     <addaction name="actionNewE"/>
+    </widget>
+    <addaction name="actionActionCheckableA"/>
+    <addaction name="actionActionIconADis"/>
+    <addaction name="actionActionIconB"/>
+    <addaction name="actionActionIconC"/>
+    <addaction name="separator"/>
+    <addaction name="menuNew"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About QDarkStyle</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuMenuActionDis">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="title">
+     <string>Menu Action Disabled</string>
+    </property>
+    <addaction name="actionActionDis"/>
+    <addaction name="actionActionCheckableCheckedDis"/>
+    <addaction name="actionActionCheckableUncheckedDis"/>
+    <addaction name="actionActionIconADis"/>
+    <addaction name="actionActionIconB"/>
+    <addaction name="actionActionIconC"/>
+   </widget>
+   <widget class="QMenu" name="menuMenuDisabled">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>Menu Disabled</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuMenuTranspIcon">
+    <property name="title">
+     <string>Menu Transp. Icon</string>
+    </property>
+    <addaction name="actionActionCheckableA"/>
+    <addaction name="actionActionTranspIcon"/>
+   </widget>
+   <addaction name="menuMenu"/>
+   <addaction name="menuMenuDelayed"/>
+   <addaction name="menuMenuCheckale"/>
+   <addaction name="menuMenuActionDis"/>
+   <addaction name="menuMenuDisabled"/>
+   <addaction name="menuMenuTranspIcon"/>
+   <addaction name="menuHelp"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Tool bar actions</string>
+   </property>
+   <property name="toolTip">
+    <string>Tool bar actions</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionActionA"/>
+   <addaction name="separator"/>
+   <addaction name="actionActionSubA"/>
+   <addaction name="actionActionSubB"/>
+   <addaction name="separator"/>
+   <addaction name="actionActionIconADis"/>
+   <addaction name="actionActionIconB"/>
+   <addaction name="actionActionIconC"/>
+  </widget>
+  <widget class="QToolBar" name="toolBarDelayed">
+   <property name="windowTitle">
+    <string>Tool bar actions delayed</string>
+   </property>
+   <property name="toolTip">
+    <string>Tool bar actions delayed</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionActionDelayedA"/>
+   <addaction name="separator"/>
+   <addaction name="actionActionDelayedSubA"/>
+  </widget>
+  <widget class="QToolBar" name="toolBarCheckable">
+   <property name="windowTitle">
+    <string>Tool bar action checkable</string>
+   </property>
+   <property name="toolTip">
+    <string>Toolbar actions checkable</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>true</bool>
+   </attribute>
+   <addaction name="actionActionCheckableA"/>
+   <addaction name="separator"/>
+   <addaction name="actionActionCheckableSubAChecked"/>
+   <addaction name="actionActionCheckableSubAUnchecked"/>
+  </widget>
+  <widget class="QToolBar" name="toolBarActionDis">
+   <property name="windowTitle">
+    <string>Toolbar with actions disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Toolbar with actions disabled</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionActionDis"/>
+   <addaction name="actionActionCheckableCheckedDis"/>
+   <addaction name="actionActionCheckableUncheckedDis"/>
+  </widget>
+  <widget class="QToolBar" name="toolBarMenus">
+   <property name="windowTitle">
+    <string>Toolbar with menu</string>
+   </property>
+   <property name="toolTip">
+    <string>Toolbar with menu</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QToolBar" name="toolBarDis">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Toolbar disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Toolbar disabled</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionActionA"/>
+   <addaction name="actionActionSubA"/>
+   <addaction name="actionActionCheckableCheckedDis"/>
+  </widget>
+  <action name="actionActionA">
+   <property name="text">
+    <string>Action A</string>
+   </property>
+  </action>
+  <action name="actionActionSubA">
+   <property name="text">
+    <string>Action A Sub</string>
+   </property>
+   <property name="toolTip">
+    <string>Action A Sub</string>
+   </property>
+  </action>
+  <action name="actionActionSubB">
+   <property name="text">
+    <string>Action B Sub</string>
+   </property>
+  </action>
+  <action name="actionActionDelayedA">
+   <property name="text">
+    <string>Action Delayed A</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Delayed A</string>
+   </property>
+  </action>
+  <action name="actionActionDelayedSubA">
+   <property name="text">
+    <string>Action Delayed Sub A</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Delayed Sub A</string>
+   </property>
+  </action>
+  <action name="actionActionCheckableA">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Action Checkable A</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Checkable A</string>
+   </property>
+  </action>
+  <action name="actionActionCheckableSubAChecked">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Action Checkable Sub A Checked</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Checkable Sub A Checked</string>
+   </property>
+  </action>
+  <action name="actionActionCheckableSubAUnchecked">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Action Checkable Sub A Unchecked</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Checkable Sub A Unchecked</string>
+   </property>
+  </action>
+  <action name="actionNewB">
+   <property name="text">
+    <string>New B</string>
+   </property>
+  </action>
+  <action name="actionNewC">
+   <property name="text">
+    <string>New C</string>
+   </property>
+  </action>
+  <action name="actionNewD">
+   <property name="text">
+    <string>New D</string>
+   </property>
+  </action>
+  <action name="actionNewE">
+   <property name="text">
+    <string>New E</string>
+   </property>
+  </action>
+  <action name="actionActionIconADis">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/window_undock_focus.png</normaloff>:/qss_icons/dark/rc/window_undock_focus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Action Icon A</string>
+   </property>
+  </action>
+  <action name="actionActionIconB">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/window_close_focus.png</normaloff>:/qss_icons/dark/rc/window_close_focus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Action Icon B</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Icon B</string>
+   </property>
+  </action>
+  <action name="actionActionIconC">
+   <property name="icon">
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/window_grip_focus.png</normaloff>:/qss_icons/dark/rc/window_grip_focus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Action Icon C</string>
+   </property>
+  </action>
+  <action name="actionActionDis">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Action Disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Disabled</string>
+   </property>
+  </action>
+  <action name="actionActionCheckableCheckedDis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Action Checkable Checked Disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Checkable Checked Disabled</string>
+   </property>
+  </action>
+  <action name="actionActionCheckableUncheckedDis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Action Checkable Unchecked Disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Action Checkable Unchecked Disabled</string>
+   </property>
+  </action>
+  <action name="actionActionTranspIcon">
+   <property name="icon">
+    <iconset resource="../../dark/style.qrc">
+     <normaloff>:/qss_icons/dark/rc/transparent.png</normaloff>:/qss_icons/dark/rc/transparent.png</iconset>
+   </property>
+   <property name="text">
+    <string>Action Transp. Icon</string>
+   </property>
+  </action>
+ </widget>
+ <tabstops>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lineEdit_2</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../dark/style.qrc"/>
+ </resources>
+ <connections/>
+</ui>

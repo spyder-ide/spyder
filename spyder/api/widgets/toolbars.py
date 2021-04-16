@@ -15,12 +15,11 @@ from collections import OrderedDict
 
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt
-from qtpy.QtWidgets import (QAction, QSizePolicy, QToolBar, QToolButton,
-                            QWidget)
+from qtpy.QtWidgets import QAction, QToolBar, QToolButton
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
-from spyder.config.gui import is_dark_interface
+from spyder.utils.stylesheet import (
+    APP_TOOLBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
 
 
 # --- Constants
@@ -150,6 +149,10 @@ class ApplicationToolbar(SpyderToolbar):
     This is used by Qt to be able to save and restore the state of widgets.
     """
 
+    def __init__(self, parent, title):
+        super().__init__(parent=parent, title=title)
+        self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
+
 
 class MainWidgetToolbar(SpyderToolbar):
     """
@@ -224,23 +227,4 @@ class MainWidgetToolbar(SpyderToolbar):
         """
         Set the style of this toolbar with a stylesheet.
         """
-        if is_dark_interface():
-            stylesheet = r"""
-                QToolBar QToolButton:!hover:!pressed {
-                    border-color: transparent;
-                }
-                QToolBar {
-                    border: 0px;
-                    background: rgb(25, 35, 45);
-                }
-                QToolButton {
-                    background-color: transparent;
-                }
-                QToolButton:checked {
-                    background-color: rgb(49, 64, 75);
-                }
-            """
-        else:
-            stylesheet = r"QToolBar {border: 0px;}"
-
-        self.setStyleSheet(textwrap.dedent(stylesheet))
+        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))

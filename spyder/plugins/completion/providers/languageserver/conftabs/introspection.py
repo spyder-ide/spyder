@@ -15,7 +15,6 @@ import sys
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 
 # Local imports
-from spyder.config.gui import is_dark_interface
 from spyder.api.preferences import SpyderPreferencesTab
 from spyder.config.base import _
 from spyder.utils.palette import QStylePalette
@@ -64,10 +63,9 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
               "and more accurate:"),
             'preload_modules'
         )
-        if is_dark_interface():
-            modules_textedit.textbox.setStyleSheet(
-                f"border: 1px solid {QStylePalette.COLOR_BACKGROUND_2};"
-            )
+        modules_textedit.textbox.setStyleSheet(
+            f"border: 1px solid {QStylePalette.COLOR_BACKGROUND_2};"
+        )
 
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(modules_textedit)

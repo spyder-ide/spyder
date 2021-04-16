@@ -988,12 +988,12 @@ class IPythonConsole(SpyderPluginWidget):
             has_spyder_kernels = programs.is_module_installed(
                 'spyder_kernels',
                 interpreter=pyexec,
-                version='>=1.10.0;<1.11.0')
+                version='>=2.0.1;<2.1.0')
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed (>= 1.10.0 and < 1.11.0). "
+                      "version of it installed (>= 2.0.1 and < 2.1.0). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
@@ -1199,7 +1199,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.new_client.connect(self.create_new_client)
 
         # For tracebacks
-        control.go_to_error.connect(self.go_to_error)
+        control.sig_go_to_error_requested.connect(self.go_to_error)
 
         # For help requests
         control.sig_help_requested.connect(self.sig_help_requested)

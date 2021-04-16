@@ -62,6 +62,11 @@ class FindReplace(QWidget):
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None
+        self.setStyleSheet(
+             "QComboBox {"
+             "padding-right: 0px;"
+             "padding-left: 0px;"
+             "}")
 
         glayout = QGridLayout()
         glayout.setContentsMargins(0, 0, 0, 0)
@@ -98,11 +103,11 @@ class FindReplace(QWidget):
         )
         self.previous_button = create_toolbutton(self,
                                                  triggered=self.find_previous,
-                                                 icon=ima.icon('ArrowUp'),
+                                                 icon=ima.icon('findprevious'),
                                                  tip=_("Find previous"))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=ima.icon('ArrowDown'),
+                                             icon=ima.icon('findnext'),
                                              tip=_("Find next"))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)

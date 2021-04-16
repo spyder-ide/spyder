@@ -19,14 +19,20 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
+    # Install Pyzmq 19 because our tests are failing with version 20
     if [ "$OS" = "win" ]; then
-        # Install Pyzmq 19 because our tests are failing with version 20
         conda install pyzmq=19
     fi
+
+    # Install decorator 4.4.2 until spyder-kernels 2.0.1 is released in Anaconda
+    conda install -q -y decorator=4.4.2
 
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
     conda remove python-language-server --force -q -y
+
+    # Provisional change to prevent error from jupyter_client 6.1.13
+    conda install jupyter_client=6.1.12
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -49,6 +55,9 @@ else
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
     pip uninstall python-language-server -q -y
+
+    # Provisional change to prevent error from jupyter_client 6.1.13
+    pip install jupyter_client==6.1.12
 fi
 
 # This is necessary only for Windows (don't know why).

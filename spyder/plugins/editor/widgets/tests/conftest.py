@@ -158,6 +158,7 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
 
     CONF.set('completions', 'enable_code_snippets', False)
     completion_plugin.after_configuration_update([])
+    CONF.notify_section_all_observers('completions')
 
     # Redirect editor LSP requests to lsp_manager
     editor.sig_perform_completion_request.connect(

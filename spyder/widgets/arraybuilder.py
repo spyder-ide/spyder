@@ -24,8 +24,8 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
 from spyder.widgets.helperwidgets import HelperToolButton
 
 # Constants
@@ -224,26 +224,17 @@ class ArrayBuilderDialog(QDialog):
         self._button_help = HelperToolButton()
         self._button_help.setIcon(ima.icon('MessageBoxInformation'))
 
-        if is_dark_interface():
-            style = """
-                QToolButton {
-                  border: 1px solid grey;
-                  padding:0px;
-                  border-radius: 2px;
-                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                      stop: 0 #32414B, stop: 1 #16252B);
-                }
-                """
-        else:
-            style = """
-                QToolButton {
-                  border: 1px solid grey;
-                  padding:0px;
-                  border-radius: 2px;
-                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                      stop: 0 #f6f7fa, stop: 1 #dadbde);
-                }
-                """
+        style = (("""
+            QToolButton {{
+              border: 1px solid grey;
+              padding:0px;
+              border-radius: 2px;
+              background-color: qlineargradient(x1: 1, y1: 1, x2: 1, y2: 1,
+                  stop: 0 {stop_0}, stop: 1 {stop_1});
+            }}
+            """).format(stop_0=QStylePalette.COLOR_BACKGROUND_4,
+                        stop_1=QStylePalette.COLOR_BACKGROUND_2))
+
         self._button_help.setStyleSheet(style)
 
         if inline:

@@ -329,8 +329,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             pass
 
     def contextMenuEvent(self, event):
-        self.context_menu.popup(event.globalPos())
-        event.accept()
+        if self.context_menu:
+            self.context_menu.popup(event.globalPos())
+            event.accept()
 
     def setHtml(self, html, baseUrl=QUrl()):
         """
