@@ -862,6 +862,8 @@ class MainWindow(QMainWindow):
                     Plugins.Projects]:
                 if plugin_name == Plugins.IPythonConsole:
                     plugin_instance = plugin_class(self, css_path=css_path)
+                    plugin_instance.sig_exception_occurred.connect(
+                        self.handle_exception)
                 else:
                     plugin_instance = plugin_class(self)
                 plugin_instance.register_plugin()

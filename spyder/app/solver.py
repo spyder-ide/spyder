@@ -33,6 +33,7 @@ def find_internal_plugins():
     In DEV mode we parse the `setup.py` file directly.
     """
     internal_plugins = {}
+
     # If DEV, look for entry points in setup.py file for internal plugins
     # and then look on the system for the rest
     HERE = os.path.abspath(os.path.dirname(__file__))
@@ -59,7 +60,6 @@ def find_internal_plugins():
                     end = idx + 1
                     break
 
-        internal_plugins = {}
         entry_points_list = "[" + "\n".join(lines[start:end])
         spyder_plugin_entry_points = ast.literal_eval(entry_points_list)
         for entry_point in spyder_plugin_entry_points:

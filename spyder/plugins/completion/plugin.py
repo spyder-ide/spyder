@@ -685,6 +685,9 @@ class CompletionPlugin(SpyderPluginV2):
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
         provider_name = Provider.COMPLETION_PROVIDER_NAME
+        if provider_name in self._available_providers:
+            return
+
         self._available_providers[provider_name] = Provider
 
         logger.debug("Completion plugin: Registering {0}".format(

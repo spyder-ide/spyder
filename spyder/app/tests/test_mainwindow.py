@@ -11,10 +11,8 @@ Tests for the main window.
 """
 
 # Standard library imports
-from distutils.version import LooseVersion
 import os
 import os.path as osp
-import pkg_resources
 import re
 import shutil
 import sys
@@ -31,6 +29,8 @@ from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
+import pkg_resources
+from pkg_resources import parse_version
 import pylint
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
@@ -1064,7 +1064,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
-     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+     parse_version(ipy_release.version) == parse_version('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
@@ -2139,8 +2139,8 @@ def test_run_static_code_analysis(main_window, qtbot):
     result_content = treewidget.results
     assert result_content['C:']
 
-    pylint_version = LooseVersion(pylint.__version__)
-    if pylint_version < LooseVersion('2.5.0'):
+    pylint_version = parse_version(pylint.__version__)
+    if pylint_version < parse_version('2.5.0'):
         number_of_conventions = 5
     else:
         number_of_conventions = 3
