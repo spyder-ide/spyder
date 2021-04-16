@@ -169,6 +169,8 @@ def test_handle_warnings(console_plugin):
 
     # Write warning in the console
     warning = ("/home/foo/bar.py:1926: UserWarning: baz\n"
+               "Line 1\n"
+               "Line 2\n"
                "  warnings.warn('baz')")
     shell.append_text_to_shell(warning, error=True, prompt=False)
 

@@ -241,21 +241,21 @@ class ConsoleBaseWidget(TextEditBaseWidget):
 
         if error:
             is_traceback = False
+            is_warning = False
             for line in text.splitlines(True):
-                is_warning = False
                 if (line.startswith('  File')
                         and not line.startswith('  File "<')):
                     is_traceback = True
+                    is_warning = False
                     # Show error links in blue underlined text
                     cursor.insertText('  ', self.default_style.format)
                     cursor.insertText(line[2:],
                                       self.traceback_link_style.format)
                 else:
                     # Detect if line is a warning.
-                    is_warning = (
-                        re.findall('[A-Z].*Warning', line) != [] or
-                        'warnings.warn' in line
-                    )
+                    if (re.findall('[A-Z].*Warning', line) != [] or
+                            'warnings.warn' in line):
+                        is_warning = True
 
                     # Show error/warning messages in red
                     cursor.insertText(line, self.error_style.format)
