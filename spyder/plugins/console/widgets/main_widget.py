@@ -402,14 +402,14 @@ class ConsoleWidget(PluginMainWidget):
             if repo is None:
                 raise SpyderAPIError(
                     f"External plugin '{sender_name}' does not define 'repo' "
-                     "key in the 'error_data' dictionary in the form "
-                     "my-org/my-repo (only Github is supported)."
+                    "key in the 'error_data' dictionary in the form "
+                    "my-org/my-repo (only Github is supported)."
                 )
 
             if repo == 'spyder-ide/spyder':
                 raise SpyderAPIError(
                     f"External plugin '{sender_name}' 'repo' key needs to be "
-                     "different from the main Spyder repo."
+                    "different from the main Spyder repo."
                 )
 
         if self.get_conf('show_internal_errors', section='main'):

@@ -194,7 +194,7 @@ def test_report_external_repo(console_plugin, mocker):
     mocker.patch.object(SpyderErrorDialog, 'set_github_repo_org')
 
     # Error data (repo is added later)
-    error_data= {
+    error_data = {
         "text": 'UserError',
         "is_traceback": True,
         "title": 'My plugin error',
