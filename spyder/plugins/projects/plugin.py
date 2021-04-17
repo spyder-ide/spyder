@@ -237,8 +237,9 @@ class Projects(SpyderDockablePlugin):
                 lambda v: self.editor.set_current_project_path())
 
         self.register_project_type(self, EmptyProject)
+        self.setup()
 
-        # Define all the plugin actions
+    def setup(self):
         """Setup the actions of the plugin."""
         new_project_action = self.create_action(
             ProjectsActions.NewProject,
@@ -298,17 +299,19 @@ class Projects(SpyderDockablePlugin):
 
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
-        self.recent_project_menu.clear()
         if self.recent_projects:
             for project in self.recent_projects:
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
-                    action = self.create_action(
-                        name,
-                        text=name,
-                        icon=ima.icon('project'),
-                        triggered=self.build_opener(project),
-                    )
+                    try:
+                        action = self.get_action(name)
+                    except KeyError:
+                        action = self.create_action(
+                            name,
+                            text=name,
+                            icon=ima.icon('project'),
+                            triggered=self.build_opener(project),
+                        )
                     self.get_widget().add_item_to_menu(
                         action,
                         menu=self.recent_project_menu,
