@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-26 18:07\n"
+"PO-Revision-Date: 2021-04-19 00:17\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -203,7 +203,7 @@ msgstr "Instale a ferramenta de preenchimento automático de código Kite"
 
 #: spyder/app/mainwindow.py:681
 msgid "LSP logs"
-msgstr "Logs LSP"
+msgstr "Registros LSP"
 
 #: spyder/app/mainwindow.py:685 spyder/app/mainwindow.py:1148
 msgid "External Tools"
@@ -1130,7 +1130,7 @@ msgstr "Dispensar para sempre"
 
 #: spyder/plugins/completion/kite/widgets/install.py:73
 msgid "Now Spyder can use Kite to provide better code completions for key packages in the scientific Python Ecosystem. Install Kite for a better editor experience in Spyder. <br><br>Kite is free to use but is not open source. <a href=\"{kite_url}\">Learn more about Kite </a>"
-msgstr ""
+msgstr "Agora o Spyder pode usar Kite para fornecer melhores compleções de código para pacotes-chave no ecossistema científico de Python. Instale o Kite para uma melhor experiência com o editor no Spyder. <br><br>Kite é gratuito para usar, mas não é de código aberto. <a href=\"{kite_url}\">Saiba mais sobre Kite </a>"
 
 #: spyder/plugins/completion/kite/widgets/install.py:179
 msgid "Downloading"
@@ -4081,7 +4081,7 @@ msgstr "O diretório {} não está em modo de escrita e isto é necessário para
 
 #: spyder/plugins/ipythonconsole/plugin.py:157
 msgid "Press <b>Q</b> to exit pager"
-msgstr ""
+msgstr "Pressione <b>Q</b> para sair do pager"
 
 #: spyder/plugins/ipythonconsole/plugin.py:515
 msgid "New console (default settings)"
@@ -6400,7 +6400,7 @@ msgstr "Instância:"
 
 #: spyder/utils/syntaxhighlighters.py:75
 msgid "Magic:"
-msgstr ""
+msgstr "Mágica:"
 
 #: spyder/widgets/about.py:151 spyder/widgets/dependencies.py:94
 msgid "Copy to clipboard"
