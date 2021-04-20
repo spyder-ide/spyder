@@ -58,6 +58,13 @@ class MainCornerWidget(QToolBar):
         self._actions = []
         self.setObjectName(name)
 
+        # We add an strut widget here so that there is a spacing
+        # between the first item of the corner widget and the last
+        # item of the MainWidgetToolbar.
+        self._strut = QWidget()
+        self._strut.setFixedWidth(0)
+        self._strut.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.addWidget(self._strut)
 
     def add_widget(self, widget_id, widget):
         """
