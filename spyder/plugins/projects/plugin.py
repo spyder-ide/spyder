@@ -13,6 +13,7 @@ updating the file tree explorer associated with a project
 
 # Standard library imports
 import configparser
+import os
 import os.path as osp
 import shutil
 import functools
@@ -302,7 +303,10 @@ class Projects(SpyderDockablePlugin):
         if self.recent_projects:
             for project in self.recent_projects:
                 if self.is_valid_project(project):
-                    name = project.replace(get_home_dir(), '~')
+                    if os.name == 'nt':
+                        name = project
+                    else:
+                        name = project.replace(get_home_dir(), '~')
                     try:
                         action = self.get_action(name)
                     except KeyError:
