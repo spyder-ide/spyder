@@ -759,8 +759,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         Dock widget visibility has changed.
         """
         is_visible = not self.is_visible
-        self.setVisible(enable)
-        self.is_visible = enable
 
         if self.dockwidget is None:
             return
@@ -784,6 +782,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 focus_widget.setFocus()
         elif force_focus is False:
             pass
+
+        self.is_visible = enable
 
         # TODO: Pending on plugin migration that uses this
         # if getattr(self, 'DISABLE_ACTIONS_WHEN_HIDDEN', None):
