@@ -162,6 +162,8 @@ class Projects(SpyderDockablePlugin):
         treewidget = widget.treewidget
 
         treewidget.sig_delete_project.connect(self.delete_project)
+        self.sig_switch_to_plugin_requested.connect(
+            lambda plugin, check: self.show_explorer())
 
         if self.main:
             widget.sig_open_file_requested.connect(self.main.open_file)
@@ -519,7 +521,7 @@ class Projects(SpyderDockablePlugin):
             if self.get_widget() is not None:
                 self.set_conf('visible_if_project_open',
                               self.get_widget().isVisible())
-                self.get_widget().close()
+                self.toggle_view(False)
 
             self.get_widget().clear()
             self.restart_consoles()
@@ -670,8 +672,7 @@ class Projects(SpyderDockablePlugin):
     def show_explorer(self):
         """Show the explorer"""
         if self.get_widget() is not None:
-            if self.get_widget().isHidden():
-                self.get_widget().show()
+            self.toggle_view(True)
             self.get_widget().raise_()
             self.get_widget().update()
 

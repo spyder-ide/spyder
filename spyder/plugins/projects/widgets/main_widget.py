@@ -56,6 +56,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
+        self.setMinimumWidth(200)
 
     def setup(self):
         """Setup the widget."""
