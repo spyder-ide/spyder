@@ -346,7 +346,7 @@ class Projects(SpyderDockablePlugin):
         """Set single click to open files and directories."""
         self.get_widget().treewidget.set_single_click_to_open(value)
 
-    def closing_plugin(self, cancelable=False):
+    def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
         self.get_widget().closing_widget()
@@ -558,6 +558,7 @@ class Projects(SpyderDockablePlugin):
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
         self.recent_projects = []
+        self.set_conf('recent_projects', self.recent_projects)
         self.setup_menu_actions()
 
     def change_max_recent_projects(self):
