@@ -81,7 +81,6 @@ class ToolbarContainer(PluginMainContainer):
             self._get_visible_toolbars()
 
         for toolbar in self._visible_toolbars:
-            toolbar.toggleViewAction().setChecked(value)
             toolbar.setVisible(value)
 
         self.update_actions()
