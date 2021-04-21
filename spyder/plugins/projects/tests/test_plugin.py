@@ -147,17 +147,17 @@ def test_close_project_sets_visible_config(projects, tmpdir, value):
     if value:
         projects.show_explorer()
     else:
-        projects.get_widget().close()
+        projects.toggle_view(False)
     projects.close_project()
     assert projects.get_conf('visible_if_project_open') == value
 
 
 @pytest.mark.parametrize('value', [True, False])
-def test_closing_plugin_sets_visible_config(projects, tmpdir, value):
-    """Test that closing_plugin() sets config option visible_if_project_open
+def test_on_close_sets_visible_config(projects, tmpdir, value):
+    """Test that on_close() sets config option visible_if_project_open
     if a project is open."""
     projects.set_conf('visible_if_project_open', not value)
-    projects.closing_plugin()
+    projects.on_close()
 
     # No project is open so config option should remain unchanged
     assert projects.get_conf('visible_if_project_open') == (not value)
@@ -166,7 +166,7 @@ def test_closing_plugin_sets_visible_config(projects, tmpdir, value):
     if value:
         projects.show_explorer()
     else:
-        projects.get_widget().close()
+        projects.toggle_view(False)
     projects.close_project()
     assert projects.get_conf('visible_if_project_open') == value
 

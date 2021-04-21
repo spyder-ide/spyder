@@ -519,9 +519,9 @@ class Projects(SpyderDockablePlugin):
             self.sig_pythonpath_changed.emit()
 
             if self.get_widget() is not None:
-                self.set_conf('visible_if_project_open',
-                              self.get_widget().isVisible())
-                self.toggle_view(False)
+                new_state = not self.get_conf('visible_if_project_open')
+                self.toggle_view(new_state)
+                self.set_conf('visible_if_project_open', new_state)
 
             self.get_widget().clear()
             self.restart_consoles()
@@ -674,6 +674,7 @@ class Projects(SpyderDockablePlugin):
         """Show the explorer"""
         if self.get_widget() is not None:
             self.toggle_view(True)
+            self.get_widget().setVisible(True)
             self.get_widget().raise_()
             self.get_widget().update()
 
