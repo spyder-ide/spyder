@@ -78,7 +78,7 @@ class SpyderLayout(BaseGridLayoutType):
         self.set_column_stretch(3, 4)
 
     def get_name(self):
-        return _("Spyder default")
+        return _("Spyder Default Layout")
 
 
 class HorizontalSplitLayout(BaseGridLayoutType):
@@ -167,7 +167,7 @@ class RLayout(BaseGridLayoutType):
         )
 
     def get_name(self):
-        return _("RStudio")
+        return _("Rstudio layout")
 
 
 class MatlabLayout(BaseGridLayoutType):
@@ -220,7 +220,7 @@ class MatlabLayout(BaseGridLayoutType):
         self.set_row_stretch(1, 2)
 
     def get_name(self):
-        return _("Matlab")
+        return _("Matlab layout")
 
 
 class VerticalSplitLayout2(BaseGridLayoutType):

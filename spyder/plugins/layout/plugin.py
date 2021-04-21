@@ -289,7 +289,7 @@ class Layout(SpyderPluginV2):
 
         return layout
 
-    def quick_layout_switch(self, index=None, layout_id=None):
+    def quick_layout_switch(self, index_or_layout_id):
         """
         Switch to quick layout.
 
@@ -297,51 +297,47 @@ class Layout(SpyderPluginV2):
 
         Parameters
         ----------
-        index: int
-        layout_id: str
+        index_or_layout_id: int or str
         """
         section = 'quick_layouts'
         container = self.get_container()
-        if index is None and layout_id is None:
-            raise SpyderAPIError(
-                "To switch to a different layout and index or a layout id "
-                "needs to be provided")
-        if index:
-            try:
-                settings = self.load_window_settings(
-                    'layout_{}/'.format(index), section=section)
-                (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-                 is_fullscreen) = settings
+        try:
+            settings = self.load_window_settings(
+                'layout_{}/'.format(index_or_layout_id), section=section)
+            (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+             is_fullscreen) = settings
 
-                # The defaults layouts will always be regenerated unless there was
-                # an overwrite, either by rewriting with same name, or by deleting
-                # and then creating a new one
-                if hexstate is None:
-                    # The value for hexstate shouldn't be None for a custom saved
-                    # layout (ie, where the index is greater than the number of
-                    # defaults).  See spyder-ide/spyder#6202.
-                    if index != 'default' and index >= DEFAULT_LAYOUTS:
-                        container.critical_message(
-                            _("Warning"),
-                            _("Error opening the custom layout.  Please close"
-                              " Spyder and try again.  If the issue persists,"
-                              " then you must use 'Reset to Spyder default' "
-                              "from the layout menu."))
-                        return
-                    self.setup_default_layouts(index, settings)
-            except cp.NoOptionError:
+            # The defaults layouts will always be regenerated unless there was
+            # an overwrite, either by rewriting with same name, or by deleting
+            # and then creating a new one
+            if hexstate is None:
+                # The value for hexstate shouldn't be None for a custom saved
+                # layout (ie, where the index is greater than the number of
+                # defaults).  See spyder-ide/spyder#6202.
+                if (index_or_layout_id != 'default'
+                        and index_or_layout_id >= DEFAULT_LAYOUTS):
+                    container.critical_message(
+                        _("Warning"),
+                        _("Error opening the custom layout.  Please close"
+                          " Spyder and try again.  If the issue persists,"
+                          " then you must use 'Reset to Spyder default' "
+                          "from the layout menu."))
+                    return
+                self.setup_default_layouts(index_or_layout_id, settings)
+            else:
+                self.set_window_settings(*settings)
+        except cp.NoOptionError:
+            try:
+                layout = self.get_layout(index_or_layout_id)
+                layout.set_main_window_layout(
+                    self.main, self.get_dockable_plugins())
+                self.main.sig_layout_setup_ready.emit(layout)
+            except SpyderAPIError:
                 container.critical_message(
                     _("Warning"),
                     _("Quick switch layout #%s has not yet "
-                      "been defined.") % str(index))
-                return
-            self.set_window_settings(*settings)
-
-        if layout_id:
-            layout= self.get_layout(layout_id)
-            layout.set_main_window_layout(
-                self.main, self.get_dockable_plugins())
-            self.main.sig_layout_setup_ready.emit(layout)
+                      "been defined.") % str(index_or_layout_id))
+            return
 
         # Make sure the flags are correctly set for visible panes
         for plugin in self.get_dockable_plugins():
@@ -353,7 +349,7 @@ class Layout(SpyderPluginV2):
                 action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
-        return index
+        return index_or_layout_id
 
     def load_window_settings(self, prefix, default=False, section='main'):
         """

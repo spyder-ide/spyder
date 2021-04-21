@@ -186,11 +186,15 @@ class LayoutContainer(PluginMainContainer):
         actions = [self._default_layout_action]
         for name in order:
             if name in active:
-                index = names.index(name)
+                if name in self._spyder_layouts:
+                    index = name 
+                    name = self._spyder_layouts[name].get_name()
+                else:
+                    index = names.index(name)
 
                 # closure required so lambda works with the default parameter
                 def trigger(i=index, self=self):
-                    return lambda: self.quick_layout_switch(index=i)
+                    return lambda: self.quick_layout_switch(i)
 
                 try:
                     layout_switch_action = self.get_action(name)
@@ -203,21 +207,6 @@ class LayoutContainer(PluginMainContainer):
                     )
 
                 actions.append(layout_switch_action)
-
-        for registered_layout in self._spyder_layouts:
-            name = self._spyder_layouts[registered_layout].get_name()
-            # closure required so lambda works with the default parameter
-            def trigger(id=registered_layout, self=self):
-                return lambda: self.quick_layout_switch(layout_id=id)
-            try:
-                layout_switch_action = self.get_action(name)
-            except KeyError:
-                layout_switch_action = self.create_action(
-                    name,
-                    text=name,
-                    triggered=trigger(),
-                    register_shortcut=False,
-                )
 
             actions.append(layout_switch_action)
 
@@ -245,7 +234,7 @@ class LayoutContainer(PluginMainContainer):
         parent_plugin: spyder.api.plugins.SpyderPluginV2
             Plugin registering the layout type.
         layout_type: spyder.plugins.layout.api.BaseGridLayoutType
-            Layout to regsiter.
+            Layout to register.
         """
         if not issubclass(layout_type, BaseGridLayoutType):
             raise SpyderAPIError(
@@ -259,6 +248,16 @@ class LayoutContainer(PluginMainContainer):
         layout = layout_type(parent_plugin)
         layout._check_layout_validity()
         self._spyder_layouts[layout_id] = layout
+        names = self.get_conf('names')
+        order = self.get_conf('order')
+        active = self.get_conf('active')
+        if layout_id not in names:
+            names.append(layout_id)
+            order.append(layout_id)
+            active.append(layout_id)
+            self.set_conf('names', names)
+            self.set_conf('order', order)
+            self.set_conf('active', active)
 
     def get_layout(self, layout_id):
         """
@@ -393,21 +392,31 @@ class LayoutContainer(PluginMainContainer):
         if current_layout in layout_index:
             current_index = layout_index.index(current_layout)
         else:
-            current_index = 0
+            if current_layout in self._spyder_layouts:
+                current_layout = names.index(current_layout)
+                current_index = layout_index.index(current_layout)
+            else:
+                current_index = 0
 
         new_index = (current_index + dic[direction]) % len(layout_index)
 
         self.quick_layout_switch(layout_index[new_index])
 
-    def quick_layout_switch(self, index=None, layout_id=None):
+    def quick_layout_switch(self, index_or_layout_id):
         """
-        Switch to quick layout number *index*.
+        Switch to quick layout number *index* or *layout id*.
 
         Parameters
         ----------
-        index: int
+        index: int or str
         """
         possible_current_layout = self._plugin.quick_layout_switch(
-            index=index, layout_id=layout_id)
+            index_or_layout_id)
         if possible_current_layout is not None:
-            self._current_quick_layout = possible_current_layout
+            if (isinstance(possible_current_layout, int) or
+                index_or_layout_id == 'default'):
+                self._current_quick_layout = possible_current_layout
+            else:
+                names = self.get_conf('names')
+                self._current_quick_layout = names.index(
+                    possible_current_layout)
