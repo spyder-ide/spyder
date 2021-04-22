@@ -79,7 +79,7 @@ def send_args_to_spyder(args):
 
 def patch_spyder_completion():
     """
-    Register completion providers if spyder is not part of 
+    Register completion providers if spyder is not part of
     a proper distribution.
     """
     fallback = pkg_resources.EntryPoint.parse(
