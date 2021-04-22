@@ -11,6 +11,7 @@
 import ctypes
 import os
 import os.path as osp
+import pkg_resources
 import random
 import socket
 import sys
@@ -76,6 +77,44 @@ def send_args_to_spyder(args):
         break
 
 
+def patch_spyder_completion():
+    """Register completion providers if spyder is not part of a proper distribution."""
+    fallback = pkg_resources.EntryPoint.parse(
+        'fallback = spyder.plugins.completion.providers.fallback.provider:'
+        'FallbackProvider')
+    
+    snippets = pkg_resources.EntryPoint.parse(
+        'snippets = spyder.plugins.completion.providers.snippets.provider:'
+        'SnippetsProvider'
+    )
+    
+    lsp = pkg_resources.EntryPoint.parse(
+        'lsp = spyder.plugins.completion.providers.languageserver.provider:'
+        'LanguageServerProvider'
+    )
+    
+    kite = pkg_resources.EntryPoint.parse(
+        'kite = spyder.plugins.completion.providers.kite.provider:'
+        'KiteProvider'
+    )
+    
+    # Create a fake Spyder distribution
+    d = pkg_resources.Distribution(__file__)
+    
+    # Add the providers to the fake EntryPoint
+    d._ep_map = {
+        'spyder.completions': {
+            'fallback': fallback,
+            'snippets': snippets,
+            'lsp': lsp,
+            'kite': kite
+        }
+    }
+    
+    # Add the fake distribution to the global working_set
+    pkg_resources.working_set.add(d, 'spyder')
+
+
 def main():
     """
     Start Spyder application.
@@ -97,6 +136,14 @@ def main():
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
+
+    # Check if completions are properly in package:
+    COMPLETION_ENTRYPOINT = 'spyder.completions'
+    try:
+        next(pkg_resources.iter_entry_points(COMPLETION_ENTRYPOINT))
+    except StopIteration:
+        # Patch spyder
+        patch_spyder_completion()
 
     #==========================================================================
     # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
