@@ -9,8 +9,8 @@ Spyder API auxiliary widgets.
 """
 
 # Third party imports
-from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QHBoxLayout, QMainWindow, QWidget
+from qtpy.QtCore import Signal, QSize
+from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -44,23 +44,27 @@ class SpyderWindowWidget(QMainWindow):
         self.sig_closed.emit()
 
 
-class MainCornerWidget(QWidget):
+class MainCornerWidget(QToolBar):
     """
     Corner widget to hold options menu, spinner and additional options.
     """
 
     def __init__(self, parent, name):
         super().__init__(parent)
+        self._icon_size = QSize(16, 16)
+        self.setIconSize(self._icon_size)
 
         self._widgets = {}
+        self._actions = []
         self.setObjectName(name)
 
-        self._layout = QHBoxLayout()
-        self.setLayout(self._layout)
-
-        # left, top, right, bottom
-        self._layout.setContentsMargins(0, 0, 0, 0)
-        self.setContentsMargins(0, 0, 0, 0)
+        # We add an strut widget here so that there is a spacing
+        # between the first item of the corner widget and the last
+        # item of the MainWidgetToolbar.
+        self._strut = QWidget()
+        self._strut.setFixedWidth(0)
+        self._strut.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.addWidget(self._strut)
 
     def add_widget(self, widget_id, widget):
         """
@@ -74,7 +78,10 @@ class MainCornerWidget(QWidget):
 
         widget.ID = widget_id
         self._widgets[widget_id] = widget
-        self._layout.insertWidget(0, widget)
+        if len(self._actions):
+            self._actions.append(self.insertWidget(self._actions[-1], widget))
+        else:
+            self._actions.append(self.addWidget(widget))
 
     def get_widget(self, widget_id):
         """
