@@ -29,6 +29,7 @@ except:
     pass
 
 # Local imports
+from spyder import __version__
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
                                 reset_config_files, running_under_pytest)
@@ -77,41 +78,75 @@ def send_args_to_spyder(args):
         break
 
 
-def patch_spyder_completion():
+def patch_spyder_entrypoint():
     """
-    Register completion providers if spyder is not part of
-    a proper distribution.
+    Register entrypoints if spyder is not part of a proper distribution.
     """
-    fallback = pkg_resources.EntryPoint.parse(
-        'fallback = spyder.plugins.completion.providers.fallback.provider:'
-        'FallbackProvider')
-
-    snippets = pkg_resources.EntryPoint.parse(
-        'snippets = spyder.plugins.completion.providers.snippets.provider:'
-        'SnippetsProvider'
-    )
-
-    lsp = pkg_resources.EntryPoint.parse(
-        'lsp = spyder.plugins.completion.providers.languageserver.provider:'
-        'LanguageServerProvider'
-    )
-
-    kite = pkg_resources.EntryPoint.parse(
-        'kite = spyder.plugins.completion.providers.kite.provider:'
-        'KiteProvider'
-    )
+    # List of entry points. This is the same as in setup.py
+    spyder_plugins_entry_points = [
+        'appearance = spyder.plugins.appearance.plugin:Appearance',
+        'application = spyder.plugins.application.plugin:Application',
+        'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
+        'completions = spyder.plugins.completion.plugin:CompletionPlugin',
+        'editor = spyder.plugins.editor.plugin:Editor',
+        'explorer = spyder.plugins.explorer.plugin:Explorer',
+        'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
+        'help = spyder.plugins.help.plugin:Help',
+        'historylog = spyder.plugins.history.plugin:HistoryLog',
+        'internal_console = spyder.plugins.console.plugin:Console',
+        'ipython_console = spyder.plugins.ipythonconsole.plugin:'
+        'IPythonConsole',
+        'layout = spyder.plugins.layout.plugin:Layout',
+        'main_interpreter = spyder.plugins.maininterpreter.plugin:'
+        'MainInterpreter',
+        'mainmenu = spyder.plugins.mainmenu.plugin:MainMenu',
+        'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
+        'outline_explorer = spyder.plugins.outlineexplorer.plugin:'
+        'OutlineExplorer',
+        'plots = spyder.plugins.plots.plugin:Plots',
+        'preferences = spyder.plugins.preferences.plugin:Preferences',
+        'profiler = spyder.plugins.profiler.plugin:Profiler',
+        'project_explorer = spyder.plugins.projects.plugin:Projects',
+        'pylint = spyder.plugins.pylint.plugin:Pylint',
+        'run = spyder.plugins.run.plugin:Run',
+        'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
+        'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
+        'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
+        'variable_explorer = spyder.plugins.variableexplorer.plugin:'
+        'VariableExplorer',
+        'workingdir = spyder.plugins.workingdirectory.plugin:'
+        'WorkingDirectory',
+    ]
+    
+    spyder_completions_entry_points = [
+        ('fallback = spyder.plugins.completion.providers.fallback.provider:'
+         'FallbackProvider'),
+        ('snippets = spyder.plugins.completion.providers.snippets.provider:'
+         'SnippetsProvider'),
+        ('kite = spyder.plugins.completion.providers.kite.provider:'
+         'KiteProvider'),
+        ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
+         'LanguageServerProvider'),
+    ]
 
     # Create a fake Spyder distribution
-    d = pkg_resources.Distribution(__file__)
+    d = pkg_resources.Distribution(__file__, version=__version__)
+
+    # Parse the entry points
+    spyder_completions_entry_points = [
+        pkg_resources.EntryPoint.parse(point, dist=d) for point in
+        spyder_completions_entry_points]
+
+    spyder_plugins_entry_points = [
+        pkg_resources.EntryPoint.parse(point, dist=d) for point in
+        spyder_plugins_entry_points]
 
     # Add the providers to the fake EntryPoint
     d._ep_map = {
         'spyder.completions': {
-            'fallback': fallback,
-            'snippets': snippets,
-            'lsp': lsp,
-            'kite': kite
-        }
+            point.name: point for point in spyder_completions_entry_points},
+        'spyder.plugins': {
+            point.name: point for point in spyder_plugins_entry_points}
     }
 
     # Add the fake distribution to the global working_set
@@ -140,13 +175,12 @@ def main():
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
 
-    # Check if completions are properly in package:
-    COMPLETION_ENTRYPOINT = 'spyder.completions'
+    # Check if entrypoints are properly in package:
     try:
-        next(pkg_resources.iter_entry_points(COMPLETION_ENTRYPOINT))
+        next(pkg_resources.iter_entry_points('spyder.completions'))
     except StopIteration:
         # Patch spyder
-        patch_spyder_completion()
+        patch_spyder_entrypoint()
 
     #==========================================================================
     # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
