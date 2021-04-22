@@ -78,29 +78,32 @@ def send_args_to_spyder(args):
 
 
 def patch_spyder_completion():
-    """Register completion providers if spyder is not part of a proper distribution."""
+    """
+    Register completion providers if spyder is not part of 
+    a proper distribution.
+    """
     fallback = pkg_resources.EntryPoint.parse(
         'fallback = spyder.plugins.completion.providers.fallback.provider:'
         'FallbackProvider')
-    
+
     snippets = pkg_resources.EntryPoint.parse(
         'snippets = spyder.plugins.completion.providers.snippets.provider:'
         'SnippetsProvider'
     )
-    
+
     lsp = pkg_resources.EntryPoint.parse(
         'lsp = spyder.plugins.completion.providers.languageserver.provider:'
         'LanguageServerProvider'
     )
-    
+
     kite = pkg_resources.EntryPoint.parse(
         'kite = spyder.plugins.completion.providers.kite.provider:'
         'KiteProvider'
     )
-    
+
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
-    
+
     # Add the providers to the fake EntryPoint
     d._ep_map = {
         'spyder.completions': {
@@ -110,7 +113,7 @@ def patch_spyder_completion():
             'kite': kite
         }
     }
-    
+
     # Add the fake distribution to the global working_set
     pkg_resources.working_set.add(d, 'spyder')
 
