@@ -183,7 +183,7 @@ class LayoutContainer(PluginMainContainer):
         order = self.get_conf('order')
         active = self.get_conf('active')
 
-        actions = [self._default_layout_action]
+        actions = []#self._default_layout_action]
         for name in order:
             if name in active:
                 if name in self._spyder_layouts:
@@ -249,13 +249,16 @@ class LayoutContainer(PluginMainContainer):
         layout._check_layout_validity()
         self._spyder_layouts[layout_id] = layout
         names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
         if layout_id not in names:
             names.append(layout_id)
+            ui_names.append(layout.get_name())
             order.append(layout_id)
             active.append(layout_id)
             self.set_conf('names', names)
+            self.set_conf('ui_names', ui_names)
             self.set_conf('order', order)
             self.set_conf('active', active)
 
@@ -287,8 +290,11 @@ class LayoutContainer(PluginMainContainer):
     def show_save_layout(self):
         """Show the save layout dialog."""
         names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
+        names = [name for name in names
+                 if name not in self._spyder_layouts.keys()]
 
         dlg = self._save_dialog = LayoutSaveDialog(self, names)
 
@@ -319,10 +325,14 @@ class LayoutContainer(PluginMainContainer):
             if name not in active:
                 active.append(name)
 
+            if name not in ui_names:
+                ui_names.append(name)
+
             if answer:
                 self._plugin.save_current_window_settings(
                     'layout_{}/'.format(index), section='quick_layouts')
                 self.set_conf('names', names)
+                self.set_conf('ui_names', ui_names)
                 self.set_conf('order', order)
                 self.set_conf('active', active)
 
@@ -331,13 +341,15 @@ class LayoutContainer(PluginMainContainer):
     def show_layout_settings(self):
         """Layout settings dialog."""
         names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
 
         dlg = self._settings_dialog = LayoutSettingsDialog(
-            self, names, order, active)
+            self, names, ui_names, order, active)
         if dlg.exec_():
             self.set_conf('names', dlg.names)
+            self.set_conf('ui_names', dlg.ui_names)
             self.set_conf('order', dlg.order)
             self.set_conf('active', dlg.active)
 

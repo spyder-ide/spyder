@@ -23,26 +23,31 @@ from spyder.py3compat import to_text_string
 
 class LayoutModel(QAbstractTableModel):
     """ """
-    def __init__(self, parent, order, active):
+    def __init__(self, parent, names, ui_names, order, active):
         super(LayoutModel, self).__init__(parent)
 
         # variables
         self._parent = parent
+        self.names = names
+        self.ui_names = ui_names
         self.order = order
         self.active = active
         self._rows = []
-        self.set_data(order, active)
+        self.set_data(names, ui_names, order, active)
 
-    def set_data(self, order, active):
+    def set_data(self, names, ui_names, order, active):
         """ """
         self._rows = []
+        self.names = names
+        self.ui_names = ui_names
         self.order = order
         self.active = active
         for name in order:
+            index = names.index(name)
             if name in active:
-                row = [name, True]
+                row = [ui_names[index], name, True]
             else:
-                row = [name, False]
+                row = [ui_names[index], name, False]
             self._rows.append(row)
 
     def flags(self, index):
@@ -64,9 +69,12 @@ class LayoutModel(QAbstractTableModel):
         row = index.row()
         column = index.column()
 
-        name, state = self.row(row)
+        ui_name, name, state = self.row(row)
 
         if role == Qt.DisplayRole or role == Qt.EditRole:
+            if column == 0:
+                return to_qvariant(ui_name)
+        elif role == Qt.UserRole:
             if column == 0:
                 return to_qvariant(name)
         elif role == Qt.CheckStateRole:
@@ -82,16 +90,17 @@ class LayoutModel(QAbstractTableModel):
     def setData(self, index, value, role):
         """Override Qt method"""
         row = index.row()
-        name, state = self.row(row)
+        ui_name, name, state = self.row(row)
 
         if role == Qt.CheckStateRole:
-            self.set_row(row, [name, not state])
+            self.set_row(row, [ui_name, name, not state])
             self._parent.setCurrentIndex(index)
             self._parent.setFocus()
             self.dataChanged.emit(index, index)
             return True
         elif role == Qt.EditRole:
-            self.set_row(row, [from_qvariant(value, to_text_string), state])
+            self.set_row(
+                row, [from_qvariant(value, to_text_string), name, state])
             self.dataChanged.emit(index, index)
             return True
         return True
@@ -107,7 +116,7 @@ class LayoutModel(QAbstractTableModel):
     def row(self, rownum):
         """ """
         if self._rows == []:
-            return [None, None]
+            return [None, None, None]
         else:
             return self._rows[rownum]
 
@@ -164,13 +173,14 @@ class LayoutSaveDialog(QDialog):
 
 class LayoutSettingsDialog(QDialog):
     """Layout settings dialog"""
-    def __init__(self, parent, names, order, active):
+    def __init__(self, parent, names, ui_names, order, active):
         super(LayoutSettingsDialog, self).__init__(parent)
 
         # variables
         self._parent = parent
         self._selection_model = None
         self.names = names
+        self.ui_names = ui_names
         self.order = order
         self.active = active
 
@@ -194,7 +204,8 @@ class LayoutSettingsDialog(QDialog):
         self.setFixedSize(self.dialog_size)
         self.setWindowTitle('Layout Settings')
 
-        self.table.setModel(LayoutModel(self.table, order, active))
+        self.table.setModel(
+            LayoutModel(self.table, names, ui_names, order, active))
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.verticalHeader().hide()
@@ -243,8 +254,9 @@ class LayoutSettingsDialog(QDialog):
         self.table.setFocus()
 
     def delete_layout(self):
-        """ """
-        names, order, active = self.names, self.order, self.order
+        """Delete layout from the config."""
+        names, ui_names, order, active = (
+            self.names, self.ui_names, self.order, self.order)
         name = from_qvariant(self.table.selectionModel().currentIndex().data(),
                              to_text_string)
 
@@ -254,10 +266,12 @@ class LayoutSettingsDialog(QDialog):
         if index != -1:
             order.remove(name)
             names[index] = None
+            ui_names[index] = None
             if name in active:
                 active.remove(name)
-            self.names, self.order, self.active = names, order, active
-            self.table.model().set_data(order, active)
+            self.names, self.ui_names, self.order, self.active = (
+                names, ui_names, order, active)
+            self.table.model().set_data(names, ui_names, order, active)
             index = self.table.model().index(0, 0)
             self.table.setCurrentIndex(index)
             self.table.setFocus()
@@ -269,7 +283,8 @@ class LayoutSettingsDialog(QDialog):
 
     def move_layout(self, up=True):
         """ """
-        names, order, active = self.names, self.order, self.active
+        names, ui_names, order, active = (
+            self.names, self.ui_names, self.order, self.active)
         row = self.table.selectionModel().currentIndex().row()
         row_new = row
 
@@ -281,7 +296,7 @@ class LayoutSettingsDialog(QDialog):
         order[row], order[row_new] = order[row_new], order[row]
 
         self.order = order
-        self.table.model().set_data(order, active)
+        self.table.model().set_data(names, ui_names, order, active)
         index = self.table.model().index(row_new, 0)
         self.table.setCurrentIndex(index)
         self.table.setFocus()
@@ -292,13 +307,16 @@ class LayoutSettingsDialog(QDialog):
         model = self.table.model()
         index = self.table.currentIndex()
         row = index.row()
-        order, names, active = self.order, self.names, self.active
+        order, names, ui_names, active = (
+            self.order, self.names, self.ui_names, self.active)
 
-        state = model.row(row)[1]
-        name = model.row(row)[0]
+        state = model.row(row)[2]
+        name = model.row(row)[1]
+        ui_name = model.row(row)[0]
 
-        # Check if name changed
-        if name not in names:  # Did changed
+        # # Check if name changed
+        # TODO: Update ui_name when changing it in the dialog
+        if ui_name not in ui_names:  # Did changed
             if row != -1:  # row == -1, means no items left to delete
                 old_name = order[row]
                 order[row] = name
@@ -333,9 +351,10 @@ def test():
 
     app = qapplication()
     names = ['test', 'tester', '20', '30', '40']
+    ui_names = ['L1', 'L2', 'L3', 'L4', 'L5']
     order = ['test', 'tester', '20', '30', '40']
     active = ['test', 'tester']
-    widget_1 = LayoutSettingsDialog(None, names, order, active)
+    widget_1 = LayoutSettingsDialog(None, names, ui_names, order, active)
     widget_2 = LayoutSaveDialog(None, order)
     widget_1.show()
     widget_2.show()
