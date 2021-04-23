@@ -1029,9 +1029,10 @@ class MainWindow(QMainWindow):
                                                    _("Select All"),
                                                    ima.icon('selectall'))
 
-        self.edit_menu_actions = [self.undo_action, self.redo_action,
+        self.edit_menu_actions += [self.undo_action, self.redo_action,
                                   None, self.cut_action, self.copy_action,
-                                  self.paste_action, self.selectall_action]
+                                  self.paste_action, self.selectall_action,
+                                  None] + self.editor.edit_menu_actions
         switcher_actions = [
             self.file_switcher_action,
             self.symbol_finder_action

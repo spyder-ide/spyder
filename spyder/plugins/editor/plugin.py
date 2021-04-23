@@ -1070,7 +1070,6 @@ class Editor(SpyderPluginWidget):
                                   self.indent_action, self.unindent_action,
                                   self.text_uppercase_action,
                                   self.text_lowercase_action]
-        self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
 
         # ---- Search menu/toolbar construction ----
         self.main.search_menu_actions += [gotoline_action]
