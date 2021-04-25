@@ -1340,7 +1340,7 @@ class FindInFilesWidget(PluginMainWidget):
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(1, 10000)
             dialog.setIntStep(1)
-            dialog.setIntValue(self.get_option('max_results'))
+            dialog.setIntValue(self.get_conf('max_results'))
 
             # Connect slot
             dialog.intValueSelected.connect(
