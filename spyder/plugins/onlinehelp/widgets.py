@@ -20,9 +20,11 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
+from spyder.plugins.onlinehelp.pydoc_patch import setParentClassDocMode
 from spyder.widgets.browser import WebView, WebViewActions
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
@@ -38,6 +40,9 @@ PORT = 30128
 
 
 class PydocBrowserActions:
+    # Toggles
+    ToggleIncludeParentClass = 'toggle_include__parent_class_docs'
+    
     # Triggers
     Home = 'home_action'
     Find = 'find_action'
@@ -46,6 +51,9 @@ class PydocBrowserActions:
 class PydocBrowserMainToolbarSections:
     Main = 'main_section'
 
+class PydocBrowserOptionsMenuSections:
+    Other = 'other_section'
+    
 
 # =============================================================================
 # Pydoc adjustments
@@ -202,8 +210,23 @@ class PydocBrowser(PluginMainWidget):
             toggled=self.toggle_find_widget,
             initial=False,
         )
+        self.include_parent_action = self.create_action(
+            name=PydocBrowserActions.ToggleIncludeParentClass,
+            text=_("Include parent class docs"),
+            toggled=True,
+            initial=self.get_conf('include_parent_docs'),
+            option='include_parent_docs'
+        )
         stop_action = self.get_action(WebViewActions.Stop)
         refresh_action = self.get_action(WebViewActions.Refresh)
+
+        # Menu
+        menu = self.get_options_menu()
+        self.add_item_to_menu(
+            self.include_parent_action,
+            menu=menu,
+            section=PydocBrowserOptionsMenuSections.Other,
+        )
 
         # Toolbar
         toolbar = self.get_main_toolbar()
@@ -231,7 +254,13 @@ class PydocBrowser(PluginMainWidget):
                 self.webview.addAction(action)
 
         self.sig_toggle_view_changed.connect(self.initialize)
-
+        
+    @on_conf_change(option='include_parent_docs')
+    def on_include_parent_docs(self, value):
+        # Set the mode in pydoc_patch and redisplay the current page
+        setParentClassDocMode(value)
+        self.reload()
+        
     def update_actions(self):
         stop_action = self.get_action(WebViewActions.Stop)
         refresh_action = self.get_action(WebViewActions.Refresh)

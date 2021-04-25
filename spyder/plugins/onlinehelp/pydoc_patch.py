@@ -24,6 +24,15 @@ from spyder.config.base import _, DEV
 from spyder.config.gui import is_dark_interface, get_font
 from spyder.py3compat import PY2, to_text_string
 
+_document_parent_class = True
+def setParentClassDocMode(value):
+    """
+    Sets the mode used for display of classes: if True,
+    methods from parent classes (etc) are included in the output
+    """
+    global _document_parent_class
+    _document_parent_class = value
+
 if not PY2:
     from pydoc import (
         classname, classify_class_attrs, describe, Doc, format_exception_only,
@@ -478,8 +487,17 @@ if not PY2:
                                          lambda t: t[1] == 'data descriptor')
                 attrs = spilldata('Data and other attributes %s' % tag, attrs,
                                   lambda t: t[1] == 'data')
-                assert attrs == []
-                attrs = inherited
+
+                # At this point attrs should be empty. If not, the remaining
+                # items will not be documented. Perhaps this should be noted
+                # as a console message or a note in the documentation
+                #assert attrs == []
+
+                # report on inherited items only when option allows
+                if _document_parent_class:
+                    attrs = inherited
+                else:
+                    break
 
             contents = ''.join(contents)
 
