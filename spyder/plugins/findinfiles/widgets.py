@@ -1142,7 +1142,7 @@ class FindInFilesWidget(PluginMainWidget):
         hist_limit = self.get_conf('hist_limit')
         search_texts = [str(self.search_text_edit.itemText(index))
                         for index in range(self.search_text_edit.count())]
-        excludes = [str(self.search_text_edit.itemText(index))
+        excludes = [str(self.exclude_pattern_edit.itemText(index))
                     for index in range(self.exclude_pattern_edit.count())]
         path_history = self.path_selection_combo.get_external_paths()
 
