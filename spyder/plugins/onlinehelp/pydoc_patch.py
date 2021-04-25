@@ -25,6 +25,8 @@ from spyder.config.gui import is_dark_interface, get_font
 from spyder.py3compat import PY2, to_text_string
 
 _document_parent_class = True
+
+
 def setParentClassDocMode(value):
     """
     Sets the mode used for display of classes: if True,
@@ -491,7 +493,8 @@ if not PY2:
                 # At this point attrs should be empty. If not, the remaining
                 # items will not be documented. Perhaps this should be noted
                 # as a console message or a note in the documentation
-                #assert attrs == []
+                #
+                # assert attrs == []
 
                 # report on inherited items only when option allows
                 if _document_parent_class:

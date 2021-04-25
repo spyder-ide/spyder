@@ -42,7 +42,7 @@ PORT = 30128
 class PydocBrowserActions:
     # Toggles
     ToggleIncludeParentClass = 'toggle_include__parent_class_docs'
-    
+
     # Triggers
     Home = 'home_action'
     Find = 'find_action'
@@ -51,9 +51,10 @@ class PydocBrowserActions:
 class PydocBrowserMainToolbarSections:
     Main = 'main_section'
 
+
 class PydocBrowserOptionsMenuSections:
     Other = 'other_section'
-    
+
 
 # =============================================================================
 # Pydoc adjustments
@@ -254,13 +255,13 @@ class PydocBrowser(PluginMainWidget):
                 self.webview.addAction(action)
 
         self.sig_toggle_view_changed.connect(self.initialize)
-        
+
     @on_conf_change(option='include_parent_docs')
     def on_include_parent_docs(self, value):
         # Set the mode in pydoc_patch and redisplay the current page
         setParentClassDocMode(value)
         self.reload()
-        
+
     def update_actions(self):
         stop_action = self.get_action(WebViewActions.Stop)
         refresh_action = self.get_action(WebViewActions.Refresh)
