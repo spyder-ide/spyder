@@ -287,7 +287,7 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
     code_editor, outlineexplorer = completions_codeeditor_outline
@@ -403,7 +403,7 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 def test_empty_file(qtbot, completions_codeeditor_outline):
     """
     Test that the outline explorer is updated correctly when
