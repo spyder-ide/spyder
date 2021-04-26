@@ -252,6 +252,10 @@ def get_conf_paths():
             '{}/etc/spyder'.format(CONDA_PREFIX),
         )
 
+    SEARCH_PATH += (
+        '{}/etc/spyder'.format(sys.prefix),
+    )
+
     if running_under_pytest():
         search_paths = []
         tmpfolder = str(tempfile.gettempdir())
