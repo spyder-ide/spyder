@@ -21,6 +21,7 @@ class CompletionContainer(PluginMainContainer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.statusbar_widgets = {}
+        self.provider_statusbars = {}
 
     def setup(self, options=None):
         pass
@@ -36,13 +37,25 @@ class CompletionContainer(PluginMainContainer):
                 widget.sig_restart_spyder.connect(self.sig_restart_requested)
             widget.exec_()
 
-    def register_statusbar_widgets(self, statusbar_classes):
+    def register_statusbar_widgets(self, statusbar_classes, provider_name):
+        cur_ids = []
         for StatusBar in statusbar_classes:
             statusbar = StatusBar(self)
             self.statusbar_widgets[statusbar.ID] = statusbar
+            cur_ids.append(statusbar.ID)
+        self.provider_statusbars[provider_name] = cur_ids
+        return cur_ids
 
     def all_statusbar_widgets(self):
         return [self.statusbar_widgets[k] for k in self.statusbar_widgets]
+
+    def remove_statusbar_widget(self, status_key):
+        """Remove the statusbar widget given its key."""
+        self.statusbar_widgets.pop(status_key, None)
+
+    def get_provider_statusbar_keys(self, provider_name):
+        """Get the list of statusbar keys for the given provider."""
+        return self.provider_statusbars[provider_name]
 
     def statusbar_rpc(self, status_key: str, method: str, args: tuple,
                       kwargs: dict):
@@ -60,6 +73,7 @@ class CompletionContainer(PluginMainContainer):
         kwargs: dict
             Optional arguments of the method call.
         """
-        statusbar = self.statusbar_widgets[status_key]
-        call = getattr(statusbar, method)
-        call(*args, **kwargs)
+        if status_key in self.statusbar_widgets:
+            statusbar = self.statusbar_widgets[status_key]
+            call = getattr(statusbar, method)
+            call(*args, **kwargs)

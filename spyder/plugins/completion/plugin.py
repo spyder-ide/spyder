@@ -236,7 +236,7 @@ class CompletionPlugin(SpyderPluginV2):
                 raise e
 
         # Register statusbar widgets
-        self.register_statusbar_widgets()
+        self.register_statusbar_widgets(plugin_loaded=False)
 
         # Define configuration page and tabs
         (conf_providers, conf_tabs) = self.gather_providers_and_configtabs()
@@ -262,10 +262,10 @@ class CompletionPlugin(SpyderPluginV2):
         preferences.register_plugin_preferences(self)
 
         container = self.get_container()
-        statusbar = self.get_plugin(Plugins.StatusBar)
-        if statusbar:
+        self.statusbar = self.get_plugin(Plugins.StatusBar)
+        if self.statusbar:
             for sb in container.all_statusbar_widgets():
-                statusbar.add_status_widget(sb)
+                self.statusbar.add_status_widget(sb)
 
         if self.main:
             self.main.sig_pythonpath_changed.connect(
@@ -322,8 +322,10 @@ class CompletionPlugin(SpyderPluginV2):
                         ('enabled_providers', provider_name))
                     if provider_status:
                         self.start_provider_instance(provider_name)
+                        self.register_statusbar_widget(provider_name)
                     else:
                         self.shutdown_provider_instance(provider_name)
+                        self.unregister_statusbar(provider_name)
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
 
@@ -381,12 +383,33 @@ class CompletionPlugin(SpyderPluginV2):
             provider_info['instance'].on_mainwindow_visible()
 
     # ---------------------------- Status bar widgets -------------------------
-    def register_statusbar_widgets(self):
+    def register_statusbar_widgets(self, plugin_loaded=True):
         """Register status bar widgets for all providers with the container."""
-        container = self.get_container()
         for provider_key in self.providers:
-            provider = self.providers[provider_key]['instance']
-            container.register_statusbar_widgets(provider.STATUS_BAR_CLASSES)
+            provider_on = self.get_conf(
+                ('enabled_providers', provider_key), True)
+            if provider_on:
+                self.register_statusbar_widget(
+                    provider_key, plugin_loaded=plugin_loaded)
+
+    def register_statusbar_widget(self, provider_name, plugin_loaded=True):
+        """Register the given statusbar widget."""
+        container = self.get_container()
+        provider = self.providers[provider_name]['instance']
+        widgets_ids = container.register_statusbar_widgets(
+                provider.STATUS_BAR_CLASSES, provider_name)
+        if plugin_loaded:
+            for id_ in widgets_ids:
+                cur_widget = container.statusbar_widgets[id_]
+                self.statusbar.add_status_widget(cur_widget)
+
+    def unregister_statusbar(self, provider_name):
+        """Unregister the given statusbar widget."""
+        provider_keys = self.get_container().get_provider_statusbar_keys(
+            provider_name)
+        for id_ in provider_keys:
+            self.get_container().remove_statusbar_widget(id_)
+            self.statusbar.remove_status_widget(id_)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):
