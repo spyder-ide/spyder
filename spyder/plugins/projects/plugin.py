@@ -169,6 +169,7 @@ class Projects(SpyderDockablePlugin):
             widget.sig_open_file_requested.connect(self.main.open_file)
             treewidget.sig_redirect_stdio_requested.connect(
                 self.main.redirect_internalshell_stdio)
+            self.main.project_path = self.get_pythonpath(at_start=True)
 
         if self.editor:
             treewidget.sig_open_file_requested.connect(self.editor.load)
