@@ -367,7 +367,7 @@ class CompletionPlugin(SpyderPluginV2):
             if opt in options:
                 opt_value = self.get_conf(opt, section=sec)
                 self.sig_editor_rpc.emit('call_all_editorstacks',
-                                         (method_name, opt_value,),
+                                         (method_name, (opt_value,),),
                                          {})
 
         # Update entries in the source menu
