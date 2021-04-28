@@ -86,8 +86,11 @@ class KernelComm(CommBase, QObject):
         """Shutdown the comm channel."""
         channel = self.kernel_client.comm_channel
         if channel:
-            msg = self.kernel_client.session.msg('shutdown_request', {})
-            channel.send(msg)
+            id_list = self.get_comm_id_list()
+            for comm_id in id_list:
+                msg = self.kernel_client.session.msg(
+                    'shutdown_request', {"comm_id": comm_id})
+                channel.send(msg)
             self.kernel_client.comm_channel = None
 
     def comm_channel_connected(self):
@@ -126,8 +129,17 @@ class KernelComm(CommBase, QObject):
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 
+    def close(self, comm_id=None):
+        """Close the comm and notify the other side."""
+        self.shutdown_comm_channel()
+        super(KernelComm, self).close()
+
     def remove(self, comm_id=None):
-        """Remove the comm without notifying the other side."""
+        """
+        Remove the comm without notifying the other side.
+
+        Use when the other side is already down.
+        """
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             del self._comms[comm_id]
