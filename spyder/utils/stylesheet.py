@@ -269,6 +269,19 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             paddingLeft='4px' if is_macos else '10px',
             paddingRight='10px' if is_macos else '4px'
         )
+        css['QTabBar::tab:hover'].setValues(
+            paddingTop='3px',
+            paddingBottom='3px',
+            paddingLeft='3px' if is_macos else '9px',
+            paddingRight='9px' if is_macos else '3px'
+        )
+        for state in ['selected', 'selected:hover']:
+            css[f'QTabBar::tab:{state}'].setValues(
+                paddingTop='4px',
+                paddingBottom='3px',
+                paddingLeft='4px' if is_macos else '10px',
+                paddingRight='10px' if is_macos else '4px'
+            )
 
         # This crops the close button a bit at the bottom in order to
         # center it. But a bigger negative padding-bottom crops it even
