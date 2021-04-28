@@ -269,12 +269,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             paddingLeft='4px' if is_macos else '10px',
             paddingRight='10px' if is_macos else '4px'
         )
+
+        # Fix minor visual glitch when hovering tabs
+        # See spyder-ide/spyder#15398
         css['QTabBar::tab:hover'].setValues(
             paddingTop='3px',
             paddingBottom='3px',
             paddingLeft='3px' if is_macos else '9px',
             paddingRight='9px' if is_macos else '3px'
         )
+
         for state in ['selected', 'selected:hover']:
             css[f'QTabBar::tab:{state}'].setValues(
                 paddingTop='4px',
