@@ -1603,7 +1603,7 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    def call_all_editorstacks(self, method, *args, **kwargs):
+    def call_all_editorstacks(self, method, args, **kwargs):
         """Call a method with arguments on all editorstacks."""
         for editorstack in self.editorstacks:
             method = getattr(editorstack, method)
