@@ -24,11 +24,11 @@ _ = get_translation("spyder")
 
 
 class DefaultLayouts:
-    SpyderLayout = "spyder_default_layout"
-    HorizontalSplitLayout = "horizontal_split_layout"
-    VerticalSplitLayout = "vertical_split_layout"
-    RLayout = "r_layout"
-    MatlabLayout = "matlab_layout"
+    SpyderLayout = "Spyder Default Layout"
+    HorizontalSplitLayout = "Horizontal split"
+    VerticalSplitLayout = "Vertical split"
+    RLayout = "Rstudio layout"
+    MatlabLayout = "Matlab layout"
 
 
 class SpyderLayout(BaseGridLayoutType):
@@ -224,7 +224,7 @@ class MatlabLayout(BaseGridLayoutType):
 
 
 class VerticalSplitLayout2(BaseGridLayoutType):
-    ID = "testing_layout"
+    ID = "testing layout"
 
     def __init__(self, parent_plugin):
         super().__init__(parent_plugin)

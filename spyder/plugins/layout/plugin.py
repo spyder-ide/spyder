@@ -19,6 +19,7 @@ from qtpy.QtWidgets import QApplication, QDesktopWidget, QDockWidget
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
+from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.layout.container import LayoutContainer
 from spyder.plugins.layout.layouts import (HorizontalSplitLayout,
@@ -35,7 +36,7 @@ _ = get_translation("spyder")
 
 # Constants
 # Number of default layouts available
-DEFAULT_LAYOUTS = 4
+DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
 # Version passed to saveState/restoreState
 WINDOW_STATE_VERSION = 1
 
@@ -130,9 +131,11 @@ class Layout(SpyderPluginV2):
 
         # Update actions icons and text
         self._update_fullscreen_action()
-        container.update_actions()
 
     def before_mainwindow_visible(self):
+        # Update layout menu
+        self.get_container().update_layout_menu_actions()
+        # Setup layout
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
@@ -207,7 +210,7 @@ class Layout(SpyderPluginV2):
             # First Spyder execution:
             self.main.setWindowState(Qt.WindowMaximized)
             self._first_spyder_run = True
-            self.setup_default_layouts('default', settings)
+            self.setup_default_layouts(DefaultLayouts.SpyderLayout, settings)
 
             # Now that the initial setup is done, copy the window settings,
             # except for the hexstate in the quick layouts sections for the
@@ -236,7 +239,7 @@ class Layout(SpyderPluginV2):
 
         self.set_window_settings(*settings)
 
-    def setup_default_layouts(self, index, settings):
+    def setup_default_layouts(self, layout_id, settings):
         """Setup default layouts when run for the first time."""
         main = self.main
         main.setUpdatesEnabled(False)
@@ -258,19 +261,8 @@ class Layout(SpyderPluginV2):
             base_width = main.width()
             main.setFixedWidth(base_width)
 
-        # IMPORTANT: order has to be the same as defined in the config file
-        MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(DEFAULT_LAYOUTS)
-
         # Layout selection
-        layouts = {
-            'default': self.get_layout(DefaultLayouts.SpyderLayout),
-            RSTUDIO: self.get_layout(DefaultLayouts.RLayout),
-            MATLAB: self.get_layout(DefaultLayouts.MatlabLayout),
-            VERTICAL: self.get_layout(DefaultLayouts.VerticalSplitLayout),
-            HORIZONTAL: self.get_layout(DefaultLayouts.HorizontalSplitLayout),
-        }
-
-        layout = layouts[index]
+        layout = self.get_layout(layout_id)
 
         # Apply selected layout
         layout.set_main_window_layout(self.main, self.get_dockable_plugins())
@@ -315,7 +307,7 @@ class Layout(SpyderPluginV2):
                 # layout (ie, where the index is greater than the number of
                 # defaults).  See spyder-ide/spyder#6202.
                 if (index_or_layout_id != 'default'
-                        and index_or_layout_id >= DEFAULT_LAYOUTS):
+                        and index_or_layout_id in DEFAULT_LAYOUTS):
                     container.critical_message(
                         _("Warning"),
                         _("Error opening the custom layout.  Please close"

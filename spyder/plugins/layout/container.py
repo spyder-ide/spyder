@@ -119,12 +119,12 @@ class LayoutContainer(PluginMainContainer):
         )
 
         # Create default layouts for the menu
-        self._default_layout_action = self.create_action(
-            LayoutContainerActions.DefaultLayout,
-            text=_('Spyder Default Layout'),
-            triggered=lambda: self.quick_layout_switch('default'),
-            register_shortcut=False,
-        )
+        # self._default_layout_action = self.create_action(
+        #     LayoutContainerActions.DefaultLayout,
+        #     text=_('Spyder Default Layout'),
+        #     triggered=lambda: self.quick_layout_switch('default'),
+        #     register_shortcut=False,
+        # )
         self._save_layout_action = self.create_action(
             LayoutContainerActions.SaveLayoutAction,
             _("Save current layout"),
@@ -170,10 +170,10 @@ class LayoutContainer(PluginMainContainer):
             "plugins_menu", _("Panes"))
         self._plugins_menu.setObjectName('checkbox-padding')
 
-        # Signals
-        self.update_actions()
-
     def update_actions(self):
+        pass
+
+    def update_layout_menu_actions(self):
         """
         Update layouts menu and layouts related actions.
         """
@@ -188,23 +188,21 @@ class LayoutContainer(PluginMainContainer):
             if name in active:
                 if name in self._spyder_layouts:
                     index = name 
-                    name = self._spyder_layouts[name].get_name()
+                    name = self._spyder_layouts[index].get_name()
                 else:
                     index = names.index(name)
 
                 # closure required so lambda works with the default parameter
                 def trigger(i=index, self=self):
+
                     return lambda: self.quick_layout_switch(i)
 
-                try:
-                    layout_switch_action = self.get_action(name)
-                except KeyError:
-                    layout_switch_action = self.create_action(
-                        name,
-                        text=name,
-                        triggered=trigger(),
-                        register_shortcut=False,
-                    )
+                layout_switch_action = self.create_action(
+                    name,
+                    text=name,
+                    triggered=trigger(),
+                    register_shortcut=False,
+                )
 
                 actions.append(layout_switch_action)
 
