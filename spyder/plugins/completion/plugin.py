@@ -384,7 +384,16 @@ class CompletionPlugin(SpyderPluginV2):
 
     # ---------------------------- Status bar widgets -------------------------
     def register_statusbar_widgets(self, plugin_loaded=True):
-        """Register status bar widgets for all providers with the container."""
+        """
+        Register status bar widgets for all providers with the container.
+
+        Parameters
+        ----------
+        plugin_loaded: bool
+            True if the plugin is already loaded in Spyder, False if it is
+            being loaded. This is needed for avoiding adding the statusbar
+            widgets multiple times in the startup.
+        """
         for provider_key in self.providers:
             provider_on = self.get_conf(
                 ('enabled_providers', provider_key), True)
@@ -393,18 +402,35 @@ class CompletionPlugin(SpyderPluginV2):
                     provider_key, plugin_loaded=plugin_loaded)
 
     def register_statusbar_widget(self, provider_name, plugin_loaded=True):
-        """Register the given statusbar widget."""
+        """
+        Register the given provider.
+
+        Parameters
+        ----------
+        provider_name: str
+            Name of the provider that is going to create statusbar widgets.
+        plugin_loaded: bool
+            True if the plugin is already loaded in Spyder, False if it is
+            being loaded.
+        """
         container = self.get_container()
         provider = self.providers[provider_name]['instance']
         widgets_ids = container.register_statusbar_widgets(
-                provider.STATUS_BAR_CLASSES, provider_name)
+            provider.STATUS_BAR_CLASSES, provider_name)
         if plugin_loaded:
             for id_ in widgets_ids:
-                cur_widget = container.statusbar_widgets[id_]
-                self.statusbar.add_status_widget(cur_widget)
+                currrent_widget = container.statusbar_widgets[id_]
+                self.statusbar.add_status_widget(currrent_widget)
 
     def unregister_statusbar(self, provider_name):
-        """Unregister the given statusbar widget."""
+        """
+        Unregister the given statusbar widget.
+
+        Parameters
+        ----------
+        provider_name: str
+            Name of the provider that is going to delete statusbar widgets.
+        """
         provider_keys = self.get_container().get_provider_statusbar_keys(
             provider_name)
         for id_ in provider_keys:

@@ -38,19 +38,19 @@ class CompletionContainer(PluginMainContainer):
             widget.exec_()
 
     def register_statusbar_widgets(self, statusbar_classes, provider_name):
-        cur_ids = []
+        current_ids = []
         for StatusBar in statusbar_classes:
             statusbar = StatusBar(self)
             self.statusbar_widgets[statusbar.ID] = statusbar
-            cur_ids.append(statusbar.ID)
-        self.provider_statusbars[provider_name] = cur_ids
-        return cur_ids
+            current_ids.append(statusbar.ID)
+        self.provider_statusbars[provider_name] = current_ids
+        return current_ids
 
     def all_statusbar_widgets(self):
         return [self.statusbar_widgets[k] for k in self.statusbar_widgets]
 
     def remove_statusbar_widget(self, status_key):
-        """Remove the statusbar widget given its key."""
+        """Remove statusbar widget given its key."""
         self.statusbar_widgets.pop(status_key, None)
 
     def get_provider_statusbar_keys(self, provider_name):
