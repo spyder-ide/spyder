@@ -57,7 +57,7 @@ responses = {
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_folding(completions_codeeditor, qtbot):
     code_editor, _ = completions_codeeditor
@@ -81,7 +81,7 @@ def test_folding(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_unfold_when_searching(search_codeeditor, qtbot):
@@ -110,7 +110,7 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_unfold_goto(search_codeeditor, qtbot):

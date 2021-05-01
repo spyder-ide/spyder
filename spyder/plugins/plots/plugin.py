@@ -118,4 +118,4 @@ class Plots(SpyderDockablePlugin):
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
         """
-        self.get_widget().add_shellwidget(shellwidget)
+        self.get_widget().set_shellwidget(shellwidget)

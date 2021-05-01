@@ -97,7 +97,7 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(
     os.environ.get('CI', None) is None or os.name == 'nt',
     reason='Only on CI and not on windows!',
@@ -121,7 +121,7 @@ def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
 
 
 @flaky(max_runs=3)
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(
     os.environ.get('CI', None) is None or os.name == 'nt',
     reason='Only on CI and not on windows!',
@@ -145,19 +145,19 @@ def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
     assert res == 'done'
 
 
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.environ.get('CI', None) is None, reason='Only on CI!')
 def test_is_valid_interpreter():
     assert is_python_interpreter(VALID_INTERPRETER)
 
 
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.environ.get('CI', None) is None, reason='Only on CI!')
 def test_is_invalid_interpreter():
     assert not is_python_interpreter(INVALID_INTERPRETER)
 
 
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.environ.get('CI', None) is None, reason='Only on CI!')
 def test_is_valid_interpreter_name():
     names = ['python', 'pythonw', 'python2.7', 'python3.5', 'python.exe', 'pythonw.exe']

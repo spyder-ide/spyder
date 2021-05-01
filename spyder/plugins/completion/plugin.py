@@ -369,7 +369,7 @@ class CompletionPlugin(SpyderPluginV2):
             if opt in options:
                 opt_value = self.get_conf(opt, section=sec)
                 self.sig_editor_rpc.emit('call_all_editorstacks',
-                                         (method_name, (opt_value,)),
+                                         (method_name, (opt_value,),),
                                          {})
 
         # Update entries in the source menu
@@ -923,7 +923,6 @@ class CompletionPlugin(SpyderPluginV2):
         providers = self.available_providers_for_language(language.lower())
         slow_provider_count = sum([self.provider_speed[p] for p in providers])
 
-
         # Start the timer on this request
         if req_type in self.AGGREGATE_RESPONSES and slow_provider_count > 2:
             if self.wait_for_ms > 0:
@@ -1095,12 +1094,13 @@ class CompletionPlugin(SpyderPluginV2):
         language = request_responses['language'].lower()
         req_type = request_responses['req_type']
 
+        available_providers = self.available_providers_for_language(
+            language)
+        sorted_providers = self.sort_providers_for_request(
+            available_providers, req_type)
+
         if req_type in self.AGGREGATE_RESPONSES:
             # Wait only for the available providers for the given request
-            available_providers = self.available_providers_for_language(
-                language)
-            sorted_providers = self.sort_providers_for_request(
-                available_providers, req_type)
             timed_out = request_responses['timed_out']
             all_returned = all(source in request_responses['sources']
                                for source in sorted_providers)
@@ -1115,7 +1115,14 @@ class CompletionPlugin(SpyderPluginV2):
                 if all_returned or any_nonempty:
                     self.skip_and_reply(req_id)
         else:
-            self.skip_and_reply(req_id)
+            # Any empty response will be discarded and the completion
+            # loop will wait for the next non-empty response.
+            # This should fix the scenario where Kite does not have a
+            # response for a non-aggregated request but the LSP does.
+            any_nonempty = any(request_responses['sources'].get(source)
+                               for source in sorted_providers)
+            if any_nonempty:
+                self.skip_and_reply(req_id)
 
     def skip_and_reply(self, req_id: int):
         """
