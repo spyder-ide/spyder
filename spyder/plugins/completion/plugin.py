@@ -391,8 +391,8 @@ class CompletionPlugin(SpyderPluginV2):
         ----------
         plugin_loaded: bool
             True if the plugin is already loaded in Spyder, False if it is
-            being loaded. This is needed for avoiding adding the statusbar
-            widgets multiple times in the startup.
+            being loaded. This is needed to avoid adding statusbar widgets
+            multiple times at startup.
         """
         for provider_key in self.providers:
             provider_on = self.get_conf(
@@ -403,7 +403,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     def register_statusbar_widget(self, provider_name, plugin_loaded=True):
         """
-        Register the given provider.
+        Register statusbar widgets for a given provider.
 
         Parameters
         ----------
@@ -424,7 +424,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     def unregister_statusbar(self, provider_name):
         """
-        Unregister the given statusbar widget.
+        Unregister statusbar widgets for a given provider.
 
         Parameters
         ----------
