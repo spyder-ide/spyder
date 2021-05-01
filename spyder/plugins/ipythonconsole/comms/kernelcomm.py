@@ -144,7 +144,9 @@ class KernelComm(CommBase, QObject):
         self.shutdown_comm_channel()
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
-            self._comms[comm_id]['comm'].close()
+            # Send comm_close directly to avoid really closing the comm
+            self._comms[comm_id]['comm']._send_msg(
+                'comm_close', {}, None, None, None)
 
     def open_comm(self, kernel_client):
         """Open comm through the kernel client."""
