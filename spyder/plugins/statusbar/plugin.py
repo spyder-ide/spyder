@@ -215,9 +215,11 @@ class StatusBar(SpyderPluginV2):
 
         # Add the internal widgets in the desired layout
         for id_ in internal_layout:
-            self._statusbar.insertPermanentWidget(
-                StatusBarWidgetPosition.Left, self.INTERNAL_WIDGETS[id_])
-            self.INTERNAL_WIDGETS[id_].setVisible(True)
+            # This is needed in the case kite is installed but not enabled
+            if id_ in self.INTERNAL_WIDGETS:
+                self._statusbar.insertPermanentWidget(
+                    StatusBarWidgetPosition.Left, self.INTERNAL_WIDGETS[id_])
+                self.INTERNAL_WIDGETS[id_].setVisible(True)
 
         # Add the external left widgets
         for id_ in external_left:
