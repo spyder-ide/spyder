@@ -71,6 +71,14 @@ class Plots(SpyderDockablePlugin):
         ipyconsole.sig_shellwidget_id_process_finished.disconnect(
             self.remove_shellwidget_from_id)
 
+    def switch_to_plugin(self, force_focus=False):
+        # Only switch when inline plotting is muted. This avoids
+        # showing the plugin when users want to only see plots in
+        # the IPython console.
+        # Fixes spyder-ide/spyder#15467
+        if self.get_conf('mute_inline_plotting'):
+            super().switch_to_plugin(force_focus=force_focus)
+
     # --- Public API
     # ------------------------------------------------------------------------
     def current_widget(self):
