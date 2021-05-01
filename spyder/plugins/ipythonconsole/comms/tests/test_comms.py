@@ -84,6 +84,9 @@ class dummyComm():
             }
         self.other.message_callback(msg)
 
+    def _send_msg(self, *args, **kwargs):
+        pass
+
     def on_msg(self, callback):
         self.message_callback = callback
 
