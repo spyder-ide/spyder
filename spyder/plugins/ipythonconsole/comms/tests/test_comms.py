@@ -163,11 +163,6 @@ def test_comm_base(comms):
     commsend._send_message('test_message', content='content', data='data')
     assert len(received_messages) == 2
 
-    # Test closing
-    commsend.close()
-    assert not commsend.is_open()
-    assert not commrecv.is_open()
-
 
 @pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_request(comms):
