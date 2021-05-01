@@ -128,6 +128,7 @@ class FrontendComm(CommBase):
 
         if msg_type == 'shutdown_request':
             self.comm_thread_close.set()
+            self._comm_close(msg)
             return
 
         handler = self.kernel.shell_handlers.get(msg_type, None)
@@ -208,10 +209,9 @@ class FrontendComm(CommBase):
     def _comm_close(self, msg):
         """Close comm."""
         comm_id = msg['content']['comm_id']
-        comm = self._comms[comm_id]['comm']
-        # Pretend it is already closed to avoid problems when closing
-        comm._closed = True
-        del self._comms[comm_id]
+        # Send back a close message confirmation
+        # Solves #15356
+        self.close(comm_id)
 
     def _async_error(self, error_wrapper):
         """
