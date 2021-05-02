@@ -36,7 +36,8 @@ from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
-from spyder.utils.stylesheet import APP_STYLESHEET, PANES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import (
+    APP_STYLESHEET, PANES_TABBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -374,6 +375,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 toolbar=self._corner_toolbar,
                 section="corner",
             )
+            self._corner_widget.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
 
         # Update title
         self.setWindowTitle(self.get_title())

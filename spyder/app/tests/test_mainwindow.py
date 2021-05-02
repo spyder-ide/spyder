@@ -23,6 +23,7 @@ import uuid
 
 # Third party imports
 from flaky import flaky
+import ipykernel
 from IPython.core import release as ipy_release
 from jupyter_client.manager import KernelManager
 from matplotlib.testing.compare import compare_images
@@ -316,7 +317,7 @@ def cleanup(request):
 # ---- Tests
 # =============================================================================
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.single_instance
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="It's not meant to be run outside of CIs")
@@ -387,7 +388,7 @@ def test_lock_action(main_window):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt' and PY2, reason="Fails on win and py2")
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
@@ -964,7 +965,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     kc.stop_channels()
 
 
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
@@ -1867,7 +1868,10 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="It times out sometimes")
+@pytest.mark.skipif(
+    (parse_version(ipy_release.version) >= parse_version('7.23.0') and
+     parse_version(ipykernel.__version__) <= parse_version('5.5.3')),
+    reason="Fails due to a bug in the %matplotlib magic")
 def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     """
     Test that the option to set bbox_inches to 'tight' or 'None' is
@@ -2615,7 +2619,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 def test_preferences_change_interpreter(qtbot, main_window):
     """Test that on main interpreter change signal is emitted."""
     # Check original pyls configuration

@@ -323,7 +323,8 @@ class PlotsWidget(PluginMainWidget):
                                          self.fit_action,
                                          self.undock_action,
                                          self.close_action,
-                                         self.dock_action]:
+                                         self.dock_action,
+                                         self.toggle_view_action]:
                 action.setEnabled(value)
 
                 # IMPORTANT: Since we are defining the main actions in here

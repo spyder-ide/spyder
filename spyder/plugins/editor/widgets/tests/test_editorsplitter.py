@@ -392,7 +392,7 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Makes other tests fail on Windows")
 def test_lsp_splitter_close(editor_splitter_lsp):
