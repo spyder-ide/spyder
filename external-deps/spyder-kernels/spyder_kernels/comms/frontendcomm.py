@@ -222,7 +222,7 @@ class FrontendComm(CommBase):
         """Close comm."""
         comm_id = msg['content']['comm_id']
         # Send back a close message confirmation
-        # Solves #15356
+        # Fixes spyder-ide/spyder#15356
         self.close(comm_id)
 
     def _async_error(self, error_wrapper):
