@@ -137,7 +137,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Shutdown kernel"""
         self.shutdown_called = True
         self.spyder_kernel_comm.close()
-        self.spyder_kernel_comm.shutdown_comm_channel()
         self.kernel_manager.stop_restarter()
 
         self.shutdown_thread = QThread()
@@ -157,7 +156,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not self.shutdown_called and not externally_managed:
             # Make sure the channels are stopped
             self.spyder_kernel_comm.close()
-            self.spyder_kernel_comm.shutdown_comm_channel()
             self.kernel_manager.stop_restarter()
             self.kernel_manager.shutdown_kernel(now=True)
             if self.kernel_client is not None:
