@@ -1001,9 +1001,9 @@ class IPythonConsole(SpyderPluginWidget):
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
                       "<br><br>"
-                      "<tt>conda install spyder-kernels</tt>"
+                      "<tt>conda install spyder-kernels=2.0</tt>"
                       "<br><br>or<br><br>"
-                      "<tt>pip install spyder-kernels</tt>")
+                      "<tt>pip install spyder-kernels==2.0.*</tt>")
                 )
                 return
 
