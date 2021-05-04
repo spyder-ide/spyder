@@ -307,7 +307,7 @@ class Layout(SpyderPluginV2):
                 # layout (ie, where the index is greater than the number of
                 # defaults).  See spyder-ide/spyder#6202.
                 if (index_or_layout_id != 'default'
-                        and index_or_layout_id in DEFAULT_LAYOUTS):
+                        and index_or_layout_id not in DEFAULT_LAYOUTS):
                     container.critical_message(
                         _("Warning"),
                         _("Error opening the custom layout.  Please close"
@@ -329,7 +329,6 @@ class Layout(SpyderPluginV2):
                     _("Warning"),
                     _("Quick switch layout #%s has not yet "
                       "been defined.") % str(index_or_layout_id))
-            return
 
         # Make sure the flags are correctly set for visible panes
         for plugin in self.get_dockable_plugins():
