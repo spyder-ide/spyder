@@ -73,7 +73,7 @@ class SpyderMenu(QMenu):
         """
         self.clear()
         self._sections = []
-        self._actions=[]
+        self._actions = []
         self.ordered_actions = []
 
     def add_action(self, action, section=None, before=None,

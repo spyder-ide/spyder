@@ -22,10 +22,10 @@ from spyder.api.translations import get_translation
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.layout.container import LayoutContainer
-from spyder.plugins.layout.layouts import (HorizontalSplitLayout,
+from spyder.plugins.layout.layouts import (DefaultLayouts,
+                                           HorizontalSplitLayout,
                                            MatlabLayout, RLayout,
-                                           SpyderLayout, VerticalSplitLayout,
-                                           DefaultLayouts, VerticalSplitLayout2)
+                                           SpyderLayout, VerticalSplitLayout)
 from spyder.plugins.preferences.widgets.container import PreferencesActions
 from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
@@ -82,7 +82,6 @@ class Layout(SpyderPluginV2):
         self.register_layout(self, MatlabLayout)
         self.register_layout(self, HorizontalSplitLayout)
         self.register_layout(self, VerticalSplitLayout)
-        self.register_layout(self, VerticalSplitLayout2)
 
         mainmenu = self.get_plugin(Plugins.MainMenu)
         if mainmenu:

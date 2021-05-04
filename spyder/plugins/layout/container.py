@@ -169,7 +169,7 @@ class LayoutContainer(PluginMainContainer):
         Update layouts menu and layouts related actions.
         """
         menu = self._layouts_menu
-        menu.clear()
+        menu.clear_actions()
         names = self.get_conf('names')
         order = self.get_conf('order')
         active = self.get_conf('active')
@@ -178,7 +178,7 @@ class LayoutContainer(PluginMainContainer):
         for name in order:
             if name in active:
                 if name in self._spyder_layouts:
-                    index = name 
+                    index = name
                     name = self._spyder_layouts[index].get_name()
                 else:
                     index = names.index(name)
@@ -280,7 +280,7 @@ class LayoutContainer(PluginMainContainer):
         order = self.get_conf('order')
         active = self.get_conf('active')
         dialog_names = [name for name in names
-                 if name not in self._spyder_layouts.keys()]
+                        if name not in self._spyder_layouts.keys()]
         dlg = self._save_dialog = LayoutSaveDialog(self, dialog_names)
 
         if dlg.exec_():
