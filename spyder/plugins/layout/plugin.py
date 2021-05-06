@@ -198,6 +198,9 @@ class Layout(SpyderPluginV2):
         """
         return self.get_container().get_layout(layout_id)
 
+    def update_layout_menu_actions(self):
+        self.get_container().update_layout_menu_actions()
+
     def setup_layout(self, default=False):
         """Initialize mainwindow layout."""
         prefix = 'window' + '/'

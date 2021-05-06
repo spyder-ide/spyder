@@ -1220,6 +1220,15 @@ class MainWindow(QMainWindow):
                 except TypeError:
                     pass
 
+        # Register custom layouts
+        for plugin, plugin_instance in self._PLUGINS.items():
+            if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
+                if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
+                    for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
+                        self.layouts.register_layout(
+                            self, custom_layout)
+        self.layouts.update_layout_menu_actions()
+
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
 
