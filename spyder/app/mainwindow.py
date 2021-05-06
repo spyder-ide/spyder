@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
         else:
             self._INTERNAL_PLUGINS[plugin.NAME] = plugin
 
-    def register_plugin(self, plugin, external=False):
+    def register_plugin(self, plugin, external=False, omit_conf=False):
         """
         Register a plugin in Spyder Main Window.
         """
@@ -234,7 +234,7 @@ class MainWindow(QMainWindow):
                 lambda: plugin.set_ancestor(self))
 
         # Register plugin
-        plugin._register()
+        plugin._register(omit_conf=omit_conf)
         plugin.register()
 
         if isinstance(plugin, SpyderDockablePlugin):
@@ -914,11 +914,14 @@ class MainWindow(QMainWindow):
             elif (issubclass(plugin_class, SpyderPluginV2) and
                   plugin_class.NAME in external_plugins):
                 try:
+                    if plugin_class.CONF_FILE:
+                        CONF.register_plugin(plugin_class)
                     plugin_instance = plugin_class(
                         self,
                         configuration=CONF,
                     )
-                    self.register_plugin(plugin_instance, external=True)
+                    self.register_plugin(plugin_instance, external=True,
+                                         omit_conf=plugin_class.CONF_FILE)
 
                     # These attributes come from spyder.app.solver
                     module = plugin_class._spyder_module_name

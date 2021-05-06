@@ -858,7 +858,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
-    def _register(self):
+    def _register(self, omit_conf=False):
         """
         Setup and register plugin in Spyder's main window and connect it to
         other plugins.
@@ -875,7 +875,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
         # Setup configuration
         # --------------------------------------------------------------------
-        if self._conf is not None:
+        if self._conf is not None and not omit_conf:
             self._conf.register_plugin(self)
 
         # Signals

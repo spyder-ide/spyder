@@ -72,6 +72,35 @@ class SpyderConfigurationAccessor:
 
         return CONF.get(section, option, default)
 
+    def get_conf_options(self, section: Optional[str] = None):
+        """
+        Get all options from the given section.
+
+        Parameters
+        ----------
+        section: Optional[str]
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+
+        Returns
+        -------
+        values: BasicTypes
+            Values of the option in the configuration section.
+
+        Raises
+        ------
+        spyder.py3compat.configparser.NoOptionError
+            If the option does not exist in the configuration under the given
+            section and the default value is NoDefault.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+        return CONF.options(section)
+
     def set_conf(self,
                  option: ConfigurationKey,
                  value: BasicTypes,
