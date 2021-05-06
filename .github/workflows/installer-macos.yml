@@ -62,12 +62,12 @@ jobs:
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
-          python3 -m pip install -c req-const.txt -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}"
-          python3 -m pip uninstall -q -y pyzmq
+          python3 -m pip install -c req-const.txt -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
+          python3 -m pip uninstall -q -y spyder pyzmq
           curl -L https://files.pythonhosted.org/packages/56/da/5260a750b41c74be3fb2d998aee88a94160082343003b0645d978fdd3d90/pyzmq-22.0.3-cp39-cp39-macosx_10_9_x86_64.whl -o pyzmq-22.0.3-cp39-cp39-macosx_10_9_x86_64.whl
           python3 -m pip install pyzmq-22.0.3-cp39-cp39-macosx_10_9_x86_64.whl
           cd ${GITHUB_WORKSPACE}
-          python3 setup.py develop egg_info
+          python3 setup.py develop --no-deps egg_info
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: |
