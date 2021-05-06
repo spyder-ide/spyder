@@ -32,6 +32,7 @@ jobs:
           python3 -V -V
           # Uninstall all formulae
           brew remove --force --ignore-dependencies $(brew list)
+          curl -L https://homebrew.bintray.com/bottles/libffi--3.3_3.mojave.bottle.tar.gz -o libffi--3.3_3.mojave.bottle.tar.gz
           curl -L https://homebrew.bintray.com/bottles/gdbm-1.18.1_1.mojave.bottle.tar.gz -o gdbm-1.18.1_1.mojave.bottle.tar.gz
           curl -L https://homebrew.bintray.com/bottles/openssl%401.1-1.1.1j.mojave.bottle.tar.gz -o openssl%401.1-1.1.1j.mojave.bottle.tar.gz
           curl -L https://homebrew.bintray.com/bottles/readline-8.1.mojave.bottle.tar.gz -o readline-8.1.mojave.bottle.tar.gz
@@ -40,6 +41,9 @@ jobs:
           curl -L https://homebrew.bintray.com/bottles/sqlite-3.34.0.mojave.bottle.tar.gz -o sqlite-3.34.0.mojave.bottle.tar.gz
           curl -L https://homebrew.bintray.com/bottles/python%403.9-3.9.1_8.mojave.bottle.tar.gz -o python@3.9-3.9.1_8.mojave.bottle.tar.gz
           curl -L https://homebrew.bintray.com/bottles/spatialindex-1.9.3.mojave.bottle.tar.gz -o spatialindex-1.9.3.mojave.bottle.tar.gz
+          brew install -f libffi--3.3_3.mojave.bottle.tar.gz
+          export LDFLAGS="-L/usr/local/opt/libffi/lib"
+          export CPPFLAGS="-I/usr/local/opt/libffi/include"
           brew install -f gdbm-1.18.1_1.mojave.bottle.tar.gz
           brew install -f openssl%401.1-1.1.1j.mojave.bottle.tar.gz
           brew install -f readline-8.1.mojave.bottle.tar.gz
@@ -47,10 +51,13 @@ jobs:
           brew install -f --ignore-dependencies tcl-tk-8.6.11_1.mojave.bottle.tar.gz
           brew install -f sqlite-3.34.0.mojave.bottle.tar.gz
           brew install -f --ignore-dependencies python@3.9-3.9.1_8.mojave.bottle.tar.gz
+          python3 -m ensurepip
           brew install -f spatialindex-1.9.3.mojave.bottle.tar.gz
           python3 -V -V
       - name: Install Dependencies
         run: |
+          export LDFLAGS="-L/usr/local/opt/libffi/lib"
+          export CPPFLAGS="-I/usr/local/opt/libffi/include"
           INSTALL_FLAGS=()
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
@@ -64,6 +71,8 @@ jobs:
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: |
+          export LDFLAGS="-L/usr/local/opt/libffi/lib"
+          export CPPFLAGS="-I/usr/local/opt/libffi/include"
           SPK_REPO=${GITHUB_WORKSPACE}/external-deps/spyder-kernels
           PLS_REPO=${GITHUB_WORKSPACE}/external-deps/python-language-server
           QDK_REPO=${GITHUB_WORKSPACE}/external-deps/qdarkstyle
@@ -80,7 +89,10 @@ jobs:
           python3 -V -V
           python3 -m pip list
       - name: Build Application Bundle
-        run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
+        run: |
+          export LDFLAGS="-L/usr/local/opt/libffi/lib"
+          export CPPFLAGS="-I/usr/local/opt/libffi/include"
+          python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Build Disk Image
         run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact
