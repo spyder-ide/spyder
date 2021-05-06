@@ -30,7 +30,8 @@ jobs:
       - name: Update System
         run: |
           python3 -V -V
-          brew remove --force --ignore-dependencies python, gdbm, openssl@1.1, readline, sqlite, tcl-tk, xz
+          # Uninstall all formulae
+          brew remove --force --ignore-dependencies $(brew list)
           curl -L https://homebrew.bintray.com/bottles/gdbm-1.18.1_1.mojave.bottle.tar.gz -o gdbm-1.18.1_1.mojave.bottle.tar.gz
           curl -L https://homebrew.bintray.com/bottles/openssl%401.1-1.1.1j.mojave.bottle.tar.gz -o openssl%401.1-1.1.1j.mojave.bottle.tar.gz
           curl -L https://homebrew.bintray.com/bottles/readline-8.1.mojave.bottle.tar.gz -o readline-8.1.mojave.bottle.tar.gz
