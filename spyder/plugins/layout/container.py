@@ -338,9 +338,10 @@ class LayoutContainer(PluginMainContainer):
         ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
+        read_only = list(self._spyder_layouts.keys())
 
         dlg = self._settings_dialog = LayoutSettingsDialog(
-            self, names, ui_names, order, active)
+            self, names, ui_names, order, active, read_only)
         if dlg.exec_():
             self.set_conf('names', dlg.names)
             self.set_conf('ui_names', dlg.ui_names)
