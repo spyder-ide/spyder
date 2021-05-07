@@ -7,5 +7,5 @@ pydocstyle
 pyflakes
 pyxdg
 rope
-rtree
+rtree <= 0.9.5
 yapf
