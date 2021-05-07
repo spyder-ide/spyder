@@ -187,12 +187,15 @@ class LayoutContainer(PluginMainContainer):
                 def trigger(i=index, self=self):
                     return lambda: self.quick_layout_switch(i)
 
-                layout_switch_action = self.create_action(
-                        name,
-                        text=name,
-                        triggered=trigger(),
-                        register_shortcut=False,
-                    )
+                try:
+                    layout_switch_action = self.get_action(name)
+                except KeyError:
+                    layout_switch_action = self.create_action(
+                            name,
+                            text=name,
+                            triggered=trigger(),
+                            register_shortcut=False,
+                        )
 
                 actions.append(layout_switch_action)
 
