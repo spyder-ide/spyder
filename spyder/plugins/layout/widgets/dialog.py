@@ -379,10 +379,11 @@ def test():
 
     app = qapplication()
     names = ['test', 'tester', '20', '30', '40']
-    ui_names = ['L1', 'L2', 'L3', 'L4', 'L5']
+    ui_names = ['L1', 'L2', '20', '30', '40']
     order = ['test', 'tester', '20', '30', '40']
+    read_only = ['test', 'tester']
     active = ['test', 'tester']
-    widget_1 = LayoutSettingsDialog(None, names, ui_names, order, active)
+    widget_1 = LayoutSettingsDialog(None, names, ui_names, order, active, read_only)
     widget_2 = LayoutSaveDialog(None, order)
     widget_1.show()
     widget_2.show()
