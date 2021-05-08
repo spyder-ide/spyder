@@ -62,7 +62,7 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     """Test that the editor is ignoring some warnings."""
@@ -114,7 +114,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_adding_warnings(qtbot, completions_codeeditor_linting):
     """Test that warnings are saved in the editor blocks."""
@@ -149,7 +149,7 @@ def test_adding_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_move_warnings(qtbot, completions_codeeditor_linting):
     """Test that moving to next/previous warnings is working."""
@@ -185,7 +185,7 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_get_warnings(qtbot, completions_codeeditor_linting):
     """Test that the editor is returning the right list of warnings."""
@@ -218,7 +218,7 @@ def test_get_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting):
     """
@@ -257,7 +257,7 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting):
     """
@@ -294,7 +294,7 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linting):
     """

@@ -1571,7 +1571,7 @@ def test_calltip(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.test_environment_interpreter
 def test_conda_env_activation(ipyconsole, qtbot):
     """

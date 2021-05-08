@@ -68,7 +68,7 @@ def test_get_size():
     df = pd.Index([1,2,3])
     assert get_size(df) == (3,)
 
-    arr = np.array([[1,2,3], [1,2,3]], dtype=np.complex)
+    arr = np.array([[1,2,3], [1,2,3]], dtype=np.complex128)
     assert get_size(arr) == (2, 3)
 
     img = PIL.Image.new('RGB', (256,256))

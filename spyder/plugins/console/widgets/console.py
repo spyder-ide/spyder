@@ -254,7 +254,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 else:
                     # Detect if line is a warning.
                     if (re.findall('[A-Z].*Warning', line) != [] or
-                            'warnings.warn' in line):
+                            'warnings.warn' in line or
+                            'WARNING' in line):
                         is_warning = True
 
                     # Show error/warning messages in red

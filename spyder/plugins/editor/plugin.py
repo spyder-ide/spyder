@@ -1070,7 +1070,6 @@ class Editor(SpyderPluginWidget):
                                   self.indent_action, self.unindent_action,
                                   self.text_uppercase_action,
                                   self.text_lowercase_action]
-        self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
 
         # ---- Search menu/toolbar construction ----
         self.main.search_menu_actions += [gotoline_action]
@@ -1604,7 +1603,7 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    def call_all_editorstacks(self, method, *args, **kwargs):
+    def call_all_editorstacks(self, method, args, **kwargs):
         """Call a method with arguments on all editorstacks."""
         for editorstack in self.editorstacks:
             method = getattr(editorstack, method)
