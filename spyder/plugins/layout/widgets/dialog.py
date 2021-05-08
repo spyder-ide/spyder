@@ -182,10 +182,6 @@ class LayoutSettingsDialog(QDialog):
     """Layout settings dialog"""
     def __init__(self, parent, names, ui_names, order, active, read_only):
         super(LayoutSettingsDialog, self).__init__(parent)
-        print(names)
-        print(ui_names)
-        print(order)
-        print(read_only)
         # variables
         self._parent = parent
         self._selection_model = None
@@ -302,9 +298,6 @@ class LayoutSettingsDialog(QDialog):
                 self.table.setCurrentIndex(index)
                 self.table.setFocus()
                 self.selection_changed(None, None)
-                print(len(names) == len(read_only))
-                print(len(names))
-                print(len(read_only))
                 if len(order) == 0 or len(names) == len(read_only):
                     self.button_move_up.setDisabled(True)
                     self.button_move_down.setDisabled(True)
@@ -344,7 +337,6 @@ class LayoutSettingsDialog(QDialog):
             self.order, self.names, self.ui_names, self.active, self.read_only)
 
         state = model.row(row)[2]
-        # name = model.row(row)[1]
         ui_name = model.row(row)[0]
 
         # Check if name changed
@@ -357,7 +349,7 @@ class LayoutSettingsDialog(QDialog):
                 if old_name in active:
                     active[active.index(old_name)] = ui_name
 
-        # Check if checbox clicked
+        # Check if checkbox clicked
         if state:
             if ui_name not in active:
                 active.append(ui_name)
@@ -366,6 +358,9 @@ class LayoutSettingsDialog(QDialog):
                 active.remove(ui_name)
 
         self.active = active
+        self.order = order
+        self.names = names
+        self.ui_names = ui_names
         self.button_move_up.setDisabled(False)
         self.button_move_down.setDisabled(False)
 

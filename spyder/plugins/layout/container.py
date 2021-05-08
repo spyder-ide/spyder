@@ -171,6 +171,7 @@ class LayoutContainer(PluginMainContainer):
         menu = self._layouts_menu
         menu.clear_actions()
         names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
 
@@ -182,6 +183,7 @@ class LayoutContainer(PluginMainContainer):
                     name = self._spyder_layouts[index].get_name()
                 else:
                     index = names.index(name)
+                    name = ui_names[index]
 
                 # closure required so lambda works with the default parameter
                 def trigger(i=index, self=self):
