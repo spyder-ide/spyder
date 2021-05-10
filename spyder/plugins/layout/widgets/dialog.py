@@ -54,7 +54,7 @@ class LayoutModel(QAbstractTableModel):
 
     def flags(self, index):
         """Override Qt method"""
-        row = index.row()    
+        row = index.row()
         ui_name, name, state = self.row(row)
 
         if name in self.read_only:
@@ -341,7 +341,8 @@ class LayoutSettingsDialog(QDialog):
 
         # Check if name changed
         if ui_name not in ui_names:  # Did changed
-            if row != -1 and len(names) > len(read_only):  # row == -1, means no items left to delete
+            # row == -1, means no items left to delete
+            if row != -1 and len(names) > len(read_only):
                 old_name = order[row]
                 order[row] = ui_name
                 names[names.index(old_name)] = ui_name
@@ -383,7 +384,8 @@ def test():
     order = ['test', 'tester', '20', '30', '40']
     read_only = ['test', 'tester']
     active = ['test', 'tester']
-    widget_1 = LayoutSettingsDialog(None, names, ui_names, order, active, read_only)
+    widget_1 = LayoutSettingsDialog(
+        None, names, ui_names, order, active, read_only)
     widget_2 = LayoutSaveDialog(None, order)
     widget_1.show()
     widget_2.show()
