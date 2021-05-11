@@ -146,7 +146,7 @@ class SpyderPluginRegistry(QObject):
 
     # -------------------------- PUBLIC API -----------------------------------
     def register_plugin(
-            self, PluginClass: Type[SpyderPluginClass]) -> weakref.ref:
+            self, PluginClass: Type[SpyderPluginClass]) -> weakref.ProxyType:
         """
         Register a plugin into the Spyder registry.
 
@@ -158,7 +158,7 @@ class SpyderPluginRegistry(QObject):
 
         Returns
         -------
-        plugin: weakref.ref
+        plugin: weakref.ProxyType
             The instance of the plugin registered.
 
         Raises
@@ -176,7 +176,7 @@ class SpyderPluginRegistry(QObject):
             # Register a Spyder 5+ plugin
             instance = self._instantiate_spyder5_plugin(PluginClass)
 
-        return weakref.ref(instance)
+        return weakref.proxy(instance)
 
     def notify_plugin_availability(self, plugin_name: str):
         """
@@ -203,7 +203,7 @@ class SpyderPluginRegistry(QObject):
                 plugin_instance = self.plugin_registry[plugin]
                 plugin._on_plugin_available(plugin_name)
 
-    def get_plugin(self, plugin_name: str) -> weakref.ref:
+    def get_plugin(self, plugin_name: str) -> weakref.ProxyType:
         """
         Get a reference to a plugin instance by its name.
 
@@ -214,7 +214,7 @@ class SpyderPluginRegistry(QObject):
 
         Returns
         -------
-        plugin: weakref.ref
+        plugin: weakref.ProxyType
             A weak reference to the plugin requested
 
         Raises
@@ -224,7 +224,7 @@ class SpyderPluginRegistry(QObject):
         """
         if plugin_name in self.plugin_registry:
             plugin_instance = self.plugin_registry[plugin_name]
-            return weakref.ref(plugin_instance)
+            return weakref.proxy(plugin_instance)
         else:
             raise SpyderAPIError(f'Plugin {plugin_name} was not found in '
                                  'the registry')
