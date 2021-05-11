@@ -798,6 +798,10 @@ class MainWindow(QMainWindow):
                 self.setStyleSheet(light_qss)
                 self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
+
+        # Set css_path as a configuration to be used by the plugins
+        CONF.set('appearance', 'css_path', css_path)
+
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
@@ -821,12 +825,6 @@ class MainWindow(QMainWindow):
         CONF.set('internal_console', 'commands', [])
         CONF.set('internal_console', 'namespace', {})
         CONF.set('internal_console', 'show_internal_errors', True)
-
-        # Set css_path config (to change between light and dark css versions
-        # for the Help and IPython console plugins)
-        # TODO: There is a circular dependency between help and ipython
-        if CONF.get('help', 'enable'):
-            CONF.set('help', 'css_path', css_path)
 
         # Working directory initialization
         CONF.set('workingdir', 'init_workdir', self.init_workdir)
@@ -861,7 +859,7 @@ class MainWindow(QMainWindow):
                     Plugins.IPythonConsole,
                     Plugins.Projects]:
                 if plugin_name == Plugins.IPythonConsole:
-                    plugin_instance = plugin_class(self, css_path=css_path)
+                    plugin_instance = plugin_class(self)
                     plugin_instance.sig_exception_occurred.connect(
                         self.handle_exception)
                 else:

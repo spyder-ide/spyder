@@ -165,7 +165,7 @@ class IPythonConsole(SpyderPluginWidget):
                              "make it writable.")
 
     def __init__(self, parent, testing=False, test_dir=None,
-                 test_no_stderr=False, css_path=None):
+                 test_no_stderr=False):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -176,7 +176,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
-        self.css_path = css_path
+        self.css_path = CONF.get('appearance', 'css_path')
         self.run_cell_filename = None
         self.interrupt_action = None
 
