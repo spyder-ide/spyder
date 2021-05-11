@@ -1,4 +1,0 @@
-
-# Spyder build environment constraints
-setuptools >= 50.3.2  # versions >44.0.0 and <50.3.2 cause problems for app bundle
-pyobjc == 6.2.2  # 6.2.1 will not build; required by applaunchservices. 7.0 doesn't have wheels for some frameworks in Python 3.9

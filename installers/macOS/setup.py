@@ -201,6 +201,7 @@ def make_app_bundle(dist_dir, make_lite=False):
     # Copy egg info from site-packages: fixes several pkg_resources issues
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
                             'lib', f'python{PYVER[0]}.{PYVER[1]}')
+    pkg_resources.working_set.add_entry(SPYREPO)
     for dist in pkg_resources.working_set:
         if (dist.egg_info is None or dist.key.startswith('pyobjc')
                 or dist.key in EXCLUDE_EGG):
