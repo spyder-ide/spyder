@@ -44,6 +44,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
+from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
@@ -53,6 +54,7 @@ from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
@@ -2252,7 +2254,7 @@ def test_custom_layouts(main_window, qtbot):
     settings = mw.layouts.load_window_settings(prefix=prefix, default=True)
 
     # Test layout changes
-    for layout_idx in ['default'] + list(range(4)):
+    for layout_idx in get_class_values(DefaultLayouts):
         with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
             layout = mw.layouts.setup_default_layouts(
                 layout_idx, settings=settings)
