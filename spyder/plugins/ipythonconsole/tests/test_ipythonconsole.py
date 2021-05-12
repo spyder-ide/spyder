@@ -40,6 +40,7 @@ from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
+from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
@@ -170,6 +171,8 @@ def ipyconsole(qtbot, request):
         CONF.set('main_interpreter', 'default', True)
         CONF.set('main_interpreter', 'executable', '')
 
+    # Conf css_path in the Appeareance plugin
+    CONF.set('appearance', 'css_path', CSS_PATH)
 
     # Create the console and a new client
     window = MainWindowMock()
