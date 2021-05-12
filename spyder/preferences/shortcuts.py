@@ -335,7 +335,8 @@ class ShortcutEditor(QDialog):
                 continue
             if (shortcut.context, shortcut.name) == (self.context, self.name):
                 continue
-            if shortcut.context in [self.context, '_'] or self.context == '_':
+            if (shortcut.context in [self.context, '_', 'find_replace'] or
+                    self.context in ('_', 'find_replace')):
                 if (shortcut_qsequence.matches(new_qsequence) or
                         new_qsequence.matches(shortcut_qsequence)):
                     conflicts.append(shortcut)
@@ -748,8 +749,8 @@ class ShortcutsTable(QTableView):
                 if sh2 is sh1:
                     continue
                 if str(sh2.key) == str(sh1.key) \
-                   and (sh1.context == sh2.context or sh1.context == '_' or
-                        sh2.context == '_'):
+                   and (sh1.context in (sh2.context, '_', 'find_replace') or
+                        sh2.context == ('_', 'find_replace')):
                     conflicts.append((sh1, sh2))
         if conflicts:
             self.parent().show_this_page.emit()
