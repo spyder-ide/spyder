@@ -133,7 +133,7 @@ class Layout(SpyderPluginV2):
 
     def before_mainwindow_visible(self):
         # Update layout menu
-        self.get_container().update_layout_menu_actions()
+        self.update_layout_menu_actions()
         # Setup layout
         self.setup_layout(default=False)
 

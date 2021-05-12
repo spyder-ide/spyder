@@ -69,7 +69,6 @@ class SpyderMenu(QMenu):
         Returns
         -------
         None.
-
         """
         self.clear()
         self._sections = []
