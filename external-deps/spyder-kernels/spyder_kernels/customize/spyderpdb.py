@@ -610,12 +610,15 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
         # -----
-        i = 0
         for fname, data in list(breakpoints.items()):
             for linenumber, condition in data:
-                i += 1
-                self.set_break(self.canonic(fname), linenumber,
-                               cond=condition)
+                try:
+                    self.set_break(self.canonic(fname), linenumber,
+                                   cond=condition)
+                except ValueError:
+                    # Fixes spyder/issues/15546
+                    # The file is not readable
+                    pass
 
         # Jump to first breakpoint.
         # Fixes issue 2034
