@@ -70,6 +70,7 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
+        self.shared_actions = []
         self.watcher = WorkspaceWatcher(self)
         self.completions_available = False
         self.explorer.setup_project(self.get_active_project_path())
@@ -112,18 +113,19 @@ class Projects(SpyderPluginWidget):
             _("Maximum number of recent projects..."),
             triggered=self.change_max_recent_projects)
 
+        self.shared_actions = [self.new_project_action, MENU_SEPARATOR,
+                               self.open_project_action,
+                               self.close_project_action,
+                               self.delete_project_action]
+
         if self.main is not None:
-            self.main.projects_menu_actions += [self.new_project_action,
-                                                MENU_SEPARATOR,
-                                                self.open_project_action,
-                                                self.close_project_action,
-                                                self.delete_project_action,
-                                                MENU_SEPARATOR,
-                                                self.recent_project_menu,
-                                                self._toggle_view_action]
+            self.main.projects_menu_actions.extend(self.shared_actions)
+            self.main.projects_menu_actions.extend([MENU_SEPARATOR,
+                                                    self.recent_project_menu,
+                                                    self._toggle_view_action])
 
         self.setup_menu_actions()
-        return []
+        return self.shared_actions
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -356,11 +358,6 @@ class Projects(SpyderPluginWidget):
 
             self.sig_project_closed.emit(path)
             self.sig_pythonpath_changed.emit()
-
-            if self.dockwidget is not None:
-                self.set_option('visible_if_project_open',
-                                self.dockwidget.isVisible())
-                self.dockwidget.close()
 
             self.explorer.clear()
             self.restart_consoles()
