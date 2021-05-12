@@ -296,7 +296,7 @@ class LayoutContainer(PluginMainContainer):
                     _("Error"),
                     _("Layout <b>{0}</b> was defined programatically. "
                       "It is not possible to overwrite programatically "
-                      "registered layouts").format(name)
+                      "registered layouts.").format(name)
                 )
                 return
             if name in names:
