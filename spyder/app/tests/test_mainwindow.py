@@ -145,6 +145,34 @@ def find_desired_tab_in_window(tab_name, window):
                 return current_tabbar, tab_index
     return None, None
 
+def register_fake_plugin():
+    """Create a entry for a fake plugin to test custom layouts."""
+    spyder_boilerplate = pkg_resources.EntryPoint.parse(
+        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
+        'plugin:SpyderBoilerplate'
+    )
+
+    # Create a fake Spyder distribution
+    d = pkg_resources.Distribution(__file__)
+
+    # Add the providers to the fake EntryPoint
+    d._ep_map = {
+        'spyder.plugins': {
+            'spyder_boilerplate': spyder_boilerplate
+        }
+    }
+    # Add the fake distribution to the global working_set
+    pkg_resources.working_set.add(d, 'spyder')
+
+def remove_fake_plugin():
+    """Remove fake entry points from pkg_resources to test layouts"""
+    try:
+        pkg_resources.working_set.by_key.pop('unknown')
+        pkg_resources.working_set.entry_keys.pop('spyder')
+        pkg_resources.working_set.entry_keys.pop(__file__)
+        pkg_resources.working_set.entries.remove('spyder')
+    except KeyError:
+        pass
 
 def register_all_providers():
     """Create a entry points distribution to register all the providers."""
@@ -195,6 +223,7 @@ def remove_fake_distribution():
 def main_window(request, tmpdir):
     """Main Window fixture"""
     register_all_providers()
+    register_fake_plugin()
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -311,6 +340,7 @@ def cleanup(request):
             except AttributeError:
                 pass
         remove_fake_distribution()
+        remove_fake_plugin()
 
     request.addfinalizer(remove_test_dir)
 
@@ -2275,6 +2305,39 @@ def test_custom_layouts(main_window, qtbot):
                             except AttributeError:
                                 # Old API
                                 assert plugin.isVisible()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_programmatic_custom_layouts(main_window, qtbot):
+    """
+    Test that a custom layout gets registered and it is recognized."""
+    mw = main_window
+    mw.first_spyder_run = False
+
+    # Test layout registration
+    layout_id = 'testing layout'
+    layout = mw.layouts.get_layout(layout_id)
+
+    with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
+        mw.layouts.quick_layout_switch(layout)
+
+        with qtbot.waitSignal(None, timeout=500, raising=False):
+            # Add a wait to see changes
+            pass
+
+        for area in layout._areas:
+            if area['visible']:
+                for plugin_id in area['plugin_ids']:
+                    if plugin_id not in area['hidden_plugin_ids']:
+                        plugin = mw.get_plugin(plugin_id)
+                        print(plugin)  # spyder: test-skip
+                        try:
+                            # New API
+                            assert plugin.get_widget().isVisible()
+                        except AttributeError:
+                            # Old API
+                            assert plugin.isVisible()
 
 
 @pytest.mark.slow
