@@ -1230,6 +1230,11 @@ class MainWindow(QMainWindow):
                     for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
                         self.layouts.register_layout(
                             self, custom_layout)
+                else:
+                    logger.info('Unable to load custom layouts for {}. '
+                                'Expecting a list of layout classes but got {}'
+                                .format(plugin, plugin_instance.CUSTOM_LAYOUTS)
+                                )
         self.layouts.update_layout_menu_actions()
 
         logger.info("*** End of MainWindow setup ***")
