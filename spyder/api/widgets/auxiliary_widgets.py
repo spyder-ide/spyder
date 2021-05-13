@@ -10,7 +10,7 @@ Spyder API auxiliary widgets.
 
 # Third party imports
 from qtpy.QtCore import Signal, QSize
-from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
+from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget, QHBoxLayout
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -78,10 +78,7 @@ class MainCornerWidget(QToolBar):
 
         widget.ID = widget_id
         self._widgets[widget_id] = widget
-        if len(self._actions):
-            self._actions.append(self.insertWidget(self._actions[-1], widget))
-        else:
-            self._actions.append(self.addWidget(widget))
+        self._actions.append(self.addWidget(widget))
 
     def get_widget(self, widget_id):
         """
