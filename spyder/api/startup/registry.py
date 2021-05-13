@@ -8,7 +8,7 @@
 
 # Standard library imports
 import weakref
-from typing import Dict, List, Union, Type
+from typing import Dict, List, Union, Type, Any
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -146,7 +146,8 @@ class SpyderPluginRegistry(QObject):
 
     # -------------------------- PUBLIC API -----------------------------------
     def register_plugin(
-            self, PluginClass: Type[SpyderPluginClass]) -> weakref.ProxyType:
+            self, main_window: Any,
+            PluginClass: Type[SpyderPluginClass]) -> weakref.ProxyType:
         """
         Register a plugin into the Spyder registry.
 
