@@ -227,6 +227,7 @@ class Layout(SpyderPluginV2):
                 self.set_conf('active', order, section)
                 self.set_conf('order', order, section)
                 self.set_conf('names', order, section)
+                self.set_conf('ui_names', order, section)
 
             for index, _name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
@@ -237,7 +238,7 @@ class Layout(SpyderPluginV2):
             prefix = 'layout_default/'
             section = 'quick_layouts'
             self.save_current_window_settings(prefix, section, none_state=True)
-            self._current_quick_layout = 'default'
+            self._current_quick_layout = DefaultLayouts.SpyderLayout
 
         self.set_window_settings(*settings)
 
@@ -308,8 +309,7 @@ class Layout(SpyderPluginV2):
                 # The value for hexstate shouldn't be None for a custom saved
                 # layout (ie, where the index is greater than the number of
                 # defaults).  See spyder-ide/spyder#6202.
-                if (index_or_layout_id != 'default'
-                        and index_or_layout_id not in DEFAULT_LAYOUTS):
+                if index_or_layout_id not in DEFAULT_LAYOUTS:
                     container.critical_message(
                         _("Warning"),
                         _("Error opening the custom layout.  Please close"

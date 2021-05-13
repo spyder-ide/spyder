@@ -145,37 +145,14 @@ def find_desired_tab_in_window(tab_name, window):
                 return current_tabbar, tab_index
     return None, None
 
-def register_fake_plugin():
-    """Create a entry for a fake plugin to test custom layouts."""
-    spyder_boilerplate = pkg_resources.EntryPoint.parse(
-        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
-        'plugin:SpyderBoilerplate'
-    )
 
-    # Create a fake Spyder distribution
-    d = pkg_resources.Distribution(__file__)
-
-    # Add the providers to the fake EntryPoint
-    d._ep_map = {
-        'spyder.plugins': {
-            'spyder_boilerplate': spyder_boilerplate
-        }
-    }
-    # Add the fake distribution to the global working_set
-    pkg_resources.working_set.add(d, 'spyder')
-
-def remove_fake_plugin():
-    """Remove fake entry points from pkg_resources to test layouts"""
-    try:
-        pkg_resources.working_set.by_key.pop('unknown')
-        pkg_resources.working_set.entry_keys.pop('spyder')
-        pkg_resources.working_set.entry_keys.pop(__file__)
-        pkg_resources.working_set.entries.remove('spyder')
-    except KeyError:
-        pass
-
-def register_all_providers():
-    """Create a entry points distribution to register all the providers."""
+def register_fake_entrypoints():
+    """
+    Create entry points distribution to register elements:
+     * Completion providers (Fallback, Shippets, LSP)
+     * Puglins (SpyderBoilerplate plugin)
+    """
+    # Completion providers
     fallback = pkg_resources.EntryPoint.parse(
         'fallback = spyder.plugins.completion.providers.fallback.provider:'
         'FallbackProvider'
@@ -189,22 +166,31 @@ def register_all_providers():
         'LanguageServerProvider'
     )
 
+    # Extra plugins
+    spyder_boilerplate = pkg_resources.EntryPoint.parse(
+        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
+        'plugin:SpyderBoilerplate'
+    )
+
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
 
-    # Add the providers to the fake EntryPoint
+    # Add the providers and plugins to the fake EntryPoints
     d._ep_map = {
         'spyder.completions': {
             'fallback': fallback,
             'snippets': snippets,
             'lsp': lsp
+        },
+        'spyder.plugins': {
+            'spyder_boilerplate': spyder_boilerplate
         }
     }
     # Add the fake distribution to the global working_set
     pkg_resources.working_set.add(d, 'spyder')
 
 
-def remove_fake_distribution():
+def remove_fake_entrypoints():
     """Remove fake entry points from pkg_resources"""
     try:
         pkg_resources.working_set.by_key.pop('unknown')
@@ -222,8 +208,7 @@ def remove_fake_distribution():
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
-    register_all_providers()
-    register_fake_plugin()
+    register_fake_entrypoints()
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -339,8 +324,7 @@ def cleanup(request):
                 main_window.window.close()
             except AttributeError:
                 pass
-        remove_fake_distribution()
-        remove_fake_plugin()
+        remove_fake_entrypoints()
 
     request.addfinalizer(remove_test_dir)
 
@@ -2317,10 +2301,13 @@ def test_programmatic_custom_layouts(main_window, qtbot):
 
     # Test layout registration
     layout_id = 'testing layout'
+    # Test the testing plugin is being loaded
+    mw.get_plugin('spyder_boilerplate')
+    # Get the registered layout
     layout = mw.layouts.get_layout(layout_id)
 
     with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
-        mw.layouts.quick_layout_switch(layout)
+        mw.layouts.quick_layout_switch(layout_id)
 
         with qtbot.waitSignal(None, timeout=500, raising=False):
             # Add a wait to see changes
