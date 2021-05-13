@@ -33,7 +33,6 @@ class SpyderBoilerplate(SpyderDockablePlugin):
     OPTIONAL = []
     WIDGET_CLASS = SpyderBoilerplateWidget
     CONF_SECTION = NAME
-    CONF_WIDGET_CLASS = SpyderBoilerplateConfigPage
     CUSTOM_LAYOUTS = [VerticalSplitLayout2]
 
     # --- Signals
