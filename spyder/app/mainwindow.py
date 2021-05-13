@@ -927,8 +927,9 @@ class MainWindow(QMainWindow):
                         package_name = plugin_class._spyder_package_name
                         version = plugin_class._spyder_version
                         description = plugin_instance.get_description()
-                        dependencies.add(module, package_name, description,
-                                         version, None, kind=dependencies.PLUGIN)
+                        dependencies.add(
+                            module, package_name, description, version, None,
+                            kind=dependencies.PLUGIN)
                 except Exception as error:
                     print("%s: %s" % (plugin_class, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
