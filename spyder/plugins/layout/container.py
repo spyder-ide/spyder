@@ -193,11 +193,11 @@ class LayoutContainer(PluginMainContainer):
                     layout_switch_action = self.get_action(name)
                 except KeyError:
                     layout_switch_action = self.create_action(
-                            name,
-                            text=name,
-                            triggered=trigger(),
-                            register_shortcut=False,
-                        )
+                        name,
+                        text=name,
+                        triggered=trigger(),
+                        register_shortcut=False,
+                    )
 
                 actions.append(layout_switch_action)
 
@@ -296,7 +296,7 @@ class LayoutContainer(PluginMainContainer):
                     _("Error"),
                     _("Layout <b>{0}</b> was defined programatically. "
                       "It is not possible to overwrite programatically "
-                      "registered layouts").format(name)
+                      "registered layouts.").format(name)
                 )
                 return
             if name in names:
