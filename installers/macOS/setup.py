@@ -163,8 +163,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
-    FRAMEWORKS = ['/usr/local/lib/libspatialindex.dylib',
-                  '/usr/local/lib/libspatialindex_c.dylib']  # for rtree
+    # Get rtree dylibs
+    rtree_loc = pkg_resources.get_distribution('rtree').module_path
+    rtree_dylibs = os.scandir(os.path.join(rtree_loc, 'rtree', 'lib'))
+    FRAMEWORKS = [lib.path for lib in rtree_dylibs]
 
     OPTIONS = {
         'optimize': 0,
@@ -199,6 +201,7 @@ def make_app_bundle(dist_dir, make_lite=False):
     # Copy egg info from site-packages: fixes several pkg_resources issues
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
                             'lib', f'python{PYVER[0]}.{PYVER[1]}')
+    pkg_resources.working_set.add_entry(SPYREPO)
     for dist in pkg_resources.working_set:
         if (dist.egg_info is None or dist.key.startswith('pyobjc')
                 or dist.key in EXCLUDE_EGG):
