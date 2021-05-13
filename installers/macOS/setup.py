@@ -148,7 +148,11 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
                 'sphinx', 'spyder', 'spyder_kernels', 'textdistance',
                 ]
-    INCLUDES = ['_sitebuiltins']  # required for IPython help()
+    INCLUDES = ['_sitebuiltins',  # required for IPython help()
+                # required for sphinx
+                'sphinxcontrib.applehelp', 'sphinxcontrib.devhelp',
+                'sphinxcontrib.htmlhelp', 'sphinxcontrib.jsmath',
+                'sphinxcontrib.qthelp', 'sphinxcontrib.serializinghtml']
     EXCLUDES = []
     EXCLUDE_EGG = ['py2app']
 
