@@ -68,6 +68,9 @@ def make_app_bundle(dist_dir, make_lite=False):
         File "<frozen zipimport>", line 177, in get_data
         KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
         Grammar3.8.6.final.0.pickle'
+    docutils :
+        [Errno 20] Not a directory: '<path>/Resources/lib/python39.zip/
+        docutils/writers/latex2e/docutils.sty'
     ipython :
         [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
         Source file
@@ -140,12 +143,16 @@ def make_app_bundle(dist_dir, make_lite=False):
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'IPython', 'jedi',
-                'jinja2', 'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
-                'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
-                'spyder_kernels', 'textdistance',
+    PACKAGES = ['alabaster', 'astroid', 'docutils', 'blib2to3', 'IPython',
+                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pyls',
+                'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
+                'sphinx', 'spyder', 'spyder_kernels', 'textdistance',
                 ]
-    INCLUDES = ['_sitebuiltins']  # required for IPython help()
+    INCLUDES = ['_sitebuiltins',  # required for IPython help()
+                # required for sphinx
+                'sphinxcontrib.applehelp', 'sphinxcontrib.devhelp',
+                'sphinxcontrib.htmlhelp', 'sphinxcontrib.jsmath',
+                'sphinxcontrib.qthelp', 'sphinxcontrib.serializinghtml']
     EXCLUDES = []
     EXCLUDE_EGG = ['py2app']
 
