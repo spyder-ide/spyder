@@ -104,6 +104,9 @@ class PageControlWidget(QTextEdit, BaseEditMixin):
 
         if key == Qt.Key_Slash and self.isVisible():
             self.show_find_widget.emit()
+        else:
+            # Let the parent widget handle the key press event
+            QTextEdit.keyPressEvent(self, event)
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
