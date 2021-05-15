@@ -237,7 +237,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.pager_label.setStyleSheet(
             f"background-color: {QStylePalette.COLOR_ACCENT_2};"
             f"color: {QStylePalette.COLOR_TEXT_1};"
-            "margin: 0px 4px 4px 4px;"
+            "margin: 0px 1px 4px 1px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"
         )
