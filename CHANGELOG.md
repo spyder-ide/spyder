@@ -1,5 +1,37 @@
 # History of changes
 
+## Version 5.0.3 (2021-05-17)
+
+### Important fixes
+* Fix Help pane in the macOS installer.
+* Add rtree as a dependency for our pip packages.
+
+### Issues Closed
+
+* [Issue 15609](https://github.com/spyder-ide/spyder/issues/15609) - Error when trying to use help pane on Spyder.dmg 5.0.2  ([PR 15622](https://github.com/spyder-ide/spyder/pull/15622) by [@mrclary](https://github.com/mrclary))
+* [Issue 15546](https://github.com/spyder-ide/spyder/issues/15546) - Debugger raises encoding error ([PR 15604](https://github.com/spyder-ide/spyder/pull/15604) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15195](https://github.com/spyder-ide/spyder/issues/15195) - Ctrl+I produces warning with Sphinx 4 ([PR 15622](https://github.com/spyder-ide/spyder/pull/15622) by [@mrclary](https://github.com/mrclary))
+* [Issue 14748](https://github.com/spyder-ide/spyder/issues/14748) - Add rtree to our setup.py dependencies ([PR 14496](https://github.com/spyder-ide/spyder/pull/14496) by [@mrclary](https://github.com/mrclary))
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 15636](https://github.com/spyder-ide/spyder/pull/15636) - PR: Update dependencies for 5.0.3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15635](https://github.com/spyder-ide/spyder/pull/15635) - PR: Scroll pager content with keys (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15627](https://github.com/spyder-ide/spyder/pull/15627) - PR: Update Windows assets url, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15622](https://github.com/spyder-ide/spyder/pull/15622) - PR: Fix issues related to sphinx >= 4.0 and docutils >= 0.17 in Mac installer, by [@mrclary](https://github.com/mrclary) ([15609](https://github.com/spyder-ide/spyder/issues/15609), [15195](https://github.com/spyder-ide/spyder/issues/15195))
+* [PR 15614](https://github.com/spyder-ide/spyder/pull/15614) - PR: Remove rtree wheel from Windows installer extra packages, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15604](https://github.com/spyder-ide/spyder/pull/15604) - PR: Sync subrepo with spyder-kernels#291, by [@ccordoba12](https://github.com/ccordoba12) ([15546](https://github.com/spyder-ide/spyder/issues/15546))
+* [PR 15595](https://github.com/spyder-ide/spyder/pull/15595) - PR: Move css_path to Appearance config section (IPython Console), by [@dalthviz](https://github.com/dalthviz)
+* [PR 14496](https://github.com/spyder-ide/spyder/pull/14496) - PR: Add Rtree to setup.py and update handling it in macOS installer, by [@mrclary](https://github.com/mrclary) ([14748](https://github.com/spyder-ide/spyder/issues/14748))
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0.2 (2021-05-10)
 
 ### Important fixes
