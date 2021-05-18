@@ -20,7 +20,9 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.layout.layouts import VerticalSplitLayout2
 
-_ = lambda text: text
+
+def _(text):
+    return text
 
 
 class SpyderBoilerplateConfigPage(PluginConfigPage):
