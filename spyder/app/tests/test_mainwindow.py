@@ -2292,7 +2292,8 @@ def test_custom_layouts(main_window, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'), reason="Fake plugin registration fails")
 def test_programmatic_custom_layouts(main_window, qtbot):
     """
     Test that a custom layout gets registered and it is recognized."""
