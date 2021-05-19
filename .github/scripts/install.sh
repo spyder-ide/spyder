@@ -29,7 +29,7 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
-    conda remove python-language-server --force -q -y
+    conda remove python-lsp-server --force -q -y
 
     # Provisional change to prevent error from jupyter_client 6.1.13
     conda install jupyter_client=6.1.12
@@ -54,7 +54,7 @@ else
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
-    pip uninstall python-language-server -q -y
+    pip uninstall python-lsp-server -q -y
 
     # Provisional change to prevent error from jupyter_client 6.1.13
     pip install jupyter_client==6.1.12
