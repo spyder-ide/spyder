@@ -73,7 +73,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('pydocstyle/match', '(?!test_).*\\.py'),
         ('pydocstyle/match_dir', '[^\\.].*'),
         ('advanced/enabled', False),
-        ('advanced/module', 'pyls'),
+        ('advanced/module', 'pylsp'),
         ('advanced/host', '127.0.0.1'),
         ('advanced/port', 2087),
         ('advanced/external', False),
@@ -695,7 +695,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         python_config = PYTHON_CONFIG.copy()
 
         # Server options
-        cmd = self.get_conf('advanced/module', 'pyls')
+        cmd = self.get_conf('advanced/module', 'pylsp')
         host = self.get_conf('advanced/host', '127.0.0.1')
         port = self.get_conf('advanced/port', 2087)
 
@@ -825,7 +825,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         python_config['host'] = host
         python_config['port'] = port
 
-        plugins = python_config['configurations']['pyls']['plugins']
+        plugins = python_config['configurations']['pylsp']['plugins']
         plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
         plugins['pydocstyle'].update(pydocstyle)
