@@ -17,6 +17,7 @@ from spyder.api.translations import get_translation
 from spyder.config.base import get_safe_mode, running_under_pytest
 from spyder.plugins.tours.container import ToursContainer
 from spyder.plugins.tours.tours import INTRO_TOUR, TourIdentifiers
+from spyder.plugins.mainmenu.api import (ApplicationMenus, HelpMenuSections)
 
 # Localization
 _ = get_translation('spyder')
@@ -30,7 +31,7 @@ class Tours(SpyderPluginV2):
     """
     NAME = 'tours'
     CONF_SECTION = NAME
-    # REQUIRES = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu]
     CONF_FILE = False
     CONTAINER_CLASS = ToursContainer
 
@@ -52,15 +53,15 @@ class Tours(SpyderPluginV2):
             INTRO_TOUR,
         )
 
-        # TODO: When mainmenu plugin is available
-        # help_menu = mainmenu.get_application_menu(ApplicationMenus.Help)
-        # mainmenu.add_item_to_application_menu(
-        help_menu = self.get_application_menu(ApplicationMenus.Help)
-        self.add_item_to_application_menu(
-            self.get_container().tours_menu,
-            menu=help_menu,
-            section="To be defined",
-        )
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        if mainmenu:
+            # Documentation actions
+            mainmenu.add_item_to_application_menu(
+                self.get_container().tour_action,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Documentation,
+                before=None,
+                before_section=HelpMenuSections.Support)
 
     def on_mainwindow_visible(self):
         self.show_tour_message()

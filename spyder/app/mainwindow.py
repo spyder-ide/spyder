@@ -577,7 +577,6 @@ class MainWindow(QMainWindow):
             'projects': Plugins.Projects,
             'findinfiles': Plugins.Find,
             'layouts': Plugins.Layout,
-            'tours': Plugins.Tours
             }
 
         self.thirdparty_plugins = []
@@ -1087,11 +1086,6 @@ class MainWindow(QMainWindow):
         )
 
         self.set_splash(_("Setting up main window..."))
-
-        mainmenu.add_item_to_application_menu(
-            self.tours_menu,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.Documentation)
 
         # TODO: Move to plugin
         # IPython documentation

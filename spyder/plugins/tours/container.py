@@ -16,7 +16,7 @@ from collections import OrderedDict
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.menus import ApplicationMenus, HelpMenuSections
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.tours.tours import TourIdentifiers
 from spyder.plugins.tours.widgets import AnimatedTour, OpenTourDialog
 
@@ -26,6 +26,8 @@ _ = get_translation('spyder')
 # Set the index for the default tour
 DEFAULT_TOUR = TourIdentifiers.IntroductionTour
 
+class TourActions:
+    ShowTour = "show tour"
 
 # --- Plugin
 # ----------------------------------------------------------------------------
@@ -46,6 +48,12 @@ class ToursContainer(PluginMainContainer):
         self._tour_dialog = OpenTourDialog(
             self, lambda: self.show_tour(DEFAULT_TOUR))
         self._main = plugin.main
+        self.tour_action = self.create_action(
+            TourActions.ShowTour,
+            text=_("Show tour"),
+            triggered=lambda:self.show_tour(DEFAULT_TOUR)
+        )
+
 
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------

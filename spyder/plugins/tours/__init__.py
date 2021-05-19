@@ -7,3 +7,8 @@
 """
 Tours Plugin.
 """
+
+from spyder.plugins.tours.plugin import tours
+
+# The following statement is required to be able to grab internal plugins.
+PLUGIN_CLASSES = [tours]
