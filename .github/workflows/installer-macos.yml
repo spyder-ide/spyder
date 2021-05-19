@@ -40,7 +40,7 @@ jobs:
         run: |
           python3.9 -m pip install \
             -e ${GITHUB_WORKSPACE}/external-deps/spyder-kernels \
-            -e ${GITHUB_WORKSPACE}/external-deps/python-language-server \
+            -e ${GITHUB_WORKSPACE}/external-deps/python-lsp-server \
             -e ${GITHUB_WORKSPACE}/external-deps/qdarkstyle
       - name: Show Build Environment
         run: |
