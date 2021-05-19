@@ -53,8 +53,6 @@ else
     pip uninstall spyder-kernels -q -y
     pip uninstall python-lsp-server -q -y
 
-    # Provisional change to prevent error from jupyter_client 6.1.13
-    pip install jupyter_client==6.1.12
 fi
 
 # This is necessary only for Windows (don't know why).
