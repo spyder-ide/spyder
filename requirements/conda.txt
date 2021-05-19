@@ -22,12 +22,12 @@ pickleshare >=0.4
 psutil >=5.3
 pygments >=2.0
 pylint >=1.0
-pyls-black >=1.0.0
-pyls-spyder >=0.3.2,<0.4.0
+python-lsp-black >=1.0.0
+pyls-spyder >=0.4.0
 pyqt <5.13
 # There's no need to set a version for python-language-server
 # because we install it from master for our tests.
-python-language-server
+python-lsp-server
 pyxdg >=0.26
 pyzmq >=17
 qdarkstyle =3.0.2
