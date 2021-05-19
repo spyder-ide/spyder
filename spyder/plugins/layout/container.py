@@ -189,15 +189,12 @@ class LayoutContainer(PluginMainContainer):
                 def trigger(i=index, self=self):
                     return lambda: self.quick_layout_switch(i)
 
-                try:
-                    layout_switch_action = self.get_action(name)
-                except KeyError:
-                    layout_switch_action = self.create_action(
-                        name,
-                        text=name,
-                        triggered=trigger(),
-                        register_shortcut=False,
-                    )
+                layout_switch_action = self.create_action(
+                    name,
+                    text=name,
+                    triggered=trigger(),
+                    register_shortcut=False,
+                )
 
                 actions.append(layout_switch_action)
 
@@ -243,6 +240,7 @@ class LayoutContainer(PluginMainContainer):
         ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
+
         if layout_id not in names:
             names.append(layout_id)
             ui_names.append(layout.get_name())
