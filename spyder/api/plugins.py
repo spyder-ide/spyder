@@ -28,6 +28,7 @@ import logging
 import os
 import os.path as osp
 from typing import List, Union
+import warnings
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
@@ -705,6 +706,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     collect deleted objects.
     """
 
+    sig_plugin_ready = Signal()
+    """
+    This signal can be emitted to reflect that the plugin was initialized.
+    """
+
     sig_quit_requested = Signal()
     """
     This signal can be emitted to request the main application to quit.
@@ -1120,6 +1126,19 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         if self._conf is not None:
             return get_color_scheme(self._conf.get('appearance', 'selected'))
 
+    def initialize(self):
+        """
+        Initialize a plugin instance.
+
+        Notes
+        -----
+        This method should be called to initialize the plugin, but it should
+        not be overriden, since it internally calls `on_initialize` and emits
+        the `sig_plugin_ready` signal.
+        """
+        self.on_initialize()
+        self.sig_plugin_ready.emit()
+
     @staticmethod
     def create_icon(name):
         """
@@ -1202,12 +1221,22 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         raise NotImplementedError('A plugin icon must be defined!')
 
-    def register(self):
+    def on_initialize(self):
         """
-        Setup and register plugin in Spyder's main window and connect it to
-        other plugins.
+        Setup the plugin.
+
+        Notes
+        -----
+        All the calls performed on this method should not call other plugins.
         """
-        raise NotImplementedError('Must define a register method!')
+        if hasattr(self, 'register'):
+            raise SpyderAPIError(
+                'register was replaced by on_initialize, please check the '
+                'Spyder 5.1.0 migration guide to get more information')
+
+        raise NotImplementedError(
+            f'The plugin {cls(self)} is missing a concrete implementation of '
+            'on_initialize')
 
     # --- API: Optional methods to override ----------------------------------
     # ------------------------------------------------------------------------

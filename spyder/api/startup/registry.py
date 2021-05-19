@@ -24,8 +24,9 @@ from spyder.api.plugins import (
 
 # TODO: Remove SpyderPlugin and SpyderPluginWidget once the migration
 # is complete.
-SpyderPluginClass = Union[SpyderPluginV2, SpyderDockablePlugin,
-                          SpyderPlugin, SpyderPluginWidget]
+Spyder5PluginClass = Union[SpyderPluginV2, SpyderDockablePlugin]
+Spyder4PluginClass = Union[SpyderPlugin, SpyderPluginWidget]
+SpyderPluginClass = Union[Spyder4PluginClass, Spyder5PluginClass]
 
 
 ALL_PLUGINS = [getattr(Plugins, attr) for attr in dir(Plugins)
@@ -50,6 +51,8 @@ class SpyderPluginRegistry(QObject):
        If another object wants to access a plugin, it should call the
        `get_plugin` method of this class, which will return a weak reference
        to the plugin.
+    3. A plugin should not depend on other plugin to perform its
+       initialization since it could cause deadlocks.
     """
 
     sig_plugin_ready = Signal(str)
@@ -72,10 +75,13 @@ class SpyderPluginRegistry(QObject):
         self.plugin_dependencies = {}  # type: Dict[str, Dict[str, List[str]]]
 
         # Plugin dictionary mapped by their names
-        self.plugin_registry = {}
+        self.plugin_registry = {}  # type: Dict[str, SpyderPluginClass]
 
         # Dictionary that maps a plugin name to its availability.
-        self.plugin_availability = {}
+        self.plugin_availability = {}  # type: Dict[str, bool]
+
+        # Set that stores the plugin names of all Spyder 4 plugins.
+        self.old_plugins = set({})  # type: set[str]
 
     # ------------------------- PRIVATE API -----------------------------------
     def _update_dependents(self, plugin: str, dependent_plugin: str, key: str):
@@ -108,7 +114,8 @@ class SpyderPluginRegistry(QObject):
             self._update_dependents(plugin, plugin_name, 'optional')
 
     def _instantiate_spyder5_plugin(
-            self, PluginClass: Type[SpyderPluginClass]) -> SpyderPluginClass:
+            self, main_window: Any,
+            PluginClass: Type[Spyder5PluginClass]) -> Spyder5PluginClass:
         """Instantiate and register a Spyder 5+ plugin."""
         required_plugins = list(set(PluginClass.REQUIRES))
         optional_plugins = list(set(PluginClass.OPTIONAL))
@@ -127,12 +134,12 @@ class SpyderPluginRegistry(QObject):
                                  optional_plugins)
 
         # Create and store plugin instance
-        plugin_instance = PluginClass(self, configuration=CONF)
+        plugin_instance = PluginClass(main_window, configuration=CONF)
         self.plugin_registry[plugin_name] = plugin_instance
 
         # Connect plugin availability signal to notification system
         plugin_instance.sig_plugin_ready.connect(
-            self.notify_plugin_availability)
+            lambda: self.notify_plugin_availability(plugin_name))
 
         # Initialize plugin instance
         plugin_instance.initialize()
@@ -144,18 +151,47 @@ class SpyderPluginRegistry(QObject):
 
         return plugin_instance
 
+    def _instantiate_spyder4_plugin(
+            self, main_window: Any,
+            PluginClass: Type[Spyder4PluginClass],
+            args: tuple, kwargs: dict) -> weakref.ProxyType:
+        """Instantiate and register a Spyder 4 plugin."""
+        plugin_name = PluginClass.NAME
+
+        # Create old plugin instance
+        plugin_instance = PluginClass(main_window, *args, **kwargs)
+        plugin_instance.register_plugin()
+
+        # Register plugin in the registry
+        self.plugin_registry[plugin_name] = plugin_instance
+
+        # Since Spyder 5+ plugins are loaded before old ones, preferences
+        # will be available at this point.
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(plugin_instance)
+
+        return plugin_instance
+
     # -------------------------- PUBLIC API -----------------------------------
     def register_plugin(
             self, main_window: Any,
-            PluginClass: Type[SpyderPluginClass]) -> weakref.ProxyType:
+            PluginClass: Type[SpyderPluginClass],
+            *args: tuple, **kwargs: dict) -> weakref.ProxyType:
         """
         Register a plugin into the Spyder registry.
 
         Parameters
         ----------
-        PluginClass: type
+        main_window: spyder.app.mainwindow.MainWindow
+            Reference to Spyder's main window.
+        PluginClass: type[SpyderPluginClass]
             The class of the plugin to register and create. It must be
             one of `spyder.app.registry.SpyderPluginClass`.
+        *args: tuple
+            Positional arguments used to initialize the plugin
+            instance.
+        **kwargs: dict
+            Optional keyword arguments used to initialize the plugin instance.
 
         Returns
         -------
@@ -167,6 +203,11 @@ class SpyderPluginRegistry(QObject):
         TypeError
             If the `PluginClass` does not inherit from any of
             `spyder.app.registry.SpyderPluginClass`
+
+        Notes
+        -----
+        The optional `*args` and `**kwargs` will be removed once all the
+        plugins are migrated.
         """
         if not issubclass(PluginClass, (SpyderPluginV2, SpyderPlugin)):
             raise TypeError(f'{PluginClass} does not inherit from '
@@ -175,7 +216,12 @@ class SpyderPluginRegistry(QObject):
         instance = None
         if issubclass(PluginClass, SpyderPluginV2):
             # Register a Spyder 5+ plugin
-            instance = self._instantiate_spyder5_plugin(PluginClass)
+            instance = self._instantiate_spyder5_plugin(
+                main_window, PluginClass)
+        elif issubclass(PluginClass, SpyderPlugin):
+            # Register a Spyder 4 plugin
+            instance = self._instantiate_spyder4_plugin(
+                main_window, PluginClass, args, kwargs)
 
         return weakref.proxy(instance)
 
@@ -229,6 +275,23 @@ class SpyderPluginRegistry(QObject):
         else:
             raise SpyderAPIError(f'Plugin {plugin_name} was not found in '
                                  'the registry')
+
+    def __contains__(self, plugin_name: str) -> bool:
+        """
+        Determine if a plugin name is contained in the registry.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to seek.
+
+        Returns
+        -------
+        is_contained: bool
+            If True, the plugin name is contained on the registry, False
+            otherwise.
+        """
+        return plugin_name in self.plugin_registry:
 
 
 PLUGIN_REGISTRY = SpyderPluginRegistry()

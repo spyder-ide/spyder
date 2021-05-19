@@ -198,10 +198,12 @@ class MainWindow(QMainWindow):
         else:
             self._INTERNAL_PLUGINS[plugin.NAME] = plugin
 
-    def register_plugin(self, plugin, external=False, omit_conf=False):
+    def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
         Register a plugin in Spyder Main Window.
         """
+        plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+
         self.set_splash(_("Loading {}...").format(plugin.get_name()))
         logger.info("Loading {}...".format(plugin.NAME))
 
@@ -236,7 +238,6 @@ class MainWindow(QMainWindow):
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
-        plugin.register()
 
         if isinstance(plugin, SpyderDockablePlugin):
             # Add dockwidget
@@ -743,10 +744,10 @@ class MainWindow(QMainWindow):
 
     def setup(self):
         """Setup main window."""
+        PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
+
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
-        PLUGIN_REGISTRY.sig_plugin_ready.connect()
-
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
         logger.info("Updating PYTHONPATH")
@@ -842,6 +843,12 @@ class MainWindow(QMainWindow):
                     enabled_plugins[plugin_name] = plugin
             except (cp.NoOptionError, cp.NoSectionError):
                 enabled_plugins[plugin_name] = plugin
+
+        # Instantiate internal Spyder 5 plugins
+        for plugin_name in internal_plugins:
+            PluginClass = internal_plugins[plugin_name]
+            if issubclass(PluginClass, SpyderPluginV2):
+                PLUGIN_REGISTRY.register_plugin(self, PluginClass)
 
         # Get ordered list of plugins classes and instantiate them
         plugin_deps = solve_plugin_dependencies(list(enabled_plugins.values()))
