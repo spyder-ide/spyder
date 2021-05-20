@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-03-26 18:07\n"
+"PO-Revision-Date: 2021-05-20 12:37\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -240,7 +240,7 @@ msgstr "Полноэкранный режим"
 
 #: spyder/app/mainwindow.py:763
 msgid "For fullscreen mode use macOS built-in feature"
-msgstr ""
+msgstr "Для полноэкранного режима воспользуйтесь встроенной функцией macOS"
 
 #: spyder/app/mainwindow.py:779
 msgid "Main toolbar"
@@ -355,7 +355,7 @@ msgstr "Документация Spyder"
 
 #: spyder/app/mainwindow.py:993
 msgid "Tutorial videos"
-msgstr ""
+msgstr "Обучающие видео"
 
 #: spyder/app/mainwindow.py:998
 msgid "Shortcuts Summary"
@@ -363,7 +363,7 @@ msgstr "Перечень комбинаций клавиш"
 
 #: spyder/app/mainwindow.py:1024
 msgid "Interactive tour introducing Spyder's panes and features"
-msgstr ""
+msgstr "Интерактивный тур, представляющий панели и особенности Spyder"
 
 #: spyder/app/mainwindow.py:1035
 msgid "Python documentation"
@@ -469,7 +469,7 @@ msgstr "Компоновка окон будет восстановлена по
 
 #: spyder/app/mainwindow.py:2019
 msgid "<b>%s</b> will be overwritten. Do you want to continue?"
-msgstr ""
+msgstr "<b>%s</b> будет перезаписан. Продолжить?"
 
 #: spyder/app/mainwindow.py:2081
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
@@ -517,27 +517,27 @@ msgstr "Spyder будет перезапущен, настройки возвр�
 
 #: spyder/app/mainwindow.py:3306
 msgid "New Spyder version"
-msgstr ""
+msgstr "Новая версия Spyder"
 
 #: spyder/app/mainwindow.py:3307
 msgid "Check for updates at startup"
-msgstr ""
+msgstr "Проверять наличие обновлений при запуске"
 
 #: spyder/app/mainwindow.py:3324
 msgid "<b>Spyder {} is available!</b><br><br>"
-msgstr ""
+msgstr "<b>Spyder {} доступен!</b><br><br>"
 
 #: spyder/app/mainwindow.py:3326
 msgid "For more information visit our <a href=\"{}\">installation guide</a>."
-msgstr ""
+msgstr "Для получения дополнительной информации посетите наше <a href=\"{}\">руководство по установке</a>."
 
 #: spyder/app/mainwindow.py:3331
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
-msgstr ""
+msgstr "<b>Важное примечание:</b> Если вы установили Spyder с Anaconda, пожалуйста, <b>не</b> используйте <code>pip</code> для его обновления, так как это нарушит вашу установку.<br><br>Вместо Выполните следующие команды в терминале:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
 
 #: spyder/app/mainwindow.py:3342
 msgid "Please go to <a href=\"{}\">this page</a> to download it.<br><br>"
-msgstr ""
+msgstr "Пожалуйста, перейдите на <a href=\"{}\">эту страницу</a>, чтобы загрузить ее.<br><br>"
 
 #: spyder/app/mainwindow.py:3352
 msgid "Spyder is up to date."
@@ -591,11 +591,11 @@ msgstr "Перезапуск"
 
 #: spyder/app/tour.py:149
 msgid "Welcome to the introduction tour!"
-msgstr ""
+msgstr "Добро пожаловать в обучающий тур!"
 
 #: spyder/app/tour.py:150
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
-msgstr ""
+msgstr "<b>Spyder</b> - мощная Интерактивная Среда Разработки (или IDE) для языка программирования Python.<br><br>Здесь мы ознакомим Вас с наиболее важными возможностями.<br><br>Пожалуйста, используйте клавиши со стрелками или кнопки внизу, чтобы двигаться по туру."
 
 #: spyder/app/tour.py:159 spyder/plugins/base.py:324 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:346 spyder/plugins/editor/plugin.py:1894 spyder/plugins/editor/utils/switcher.py:40 spyder/plugins/editor/widgets/codeeditor.py:126 spyder/plugins/editor/widgets/codeeditor.py:5293 spyder/plugins/editor/widgets/editor.py:541 spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
