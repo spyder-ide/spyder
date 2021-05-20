@@ -158,15 +158,17 @@ class MainWindow(QMainWindow):
         """
         Return a plugin instance by providing the plugin class.
         """
-        for name, plugin in self._PLUGINS.items():
-            if plugin_name == name:
-                return plugin
-        else:
-            if error:
-                raise SpyderAPIError(
-                    'Plugin "{}" not found!'.format(plugin_name))
-            else:
-                return None
+        if plugin_name in PLUGIN_REGISTRY:
+            return PLUGIN_REGISTRY.get_plugin(plugin_name)
+
+        if error:
+            raise SpyderAPIError(f'Plugin "{plugin_name}" not found!')
+
+        return None
+
+    def is_plugin_enabled(self, plugin_name):
+        """Determine if a given plugin is going to be loaded."""
+        return PLUGIN_REGISTRY.is_plugin_enabled(plugin_name)
 
     def show_status_message(self, message, timeout):
         """
@@ -251,6 +253,11 @@ class MainWindow(QMainWindow):
 
         self.add_plugin(plugin, external=external)
 
+        if plugin_name == Plugins.Shortcuts:
+            for action, context, action_name in self.shortcut_queue:
+                self.register_shortcut(action, context, action_name)
+            self.shortcut_queue = []
+
         logger.info("Registering shortcuts for {}...".format(plugin.NAME))
         for action_name, action in plugin.get_actions().items():
             context = (getattr(action, 'shortcut_context', plugin.NAME)
@@ -259,8 +266,10 @@ class MainWindow(QMainWindow):
             if getattr(action, 'register_shortcut', True):
                 if isinstance(action_name, Enum):
                     action_name = action_name.value
-
-                self.register_shortcut(action, context, action_name)
+                if Plugins.Shortcuts in PLUGIN_REGISTRY:
+                    self.register_shortcut(action, context, action_name)
+                else:
+                    self.shortcut_queue.append((action, context, action_name))
 
         if isinstance(plugin, SpyderDockablePlugin):
             try:
@@ -276,8 +285,14 @@ class MainWindow(QMainWindow):
             sc.setContext(Qt.ApplicationShortcut)
             plugin._shortcut = sc
 
-            self.register_shortcut(sc, context, name)
-            self.register_shortcut(plugin.toggle_view_action, context, name)
+            if Plugins.Shortcuts in PLUGIN_REGISTRY:
+                self.register_shortcut(sc, context, name)
+                self.register_shortcut(
+                    plugin.toggle_view_action, context, name)
+            else:
+                self.shortcut_queue.append((sc, context, name))
+                self.shortcut_queue.append(
+                    (plugin.toggle_view_action, context, name))
 
     def unregister_plugin(self, plugin):
         """
@@ -558,6 +573,7 @@ class MainWindow(QMainWindow):
 
         # Shortcut management data
         self.shortcut_data = []
+        self.shortcut_queue = []
 
         # Handle Spyder path
         self.path = ()
@@ -841,14 +857,17 @@ class MainWindow(QMainWindow):
             try:
                 if CONF.get(plugin_main_attribute_name, "enable"):
                     enabled_plugins[plugin_name] = plugin
+                    PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):
                 enabled_plugins[plugin_name] = plugin
+                PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
 
         # Instantiate internal Spyder 5 plugins
         for plugin_name in internal_plugins:
-            PluginClass = internal_plugins[plugin_name]
-            if issubclass(PluginClass, SpyderPluginV2):
-                PLUGIN_REGISTRY.register_plugin(self, PluginClass)
+            if plugin_name in enabled_plugins:
+                PluginClass = internal_plugins[plugin_name]
+                if issubclass(PluginClass, SpyderPluginV2):
+                    PLUGIN_REGISTRY.register_plugin(self, PluginClass)
 
         # Get ordered list of plugins classes and instantiate them
         plugin_deps = solve_plugin_dependencies(list(enabled_plugins.values()))
@@ -1197,8 +1216,11 @@ class MainWindow(QMainWindow):
 
         # Call on_mainwindow_visible for all plugins.
         for __, plugin in self._PLUGINS.items():
-            plugin.on_mainwindow_visible()
-            QApplication.processEvents()
+            try:
+                plugin.on_mainwindow_visible()
+                QApplication.processEvents()
+            except AttributeError:
+                pass
 
         self.restore_scrollbar_position.emit()
 

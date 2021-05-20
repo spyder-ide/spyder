@@ -41,7 +41,6 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.enum import Plugins
 from spyder.api.translations import get_translation
 from spyder.api.startup.mixins import SpyderPluginObserver
-from spyder.api.startup.registry import PLUGIN_REGISTRY
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
@@ -940,7 +939,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         if plugin_name in requires | optional:
             try:
-                return PLUGIN_REGISTRY.get_plugin(plugin_name)
+                return self._main.get_plugin(plugin_name)
             except SpyderAPIError as e:
                 if plugin_name in optional:
                     return None
@@ -951,6 +950,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 'Plugin "{}" not part of REQUIRES or '
                 'OPTIONAL requirements!'.format(plugin_name)
             )
+
+    def is_plugin_enabled(self, plugin_name):
+        """Determine if a given plugin is going to be loaded."""
+        return self._main.is_plugin_enabled(plugin_name)
 
     def get_dockable_plugins(self):
         """

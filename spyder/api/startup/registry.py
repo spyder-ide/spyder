@@ -7,8 +7,9 @@
 """Global plugin registry."""
 
 # Standard library imports
-import weakref
+import logging
 from typing import Dict, List, Union, Type, Any
+import weakref
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -31,6 +32,8 @@ SpyderPluginClass = Union[Spyder4PluginClass, Spyder5PluginClass]
 
 ALL_PLUGINS = [getattr(Plugins, attr) for attr in dir(Plugins)
                if not attr.startswith('_') and attr != 'All']
+
+logger = logging.getLogger(__name__)
 
 
 class SpyderPluginRegistry(QObject):
@@ -66,6 +69,7 @@ class SpyderPluginRegistry(QObject):
     """
 
     def __init__(self):
+        super().__init__()
         # Dictionary that maps a plugin name to a list of the plugin names
         # that depend on it.
         self.plugin_dependents = {}  # type: Dict[str, Dict[str, List[str]]]
@@ -82,6 +86,9 @@ class SpyderPluginRegistry(QObject):
 
         # Set that stores the plugin names of all Spyder 4 plugins.
         self.old_plugins = set({})  # type: set[str]
+
+        # Set that stores the names of the plugins that are enabled
+        self.enabled_plugins = set({})
 
     # ------------------------- PRIVATE API -----------------------------------
     def _update_dependents(self, plugin: str, dependent_plugin: str, key: str):
@@ -120,6 +127,8 @@ class SpyderPluginRegistry(QObject):
         required_plugins = list(set(PluginClass.REQUIRES))
         optional_plugins = list(set(PluginClass.OPTIONAL))
         plugin_name = PluginClass.NAME
+
+        logger.debug(f'Registering plugin {plugin_name} - {PluginClass}')
 
         for plugin in list(required_plugins):
             if plugin == Plugins.All:
@@ -276,6 +285,34 @@ class SpyderPluginRegistry(QObject):
             raise SpyderAPIError(f'Plugin {plugin_name} was not found in '
                                  'the registry')
 
+    def set_plugin_enabled(self, plugin_name: str):
+        """
+        Add a plugin name to the set of enabled plugins.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to add.
+        """
+        self.enabled_plugins |= {plugin_name}
+
+    def is_plugin_enabled(self, plugin_name: str) -> bool:
+        """
+        Determine if a given plugin is enabled and is going to be
+        loaded.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to query.
+
+        Returns
+        -------
+        plugin_enabled: bool
+            True if the plugin is enabled and False if not.
+        """
+        return plugin_name in self.enabled_plugins
+
     def __contains__(self, plugin_name: str) -> bool:
         """
         Determine if a plugin name is contained in the registry.
@@ -291,7 +328,7 @@ class SpyderPluginRegistry(QObject):
             If True, the plugin name is contained on the registry, False
             otherwise.
         """
-        return plugin_name in self.plugin_registry:
+        return plugin_name in self.plugin_registry
 
 
 PLUGIN_REGISTRY = SpyderPluginRegistry()

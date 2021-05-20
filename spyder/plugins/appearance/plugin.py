@@ -12,6 +12,7 @@ Appearance Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.appearance.confpage import AppearanceConfigPage
 
@@ -45,6 +46,10 @@ class Appearance(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon('eyedropper')
 
-    def register(self):
+    def on_initialize(self):
+        pass
+
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def register_preferences(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
