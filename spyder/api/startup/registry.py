@@ -179,6 +179,15 @@ class SpyderPluginRegistry(QObject):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(plugin_instance)
 
+        # Notify new-API plugins that depend on old ones
+        plugin_dependents = self.plugin_dependents.get(plugin_name, {})
+        required_plugins = plugin_dependents.get('requires', [])
+        optional_plugins = plugin_dependents.get('optional', [])
+
+        for plugin in required_plugins + optional_plugins:
+            plugin_instance = self.plugin_registry[plugin]
+            plugin._on_plugin_available(plugin_name)
+
         return plugin_instance
 
     # -------------------------- PUBLIC API -----------------------------------

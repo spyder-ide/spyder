@@ -18,6 +18,7 @@ from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.application.plugin import ApplicationActions
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget
@@ -85,9 +86,8 @@ class Console(SpyderDockablePlugin):
     def get_description(self):
         return _('Internal console running Spyder.')
 
-    def register(self):
+    def on_initialize(self):
         widget = self.get_widget()
-        mainmenu = self.get_plugin(Plugins.MainMenu)
 
         # Signals
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -96,7 +96,7 @@ class Console(SpyderDockablePlugin):
         widget.sig_refreshed.connect(self.sig_refreshed)
         widget.sig_help_requested.connect(self.sig_help_requested)
 
-        # Crash handling
+         # Crash handling
         previous_crash = self.get_conf(
             'previous_crash',
             default='',
@@ -114,12 +114,16 @@ class Console(SpyderDockablePlugin):
             )
             widget.handle_exception(error_data)
 
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        widget = self.get_widget()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
         # Actions
-        if mainmenu:
-            mainmenu.add_item_to_application_menu(
-                widget.quit_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Restart)
+        mainmenu.add_item_to_application_menu(
+            widget.quit_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Restart)
 
     def update_font(self):
         font = self.get_font()
