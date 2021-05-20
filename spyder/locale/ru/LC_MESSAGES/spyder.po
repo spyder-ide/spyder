@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-03-30 06:02\n"
+"PO-Revision-Date: 2021-05-20 12:36\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -146,7 +146,7 @@ msgstr "Создание главного окна..."
 
 #: spyder/app/mainwindow.py:1107
 msgid "Interactive tour introducing Spyder's panes and features"
-msgstr ""
+msgstr "Интерактивный тур, представляющий панели и особенности Spyder"
 
 #: spyder/app/mainwindow.py:1119
 msgid "IPython documentation"
@@ -252,11 +252,11 @@ msgstr "Перезапуск"
 
 #: spyder/app/tour.py:147
 msgid "Welcome to the introduction tour!"
-msgstr ""
+msgstr "Добро пожаловать в обучающий тур!"
 
 #: spyder/app/tour.py:148
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
-msgstr ""
+msgstr "<b>Spyder</b> - мощная Интерактивная Среда Разработки (или IDE) для языка программирования Python.<br><br>Здесь мы ознакомим Вас с наиболее важными возможностями.<br><br>Пожалуйста, используйте клавиши со стрелками или кнопки внизу, чтобы двигаться по туру."
 
 #: spyder/app/tour.py:157 spyder/plugins/base.py:331 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:413 spyder/plugins/editor/plugin.py:2051 spyder/plugins/editor/utils/switcher.py:36 spyder/plugins/editor/widgets/codeeditor.py:5213 spyder/plugins/editor/widgets/codeeditor_widgets.py:61 spyder/plugins/editor/widgets/editor.py:323 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:314
 msgid "Editor"
@@ -874,7 +874,7 @@ msgstr "Документация Spyder"
 
 #: spyder/plugins/application/container.py:88
 msgid "Tutorial videos"
-msgstr ""
+msgstr "Обучающие видео"
 
 #: spyder/plugins/application/container.py:95
 msgid "Troubleshooting..."
@@ -914,27 +914,27 @@ msgstr "Перезапуск"
 
 #: spyder/plugins/application/container.py:173
 msgid "New Spyder version"
-msgstr ""
+msgstr "Новая версия Spyder"
 
 #: spyder/plugins/application/container.py:174
 msgid "Check for updates at startup"
-msgstr ""
+msgstr "Проверять наличие обновлений при запуске"
 
 #: spyder/plugins/application/container.py:191
 msgid "<b>Spyder {} is available!</b><br><br>"
-msgstr ""
+msgstr "<b>Spyder {} доступен!</b><br><br>"
 
 #: spyder/plugins/application/container.py:193
 msgid "For more information visit our <a href=\"{}\">installation guide</a>."
-msgstr ""
+msgstr "Для получения дополнительной информации посетите наше <a href=\"{}\">руководство по установке</a>."
 
 #: spyder/plugins/application/container.py:198
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
-msgstr ""
+msgstr "<b>Важное примечание:</b> Если вы установили Spyder с Anaconda, пожалуйста, <b>не</b> используйте <code>pip</code> для его обновления, так как это нарушит вашу установку.<br><br>Вместо Выполните следующие команды в терминале:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
 
 #: spyder/plugins/application/container.py:209
 msgid "Please go to <a href=\"{}\">this page</a> to download it.<br><br>"
-msgstr ""
+msgstr "Пожалуйста, перейдите на <a href=\"{}\">эту страницу</a>, чтобы загрузить ее.<br><br>"
 
 #: spyder/plugins/application/container.py:219
 msgid "Spyder is up to date."
