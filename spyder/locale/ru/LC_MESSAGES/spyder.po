@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-05-20 12:48\n"
+"PO-Revision-Date: 2021-05-20 12:58\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -280,7 +280,7 @@ msgstr "Менеджер Переменных"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr ""
+msgstr "В этой панели можно изучать и редактировать переменные, созданные в ходе работы программы или введенные напрямую в консоль IPython.<br><br>Если вы запустили код, то Менеджер Переменных покажет списки, словари и переменные, которые он сгенерировал. Двойной щелчок на любом из них открывает окно, где можно тщательно изучить и изменить их содержимое."
 
 #: spyder/app/tour.py:209 spyder/plugins/console/widgets/internalshell.py:278 spyder/plugins/help/plugin.py:76 spyder/plugins/help/widgets.py:341 spyder/plugins/help/widgets.py:580 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
