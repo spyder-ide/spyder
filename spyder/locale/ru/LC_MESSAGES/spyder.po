@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-05-20 12:36\n"
+"PO-Revision-Date: 2021-05-20 12:48\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -276,7 +276,7 @@ msgstr ""
 
 #: spyder/app/tour.py:195 spyder/plugins/variableexplorer/widgets/main_widget.py:153
 msgid "Variable Explorer"
-msgstr ""
+msgstr "Менеджер Переменных"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
