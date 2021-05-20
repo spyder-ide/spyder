@@ -41,7 +41,8 @@ class SpyderRegistry:
 
     def register_reference(self, obj: Any, id_: str,
                            plugin: Optional[str] = None,
-                           context: Optional[str] = None):
+                           context: Optional[str] = None,
+                           overwrite: Optional[bool] = False):
         """
         Register a reference `obj` for a given plugin name on a given context.
 
@@ -73,12 +74,13 @@ class SpyderRegistry:
         if id_ in context_references:
             try:
                 frames = get_caller(self.creation_func)
-                warnings.warn(
-                    f'There already exists a reference {context_references[id_]} '
-                    f'with id {id_} under the context {context} of plugin '
-                    f'{plugin}. The new reference {obj} will overwrite the '
-                    f'previous reference. Hint: {obj} should have a different '
-                    f'id_. See {frames}')
+                if not overwrite:
+                    warnings.warn(
+                        f'There already exists a reference {context_references[id_]} '
+                        f'with id {id_} under the context {context} of plugin '
+                        f'{plugin}. The new reference {obj} will overwrite the '
+                        f'previous reference. Hint: {obj} should have a different '
+                        f'id_. See {frames}')
             except (RuntimeError, KeyError):
                 # Do not raise exception if a wrapped Qt Object was deleted.
                 # Or if the object reference dissapeared concurrently.

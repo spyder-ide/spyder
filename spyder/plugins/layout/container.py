@@ -194,6 +194,7 @@ class LayoutContainer(PluginMainContainer):
                     text=name,
                     triggered=trigger(),
                     register_shortcut=False,
+                    overwrite=True
                 )
 
                 actions.append(layout_switch_action)
