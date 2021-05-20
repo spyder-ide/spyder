@@ -54,24 +54,8 @@ class FindInFiles(SpyderDockablePlugin):
     def get_icon(self):
         return self.create_icon('findf')
 
-    def register(self):
-        widget = self.get_widget()
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        editor = self.get_plugin(Plugins.Editor)
-        projects = self.get_plugin(Plugins.Projects)
-
-        if editor:
-            widget.sig_edit_goto_requested.connect(
-                lambda filename, lineno, search_text, colno, colend: editor.load(
-                    filename, lineno, start_column=colno, end_column=colend))
-            editor.sig_file_opened_closed_or_updated.connect(
-                self.set_current_opened_file)
-
-        if projects:
-            projects.sig_project_loaded.connect(self.set_project_path)
-            projects.sig_project_closed.connect(self.unset_project_path)
-
-        findinfiles_action = self.create_action(
+    def on_initialize(self):
+        self.create_action(
             FindInFilesActions.FindInFiles,
             text=_("Find in files"),
             tip=_("Search text in multiple files"),
@@ -79,15 +63,34 @@ class FindInFiles(SpyderDockablePlugin):
             register_shortcut=True,
             context=Qt.WindowShortcut
         )
-
-        if mainmenu:
-            menu = mainmenu.get_application_menu(ApplicationMenus.Search)
-            mainmenu.add_item_to_application_menu(
-                findinfiles_action,
-                menu=menu,
-            )
-
         self.refresh_search_directory()
+
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        widget.sig_edit_goto_requested.connect(
+            lambda filename, lineno, search_text, colno, colend: editor.load(
+                filename, lineno, start_column=colno, end_column=colend))
+        editor.sig_file_opened_closed_or_updated.connect(
+            self.set_current_opened_file)
+
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(self.set_project_path)
+        projects.sig_project_closed.connect(self.unset_project_path)
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        findinfiles_action = self.get_action(FindInFilesActions.FindInFiles)
+
+        menu = mainmenu.get_application_menu(ApplicationMenus.Search)
+        mainmenu.add_item_to_application_menu(
+            findinfiles_action,
+            menu=menu,
+        )
 
     def on_close(self, cancelable=False):
         self.get_widget()._update_options()
