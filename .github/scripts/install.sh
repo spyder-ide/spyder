@@ -57,8 +57,8 @@ fi
 
 # This is necessary only for Windows (don't know why).
 if [ "$OS" = "win" ]; then
-    # Install python-language-server from our subrepo
-    pushd external-deps/python-language-server
+    # Install python-lsp-server from our subrepo
+    pushd external-deps/python-lsp-server
     pip install --no-deps -q -e .
     popd
 fi
