@@ -167,10 +167,10 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
     file_path = tmp_path / 'test.py'
     file_path.write_text('')
 
-    editor.filename = file_path
+    editor.filename = str(file_path)
     editor.language = 'Python'
 
-    completion_plugin.register_file('python', file_path, editor)
+    completion_plugin.register_file('python', str(file_path), editor)
     editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
