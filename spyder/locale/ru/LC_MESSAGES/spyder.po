@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-05-20 12:58\n"
+"PO-Revision-Date: 2021-05-20 13:13\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -288,7 +288,7 @@ msgstr "Справка"
 
 #: spyder/app/tour.py:210
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the IPython Console.<br><br>To use it, press <b>Ctrl+I</b> (<b>Cmd-I</b> on macOS) with the text cursor in or next to the object you want help on."
-msgstr ""
+msgstr "Эта панель показывает документацию по функциям, классам, методам и модулям, используемым сейчас в Редакторе или консоли IPython.<br><br>Чтобы воспользоваться ею, нажмите <b>Ctrl+I</b> (<b>Cmd-I</b> на macOS) напротив объекта. Если у объекта есть какая-либо документация, она будет показана здесь."
 
 #: spyder/app/tour.py:220 spyder/plugins/plots/plugin.py:39 spyder/plugins/plots/widgets/main_widget.py:179
 msgid "Plots"
@@ -296,7 +296,7 @@ msgstr "Графики"
 
 #: spyder/app/tour.py:221
 msgid "This pane shows the figures and images created during your code execution. It allows you to browse, zoom, copy, and save the generated plots."
-msgstr ""
+msgstr "Эта панель показывает рисунки и изображения, созданные во время выполнения кода. Она позволяет просматривать, увеличивать, копировать и сохранять сгенерированные диаграммы."
 
 #: spyder/app/tour.py:227 spyder/plugins/explorer/plugin.py:156 spyder/plugins/explorer/widgets/main_widget.py:202
 msgid "Files"
@@ -308,11 +308,11 @@ msgstr ""
 
 #: spyder/app/tour.py:241
 msgid "History Log"
-msgstr ""
+msgstr "Журнал"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
-msgstr ""
+msgstr "Эта панель записывает все команды и код запущенный в любой консоли IPython, позволяя легко отследить ваши шаги для воспроизводимых исследований."
 
 #: spyder/app/tour.py:249 spyder/plugins/findinfiles/plugin.py:49 spyder/plugins/findinfiles/widgets.py:931 spyder/plugins/onlinehelp/widgets.py:202
 msgid "Find"
@@ -320,7 +320,7 @@ msgstr "Найти"
 
 #: spyder/app/tour.py:250
 msgid "The Find pane allows you to search for text in a given directory and navigate through all the found occurrences."
-msgstr ""
+msgstr "Панель \"Найти\" позволяет искать текст в заданном каталоге и перемещаться по всем найденным совпадениям."
 
 #: spyder/app/tour.py:256 spyder/plugins/profiler/plugin.py:64 spyder/plugins/profiler/widgets/main_widget.py:189
 msgid "Profiler"
@@ -340,11 +340,11 @@ msgstr ""
 
 #: spyder/app/tour.py:271
 msgid "The end"
-msgstr ""
+msgstr "Конец"
 
 #: spyder/app/tour.py:272
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
-msgstr ""
+msgstr "Вы достигли конца нашего тура и готовы начать использовать Spyder! Для получения дополнительной информации ознакомьтесь с <a href=\"{}\">документацией</a>.<br><br>"
 
 #: spyder/app/tour.py:324
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -376,7 +376,7 @@ msgstr "Перейти к шагу: "
 
 #: spyder/app/tour.py:1257
 msgid "Request"
-msgstr ""
+msgstr "Запрос"
 
 #: spyder/app/tour.py:1258
 msgid "To run the tour, please press the green button on the left of the Spyder window's title bar to take it out of fullscreen mode."
@@ -388,7 +388,7 @@ msgstr ""
 
 #: spyder/app/tour.py:1443
 msgid "Start tour"
-msgstr ""
+msgstr "Начать тур"
 
 #: spyder/config/manager.py:568
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -1070,7 +1070,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/kite/provider.py:213
 msgid "Kite error"
-msgstr ""
+msgstr "Ошибка Kite"
 
 #: spyder/plugins/completion/providers/kite/provider.py:230
 msgid "Install Kite completion engine"
@@ -1346,7 +1346,7 @@ msgstr "Стиль кода"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:106
 msgid "Line length"
-msgstr ""
+msgstr "Длина строки"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:123
 msgid "Spyder can use {0}, {1} or {2} to format your code for conformance to the {3} convention."
