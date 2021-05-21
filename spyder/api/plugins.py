@@ -812,6 +812,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     def __init__(self, parent, configuration=None):
         super().__init__(parent)
 
+        # This is required since the MRO of this class does not go up until to
+        # SpyderPluginObserver when using super(), see
+        # https://fuhm.net/super-harmful/
+        SpyderPluginObserver.__init__(self)
+
         self._main = parent
         self._widget = None
         self._conf = configuration
@@ -936,8 +941,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         # `plugin_name` listed as required or optional.
         requires = set(self.REQUIRES or [])
         optional = set(self.OPTIONAL or [])
+        full_set = requires | optional
 
-        if plugin_name in requires | optional:
+        if plugin_name in full_set or Plugins.All in full_set:
             try:
                 return self._main.get_plugin(plugin_name)
             except SpyderAPIError as e:

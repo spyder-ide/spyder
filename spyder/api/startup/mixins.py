@@ -13,6 +13,8 @@ import logging
 from typing import Any, Union, Optional
 import warnings
 
+logger = logging.getLogger(__name__)
+
 
 class SpyderPluginObserver:
     """
@@ -32,15 +34,12 @@ class SpyderPluginObserver:
 
     def __init__(self):
         self._plugin_listeners = {}
-        self._gather_observers()
-
-    def _gather_observers(self):
-        """Gather all the methods decorated with `on_plugin_available`."""
         for method_name in dir(self):
             method = getattr(self, method_name, None)
             if hasattr(method, '_plugin_listen'):
                 info = method._plugin_listen
-                self._plugin_listeners[info] = method
+                logger.debug(f'Method {method_name} is watching plugin {info}')
+                self._plugin_listeners[info] = method_name
 
     def _on_plugin_available(self, plugin: str):
         """
@@ -56,6 +55,7 @@ class SpyderPluginObserver:
         if plugin in self._plugin_listeners:
             method_name = self._plugin_listeners[plugin]
             method = getattr(self, method_name)
+            logger.debug(f'Calling {method}')
             method()
 
         # Call global plugin handler

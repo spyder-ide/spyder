@@ -106,7 +106,7 @@ class SpyderPluginRegistry(QObject):
         plugin_strict_dependencies = plugin_dependencies.get(key, [])
         plugin_strict_dependencies.append(required_plugin)
         plugin_dependencies[key] = plugin_strict_dependencies
-        plugin_dependencies[plugin] = plugin_dependencies
+        self.plugin_dependencies[plugin] = plugin_dependencies
 
     def _update_plugin_info(self, plugin_name: str,
                             required_plugins: List[str],
@@ -154,9 +154,7 @@ class SpyderPluginRegistry(QObject):
         plugin_instance.initialize()
 
         # Register plugins that are already available
-        for plugin in required_plugins + optional_plugins:
-            if self.plugin_availability.get(plugin, False):
-                plugin_instance._on_plugin_available(plugin)
+        self._notify_plugin_dependencies(plugin_name)
 
         return plugin_instance
 
@@ -180,15 +178,21 @@ class SpyderPluginRegistry(QObject):
         preferences.register_plugin_preferences(plugin_instance)
 
         # Notify new-API plugins that depend on old ones
-        plugin_dependents = self.plugin_dependents.get(plugin_name, {})
-        required_plugins = plugin_dependents.get('requires', [])
-        optional_plugins = plugin_dependents.get('optional', [])
-
-        for plugin in required_plugins + optional_plugins:
-            plugin_instance = self.plugin_registry[plugin]
-            plugin._on_plugin_available(plugin_name)
+        self.notify_plugin_availability(plugin_name, False)
 
         return plugin_instance
+
+    def _notify_plugin_dependencies(self, plugin_name: str):
+        """Notify a plugin of its available dependencies."""
+        plugin_instance = self.plugin_registry[plugin_name]
+        plugin_dependencies = self.plugin_dependencies.get(plugin_name, {})
+        required_plugins = plugin_dependencies.get('requires', [])
+        optional_plugins = plugin_dependencies.get('optional', [])
+
+        for plugin in required_plugins + optional_plugins:
+            if plugin in self.plugin_registry and self.plugin_availability.get(plugin, False):
+                logger.debug(f'Plugin {plugin} has already loaded')
+                plugin_instance._on_plugin_available(plugin)
 
     # -------------------------- PUBLIC API -----------------------------------
     def register_plugin(
@@ -243,7 +247,8 @@ class SpyderPluginRegistry(QObject):
 
         return weakref.proxy(instance)
 
-    def notify_plugin_availability(self, plugin_name: str):
+    def notify_plugin_availability(self, plugin_name: str,
+                                   notify_main: bool = True):
         """
         Notify dependent plugins of a given plugin of its availability.
 
@@ -251,22 +256,29 @@ class SpyderPluginRegistry(QObject):
         ----------
         plugin_name: str
             Name of the plugin that is available.
+        notify_main: bool
+            If True, then a signal is emitted to the main window to perform
+            further registration steps.
         """
+        logger.debug(f'Plugin {plugin_name} has finished loading, '
+                     'sending notifications')
+
         # Set plugin availability to True
         self.plugin_availability[plugin_name] = True
 
         # Notify the main window that the plugin is ready
-        self.sig_plugin_ready.emit(plugin_name)
+        if notify_main:
+            self.sig_plugin_ready.emit(plugin_name)
 
-        # Notify plugin dependencies
-        plugin_dependencies = self.plugin_dependencies.get(plugin_name, {})
-        required_plugins = plugin_dependencies.get('requires', [])
-        optional_plugins = plugin_dependencies.get('optional', [])
+        # Notify plugin dependents
+        plugin_dependents = self.plugin_dependents.get(plugin_name, {})
+        required_plugins = plugin_dependents.get('requires', [])
+        optional_plugins = plugin_dependents.get('optional', [])
 
         for plugin in required_plugins + optional_plugins:
             if plugin in self.plugin_registry:
                 plugin_instance = self.plugin_registry[plugin]
-                plugin._on_plugin_available(plugin_name)
+                plugin_instance._on_plugin_available(plugin_name)
 
     def get_plugin(self, plugin_name: str) -> weakref.ProxyType:
         """
