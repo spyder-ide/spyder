@@ -22,6 +22,7 @@ from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.config.base import _
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
@@ -243,35 +244,39 @@ class Preferences(SpyderPluginV2):
     def get_icon(self) -> QIcon:
         return self.create_icon('configure')
 
-    def register(self):
+    def on_initialize(self):
         container = self.get_container()
         main = self.get_main()
-        main_menu = self.get_plugin(Plugins.MainMenu)
-        toolbar = self.get_plugin(Plugins.Toolbar)
 
         container.sig_reset_preferences_requested.connect(main.reset_spyder)
         container.sig_show_preferences_requested.connect(
             lambda: self.open_dialog(main.prefs_dialog_size))
 
-        if main_menu:
-            main_menu.add_item_to_application_menu(
-                container.show_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools,
-            )
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        container = self.get_container()
+        main_menu = self.get_plugin(Plugins.MainMenu)
 
-            main_menu.add_item_to_application_menu(
-                container.reset_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Extras,
-            )
+        main_menu.add_item_to_application_menu(
+            container.show_action,
+            menu_id=ApplicationMenus.Tools,
+            section=ToolsMenuSections.Tools,
+        )
 
-        if toolbar:
-            toolbar.add_item_to_application_toolbar(
-                container.show_action,
-                toolbar_id=ApplicationToolbars.Main,
-                section=MainToolbarSections.ApplicationSection
-            )
+        main_menu.add_item_to_application_menu(
+            container.reset_action,
+            menu_id=ApplicationMenus.Tools,
+            section=ToolsMenuSections.Extras,
+        )
+
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        container = self.get_container()
+        toolbar.add_item_to_application_toolbar(
+            container.show_action,
+            toolbar_id=ApplicationToolbars.Main,
+            section=MainToolbarSections.ApplicationSection
+        )
 
     def unregister(self):
         pass

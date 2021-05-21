@@ -13,6 +13,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
 
@@ -44,7 +45,13 @@ class Plots(SpyderDockablePlugin):
     def get_icon(self):
         return self.create_icon('hist')
 
-    def register(self):
+    def on_initialize(self):
+        # If a figure is loaded raise the dockwidget but do not give focus
+        self.get_widget().sig_figure_loaded.connect(
+            lambda: self.switch_to_plugin(force_focus=False))
+
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
@@ -54,10 +61,6 @@ class Plots(SpyderDockablePlugin):
             self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
-
-        # If a figure is loaded raise the dockwidget but do not give focus
-        self.get_widget().sig_figure_loaded.connect(
-            lambda: self.switch_to_plugin(force_focus=False))
 
     def unregister(self):
         # Plugins
