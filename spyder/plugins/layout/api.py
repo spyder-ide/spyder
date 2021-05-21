@@ -102,8 +102,12 @@ class BaseGridLayoutType:
         if not any(self._visible_areas):
             raise SpyderAPIError("At least 1 area must be `visible`")
 
-        # Check that there is only 1 `default` area!
+        # Check that there is a `default` area!
         if not any(default_areas):
+            raise SpyderAPIError("No area is the `default`!")
+
+        # Check that there is 1 `default` area!
+        if default_areas.count(True) != 1:
             raise SpyderAPIError("Only 1 area can be the `default`!")
 
         # Check one area has row zero and column zero
