@@ -47,7 +47,7 @@ dependencies:
 - spyder-kernels
 - textdistance >=4.2.0
 - three-merge >=0.1.1
-- watchdog >=0.10.3,<2.0.0
+- watchdog >=0.10.3
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied

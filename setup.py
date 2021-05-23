@@ -240,7 +240,7 @@ install_requires = [
     'spyder-kernels>=2.0.3,<2.1.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
-    'watchdog>=0.10.3,<2.0.0'
+    'watchdog>=0.10.3'
 ]
 
 extras_require = {
