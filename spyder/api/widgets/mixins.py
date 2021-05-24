@@ -398,8 +398,8 @@ class SpyderActionMixin:
             The default value is `False`
         context_name: Optional[str]
             Name of the context that holds the action in case of registration.
-            The combination of `name` and `context_name` is unique so trying to 
-            register an action with the same `name` and `context_name` will
+            The combination of `name` and `context_name` is unique so trying
+            to register an action with the same `name` and `context_name` will
             cause a warning unless `overwrite` is set to `True`
 
         Notes
