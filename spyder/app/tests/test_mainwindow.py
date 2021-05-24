@@ -44,6 +44,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
+from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
@@ -53,6 +54,7 @@ from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
@@ -144,8 +146,13 @@ def find_desired_tab_in_window(tab_name, window):
     return None, None
 
 
-def register_all_providers():
-    """Create a entry points distribution to register all the providers."""
+def register_fake_entrypoints():
+    """
+    Create entry points distribution to register elements:
+     * Completion providers (Fallback, Shippets, LSP)
+     * Puglins (SpyderBoilerplate plugin)
+    """
+    # Completion providers
     fallback = pkg_resources.EntryPoint.parse(
         'fallback = spyder.plugins.completion.providers.fallback.provider:'
         'FallbackProvider'
@@ -159,22 +166,31 @@ def register_all_providers():
         'LanguageServerProvider'
     )
 
+    # Extra plugins
+    spyder_boilerplate = pkg_resources.EntryPoint.parse(
+        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
+        'plugin:SpyderBoilerplate'
+    )
+
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
 
-    # Add the providers to the fake EntryPoint
+    # Add the providers and plugins to the fake EntryPoints
     d._ep_map = {
         'spyder.completions': {
             'fallback': fallback,
             'snippets': snippets,
             'lsp': lsp
+        },
+        'spyder.plugins': {
+            'spyder_boilerplate': spyder_boilerplate
         }
     }
     # Add the fake distribution to the global working_set
     pkg_resources.working_set.add(d, 'spyder')
 
 
-def remove_fake_distribution():
+def remove_fake_entrypoints():
     """Remove fake entry points from pkg_resources"""
     try:
         pkg_resources.working_set.by_key.pop('unknown')
@@ -192,7 +208,7 @@ def remove_fake_distribution():
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
-    register_all_providers()
+    register_fake_entrypoints()
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -308,7 +324,7 @@ def cleanup(request):
                 main_window.window.close()
             except AttributeError:
                 pass
-        remove_fake_distribution()
+        remove_fake_entrypoints()
 
     request.addfinalizer(remove_test_dir)
 
@@ -2252,7 +2268,7 @@ def test_custom_layouts(main_window, qtbot):
     settings = mw.layouts.load_window_settings(prefix=prefix, default=True)
 
     # Test layout changes
-    for layout_idx in ['default'] + list(range(4)):
+    for layout_idx in get_class_values(DefaultLayouts):
         with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
             layout = mw.layouts.setup_default_layouts(
                 layout_idx, settings=settings)
@@ -2273,6 +2289,44 @@ def test_custom_layouts(main_window, qtbot):
                             except AttributeError:
                                 # Old API
                                 assert plugin.isVisible()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'), reason="Fake plugin registration fails")
+def test_programmatic_custom_layouts(main_window, qtbot):
+    """
+    Test that a custom layout gets registered and it is recognized."""
+    mw = main_window
+    mw.first_spyder_run = False
+
+    # Test layout registration
+    layout_id = 'testing layout'
+    # Test the testing plugin is being loaded
+    mw.get_plugin('spyder_boilerplate')
+    # Get the registered layout
+    layout = mw.layouts.get_layout(layout_id)
+
+    with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
+        mw.layouts.quick_layout_switch(layout_id)
+
+        with qtbot.waitSignal(None, timeout=500, raising=False):
+            # Add a wait to see changes
+            pass
+
+        for area in layout._areas:
+            if area['visible']:
+                for plugin_id in area['plugin_ids']:
+                    if plugin_id not in area['hidden_plugin_ids']:
+                        plugin = mw.get_plugin(plugin_id)
+                        print(plugin)  # spyder: test-skip
+                        try:
+                            # New API
+                            assert plugin.get_widget().isVisible()
+                        except AttributeError:
+                            # Old API
+                            assert plugin.isVisible()
 
 
 @pytest.mark.slow

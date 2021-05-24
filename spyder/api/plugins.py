@@ -710,6 +710,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     # ADDITIONAL_CONF_TABS = {'plugin_name': [<SpyderPreferencesTab classes>]}
     ADDITIONAL_CONF_TABS = None
 
+    # Define custom layout classes that the plugin wantes to be registered.
+    # THe custom classes should extend from
+    #       `spyder.pluginsl.layout.api::BaseGridLayoutType`
+    CUSTOM_LAYOUTS = []
+
     # Path for images relative to the plugin path
     # A Python package can include one or several Spyder plugins. In this case
     # the package may be using images from a global folder outside the plugin

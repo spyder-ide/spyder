@@ -309,7 +309,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
                   context=Qt.WindowShortcut, option=None, section=None,
                   id_=None, plugin=None, context_name=None,
-                  register_action=False):
+                  register_action=False, overwrite=False):
     """Create a QAction"""
     action = SpyderAction(text, parent)
     if triggered is not None:
@@ -349,7 +349,8 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setShortcutContext(context)
 
     if register_action:
-        ACTION_REGISTRY.register_reference(action, id_, plugin, context_name)
+        ACTION_REGISTRY.register_reference(
+            action, id_, plugin, context_name, overwrite)
     return action
 
 
