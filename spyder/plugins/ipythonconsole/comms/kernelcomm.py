@@ -84,7 +84,13 @@ class KernelComm(CommBase, QObject):
 
     def shutdown_comm_channel(self):
         """Shutdown the comm channel."""
-        channel = self.kernel_client.comm_channel
+        # This is necessary to avoid an error when closing the console.
+        # Fixes spyder-ide/spyder#15645
+        try:
+            channel = self.kernel_client.comm_channel
+        except AttributeError:
+            channel = None
+
         if channel:
             id_list = self.get_comm_id_list()
             for comm_id in id_list:
