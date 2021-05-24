@@ -394,12 +394,12 @@ class SpyderActionMixin:
             If True, the action will be registered and searchable.
             The default value is `True`.
         overwrite: bool, optional
-            If True, in case of action overwritting no warning will be shown.
+            If True, in case of action overwriting no warning will be shown.
             The default value is `False`
         context_name: Optional[str]
             Name of the context that holds the action in case of registration.
             The combination of `name` and `context_name` is unique so trying to 
-            registger an action with the same `name` and `context_name` will
+            register an action with the same `name` and `context_name` will
             cause a warning unless `overwrite` is set to `True`
 
         Notes
