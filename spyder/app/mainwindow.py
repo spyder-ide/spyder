@@ -918,13 +918,16 @@ class MainWindow(QMainWindow):
                     )
                     self.register_plugin(plugin_instance, external=True)
 
-                    # These attributes come from spyder.app.solver
-                    module = plugin_class._spyder_module_name
-                    package_name = plugin_class._spyder_package_name
-                    version = plugin_class._spyder_version
-                    description = plugin_instance.get_description()
-                    dependencies.add(module, package_name, description,
-                                     version, None, kind=dependencies.PLUGIN)
+                    # These attributes come from spyder.app.solver to add
+                    # plugins to the dependencies dialog
+                    if not running_under_pytest():
+                        module = plugin_class._spyder_module_name
+                        package_name = plugin_class._spyder_package_name
+                        version = plugin_class._spyder_version
+                        description = plugin_instance.get_description()
+                        dependencies.add(
+                            module, package_name, description, version, None,
+                            kind=dependencies.PLUGIN)
                 except Exception as error:
                     print("%s: %s" % (plugin_class, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
@@ -1218,6 +1221,21 @@ class MainWindow(QMainWindow):
                     child.aboutToShow.connect(self.update_search_menu)
                 except TypeError:
                     pass
+
+        # Register custom layouts
+        for plugin, plugin_instance in self._PLUGINS.items():
+            if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
+                if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
+                    for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
+                        self.layouts.register_layout(
+                            self, custom_layout)
+                else:
+                    logger.info(
+                        'Unable to load custom layouts for {}. '
+                        'Expecting a list of layout classes but got {}'
+                        .format(plugin, plugin_instance.CUSTOM_LAYOUTS)
+                    )
+        self.layouts.update_layout_menu_actions()
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
