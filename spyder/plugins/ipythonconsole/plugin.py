@@ -34,6 +34,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginWidget
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
 from spyder.config.gui import get_font
@@ -46,6 +47,8 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
@@ -658,10 +661,10 @@ class IPythonConsole(SpyderPluginWidget):
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
 
-        # Add the action to the 'Consoles' menu on the main window
-        from spyder.plugins.mainmenu.api import (
-            ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
-        from spyder.api.widgets.menus import SpyderMenu
+        # Add actions to the 'Consoles' menu on the main window
+        console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
+        console_menu.aboutToShow.connect(
+                self.update_execution_state_kernel)
         new_consoles_actions = [
             create_client_action, special_console_menu,
             connect_to_kernel_action]

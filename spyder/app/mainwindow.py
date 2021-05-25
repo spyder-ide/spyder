@@ -613,9 +613,6 @@ class MainWindow(QMainWindow):
         self.run_menu_actions = []
         self.debug_menu = None
         self.debug_menu_actions = []
-        # TODO: Remove after signal handling for aboutToShow is moved to the
-        # IPython Console
-        self.consoles_menu = None
         self.projects_menu = None
         self.projects_menu_actions = []
 
@@ -978,10 +975,6 @@ class MainWindow(QMainWindow):
         self.source_menu.aboutToShow.connect(self.update_source_menu)
         self.run_menu = mainmenu.get_application_menu("run_menu")
         self.debug_menu = mainmenu.get_application_menu("debug_menu")
-        self.consoles_menu = mainmenu.get_application_menu("consoles_menu")
-        # TODO: Move to the IPython Console
-        self.consoles_menu.aboutToShow.connect(
-                self.update_execution_state_kernel)
         self.projects_menu = mainmenu.get_application_menu("projects_menu")
         self.projects_menu.aboutToShow.connect(self.valid_project)
 
@@ -1404,13 +1397,6 @@ class MainWindow(QMainWindow):
         )
 
     # --- Other
-    def update_execution_state_kernel(self):
-        """Handle execution state of the current console."""
-        try:
-            self.ipyconsole.update_execution_state_kernel()
-        except AttributeError:
-            return
-
     def valid_project(self):
         """Handle an invalid active project."""
         try:
