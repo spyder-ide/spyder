@@ -188,7 +188,8 @@ def make_app_bundle(dist_dir, make_lite=False):
                                        'CFBundleTypeName': 'Text File',
                                        'CFBundleTypeRole': 'Editor'}],
             'CFBundleIdentifier': 'org.spyder-ide',
-            'CFBundleShortVersionString': SPYVER
+            'CFBundleShortVersionString': SPYVER,
+            'NSRequiresAquaSystemAppearance': False  # Darkmode support
         }
     }
 
