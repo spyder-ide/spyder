@@ -14,7 +14,6 @@ from collections import OrderedDict
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.menus import ApplicationMenus, HelpMenuSections
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.tours.tours import TourIdentifiers
@@ -40,7 +39,7 @@ class ToursContainer(PluginMainContainer):
     }
 
     def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
-        super().__init__(name, plugin, parent=parent, options=options)
+        super().__init__(name, plugin, parent=parent)
 
         self._tours = OrderedDict()
         self._tour_titles = OrderedDict()

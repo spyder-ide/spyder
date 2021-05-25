@@ -31,6 +31,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 # Local imports
 from spyder import __docs_url__
 from spyder.api.panel import Panel
+from spyder.api.translations import get_translation
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
 from spyder.py3compat import to_binary_string

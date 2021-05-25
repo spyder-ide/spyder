@@ -11,7 +11,7 @@ Tours Plugin.
 """
 
 # Local imports
-from spyder.api.menus import ApplicationMenus, HelpMenuSections
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.config.base import get_safe_mode, running_under_pytest
@@ -104,7 +104,7 @@ class Tours(SpyderPluginV2):
         force: bool
             Force the display of the tour message.
         """
-        should_show_tour = self.get_conf_option('show_tour_message')
+        should_show_tour = self.get_conf('show_tour_message')
         if force or (should_show_tour and not running_under_pytest()
                      and not get_safe_mode()):
             self.set_conf_option('show_tour_message', False)
