@@ -3242,3 +3242,7 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             editorstack.register_panel(
                 panel_class, *args, position=position, **kwargs)
+
+    # TODO: To be updated after migration
+    def on_mainwindow_visible(self):
+        return

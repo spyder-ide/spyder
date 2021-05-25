@@ -1896,3 +1896,7 @@ class IPythonConsole(SpyderPluginWidget):
                       '<hr><br>')
         self.get_current_client().shellwidget._append_html(
                     debug_msg, before_prompt=True)
+
+    # TODO: To be updated after migration
+    def on_mainwindow_visible(self):
+        return

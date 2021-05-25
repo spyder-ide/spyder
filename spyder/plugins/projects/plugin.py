@@ -862,3 +862,7 @@ class Projects(SpyderPluginWidget):
         PLUGINS = self.main._PLUGINS
         if plugin_name in PLUGINS:
             return PLUGINS[plugin_name]
+
+    # TODO: To be updated after migration
+    def on_mainwindow_visible(self):
+        return

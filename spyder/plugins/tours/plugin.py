@@ -107,5 +107,5 @@ class Tours(SpyderPluginV2):
         should_show_tour = self.get_conf('show_tour_message')
         if force or (should_show_tour and not running_under_pytest()
                      and not get_safe_mode()):
-            self.set_conf_option('show_tour_message', False)
+            self.set_conf('show_tour_message', False)
             self.get_container().show_tour_message()
