@@ -678,7 +678,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.mainmenu.add_item_to_application_menu(
                 console_restart_connect_action,
                 menu_id=ApplicationMenus.Consoles,
-                section=ConsolesMenuSections.New)
+                section=ConsolesMenuSections.Restart)
 
         # IPython documentation
         self.ipython_menu = SpyderMenu(
