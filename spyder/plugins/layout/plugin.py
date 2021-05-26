@@ -135,6 +135,7 @@ class Layout(SpyderPluginV2):
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
+        container = self.get_container()
         toolbars = self.get_plugin(Plugins.Toolbar)
         # Add actions to Main application toolbar
         before_action = self.get_action(

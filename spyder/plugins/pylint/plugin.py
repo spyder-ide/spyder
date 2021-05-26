@@ -15,10 +15,11 @@ import os.path as osp
 from qtpy.QtCore import Qt, Signal, Slot
 
 # Local imports
-from spyder.plugins.mainmenu.api import ApplicationMenus
-from spyder.api.translations import get_translation
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.translations import get_translation
 from spyder.utils.programs import is_module_installed
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import (PylintWidget,
                                                PylintWidgetActions)
@@ -68,13 +69,8 @@ class Pylint(SpyderDockablePlugin):
     def get_icon(self):
         return self.create_icon("pylint")
 
-    def register(self):
+    def on_initialize(self):
         widget = self.get_widget()
-        editor = self.get_plugin(Plugins.Editor)
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        preferences = self.get_plugin(Plugins.Preferences)
-
-        preferences.register_plugin_preferences(self)
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -82,18 +78,6 @@ class Pylint(SpyderDockablePlugin):
             self.sig_redirect_stdio_requested)
         widget.sig_start_analysis_requested.connect(
             lambda: self.start_code_analysis())
-
-        # Connect to Editor
-        widget.sig_edit_goto_requested.connect(editor.load)
-        editor.sig_editor_focus_changed.connect(self._set_filename)
-
-        # Connect to projects
-        projects = self.get_plugin(Plugins.Projects)
-        if projects:
-            projects.sig_project_loaded.connect(
-                lambda value: widget.set_conf("project_dir", value))
-            projects.sig_project_closed.connect(
-                lambda value: widget.set_conf("project_dir", None))
 
         # Add action to application menus
         pylint_act = self.create_action(
@@ -107,13 +91,44 @@ class Pylint(SpyderDockablePlugin):
         )
         pylint_act.setEnabled(is_module_installed("pylint"))
 
-        if mainmenu:
-            source_menu = mainmenu.get_application_menu(
-                ApplicationMenus.Source)
-            mainmenu.add_item_to_application_menu(pylint_act, menu=source_menu)
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+
+        # Connect to Editor
+        widget.sig_edit_goto_requested.connect(editor.load)
+        editor.sig_editor_focus_changed.connect(self._set_filename)
+
+        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
 
         # TODO: use new API when editor has migrated
-        self.main.editor.pythonfile_dependent_actions += [pylint_act]
+        editor.pythonfile_dependent_actions += [pylint_act]
+
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        widget = self.get_widget()
+
+        # Connect to projects
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(
+            lambda value: widget.set_conf("project_dir", value))
+        projects.sig_project_closed.connect(
+            lambda value: widget.set_conf("project_dir", None))
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
+        source_menu = mainmenu.get_application_menu(
+            ApplicationMenus.Source)
+        mainmenu.add_item_to_application_menu(pylint_act, menu=source_menu)
 
     # --- Private API
     # ------------------------------------------------------------------------

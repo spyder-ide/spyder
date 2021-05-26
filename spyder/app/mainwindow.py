@@ -97,7 +97,9 @@ from spyder.app.solver import (
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
+from spyder.api.plugins import (
+    Plugins, SpyderPlugin, SpyderPluginV2, SpyderDockablePlugin,
+    SpyderPluginWidget)
 
 #==============================================================================
 # Windows only local imports
@@ -165,6 +167,14 @@ class MainWindow(QMainWindow):
             raise SpyderAPIError(f'Plugin "{plugin_name}" not found!')
 
         return None
+
+    def get_dockable_plugins(self):
+        dockable_plugins = []
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+            if isinstance(plugin, (SpyderDockablePlugin, SpyderPluginWidget)):
+                dockable_plugins.append((plugin_name, plugin))
+        return dockable_plugins
 
     def is_plugin_enabled(self, plugin_name):
         """Determine if a given plugin is going to be loaded."""
@@ -735,7 +745,8 @@ class MainWindow(QMainWindow):
         shortcut assigned to the `Switch to Plugin...` action, but is not
         triggered by that shortcut.
         """
-        for plugin_id, plugin in self._PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if isinstance(plugin, SpyderDockablePlugin):
                 try:
                     # New API
@@ -869,85 +880,41 @@ class MainWindow(QMainWindow):
                 if issubclass(PluginClass, SpyderPluginV2):
                     PLUGIN_REGISTRY.register_plugin(self, PluginClass)
 
-        # Get ordered list of plugins classes and instantiate them
-        plugin_deps = solve_plugin_dependencies(list(enabled_plugins.values()))
-        for plugin_class in plugin_deps:
-            plugin_name = plugin_class.NAME
-            # Non-migrated plugins
-            if plugin_name in [
-                    Plugins.Editor,
-                    Plugins.IPythonConsole]:
-                if plugin_name == Plugins.IPythonConsole:
-                    plugin_instance = plugin_class(self)
-                    plugin_instance.sig_exception_occurred.connect(
-                        self.handle_exception)
-                else:
-                    plugin_instance = plugin_class(self)
-                plugin_instance.register_plugin()
-                self.add_plugin(plugin_instance)
-                self.preferences.register_plugin_preferences(
-                    plugin_instance)
-            # Migrated or new plugins
-            elif plugin_name in [
-                    Plugins.MainMenu,
-                    Plugins.OnlineHelp,
-                    Plugins.Toolbar,
-                    Plugins.Preferences,
-                    Plugins.Appearance,
-                    Plugins.Run,
-                    Plugins.Shortcuts,
-                    Plugins.StatusBar,
-                    Plugins.Completions,
-                    Plugins.OutlineExplorer,
-                    Plugins.Console,
-                    Plugins.MainInterpreter,
-                    Plugins.Breakpoints,
-                    Plugins.History,
-                    Plugins.Profiler,
-                    Plugins.Explorer,
-                    Plugins.Help,
-                    Plugins.Plots,
-                    Plugins.VariableExplorer,
-                    Plugins.Application,
-                    Plugins.Find,
-                    Plugins.Pylint,
-                    Plugins.WorkingDirectory,
-                    Plugins.Layout,
-                    Plugins.Tours,
-                    Plugins.Projects]:
-                plugin_instance = plugin_class(self, configuration=CONF)
-                self.register_plugin(plugin_instance)
-                # TODO: Check thirdparty attribute usage
-                # For now append plugins to the thirdparty attribute as was
-                # being done
-                if plugin_name in [
-                        Plugins.Breakpoints,
-                        Plugins.Profiler,
-                        Plugins.Pylint]:
-                    self.thirdparty_plugins.append(plugin_instance)
-            # Load external_plugins adding their dependencies
-            elif (issubclass(plugin_class, SpyderPluginV2) and
-                  plugin_class.NAME in external_plugins):
-                try:
-                    if plugin_class.CONF_FILE:
-                        CONF.register_plugin(plugin_class)
-                    plugin_instance = plugin_class(
-                        self,
-                        configuration=CONF,
-                    )
-                    self.register_plugin(plugin_instance, external=True,
-                                         omit_conf=plugin_class.CONF_FILE)
+        # Instantiate internal Spyder 4 plugins
+        for plugin_name in internal_plugins:
+            if plugin_name in enabled_plugins:
+                PluginClass = internal_plugins[plugin_name]
+                if issubclass(PluginClass, SpyderPlugin):
+                    if plugin_name == Plugins.IPythonConsole:
+                        plugin_instance = PLUGIN_REGISTRY.register_plugin(
+                            self, PluginClass, css_path=css_path)
+                        plugin_instance.sig_exception_occurred.connect(
+                            self.handle_exception)
+                    else:
+                        plugin_instance = PLUGIN_REGISTRY.register_plugin(
+                            self, PluginClass)
+                    if plugin_name == Plugins.Projects:
+                        self.project_path = plugin_instance.get_pythonpath(
+                            at_start=True)
+                    else:
+                        self.preferences.register_plugin_preferences(
+                            plugin_instance)
 
-                    # These attributes come from spyder.app.solver to add
-                    # plugins to the dependencies dialog
-                    if not running_under_pytest():
-                        module = plugin_class._spyder_module_name
-                        package_name = plugin_class._spyder_package_name
-                        version = plugin_class._spyder_version
-                        description = plugin_instance.get_description()
-                        dependencies.add(
-                            module, package_name, description, version, None,
-                            kind=dependencies.PLUGIN)
+        # Instantiate external Spyder 5 plugins
+        for plugin_name in external_plugins:
+            if plugin_name in enabled_plugins:
+                PluginClass = external_plugins[plugin_name]
+                try:
+                    plugin_instance = PLUGIN_REGISTRY.register_plugin(
+                        self, PluginClass)
+
+                    # These attributes come from spyder.app.solver
+                    module = PluginClass._spyder_module_name
+                    package_name = PluginClass._spyder_package_name
+                    version = PluginClass._spyder_version
+                    description = plugin_instance.get_description()
+                    dependencies.add(module, package_name, description,
+                                     version, None, kind=dependencies.PLUGIN)
                 except Exception as error:
                     print("%s: %s" % (plugin_class, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
@@ -955,16 +922,13 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading old third-party plugins..."))
         for mod in get_spyderplugins_mods():
             try:
-                plugin = mod.PLUGIN_CLASS(self)
+                plugin = PLUGIN_REGISTRY.register_plugin(self, mod)
                 if plugin.check_compatibility()[0]:
                     if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
                         self.preferences.register_plugin_preferences(plugin)
 
-                    if hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
-                        self.completions.register_completion_plugin(plugin)
-                    else:
+                    if not hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
                         self.thirdparty_plugins.append(plugin)
-                        plugin.register_plugin()
 
                     # Add to dependencies dialog
                     module = mod.__name__
@@ -1165,8 +1129,9 @@ class MainWindow(QMainWindow):
             self.tabify_plugin(plugin_instance, Plugins.Console)
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 plugin_instance.get_widget().toggle_view(False)
-
-        for plugin_id, plugin_instance in self._PLUGINS.items():
+        
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
                 plugin_instance.before_mainwindow_visible()
             except AttributeError:
@@ -1215,7 +1180,8 @@ class MainWindow(QMainWindow):
             self.splash.hide()
 
         # Call on_mainwindow_visible for all plugins.
-        for __, plugin in self._PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
                 plugin.on_mainwindow_visible()
                 QApplication.processEvents()

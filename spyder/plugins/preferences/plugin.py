@@ -272,6 +272,7 @@ class Preferences(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.add_item_to_application_toolbar(
             container.show_action,
             toolbar_id=ApplicationToolbars.Main,

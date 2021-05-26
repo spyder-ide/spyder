@@ -12,6 +12,7 @@ Run Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.run.confpage import RunConfigPage
 
@@ -45,7 +46,11 @@ class Run(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon('run')
 
-    def register(self):
+    def on_initialize(self):
+        pass
+
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 

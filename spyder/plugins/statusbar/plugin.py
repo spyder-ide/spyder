@@ -14,6 +14,7 @@ from qtpy.QtCore import Slot
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import running_under_pytest
@@ -59,15 +60,17 @@ class StatusBar(SpyderPluginV2):
     def get_description(self):
         return _('Provide Core user interface management')
 
-    def register(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
-
+    def on_initialize(self):
         # --- Status widgets
         self.add_status_widget(self.mem_status, StatusBarWidgetPosition.Right)
         self.add_status_widget(self.cpu_status, StatusBarWidgetPosition.Right)
         self.add_status_widget(
             self.clock_status, StatusBarWidgetPosition.Right)
+
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
 
     def after_container_creation(self):
         container = self.get_container()

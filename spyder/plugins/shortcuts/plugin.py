@@ -21,6 +21,7 @@ from qtpy.QtWidgets import QAction, QShortcut
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.shortcuts.confpage import ShortcutsConfigPage
@@ -68,13 +69,9 @@ class Shortcuts(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon('keyboard')
 
-    def register(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
-
+    def on_initialize(self):
         self._shortcut_data = []
-        shortcuts_action = self.create_action(
+        self.create_action(
             ShortcutActions.ShortcutSummaryAction,
             text=_("Shortcuts Summary"),
             triggered=lambda: self.show_summary(),
@@ -82,14 +79,24 @@ class Shortcuts(SpyderPluginV2):
             context=Qt.ApplicationShortcut,
         )
 
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        shortcuts_action = self.get_action(
+            ShortcutActions.ShortcutSummaryAction)
+
         # Add to Help menu.
-        if mainmenu:
-            help_menu = mainmenu.get_application_menu(ApplicationMenus.Help)
-            mainmenu.add_item_to_application_menu(
-                shortcuts_action,
-                help_menu,
-                section=HelpMenuSections.Documentation,
-            )
+        help_menu = mainmenu.get_application_menu(ApplicationMenus.Help)
+        mainmenu.add_item_to_application_menu(
+            shortcuts_action,
+            help_menu,
+            section=HelpMenuSections.Documentation,
+        )
 
     def on_mainwindow_visible(self):
         self.apply_shortcuts()

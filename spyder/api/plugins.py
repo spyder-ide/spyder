@@ -967,11 +967,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Only required plugins that extend SpyderDockablePlugin are returned.
         """
-        requires = self.REQUIRES or []
+        requires = set(self.REQUIRES or [])
         dockable_plugins_required = []
-        PLUGINS = self._main._PLUGINS
-        for name, plugin_instance in PLUGINS.items():
-            if name in requires and isinstance(
+        for name, plugin_instance in self._main.get_dockable_plugins():
+            if (name in requires or Plugins.All in requires) and isinstance(
                     plugin_instance,
                     (SpyderDockablePlugin, SpyderPluginWidget)):
                 dockable_plugins_required.append(plugin_instance)
@@ -1244,7 +1243,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 'Spyder 5.1.0 migration guide to get more information')
 
         raise NotImplementedError(
-            f'The plugin {cls(self)} is missing a concrete implementation of '
+            f'The plugin {type(self)} is missing an implementation of '
             'on_initialize')
 
     # --- API: Optional methods to override ----------------------------------

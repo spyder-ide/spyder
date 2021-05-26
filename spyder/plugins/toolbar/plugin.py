@@ -11,6 +11,7 @@ Toolbar Plugin.
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2, Plugins
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
@@ -41,24 +42,25 @@ class Toolbar(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon('help')
 
-    def register(self):
+    def on_initialize(self):
         create_app_toolbar = self.create_application_toolbar
         create_app_toolbar(ApplicationToolbars.File, _("File toolbar"))
         create_app_toolbar(ApplicationToolbars.Run, _("Run toolbar"))
         create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
         create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
 
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        if mainmenu:
-            # View menu Toolbar section
-            mainmenu.add_item_to_application_menu(
-                    self.toolbars_menu,
-                    menu_id=ApplicationMenus.View,
-                    section=ViewMenuSections.Toolbar)
-            mainmenu.add_item_to_application_menu(
-                    self.show_toolbars_action,
-                    menu_id=ApplicationMenus.View,
-                    section=ViewMenuSections.Toolbar)
+        # View menu Toolbar section
+        mainmenu.add_item_to_application_menu(
+                self.toolbars_menu,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Toolbar)
+        mainmenu.add_item_to_application_menu(
+                self.show_toolbars_action,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Toolbar)
 
     def on_mainwindow_visible(self):
         container = self.get_container()

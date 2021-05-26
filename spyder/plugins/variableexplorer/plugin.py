@@ -10,6 +10,7 @@ Variable Explorer Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.variableexplorer.confpage import (
     VariableExplorerConfigPage)
@@ -46,13 +47,18 @@ class VariableExplorer(SpyderDockablePlugin):
     def get_icon(self):
         return self.create_icon('dictedit')
 
-    def register(self):
-        # Plugins
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        preferences = self.get_plugin(Plugins.Preferences)
+    def on_initialize(self):
+        self.get_widget().sig_free_memory_requested.connect(
+            self.sig_free_memory_requested)
 
-        # Preferences
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Signals
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
@@ -60,9 +66,6 @@ class VariableExplorer(SpyderDockablePlugin):
             self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
-
-        self.get_widget().sig_free_memory_requested.connect(
-            self.sig_free_memory_requested)
 
     def unregister(self):
         # Plugins

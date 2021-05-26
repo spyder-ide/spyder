@@ -167,7 +167,13 @@ class SpyderPluginRegistry(QObject):
 
         # Create old plugin instance
         plugin_instance = PluginClass(main_window, *args, **kwargs)
-        plugin_instance.register_plugin()
+
+        if hasattr(plugin_instance, 'COMPLETION_PROVIDER_NAME'):
+            if Plugins.Completions in self:
+                completions = self.get_plugin(Plugins.Completions)
+                completions.register_completion_plugin(plugin_instance)
+        else:
+            plugin_instance.register_plugin()
 
         # Register plugin in the registry
         self.plugin_registry[plugin_name] = plugin_instance
@@ -350,6 +356,9 @@ class SpyderPluginRegistry(QObject):
             otherwise.
         """
         return plugin_name in self.plugin_registry
+
+    def __iter__(self):
+        return iter(self.plugin_registry)
 
 
 PLUGIN_REGISTRY = SpyderPluginRegistry()

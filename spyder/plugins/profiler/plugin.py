@@ -16,6 +16,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
@@ -69,14 +70,8 @@ class Profiler(SpyderDockablePlugin):
     def get_icon(self):
         return self.create_icon('profiler')
 
-    def register(self):
+    def on_initialize(self):
         widget = self.get_widget()
-        editor = self.get_plugin(Plugins.Editor)
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        preferences = self.get_plugin(Plugins.Preferences)
-
-        preferences.register_plugin_preferences(self)
-        widget.sig_edit_goto_requested.connect(editor.load)
         widget.sig_started.connect(self.sig_started)
         widget.sig_finished.connect(self.sig_finished)
 
@@ -88,14 +83,27 @@ class Profiler(SpyderDockablePlugin):
             triggered=self.run_profiler,
             register_shortcut=True,
         )
+
         run_action.setEnabled(is_profiler_installed())
 
-        if mainmenu:
-            run_menu = mainmenu.get_application_menu(ApplicationMenus.Run)
-            mainmenu.add_item_to_application_menu(run_action, menu=run_menu)
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        widget.sig_edit_goto_requested.connect(editor.load)
 
-        # TODO: On a separate PR when core plugin is merged
-        # self.main.editor.pythonfile_dependent_actions += [profiler_act]
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        run_action = self.get_action(ProfilerActions.ProfileCurrentFile)
+
+        run_menu = mainmenu.get_application_menu(ApplicationMenus.Run)
+        mainmenu.add_item_to_application_menu(run_action, menu=run_menu)
 
     # --- Public API
     # ------------------------------------------------------------------------
