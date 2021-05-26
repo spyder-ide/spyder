@@ -741,6 +741,14 @@ class IPythonConsole(SpyderPluginWidget):
         # Update kernels if python path is changed
         self.main.sig_pythonpath_changed.connect(self.update_path)
 
+        # Show history file if no console is visible
+        if not self._isvisible and self.main.historylog:
+            self.main.historylog.add_history(get_conf_path('history.py'))
+
+        # Connect Editor debug action with Console
+        if self.main.editor:
+            self.sig_pdb_state.connect(self.main.editor.update_pdb_state)
+
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""

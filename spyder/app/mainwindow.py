@@ -1261,8 +1261,8 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.raise_()
 
         # Show history file if no console is visible
-        if not self.ipyconsole._isvisible:
-            self.historylog.add_history(get_conf_path('history.py'))
+        # if not self.ipyconsole._isvisible:
+        #     self.historylog.add_history(get_conf_path('history.py'))
 
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
@@ -1288,7 +1288,7 @@ class MainWindow(QMainWindow):
                 self.editor.setup_open_files(close_previous_files=False)
 
         # Connect Editor debug action with Console
-        self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
+        # self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
