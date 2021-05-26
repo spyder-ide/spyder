@@ -1858,12 +1858,14 @@ class MainWindow(QMainWindow):
     def load_python_path(self):
         """Load path stored in Spyder configuration folder."""
         if osp.isfile(self.SPYDER_PATH):
-            path, _x = encoding.readlines(self.SPYDER_PATH)
+            with open(self.SPYDER_PATH, 'r', encoding='utf-8') as f:
+                path = f.read().splitlines()
             self.path = tuple(name for name in path if osp.isdir(name))
 
         if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
-            not_active_path, _x = encoding.readlines(
-                self.SPYDER_NOT_ACTIVE_PATH)
+            with open(self.SPYDER_NOT_ACTIVE_PATH, 'r',
+                      encoding='utf-8') as f:
+                not_active_path = f.read().splitlines()
             self.not_active_path = tuple(name for name in not_active_path
                                          if osp.isdir(name))
 
