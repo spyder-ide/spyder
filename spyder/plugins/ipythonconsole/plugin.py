@@ -663,8 +663,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Add actions to the 'Consoles' menu on the main window
         console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
-        console_menu.aboutToShow.connect(
-                self.update_execution_state_kernel)
+        console_menu.aboutToShow.connect(self.update_execution_state_kernel)
         new_consoles_actions = [
             create_client_action, special_console_menu,
             connect_to_kernel_action]
