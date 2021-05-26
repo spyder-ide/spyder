@@ -196,9 +196,10 @@ class SpyderPluginRegistry(QObject):
         optional_plugins = plugin_dependencies.get('optional', [])
 
         for plugin in required_plugins + optional_plugins:
-            if plugin in self.plugin_registry and self.plugin_availability.get(plugin, False):
-                logger.debug(f'Plugin {plugin} has already loaded')
-                plugin_instance._on_plugin_available(plugin)
+            if plugin in self.plugin_registry:
+                if self.plugin_availability.get(plugin, False):
+                    logger.debug(f'Plugin {plugin} has already loaded')
+                    plugin_instance._on_plugin_available(plugin)
 
     # -------------------------- PUBLIC API -----------------------------------
     def register_plugin(

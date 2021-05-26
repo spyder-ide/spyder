@@ -887,7 +887,7 @@ class MainWindow(QMainWindow):
                 if issubclass(PluginClass, SpyderPlugin):
                     if plugin_name == Plugins.IPythonConsole:
                         plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                            self, PluginClass, css_path=css_path)
+                            self, PluginClass)
                         plugin_instance.sig_exception_occurred.connect(
                             self.handle_exception)
                     else:
