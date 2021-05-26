@@ -390,7 +390,6 @@ class Projects(SpyderDockablePlugin):
                 self.sig_project_closed.emit(active_project.root_path)
 
             self._create_project(root_path, project_type_id=project_type)
-            self.sig_pythonpath_changed.emit()
             dlg.close()
 
     def _create_project(self, root_path, project_type_id=EmptyProject.ID,
