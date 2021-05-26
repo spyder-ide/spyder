@@ -1194,10 +1194,7 @@ class MainWindow(QMainWindow):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
         for __, plugin in self._PLUGINS.items():
-            try:
-                plugin.on_mainwindow_visible()
-            except AttributeError:
-                pass
+            plugin.on_mainwindow_visible()
 
         self.restore_scrollbar_position.emit()
 
