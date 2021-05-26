@@ -126,7 +126,7 @@ def test_find_internal_plugins():
 
     # Assert we have the same number of plugins declared in our enum
     # 27 internal plugins + the 'All' extra entry
-    assert len(get_class_values(Plugins)) == 27 + 1
+    assert len(get_class_values(Plugins)) == 28 + 1
 
 
 def test_solve_internal_plugins():

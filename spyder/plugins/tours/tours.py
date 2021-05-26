@@ -229,4 +229,4 @@ FEAT30 = [
 
 class TourIdentifiers:
     IntroductionTour = "introdution_tour"
-    TestTout = "test_tour"
+    TestTour = "test_tour"
