@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-04-05 00:38\n"
+"PO-Revision-Date: 2021-05-27 15:28\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -4056,7 +4056,7 @@ msgstr "Das Verzeichnis {} ist nicht beschreibbar, das ist zum Erstellen von IPy
 
 #: spyder/plugins/ipythonconsole/plugin.py:233
 msgid "Press <b>Q</b> to exit pager"
-msgstr ""
+msgstr "Press <b>Q</b> to exit pager"
 
 #: spyder/plugins/ipythonconsole/plugin.py:592
 msgid "New console (default settings)"
