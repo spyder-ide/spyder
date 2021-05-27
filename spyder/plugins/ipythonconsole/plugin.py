@@ -725,15 +725,22 @@ class IPythonConsole(SpyderPluginWidget):
         self.add_dockwidget()
 
         self.focus_changed.connect(self.main.plugin_focus_changed)
-        self.edit_goto.connect(self.main.editor.load)
-        self.edit_goto[str, int, str, bool].connect(
-                         lambda fname, lineno, word, processevents:
-                         self.main.editor.load(fname, lineno, word,
-                                               processevents=processevents))
-        self.main.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
-        self.main.editor.run_in_current_ipyclient.connect(self.run_script)
-        self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
-        self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
+        if self.main.editor:
+            self.edit_goto.connect(self.main.editor.load)
+            self.edit_goto[str, int, str, bool].connect(
+                             lambda fname, lineno, word, processevents:
+                             self.main.editor.load(
+                                 fname, lineno, word,
+                                 processevents=processevents))
+            self.main.editor.breakpoints_saved.connect(
+                self.set_spyder_breakpoints)
+            self.main.editor.run_in_current_ipyclient.connect(self.run_script)
+            self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
+            self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
+            # Connect Editor debug action with Console
+            self.sig_pdb_state.connect(self.main.editor.update_pdb_state)
+            self.main.editor.exec_in_extconsole.connect(
+                self.execute_code_and_focus_editor)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
@@ -744,10 +751,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Show history file if no console is visible
         if not self._isvisible and self.main.historylog:
             self.main.historylog.add_history(get_conf_path('history.py'))
-
-        # Connect Editor debug action with Console
-        if self.main.editor:
-            self.sig_pdb_state.connect(self.main.editor.update_pdb_state)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -914,6 +917,17 @@ class IPythonConsole(SpyderPluginWidget):
             if shell is not None:
                 self.main.get_spyder_pythonpath()
                 shell.update_syspath(path_dict, new_path_dict)
+
+    def execute_code_and_focus_editor(self, lines, focus_to_editor=True):
+        """
+        Execute lines in IPython console and eventually set focus
+        to the Editor.
+        """
+        console = self
+        console.switch_to_plugin()
+        console.execute_code(lines)
+        if focus_to_editor and self.main.editor:
+            self.main.editor.switch_to_plugin()
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
