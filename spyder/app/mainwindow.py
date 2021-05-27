@@ -1260,10 +1260,6 @@ class MainWindow(QMainWindow):
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
 
-        # Show history file if no console is visible
-        if not self.ipyconsole._isvisible:
-            self.historylog.add_history(get_conf_path('history.py'))
-
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
@@ -1286,9 +1282,6 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files(close_previous_files=False)
-
-        # Connect Editor debug action with Console
-        self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1756,17 +1749,6 @@ class MainWindow(QMainWindow):
                                      _("Running an external system terminal "
                                        "is not supported on platform %s."
                                        ) % os.name)
-
-    def execute_in_external_console(self, lines, focus_to_editor):
-        """
-        Execute lines in IPython console and eventually set focus
-        to the Editor.
-        """
-        console = self.ipyconsole
-        console.switch_to_plugin()
-        console.execute_code(lines)
-        if focus_to_editor:
-            self.editor.switch_to_plugin()
 
     def open_file(self, fname, external=False):
         """
