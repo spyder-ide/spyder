@@ -370,7 +370,6 @@ class Projects(SpyderDockablePlugin):
     def create_new_project(self):
         """Create new project."""
         self.unmaximize()
-        active_project = self.current_active_project
         dlg = ProjectDialog(self.get_widget(),
                             project_types=self.get_project_types())
         result = dlg.exec_()
@@ -379,11 +378,6 @@ class Projects(SpyderDockablePlugin):
         project_type = data.get("project_type", EmptyProject.ID)
 
         if result:
-            # A project was not open before
-            if active_project is None:
-                if self.get_conf('visible_if_project_open'):
-                    self.show_explorer()
-
             self._create_project(root_path, project_type_id=project_type)
             dlg.close()
 
