@@ -1070,20 +1070,24 @@ def find_git():
 
 def get_user_env_variables():
     """Return local environment variables"""
+    env_vars = {}
     cmdstr = ''
-    if sys.platform == 'darwin':
+    if os.name == 'nt':
+        cmdstr = r'reg query HKEY_CURRENT_USER\Environment'
+        out, err = run_shell_command(cmdstr).communicate()
+        items = out.decode().strip().split('\r\n')[1:]
+        for item in items:
+            item = item.split('    ')
+            env_vars.update({item[1]: item[3]})
+    else:
+        # macOS and Linux have same command
         cmdstr = ('[[ -e /etc/profile ]] && source /etc/profile; '
                   '[[ -e ~/.bash_profile ]] && source ~/.bash_profile; '
+                  '[[ -e ~/.bash_login ]] && source ~/.bash_login; '
+                  '[[ -e ~/.profile ]] && source ~/.profile; '
                   'printenv')
-    elif sys.platform.startswith('linux'):
-        pass
-    elif os.name == 'nt':
-        pass
-
-    out, err = run_shell_command(cmdstr, env={}).communicate()
-
-    env_vars = {}
-    for item in out.decode().strip().split('\n'):
-        env_vars.update([item.split('=')])
+        out, err = run_shell_command(cmdstr, env={}).communicate()
+        for item in out.decode().strip().split('\n'):
+            env_vars.update([item.split('=')])
 
     return env_vars
