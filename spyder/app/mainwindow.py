@@ -613,8 +613,6 @@ class MainWindow(QMainWindow):
         self.run_menu_actions = []
         self.debug_menu = None
         self.debug_menu_actions = []
-        self.consoles_menu = None
-        self.consoles_menu_actions = []
         self.projects_menu = None
         self.projects_menu_actions = []
 
@@ -980,9 +978,6 @@ class MainWindow(QMainWindow):
         self.source_menu.aboutToShow.connect(self.update_source_menu)
         self.run_menu = mainmenu.get_application_menu("run_menu")
         self.debug_menu = mainmenu.get_application_menu("debug_menu")
-        self.consoles_menu = mainmenu.get_application_menu("consoles_menu")
-        self.consoles_menu.aboutToShow.connect(
-                self.update_execution_state_kernel)
         self.projects_menu = mainmenu.get_application_menu("projects_menu")
         self.projects_menu.aboutToShow.connect(self.valid_project)
 
@@ -1127,33 +1122,6 @@ class MainWindow(QMainWindow):
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.Documentation)
 
-        # TODO: Move to plugin
-        # IPython documentation
-        if self.help is not None:
-            self.ipython_menu = SpyderMenu(
-                parent=self,
-                title=_("IPython documentation"))
-            intro_action = create_action(
-                self,
-                _("Intro to IPython"),
-                triggered=self.ipyconsole.show_intro)
-            quickref_action = create_action(
-                self,
-                _("Quick reference"),
-                triggered=self.ipyconsole.show_quickref)
-            guiref_action = create_action(
-                self,
-                _("Console help"),
-                triggered=self.ipyconsole.show_guiref)
-            add_actions(
-                self.ipython_menu,
-                (intro_action, guiref_action, quickref_action))
-            mainmenu.add_item_to_application_menu(
-                self.ipython_menu,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.ExternalDocumentation,
-                before_section=HelpMenuSections.About)
-
         # TODO: Migrate to use the MainMenu Plugin instead of list of actions
         # Filling out menu/toolbar entries:
         add_actions(self.edit_menu, self.edit_menu_actions)
@@ -1161,7 +1129,6 @@ class MainWindow(QMainWindow):
         add_actions(self.source_menu, self.source_menu_actions)
         add_actions(self.run_menu, self.run_menu_actions)
         add_actions(self.debug_menu, self.debug_menu_actions)
-        add_actions(self.consoles_menu, self.consoles_menu_actions)
         add_actions(self.projects_menu, self.projects_menu_actions)
 
         # Emitting the signal notifying plugins that main window menu and
@@ -1448,13 +1415,6 @@ class MainWindow(QMainWindow):
         )
 
     # --- Other
-    def update_execution_state_kernel(self):
-        """Handle execution state of the current console."""
-        try:
-            self.ipyconsole.update_execution_state_kernel()
-        except AttributeError:
-            return
-
     def valid_project(self):
         """Handle an invalid active project."""
         try:
