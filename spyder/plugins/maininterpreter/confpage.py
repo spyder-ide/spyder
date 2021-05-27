@@ -125,10 +125,9 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         # ENV Group
         pyenv_group = QGroupBox(_("Environment variables"))
-        pyenv_label = QLabel(_("For standalone Spyder applications "
-                               "(macOS, Windows), select whether to add user "
-                               "environment variables to the Python "
-                               "interpreter environment."))
+        pyenv_label = QLabel(_("Select whether to include system environment "
+                               "variables to the Python interpreter "
+                               "environment."))
         pyenv_label.setWordWrap(True)
         system_pythonpath = newcb(
             _("Use system PYTHONPATH"),
@@ -146,10 +145,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
             tip=_("For standalone applications, use your "
                   "system environment variables")
         )
-        if not running_in_mac_app() and not is_pynsist():
-            # Disable preference if not a standalone application
-            system_pythonpath.setEnabled(False)
-            system_env_variables.setEnabled(False)
 
         pyenv_layout = QVBoxLayout()
         pyenv_layout.addWidget(pyenv_label)
