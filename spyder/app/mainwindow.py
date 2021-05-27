@@ -1206,6 +1206,13 @@ class MainWindow(QMainWindow):
         The actions here are related with setting up the main window.
         """
         logger.info("Setting up window...")
+        # Create external plugins before loading the layout to include them in
+        # the restore state of the window after the restart.
+        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
+            self.tabify_plugin(plugin_instance, Plugins.Console)
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                plugin_instance.get_widget().toggle_view(False)
+
         for plugin_id, plugin_instance in self._PLUGINS.items():
             try:
                 plugin_instance.before_mainwindow_visible()
@@ -1227,10 +1234,6 @@ class MainWindow(QMainWindow):
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
 
-        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(plugin_instance, Plugins.Console)
-            if isinstance(plugin_instance, SpyderDockablePlugin):
-                plugin_instance.get_widget().toggle_view(False)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
