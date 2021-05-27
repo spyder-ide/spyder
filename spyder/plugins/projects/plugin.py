@@ -383,11 +383,6 @@ class Projects(SpyderDockablePlugin):
             if active_project is None:
                 if self.get_conf('visible_if_project_open'):
                     self.show_explorer()
-            else:
-                # We are switching projects.
-                # TODO: Don't emit sig_project_closed when we support
-                # multiple workspaces.
-                self.sig_project_closed.emit(active_project.root_path)
 
             self._create_project(root_path, project_type_id=project_type)
             dlg.close()
