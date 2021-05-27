@@ -123,48 +123,38 @@ class SpyderKernelSpec(KernelSpec):
     def env(self):
         """Env vars for kernels"""
         default_interpreter = CONF.get('main_interpreter', 'default')
-        env_vars = os.environ.copy()
+        user_env_vars = get_user_env_variables()
 
-        # Avoid IPython adding the virtualenv on which Spyder is running
-        # to the kernel sys.path
-        env_vars.pop('VIRTUAL_ENV', None)
+        env_vars = {}
 
-        # Add spyder-kernels subrepo path to PYTHONPATH
+        if running_in_mac_app() and default_interpreter:
+            env_vars.update({'PYTHONHOME': os.environ['PYTHONHOME']})
+
+        # PYTHONPATH heirarchy:
+        # subrepo, pypath manager, user systerm pypath, spyder runtime pypath
+        user_pypath = user_env_vars.pop('PYTHONPATH', '').split(os.pathsep)
+        pythonpath = {}  # dictionary preserves uniqueness and order
+
+        # Add spyder-kernels subrepo path to front of PYTHONPATH
         if DEV or running_under_pytest():
             repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
             subrepo_path = osp.join(repo_path, 'external-deps',
                                     'spyder-kernels')
-            sys_pythonpath = env_vars.get('PYTHONPATH', '')
-            if DEV and sys_pythonpath:
-                # If DEV, don't clobber PYTHONPATH
-                pythonpath = os.pathsep.join([subrepo_path, sys_pythonpath])
-            else:
-                pythonpath = subrepo_path
-            env_vars.update({'PYTHONPATH': pythonpath})
+            pythonpath.update(dict.fromkeys([subrepo_path]))
 
-        # App considerations
-        if (running_in_mac_app() or is_pynsist()):
-            env_vars.pop('PYTHONPATH', None)
+        # Paths in PYTHONPATH Manager plus project's path
+        pypath_manager = CONF.get('main', 'spyder_pythonpath', default=[])
+        pythonpath.update(dict.fromkeys(pypath_manager))
 
-            if not default_interpreter:
-                env_vars.pop('PYTHONHOME', None)
+        # Use system PYTHONPATH
+        if CONF.get('main_interpreter', 'system_pythonpath', False):
+            pythonpath.update(dict.fromkeys(user_pypath))
 
-            user_env_vars = get_user_env_variables()
-            if CONF.get('main_interpreter', 'system_pythonpath', False):
-                # Only get PYTHONPATH
-                pythonpath = user_env_vars.get('PYTHONPATH', None)
-                if pythonpath is not None:
-                    env_vars.update({'PYTHONPATH': pythonpath})
+        env_vars.update({'PYTHONPATH': os.pathsep.join(pythonpath)})
 
-            if CONF.get('main_interpreter', 'system_env_variables', False):
-                # Get all but PYTHONPATH
-                user_env_vars.pop('PYTHONPATH', None)
-                env_vars.update(user_env_vars)
-
-        # List of paths declared by the user, plus project's path, to
-        # add to PYTHONPATH
-        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
-        pypath = os.pathsep.join(pathlist)
+        # Use user environment variables
+        if CONF.get('main_interpreter', 'system_env_variables', False):
+            env_vars.update(user_env_vars)
 
         # List of modules to exclude from our UMR
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
@@ -197,7 +187,7 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows'),
-            'SPY_PYTHONPATH': pypath
+            'SPY_PYTHONPATH': ''  # obsolete
         })
 
         if self.is_pylab is True:
@@ -217,6 +207,10 @@ class SpyderKernelSpec(KernelSpec):
         # external interpreters when present.
         # Fixes spyder-ide/spyder#13252
         env_vars.pop('PYTHONEXECUTABLE', None)
+
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
 
         # Making all env_vars strings
         clean_env_vars = clean_env(env_vars)
