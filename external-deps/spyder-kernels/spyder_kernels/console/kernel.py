@@ -64,6 +64,7 @@ class SpyderKernel(IPythonKernel):
     def __init__(self, *args, **kwargs):
         super(SpyderKernel, self).__init__(*args, **kwargs)
 
+        self.comm_manager.get_comm = self._get_comm
         self.frontend_comm = FrontendComm(self)
 
         # All functions that can be called through the comm
@@ -839,3 +840,16 @@ class SpyderKernel(IPythonKernel):
                 get_ipython().run_line_magic('reload_ext', 'wurlitzer')
             except Exception:
                 pass
+
+    def _get_comm(self, comm_id):
+        """
+        We need to redefine this method from ipykernel.comm_manager to
+        avoid showing a warning when the comm corresponding to comm_id
+        is not present.
+
+        Fixes spyder-ide/spyder#15498
+        """
+        try:
+            return self.comm_manager.comms[comm_id]
+        except KeyError:
+            pass
