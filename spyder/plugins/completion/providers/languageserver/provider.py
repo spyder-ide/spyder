@@ -780,25 +780,26 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
 
         # Jedi configuration
+        # - Python environment
         environment = None
-        extra_paths = self.get_conf('spyder_pythonpath',
-                                    section='main', default=[])
-        env_vars = os.environ.copy()
-        pythonpath = os.environ.get('PYTHONPATH', '')
-
         if not self.get_conf('default', section='main_interpreter'):
             environment = self.get_conf('custom_interpreter',
                                         section='main_interpreter')
 
-        if running_in_mac_app():
-            if not self.get_conf('default', section='main_interpreter'):
-                env_vars.pop('PYTHONHOME', None)
+        # - extra paths
+        # Always use PYTHONPATH Manager paths
+        extra_paths = self.get_conf('spyder_pythonpath',
+                                    section='main', default=[])
+        # User's PYTHONPATH
+        if CONF.get('main_interpreter', 'system_pythonpath', False):
+            pythonpath = get_user_env_variables().get('PYTHONPATH', '')
+            extra_paths.extend(pythonpath.split(os.pathsep))
 
-            if CONF.get('main_interpreter', 'system_pythonpath', False):
-                pythonpath = get_user_env_variables().get('PYTHONPATH', '')
-
-        # PYTHONPATH must be added to extra_paths
-        extra_paths.extend(pythonpath.split(os.pathsep))
+        # - environment variables
+        env_vars = os.environ.copy()  # user environment variables
+        if (running_in_mac_app()
+                and not self.get_conf('default', section='main_interpreter')):
+            env_vars.pop('PYTHONHOME', None)
 
         jedi = {
             'environment': environment,
