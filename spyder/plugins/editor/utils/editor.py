@@ -158,7 +158,13 @@ class DelayJobRunner(object):
     def _exec_requested_job(self):
         """Execute the requested job after the timer has timeout."""
         self._timer.stop()
-        self._job(*self._args, **self._kwargs)
+
+        try:
+            self._job(*self._args, **self._kwargs)
+        except KeyError:
+            # Catching the KeyError above is necessary to avoid
+            # issue spyder-ide/spyder#15712.
+            pass
 
 
 class TextHelper(object):
