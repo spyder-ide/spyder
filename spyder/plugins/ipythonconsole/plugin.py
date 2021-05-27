@@ -34,6 +34,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginWidget
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
 from spyder.config.gui import get_font
@@ -46,6 +47,8 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
@@ -658,13 +661,49 @@ class IPythonConsole(SpyderPluginWidget):
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
 
-        # Add the action to the 'Consoles' menu on the main window
-        main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [special_console_menu, connect_to_kernel_action,
-                               MENU_SEPARATOR,
-                               self.interrupt_action, restart_action,
-                               reset_action]
+        # Add actions to the 'Consoles' menu on the main window
+        console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
+        console_menu.aboutToShow.connect(self.update_execution_state_kernel)
+        new_consoles_actions = [
+            create_client_action, special_console_menu,
+            connect_to_kernel_action]
+        restart_connect_consoles_actions = [
+            self.interrupt_action, restart_action, reset_action]
+        for console_new_action in new_consoles_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                console_new_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.New)
+        for console_restart_connect_action in restart_connect_consoles_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                console_restart_connect_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.Restart)
+
+        # IPython documentation
+        self.ipython_menu = SpyderMenu(
+            parent=self,
+            title=_("IPython documentation"))
+        intro_action = create_action(
+            self,
+            _("Intro to IPython"),
+            triggered=self.show_intro)
+        quickref_action = create_action(
+            self,
+            _("Quick reference"),
+            triggered=self.show_quickref)
+        guiref_action = create_action(
+            self,
+            _("Console help"),
+            triggered=self.show_guiref)
+        add_actions(
+            self.ipython_menu,
+            (intro_action, guiref_action, quickref_action))
+        self.main.mainmenu.add_item_to_application_menu(
+            self.ipython_menu,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.ExternalDocumentation,
+            before_section=HelpMenuSections.About)
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,
