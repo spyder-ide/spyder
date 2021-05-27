@@ -1215,7 +1215,6 @@ class Editor(SpyderPluginWidget):
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
         self.main.console.sig_edit_goto_requested.connect(self.load)
-        self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         if completions:
             self.main.completions.sig_language_completions_available.connect(
