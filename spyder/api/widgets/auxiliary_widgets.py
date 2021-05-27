@@ -10,7 +10,7 @@ Spyder API auxiliary widgets.
 
 # Third party imports
 from qtpy.QtCore import Signal, QSize
-from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget, QHBoxLayout
+from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
