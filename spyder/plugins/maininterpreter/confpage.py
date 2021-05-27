@@ -119,6 +119,17 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
 
+        pyexec_group.setLayout(pyexec_layout)
+
+        self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()
+
+        # ENV Group
+        pyenv_group = QGroupBox(_("Environment variables"))
+        pyenv_label = QLabel(_("For standalone Spyder applications "
+                               "(macOS, Windows), select whether to add user "
+                               "environment variables to the Python "
+                               "interpreter environment."))
+        pyenv_label.setWordWrap(True)
         system_pythonpath = newcb(
             _("Use system PYTHONPATH"),
             'system_pythonpath',
@@ -127,7 +138,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
                        "and immediately to completions"),
             tip=_("For standalone applications, use your system PYTHONPATH")
         )
-        pyexec_layout.addWidget(system_pythonpath)
         system_env_variables = newcb(
             _("Use system environment variables"),
             'system_env_variables',
@@ -136,15 +146,16 @@ class MainInterpreterConfigPage(PluginConfigPage):
             tip=_("For standalone applications, use your "
                   "system environment variables")
         )
-        pyexec_layout.addWidget(system_env_variables)
         if not running_in_mac_app() and not is_pynsist():
             # Disable preference if not a standalone application
             system_pythonpath.setEnabled(False)
             system_env_variables.setEnabled(False)
 
-        pyexec_group.setLayout(pyexec_layout)
-
-        self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()
+        pyenv_layout = QVBoxLayout()
+        pyenv_layout.addWidget(pyenv_label)
+        pyenv_layout.addWidget(system_pythonpath)
+        pyenv_layout.addWidget(system_env_variables)
+        pyenv_group.setLayout(pyenv_layout)
 
         # UMR Group
         umr_group = QGroupBox(_("User Module Reloader (UMR)"))
@@ -193,6 +204,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(pyexec_group)
+        vlayout.addWidget(pyenv_group)
         vlayout.addWidget(umr_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
