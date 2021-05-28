@@ -150,8 +150,6 @@ class SpyderKernelSpec(KernelSpec):
         if CONF.get('main_interpreter', 'system_pythonpath', False):
             pythonpath.update(dict.fromkeys(user_pypath))
 
-        env_vars.update({'PYTHONPATH': os.pathsep.join(pythonpath)})
-
         # Use user environment variables
         if CONF.get('main_interpreter', 'system_env_variables', False):
             env_vars.update(user_env_vars)
@@ -187,7 +185,7 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows'),
-            'SPY_PYTHONPATH': ''  # obsolete
+            'SPY_PYTHONPATH': os.pathsep.join(pythonpath)
         })
 
         if self.is_pylab is True:
