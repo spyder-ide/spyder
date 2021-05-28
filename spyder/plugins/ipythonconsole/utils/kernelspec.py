@@ -138,13 +138,17 @@ class SpyderKernelSpec(KernelSpec):
         user_pypath = user_env_vars.pop('PYTHONPATH', '').split(os.pathsep)
         pythonpath = {}  # dictionary preserves uniqueness and order
 
-        # Add spyder-kernels subrepo path to front of PYTHONPATH
+        # Add spyder-kernels subrepo path to front of sys.path
         if DEV or running_under_pytest():
             repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
             subrepo_path = osp.join(repo_path, 'external-deps',
                                     'spyder-kernels')
             pythonpath.update(dict.fromkeys([subrepo_path]))
+
+        if running_under_pytest():
+            # Test environment must have these variables
             env_vars.update({'SPYDER_PYTEST': os.environ.get('SPYDER_PYTEST')})
+            env_vars.update({'PYTHONPATH': subrepo_path})
 
         # Paths in PYTHONPATH Manager plus project's path
         pypath_manager = CONF.get('main', 'spyder_pythonpath', default=[])
