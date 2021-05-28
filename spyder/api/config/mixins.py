@@ -60,8 +60,7 @@ class SpyderConfigurationAccessor:
         Raises
         ------
         spyder.py3compat.configparser.NoOptionError
-            If the option does not exist in the configuration under the given
-            section and the default value is NoDefault.
+            If the section does not exist in the configuration.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -90,8 +89,7 @@ class SpyderConfigurationAccessor:
         Raises
         ------
         spyder.py3compat.configparser.NoOptionError
-            If the option does not exist in the configuration under the given
-            section and the default value is NoDefault.
+            If the section does not exist in the configuration.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -198,8 +196,7 @@ class SpyderConfigurationAccessor:
         Raises
         ------
         spyder.py3compat.configparser.NoOptionError
-            If the option does not exist in the configuration under the given
-            section and the default value is NoDefault.
+            If the section does not exist in the configuration.
         """
         context = self.CONF_SECTION if context is None else context
         return CONF.get_shortcut(context, name)

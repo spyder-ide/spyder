@@ -1207,7 +1207,7 @@ class MainWindow(QMainWindow):
         """
         logger.info("Setting up window...")
         # Create external plugins before loading the layout to include them in
-        # the restore state of the window after the restart.
+        # the window restore state after restarts.
         for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
             self.tabify_plugin(plugin_instance, Plugins.Console)
             if isinstance(plugin_instance, SpyderDockablePlugin):

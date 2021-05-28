@@ -26,7 +26,6 @@ _ = get_translation('spyder')
 
 
 class AppearanceConfigPage(PluginConfigPage):
-    APPLY_CONF_PAGE_SETTINGS = False
 
     def setup_page(self):
         names = self.get_option("names")
