@@ -125,7 +125,10 @@ class SpyderKernelSpec(KernelSpec):
         default_interpreter = CONF.get('main_interpreter', 'default')
         user_env_vars = get_user_env_variables()
 
-        env_vars = {}
+        req_vars = []
+        if os.name == 'nt':
+            req_vars.extend(['PATH', 'SYSTEMROOT', 'USERPROFILE'])
+        env_vars = {k: v for k, v in os.environ.items() if k in req_vars}
 
         if running_in_mac_app() and default_interpreter:
             env_vars.update({'PYTHONHOME': os.environ['PYTHONHOME']})
