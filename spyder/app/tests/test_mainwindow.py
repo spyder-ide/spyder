@@ -369,7 +369,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     p = tmpdir.mkdir("foo").join("bar.py")
     p.write(lock_code)
 
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute('%edit {}'.format(to_text_string(p)))
 
     qtbot.wait(3000)

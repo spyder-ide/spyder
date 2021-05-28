@@ -141,6 +141,7 @@ class SpyderKernelSpec(KernelSpec):
             subrepo_path = osp.join(repo_path, 'external-deps',
                                     'spyder-kernels')
             pythonpath.update(dict.fromkeys([subrepo_path]))
+            env_vars.update({'SPYDER_PYTEST': os.environ.get('SPYDER_PYTEST')})
 
         # Paths in PYTHONPATH Manager plus project's path
         pypath_manager = CONF.get('main', 'spyder_pythonpath', default=[])
