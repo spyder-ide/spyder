@@ -1098,7 +1098,7 @@ def get_user_env_variables():
                   'printenv')
         out, err = run_shell_command(cmdstr, env={}).communicate()
         for item in out.decode().strip().split('\n'):
-            env_vars.update([item.split('=')])
+            env_vars.update([item.split('=', 1)])
 
     return env_vars
 
