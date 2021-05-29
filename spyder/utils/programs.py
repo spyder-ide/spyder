@@ -45,7 +45,7 @@ REQ_ENV_VARS = []
 if os.name == 'nt':
     REQ_ENV_VARS.extend(['PATH', 'SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE'])
 elif sys.platform.startswith('linux'):
-    REQ_ENV_VARS.extend(['HOME', 'DISPLAY'])
+    REQ_ENV_VARS.extend(['HOME', 'DISPLAY', 'XAUTHORITY'])
 elif sys.platform == 'darwin':
     REQ_ENV_VARS.extend(['HOME'])
 

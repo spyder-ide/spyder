@@ -1760,9 +1760,9 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
     """Check if pdb works with every backend. (only testing 3)."""
     # Skip failing tests
     if backend == 'tk' and (os.name == 'nt' or PY2):
-        return
+        pytest.skip()
     if backend == 'osx' and (sys.platform != "darwin" or PY2):
-        return
+        pytest.skip()
 
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
