@@ -18,14 +18,16 @@ import sys
 from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
-from spyder.config.base import (DEV, is_pynsist, running_under_pytest,
-                                get_safe_mode, running_in_mac_app)
+from spyder.config.base import (DEV, running_under_pytest, get_safe_mode,
+                                running_in_mac_app)
 from spyder.config.manager import CONF
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
-from spyder.utils.programs import is_python_interpreter, get_user_env_variables
+from spyder.utils.programs import (is_python_interpreter,
+                                   get_user_env_variables,
+                                   get_required_env_variables)
 
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -125,13 +127,10 @@ class SpyderKernelSpec(KernelSpec):
         default_interpreter = CONF.get('main_interpreter', 'default')
         user_env_vars = get_user_env_variables()
 
-        req_vars = []
-        if os.name == 'nt':
-            req_vars.extend(['PATH', 'SYSTEMROOT', 'USERPROFILE'])
-        env_vars = {k: v for k, v in os.environ.items() if k in req_vars}
+        env_vars = get_required_env_variables()
 
         if running_in_mac_app() and default_interpreter:
-            env_vars.update({'PYTHONHOME': os.environ['PYTHONHOME']})
+            env_vars['PYTHONHOME'] = os.environ.get('PYTHONHOME')
 
         # PYTHONPATH heirarchy:
         # subrepo, pypath manager, user systerm pypath, spyder runtime pypath

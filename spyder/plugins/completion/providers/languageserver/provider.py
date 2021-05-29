@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import (_, get_conf_path, running_under_pytest,
-                                running_in_mac_app, is_pynsist)
+                                running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.utils.misc import check_connection_port
@@ -35,7 +35,8 @@ from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 from spyder.plugins.completion.providers.languageserver.widgets import (
     ClientStatus, LSPStatusWidget, ServerDisabledMessageBox)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
-from spyder.utils.programs import get_user_env_variables
+from spyder.utils.programs import (get_user_env_variables,
+                                   get_required_env_variables)
 
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
@@ -796,10 +797,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
             extra_paths.extend(pythonpath.split(os.pathsep))
 
         # - environment variables
-        env_vars = os.environ.copy()  # user environment variables
-        if (running_in_mac_app()
-                and not self.get_conf('default', section='main_interpreter')):
-            env_vars.pop('PYTHONHOME', None)
+        env_vars = get_required_env_variables()
+        if running_in_mac_app(environment):
+            env_vars['PYTHONHOME'] = os.environ.get('PYTHONHOME')
 
         jedi = {
             'environment': environment,
