@@ -44,7 +44,9 @@ HERE = osp.abspath(osp.dirname(__file__))
 REQ_ENV_VARS = []
 if os.name == 'nt':
     REQ_ENV_VARS.extend(['PATH', 'SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE'])
-else:
+elif sys.platform.startswith('linux'):
+    REQ_ENV_VARS.extend(['HOME', 'DISPLAY'])
+elif sys.platform == 'darwin':
     REQ_ENV_VARS.extend(['HOME'])
 
 
