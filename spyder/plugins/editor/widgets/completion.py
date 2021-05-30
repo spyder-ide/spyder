@@ -95,6 +95,11 @@ class CompletionWidget(QListWidget):
 
     def show_list(self, completion_list, position, automatic):
         """Show list corresponding to position."""
+        # Fixes spyder-ide/spyder#15055.
+        if not self.textedit.hasFocus() and not self.hasFocus():
+            self.hide(focus_to_parent=False)
+            return
+
         if not completion_list:
             self.hide()
             return
