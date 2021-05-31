@@ -3709,7 +3709,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
 def test_tour_message(main_window, qtbot):
     """Test that the tour message displays and sends users to the tour."""
     # Wait until window setup is finished, which is when the message appears
-    tours = main_window.get_plugin(Plugin.Tours)
+    tours = main_window.get_plugin(Plugins.Tours)
     tour_dialog = tours.get_container()._tour_dialog
     qtbot.waitSignal(main_window.sig_setup_finished, timeout=30000)
 
