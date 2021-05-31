@@ -286,7 +286,7 @@ class MainWindow(QMainWindow):
         # Disconnect all slots
         signals = [
             plugin.sig_quit_requested,
-            plugin.sig_redirect_stdio,
+            plugin.sig_redirect_stdio_requested,
             plugin.sig_status_message_requested,
         ]
 
@@ -301,9 +301,10 @@ class MainWindow(QMainWindow):
         for action_name, action in plugin.get_actions().items():
             context = (getattr(action, 'shortcut_context', plugin.NAME)
                        or plugin.NAME)
-            self.unregister_shortcut(action, context, action_name)
+            self.shortcuts.unregister_shortcut(action, context, action_name)
 
         # Unregister switch to shortcut
+        shortcut = None
         try:
             context = '_'
             name = 'switch to {}'.format(plugin.CONF_SECTION)
@@ -313,7 +314,7 @@ class MainWindow(QMainWindow):
             pass
 
         if shortcut is not None:
-            self.unregister_shortcut(
+            self.shortcuts.unregister_shortcut(
                 plugin._shortcut,
                 context,
                 "Switch to {}".format(plugin.CONF_SECTION),
@@ -404,7 +405,10 @@ class MainWindow(QMainWindow):
         Remove a plugin QDockWidget from the main window.
         """
         self.removeDockWidget(plugin.dockwidget)
-        self.widgetlist.remove(plugin)
+        try:
+            self.widgetlist.remove(plugin)
+        except ValueError:
+            pass
 
     def tabify_plugins(self, first, second):
         """Tabify plugin dockwigdets."""
