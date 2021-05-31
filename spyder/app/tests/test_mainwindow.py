@@ -3715,7 +3715,7 @@ def test_tour_message(main_window, qtbot):
 
     # Check that tour is shown automatically and manually show it
     assert CONF.get('tours', 'show_tour_message')
-    tours.show_tour_message(force=True) 
+    tours.show_tour_message(force=True)
 
     # Wait for the message to appear
     qtbot.waitUntil(lambda: bool(tour_dialog), timeout=5000)

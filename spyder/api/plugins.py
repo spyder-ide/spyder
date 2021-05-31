@@ -799,7 +799,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     This signal is automatically connected to the main container/widget.
     """
 
-
     sig_mainwindow_resized = Signal("QResizeEvent")
     """
     This signal is emitted when the main window is resized.

@@ -25,11 +25,18 @@ _ = get_translation('spyder')
 # Set the index for the default tour
 DEFAULT_TOUR = TourIdentifiers.IntroductionTour
 
+
 class TourActions:
+    """
+    Tours actions.
+    """
+
     ShowTour = "show tour"
 
 # --- Plugin
 # ----------------------------------------------------------------------------
+
+
 class ToursContainer(PluginMainContainer):
     """
     Tours container.
@@ -47,16 +54,15 @@ class ToursContainer(PluginMainContainer):
         self.tour_action = self.create_action(
             TourActions.ShowTour,
             text=_("Show tour"),
-            triggered=lambda:self.show_tour(DEFAULT_TOUR)
+            triggered=lambda: self.show_tour(DEFAULT_TOUR)
         )
-
 
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------
+
     def setup(self):
         self.tours_menu = self.create_menu(
             "tours_menu", _("Interactive tours"))
-
 
     def update_actions(self):
         pass

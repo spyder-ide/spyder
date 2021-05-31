@@ -94,7 +94,8 @@ class FadingDialog(QDialog):
         self._fade_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(self.effect, to_binary_string("opacity"))
+        self.anim = QPropertyAnimation(
+                    self.effect, to_binary_string("opacity"))
 
     # --- public api
     def fade_in(self, on_finished_connect):
@@ -844,7 +845,8 @@ class AnimatedTour(QWidget):
         if dockwidgets is not None:
             if dockwidgets[0] is not None:
                 geo = dockwidgets[0].geometry()
-                x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
+                x, y, width, height = (geo.x(), geo.y(),
+                                       geo.width(), geo.height())
 
                 point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
                 x_glob, y_glob = point.x(), point.y()
@@ -860,8 +862,8 @@ class AnimatedTour(QWidget):
                 if (y + self.tips.height()) > (self.y_main + self.height_main):
                     y = (
                         y
-                        - (y + self.tips.height() - (self.y_main + self.height_main))
-                        - offset
+                        - (y + self.tips.height() - (
+                            self.y_main + self.height_main)) - offset
                     )
         else:
             # Center on parent
@@ -1035,7 +1037,7 @@ class AnimatedTour(QWidget):
     def gain_focus(self):
         """Confirm if the tour regains focus and unhides the tips."""
         if (self.is_running and self.any_has_focus() and
-            not self.setting_data and self.hidden):
+           not self.setting_data and self.hidden):
             self.unhide_tips()
 
     def any_has_focus(self):
@@ -1282,7 +1284,7 @@ class TourTestWindow(QMainWindow):
 
 def local_test():
     from spyder.utils.qthelpers import qapplication
-    
+
     app = QApplication([])
     win = TourTestWindow()
     win.show()
