@@ -31,11 +31,12 @@ from spyder import __docs_url__
 from spyder.api.panel import Panel
 from spyder.api.translations import get_translation
 from spyder.config.base import _
-from spyder.utils.image_path_manager import get_image_path
+from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
-from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.icon_manager import ima
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.qthelpers import add_actions, create_action
 
 
 MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
@@ -949,7 +950,8 @@ class AnimatedTour(QWidget):
             'layout_current_temp/',
             section="quick_layouts",
         )
-        self.spy_window.layouts.quick_layout_switch('default')
+        self.spy_window.layouts.quick_layout_switch(
+            DefaultLayouts.SpyderLayout)
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
 #        self.parent_x = x
