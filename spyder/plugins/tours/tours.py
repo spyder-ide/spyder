@@ -32,7 +32,7 @@ TEST_TOUR = [
         'content': "<b>Spyder</b> is an interactive development "
                    "environment. This tip panel supports rich text. <br>"
                    "<br> it also supports image insertion to the right so far",
-        'image': 'tour-spyder-logo.png',
+        'image': 'spyder_about',
     },
     {
         'title': "Widget display",
@@ -77,7 +77,7 @@ INTRO_TOUR = [
                      "important features.<br><br>"
                      "Please use the arrow keys or click on the buttons "
                      "below to move along the tour."),
-        'image': 'tour-spyder-logo.png',
+        'image': 'spyder_about',
     },
     {
         'title': _("Editor"),
@@ -208,7 +208,7 @@ INTRO_TOUR = [
                      'information, check out our '
                      '<a href="{}">documentation</a>.'
                      '<br><br>').format(__docs_url__),
-        'image': 'tour-spyder-logo.png'
+        'image': 'spyder_about'
     },
 ]
 
@@ -218,7 +218,7 @@ FEAT30 = [
         'title': _("New features in Spyder 3.0"),
         'content': _("<b>Spyder</b> is an interactive development "
                      "environment based on bla"),
-        'image': 'spyder.png',
+        'image': 'spyder_about',
     },
     {
         'title': _("Welcome to Spyder introduction tour"),
