@@ -35,7 +35,7 @@ qstylizer >=0.1.10
 qtawesome >=1.0.2
 qtconsole >=5.1.0
 qtpy >=1.5.0
-rtree >=0.8.3
+rtree >=0.9.7
 setuptools >=39.0.0
 sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
@@ -43,4 +43,4 @@ sphinx >=0.6.6
 spyder-kernels
 textdistance >=4.2.0
 three-merge >=0.1.1
-watchdog >=0.10.3,<2.0.0
+watchdog >=0.10.3

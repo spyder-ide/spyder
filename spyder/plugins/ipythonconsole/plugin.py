@@ -34,6 +34,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginWidget
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
 from spyder.config.gui import get_font
@@ -46,6 +47,8 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
@@ -165,7 +168,7 @@ class IPythonConsole(SpyderPluginWidget):
                              "make it writable.")
 
     def __init__(self, parent, testing=False, test_dir=None,
-                 test_no_stderr=False, css_path=None):
+                 test_no_stderr=False):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -176,7 +179,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
-        self.css_path = css_path
+        self.css_path = CONF.get('appearance', 'css_path')
         self.run_cell_filename = None
         self.interrupt_action = None
 
@@ -237,7 +240,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.pager_label.setStyleSheet(
             f"background-color: {QStylePalette.COLOR_ACCENT_2};"
             f"color: {QStylePalette.COLOR_TEXT_1};"
-            "margin: 0px 4px 4px 4px;"
+            "margin: 0px 1px 4px 1px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"
         )
@@ -658,13 +661,49 @@ class IPythonConsole(SpyderPluginWidget):
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
 
-        # Add the action to the 'Consoles' menu on the main window
-        main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [special_console_menu, connect_to_kernel_action,
-                               MENU_SEPARATOR,
-                               self.interrupt_action, restart_action,
-                               reset_action]
+        # Add actions to the 'Consoles' menu on the main window
+        console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
+        console_menu.aboutToShow.connect(self.update_execution_state_kernel)
+        new_consoles_actions = [
+            create_client_action, special_console_menu,
+            connect_to_kernel_action]
+        restart_connect_consoles_actions = [
+            self.interrupt_action, restart_action, reset_action]
+        for console_new_action in new_consoles_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                console_new_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.New)
+        for console_restart_connect_action in restart_connect_consoles_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                console_restart_connect_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.Restart)
+
+        # IPython documentation
+        self.ipython_menu = SpyderMenu(
+            parent=self,
+            title=_("IPython documentation"))
+        intro_action = create_action(
+            self,
+            _("Intro to IPython"),
+            triggered=self.show_intro)
+        quickref_action = create_action(
+            self,
+            _("Quick reference"),
+            triggered=self.show_quickref)
+        guiref_action = create_action(
+            self,
+            _("Console help"),
+            triggered=self.show_guiref)
+        add_actions(
+            self.ipython_menu,
+            (intro_action, guiref_action, quickref_action))
+        self.main.mainmenu.add_item_to_application_menu(
+            self.ipython_menu,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.ExternalDocumentation,
+            before_section=HelpMenuSections.About)
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,
@@ -686,21 +725,32 @@ class IPythonConsole(SpyderPluginWidget):
         self.add_dockwidget()
 
         self.focus_changed.connect(self.main.plugin_focus_changed)
-        self.edit_goto.connect(self.main.editor.load)
-        self.edit_goto[str, int, str, bool].connect(
-                         lambda fname, lineno, word, processevents:
-                         self.main.editor.load(fname, lineno, word,
-                                               processevents=processevents))
-        self.main.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
-        self.main.editor.run_in_current_ipyclient.connect(self.run_script)
-        self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
-        self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
+        if self.main.editor:
+            self.edit_goto.connect(self.main.editor.load)
+            self.edit_goto[str, int, str, bool].connect(
+                             lambda fname, lineno, word, processevents:
+                             self.main.editor.load(
+                                 fname, lineno, word,
+                                 processevents=processevents))
+            self.main.editor.breakpoints_saved.connect(
+                self.set_spyder_breakpoints)
+            self.main.editor.run_in_current_ipyclient.connect(self.run_script)
+            self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
+            self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
+            # Connect Editor debug action with Console
+            self.sig_pdb_state.connect(self.main.editor.update_pdb_state)
+            self.main.editor.exec_in_extconsole.connect(
+                self.execute_code_and_focus_editor)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
 
         # Update kernels if python path is changed
         self.main.sig_pythonpath_changed.connect(self.update_path)
+
+        # Show history file if no console is visible
+        if not self._isvisible and self.main.historylog:
+            self.main.historylog.add_history(get_conf_path('history.py'))
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -867,6 +917,17 @@ class IPythonConsole(SpyderPluginWidget):
             if shell is not None:
                 self.main.get_spyder_pythonpath()
                 shell.update_syspath(path_dict, new_path_dict)
+
+    def execute_code_and_focus_editor(self, lines, focus_to_editor=True):
+        """
+        Execute lines in IPython console and eventually set focus
+        to the Editor.
+        """
+        console = self
+        console.switch_to_plugin()
+        console.execute_code(lines)
+        if focus_to_editor and self.main.editor:
+            self.main.editor.switch_to_plugin()
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""

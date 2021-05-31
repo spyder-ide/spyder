@@ -257,10 +257,6 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
         req.pop('spyder-kernels')
         req.pop('python-language-server')
 
-    # rtree is only available through conda
-    if 'rtree' in spyder_reqs:
-        spyder_reqs.pop('rtree')
-
     if 'pyqtwebengine' in spyder_setup:
         spyder_setup.pop('pyqtwebengine')
 

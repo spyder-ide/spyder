@@ -61,8 +61,8 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
-        if key == Qt.Key_ParenLeft and not self.has_selected_text() \
-          and self.help_enabled and not self.parent()._reading:
+        if (key == Qt.Key_ParenLeft and not self.has_selected_text()
+                and self.help_enabled and not self.parent()._reading):
             self._key_paren_left(text)
         else:
             # Let the parent widget handle the key press event
@@ -104,6 +104,9 @@ class PageControlWidget(QTextEdit, BaseEditMixin):
 
         if key == Qt.Key_Slash and self.isVisible():
             self.show_find_widget.emit()
+        else:
+            # Let the parent widget handle the key press event
+            QTextEdit.keyPressEvent(self, event)
 
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""

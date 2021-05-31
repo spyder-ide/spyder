@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 2.0.3 (2021-05-15)
+
+### Pull Requests Merged
+
+* [PR 291](https://github.com/spyder-ide/spyder-kernels/pull/291) - PR: Pass adding breakpoint on ValueError, by [@impact27](https://github.com/impact27)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 2.0.2 (2021-05-02)
 
 ### Pull Requests Merged

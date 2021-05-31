@@ -62,15 +62,15 @@ QSTYLIZER_REQVER = '>=0.1.10'
 QTAWESOME_REQVER = '>=1.0.2'
 QTCONSOLE_REQVER = '>=5.1.0'
 QTPY_REQVER = '>=1.5.0'
-RTREE_REQVER = '>=0.8.3'
+RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.0.2;<2.1.0'
+SPYDER_KERNELS_REQVER = '>=2.0.3;<2.1.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
-WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3;<2.0.0'
+WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
 
 
 # Optional dependencies
@@ -219,8 +219,7 @@ DESCRIPTIONS = [
     {'modname': "rtree",
      'package_name': "rtree",
      'features': _("Fast access to code snippets regions"),
-     'required_version': RTREE_REQVER,
-     'display': is_anaconda() or is_pynsist()},
+     'required_version': RTREE_REQVER},
     {'modname': "setuptools",
      'package_name': "setuptools",
      'features': _("Determine package version"),

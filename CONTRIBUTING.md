@@ -64,6 +64,11 @@ $ conda install -c spyder-ide/label/dev --file requirements/conda.txt
 ```
 
 This installs all Spyder's dependencies into the environment.
+If you are running on macOS, you will also need to install `python.app`.
+
+```bash
+$ conda install python.app
+```
 
 If using `pip` and `virtualenv` (not recommended), you need to `cd` to the directory where your git clone is stored and run:
 
@@ -78,6 +83,7 @@ To start Spyder directly from your clone, i.e. without installing it into your e
 ```bash
 $ python bootstrap.py
 ```
+Note that if you are running on macOS, you will need to call `pythonw` instead of `python`.
 
 To start Spyder in debug mode, useful for tracking down an issue, you can run:
 

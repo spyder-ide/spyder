@@ -426,6 +426,7 @@ class Projects(SpyderPluginWidget):
             # multiple workspaces.
             self.sig_project_closed.emit(
                 self.current_active_project.root_path)
+            self.watcher.stop()
 
         self.current_active_project = project
         self.latest_project = project

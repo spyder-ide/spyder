@@ -21,14 +21,12 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.layout.api import BaseGridLayoutType
+from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.layout.widgets.dialog import (
     LayoutSaveDialog, LayoutSettingsDialog)
 
 # Localization
 _ = get_translation("spyder")
-
-# Constants
-DEFAULT_LAYOUTS = 4
 
 
 class LayoutContainerActions:
@@ -118,13 +116,6 @@ class LayoutContainer(PluginMainContainer):
             shortcut_context='_'
         )
 
-        # Create default layouts for the menu
-        self._default_layout_action = self.create_action(
-            LayoutContainerActions.DefaultLayout,
-            text=_('Spyder Default Layout'),
-            triggered=lambda: self.quick_layout_switch('default'),
-            register_shortcut=False,
-        )
         self._save_layout_action = self.create_action(
             LayoutContainerActions.SaveLayoutAction,
             _("Save current layout"),
@@ -170,37 +161,41 @@ class LayoutContainer(PluginMainContainer):
             "plugins_menu", _("Panes"))
         self._plugins_menu.setObjectName('checkbox-padding')
 
-        # Signals
-        self.update_actions()
-
     def update_actions(self):
+        pass
+
+    def update_layout_menu_actions(self):
         """
         Update layouts menu and layouts related actions.
         """
         menu = self._layouts_menu
-        menu.clear()
+        menu.clear_actions()
         names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
 
-        actions = [self._default_layout_action]
+        actions = []
         for name in order:
             if name in active:
-                index = names.index(name)
+                if name in self._spyder_layouts:
+                    index = name
+                    name = self._spyder_layouts[index].get_name()
+                else:
+                    index = names.index(name)
+                    name = ui_names[index]
 
                 # closure required so lambda works with the default parameter
                 def trigger(i=index, self=self):
                     return lambda: self.quick_layout_switch(i)
 
-                try:
-                    layout_switch_action = self.get_action(name)
-                except KeyError:
-                    layout_switch_action = self.create_action(
-                        name,
-                        text=name,
-                        triggered=trigger(),
-                        register_shortcut=False,
-                    )
+                layout_switch_action = self.create_action(
+                    name,
+                    text=name,
+                    triggered=trigger(),
+                    register_shortcut=False,
+                    overwrite=True
+                )
 
                 actions.append(layout_switch_action)
 
@@ -228,7 +223,7 @@ class LayoutContainer(PluginMainContainer):
         parent_plugin: spyder.api.plugins.SpyderPluginV2
             Plugin registering the layout type.
         layout_type: spyder.plugins.layout.api.BaseGridLayoutType
-            Layout to regsiter.
+            Layout to register.
         """
         if not issubclass(layout_type, BaseGridLayoutType):
             raise SpyderAPIError(
@@ -242,6 +237,20 @@ class LayoutContainer(PluginMainContainer):
         layout = layout_type(parent_plugin)
         layout._check_layout_validity()
         self._spyder_layouts[layout_id] = layout
+        names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
+        order = self.get_conf('order')
+        active = self.get_conf('active')
+
+        if layout_id not in names:
+            names.append(layout_id)
+            ui_names.append(layout.get_name())
+            order.append(layout_id)
+            active.append(layout_id)
+            self.set_conf('names', names)
+            self.set_conf('ui_names', ui_names)
+            self.set_conf('order', order)
+            self.set_conf('active', active)
 
     def get_layout(self, layout_id):
         """
@@ -271,13 +280,24 @@ class LayoutContainer(PluginMainContainer):
     def show_save_layout(self):
         """Show the save layout dialog."""
         names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
-
-        dlg = self._save_dialog = LayoutSaveDialog(self, names)
+        dialog_names = [name for name in names
+                        if name not in self._spyder_layouts.keys()]
+        dlg = self._save_dialog = LayoutSaveDialog(self, dialog_names)
 
         if dlg.exec_():
             name = dlg.combo_box.currentText()
+            if name in self._spyder_layouts:
+                QMessageBox.critical(
+                    self,
+                    _("Error"),
+                    _("Layout <b>{0}</b> was defined programatically. "
+                      "It is not possible to overwrite programatically "
+                      "registered layouts.").format(name)
+                )
+                return
             if name in names:
                 answer = QMessageBox.warning(
                     self,
@@ -303,29 +323,36 @@ class LayoutContainer(PluginMainContainer):
             if name not in active:
                 active.append(name)
 
+            if name not in ui_names:
+                ui_names.append(name)
+
             if answer:
                 self._plugin.save_current_window_settings(
                     'layout_{}/'.format(index), section='quick_layouts')
                 self.set_conf('names', names)
+                self.set_conf('ui_names', ui_names)
                 self.set_conf('order', order)
                 self.set_conf('active', active)
 
-            self.update_actions()
+            self.update_layout_menu_actions()
 
     def show_layout_settings(self):
         """Layout settings dialog."""
         names = self.get_conf('names')
+        ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
+        read_only = list(self._spyder_layouts.keys())
 
         dlg = self._settings_dialog = LayoutSettingsDialog(
-            self, names, order, active)
+            self, names, ui_names, order, active, read_only)
         if dlg.exec_():
             self.set_conf('names', dlg.names)
+            self.set_conf('ui_names', dlg.ui_names)
             self.set_conf('order', dlg.order)
             self.set_conf('active', dlg.active)
 
-            self.update_actions()
+            self.update_layout_menu_actions()
 
     @Slot()
     def reset_window_layout(self):
@@ -361,7 +388,7 @@ class LayoutContainer(PluginMainContainer):
         if len(active) == 0:
             return
 
-        layout_index = ['default']
+        layout_index = []
         for name in order:
             if name in active:
                 layout_index.append(names.index(name))
@@ -371,7 +398,7 @@ class LayoutContainer(PluginMainContainer):
 
         if current_layout is None:
             # Start from default
-            current_layout = 'default'
+            current_layout = names.index(DefaultLayouts.SpyderLayout)
 
         if current_layout in layout_index:
             current_index = layout_index.index(current_layout)
@@ -379,17 +406,30 @@ class LayoutContainer(PluginMainContainer):
             current_index = 0
 
         new_index = (current_index + dic[direction]) % len(layout_index)
+        index_or_layout_id = layout_index[new_index]
+        is_layout_id = (
+            names[index_or_layout_id] in self._spyder_layouts)
 
-        self.quick_layout_switch(layout_index[new_index])
+        if is_layout_id:
+            index_or_layout_id = names[layout_index[new_index]]
 
-    def quick_layout_switch(self, index):
+        self.quick_layout_switch(index_or_layout_id)
+
+    def quick_layout_switch(self, index_or_layout_id):
         """
-        Switch to quick layout number *index*.
+        Switch to quick layout number *index* or *layout id*.
 
         Parameters
         ----------
-        index: int
+        index: int or str
         """
-        possible_current_layout = self._plugin.quick_layout_switch(index)
+        possible_current_layout = self._plugin.quick_layout_switch(
+            index_or_layout_id)
+
         if possible_current_layout is not None:
-            self._current_quick_layout = possible_current_layout
+            if isinstance(possible_current_layout, int):
+                self._current_quick_layout = possible_current_layout
+            else:
+                names = self.get_conf('names')
+                self._current_quick_layout = names.index(
+                    possible_current_layout)
