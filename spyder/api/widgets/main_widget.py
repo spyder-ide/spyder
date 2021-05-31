@@ -304,15 +304,16 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             icon=self.create_icon('tooloptions'),
         )
 
-        self.add_corner_widget(
-            PluginMainWidgetWidgets.OptionsToolButton,
-            self._options_button,
-        )
         if self.ENABLE_SPINNER:
             self.add_corner_widget(
                 PluginMainWidgetWidgets.Spinner,
                 self._spinner,
             )
+
+        self.add_corner_widget(
+            PluginMainWidgetWidgets.OptionsToolButton,
+            self._options_button,
+        )
 
         # Widget setup
         # --------------------------------------------------------------------

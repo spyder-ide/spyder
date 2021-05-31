@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
         else:
             self._INTERNAL_PLUGINS[plugin.NAME] = plugin
 
-    def register_plugin(self, plugin, external=False):
+    def register_plugin(self, plugin, external=False, omit_conf=False):
         """
         Register a plugin in Spyder Main Window.
         """
@@ -234,7 +234,7 @@ class MainWindow(QMainWindow):
                 lambda: plugin.set_ancestor(self))
 
         # Register plugin
-        plugin._register()
+        plugin._register(omit_conf=omit_conf)
         plugin.register()
 
         if isinstance(plugin, SpyderDockablePlugin):
@@ -910,11 +910,14 @@ class MainWindow(QMainWindow):
             elif (issubclass(plugin_class, SpyderPluginV2) and
                   plugin_class.NAME in external_plugins):
                 try:
+                    if plugin_class.CONF_FILE:
+                        CONF.register_plugin(plugin_class)
                     plugin_instance = plugin_class(
                         self,
                         configuration=CONF,
                     )
-                    self.register_plugin(plugin_instance, external=True)
+                    self.register_plugin(plugin_instance, external=True,
+                                         omit_conf=plugin_class.CONF_FILE)
 
                     # These attributes come from spyder.app.solver to add
                     # plugins to the dependencies dialog
@@ -1171,6 +1174,13 @@ class MainWindow(QMainWindow):
         The actions here are related with setting up the main window.
         """
         logger.info("Setting up window...")
+        # Create external plugins before loading the layout to include them in
+        # the window restore state after restarts.
+        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
+            self.tabify_plugin(plugin_instance, Plugins.Console)
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                plugin_instance.get_widget().toggle_view(False)
+
         for plugin_id, plugin_instance in self._PLUGINS.items():
             try:
                 plugin_instance.before_mainwindow_visible()
@@ -1207,10 +1217,6 @@ class MainWindow(QMainWindow):
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
 
-        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(plugin_instance, Plugins.Console)
-            if isinstance(plugin_instance, SpyderDockablePlugin):
-                plugin_instance.get_widget().toggle_view(False)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
