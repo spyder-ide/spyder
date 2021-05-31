@@ -26,7 +26,6 @@ _ = get_translation('spyder')
 
 
 class AppearanceConfigPage(PluginConfigPage):
-    APPLY_CONF_PAGE_SETTINGS = True
 
     def setup_page(self):
         names = self.get_option("names")
@@ -170,7 +169,7 @@ class AppearanceConfigPage(PluginConfigPage):
         for plugin in plugins:
             plugin.update_font()
 
-    def apply_settings(self, options):
+    def apply_settings(self):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
         ui_theme = self.get_option('ui_theme')
@@ -223,6 +222,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
         if self.main.historylog is not None:
             self.main.historylog.apply_conf(['color_scheme_name'])
+        return set(self.changed_options)
 
     # Helpers
     # -------------------------------------------------------------------------

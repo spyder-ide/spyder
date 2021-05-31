@@ -78,10 +78,7 @@ class MainCornerWidget(QToolBar):
 
         widget.ID = widget_id
         self._widgets[widget_id] = widget
-        if len(self._actions):
-            self._actions.append(self.insertWidget(self._actions[-1], widget))
-        else:
-            self._actions.append(self.addWidget(widget))
+        self._actions.append(self.addWidget(widget))
 
     def get_widget(self, widget_id):
         """

@@ -102,7 +102,8 @@ class Preferences(SpyderPluginV2):
                                 new_value: BasicType,
                                 current_version: Version, plugin):
         """Add a versioned additional option to a configuration section."""
-        current_value = self.get_conf(conf_key, section=conf_section)
+        current_value = self.get_conf(
+            conf_key, section=conf_section, default=None)
         section_additional = self.get_conf('additional_configuration',
                                            section=conf_section,
                                            default={})
@@ -218,6 +219,9 @@ class Preferences(SpyderPluginV2):
         elif current_type in iterable_types and new_type in base_types:
             # Add a value to a list or tuple
             return current_type((list(current_value) + [new_value]))
+        elif current_value is None:
+            # Assigns the new value if it doesn't exist
+            return new_value
         else:
             logger.warning(f'The value {current_value} cannot be replaced'
                            f'by {new_value}')
