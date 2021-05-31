@@ -55,9 +55,6 @@ else
 
     # Provisional change to prevent error from jupyter_client 6.1.13
     pip install jupyter_client==6.1.12
-
-    # Install IPython 7.23 until 7.24.1 is released
-    pip install ipython==7.23.1
 fi
 
 # This is necessary only for Windows (don't know why).
