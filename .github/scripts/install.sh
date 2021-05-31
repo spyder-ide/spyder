@@ -24,9 +24,6 @@ if [ "$USE_CONDA" = "true" ]; then
         conda install pyzmq=19
     fi
 
-    # Install decorator 4.4.2 until spyder-kernels 2.0.1 is released in Anaconda
-    conda install -q -y decorator=4.4.2
-
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
     conda remove python-language-server --force -q -y
@@ -58,6 +55,9 @@ else
 
     # Provisional change to prevent error from jupyter_client 6.1.13
     pip install jupyter_client==6.1.12
+
+    # Install IPython 7.23 until 7.24.1 is released
+    pip install ipython==7.23.1
 fi
 
 # This is necessary only for Windows (don't know why).
