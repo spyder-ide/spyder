@@ -896,7 +896,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         """
 
         if self._conf is not None:
-            self._conf.unregister_plugin()
+            self._conf.unregister_plugin(self)
 
         self._container = None
         self.is_compatible = None

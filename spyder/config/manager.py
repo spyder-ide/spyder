@@ -103,6 +103,11 @@ class ConfigurationManager(object):
         # Setup
         self.remove_deprecated_config_locations()
 
+    def unregister_plugin(self, plugin_instance):
+        conf_section = plugin_instance.CONF_SECTION
+        if conf_section in self._plugin_configs:
+            self._plugin_configs.pop(conf_section, None)
+
     def register_plugin(self, plugin_class):
         """Register plugin configuration."""
         conf_section = plugin_class.CONF_SECTION

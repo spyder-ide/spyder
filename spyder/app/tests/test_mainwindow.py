@@ -294,6 +294,10 @@ def main_window(request, tmpdir):
         window.outlineexplorer.stop_symbol_services('python')
         # Reset cwd
         window.explorer.chdir(get_home_dir())
+        spyder_boilerplate = window.get_plugin(
+            'spyder_boilerplate', error=False)
+        if spyder_boilerplate is not None:
+            window.unregister_plugin(spyder_boilerplate)
 
     # Remove Kite (In case it was registered via setup.py)
     window.completions.providers.pop('kite', None)
@@ -2293,8 +2297,6 @@ def test_custom_layouts(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(
-    sys.platform.startswith('linux'), reason="Fake plugin registration fails")
 def test_programmatic_custom_layouts(main_window, qtbot):
     """
     Test that a custom layout gets registered and it is recognized."""
