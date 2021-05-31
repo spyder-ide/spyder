@@ -799,18 +799,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     This signal is automatically connected to the main container/widget.
     """
 
-    sig_option_changed = Signal(str, object)
-    """
-    This signal is emitted when an option has been set on the main container
-    or the main widget.
-
-    Parameters
-    ----------
-    option: str
-        Option name.
-    value: object
-        New value of the changed option.
-    """
 
     sig_mainwindow_resized = Signal("QResizeEvent")
     """

@@ -11,13 +11,12 @@ Tours Plugin.
 """
 
 # Local imports
-from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.config.base import get_safe_mode, running_under_pytest
 from spyder.plugins.tours.container import ToursContainer
 from spyder.plugins.tours.tours import INTRO_TOUR, TourIdentifiers
-from spyder.plugins.mainmenu.api import (ApplicationMenus, HelpMenuSections)
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 
 # Localization
 _ = get_translation('spyder')
@@ -41,7 +40,7 @@ class Tours(SpyderPluginV2):
         return _("Interactive tours")
 
     def get_description(self):
-        return _("Provide interative tours.")
+        return _("Provide interactive tours.")
 
     def get_icon(self):
         return self.create_icon('keyboard')
@@ -55,7 +54,6 @@ class Tours(SpyderPluginV2):
 
         mainmenu = self.get_plugin(Plugins.MainMenu)
         if mainmenu:
-            # Documentation actions
             mainmenu.add_item_to_application_menu(
                 self.get_container().tour_action,
                 menu_id=ApplicationMenus.Help,

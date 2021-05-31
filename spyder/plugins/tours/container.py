@@ -34,19 +34,16 @@ class ToursContainer(PluginMainContainer):
     """
     Tours container.
     """
-    DEFAULT_OPTIONS = {
-        "show_tour_message": True
-    }
 
-    def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
+    def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent=parent)
 
+        self._main = plugin.main
         self._tours = OrderedDict()
         self._tour_titles = OrderedDict()
-        self._tour_widget = AnimatedTour(plugin.main)
+        self._tour_widget = AnimatedTour(self._main)
         self._tour_dialog = OpenTourDialog(
             self, lambda: self.show_tour(DEFAULT_TOUR))
-        self._main = plugin.main
         self.tour_action = self.create_action(
             TourActions.ShowTour,
             text=_("Show tour"),
@@ -56,12 +53,10 @@ class ToursContainer(PluginMainContainer):
 
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------
-    def setup(self, options=DEFAULT_OPTIONS):
+    def setup(self):
         self.tours_menu = self.create_menu(
             "tours_menu", _("Interactive tours"))
 
-    def on_option_update(self, option, value):
-        pass
 
     def update_actions(self):
         pass

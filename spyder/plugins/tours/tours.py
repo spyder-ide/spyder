@@ -25,7 +25,7 @@ if sys.platform != "darwin":
                    "code in this console. This will be useful to show "
                    "you other important features.")
 
-# This test should serve as example of keys to use in the tour frame dics
+# This test should serve as example of keys to use in the tour frame dicts
 TEST_TOUR = [
     {
         'title': "Welcome to Spyder introduction tour",
@@ -36,7 +36,7 @@ TEST_TOUR = [
     },
     {
         'title': "Widget display",
-        'content': ("This show how a widget is displayed. The tip panel "
+        'content': ("This shows how a widget is displayed. The tip panel "
                     "is adjusted based on the first widget in the list"),
         'widgets': ['button1'],
         'decoration': ['button2'],
@@ -44,7 +44,7 @@ TEST_TOUR = [
     },
     {
         'title': "Widget display",
-        'content': ("This show how a widget is displayed. The tip panel "
+        'content': ("This shows how a widget is displayed. The tip panel "
                     "is adjusted based on the first widget in the list"),
         'widgets': ['button1'],
         'decoration': ['button1'],
@@ -52,7 +52,7 @@ TEST_TOUR = [
     },
     {
         'title': "Widget display",
-        'content': ("This show how a widget is displayed. The tip panel "
+        'content': ("This shows how a widget is displayed. The tip panel "
                     "is adjusted based on the first widget in the list"),
         'widgets': ['button1'],
         'interact': True,
@@ -65,6 +65,7 @@ TEST_TOUR = [
         'interact': False,
     },
 ]
+
 
 INTRO_TOUR = [
     {
@@ -211,6 +212,7 @@ INTRO_TOUR = [
     },
 ]
 
+
 FEAT30 = [
     {
         'title': _("New features in Spyder 3.0"),
@@ -228,5 +230,5 @@ FEAT30 = [
 
 
 class TourIdentifiers:
-    IntroductionTour = "introdution_tour"
+    IntroductionTour = "introduction_tour"
     TestTour = "test_tour"
