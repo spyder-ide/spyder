@@ -294,7 +294,10 @@ def main_window(request, tmpdir):
         window.outlineexplorer.stop_symbol_services('python')
         # Reset cwd
         window.explorer.chdir(get_home_dir())
-        window.unregister_plugin(window.get_plugin('spyder_boilerplate'))
+        spyder_boilerplate = window.get_plugin(
+            'spyder_boilerplate', error=False)
+        if spyder_boilerplate is not None:
+            window.unregister_plugin(spyder_boilerplate)
 
     # Remove Kite (In case it was registered via setup.py)
     window.completions.providers.pop('kite', None)
