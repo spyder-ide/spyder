@@ -984,7 +984,7 @@ class AnimatedTour(QWidget):
             # parent. This info will be lost on restart.
             self.parent.tours_available[self.active_tour_index]['last'] =\
                 self.step_current
-        except:
+        except Exception:
             pass
 
         self.is_running = False

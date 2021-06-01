@@ -82,6 +82,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/introspection/old_fallback.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/tours/widgets.py ]]; then
+        continue
+    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1

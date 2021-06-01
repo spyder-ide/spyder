@@ -3766,6 +3766,7 @@ def test_tour_message(main_window, qtbot):
     # Wait until window setup is finished, which is when the message appears
     tours = main_window.get_plugin(Plugins.Tours)
     tour_dialog = tours.get_container()._tour_dialog
+    animated_tour = tours.get_container()._tour_widget
     qtbot.waitSignal(main_window.sig_setup_finished, timeout=30000)
 
     # Check that tour is shown automatically and manually show it
@@ -3793,13 +3794,13 @@ def test_tour_message(main_window, qtbot):
 
     # Run the tour and confirm it's running and the dialog is closed
     qtbot.mouseClick(tour_dialog.launch_tour_button, Qt.LeftButton)
-    qtbot.waitUntil(lambda: main_window.tour.is_running, timeout=9000)
+    qtbot.waitUntil(lambda: animated_tour.is_running, timeout=9000)
     assert not tour_dialog.isVisible()
     assert not CONF.get('tours', 'show_tour_message')
 
     # Close the tour
-    tour_dialog.close_tour()
-    qtbot.waitUntil(lambda: not main_window.tour.is_running, timeout=9000)
+    animated_tour.close_tour()
+    qtbot.waitUntil(lambda: not animated_tour.is_running, timeout=9000)
     tour_dialog.hide()
 
 
