@@ -885,8 +885,8 @@ class PylintWidget(PluginMainWidget):
         custom_interpreter = osp.normpath(CONF.get('main_interpreter',
                                                    'custom_interpreter'))
         if CONF.get('main_interpreter', 'default') or \
-            get_python_executable() == custom_interpreter:
-                path_of_custom_interpreter = None
+        get_python_executable() == custom_interpreter:
+            path_of_custom_interpreter = None
         else:
             # Check if custom interpreter is still present
             if osp.isfile(custom_interpreter):
@@ -916,8 +916,9 @@ class PylintWidget(PluginMainWidget):
                              'import pylint_venv; \
                                  pylint_venv.inithook(\'{}\',\
                                  force_venv_activation=True)'.format(
-                             path_of_custom_interpreter.replace("\\", 
-                                                                "\\\\")), ]
+                                 path_of_custom_interpreter.replace("\\",
+                                 "\\\\")),
+            ]
 
         pylintrc_path = self.get_pylintrc_path(filename=filename)
         if pylintrc_path is not None:
