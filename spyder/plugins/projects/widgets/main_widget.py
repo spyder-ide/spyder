@@ -27,9 +27,10 @@ _ = get_translation('spyder')
 
 class ProjectExplorerWidget(PluginMainWidget):
     """Project Explorer"""
+
     sig_open_file_requested = Signal(str)
     """
-    This signal is emitted when a file requested is opened
+    This signal is emitted when a file is requested to be opened.
 
     Parameters
     ----------
@@ -52,7 +53,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.emptywidget = ExplorerTreeWidget(self)
 
         layout = QVBoxLayout()
-        # layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)

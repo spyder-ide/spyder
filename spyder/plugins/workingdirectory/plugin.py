@@ -108,6 +108,7 @@ class WorkingDirectory(SpyderPluginV2):
                     sender_plugin=projects
                 )
             )
+
             projects.sig_project_closed[object].connect(
                 lambda path: self.chdir(
                     directory=projects.get_last_working_dir(),

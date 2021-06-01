@@ -28,7 +28,7 @@ from qtpy.QtWidgets import QInputDialog, QMessageBox
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.plugins import SpyderDockablePlugin, Plugins
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.config.base import (get_home_dir, get_project_config_folder,
                                 running_under_pytest)
 from spyder.py3compat import is_text_string, to_text_string
@@ -52,7 +52,7 @@ _ = get_translation("spyder")
 
 class ProjectsApplicationMenu:
     New = 'new_section'
-    Secundary = 'secundary_section'
+    Secondary = 'secondary_section'
     RecentProjects = 'recent_projects_section'
 
 
@@ -123,7 +123,7 @@ class Projects(SpyderDockablePlugin):
 
     sig_pythonpath_changed = Signal()
     """
-    This signal is emitted when the python path is changed.
+    This signal is emitted when the Python path is changed.
     """
 
     def __init__(self, parent=None, configuration=None):
@@ -244,7 +244,7 @@ class Projects(SpyderDockablePlugin):
         self.setup()
 
     def setup(self):
-        """Setup the actions of the plugin."""
+        """Setup the plugin actions."""
         new_project_action = self.create_action(
             ProjectsActions.NewProject,
             text=_("New Project..."),
@@ -292,7 +292,7 @@ class Projects(SpyderDockablePlugin):
                 main_menu.add_item_to_application_menu(
                     item,
                     menu=projects_menu,
-                    section=ProjectsApplicationMenu.Secundary)
+                    section=ProjectsApplicationMenu.Secondary)
 
             main_menu.add_item_to_application_menu(
                 self.recent_project_menu,

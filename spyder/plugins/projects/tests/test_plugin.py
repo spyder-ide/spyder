@@ -25,9 +25,9 @@ from flaky import flaky
 from spyder.config.manager import CONF
 import spyder.plugins.base
 from spyder.plugins.projects.plugin import Projects, QMessageBox
+from spyder.plugins.preferences.tests.conftest import MainWindowMock
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.py3compat import to_text_string
-from spyder.plugins.preferences.tests.conftest import MainWindowMock
 
 
 # =============================================================================
@@ -91,9 +91,6 @@ def create_projects(projects, mocker):
 
         # Mock the opening of files in the Editor while the project is open.
         projects.editor.get_open_filenames = lambda *args, **kwargs: files
-        # mocker.patch.object(
-        #     projects.editor, 'get_open_filenames', return_value=files)
-
         return projects
 
     return _create_projects
