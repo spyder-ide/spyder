@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout)
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
@@ -37,6 +38,7 @@ from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home, get_home_dir
+from spyder.utils.misc import get_python_executable
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
@@ -875,6 +877,25 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(filename)
             self.start_code_analysis()
 
+    def test_for_custom_interpreter(self):
+        """
+        Check if custom interpreter is active and if so, return path from
+        this interpreter
+        """
+        custom_interpreter = osp.normpath(CONF.get('main_interpreter', \
+                                                   'custom_interpreter'))
+        if CONF.get('main_interpreter', 'default') or \
+            get_python_executable() == custom_interpreter:
+            path_of_custom_interpreter = None
+        else:
+            # Check if custom interpreter is still present
+            if osp.isfile(custom_interpreter):
+                path_of_custom_interpreter = osp.dirname(custom_interpreter)
+            else:
+                path_of_custom_interpreter = None
+
+        return path_of_custom_interpreter
+
     def get_command(self, filename):
         """
         Return command to use to run code analysis on given filename
@@ -888,6 +909,13 @@ class PylintWidget(PluginMainWidget):
                 "--msg-template="
                 '{msg_id}:{symbol}:{line:3d},{column}: {msg}"',
             ]
+
+        path_of_custom_interpreter = self.test_for_custom_interpreter()
+        if path_of_custom_interpreter is not None:
+            command_args += ["--init-hook="
+                'import pylint_venv; pylint_venv.inithook(\'{}\',\
+                    force_venv_activation=True)'.format( \
+                             path_of_custom_interpreter.replace("\\", "\\\\")),]
 
         pylintrc_path = self.get_pylintrc_path(filename=filename)
         if pylintrc_path is not None:
