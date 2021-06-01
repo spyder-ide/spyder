@@ -103,6 +103,11 @@ class ConfigurationManager(object):
         # Setup
         self.remove_deprecated_config_locations()
 
+    def unregister_plugin(self, plugin_instance):
+        conf_section = plugin_instance.CONF_SECTION
+        if conf_section in self._plugin_configs:
+            self._plugin_configs.pop(conf_section, None)
+
     def register_plugin(self, plugin_class):
         """Register plugin configuration."""
         conf_section = plugin_class.CONF_SECTION
@@ -605,8 +610,9 @@ class ConfigurationManager(object):
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
         for context_name, keystr in self._user_config.items('shortcuts'):
-            context, name = context_name.split('/', 1)
-            yield context, name, keystr
+            if 'additional_configuration' not in context_name:
+                context, name = context_name.split('/', 1)
+                yield context, name, keystr
 
         for _, (_, plugin_config) in self._plugin_configs.items():
             items = plugin_config.items('shortcuts')

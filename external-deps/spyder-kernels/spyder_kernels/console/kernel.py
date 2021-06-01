@@ -20,6 +20,7 @@ import threading
 import ipykernel
 from ipykernel.ipkernel import IPythonKernel
 from ipykernel.zmqshell import ZMQInteractiveShell
+from traitlets.config.loader import LazyConfigValue
 
 # Local imports
 from spyder_kernels.py3compat import TEXT_TYPES, to_text_string
@@ -63,6 +64,7 @@ class SpyderKernel(IPythonKernel):
     def __init__(self, *args, **kwargs):
         super(SpyderKernel, self).__init__(*args, **kwargs)
 
+        self.comm_manager.get_comm = self._get_comm
         self.frontend_comm = FrontendComm(self)
 
         # All functions that can be called through the comm
@@ -456,7 +458,7 @@ class SpyderKernel(IPythonKernel):
         """
         Set inline print figure bbox inches.
 
-        The change is done by updating the ´rint_figure_kwargs' config dict.
+        The change is done by updating the 'print_figure_kwargs' config dict.
         """
         from IPython.core.getipython import get_ipython
         config = get_ipython().kernel.config
@@ -468,6 +470,14 @@ class SpyderKernel(IPythonKernel):
         bbox_inches_dict = {
             'bbox_inches': 'tight' if bbox_inches else None}
         print_figure_kwargs.update(bbox_inches_dict)
+
+        # This seems to be necessary for newer versions of Traitlets because
+        # print_figure_kwargs doesn't return a dict.
+        if isinstance(print_figure_kwargs, LazyConfigValue):
+            figure_kwargs_dict = print_figure_kwargs.to_dict().get('update')
+            if figure_kwargs_dict:
+                print_figure_kwargs = figure_kwargs_dict
+
         self._set_config_option(
             'InlineBackend.print_figure_kwargs', print_figure_kwargs)
 
@@ -830,3 +840,16 @@ class SpyderKernel(IPythonKernel):
                 get_ipython().run_line_magic('reload_ext', 'wurlitzer')
             except Exception:
                 pass
+
+    def _get_comm(self, comm_id):
+        """
+        We need to redefine this method from ipykernel.comm_manager to
+        avoid showing a warning when the comm corresponding to comm_id
+        is not present.
+
+        Fixes spyder-ide/spyder#15498
+        """
+        try:
+            return self.comm_manager.comms[comm_id]
+        except KeyError:
+            pass

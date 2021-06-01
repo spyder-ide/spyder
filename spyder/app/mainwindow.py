@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
         else:
             self._INTERNAL_PLUGINS[plugin.NAME] = plugin
 
-    def register_plugin(self, plugin, external=False):
+    def register_plugin(self, plugin, external=False, omit_conf=False):
         """
         Register a plugin in Spyder Main Window.
         """
@@ -234,7 +234,7 @@ class MainWindow(QMainWindow):
                 lambda: plugin.set_ancestor(self))
 
         # Register plugin
-        plugin._register()
+        plugin._register(omit_conf=omit_conf)
         plugin.register()
 
         if isinstance(plugin, SpyderDockablePlugin):
@@ -286,7 +286,7 @@ class MainWindow(QMainWindow):
         # Disconnect all slots
         signals = [
             plugin.sig_quit_requested,
-            plugin.sig_redirect_stdio,
+            plugin.sig_redirect_stdio_requested,
             plugin.sig_status_message_requested,
         ]
 
@@ -301,9 +301,10 @@ class MainWindow(QMainWindow):
         for action_name, action in plugin.get_actions().items():
             context = (getattr(action, 'shortcut_context', plugin.NAME)
                        or plugin.NAME)
-            self.unregister_shortcut(action, context, action_name)
+            self.shortcuts.unregister_shortcut(action, context, action_name)
 
         # Unregister switch to shortcut
+        shortcut = None
         try:
             context = '_'
             name = 'switch to {}'.format(plugin.CONF_SECTION)
@@ -313,7 +314,7 @@ class MainWindow(QMainWindow):
             pass
 
         if shortcut is not None:
-            self.unregister_shortcut(
+            self.shortcuts.unregister_shortcut(
                 plugin._shortcut,
                 context,
                 "Switch to {}".format(plugin.CONF_SECTION),
@@ -404,7 +405,10 @@ class MainWindow(QMainWindow):
         Remove a plugin QDockWidget from the main window.
         """
         self.removeDockWidget(plugin.dockwidget)
-        self.widgetlist.remove(plugin)
+        try:
+            self.widgetlist.remove(plugin)
+        except ValueError:
+            pass
 
     def tabify_plugins(self, first, second):
         """Tabify plugin dockwigdets."""
@@ -615,6 +619,8 @@ class MainWindow(QMainWindow):
         self.debug_menu_actions = []
         self.consoles_menu = None
         self.consoles_menu_actions = []
+        self.projects_menu = None
+        self.projects_menu_actions = []
 
         # TODO: Move to corresponding Plugins
         self.main_toolbar = None
@@ -796,6 +802,10 @@ class MainWindow(QMainWindow):
                 self.setStyleSheet(light_qss)
                 self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
+
+        # Set css_path as a configuration to be used by the plugins
+        CONF.set('appearance', 'css_path', css_path)
+
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
@@ -819,12 +829,6 @@ class MainWindow(QMainWindow):
         CONF.set('internal_console', 'commands', [])
         CONF.set('internal_console', 'namespace', {})
         CONF.set('internal_console', 'show_internal_errors', True)
-
-        # Set css_path config (to change between light and dark css versions
-        # for the Help and IPython console plugins)
-        # TODO: There is a circular dependency between help and ipython
-        if CONF.get('help', 'enable'):
-            CONF.set('help', 'css_path', css_path)
 
         # Working directory initialization
         CONF.set('workingdir', 'init_workdir', self.init_workdir)
@@ -858,7 +862,9 @@ class MainWindow(QMainWindow):
                     Plugins.Editor,
                     Plugins.IPythonConsole]:
                 if plugin_name == Plugins.IPythonConsole:
-                    plugin_instance = plugin_class(self, css_path=css_path)
+                    plugin_instance = plugin_class(self)
+                    plugin_instance.sig_exception_occurred.connect(
+                        self.handle_exception)
                 else:
                     plugin_instance = plugin_class(self)
                 plugin_instance.register_plugin()
@@ -906,19 +912,25 @@ class MainWindow(QMainWindow):
             elif (issubclass(plugin_class, SpyderPluginV2) and
                   plugin_class.NAME in external_plugins):
                 try:
+                    if plugin_class.CONF_FILE:
+                        CONF.register_plugin(plugin_class)
                     plugin_instance = plugin_class(
                         self,
                         configuration=CONF,
                     )
-                    self.register_plugin(plugin_instance, external=True)
+                    self.register_plugin(plugin_instance, external=True,
+                                         omit_conf=plugin_class.CONF_FILE)
 
-                    # These attributes come from spyder.app.solver
-                    module = plugin_class._spyder_module_name
-                    package_name = plugin_class._spyder_package_name
-                    version = plugin_class._spyder_version
-                    description = plugin_instance.get_description()
-                    dependencies.add(module, package_name, description,
-                                     version, None, kind=dependencies.PLUGIN)
+                    # These attributes come from spyder.app.solver to add
+                    # plugins to the dependencies dialog
+                    if not running_under_pytest():
+                        module = plugin_class._spyder_module_name
+                        package_name = plugin_class._spyder_package_name
+                        version = plugin_class._spyder_version
+                        description = plugin_instance.get_description()
+                        dependencies.add(
+                            module, package_name, description, version, None,
+                            kind=dependencies.PLUGIN)
                 except Exception as error:
                     print("%s: %s" % (plugin_class, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
@@ -974,6 +986,8 @@ class MainWindow(QMainWindow):
         self.consoles_menu = mainmenu.get_application_menu("consoles_menu")
         self.consoles_menu.aboutToShow.connect(
                 self.update_execution_state_kernel)
+        self.projects_menu = mainmenu.get_application_menu("projects_menu")
+        self.projects_menu.aboutToShow.connect(self.valid_project)
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -1019,9 +1033,10 @@ class MainWindow(QMainWindow):
                                                    _("Select All"),
                                                    ima.icon('selectall'))
 
-        self.edit_menu_actions = [self.undo_action, self.redo_action,
-                                  None, self.cut_action, self.copy_action,
-                                  self.paste_action, self.selectall_action]
+        self.edit_menu_actions += [self.undo_action, self.redo_action,
+                                   None, self.cut_action, self.copy_action,
+                                   self.paste_action, self.selectall_action,
+                                   None] + self.editor.edit_menu_actions
         switcher_actions = [
             self.file_switcher_action,
             self.symbol_finder_action
@@ -1115,33 +1130,6 @@ class MainWindow(QMainWindow):
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.Documentation)
 
-        # TODO: Move to plugin
-        # IPython documentation
-        if self.help is not None:
-            self.ipython_menu = SpyderMenu(
-                parent=self,
-                title=_("IPython documentation"))
-            intro_action = create_action(
-                self,
-                _("Intro to IPython"),
-                triggered=self.ipyconsole.show_intro)
-            quickref_action = create_action(
-                self,
-                _("Quick reference"),
-                triggered=self.ipyconsole.show_quickref)
-            guiref_action = create_action(
-                self,
-                _("Console help"),
-                triggered=self.ipyconsole.show_guiref)
-            add_actions(
-                self.ipython_menu,
-                (intro_action, guiref_action, quickref_action))
-            mainmenu.add_item_to_application_menu(
-                self.ipython_menu,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.ExternalDocumentation,
-                before_section=HelpMenuSections.About)
-
         # TODO: Migrate to use the MainMenu Plugin instead of list of actions
         # Filling out menu/toolbar entries:
         add_actions(self.edit_menu, self.edit_menu_actions)
@@ -1150,6 +1138,7 @@ class MainWindow(QMainWindow):
         add_actions(self.run_menu, self.run_menu_actions)
         add_actions(self.debug_menu, self.debug_menu_actions)
         add_actions(self.consoles_menu, self.consoles_menu_actions)
+        add_actions(self.projects_menu, self.projects_menu_actions)
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -1191,6 +1180,13 @@ class MainWindow(QMainWindow):
         The actions here are related with setting up the main window.
         """
         logger.info("Setting up window...")
+        # Create external plugins before loading the layout to include them in
+        # the window restore state after restarts.
+        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
+            self.tabify_plugin(plugin_instance, Plugins.Console)
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                plugin_instance.get_widget().toggle_view(False)
+
         for plugin_id, plugin_instance in self._PLUGINS.items():
             try:
                 plugin_instance.before_mainwindow_visible()
@@ -1209,13 +1205,24 @@ class MainWindow(QMainWindow):
                 except TypeError:
                     pass
 
+        # Register custom layouts
+        for plugin, plugin_instance in self._PLUGINS.items():
+            if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
+                if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
+                    for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
+                        self.layouts.register_layout(
+                            self, custom_layout)
+                else:
+                    logger.info(
+                        'Unable to load custom layouts for {}. '
+                        'Expecting a list of layout classes but got {}'
+                        .format(plugin, plugin_instance.CUSTOM_LAYOUTS)
+                    )
+        self.layouts.update_layout_menu_actions()
+
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
 
-        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(plugin_instance, Plugins.Console)
-            if isinstance(plugin_instance, SpyderDockablePlugin):
-                plugin_instance.get_widget().toggle_view(False)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
@@ -1265,10 +1272,6 @@ class MainWindow(QMainWindow):
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
 
-        # Show history file if no console is visible
-        if not self.ipyconsole._isvisible:
-            self.historylog.add_history(get_conf_path('history.py'))
-
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
@@ -1293,9 +1296,6 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files(close_previous_files=False)
-
-        # Connect Editor debug action with Console
-        self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1430,6 +1430,24 @@ class MainWindow(QMainWindow):
             self.ipyconsole.update_execution_state_kernel()
         except AttributeError:
             return
+
+    def valid_project(self):
+        """Handle an invalid active project."""
+        try:
+            path = self.projects.get_active_project_path()
+        except AttributeError:
+            return
+
+        if bool(path):
+            if not self.projects.is_valid_project(path):
+                if path:
+                    QMessageBox.critical(
+                        self,
+                        _('Error'),
+                        _("<b>{}</b> is no longer a valid Spyder project! "
+                          "Since it is the current active project, it will "
+                          "be closed automatically.").format(path))
+                self.projects.close_project()
 
     def update_source_menu(self):
         """Update source menu options that vary dynamically."""
@@ -1755,17 +1773,6 @@ class MainWindow(QMainWindow):
                                        "is not supported on platform %s."
                                        ) % os.name)
 
-    def execute_in_external_console(self, lines, focus_to_editor):
-        """
-        Execute lines in IPython console and eventually set focus
-        to the Editor.
-        """
-        console = self.ipyconsole
-        console.switch_to_plugin()
-        console.execute_code(lines)
-        if focus_to_editor:
-            self.editor.switch_to_plugin()
-
     def open_file(self, fname, external=False):
         """
         Open filename with the appropriate application
@@ -1816,12 +1823,14 @@ class MainWindow(QMainWindow):
     def load_python_path(self):
         """Load path stored in Spyder configuration folder."""
         if osp.isfile(self.SPYDER_PATH):
-            path, _x = encoding.readlines(self.SPYDER_PATH)
+            with open(self.SPYDER_PATH, 'r', encoding='utf-8') as f:
+                path = f.read().splitlines()
             self.path = tuple(name for name in path if osp.isdir(name))
 
         if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
-            not_active_path, _x = encoding.readlines(
-                self.SPYDER_NOT_ACTIVE_PATH)
+            with open(self.SPYDER_NOT_ACTIVE_PATH, 'r',
+                      encoding='utf-8') as f:
+                not_active_path = f.read().splitlines()
             self.not_active_path = tuple(name for name in not_active_path
                                          if osp.isdir(name))
 

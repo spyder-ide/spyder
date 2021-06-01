@@ -511,7 +511,19 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         argument (which is an arbitrary expression or statement to be
         executed in the current environment).
         """
-        super(SpyderPdb, self).do_debug(arg)
+        try:
+            super(SpyderPdb, self).do_debug(arg)
+        except Exception:
+            if PY2:
+                t, v = sys.exc_info()[:2]
+                if type(t) == type(''):
+                    exc_type_name = t
+                else: exc_type_name = t.__name__
+                print >>self.stdout, '***', exc_type_name + ':', v
+            else:
+                exc_info = sys.exc_info()[:2]
+                self.error(
+                    traceback.format_exception_only(*exc_info)[-1].strip())
         kernel = get_ipython().kernel
         kernel._register_pdb_session(self)
 
@@ -610,12 +622,15 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
         # -----
-        i = 0
         for fname, data in list(breakpoints.items()):
             for linenumber, condition in data:
-                i += 1
-                self.set_break(self.canonic(fname), linenumber,
-                               cond=condition)
+                try:
+                    self.set_break(self.canonic(fname), linenumber,
+                                   cond=condition)
+                except ValueError:
+                    # Fixes spyder/issues/15546
+                    # The file is not readable
+                    pass
 
         # Jump to first breakpoint.
         # Fixes issue 2034

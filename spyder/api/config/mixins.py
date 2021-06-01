@@ -60,8 +60,7 @@ class SpyderConfigurationAccessor:
         Raises
         ------
         spyder.py3compat.configparser.NoOptionError
-            If the option does not exist in the configuration under the given
-            section and the default value is NoDefault.
+            If the section does not exist in the configuration.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -71,6 +70,34 @@ class SpyderConfigurationAccessor:
             )
 
         return CONF.get(section, option, default)
+
+    def get_conf_options(self, section: Optional[str] = None):
+        """
+        Get all options from the given section.
+
+        Parameters
+        ----------
+        section: Optional[str]
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+
+        Returns
+        -------
+        values: BasicTypes
+            Values of the option in the configuration section.
+
+        Raises
+        ------
+        spyder.py3compat.configparser.NoOptionError
+            If the section does not exist in the configuration.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+        return CONF.options(section)
 
     def set_conf(self,
                  option: ConfigurationKey,
@@ -149,6 +176,30 @@ class SpyderConfigurationAccessor:
                 'class attribute!'
             )
         return CONF.get_default(section, option)
+
+    def get_shortcut(self, name: str, context: Optional[str] = None) -> str:
+        """
+        Get a shortcut sequence stored under the given name and context.
+
+        Parameters
+        ----------
+        name: str
+            Key identifier under which the shortcut is stored.
+        context: Optional[str]
+            Name of the context (plugin) where the shortcut was defined.
+
+        Returns
+        -------
+        shortcut: str
+            Key sequence of the shortcut.
+
+        Raises
+        ------
+        spyder.py3compat.configparser.NoOptionError
+            If the section does not exist in the configuration.
+        """
+        context = self.CONF_SECTION if context is None else context
+        return CONF.get_shortcut(context, name)
 
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):

@@ -359,17 +359,11 @@ class BaseTabs(QTabWidget):
         Add offset to position event to capture the mouse cursor
         inside a tab.
         """
-        # This is necessary because self.tabBar().tabAt(event.pos()) is not
-        # returning the expected index. For further information see
-        # spyder-ide/spyder#12617
-        point = event.pos()
-        if sys.platform == 'darwin':
-            # The close button on tab is on the left
-            point.setX(point.x() + 3)
-        else:
-            # The close button on tab is on the right
-            point.setX(point.x() - 30)
-        return self.tabBar().tabAt(point)
+        # This is necessary because event.pos() is the position in this
+        # widget, not in the tabBar. see spyder-ide/spyder#12617
+        tb = self.tabBar()
+        point = tb.mapFromGlobal(event.globalPos())
+        return tb.tabAt(point)
 
     def contextMenuEvent(self, event):
         """Override Qt method"""

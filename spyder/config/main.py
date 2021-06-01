@@ -105,9 +105,10 @@ DEFAULTS = [
             ('quick_layouts',
              {
               'place_holder': '',
-              'names': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
-              'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
-              'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'names': [],
+              'order': [],
+              'active': [],
+              'ui_names': []
               }),
             ('internal_console',
              {
@@ -619,4 +620,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '69.0.0'
+CONF_VERSION = '69.1.0'
