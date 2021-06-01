@@ -51,11 +51,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
-    sig_pdb_state = Signal(bool, dict)
+    sig_pdb_state_changed = Signal(bool, dict)
     sig_pdb_prompt_ready = Signal()
 
     # For ShellWidget
-    focus_changed = Signal()
+    sig_focus_changed = Signal()
     new_client = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
@@ -809,10 +809,10 @@ the sympy module (e.g. plot)
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
+        self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
+        self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusOutEvent(event)

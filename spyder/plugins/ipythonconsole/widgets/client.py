@@ -890,10 +890,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         control = self.shellwidget._control
         page_control = self.shellwidget._page_control
 
-        control.focus_changed.connect(
-            lambda: self.plugin.focus_changed.emit())
-        page_control.focus_changed.connect(
-            lambda: self.plugin.focus_changed.emit())
-        control.visibility_changed.connect(self.plugin.refresh_plugin)
-        page_control.visibility_changed.connect(self.plugin.refresh_plugin)
+        control.sig_focus_changed.connect(
+            lambda: self.plugin.sig_focus_changed.emit())
+        page_control.sig_focus_changed.connect(
+            lambda: self.plugin.sig_focus_changed.emit())
+        control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
+        page_control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
         page_control.show_find_widget.connect(self.plugin.find_widget.show)

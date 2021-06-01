@@ -81,9 +81,9 @@ class IPythonConsole(SpyderPluginWidget):
     OPTIONAL = [Plugins.Editor, Plugins.History]
 
     # Signals
-    focus_changed = Signal()
+    sig_focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
-    sig_pdb_state = Signal(bool, dict)
+    sig_pdb_state_changed = Signal(bool, dict)
 
     sig_shellwidget_process_started = Signal(object)
     """
@@ -584,7 +584,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client:
             sw = client.shellwidget
             self.main.variableexplorer.set_shellwidget(sw)
-            self.sig_pdb_state.emit(
+            self.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
@@ -724,7 +724,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.add_dockwidget()
 
-        self.focus_changed.connect(self.main.plugin_focus_changed)
+        self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         if self.main.editor:
             self.edit_goto.connect(self.main.editor.load)
             self.edit_goto[str, int, str, bool].connect(
@@ -738,7 +738,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
             self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
             # Connect Editor debug action with Console
-            self.sig_pdb_state.connect(self.main.editor.update_pdb_state)
+            self.sig_pdb_state_changed.connect(self.main.editor.update_pdb_state)
             self.main.editor.exec_in_extconsole.connect(
                 self.execute_code_and_focus_editor)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
@@ -1271,7 +1271,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
-        shellwidget.sig_pdb_state.connect(self.sig_pdb_state)
+        shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
