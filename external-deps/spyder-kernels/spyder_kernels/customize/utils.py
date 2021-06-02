@@ -68,7 +68,7 @@ def path_is_library(path, initial_pathlist=None):
         # library or installed to site-packages.
         return True
     elif os.name == 'nt':
-        if re.search(r'.*/pkgs/.*', path):
+        if re.search(r'.*\\pkgs\\.*', path):
             return True
         else:
             return False
