@@ -86,7 +86,7 @@ class PageControlWidget(QTextEdit, BaseEditMixin):
     """
     QT_CLASS = QTextEdit
     sig_visibility_changed = Signal(bool)
-    show_find_widget = Signal()
+    sig_find_widget_requested = Signal()
     sig_focus_changed = Signal()
 
     def __init__(self, parent=None):
@@ -103,7 +103,7 @@ class PageControlWidget(QTextEdit, BaseEditMixin):
         event, text, key, ctrl, shift = restore_keyevent(event)
 
         if key == Qt.Key_Slash and self.isVisible():
-            self.show_find_widget.emit()
+            self.sig_find_widget_requested.emit()
         else:
             # Let the parent widget handle the key press event
             QTextEdit.keyPressEvent(self, event)

@@ -64,7 +64,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_remote_execute = Signal()
 
     # For global working directory
-    sig_change_cwd = Signal(str)
+    sig_working_directory_changed = Signal(str)
 
     # For printing internal errors
     sig_exception_occurred = Signal(dict)
@@ -273,7 +273,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def remote_set_cwd(self, cwd):
         """Get current working directory from kernel."""
         self._cwd = cwd
-        self.sig_change_cwd.emit(self._cwd)
+        self.sig_working_directory_changed.emit(self._cwd)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""

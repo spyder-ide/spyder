@@ -738,7 +738,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
             self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
             # Connect Editor debug action with Console
-            self.sig_pdb_state_changed.connect(self.main.editor.update_pdb_state)
+            self.sig_pdb_state_changed.connect(
+                self.main.editor.update_pdb_state)
             self.main.editor.exec_in_extconsole.connect(
                 self.execute_code_and_focus_editor)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
@@ -1308,7 +1309,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(control)
 
         # Connect to working directory
-        shellwidget.sig_change_cwd.connect(self.set_working_directory)
+        shellwidget.sig_working_directory_changed.connect(
+            self.set_working_directory)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
