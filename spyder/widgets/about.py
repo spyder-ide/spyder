@@ -13,7 +13,8 @@ import sys
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QVBoxLayout, QLabel, QPushButton, )
+                            QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
+                            QTabWidget, QWidget)
 
 # Local imports
 from spyder import (__project_url__, __forum_url__,
@@ -45,7 +46,7 @@ class AboutDialog(QDialog):
         if sys.platform == 'darwin':
             font_size -= 2
 
-        self.label = QLabel((
+        self.label_overview = QLabel((
             """
             <div style='font-family: "{font_family}";
                         font-size: {font_size}pt;
@@ -57,19 +58,39 @@ class AboutDialog(QDialog):
             The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
             <br>
-            Copyright &copy; 2009-2020 Spyder Project Contributors and
-            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
-            <br>
-            Distributed under the terms of the
-            <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
-            </p>
             <p>
+            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
+            {qt_api} {qt_api_ver} | {os_name} {os_ver}
+            </p>
             Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
             Developed by the
             <a href="{github_url}/graphs/contributors">international
             Spyder community</a>. Many thanks to all the Spyder beta testers
             and dedicated users.
             </p>
+            </div>""").format(
+                spyder_ver=versions['spyder'],
+                revision=revlink,
+                website_url=__website_url__,
+                github_url=__project_url__,
+                python_ver=versions['python'],
+                bitness=versions['bitness'],
+                qt_ver=versions['qt'],
+                qt_api=versions['qt_api'],
+                qt_api_ver=versions['qt_api_ver'],
+                os_name=versions['system'],
+                os_ver=versions['release'],
+                font_family=font_family,
+                font_size=font_size,
+            )
+        )
+
+        self.label_community = QLabel((
+            """
+            <div style='font-family: "{font_family}";
+                        font-size: {font_size}pt;
+                        font-weight: normal;
+                        '>
             <p>For help with Spyder errors and crashes, please read our
             <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
             reports and feature requests, visit our
@@ -85,10 +106,26 @@ class AboutDialog(QDialog):
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
             </p>
-            <p>
-            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
-            {qt_api} {qt_api_ver} | {os_name} {os_ver}
+            </div>""").format(
+                github_url=__project_url__,
+                trouble_url=__trouble_url__,
+                forum_url=__forum_url__,
+                font_family=font_family,
+                font_size=font_size,
+            ))
+        self.label_legal = QLabel((
+            """
+            <div style='font-family: "{font_family}";
+                        font-size: {font_size}pt;
+                        font-weight: normal;
+                        '>
+            Copyright &copy; 2009-2020 Spyder Project Contributors and
+            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
+            <br>
+            Distributed under the terms of the
+            <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
             </p>
+            <p>
             <p><small>Certain source files under other compatible permissive
             licenses and/or originally by other authors.
             Spyder 3 theme icons derived from
@@ -113,28 +150,28 @@ class AboutDialog(QDialog):
             </p>
             </div>
             """).format(
-                spyder_ver=versions['spyder'],
-                revision=revlink,
-                website_url=__website_url__,
                 github_url=__project_url__,
-                trouble_url=__trouble_url__,
-                forum_url=__forum_url__,
-                python_ver=versions['python'],
-                bitness=versions['bitness'],
-                qt_ver=versions['qt'],
-                qt_api=versions['qt_api'],
-                qt_api_ver=versions['qt_api_ver'],
-                os_name=versions['system'],
-                os_ver=versions['release'],
                 font_family=font_family,
                 font_size=font_size,
             )
         )
-        self.label.setWordWrap(True)
-        self.label.setAlignment(Qt.AlignTop)
-        self.label.setOpenExternalLinks(True)
-        self.label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label.setFixedWidth(350)
+        self.label_overview.setWordWrap(True)
+        self.label_overview.setAlignment(Qt.AlignTop)
+        self.label_overview.setOpenExternalLinks(True)
+        self.label_overview.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.label_overview.setFixedWidth(350)
+
+        self.label_community.setWordWrap(True)
+        self.label_community.setAlignment(Qt.AlignTop)
+        self.label_community.setOpenExternalLinks(True)
+        self.label_community.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.label_community.setFixedWidth(350)
+
+        self.label_legal.setWordWrap(True)
+        self.label_legal.setAlignment(Qt.AlignTop)
+        self.label_legal.setOpenExternalLinks(True)
+        self.label_legal.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.label_legal.setFixedWidth(350)
 
         icon_filename = "spyder_about"
         pixmap = QPixmap(get_image_path(icon_filename))
@@ -151,24 +188,61 @@ class AboutDialog(QDialog):
         self.setModal(False)
 
         # Layout
-        tophlayout = QHBoxLayout()
-        tophlayout.addWidget(self.label_pic)
-        tophlayout.addWidget(self.label)
+        piclayout = QHBoxLayout()
+        piclayout.addWidget(self.label_pic)
+        overview_widget = QWidget()
+        community_widget = QWidget()
+        legal_widget = QWidget()
+
+        overview_layout = QVBoxLayout(overview_widget)
+        community_layout = QVBoxLayout(community_widget)
+        legal_layout = QVBoxLayout(legal_widget)
+
+
+        overview_layout.addWidget(self.label_overview)
+        community_layout.addWidget(self.label_community)
+        legal_layout.addWidget(self.label_legal)
+
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(overview_widget),
+                             _('Overview'))
+        self.tabs.addTab(self.create_tab(community_widget),
+                             _('Community'))
+        self.tabs.addTab(self.create_tab(legal_widget),
+                             _('Legal'))
+        
+        tabslayout = QHBoxLayout()
+        tabslayout.addWidget(self.tabs)
+        tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addWidget(btn)
         btmhlayout.addStretch()
         btmhlayout.addWidget(bbox)
 
-        vlayout = QVBoxLayout(self)
-        vlayout.addLayout(tophlayout)
+        vlayout = QVBoxLayout()
+        vlayout.addLayout(tabslayout)
         vlayout.addSpacing(25)
         vlayout.addLayout(btmhlayout)
         vlayout.setSizeConstraint(vlayout.SetFixedSize)
 
+        mainlayout = QHBoxLayout(self)
+        mainlayout.addLayout(piclayout)
+        mainlayout.addLayout(vlayout)
+
         # Signals
         btn.clicked.connect(self.copy_to_clipboard)
         bbox.accepted.connect(self.accept)
+
+    def create_tab(self, *widgets):
+        """Create simple tab widget page: widgets added in a horizontal layout"""
+        widget = QWidget()
+        layout = QHBoxLayout()
+        for widg in widgets:
+            layout.addWidget(widg)
+        layout.addStretch(1)
+        widget.setLayout(layout)
+        return widget
 
     def copy_to_clipboard(self):
         versions = get_versions()
