@@ -15,7 +15,7 @@ from spyder.plugins.completion.providers.kite.bloomfilter import (
 from spyder.plugins.completion.providers.kite.parsing import (
     find_returning_function_path)
 from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed)
+    check_if_kite_installed, check_kite_installers_availability)
 from spyder.plugins.completion.providers.fallback.actor import (
     FALLBACK_COMPLETION)
 from spyder.utils.palette import QStylePalette
@@ -79,7 +79,9 @@ class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
         self.hide()
 
         is_kite_installed, __ = check_if_kite_installed()
-        if is_kite_installed:
+        installers_available = check_kite_installers_availability()
+
+        if is_kite_installed or not installers_available:
             self._dismiss_forever()
 
     def handle_key_press(self, event):

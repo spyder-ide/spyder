@@ -25,7 +25,7 @@ from qtpy.QtCore import QThread, Signal
 from spyder.config.base import _
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed)
+    check_if_kite_installed, WINDOWS_URL, LINUX_URL, MAC_URL)
 
 # Installation process statuses
 NO_STATUS = _("No status")
@@ -47,11 +47,6 @@ class KiteInstallationCancelledException(Exception):
 class KiteInstallationThread(QThread):
     """Thread to handle the installation process of kite."""
 
-    # Installer URLs
-    WINDOWS_URL = "https://release.kite.com/dls/windows/current"
-    LINUX_URL = "https://release.kite.com/dls/linux/current"
-    MAC_URL = "https://release.kite.com/dls/mac/current"
-
     # Signals
     # Signal to get the current status of the installation
     # str: Status string
@@ -71,13 +66,13 @@ class KiteInstallationThread(QThread):
         self.status = NO_STATUS
         self.cancelled = False
         if os.name == 'nt':
-            self._download_url = self.WINDOWS_URL
+            self._download_url = WINDOWS_URL
             self._installer_name = 'kiteSetup.exe'
         elif sys.platform == 'darwin':
-            self._download_url = self.MAC_URL
+            self._download_url = MAC_URL
             self._installer_name = 'Kite.dmg'
         else:
-            self._download_url = self.LINUX_URL
+            self._download_url = LINUX_URL
             self._installer_name = 'kite_installer.sh'
 
     def _change_installation_status(self, status=NO_STATUS):

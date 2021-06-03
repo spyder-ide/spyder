@@ -113,7 +113,8 @@ class KiteStatusWidget(StatusBarWidget):
         and onboarding if necessary.
         """
         spyder_runs = self.provider.get_conf('spyder_runs')
-        if spyder_runs == 3:
+        installers_available = self.provider.get_conf('installers_available')
+        if spyder_runs == 3 and installers_available:
             self.provider._kite_onboarding()
 
             show_dialog = self.provider.get_conf('show_installation_dialog')
