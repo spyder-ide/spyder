@@ -1299,7 +1299,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect client to our history log
         if self.main.historylog is not None:
             self.main.historylog.add_history(client.history_filename)
-            client.append_to_history.connect(
+            client.sig_append_to_history_requested.connect(
                 self.main.historylog.append_to_history)
 
         # Set font for client

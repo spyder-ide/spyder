@@ -86,7 +86,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
 
-    append_to_history = Signal(str, str)
+    sig_append_to_history_requested = Signal(str, str)
 
     def __init__(self, plugin, id_,
                  history_filename, config_options,

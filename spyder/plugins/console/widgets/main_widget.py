@@ -317,7 +317,8 @@ class ConsoleWidget(PluginMainWidget):
         Not used anymore since v2.0.
         """
         historylog.add_history(self.shell.history_filename)
-        self.shell.append_to_history.connect(historylog.append_to_history)
+        self.shell.sig_append_to_history_requested.connect(
+            historylog.append_to_history)
 
     def set_help(self, help_plugin):
         """
