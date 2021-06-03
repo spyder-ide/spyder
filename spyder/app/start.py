@@ -21,6 +21,14 @@ import time
 # Fixes spyder-ide/spyder#15768
 logging.raiseExceptions = False
 
+# Prevent that our dependencies display warnings when not in debug mode.
+# Some of them are reported in the console and others through our
+# report error dialog.
+# Note: The log level when debugging is set on the main window.
+# Fixes spyder-ide/spyder#15163
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.ERROR)
+
 # Prevent a race condition with ZMQ
 # See spyder-ide/spyder#5324.
 import zmq
