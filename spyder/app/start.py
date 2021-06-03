@@ -9,6 +9,7 @@
 
 # Standard library imports
 import ctypes
+import logging
 import os
 import os.path as osp
 import random
@@ -16,7 +17,11 @@ import socket
 import sys
 import time
 
-# To prevent a race condition with ZMQ
+# Prevent showing internal logging errors
+# Fixes spyder-ide/spyder#15768
+logging.raiseExceptions = False
+
+# Prevent a race condition with ZMQ
 # See spyder-ide/spyder#5324.
 import zmq
 
