@@ -109,7 +109,7 @@ def status(extra_status=''):
 def check_kite_installers_availability():
     """Check if Kite installers are available."""
     url = LINUX_URL
-    if os.name == 'os':
+    if os.name == 'nt':
         url = WINDOWS_URL
     elif sys.platform == 'darwin':
         url = MAC_URL
