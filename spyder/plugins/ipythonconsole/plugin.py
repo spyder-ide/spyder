@@ -82,7 +82,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     # Signals
     sig_focus_changed = Signal()
-    edit_goto = Signal((str, int, str), (str, int, str, bool))
+    sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     sig_pdb_state_changed = Signal(bool, dict)
 
     sig_shellwidget_process_started = Signal(object)
@@ -726,8 +726,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         if self.main.editor:
-            self.edit_goto.connect(self.main.editor.load)
-            self.edit_goto[str, int, str, bool].connect(
+            self.sig_edit_goto_requested.connect(self.main.editor.load)
+            self.sig_edit_goto_requested[str, int, str, bool].connect(
                              lambda fname, lineno, word, processevents:
                              self.main.editor.load(
                                  fname, lineno, word,
@@ -1136,7 +1136,7 @@ class IPythonConsole(SpyderPluginWidget):
         if encoding.is_text_file(filename):
             # The default line number sent by ipykernel is always the last
             # one, but we prefer to use the first.
-            self.edit_goto.emit(filename, 1, '')
+            self.sig_edit_goto_requested.emit(filename, 1, '')
 
     def config_options(self):
         """
@@ -1437,10 +1437,11 @@ class IPythonConsole(SpyderPluginWidget):
 
     def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""
-        # This is a unique form of the edit_goto signal that is intended to
-        # prevent keyboard input from accidentally entering the editor
-        # during repeated, rapid entry of debugging commands.
-        self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
+        # This is a unique form of the sig_edit_goto_requested signal that
+        # is intended to prevent keyboard input from accidentally entering the
+        # editor during repeated, rapid entry of debugging commands.
+        self.sig_edit_goto_requested[str, int, str, bool].emit(
+            fname, lineno, '', False)
         self.activateWindow()
         shellwidget._control.setFocus()
 
@@ -1714,7 +1715,8 @@ class IPythonConsole(SpyderPluginWidget):
                 fname = self.run_cell_filename
             # This is needed to fix issue spyder-ide/spyder#9217.
             try:
-                self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+                self.sig_edit_goto_requested.emit(
+                    osp.abspath(fname), int(lnb), '')
             except ValueError:
                 pass
 
