@@ -79,9 +79,8 @@ class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
         self.hide()
 
         is_kite_installed, __ = check_if_kite_installed()
-        installers_available = check_kite_installers_availability()
 
-        if is_kite_installed or not installers_available:
+        if is_kite_installed:
             self._dismiss_forever()
 
     def handle_key_press(self, event):
@@ -96,6 +95,11 @@ class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
     def handle_processed_completions(self, completions):
         if not self.get_conf('kite_call_to_action'):
             return
+
+        installers_available = check_kite_installers_availability()
+        if not installers_available:
+            return
+
         if self._escaped:
             return
         if not self.textedit.completion_widget.isHidden():
