@@ -65,7 +65,7 @@ dependencies:
 - pytest-lazy-fixture
 - pytest-mock
 - pytest-order
-- pytest-qt
+- pytest-qt <4.0
 - pytest-xvfb
 - pyyaml
 - scipy
