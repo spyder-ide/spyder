@@ -677,8 +677,8 @@ the sympy module (e.g. plot)
 
         Fixes spyder-ide/spyder#4002.
         """
-        if command.startswith('%matplotlib') and \
-          len(command.splitlines()) == 1:
+        if (command.startswith('%matplotlib') and
+                len(command.splitlines()) == 1):
             if not 'inline' in command:
                 self.silent_execute(command)
 
