@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-05-20 13:13\n"
+"PO-Revision-Date: 2021-06-06 12:55\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1791,7 +1791,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
-msgstr ""
+msgstr "запуск"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:37
 msgid "ready"
@@ -1799,7 +1799,7 @@ msgstr "готов"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:38
 msgid "restarting"
-msgstr ""
+msgstr "перезапуск"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:39
 msgid "down"
@@ -2970,7 +2970,7 @@ msgstr "Найдены файлы автосохранения. Что бы Вы
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Actions"
-msgstr ""
+msgstr "Действия"
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Autosave file"
@@ -3042,11 +3042,11 @@ msgstr "Ветка Git"
 
 #: spyder/plugins/explorer/confpage.py:32
 msgid "General options"
-msgstr ""
+msgstr "Основные параметры"
 
 #: spyder/plugins/explorer/confpage.py:33 spyder/plugins/explorer/widgets/explorer.py:335
 msgid "Show hidden files"
-msgstr ""
+msgstr "Показать скрытые файлы"
 
 #: spyder/plugins/explorer/confpage.py:34
 msgid "Single click to open files"
@@ -3054,7 +3054,7 @@ msgstr "Одиночное нажатие для открытия файлов"
 
 #: spyder/plugins/explorer/confpage.py:42
 msgid "Filter settings"
-msgstr ""
+msgstr "Настройки фильтра"
 
 #: spyder/plugins/explorer/confpage.py:44 spyder/plugins/explorer/widgets/explorer.py:402
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
@@ -3098,7 +3098,7 @@ msgstr "Файл..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:462
 msgid "Python file..."
-msgstr ""
+msgstr "Файл Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:466
 msgid "Folder..."
@@ -3106,7 +3106,7 @@ msgstr "Каталог..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:470
 msgid "Python Package..."
-msgstr ""
+msgstr "Пакет Python..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:491
 msgid "Open in Spyder"
@@ -3916,7 +3916,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:252
 msgid "Debug"
-msgstr ""
+msgstr "Отладка"
 
 #: spyder/plugins/ipythonconsole/confpage.py:256
 msgid "Prevent editor from closing files while debugging"
@@ -4072,7 +4072,7 @@ msgstr "Запуск"
 
 #: spyder/plugins/ipythonconsole/confpage.py:432
 msgid "Debugger"
-msgstr ""
+msgstr "Отладчик"
 
 #: spyder/plugins/ipythonconsole/plugin.py:84
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4334,7 +4334,7 @@ msgstr "Ядро не работает"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:94
 msgid "An error occured, see the console."
-msgstr ""
+msgstr "Произошла ошибка, смотрите консоль."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:95
 msgid "The comm channel is not working."
@@ -4374,7 +4374,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:38
 msgid "Restart All Kernels"
-msgstr ""
+msgstr "Перезапустить все ядра"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:43
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
