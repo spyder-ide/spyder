@@ -180,7 +180,7 @@ DESCRIPTIONS = [
      'features': _("Static code analysis"),
      'required_version': PYLINT_REQVER},
     {'modname': "pylint_venv",
-     'package_name': "pylint_venv",
+     'package_name': "pylint-venv",
      'features': _("Use the same Pylint installation with different virtual"
                    " environments"),
      'required_version': PYLINT_VENV_REQVER},
