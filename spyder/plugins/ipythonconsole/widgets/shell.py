@@ -23,6 +23,7 @@ from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
+from spyder.utils.palette import SpyderPalette
 from spyder.utils import programs, encoding
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
@@ -684,11 +685,39 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    def append_html_message(self, html, before_prompt=False):
-        """Append an html message enclosed in a box."""
+    def append_html_message(self, html, before_prompt=False,
+                            msg_type='warning'):
+        """
+        Append an html message enclosed in a box.
+
+        Parameters
+        ----------
+        before_prompt: bool
+            Whether to add the message before the next prompt.
+        msg_type: str
+            Type of message to be showm. Possible values are
+            'warning' and 'error'.
+        """
+        # The message is displayed in a table with a single cell.
+        table_properties = (
+            "border='0.5'" +
+            "width='90%'" +
+            "cellpadding='8'" +
+            "cellspacing='0'"
+        )
+
+        if msg_type == 'error':
+            header = _("Error")
+            bgcolor = SpyderPalette.COLOR_ERROR_2
+        else:
+            header = _("Warning")
+            bgcolor = SpyderPalette.COLOR_WARN_1
+
         self._append_html(
-            "<table border='1' width='95%' cellpadding='15' cellspacing='0'>" +
-            "<tr><td>" + html + "</td></tr></table>",
+            f"<div align='center'><table {table_properties}>" +
+            f"<tr><th bgcolor='{bgcolor}'>{header}</th></tr>" +
+            "<tr><td>" + html + "</td></tr>" +
+            "</table></div>",
             before_prompt=before_prompt
         )
 
