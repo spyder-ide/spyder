@@ -5,10 +5,14 @@
 # (see spyder/__init__.py for details)
 
 """Control widgets used by ShellWidget"""
+
+# Third-party imports
 from qtpy.QtCore import Qt, QUrl, Signal
-from qtpy.QtGui import QDesktopServices
+from qtpy.QtGui import QColor, QDesktopServices, QTextFrameFormat
 from qtpy.QtWidgets import QApplication, QTextEdit
 
+# Local imports
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
@@ -49,10 +53,25 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         # To detect anchors and make them clickable
         self.anchor = None
 
-    def showEvent(self, event):
-        """Reimplement Qt Method"""
-        self.visibility_changed.emit(True)
+    # ---- Public methods ----------------------------------------------------
+    def insert_horizontal_ruler(self):
+        """
+        Insert a horizontal ruler with the appropriate color according
+        to our theme in the current cursor position.
 
+        We have to do this because html hr elements can't be stylized
+        in QTextEdit.
+
+        Taken from https://stackoverflow.com/a/50016969/438386
+        """
+        ruler = QTextFrameFormat()
+        ruler.setHeight(1)
+        ruler.setWidth(10000)
+        ruler.setBackground(QColor(QStylePalette.COLOR_TEXT_1))
+        cursor = self.textCursor()
+        cursor.insertFrame(ruler)
+
+    # ---- Private methods ---------------------------------------------------
     def _key_paren_left(self, text):
         """ Action for '(' """
         self.current_prompt_pos = self.parentWidget()._prompt_pos
@@ -61,6 +80,11 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
             if last_obj and not last_obj.isdigit():
                 self.show_object_info(last_obj)
         self.insert_text(text)
+
+    # ---- Qt methods --------------------------------------------------------
+    def showEvent(self, event):
+        """Reimplement Qt Method"""
+        self.visibility_changed.emit(True)
 
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""

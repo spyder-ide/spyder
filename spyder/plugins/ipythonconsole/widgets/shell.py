@@ -497,9 +497,11 @@ the sympy module (e.g. plot)
             else:
                 if message:
                     self.reset()
-                    self._append_html(_("<br><br>Removing all variables..."
-                                        "\n<hr>"),
-                                      before_prompt=False)
+                    self._append_html(
+                        _("<br><br>Removing all variables...<br>"),
+                        before_prompt=False
+                    )
+                    self.insert_horizontal_ruler()
                 self.silent_execute("%reset -f")
                 if kernel_env.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
                     self.silent_execute("from pylab import *")
@@ -689,6 +691,18 @@ the sympy module (e.g. plot)
             "<tr><td>" + html + "</td></tr></table>",
             before_prompt=before_prompt
         )
+
+    def insert_horizontal_ruler(self):
+        """
+        Insert a horizontal ruler at the current cursor position.
+
+        Notes
+        -----
+        This only works when adding a single horizontal line to a
+        message. For more complex messages, please use
+        append_html_message.
+        """
+        self._control.insert_horizontal_ruler()
 
     # ---- Spyder-kernels methods ---------------------------------------------
     def get_editor(self, filename):
