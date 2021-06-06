@@ -682,6 +682,14 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
+    def append_html_message(self, html, before_prompt=False):
+        """Append an html message enclosed in a box."""
+        self._append_html(
+            "<table border='1' width='95%' cellpadding='15' cellspacing='0'>" +
+            "<tr><td>" + html + "</td></tr></table>",
+            before_prompt=before_prompt
+        )
+
     # ---- Spyder-kernels methods ---------------------------------------------
     def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
@@ -826,12 +834,11 @@ the sympy module (e.g. plot)
             error = msg['content']['traceback']
             if any(['ModuleNotFoundError' in frame or 'ImportError' in frame
                     for frame in error]):
-                self._append_html(
-                    _("<hr>"
-                      "\nIt seems you're trying to use a module that doesn't "
+                self.append_html_message(
+                    _("It seems you're trying to use a module that doesn't "
                       "come with our installer. Please visit "
-                      "<a href='{}'>this page</a> to learn how to do that.\n"
-                      "<hr><br>").format(MODULES_FAQ_URL),
+                      "<a href='{}'>this page</a> to learn how to do "
+                      "that.").format(MODULES_FAQ_URL),
                     before_prompt=True
                 )
             self.show_modules_message = False
