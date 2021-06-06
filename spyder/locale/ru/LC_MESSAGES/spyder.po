@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-03-26 13:14-0500\n"
-"PO-Revision-Date: 2021-06-06 12:55\n"
+"PO-Revision-Date: 2021-06-06 13:27\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -4664,11 +4664,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:38
 msgid "Class"
-msgstr ""
+msgstr "Класс"
 
 #: spyder/plugins/outlineexplorer/widgets.py:39
 msgid "Method"
-msgstr ""
+msgstr "Метод"
 
 #: spyder/plugins/outlineexplorer/widgets.py:40
 msgid "Property"
@@ -4680,7 +4680,7 @@ msgstr "Атрибут"
 
 #: spyder/plugins/outlineexplorer/widgets.py:42
 msgid "constructor"
-msgstr ""
+msgstr "конструктор"
 
 #: spyder/plugins/outlineexplorer/widgets.py:43
 msgid "Enum"
@@ -4688,19 +4688,19 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:45
 msgid "Function"
-msgstr ""
+msgstr "Функция"
 
 #: spyder/plugins/outlineexplorer/widgets.py:46
 msgid "Variable"
-msgstr ""
+msgstr "Переменная"
 
 #: spyder/plugins/outlineexplorer/widgets.py:47
 msgid "Constant"
-msgstr ""
+msgstr "Константа"
 
 #: spyder/plugins/outlineexplorer/widgets.py:48
 msgid "String"
-msgstr ""
+msgstr "Строка"
 
 #: spyder/plugins/outlineexplorer/widgets.py:49
 msgid "Number"
@@ -4732,11 +4732,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:57
 msgid "Event"
-msgstr ""
+msgstr "Событие"
 
 #: spyder/plugins/outlineexplorer/widgets.py:58
 msgid "Operator"
-msgstr ""
+msgstr "Оператор"
 
 #: spyder/plugins/outlineexplorer/widgets.py:59
 msgid "Type parameter"
@@ -4744,11 +4744,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:60
 msgid "Cell"
-msgstr ""
+msgstr "Ячейка"
 
 #: spyder/plugins/outlineexplorer/widgets.py:61
 msgid "Block comment"
-msgstr ""
+msgstr "Блокировать комментарий"
 
 #: spyder/plugins/outlineexplorer/widgets.py:251
 msgid "Line %s"
@@ -6400,7 +6400,7 @@ msgstr "элементов"
 
 #: spyder/widgets/collectionseditor.py:197
 msgid "element"
-msgstr ""
+msgstr "элемент"
 
 #: spyder/widgets/collectionseditor.py:440
 msgid "Value"
