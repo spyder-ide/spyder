@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-02-16 00:08-0500\n"
-"PO-Revision-Date: 2021-06-06 12:55\n"
+"PO-Revision-Date: 2021-06-06 13:27\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -4456,11 +4456,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:39
 msgid "Class"
-msgstr ""
+msgstr "Класс"
 
 #: spyder/plugins/outlineexplorer/widgets.py:40
 msgid "Method"
-msgstr ""
+msgstr "Метод"
 
 #: spyder/plugins/outlineexplorer/widgets.py:41
 msgid "Property"
@@ -4472,7 +4472,7 @@ msgstr "Атрибут"
 
 #: spyder/plugins/outlineexplorer/widgets.py:43
 msgid "constructor"
-msgstr ""
+msgstr "конструктор"
 
 #: spyder/plugins/outlineexplorer/widgets.py:44
 msgid "Enum"
@@ -4480,19 +4480,19 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:46
 msgid "Function"
-msgstr ""
+msgstr "Функция"
 
 #: spyder/plugins/outlineexplorer/widgets.py:47
 msgid "Variable"
-msgstr ""
+msgstr "Переменная"
 
 #: spyder/plugins/outlineexplorer/widgets.py:48
 msgid "Constant"
-msgstr ""
+msgstr "Константа"
 
 #: spyder/plugins/outlineexplorer/widgets.py:49
 msgid "String"
-msgstr ""
+msgstr "Строка"
 
 #: spyder/plugins/outlineexplorer/widgets.py:50
 msgid "Number"
@@ -4524,11 +4524,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:58
 msgid "Event"
-msgstr ""
+msgstr "Событие"
 
 #: spyder/plugins/outlineexplorer/widgets.py:59
 msgid "Operator"
-msgstr ""
+msgstr "Оператор"
 
 #: spyder/plugins/outlineexplorer/widgets.py:60
 msgid "Type parameter"
@@ -4536,11 +4536,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:61
 msgid "Cell"
-msgstr ""
+msgstr "Ячейка"
 
 #: spyder/plugins/outlineexplorer/widgets.py:62
 msgid "Block comment"
-msgstr ""
+msgstr "Блокировать комментарий"
 
 #: spyder/plugins/outlineexplorer/widgets.py:252
 msgid "Line %s"
@@ -5212,7 +5212,7 @@ msgstr "элементов"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:203
 msgid "element"
-msgstr ""
+msgstr "элемент"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:446
 msgid "Value"
