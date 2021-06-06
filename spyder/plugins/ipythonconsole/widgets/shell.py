@@ -19,17 +19,23 @@ from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import (
+    _, is_pynsist, running_in_mac_app, running_under_pytest)
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs, encoding
 from spyder.utils import syntaxhighlighters as sh
-from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
+from spyder.plugins.ipythonconsole.utils.style import (
+    create_qss_style, create_style_class)
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
-        ControlWidget, DebuggingWidget, FigureBrowserWidget,
-        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
+    ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
+    NamepaceBrowserWidget, PageControlWidget)
+
+
+MODULES_FAQ_URL = (
+    "http://docs.spyder-ide.org/5/faq.html#using-packages-installer")
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -121,6 +127,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Internal kernel are always spyder kernels
         self._is_spyder_kernel = not external_kernel
+
+        # Show a message in our installers to explain users how to use
+        # modules that don't come with them.
+        self.show_modules_message = is_pynsist() or running_in_mac_app()
 
     def __del__(self):
         """Avoid destroying shutdown_thread."""
@@ -805,6 +815,26 @@ the sympy module (e.g. plot)
         """Handle an execute_input message"""
         super(ShellWidget, self)._handle_execute_input(msg)
         self.sig_remote_execute.emit()
+
+    def _process_execute_error(self, msg):
+        """
+        Display a message when using our installers to explain users
+        how to use modules that doesn't come with them.
+        """
+        super(ShellWidget, self)._process_execute_error(msg)
+        if self.show_modules_message:
+            error = msg['content']['traceback']
+            if any(['ModuleNotFoundError' in frame or 'ImportError' in frame
+                    for frame in error]):
+                self._append_html(
+                    _("<hr>"
+                      "\nIt seems you're trying to use a module that doesn't "
+                      "come with our installer. Please visit "
+                      "<a href='{}'>this page</a> to learn how to do that.\n"
+                      "<hr><br>").format(MODULES_FAQ_URL),
+                    before_prompt=True
+                )
+            self.show_modules_message = False
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
