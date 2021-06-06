@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = 2.x
-	commit = 388c6fe33e53f7ef89c1032ce5ab502b6768d34c
-	parent = 20448ca1b35b47bdc5f6c4b3e305d0c23ef55403
+	branch = fix-sys-import
+	commit = 2d869a16b41c4d41a459218b6335af29a3cebe4c
+	parent = 63e0fbc1859e9105fd7b44d8d055e5ee0eedf10b
 	method = merge
 	cmdver = 0.4.3
