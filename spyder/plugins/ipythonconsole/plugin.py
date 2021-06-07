@@ -85,9 +85,9 @@ class IPythonConsole(SpyderPluginWidget):
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     sig_pdb_state_changed = Signal(bool, dict)
 
-    sig_shellwidget_process_started = Signal(object)
+    sig_shellwidget_created = Signal(object)
     """
-    This signal is emitted when a shellwidget process starts.
+    This signal is emitted when a shellwidget is created.
 
     Parameters
     ----------
@@ -95,9 +95,9 @@ class IPythonConsole(SpyderPluginWidget):
         The shellwigdet.
     """
 
-    sig_shellwidget_process_finished = Signal(object)
+    sig_shellwidget_deleted = Signal(object)
     """
-    This signal is emitted when a shellwidget process finishes.
+    This signal is emitted when a shellwidget is deleted/removed.
 
     Parameters
     ----------
@@ -1120,9 +1120,9 @@ class IPythonConsole(SpyderPluginWidget):
         # tests in our CIs
         if not self.testing:
             kc.started_channels.connect(
-                lambda c=client: self.process_started(c))
+                lambda c=client: self.shellwidget_started(c))
             kc.stopped_channels.connect(
-                lambda c=client: self.process_finished(c))
+                lambda c=client: self.shellwidget_deleted(c))
         kc.start_channels(shell=True, iopub=True)
 
         shellwidget = client.shellwidget
@@ -1796,17 +1796,17 @@ class IPythonConsole(SpyderPluginWidget):
             cf = cf if not os.path.exists(cf) else ''
         return cf
 
-    def process_started(self, client):
+    def shellwidget_started(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.add_shellwidget(client.shellwidget)
 
-        self.sig_shellwidget_process_started.emit(client.shellwidget)
+        self.sig_shellwidget_created.emit(client.shellwidget)
 
-    def process_finished(self, client):
+    def shellwidget_deleted(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.remove_shellwidget(client.shellwidget)
 
-        self.sig_shellwidget_process_finished.emit(client.shellwidget)
+        self.sig_shellwidget_deleted.emit(client.shellwidget)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):

@@ -50,9 +50,9 @@ class Plots(SpyderDockablePlugin):
 
         # Signals
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_process_started.connect(
+        ipyconsole.sig_shellwidget_created.connect(
             self.add_shellwidget)
-        ipyconsole.sig_shellwidget_process_finished.connect(
+        ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
 
         # If a figure is loaded raise the dockwidget but do not give focus
@@ -64,12 +64,10 @@ class Plots(SpyderDockablePlugin):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Signals
-        ipyconsole.sig_shellwidget_id_changed.disconnect(
-            self.set_shellwidget_from_id)
-        ipyconsole.sig_shellwidget_process_started.disconnect(
+        ipyconsole.sig_shellwidget_created.disconnect(
             self.add_shellwidget)
-        ipyconsole.sig_shellwidget_id_process_finished.disconnect(
-            self.remove_shellwidget_from_id)
+        ipyconsole.sig_shellwidget_deleted.connect(
+            self.remove_shellwidget)
 
     def switch_to_plugin(self, force_focus=False):
         # Only switch when inline plotting is muted. This avoids
