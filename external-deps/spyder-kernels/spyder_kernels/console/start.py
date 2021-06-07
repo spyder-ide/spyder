@@ -98,16 +98,20 @@ def kernel_config():
     if not PY2:
         spy_cfg.IPCompleter.use_jedi = jedi_o
 
+    # Clear terminal arguments input.
+    # This needs to be done before adding the exec_lines that come from
+    # Spyder, to avoid deleting the sys module if users want to import
+    # it through them.
+    # See spyder-ide/spyder#15788
+    clear_argv = "import sys;sys.argv = [''];del sys"
+    spy_cfg.IPKernelApp.exec_lines = [clear_argv]
+
     # Run lines of code at startup
     run_lines_o = os.environ.get('SPY_RUN_LINES_O')
     if run_lines_o is not None:
-        spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(';')]
-    else:
-        spy_cfg.IPKernelApp.exec_lines = []
-
-    # Clean terminal arguments input
-    clear_argv = "import sys;sys.argv = [''];del sys"
-    spy_cfg.IPKernelApp.exec_lines.append(clear_argv)
+        spy_cfg.IPKernelApp.exec_lines += (
+            [x.strip() for x in run_lines_o.split(';')]
+        )
 
     # Load %autoreload magic
     spy_cfg.IPKernelApp.exec_lines.append(
