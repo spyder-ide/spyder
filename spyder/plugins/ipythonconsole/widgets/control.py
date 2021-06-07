@@ -113,6 +113,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
             QApplication.setOverrideCursor(Qt.PointingHandCursor)
         else:
             QApplication.restoreOverrideCursor()
+        super(ControlWidget, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         """Ooen anchors when clicked."""
