@@ -207,7 +207,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
-        self.tabwidget.tabBar().sig_change_name.connect(
+        self.tabwidget.tabBar().sig_name_changed.connect(
             self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
