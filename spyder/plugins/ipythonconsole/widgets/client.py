@@ -679,8 +679,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # setting of %colors on windows by assuming it was using a
             # dark background. This corrects it based on the scheme.
             self.set_color_scheme(sw.syntax_style, reset=reset)
-            sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
+            sw._append_html(_("<br>Restarting kernel...<br>"),
                             before_prompt=True)
+            sw.insert_horizontal_ruler()
 
         self._hide_loading_page()
         self.stop_button.setDisabled(True)

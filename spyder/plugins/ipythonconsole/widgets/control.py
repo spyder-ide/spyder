@@ -5,9 +5,14 @@
 # (see spyder/__init__.py for details)
 
 """Control widgets used by ShellWidget"""
-from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QTextEdit
 
+# Third-party imports
+from qtpy.QtCore import Qt, QUrl, Signal
+from qtpy.QtGui import QColor, QDesktopServices, QTextFrameFormat
+from qtpy.QtWidgets import QApplication, QTextEdit
+
+# Local imports
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
@@ -45,10 +50,28 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
 
-    def showEvent(self, event):
-        """Reimplement Qt Method"""
-        self.visibility_changed.emit(True)
+        # To detect anchors and make them clickable
+        self.anchor = None
 
+    # ---- Public methods ----------------------------------------------------
+    def insert_horizontal_ruler(self):
+        """
+        Insert a horizontal ruler with the appropriate color according
+        to our theme in the current cursor position.
+
+        We have to do this because html hr elements can't be stylized
+        in QTextEdit.
+
+        Taken from https://stackoverflow.com/a/50016969/438386
+        """
+        ruler = QTextFrameFormat()
+        ruler.setHeight(1)
+        ruler.setWidth(10000)
+        ruler.setBackground(QColor(QStylePalette.COLOR_TEXT_1))
+        cursor = self.textCursor()
+        cursor.insertFrame(ruler)
+
+    # ---- Private methods ---------------------------------------------------
     def _key_paren_left(self, text):
         """ Action for '(' """
         self.current_prompt_pos = self.parentWidget()._prompt_pos
@@ -57,6 +80,11 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
             if last_obj and not last_obj.isdigit():
                 self.show_object_info(last_obj)
         self.insert_text(text)
+
+    # ---- Qt methods --------------------------------------------------------
+    def showEvent(self, event):
+        """Reimplement Qt Method"""
+        self.visibility_changed.emit(True)
 
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
@@ -77,6 +105,24 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         """Reimplement Qt method to send focus change notification"""
         self.focus_changed.emit()
         return super(ControlWidget, self).focusOutEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """Detect anchors and change cursor shape accordingly."""
+        self.anchor = self.anchorAt(event.pos())
+        if self.anchor:
+            QApplication.setOverrideCursor(Qt.PointingHandCursor)
+        else:
+            QApplication.restoreOverrideCursor()
+        super(ControlWidget, self).mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Ooen anchors when clicked."""
+        if self.anchor:
+            QDesktopServices.openUrl(QUrl(self.anchor))
+            QApplication.setOverrideCursor(Qt.ArrowCursor)
+            self.anchor = None
+        else:
+            super(ControlWidget, self).mouseReleaseEvent(event)
 
 
 class PageControlWidget(QTextEdit, BaseEditMixin):

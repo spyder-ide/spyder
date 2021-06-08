@@ -1951,9 +1951,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def print_debug_file_msg(self):
         """Print message in the current console when a file can't be closed."""
-        debug_msg = _('<br><hr>'
-                      '\nThe current file cannot be closed because it is '
-                      'in debug mode. \n'
-                      '<hr><br>')
-        self.get_current_client().shellwidget._append_html(
+        debug_msg = _('The current file cannot be closed because it is '
+                      'in debug mode.')
+        self.get_current_client().shellwidget.append_html_message(
                     debug_msg, before_prompt=True)
