@@ -15,7 +15,7 @@ from spyder.plugins.completion.providers.kite.bloomfilter import (
 from spyder.plugins.completion.providers.kite.parsing import (
     find_returning_function_path)
 from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed, check_kite_installers_availability)
+    check_if_kite_installed)
 from spyder.plugins.completion.providers.fallback.actor import (
     FALLBACK_COMPLETION)
 from spyder.utils.palette import QStylePalette
@@ -96,7 +96,10 @@ class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
         if not self.get_conf('kite_call_to_action'):
             return
 
-        installers_available = check_kite_installers_availability()
+        installers_available = self.get_conf(
+            ('provider_configuration', 'kite', 'values',
+             'installers_available'))
+
         if not installers_available:
             return
 
