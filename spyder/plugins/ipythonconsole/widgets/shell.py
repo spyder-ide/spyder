@@ -36,7 +36,7 @@ from spyder.plugins.ipythonconsole.widgets import (
 
 
 MODULES_FAQ_URL = (
-    "http://docs.spyder-ide.org/5/faq.html#using-packages-installer")
+    "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -879,9 +879,9 @@ the sympy module (e.g. plot)
                     for frame in error]):
                 self.append_html_message(
                     _("It seems you're trying to use a module that doesn't "
-                      "come with our installer. Please visit "
-                      "<a href='{}'>this page</a> to learn how to do "
-                      "that.").format(MODULES_FAQ_URL),
+                      "come with our installer. Check "
+                      "<a href='{}'>this FAQ</a> in our docs to learn how "
+                      "to do this.").format(MODULES_FAQ_URL),
                     before_prompt=True
                 )
             self.show_modules_message = False
