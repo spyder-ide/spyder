@@ -55,6 +55,9 @@ else
 
     # Provisional change to prevent error from jupyter_client 6.1.13
     pip install jupyter_client==6.1.12
+
+    # Test with decorator 5
+    pip install decorator==5.0.9
 fi
 
 # This is necessary only for Windows (don't know why).
