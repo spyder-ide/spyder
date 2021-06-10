@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = 2.x
-	commit = fbccab8c38c554fef868887c7b5384ab7372e1a3
-	parent = 2ad9e9a35ba38561204e66a3b82e21fc4ed4cf0d
+	branch = remove-decorator-pin
+	commit = f4950fa8d0e04f73dbb85b68167a139f1bd0f944
+	parent = 70b2ff4344054b00154c7b43a4de4ae8360af322
 	method = merge
 	cmdver = 0.4.3
