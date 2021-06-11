@@ -352,7 +352,7 @@ LANGUAGE_CODES = {
 }
 
 # Disabled languages because their translations are outdated or incomplete
-DISABLED_LANGUAGES = ['hu', 'ru', 'pl']
+DISABLED_LANGUAGES = ['hu', 'pl']
 
 def get_available_translations():
     """
