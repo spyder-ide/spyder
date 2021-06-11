@@ -14,7 +14,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QTabWidget, QWidget)
+                            QScrollArea, QTabWidget, QWidget)
 
 # Local imports
 from spyder import (__project_url__, __forum_url__,
@@ -44,7 +44,7 @@ class AboutDialog(QDialog):
         font_family = font.family()
         font_size = font.pointSize()
         if sys.platform == 'darwin':
-            font_size -= 2
+            font_size -= 0
 
         self.label_overview = QLabel((
             """
@@ -61,18 +61,11 @@ class AboutDialog(QDialog):
             <p>
             Python {python_ver} {bitness}-bit | Qt {qt_ver} |
             {qt_api} {qt_api_ver} | {os_name} {os_ver}
-            </p>
-            Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
-            Developed by the
-            <a href="{github_url}/graphs/contributors">international
-            Spyder community</a>. Many thanks to all the Spyder beta testers
-            and dedicated users.
-            </p>
+
             </div>""").format(
                 spyder_ver=versions['spyder'],
                 revision=revlink,
                 website_url=__website_url__,
-                github_url=__project_url__,
                 python_ver=versions['python'],
                 bitness=versions['bitness'],
                 qt_ver=versions['qt'],
@@ -91,6 +84,13 @@ class AboutDialog(QDialog):
                         font-size: {font_size}pt;
                         font-weight: normal;
                         '>
+                        </p>
+            Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
+            Developed by the
+            <a href="{github_url}/graphs/contributors">international
+            Spyder community</a>. Many thanks to all the Spyder beta testers
+            and dedicated users.
+            </p>
             <p>For help with Spyder errors and crashes, please read our
             <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
             reports and feature requests, visit our
@@ -159,28 +159,46 @@ class AboutDialog(QDialog):
         self.label_overview.setAlignment(Qt.AlignTop)
         self.label_overview.setOpenExternalLinks(True)
         self.label_overview.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_overview.setFixedWidth(350)
+        self.label_overview.setFixedWidth(280)
+        #self.label_overview.setFixedHeight(200)
 
         self.label_community.setWordWrap(True)
         self.label_community.setAlignment(Qt.AlignTop)
         self.label_community.setOpenExternalLinks(True)
         self.label_community.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_community.setFixedWidth(350)
+        self.label_community.setFixedWidth(280)
+        #self.label_community.setFixedHeight(200)
 
         self.label_legal.setWordWrap(True)
         self.label_legal.setAlignment(Qt.AlignTop)
         self.label_legal.setOpenExternalLinks(True)
         self.label_legal.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_legal.setFixedWidth(350)
+        self.label_legal.setFixedWidth(280)
+        #self.label_legal.setFixedHeight(200)
 
         icon_filename = "spyder_about"
         pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
         self.label_pic.setPixmap(
-            pixmap.scaledToWidth(64, Qt.SmoothTransformation))
-        self.label_pic.setAlignment(Qt.AlignTop)
+            pixmap.scaledToWidth(80, Qt.SmoothTransformation))
+        self.label_pic.setAlignment(Qt.AlignBottom)
+        self.info = QLabel((
+                    """
+                    <div style='font-family: "{font_family}";
+                        font-size: {font_size}pt;
+                        font-weight: normal;
+                        '>
+                    <p>
+                    <b>Spyder {spyder_ver}</b>
+                    <br> {revision}
+                    <br> """).format(
+                spyder_ver=versions['spyder'],
+                revision=revlink,
+                font_family=font_family,
+                font_size=font_size))
+        self.info.setAlignment(Qt.AlignTop)
 
-        btn = QPushButton(_("Copy to clipboard"), )
+        btn = QPushButton(_("Copy version info"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # Widget setup
@@ -188,20 +206,32 @@ class AboutDialog(QDialog):
         self.setModal(False)
 
         # Layout
-        piclayout = QHBoxLayout()
+        piclayout = QVBoxLayout()
         piclayout.addWidget(self.label_pic)
+        piclayout.addWidget(self.info)
         overview_widget = QWidget()
         community_widget = QWidget()
         legal_widget = QWidget()
 
+        scroll_overview = QScrollArea(self)
+        scroll_overview.setWidget(self.label_overview)
         overview_layout = QVBoxLayout(overview_widget)
+        overview_layout.addWidget(scroll_overview)
+        overview_widget.setLayout(overview_layout)
+
+        scroll_community = QScrollArea(self)
+        scroll_community.setWidget(self.label_community)
+        scroll_community.setMinimumHeight(280)
+        scroll_community.setWidgetResizable(True)
         community_layout = QVBoxLayout(community_widget)
+        community_layout.addWidget(scroll_community)
+        community_widget.setLayout(community_layout)
+
+        scroll_legal = QScrollArea(self)
+        scroll_legal.setWidget(self.label_legal)
         legal_layout = QVBoxLayout(legal_widget)
-
-
-        overview_layout.addWidget(self.label_overview)
-        community_layout.addWidget(self.label_community)
-        legal_layout.addWidget(self.label_legal)
+        legal_layout.addWidget(scroll_legal)
+        legal_widget.setLayout(legal_layout)
 
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(overview_widget),
@@ -210,19 +240,18 @@ class AboutDialog(QDialog):
                              _('Community'))
         self.tabs.addTab(self.create_tab(legal_widget),
                              _('Legal'))
-        
+
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addWidget(btn)
-        btmhlayout.addStretch()
         btmhlayout.addWidget(bbox)
+        btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
         vlayout.addLayout(tabslayout)
-        vlayout.addSpacing(25)
         vlayout.addLayout(btmhlayout)
         vlayout.setSizeConstraint(vlayout.SetFixedSize)
 
