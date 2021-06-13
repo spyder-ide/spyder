@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/spyder-ide/spyder-kernels.git
+	remote = https://github.com/ccordoba12/spyder-kernels.git
 	branch = delayed-modules
-	commit = c6e6f283ac229cb8dd537f115c7e235e7f05f65e
-	parent = 5f40084faad163b19a502d19929ec0dca8a83d39
+	commit = 6c7a9d8ebf0331c01d40b93c71edba92dca3c007
+	parent = af5b6db77334d2b7d36dde5f35e582dfa7f9d38c
 	method = merge
 	cmdver = 0.4.3

@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 """
-Delayed modules classes.
+Lazy modules.
 
 They are useful to not import big modules until it's really necessary.
 """
@@ -23,7 +23,7 @@ class FakeObject(object):
     pass
 
 
-class _LazyModuleLoader(object):
+class LazyModule(object):
     """Lazy module loader class."""
 
     def __init__(self, modname, second_level_attrs=None):
@@ -58,12 +58,12 @@ class _LazyModuleLoader(object):
 # =============================================================================
 # Lazy modules
 # =============================================================================
-numpy = _LazyModuleLoader('numpy', ['MaskedArray'])
+numpy = LazyModule('numpy', ['MaskedArray'])
 
-pandas = _LazyModuleLoader('pandas')
+pandas = LazyModule('pandas')
 
-PIL = _LazyModuleLoader('PIL', ['Image'])
+PIL = LazyModule('PIL.Image', ['Image'])
 
-bs4 = _LazyModuleLoader('bs4', ['NavigableString'])
+bs4 = LazyModule('bs4', ['NavigableString'])
 
-scipy = _LazyModuleLoader('scipy.io')
+scipy = LazyModule('scipy.io')

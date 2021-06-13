@@ -32,10 +32,8 @@ import glob
 
 # Local imports
 from spyder_kernels.py3compat import getcwd, pickle, PY2, to_text_string
-from spyder_kernels.utils.lazymodules import FakeObject, PIL
-from spyder_kernels.utils.lazymodules import numpy as np
-from spyder_kernels.utils.lazymodules import pandas as pd
-from spyder_kernels.utils.lazymodules import scipy as sp
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd, PIL, scipy as sp)
 
 
 class MatlabStruct(dict):

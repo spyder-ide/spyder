@@ -22,9 +22,8 @@ from spyder_kernels.py3compat import (NUMERIC_TYPES, INT_TYPES, TEXT_TYPES,
                                       is_type_text_string,
                                       is_binary_string, PY2,
                                       to_binary_string, iteritems)
-from spyder_kernels.utils.lazymodules import bs4, FakeObject, PIL
-from spyder_kernels.utils.lazymodules import numpy as np
-from spyder_kernels.utils.lazymodules import pandas as pd
+from spyder_kernels.utils.lazymodules import (
+    bs4, FakeObject, numpy as np, pandas as pd, PIL)
 
 
 #==============================================================================
