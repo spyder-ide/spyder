@@ -176,7 +176,7 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
     ```
     $ cd ~/spyder
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/spyder-kernels.git external-deps/spyder-kernels -b fix_in_kernel -f
+    $ git subrepo pull external-deps/spyder-kernels --remote https://github.com/myuser/spyder-kernels.git --branch fix_in_kernel
     ```
 
 * You can now open a PR on `https://github.com/spyder-ide/spyder` and on `https://github.com/spyder-ide/spyder-kernels` for each of your branches.
@@ -218,7 +218,7 @@ Due to that, a clone of that project is placed in the `external-deps` directory,
 
     ```
     $ git checkout -b fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-language-server.git external-deps/python-language-server -b fix_in_pyls -f
+    $ git subrepo pull external-deps/python-language-server --remote https://github.com/myuser/python-language-server.git --branch fix_in_pyls
     ```
 
     and then commit the changes you need to make in Spyder.
