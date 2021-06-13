@@ -9,7 +9,7 @@ Text data Importing Wizard based on Qt
 """
 
 # Standard library imports
-from __future__ import print_function
+import datetime
 from functools import partial as ft_partial
 
 # Third party imports
@@ -21,13 +21,8 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
                             QPushButton, QMenu, QMessageBox, QRadioButton,
                             QSizePolicy, QSpacerItem, QTableView, QTabWidget,
                             QTextEdit, QVBoxLayout, QWidget)
-
-# If pandas fails to import here (for any reason), Spyder
-# will crash at startup.
-try:
-    import pandas as pd
-except:
-    pd = None
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd)
 
 # Local import
 from spyder.config.base import _
@@ -50,28 +45,15 @@ def try_to_parse(value):
             pass
     return value
 
+
 def try_to_eval(value):
     try:
         return eval(value)
     except (NameError, SyntaxError, ImportError):
         return value
 
-#----Numpy arrays support
-class FakeObject(object):
-    """Fake class used in replacement of missing modules"""
-    pass
-try:
-    from numpy import ndarray
-except:
-    ndarray = FakeObject()  # analysis:ignore
-
-try:
-    from numpy import array
-except:
-    array = FakeObject()  # analysis:ignore
 
 #----date and datetime objects support
-import datetime
 try:
     from dateutil.parser import parse as dateparse
 except:
@@ -86,24 +68,24 @@ def datestr_to_datetime(value, dayfirst=True):
     return dateparse(value, dayfirst=dayfirst)
 
 #----Background colors for supported types
-COLORS = {
-    bool: SpyderPalette.GROUP_1,
-    tuple([float] + list(INT_TYPES)): SpyderPalette.GROUP_2,
-    TEXT_TYPES: SpyderPalette.GROUP_3,
-    datetime.date: SpyderPalette.GROUP_4,
-    list: SpyderPalette.GROUP_5,
-    set: SpyderPalette.GROUP_6,
-    tuple: SpyderPalette.GROUP_7,
-    dict: SpyderPalette.GROUP_8,
-    ndarray: SpyderPalette.GROUP_9,
-}
-
 def get_color(value, alpha):
     """Return color depending on value type"""
+    colors = {
+        bool: SpyderPalette.GROUP_1,
+        tuple([float] + list(INT_TYPES)): SpyderPalette.GROUP_2,
+        TEXT_TYPES: SpyderPalette.GROUP_3,
+        datetime.date: SpyderPalette.GROUP_4,
+        list: SpyderPalette.GROUP_5,
+        set: SpyderPalette.GROUP_6,
+        tuple: SpyderPalette.GROUP_7,
+        dict: SpyderPalette.GROUP_8,
+        np.ndarray: SpyderPalette.GROUP_9,
+    }
+
     color = QColor()
-    for typ in COLORS:
+    for typ in colors:
         if isinstance(value, typ):
-            color = QColor(COLORS[typ])
+            color = QColor(colors[typ])
     color.setAlphaF(alpha)
     return color
 
@@ -446,9 +428,7 @@ class PreviewWidget(QWidget):
         type_layout.addWidget(type_label)
 
         self.array_btn = array_btn = QRadioButton(_("array"))
-        available_array = (
-            not isinstance(ndarray, FakeObject) and
-            not isinstance(array, FakeObject))
+        available_array = np.ndarray is not FakeObject
         array_btn.setEnabled(available_array)
         array_btn.setChecked(available_array)
         type_layout.addWidget(array_btn)
@@ -621,7 +601,8 @@ class ImportWizard(BaseDialog):
                 self.table_widget.get_data())
         if self.table_widget.array_btn.isChecked():
             return array(data)
-        elif pd and self.table_widget.df_btn.isChecked():
+        elif (pd.read_csv is not FakeObject and
+                self.table_widget.df_btn.isChecked()):
             info = self.table_widget.pd_info
             buf = io.StringIO(self.table_widget.pd_text)
             return pd.read_csv(buf, **info)

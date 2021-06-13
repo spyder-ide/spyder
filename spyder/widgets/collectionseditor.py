@@ -35,13 +35,14 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QLineEdit, QMenu, QMessageBox,
                             QPushButton, QTableView, QVBoxLayout,
                             QWidget)
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import (
-    DataFrame, display_to_value, FakeObject, get_human_readable_type,
-    get_numpy_type_string, get_size, get_type_string, Image,
-    MaskedArray, ndarray, np_savetxt, Series, sort_against,
-    try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
-    get_type_string, NUMERIC_NUMPY_TYPES)
+    display_to_value, get_human_readable_type, get_numeric_numpy_types,
+    get_numpy_type_string, get_object_attrs, get_size, get_type_string,
+    sort_against, try_to_eval, unsorted_unique, value_to_display
+)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -156,7 +157,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def set_data(self, data, coll_filter=None):
         """Set model data"""
         self._data = data
-        data_type = get_type_string(data)
 
         if (coll_filter is not None and not self.remote and
                 isinstance(data, (tuple, list, dict, set))):
@@ -199,6 +199,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 elements = _("element")
             self.title += (' (' + str(len(self.keys)) + ' ' + elements + ')')
         else:
+            data_type = get_type_string(data)
             self.title += data_type
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
@@ -406,12 +407,14 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            elif not isinstance(value, NUMERIC_TYPES + NUMERIC_NUMPY_TYPES):
+            elif not isinstance(
+                value, NUMERIC_TYPES + get_numeric_numpy_types()
+            ):
                 display = to_text_string(value)
             else:
                 display = value
         if role == Qt.UserRole:
-            if isinstance(value, NUMERIC_TYPES + NUMERIC_NUMPY_TYPES):
+            if isinstance(value, NUMERIC_TYPES + get_numeric_numpy_types()):
                 return to_qvariant(value)
             else:
                 return to_qvariant(display)
@@ -1093,23 +1096,23 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             obj = self.delegate.get_value(idx)
             # Check if we are trying to copy a numpy array, and if so make sure
             # to copy the whole thing in a tab separated format
-            if isinstance(obj, (ndarray, MaskedArray)) \
-              and ndarray is not FakeObject:
+            if (isinstance(obj, (np.ndarray, np.ma.MaskedArray)) and
+                    np.ndarray is not FakeObject):
                 if PY3:
                     output = io.BytesIO()
                 else:
                     output = io.StringIO()
                 try:
-                    np_savetxt(output, obj, delimiter='\t')
-                except:
+                    np.savetxt(output, obj, delimiter='\t')
+                except Exception:
                     QMessageBox.warning(self, _("Warning"),
                                         _("It was not possible to copy "
                                           "this array"))
                     return
                 obj = output.getvalue().decode('utf-8')
                 output.close()
-            elif isinstance(obj, (DataFrame, Series)) \
-              and DataFrame is not FakeObject:
+            elif (isinstance(obj, (pd.DataFrame, pd.Series)) and
+                    pd.DataFrame is not FakeObject):
                 output = io.StringIO()
                 try:
                     obj.to_csv(output, sep='\t', index=True, header=True)
@@ -1227,12 +1230,12 @@ class CollectionsEditorTableView(BaseTableView):
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         data = self.source_model.get_data()
-        return isinstance(data[key], (ndarray, MaskedArray))
+        return isinstance(data[key], (np.ndarray, np.ma.MaskedArray))
 
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
         data = self.source_model.get_data()
-        return isinstance(data[key], Image)
+        return isinstance(data[key], PIL.Image.Image)
 
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
@@ -1682,10 +1685,8 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
 # =============================================================================
 def get_test_data():
     """Create test data."""
-    import numpy as np
-    from spyder.pil_patch import Image
-    image = Image.fromarray(np.random.randint(256, size=(100, 100)),
-                            mode='P')
+    image = PIL.Image.fromarray(np.random.randint(256, size=(100, 100)),
+                                mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
