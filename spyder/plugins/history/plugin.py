@@ -33,9 +33,6 @@ class HistoryLog(SpyderDockablePlugin):
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = HistoryConfigPage
     CONF_FILE = False
-    CONF_FROM_OPTIONS = {
-        'color_scheme_name': ('appearance', 'selected'),
-    }
 
     # --- Signals
     # ------------------------------------------------------------------------

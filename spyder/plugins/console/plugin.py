@@ -40,9 +40,6 @@ class Console(SpyderDockablePlugin):
     OPTIONAL = [Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
-    CONF_FROM_OPTIONS = {
-        'color_theme': ('appearance', 'selected'),
-    }
     TABIFY = [Plugins.IPythonConsole, Plugins.History]
 
     # --- Signals
