@@ -24,7 +24,7 @@ from spyder.config.base import (
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
-from spyder.utils import programs, encoding
+from spyder.utils import encoding
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
@@ -408,8 +408,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Pylab additions
         pylab_o = self.additional_options['pylab']
         autoload_pylab_o = self.additional_options['autoload_pylab']
-        mpl_installed = programs.is_module_installed('matplotlib')
-        if mpl_installed and (pylab_o and autoload_pylab_o):
+        if pylab_o and autoload_pylab_o:
             pylab_message = ("\nPopulating the interactive namespace from "
                              "numpy and matplotlib\n")
             banner = banner + pylab_message
