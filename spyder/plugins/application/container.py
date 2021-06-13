@@ -269,11 +269,13 @@ class ApplicationContainer(PluginMainContainer):
         """Show Windows current user environment variables."""
         self.dialog_manager.show(WinUserEnvDialog(self))
 
+    def compute_dependencies(self):
+        """Compute dependencies"""
+        dependencies.declare_dependencies()
+
     @Slot()
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies."""
-        # Declare dependencies before trying to detect the missing ones
-        dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
 
         if missing_deps:
