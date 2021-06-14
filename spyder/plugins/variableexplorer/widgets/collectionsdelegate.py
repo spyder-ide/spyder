@@ -29,6 +29,8 @@ from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
+from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
+    DataFrameEditor)
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
     import safe_tio_call
@@ -193,6 +195,7 @@ class CollectionsDelegate(QItemDelegate):
         # DataFrameEditor for a pandas dataframe, series or index
         elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
                 and pd.DataFrame is not FakeObject and not object_explorer):
+            # We need to leave this import here for tests to pass.
             from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
@@ -483,7 +486,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # DataFrameEditor for a pandas dataframe, series or index
         elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
                 and pd.DataFrame is not FakeObject):
-            from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return

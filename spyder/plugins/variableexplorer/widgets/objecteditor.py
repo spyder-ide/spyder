@@ -20,6 +20,8 @@ from spyder_kernels.utils.nsview import is_known_type
 # Local imports
 from spyder.py3compat import is_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
+from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
+    DataFrameEditor)
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.widgets.collectionseditor import CollectionsEditor
 
@@ -81,8 +83,6 @@ def create_dialog(obj, obj_name):
         conv_func = lambda data: PIL.Image.fromarray(data, mode=obj.mode)
     elif (isinstance(obj, (pd.DataFrame, pd.Series)) and
             pd.DataFrame is not FakeObject):
-        from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-            DataFrameEditor)
         dialog = DataFrameEditor()
         if not dialog.setup_and_check(obj):
             return
