@@ -17,7 +17,6 @@ NumPy Array Editor Dialog based on Qt
 from __future__ import print_function
 
 # Third party imports
-import numpy as np
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
@@ -29,6 +28,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
                             QStackedWidget, QTableView, QVBoxLayout,
                             QWidget)
 from spyder_kernels.utils.nsview import value_to_display
+from spyder_kernels.utils.lazymodules import numpy as np
 
 # Local imports
 from spyder.config.base import _
@@ -44,47 +44,47 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
-                     'single': '%.6g',
-                     'double': '%.6g',
-                     'float_': '%.6g',
-                     'longfloat': '%.6g',
-                     'float16': '%.6g',
-                     'float32': '%.6g',
-                     'float64': '%.6g',
-                     'float96': '%.6g',
-                     'float128': '%.6g',
-                     'csingle': '%r',
-                     'complex_': '%r',
-                     'clongfloat': '%r',
-                     'complex64': '%r',
-                     'complex128': '%r',
-                     'complex192': '%r',
-                     'complex256': '%r',
-                     'byte': '%d',
-                     'bytes8': '%s',
-                     'short': '%d',
-                     'intc': '%d',
-                     'int_': '%d',
-                     'longlong': '%d',
-                     'intp': '%d',
-                     'int8': '%d',
-                     'int16': '%d',
-                     'int32': '%d',
-                     'int64': '%d',
-                     'ubyte': '%d',
-                     'ushort': '%d',
-                     'uintc': '%d',
-                     'uint': '%d',
-                     'ulonglong': '%d',
-                     'uintp': '%d',
-                     'uint8': '%d',
-                     'uint16': '%d',
-                     'uint32': '%d',
-                     'uint64': '%d',
-                     'bool_': '%r',
-                     'bool8': '%r',
-                     'bool': '%r',
-                     }
+    'single': '%.6g',
+    'double': '%.6g',
+    'float_': '%.6g',
+    'longfloat': '%.6g',
+    'float16': '%.6g',
+    'float32': '%.6g',
+    'float64': '%.6g',
+    'float96': '%.6g',
+    'float128': '%.6g',
+    'csingle': '%r',
+    'complex_': '%r',
+    'clongfloat': '%r',
+    'complex64': '%r',
+    'complex128': '%r',
+    'complex192': '%r',
+    'complex256': '%r',
+    'byte': '%d',
+    'bytes8': '%s',
+    'short': '%d',
+    'intc': '%d',
+    'int_': '%d',
+    'longlong': '%d',
+    'intp': '%d',
+    'int8': '%d',
+    'int16': '%d',
+    'int32': '%d',
+    'int64': '%d',
+    'ubyte': '%d',
+    'ushort': '%d',
+    'uintc': '%d',
+    'uint': '%d',
+    'ulonglong': '%d',
+    'uintp': '%d',
+    'uint8': '%d',
+    'uint16': '%d',
+    'uint32': '%d',
+    'uint64': '%d',
+    'bool_': '%r',
+    'bool8': '%r',
+    'bool': '%r',
+}
 
 
 LARGE_SIZE = 5e5

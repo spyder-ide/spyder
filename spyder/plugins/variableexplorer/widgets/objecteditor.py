@@ -19,6 +19,7 @@ from spyder_kernels.utils.nsview import is_known_type
 
 # Local imports
 from spyder.py3compat import is_text_string
+from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.widgets.collectionseditor import CollectionsEditor
 
@@ -66,16 +67,12 @@ def create_dialog(obj, obj_name):
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
     if isinstance(obj, np.ndarray) and np.ndarray is not FakeObject:
-        from spyder.plugins.variableexplorer.widgets.arrayeditor import (
-            ArrayEditor)
         dialog = ArrayEditor()
         if not dialog.setup_and_check(obj, title=obj_name,
                                       readonly=readonly):
             return
     elif (isinstance(obj, PIL.Image.Image) and PIL.Image is not FakeObject
             and np.ndarray is not FakeObject):
-        from spyder.plugins.variableexplorer.widgets.arrayeditor import (
-            ArrayEditor)
         dialog = ArrayEditor()
         data = np.array(obj)
         if not dialog.setup_and_check(data, title=obj_name,

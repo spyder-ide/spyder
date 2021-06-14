@@ -28,6 +28,7 @@ from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
+from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
     import safe_tio_call
@@ -167,6 +168,7 @@ class CollectionsDelegate(QItemDelegate):
         # ArrayEditor for a Numpy array
         elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
                 np.ndarray is not FakeObject and not object_explorer):
+            # We need to leave this import here for tests to pass.
             from .arrayeditor import ArrayEditor
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
@@ -179,7 +181,6 @@ class CollectionsDelegate(QItemDelegate):
                 np.ndarray is not FakeObject and
                 PIL.Image is not FakeObject and
                 not object_explorer):
-            from .arrayeditor import ArrayEditor
             arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
@@ -461,7 +462,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # ArrayEditor for a Numpy array
         elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
                 np.ndarray is not FakeObject):
-            from .arrayeditor import ArrayEditor
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -471,7 +471,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # ArrayEditor for an images
         elif (isinstance(value, PIL.Image.Image) and
                 np.ndarray is not FakeObject and PIL.Image is not FakeObject):
-            from .arrayeditor import ArrayEditor
             arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
