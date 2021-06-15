@@ -206,36 +206,36 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
 where `<branch>` needs to be `1.x` if your `fix_in_spyder` branch was done against Spyder's `4.x` branch; and `master`, if you did it against our `master` branch here.
 
 
-## Making contributions that depend on pull requests in python-language-server
+## Making contributions that depend on pull requests in python-lsp-server
 
-As with spyder-kernels, Spyder is tightly integrated with the [python-language-server](https://github.com/palantir/python-language-server) to provide code completion, linting and folding on its editor.
+As with spyder-kernels, Spyder is tightly integrated with the [python-lsp-server](https://github.com/python-lsp/python-lsp-server) to provide code completion, linting and folding on its editor.
 
-Due to that, a clone of that project is placed in the `external-deps` directory, which is managed with the `git subrepo` project. If you want to make a pull request in python-language-server that affects functionality in Spyder, please read carefully the instructions in the previous section because they are very similar for this case. A summary of those instructions applied to this project is the following:
+Due to that, a clone of that project is placed in the `external-deps` directory, which is managed with the `git subrepo` project. If you want to make a pull request in python-lsp-server that affects functionality in Spyder, please read carefully the instructions in the previous section because they are very similar for this case. A summary of those instructions applied to this project is the following:
 
-* First you need to create a pull request in python-language-server with the changes you want to make there. Let's assume the branch from which that pull request is created is called `fix_in_pyls`.
+* First you need to create a pull request in python-lsp-server with the changes you want to make there. Let's assume the branch from which that pull request is created is called `fix_in_pyls`.
 
-* Then you need to create a branch in Spyder (let's call it `fix_in_spyder`) with the fixes that require that pull request and update the python-language-server subrepo. For that you need to execute the following commands:
+* Then you need to create a branch in Spyder (let's call it `fix_in_spyder`) with the fixes that require that pull request and update the python-lsp-server subrepo. For that you need to execute the following commands:
 
     ```
     $ git checkout -b fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-language-server.git external-deps/python-language-server -b fix_in_pyls -f
+    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_pylsp -f
     ```
 
     and then commit the changes you need to make in Spyder.
 
-* If you need to add more commits to `fix_in_pyls`, you need to update `fix_in_spyder` with these commands:
+* If you need to add more commits to `fix_in_pylsp`, you need to update `fix_in_spyder` with these commands:
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo pull external-deps/python-language-server
+    $ git subrepo pull external-deps/python-lsp-server
     $ git push origin fix_in_spyder
     ```
 
-* After `fix_in_pyls` is merged, you need to update the python-language-server subrepo in your `fix_in_spyder` branch with
+* After `fix_in_pylsp` is merged, you need to update the python-lsp-server subrepo in your `fix_in_spyder` branch with
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/palantir/python-language-server.git external-deps/python-language-server -b develop -f
+    $ git subrepo clone https://github.com/palantir/python-lsp-server.git external-deps/python-lsp-server -b develop -f
     ```
 
 

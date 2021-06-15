@@ -36,10 +36,10 @@ for path in os.listdir(DEPS_PATH):
 # Install PyLS locally. This fails on Windows and our CIs
 if os.name != 'nt' or os.name == 'nt' and not bool(os.environ.get('CI')):
     # Create an egg-info folder to declare the PyLS subrepo entry points.
-    pyls_submodule = osp.join(DEPS_PATH, 'python-language-server')
+    pyls_submodule = osp.join(DEPS_PATH, 'python-lsp-server')
     pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
     pyls_installation_egg = osp.join(
-        pyls_submodule, 'python_language_server.egg-info')
+        pyls_submodule, 'python_lsp_server.egg-info')
 
     # Remove previous local PyLS installation.
     if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
