@@ -129,13 +129,13 @@ class EditTabNamePopup(QLineEdit):
             # We are editing a valid tab, update name
             tab_text = to_text_string(self.text())
             self.main.setTabText(self.tab_index, tab_text)
-            self.main.sig_change_name.emit(tab_text)
+            self.main.sig_name_changed.emit(tab_text)
 
 
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
-    sig_change_name = Signal(str)
+    sig_name_changed = Signal(str)
 
     def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
                  split_index=0):
