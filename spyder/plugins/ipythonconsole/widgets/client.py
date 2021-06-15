@@ -897,5 +897,5 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             lambda: self.plugin.sig_focus_changed.emit())
         control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
         page_control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
-        page_control.sig_find_widget_requested.connect(
+        page_control.sig_show_find_widget_requested.connect(
             self.plugin.find_widget.show)
