@@ -58,11 +58,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
-    sig_pdb_state = Signal(bool, dict)
+    sig_pdb_state_changed = Signal(bool, dict)
     sig_pdb_prompt_ready = Signal()
 
     # For ShellWidget
-    focus_changed = Signal()
+    sig_focus_changed = Signal()
     new_client = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
@@ -71,7 +71,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_remote_execute = Signal()
 
     # For global working directory
-    sig_change_cwd = Signal(str)
+    sig_working_directory_changed = Signal(str)
 
     # For printing internal errors
     sig_exception_occurred = Signal(dict)
@@ -284,7 +284,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def remote_set_cwd(self, cwd):
         """Get current working directory from kernel."""
         self._cwd = cwd
-        self.sig_change_cwd.emit(self._cwd)
+        self.sig_working_directory_changed.emit(self._cwd)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
@@ -889,10 +889,10 @@ the sympy module (e.g. plot)
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
+        self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
+        self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusOutEvent(event)

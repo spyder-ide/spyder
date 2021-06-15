@@ -644,7 +644,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
         shell.execute(u"import os; os.chdir(u'''{}''')".format(tempdir))
 
     # Ask for directory.
-    with qtbot.waitSignal(shell.sig_change_cwd):
+    with qtbot.waitSignal(shell.sig_working_directory_changed):
         shell.update_cwd()
 
     if os.name == 'nt':
