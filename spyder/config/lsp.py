@@ -21,14 +21,14 @@ Notes:
 # Default json config for the lsp
 # =============================================================================
 PYTHON_CONFIG = {
-    'cmd': 'pyls',
+    'cmd': 'pylsp',
     'args': '--host {host} --port {port} --tcp',
     'host': '127.0.0.1',
     'port': 2087,
     'external': False,
     'stdio': False,
     'configurations': {
-        'pyls': {
+        'pylsp': {
             'configurationSources': [
                 "pycodestyle", "pyflakes"],
             'plugins': {

@@ -97,11 +97,11 @@ def make_app_bundle(dist_dir, make_lite=False):
         Note: only applicable to not-Lite build
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
-    pyls :
-        <path>/Contents/MacOS/python: No module named pyls
+    pylsp :
+        <path>/Contents/MacOS/python: No module named pylsp
         Note: still occurs in alias mode
-    pyls_black :
-        Mandatory: pyls_black >=0.4.6 : None (NOK)
+    pylsp_black :
+        Mandatory: python-pyls-black >=1.0.0 : None (NOK)
     pyls_spyder :
         Mandatory: pyls_spyder >=0.1.1 : None (NOK)
     qtawesome :
@@ -144,8 +144,8 @@ def make_app_bundle(dist_dir, make_lite=False):
     logger.info('Creating %s app bundle...', build_type)
 
     PACKAGES = ['alabaster', 'astroid', 'docutils', 'blib2to3', 'IPython',
-                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pyls',
-                'pyls_black', 'pyls_spyder', 'qtawesome', 'setuptools',
+                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylsp',
+                'pylsp_black', 'pyls_spyder', 'qtawesome', 'setuptools',
                 'sphinx', 'spyder', 'spyder_kernels', 'textdistance',
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()

@@ -27,9 +27,9 @@ These are some instructions meant for maintainers of this repo.
     - git commit with the files left and the same message format as above.
     - git subrepo pull external-deps/spyder-kernels
 
-* If a PR in spyder-kernels solves an issue in Spyder but was not part of a PR that updated its subrepo, you need to open one that does precisely that, i.e. update its subrepo, in order to fix that issue. 
+* If a PR in spyder-kernels solves an issue in Spyder but was not part of a PR that updated its subrepo, you need to open one that does precisely that, i.e. update its subrepo, in order to fix that issue.
 
-    The same goes for the python-language-server subrepo.
+    The same goes for the python-lsp-server subrepo.
 
 * There's a bot that constantly monitors all issues in order to close duplicates or already solved issues and inform users what they can do about them (basically wait to be fixed or update).
 

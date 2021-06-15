@@ -291,7 +291,7 @@ def test_get_package_version():
 def test_get_module_version():
     # pyls_black should not have a __version__ attribute, so tests that the
     # fallback mechanism to get_package_version is working
-    assert get_module_version('pyls_black')
+    assert get_module_version('python_lsp_black')
 
 
 if __name__ == '__main__':

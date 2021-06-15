@@ -42,5 +42,5 @@ result.xml
 .pylint.d/
 
 # Ignore setuptools development files in the PyLS subrepo
-external-deps/python-language-server/python_language_server.egg-info/
-external-deps/python-language-server/.installation-dir/
+external-deps/python-lsp-server/python_lsp_server.egg-info/
+external-deps/python-lsp-server/.installation-dir/
