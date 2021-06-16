@@ -87,7 +87,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     #    want to *rename* options, then you need to do a MAJOR update in
     #    version, e.g. from 0.1.0 to 1.0.0
     # 3. You don't need to touch this value if you're just adding a new option
-    CONF_VERSION = "0.1.0"
+    CONF_VERSION = "0.2.0"
     CONF_TABS = TABS
 
     STOPPED = 'stopped'
