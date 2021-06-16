@@ -36,7 +36,7 @@ qtawesome >=1.0.2
 qtconsole >=5.1.0
 qtpy >=1.5.0
 rtree >=0.9.7
-setuptools >=39.0.0
+setuptools >=49.6.0
 sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
 # here because we're using a subrepo for it to run our tests.
