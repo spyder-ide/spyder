@@ -114,11 +114,15 @@ def check_kite_installers_availability():
     elif sys.platform == 'darwin':
         url = MAC_URL
 
-    req = requests.head(url)
-    available = req.ok
-    if req.ok:
-        if req.is_redirect:
-            loc = req.headers['Location']
-            req = requests.head(loc)
-            available = req.ok
+    available = False
+    try:
+        req = requests.head(url)
+        available = req.ok
+        if req.ok:
+            if req.is_redirect:
+                loc = req.headers['Location']
+                req = requests.head(loc)
+                available = req.ok
+    except Exception:
+        pass
     return available
