@@ -108,7 +108,7 @@ def make_app_bundle(dist_dir, make_lite=False):
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resourses/lib/
         python38.zip/qtawesome/fonts/fontawesome4.7-webfont.ttf'
     setuptools :
-        Mandatory: setuptools >=39.0.0 : None (NOK)
+        Mandatory: setuptools >=49.6.0 : None (NOK)
     sphinx :
         No module named 'sphinx.builders.changes'
     spyder :
