@@ -598,8 +598,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             dirname = ''
             basedir = ''
 
-        vcs_visible = (only_files and len(fnames) == 1
-                       and vcs.is_vcs_repository(dirname))
+        vcs_visible = vcs.is_vcs_repository(dirname)
 
         # Make actions visible conditionally
         self.move_action.setVisible(
@@ -1443,9 +1442,17 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def vcs_command(self, action):
         """VCS action (commit, browse)"""
         fnames = self.get_selected_filenames()
+
+        # Get dirname of selection
+        if osp.isdir(fnames[0]):
+            dirname = fnames[0]
+        else:
+            dirname = osp.dirname(fnames[0])
+
+        # Run action
         try:
             for path in sorted(fnames):
-                vcs.run_vcs_tool(path, action)
+                vcs.run_vcs_tool(dirname, action)
         except vcs.ActionToolNotFound as error:
             msg = _("For %s support, please install one of the<br/> "
                     "following tools:<br/><br/>  %s")\
