@@ -204,7 +204,7 @@ class SpyderConfigurationAccessor:
         """
         context = self.CONF_SECTION if context is None else context
         return CONF.get_shortcut(context, name)
-    
+
     def config_shortcut(
             self, action: QAction, name: str, parent: QWidget,
             context: Optional[str] = None) -> Shortcut:
@@ -224,7 +224,6 @@ class SpyderConfigurationAccessor:
             Parent widget for the shortcut.
         context: Optional[str]
             Name of the context (plugin) where the shortcut was defined.
-        
 
         Returns
         -------
@@ -234,8 +233,7 @@ class SpyderConfigurationAccessor:
 
         """
         shortcut_context = self.CONF_SECTION if context is None else context
-        return  CONF.config_shortcut(action, shortcut_context, name, parent)
-        
+        return CONF.config_shortcut(action, shortcut_context, name, parent)
 
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):
