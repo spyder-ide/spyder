@@ -695,12 +695,14 @@ class BaseEditMixin(object):
         """Same as 'toPlainText', replace '\n'
         by correct end-of-line characters"""
         utext = to_text_string(self.toPlainText())
-        lines = utext.splitlines()
         linesep = self.get_line_separator()
-        txt = linesep.join(lines)
-        if utext.endswith('\n'):
-            txt += linesep
-        return txt
+        if linesep != '\n':
+            lines = utext.splitlines()
+            txt = linesep.join(lines)
+            if utext.endswith('\n'):
+                txt += linesep
+            return txt
+        return utext
 
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
