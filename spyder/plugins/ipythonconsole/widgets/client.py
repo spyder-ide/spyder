@@ -84,7 +84,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
 
     sig_append_to_history_requested = Signal(str, str)
 
-    CONF_SECTION = 'inspect current object'
+    CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
@@ -530,8 +530,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
         reset_namespace_action = create_action(
             self,
             _("Remove all variables"),
-            QKeySequence(self.get_shortcut('reset namespace',
-                                           context='ipython_console')),
+            QKeySequence(self.get_shortcut('reset namespace')),
             icon=ima.icon('editdelete'),
             triggered=self.reset_namespace)
 

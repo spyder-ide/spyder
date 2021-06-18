@@ -493,6 +493,9 @@ DEFAULTS = [
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
               'ipython_console/restart kernel': "Ctrl+.",
+              'ipython_console/inspect current object': "Ctrl+I",
+              'ipython_console/clear shell': "Ctrl+L",
+              'ipython_console/clear line': "Shift+Escape",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
