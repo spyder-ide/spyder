@@ -71,7 +71,7 @@ def make_app_bundle(dist_dir, make_lite=False):
     docutils :
         [Errno 20] Not a directory: '<path>/Resources/lib/python39.zip/
         docutils/writers/latex2e/docutils.sty'
-    ipython :
+    IPython :
         [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
         Source file
         <path>/Resources/lib/python38.zip/IPython/core/profile/README_STARTUP
@@ -97,6 +97,8 @@ def make_app_bundle(dist_dir, make_lite=False):
         Note: only applicable to not-Lite build
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
+    pylint :
+        <path>/Contents/MacOS/python: No module named pylint.__main__
     pylsp :
         <path>/Contents/MacOS/python: No module named pylsp
         Note: still occurs in alias mode
@@ -143,10 +145,11 @@ def make_app_bundle(dist_dir, make_lite=False):
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'docutils', 'blib2to3', 'IPython',
-                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylsp',
-                'pylsp_black', 'pyls_spyder', 'qtawesome', 'setuptools',
-                'sphinx', 'spyder', 'spyder_kernels', 'textdistance',
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'docutils', 'IPython',
+                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
+                'pylsp', 'pylsp_black', 'pyls_spyder', 'qtawesome',
+                'setuptools', 'sphinx', 'spyder', 'spyder_kernels',
+                'textdistance',
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()
                 # required for sphinx
