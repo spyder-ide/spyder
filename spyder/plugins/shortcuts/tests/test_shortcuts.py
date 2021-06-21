@@ -96,7 +96,7 @@ def test_shortcuts_filtering(shortcut_table):
     assert not shortcut_table.isSortingEnabled()
     # Six hits (causes a bit of an issue to hardcode it like this if new
     # shortcuts are added...)
-    assert shortcut_table.model().rowCount() == 10
+    assert shortcut_table.model().rowCount() == 7
     # Remove filter text
     shortcut_table.finder = FilterTextMock('')
     shortcut_table.set_regex()
@@ -120,9 +120,9 @@ def test_shortcut_filtering_context(shortcut_table):
     # Filter by "console"
     shortcut_table.finder = FilterTextMock('console')
     shortcut_table.set_regex()
-    # Verify the number of entries after the regex are 7
+    # Verify the number of entries after the regex are 10
     # If a new shortcut is added to console, this needs to be changed
-    assert shortcut_table.model().rowCount() == 7
+    assert shortcut_table.model().rowCount() == 10
 
     # Filter by "pylint"
     shortcut_table.finder = FilterTextMock('pylint')
