@@ -19,7 +19,6 @@ from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
 from spyder.py3compat import to_text_string
@@ -40,7 +39,7 @@ MODULES_FAQ_URL = (
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
-                  FigureBrowserWidget, SpyderConfigurationAccessor):
+                  FigureBrowserWidget):
     """
     Shell widget for the IPython Console
 
@@ -75,8 +74,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For printing internal errors
     sig_exception_occurred = Signal(dict)
-
-    CONF_SECTION = 'ipython_console'
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
