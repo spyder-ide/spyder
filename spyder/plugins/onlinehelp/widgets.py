@@ -159,12 +159,10 @@ class PydocBrowser(PluginMainWidget):
         self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
 
         # Layout
-        spacing = 10
         layout = QVBoxLayout()
         layout.addWidget(self.webview)
-        layout.addSpacing(spacing)
+        layout.addSpacing(1)
         layout.addWidget(self.find_widget)
-        layout.addSpacing(int(spacing / 2))
         self.setLayout(layout)
 
         # Signals
