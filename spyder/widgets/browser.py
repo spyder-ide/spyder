@@ -531,10 +531,14 @@ class FrameWebView(QFrame):
     """
     linkClicked = Signal(QUrl)
 
-    def __init__(self, parent):
+    def __init__(self, parent, handle_links=True):
         super().__init__(parent)
 
-        self._webview = WebView(self, class_parent=parent)
+        self._webview = WebView(
+            self,
+            handle_links=handle_links,
+            class_parent=parent
+        )
         self._webview.sig_focus_in_event.connect(
             lambda: self._apply_stylesheet(focus=True))
         self._webview.sig_focus_out_event.connect(
@@ -546,10 +550,11 @@ class FrameWebView(QFrame):
         self.setLayout(layout)
         self._apply_stylesheet()
 
-        if WEBENGINE:
-            self._webview.page().linkClicked.connect(self.linkClicked)
-        else:
-            self._webview.linkClicked.connect(self.linkClicked)
+        if handle_links:
+            if WEBENGINE:
+                self._webview.page().linkClicked.connect(self.linkClicked)
+            else:
+                self._webview.linkClicked.connect(self.linkClicked)
 
     def __getattr__(self, name):
         if name == '_webview':
