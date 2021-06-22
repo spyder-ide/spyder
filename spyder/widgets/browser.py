@@ -23,6 +23,7 @@ from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
 from spyder.api.translations import get_translation
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
+from spyder.config.gui import OLD_PYQT
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
@@ -353,9 +354,11 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         https://bugreports.qt.io/browse/QTBUG-52999
         """
         if WEBENGINE:
-            self.setEnabled(False)
+            if OLD_PYQT:
+                self.setEnabled(False)
             super(WebView, self).setHtml(html, baseUrl)
-            self.setEnabled(True)
+            if OLD_PYQT:
+                self.setEnabled(True)
         else:
             super(WebView, self).setHtml(html, baseUrl)
 

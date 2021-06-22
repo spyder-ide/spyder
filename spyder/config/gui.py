@@ -18,6 +18,7 @@ Important note regarding shortcuts:
 from collections import namedtuple
 
 # Third party imports
+from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
@@ -25,6 +26,7 @@ from qtpy.QtWidgets import QShortcut
 # Local imports
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
+from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 
 # Third-party imports
@@ -36,6 +38,9 @@ Shortcut = namedtuple('Shortcut', 'data')
 
 # Stylesheet to remove the indicator that appears on tool buttons with a menu.
 STYLE_BUTTON_CSS = "QToolButton::menu-indicator{image: none;}"
+
+# Check for old PyQt versions
+OLD_PYQT = programs.check_version(PYQT_VERSION, "5.12", "<")
 
 
 def font_is_installed(font):
