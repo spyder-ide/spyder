@@ -11,17 +11,15 @@ Variable Explorer Main Plugin Widget.
 # Third party imports
 from qtpy.QtCore import QTimer, Signal, Slot
 from qtpy.QtWidgets import (
-    QAction, QHBoxLayout, QStackedWidget, QVBoxLayout, QWidget)
+    QAction, QHBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
 from spyder.utils.programs import is_module_installed
-from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    ShellConnectMainWidget)
 
 # Localization
 _ = get_translation('spyder')

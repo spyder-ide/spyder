@@ -8,15 +8,11 @@
 Plots Plugin.
 """
 
-# Third party imports
-from qtpy.QtCore import Signal
-
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
-from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    ShellConnectMixin)
 
 # Localization
 _ = get_translation('spyder')

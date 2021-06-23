@@ -9,20 +9,17 @@ Plots Main Widget.
 """
 
 # Third party imports
-from qtpy.QtCore import QPoint, Qt, Signal
-from qtpy.QtWidgets import QHBoxLayout, QSpinBox, QStackedWidget
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtWidgets import QSpinBox
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets.main_widget import (PluginMainWidgetMenus,
-                                            PluginMainWidget)
-from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.api.widgets.main_widget import PluginMainWidgetMenus
+from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
-from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    ShellConnectMainWidget)
 
 # Localization
 _ = get_translation('spyder')
