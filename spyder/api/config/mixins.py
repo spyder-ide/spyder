@@ -230,7 +230,6 @@ class SpyderConfigurationAccessor:
         shortcut: Shortcut
             Namedtuple with the information of the shortcut as used for the
             shortcuts preferences page.
-
         """
         shortcut_context = self.CONF_SECTION if context is None else context
         return CONF.config_shortcut(action, shortcut_context, name, parent)
