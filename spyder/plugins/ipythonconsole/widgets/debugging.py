@@ -342,7 +342,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
 
             # Emit executing
             self.executing.emit(line)
-            self.sig_pdb_state.emit(
+            self.sig_pdb_state_changed.emit(
                 False, self.get_pdb_last_step())
 
         if self._pdb_input_ready:
@@ -603,7 +603,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
             # The previous code finished executing
             self.executed.emit(self._pdb_prompt)
             self.sig_pdb_prompt_ready.emit()
-            self.sig_pdb_state.emit(True, self.get_pdb_last_step())
+            self.sig_pdb_state_changed.emit(True, self.get_pdb_last_step())
 
         self._pdb_input_ready = True
 

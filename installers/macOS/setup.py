@@ -68,7 +68,10 @@ def make_app_bundle(dist_dir, make_lite=False):
         File "<frozen zipimport>", line 177, in get_data
         KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
         Grammar3.8.6.final.0.pickle'
-    ipython :
+    docutils :
+        [Errno 20] Not a directory: '<path>/Resources/lib/python39.zip/
+        docutils/writers/latex2e/docutils.sty'
+    IPython :
         [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
         Source file
         <path>/Resources/lib/python38.zip/IPython/core/profile/README_STARTUP
@@ -94,18 +97,20 @@ def make_app_bundle(dist_dir, make_lite=False):
         Note: only applicable to not-Lite build
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
-    pyls :
-        <path>/Contents/MacOS/python: No module named pyls
+    pylint :
+        <path>/Contents/MacOS/python: No module named pylint.__main__
+    pylsp :
+        <path>/Contents/MacOS/python: No module named pylsp
         Note: still occurs in alias mode
-    pyls_black :
-        Mandatory: pyls_black >=0.4.6 : None (NOK)
+    pylsp_black :
+        Mandatory: python-pyls-black >=1.0.0 : None (NOK)
     pyls_spyder :
         Mandatory: pyls_spyder >=0.1.1 : None (NOK)
     qtawesome :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resourses/lib/
         python38.zip/qtawesome/fonts/fontawesome4.7-webfont.ttf'
     setuptools :
-        Mandatory: setuptools >=39.0.0 : None (NOK)
+        Mandatory: setuptools >=49.6.0 : None (NOK)
     sphinx :
         No module named 'sphinx.builders.changes'
     spyder :
@@ -140,12 +145,17 @@ def make_app_bundle(dist_dir, make_lite=False):
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'IPython', 'jedi',
-                'jinja2', 'keyring', 'parso', 'pygments', 'pyls', 'pyls_black',
-                'pyls_spyder', 'qtawesome', 'setuptools', 'sphinx', 'spyder',
-                'spyder_kernels', 'textdistance',
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'docutils', 'IPython',
+                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
+                'pylsp', 'pylsp_black', 'pyls_spyder', 'qtawesome',
+                'setuptools', 'sphinx', 'spyder', 'spyder_kernels',
+                'textdistance',
                 ]
-    INCLUDES = ['_sitebuiltins']  # required for IPython help()
+    INCLUDES = ['_sitebuiltins',  # required for IPython help()
+                # required for sphinx
+                'sphinxcontrib.applehelp', 'sphinxcontrib.devhelp',
+                'sphinxcontrib.htmlhelp', 'sphinxcontrib.jsmath',
+                'sphinxcontrib.qthelp', 'sphinxcontrib.serializinghtml']
     EXCLUDES = []
     EXCLUDE_EGG = ['py2app']
 
@@ -163,8 +173,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
-    FRAMEWORKS = ['/usr/local/lib/libspatialindex.dylib',
-                  '/usr/local/lib/libspatialindex_c.dylib']  # for rtree
+    # Get rtree dylibs
+    rtree_loc = pkg_resources.get_distribution('rtree').module_path
+    rtree_dylibs = os.scandir(os.path.join(rtree_loc, 'rtree', 'lib'))
+    FRAMEWORKS = [lib.path for lib in rtree_dylibs]
 
     OPTIONS = {
         'optimize': 0,
@@ -179,7 +191,8 @@ def make_app_bundle(dist_dir, make_lite=False):
                                        'CFBundleTypeName': 'Text File',
                                        'CFBundleTypeRole': 'Editor'}],
             'CFBundleIdentifier': 'org.spyder-ide',
-            'CFBundleShortVersionString': SPYVER
+            'CFBundleShortVersionString': SPYVER,
+            'NSRequiresAquaSystemAppearance': False  # Darkmode support
         }
     }
 
@@ -199,6 +212,7 @@ def make_app_bundle(dist_dir, make_lite=False):
     # Copy egg info from site-packages: fixes several pkg_resources issues
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
                             'lib', f'python{PYVER[0]}.{PYVER[1]}')
+    pkg_resources.working_set.add_entry(SPYREPO)
     for dist in pkg_resources.working_set:
         if (dist.egg_info is None or dist.key.startswith('pyobjc')
                 or dist.key in EXCLUDE_EGG):

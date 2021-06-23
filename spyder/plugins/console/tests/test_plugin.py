@@ -11,7 +11,7 @@ Tests for the console plugin.
 """
 
 # Standard library imports
-from unittest.mock import Mock
+from unittest.mock import call, Mock
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -20,8 +20,19 @@ import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import SpyderPluginV2
 from spyder.config.manager import CONF
 from spyder.plugins.console.plugin import Console
+from spyder.widgets.reporterror import SpyderErrorDialog
+
+
+# =============================================================================
+# Auxiliary classes
+# =============================================================================
+class MyPlugin(SpyderPluginV2):
+    NAME = 'my-plugin'
+    CONF_SECTION = 'my_plugin'
 
 
 # =============================================================================
@@ -97,8 +108,7 @@ def test_handle_exception(console_plugin, mocker):
 
     # --- Test internal errors in Spyder
     # Write error in the console
-    error = """
-Traceback (most recent call last):
+    error = """Traceback (most recent call last):
   File "/home/foo/miniconda3/envs/py37/lib/python3.7/code.py", line 90, in runcode
     exec(code, self.locals)
   File "<console>", line 2, in <module>
@@ -150,6 +160,77 @@ ZeroDivisionError: division by zero
 
     # Reset config
     console_plugin.set_conf('previous_crash', '', section='main')
+
+
+def test_handle_warnings(console_plugin):
+    """Test that we don't show warnings in our error dialog."""
+    widget = console_plugin.get_widget()
+    shell = widget.shell
+
+    # Write warning in the console
+    warning = ("/home/foo/bar.py:1926: UserWarning: baz\n"
+               "Line 1\n"
+               "Line 2\n"
+               "  warnings.warn('baz')")
+    shell.append_text_to_shell(warning, error=True, prompt=False)
+
+    # Make sure the error dialog was not generated.
+    assert widget.error_dlg is None
+
+
+def test_report_external_repo(console_plugin, mocker):
+    """
+    Test that we use an external Github repo to report errors for
+    external plugins.
+    """
+    widget = console_plugin.get_widget()
+    my_plugin = MyPlugin(None)
+
+    # Avoid showing the error dialog.
+    mocker.patch('spyder.widgets.reporterror.SpyderErrorDialog.show',
+                 return_value=None)
+
+    # To get the external repo
+    mocker.patch.object(SpyderErrorDialog, 'set_github_repo_org')
+
+    # Error data (repo is added later)
+    error_data = {
+        "text": 'UserError',
+        "is_traceback": True,
+        "title": 'My plugin error',
+        "label": '',
+        "steps": '',
+    }
+
+    # Check that we throw an error if error_data doesn't contain repo
+    with pytest.raises(SpyderAPIError) as excinfo:
+        widget.handle_exception(error_data, sender=my_plugin)
+        assert "does not define 'repo'" in str(excinfo.value)
+
+    # Check that we don't allow our main repo in external plugins
+    error_data['repo'] = 'spyder-ide/spyder'
+    with pytest.raises(SpyderAPIError) as excinfo:
+        widget.handle_exception(error_data, sender=my_plugin)
+        assert "needs to be different from" in str(excinfo.value)
+
+    # Make sure the error dialog is generated with the right repo
+    error_data['repo'] = 'my-plugin-org/my-plugin'
+    widget.handle_exception(error_data, sender=my_plugin)
+    assert widget.error_dlg is not None
+
+    # Assert we called the method that sets the repo in SpyderErrorDialog
+    call_args = SpyderErrorDialog.set_github_repo_org.call_args
+    assert call_args == call(error_data['repo'])
+
+    # Assert repo is not necessary for internal plugins
+    error_data.pop('repo')
+    widget.error_dlg = None
+    widget.handle_exception(error_data, sender=console_plugin)
+    assert widget.error_dlg is not None
+
+    # Assert we use our main repo for internal plugins
+    call_args = SpyderErrorDialog.set_github_repo_org.call_args
+    assert call_args == call('spyder-ide/spyder')
 
 
 if __name__ == "__main__":

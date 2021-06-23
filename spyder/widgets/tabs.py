@@ -129,13 +129,13 @@ class EditTabNamePopup(QLineEdit):
             # We are editing a valid tab, update name
             tab_text = to_text_string(self.text())
             self.main.setTabText(self.tab_index, tab_text)
-            self.main.sig_change_name.emit(tab_text)
+            self.main.sig_name_changed.emit(tab_text)
 
 
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
-    sig_change_name = Signal(str)
+    sig_name_changed = Signal(str)
 
     def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
                  split_index=0):
@@ -329,6 +329,13 @@ class BaseTabs(QTabWidget):
         for corner, widgets in list(self.corner_widgets.items()):
             cwidget = QWidget()
             cwidget.hide()
+
+            # This removes some white dots in our tabs (not all but most).
+            # See spyder-ide/spyder#15081
+            cwidget.setObjectName('corner-widget')
+            cwidget.setStyleSheet(
+                "QWidget#corner-widget {border-radius: '0px'}")
+
             prev_widget = self.cornerWidget(corner)
             if prev_widget:
                 prev_widget.close()
@@ -352,17 +359,11 @@ class BaseTabs(QTabWidget):
         Add offset to position event to capture the mouse cursor
         inside a tab.
         """
-        # This is necessary because self.tabBar().tabAt(event.pos()) is not
-        # returning the expected index. For further information see
-        # spyder-ide/spyder#12617
-        point = event.pos()
-        if sys.platform == 'darwin':
-            # The close button on tab is on the left
-            point.setX(point.x() + 3)
-        else:
-            # The close button on tab is on the right
-            point.setX(point.x() - 30)
-        return self.tabBar().tabAt(point)
+        # This is necessary because event.pos() is the position in this
+        # widget, not in the tabBar. see spyder-ide/spyder#12617
+        tb = self.tabBar()
+        point = tb.mapFromGlobal(event.globalPos())
+        return tb.tabAt(point)
 
     def contextMenuEvent(self, event):
         """Override Qt method"""

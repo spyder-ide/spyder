@@ -1,0 +1,40 @@
+name: Static code analysis
+
+on:
+  push:
+    branches:
+      - develop
+
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    name: Static code analysis
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      OS: 'linux'
+    timeout-minutes: 2
+    steps:
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: static-pip-${{ hashFiles('setup.py') }}
+          restore-keys: static-pip-
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          # TODO: check with Python 3, but need to fix the
+          # errors first
+          python-version: '3.6'
+          architecture: 'x64'
+      - run: python -m pip install --upgrade pip setuptools
+      - run: pip install -e .[pylint,pycodestyle,pyflakes]
+      - name: Pylint checks
+        run: pylint pylsp test
+      - name: Code style checks
+        run: pycodestyle pylsp test
+      - name: Pyflakes checks
+        run: pyflakes pylsp test

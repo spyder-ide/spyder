@@ -207,11 +207,11 @@ class Editor(SpyderPluginWidget):
 
         # TODO: temporal fix while editor uses new API
         statusbar = self.main.statusbar
-        statusbar.add_status_widget(self.readwrite_status, 3)
-        statusbar.add_status_widget(self.eol_status, 3)
-        statusbar.add_status_widget(self.encoding_status, 3)
-        statusbar.add_status_widget(self.cursorpos_status, 3)
-        statusbar.add_status_widget(self.vcs_status, 3)
+        statusbar.add_status_widget(self.readwrite_status)
+        statusbar.add_status_widget(self.eol_status)
+        statusbar.add_status_widget(self.encoding_status)
+        statusbar.add_status_widget(self.cursorpos_status)
+        statusbar.add_status_widget(self.vcs_status)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -1070,7 +1070,6 @@ class Editor(SpyderPluginWidget):
                                   self.indent_action, self.unindent_action,
                                   self.text_uppercase_action,
                                   self.text_lowercase_action]
-        self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
 
         # ---- Search menu/toolbar construction ----
         self.main.search_menu_actions += [gotoline_action]
@@ -1216,7 +1215,6 @@ class Editor(SpyderPluginWidget):
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
         self.main.console.sig_edit_goto_requested.connect(self.load)
-        self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         if completions:
             self.main.completions.sig_language_completions_available.connect(
@@ -1604,7 +1602,7 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    def call_all_editorstacks(self, method, *args, **kwargs):
+    def call_all_editorstacks(self, method, args, **kwargs):
         """Call a method with arguments on all editorstacks."""
         for editorstack in self.editorstacks:
             method = getattr(editorstack, method)

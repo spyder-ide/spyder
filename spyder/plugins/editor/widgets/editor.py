@@ -664,7 +664,7 @@ class EditorStack(QWidget):
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
-        layout.setSpacing(1)
+        layout.setSpacing(0)
 
         # Create filename label, spinner and the toolbar that contains them
         self.create_top_widgets()
@@ -1504,7 +1504,15 @@ class EditorStack(QWidget):
 
     def set_current_filename(self, filename, focus=True):
         """Set current filename and return the associated editor instance."""
-        index = self.has_filename(filename)
+        # This is necessary to catch an error on Windows for files in a
+        # directory junction pointing to a symlink whose target is on a
+        # network drive that is unavailable at startup.
+        # Fixes spyder-ide/spyder#15714
+        try:
+            index = self.has_filename(filename)
+        except FileNotFoundError:
+            index = None
+
         if index is not None:
             if focus:
                 self.set_stack_index(index)

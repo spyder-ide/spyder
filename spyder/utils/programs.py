@@ -10,7 +10,6 @@ from __future__ import print_function
 
 # Standard library imports
 from ast import literal_eval
-from distutils.version import LooseVersion
 from getpass import getuser
 from textwrap import dedent
 import glob
@@ -27,6 +26,7 @@ import time
 
 # Third party imports
 import pkg_resources
+from pkg_resources import parse_version
 import psutil
 
 # Local imports
@@ -827,26 +827,17 @@ def check_version(actver, version, cmp_op):
     if isinstance(actver, tuple):
         actver = '.'.join([str(i) for i in actver])
 
-    # Hacks needed so that LooseVersion understands that (for example)
-    # version = '3.0.0' is in fact bigger than actver = '3.0.0rc1'
-    if is_stable_version(version) and not is_stable_version(actver) and \
-      actver.startswith(version) and version != actver:
-        version = version + 'zz'
-    elif is_stable_version(actver) and not is_stable_version(version) and \
-      version.startswith(actver) and version != actver:
-        actver = actver + 'zz'
-
     try:
         if cmp_op == '>':
-            return LooseVersion(actver) > LooseVersion(version)
+            return parse_version(actver) > parse_version(version)
         elif cmp_op == '>=':
-            return LooseVersion(actver) >= LooseVersion(version)
+            return parse_version(actver) >= parse_version(version)
         elif cmp_op == '=':
-            return LooseVersion(actver) == LooseVersion(version)
+            return parse_version(actver) == parse_version(version)
         elif cmp_op == '<':
-            return LooseVersion(actver) < LooseVersion(version)
+            return parse_version(actver) < parse_version(version)
         elif cmp_op == '<=':
-            return LooseVersion(actver) <= LooseVersion(version)
+            return parse_version(actver) <= parse_version(version)
         else:
             return False
     except TypeError:
@@ -855,8 +846,12 @@ def check_version(actver, version, cmp_op):
 
 def get_module_version(module_name):
     """Return module version or None if version can't be retrieved."""
-    mod = __import__(module_name)
-    ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+    ver = None
+    try:
+        mod = __import__(module_name)
+        ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+    except ModuleNotFoundError:
+        pass
     if not ver:
         ver = get_package_version(module_name)
     return ver

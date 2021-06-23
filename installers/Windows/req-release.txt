@@ -1,6 +1,2 @@
-# Dependencies without wheels in PyPI
-# Rtree
-./installers/Windows/assets/rtree/Rtree-0.9.4-cp37-cp37m-win_amd64.whl
-
 # There are no wheels for version 3.3
 cryptography==3.2.1

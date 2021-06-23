@@ -320,7 +320,11 @@ class PlotsWidget(PluginMainWidget):
         for __, action in self.get_actions().items():
             if action and action not in [self.mute_action,
                                          self.outline_action,
-                                         self.fit_action]:
+                                         self.fit_action,
+                                         self.undock_action,
+                                         self.close_action,
+                                         self.dock_action,
+                                         self.toggle_view_action]:
                 action.setEnabled(value)
 
                 # IMPORTANT: Since we are defining the main actions in here

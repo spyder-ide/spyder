@@ -56,8 +56,7 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.Source, _("Sour&ce"), dynamic=False)
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
         create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
-        create_app_menu(
-            ApplicationMenus.Consoles, _("C&onsoles"), dynamic=False)
+        create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
         create_app_menu(
             ApplicationMenus.Projects, _("&Projects"), dynamic=False)
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
@@ -224,7 +223,6 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Source: self._main.source_menu_actions,
             ApplicationMenus.Run: self._main.run_menu_actions,
             ApplicationMenus.Debug: self._main.debug_menu_actions,
-            ApplicationMenus.Consoles: self._main.consoles_menu_actions,
             ApplicationMenus.Projects: self._main.projects_menu_actions,
         }
 

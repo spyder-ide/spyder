@@ -84,10 +84,19 @@ class KernelComm(CommBase, QObject):
 
     def shutdown_comm_channel(self):
         """Shutdown the comm channel."""
-        channel = self.kernel_client.comm_channel
+        # This is necessary to avoid an error when closing the console.
+        # Fixes spyder-ide/spyder#15645
+        try:
+            channel = self.kernel_client.comm_channel
+        except AttributeError:
+            channel = None
+
         if channel:
-            msg = self.kernel_client.session.msg('shutdown_request', {})
-            channel.send(msg)
+            id_list = self.get_comm_id_list()
+            for comm_id in id_list:
+                msg = self.kernel_client.session.msg(
+                    'shutdown_request', {"comm_id": comm_id})
+                channel.send(msg)
             self.kernel_client.comm_channel = None
 
     def comm_channel_connected(self):
@@ -127,10 +136,23 @@ class KernelComm(CommBase, QObject):
                 call_dict, data, is_error)
 
     def remove(self, comm_id=None):
-        """Remove the comm without notifying the other side."""
+        """
+        Remove the comm without notifying the other side.
+
+        Use when the other side is already down.
+        """
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             del self._comms[comm_id]
+
+    def close(self, comm_id=None):
+        """Ask kernel to close comm and send confirmation."""
+        self.shutdown_comm_channel()
+        id_list = self.get_comm_id_list(comm_id)
+        for comm_id in id_list:
+            # Send comm_close directly to avoid really closing the comm
+            self._comms[comm_id]['comm']._send_msg(
+                'comm_close', {}, None, None, None)
 
     def open_comm(self, kernel_client):
         """Open comm through the kernel client."""

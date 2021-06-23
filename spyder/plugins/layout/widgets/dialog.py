@@ -23,30 +23,42 @@ from spyder.py3compat import to_text_string
 
 class LayoutModel(QAbstractTableModel):
     """ """
-    def __init__(self, parent, order, active):
+    def __init__(self, parent, names, ui_names, order, active, read_only):
         super(LayoutModel, self).__init__(parent)
 
         # variables
         self._parent = parent
+        self.names = names
+        self.ui_names = ui_names
         self.order = order
         self.active = active
+        self.read_only = read_only
         self._rows = []
-        self.set_data(order, active)
+        self.set_data(names, ui_names, order, active, read_only)
 
-    def set_data(self, order, active):
+    def set_data(self, names, ui_names, order, active, read_only):
         """ """
         self._rows = []
+        self.names = names
+        self.ui_names = ui_names
         self.order = order
         self.active = active
+        self.read_only = read_only
         for name in order:
+            index = names.index(name)
             if name in active:
-                row = [name, True]
+                row = [ui_names[index], name, True]
             else:
-                row = [name, False]
+                row = [ui_names[index], name, False]
             self._rows.append(row)
 
     def flags(self, index):
         """Override Qt method"""
+        row = index.row()
+        ui_name, name, state = self.row(row)
+
+        if name in self.read_only:
+            return Qt.NoItemFlags
         if not index.isValid():
             return Qt.ItemIsEnabled
         column = index.column()
@@ -64,9 +76,12 @@ class LayoutModel(QAbstractTableModel):
         row = index.row()
         column = index.column()
 
-        name, state = self.row(row)
+        ui_name, name, state = self.row(row)
 
         if role == Qt.DisplayRole or role == Qt.EditRole:
+            if column == 0:
+                return to_qvariant(ui_name)
+        elif role == Qt.UserRole:
             if column == 0:
                 return to_qvariant(name)
         elif role == Qt.CheckStateRole:
@@ -82,16 +97,17 @@ class LayoutModel(QAbstractTableModel):
     def setData(self, index, value, role):
         """Override Qt method"""
         row = index.row()
-        name, state = self.row(row)
+        ui_name, name, state = self.row(row)
 
         if role == Qt.CheckStateRole:
-            self.set_row(row, [name, not state])
+            self.set_row(row, [ui_name, name, not state])
             self._parent.setCurrentIndex(index)
             self._parent.setFocus()
             self.dataChanged.emit(index, index)
             return True
         elif role == Qt.EditRole:
-            self.set_row(row, [from_qvariant(value, to_text_string), state])
+            self.set_row(
+                row, [from_qvariant(value, to_text_string), name, state])
             self.dataChanged.emit(index, index)
             return True
         return True
@@ -106,8 +122,8 @@ class LayoutModel(QAbstractTableModel):
 
     def row(self, rownum):
         """ """
-        if self._rows == []:
-            return [None, None]
+        if self._rows == [] or rownum >= len(self._rows):
+            return [None, None, None]
         else:
             return self._rows[rownum]
 
@@ -164,15 +180,16 @@ class LayoutSaveDialog(QDialog):
 
 class LayoutSettingsDialog(QDialog):
     """Layout settings dialog"""
-    def __init__(self, parent, names, order, active):
+    def __init__(self, parent, names, ui_names, order, active, read_only):
         super(LayoutSettingsDialog, self).__init__(parent)
-
         # variables
         self._parent = parent
         self._selection_model = None
         self.names = names
+        self.ui_names = ui_names
         self.order = order
         self.active = active
+        self.read_only = read_only
 
         # widgets
         self.button_move_up = QPushButton(_('Move Up'))
@@ -194,7 +211,8 @@ class LayoutSettingsDialog(QDialog):
         self.setFixedSize(self.dialog_size)
         self.setWindowTitle('Layout Settings')
 
-        self.table.setModel(LayoutModel(self.table, order, active))
+        self.table.setModel(
+            LayoutModel(self.table, names, ui_names, order, active, read_only))
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.verticalHeader().hide()
@@ -238,83 +256,112 @@ class LayoutSettingsDialog(QDialog):
            lambda: self.selection_changed(None, None))
 
         # focus table
-        index = self.table.model().index(0, 0)
-        self.table.setCurrentIndex(index)
-        self.table.setFocus()
-
-    def delete_layout(self):
-        """ """
-        names, order, active = self.names, self.order, self.order
-        name = from_qvariant(self.table.selectionModel().currentIndex().data(),
-                             to_text_string)
-
-        if name in names:
-            index = names.index(name)
-            # In case nothing has focus in the table
-        if index != -1:
-            order.remove(name)
-            names[index] = None
-            if name in active:
-                active.remove(name)
-            self.names, self.order, self.active = names, order, active
-            self.table.model().set_data(order, active)
-            index = self.table.model().index(0, 0)
+        if len(names) > len(read_only):
+            row = len(read_only)
+            index = self.table.model().index(row, 0)
             self.table.setCurrentIndex(index)
             self.table.setFocus()
-            self.selection_changed(None, None)
-            if len(order) == 0:
-                self.button_move_up.setDisabled(True)
-                self.button_move_down.setDisabled(True)
-                self.button_delete.setDisabled(True)
+        else:
+            # initial button state in case only programmatic layouts
+            # are available
+            self.button_move_up.setDisabled(True)
+            self.button_move_down.setDisabled(True)
+            self.button_delete.setDisabled(True)
+
+    def delete_layout(self):
+        """Delete layout from the config."""
+        names, ui_names, order, active, read_only = (
+            self.names, self.ui_names, self.order, self.active, self.read_only)
+        row = self.table.selectionModel().currentIndex().row()
+        ui_name, name, state = self.table.model().row(row)
+
+        if name not in read_only:
+            name = from_qvariant(
+                self.table.selectionModel().currentIndex().data(),
+                to_text_string)
+            if ui_name in ui_names:
+                index = ui_names.index(ui_name)
+            else:
+                # In case nothing has focus in the table
+                return
+            if index != -1:
+                order.remove(ui_name)
+                names.remove(ui_name)
+                ui_names.remove(ui_name)
+                if name in active:
+                    active.remove(ui_name)
+                self.names, self.ui_names, self.order, self.active = (
+                    names, ui_names, order, active)
+                self.table.model().set_data(
+                    names, ui_names, order, active, read_only)
+                index = self.table.model().index(0, 0)
+                self.table.setCurrentIndex(index)
+                self.table.setFocus()
+                self.selection_changed(None, None)
+                if len(order) == 0 or len(names) == len(read_only):
+                    self.button_move_up.setDisabled(True)
+                    self.button_move_down.setDisabled(True)
+                    self.button_delete.setDisabled(True)
 
     def move_layout(self, up=True):
         """ """
-        names, order, active = self.names, self.order, self.active
+        names, ui_names, order, active, read_only = (
+            self.names, self.ui_names, self.order, self.active, self.read_only)
         row = self.table.selectionModel().currentIndex().row()
         row_new = row
+        _ui_name, name, _state = self.table.model().row(row)
 
-        if up:
-            row_new -= 1
-        else:
-            row_new += 1
+        if name not in read_only:
+            if up:
+                row_new -= 1
+            else:
+                row_new += 1
 
-        order[row], order[row_new] = order[row_new], order[row]
+            if order[row_new] not in read_only:
+                order[row], order[row_new] = order[row_new], order[row]
 
-        self.order = order
-        self.table.model().set_data(order, active)
-        index = self.table.model().index(row_new, 0)
-        self.table.setCurrentIndex(index)
-        self.table.setFocus()
-        self.selection_changed(None, None)
+                self.order = order
+                self.table.model().set_data(
+                    names, ui_names, order, active, read_only)
+                index = self.table.model().index(row_new, 0)
+                self.table.setCurrentIndex(index)
+                self.table.setFocus()
+                self.selection_changed(None, None)
 
     def selection_changed(self, selection, deselection):
         """ """
         model = self.table.model()
         index = self.table.currentIndex()
         row = index.row()
-        order, names, active = self.order, self.names, self.active
+        order, names, ui_names, active, read_only = (
+            self.order, self.names, self.ui_names, self.active, self.read_only)
 
-        state = model.row(row)[1]
-        name = model.row(row)[0]
+        state = model.row(row)[2]
+        ui_name = model.row(row)[0]
 
         # Check if name changed
-        if name not in names:  # Did changed
-            if row != -1:  # row == -1, means no items left to delete
+        if ui_name not in ui_names:  # Did changed
+            # row == -1, means no items left to delete
+            if row != -1 and len(names) > len(read_only):
                 old_name = order[row]
-                order[row] = name
-                names[names.index(old_name)] = name
+                order[row] = ui_name
+                names[names.index(old_name)] = ui_name
+                ui_names = names
                 if old_name in active:
-                    active[active.index(old_name)] = name
+                    active[active.index(old_name)] = ui_name
 
-        # Check if checbox clicked
+        # Check if checkbox clicked
         if state:
-            if name not in active:
-                active.append(name)
+            if ui_name not in active:
+                active.append(ui_name)
         else:
-            if name in active:
-                active.remove(name)
+            if ui_name in active:
+                active.remove(ui_name)
 
         self.active = active
+        self.order = order
+        self.names = names
+        self.ui_names = ui_names
         self.button_move_up.setDisabled(False)
         self.button_move_down.setDisabled(False)
 
@@ -333,9 +380,12 @@ def test():
 
     app = qapplication()
     names = ['test', 'tester', '20', '30', '40']
+    ui_names = ['L1', 'L2', '20', '30', '40']
     order = ['test', 'tester', '20', '30', '40']
+    read_only = ['test', 'tester']
     active = ['test', 'tester']
-    widget_1 = LayoutSettingsDialog(None, names, order, active)
+    widget_1 = LayoutSettingsDialog(
+        None, names, ui_names, order, active, read_only)
     widget_2 = LayoutSaveDialog(None, order)
     widget_1.show()
     widget_2.show()

@@ -86,7 +86,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
 
-    append_to_history = Signal(str, str)
+    sig_append_to_history_requested = Signal(str, str)
 
     def __init__(self, plugin, id_,
                  history_filename, config_options,
@@ -679,8 +679,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # setting of %colors on windows by assuming it was using a
             # dark background. This corrects it based on the scheme.
             self.set_color_scheme(sw.syntax_style, reset=reset)
-            sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
+            sw._append_html(_("<br>Restarting kernel...<br>"),
                             before_prompt=True)
+            sw.insert_horizontal_ruler()
 
         self._hide_loading_page()
         self.stop_button.setDisabled(True)
@@ -890,10 +891,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         control = self.shellwidget._control
         page_control = self.shellwidget._page_control
 
-        control.focus_changed.connect(
-            lambda: self.plugin.focus_changed.emit())
-        page_control.focus_changed.connect(
-            lambda: self.plugin.focus_changed.emit())
-        control.visibility_changed.connect(self.plugin.refresh_plugin)
-        page_control.visibility_changed.connect(self.plugin.refresh_plugin)
-        page_control.show_find_widget.connect(self.plugin.find_widget.show)
+        control.sig_focus_changed.connect(
+            lambda: self.plugin.sig_focus_changed.emit())
+        page_control.sig_focus_changed.connect(
+            lambda: self.plugin.sig_focus_changed.emit())
+        control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
+        page_control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
+        page_control.sig_show_find_widget_requested.connect(
+            self.plugin.find_widget.show)

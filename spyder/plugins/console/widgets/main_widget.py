@@ -25,6 +25,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.config.decorators import on_conf_change
@@ -316,7 +317,8 @@ class ConsoleWidget(PluginMainWidget):
         Not used anymore since v2.0.
         """
         historylog.add_history(self.shell.history_filename)
-        self.shell.append_to_history.connect(historylog.append_to_history)
+        self.shell.sig_append_to_history_requested.connect(
+            historylog.append_to_history)
 
     def set_help(self, help_plugin):
         """
@@ -377,32 +379,38 @@ class ConsoleWidget(PluginMainWidget):
                 or self.dismiss_error):
             return
 
+        # Get internal plugin names
         if internal_plugins is None:
             internal_plugins = find_internal_plugins()
 
-        if internal_plugins:
-            internal_plugin_names = []
-            for __, val in internal_plugins.items():
-                name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
-                internal_plugin_names.append(name)
+        internal_plugin_names = []
+        for __, val in internal_plugins.items():
+            name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
+            internal_plugin_names.append(name)
 
-            sender_name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
+        # Get if sender is internal or not
+        is_internal_plugin = True
+        if sender is not None:
+            sender_name = getattr(
+                sender, 'NAME', getattr(sender, 'CONF_SECTION'))
             is_internal_plugin = sender_name in internal_plugin_names
-        else:
-            is_internal_plugin = False
 
+        # Set repo
         repo = "spyder-ide/spyder"
-        if sender is not None and not is_internal_plugin:
+        if not is_internal_plugin:
             repo = error_data.get("repo", None)
-            try:
-                plugin_name = sender.NAME
-            except Exception:
-                plugin_name = sender.CONF_SECTION
 
             if repo is None:
-                raise Exception(
-                    'External plugin "{}" does not define "repo" key in '
-                    'the "error_data" dictionary!'.format(plugin_name)
+                raise SpyderAPIError(
+                    f"External plugin '{sender_name}' does not define 'repo' "
+                    "key in the 'error_data' dictionary in the form "
+                    "my-org/my-repo (only Github is supported)."
+                )
+
+            if repo == 'spyder-ide/spyder':
+                raise SpyderAPIError(
+                    f"External plugin '{sender_name}' 'repo' key needs to be "
+                    "different from the main Spyder repo."
                 )
 
         if self.get_conf('show_internal_errors', section='main'):

@@ -11,10 +11,8 @@ Tests for the main window.
 """
 
 # Standard library imports
-from distutils.version import LooseVersion
 import os
 import os.path as osp
-import pkg_resources
 import re
 import shutil
 import sys
@@ -25,12 +23,15 @@ import uuid
 
 # Third party imports
 from flaky import flaky
+import ipykernel
 from IPython.core import release as ipy_release
 from jupyter_client.manager import KernelManager
 from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
+import pkg_resources
+from pkg_resources import parse_version
 import pylint
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
@@ -43,6 +44,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
+from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
@@ -52,6 +54,7 @@ from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
@@ -144,8 +147,13 @@ def find_desired_tab_in_window(tab_name, window):
     return None, None
 
 
-def register_all_providers():
-    """Create a entry points distribution to register all the providers."""
+def register_fake_entrypoints():
+    """
+    Create entry points distribution to register elements:
+     * Completion providers (Fallback, Shippets, LSP)
+     * Puglins (SpyderBoilerplate plugin)
+    """
+    # Completion providers
     fallback = pkg_resources.EntryPoint.parse(
         'fallback = spyder.plugins.completion.providers.fallback.provider:'
         'FallbackProvider'
@@ -159,22 +167,31 @@ def register_all_providers():
         'LanguageServerProvider'
     )
 
+    # Extra plugins
+    spyder_boilerplate = pkg_resources.EntryPoint.parse(
+        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
+        'plugin:SpyderBoilerplate'
+    )
+
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
 
-    # Add the providers to the fake EntryPoint
+    # Add the providers and plugins to the fake EntryPoints
     d._ep_map = {
         'spyder.completions': {
             'fallback': fallback,
             'snippets': snippets,
             'lsp': lsp
+        },
+        'spyder.plugins': {
+            'spyder_boilerplate': spyder_boilerplate
         }
     }
     # Add the fake distribution to the global working_set
     pkg_resources.working_set.add(d, 'spyder')
 
 
-def remove_fake_distribution():
+def remove_fake_entrypoints():
     """Remove fake entry points from pkg_resources"""
     try:
         pkg_resources.working_set.by_key.pop('unknown')
@@ -192,7 +209,7 @@ def remove_fake_distribution():
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
-    register_all_providers()
+    register_fake_entrypoints()
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -278,6 +295,10 @@ def main_window(request, tmpdir):
         window.outlineexplorer.stop_symbol_services('python')
         # Reset cwd
         window.explorer.chdir(get_home_dir())
+        spyder_boilerplate = window.get_plugin(
+            'spyder_boilerplate', error=False)
+        if spyder_boilerplate is not None:
+            window.unregister_plugin(spyder_boilerplate)
 
     # Remove Kite (In case it was registered via setup.py)
     window.completions.providers.pop('kite', None)
@@ -308,7 +329,7 @@ def cleanup(request):
                 main_window.window.close()
             except AttributeError:
                 pass
-        remove_fake_distribution()
+        remove_fake_entrypoints()
 
     request.addfinalizer(remove_test_dir)
 
@@ -317,7 +338,7 @@ def cleanup(request):
 # ---- Tests
 # =============================================================================
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.single_instance
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="It's not meant to be run outside of CIs")
@@ -388,7 +409,7 @@ def test_lock_action(main_window):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt' and PY2, reason="Fails on win and py2")
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
@@ -965,7 +986,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     kc.stop_channels()
 
 
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
@@ -1065,7 +1086,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
-     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+     parse_version(ipy_release.version) == parse_version('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
@@ -1868,7 +1889,10 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="It times out sometimes")
+@pytest.mark.skipif(
+    (parse_version(ipy_release.version) >= parse_version('7.23.0') and
+     parse_version(ipykernel.__version__) <= parse_version('5.5.3')),
+    reason="Fails due to a bug in the %matplotlib magic")
 def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     """
     Test that the option to set bbox_inches to 'tight' or 'None' is
@@ -2140,8 +2164,8 @@ def test_run_static_code_analysis(main_window, qtbot):
     result_content = treewidget.results
     assert result_content['C:']
 
-    pylint_version = LooseVersion(pylint.__version__)
-    if pylint_version < LooseVersion('2.5.0'):
+    pylint_version = parse_version(pylint.__version__)
+    if pylint_version < parse_version('2.5.0'):
         number_of_conventions = 5
     else:
         number_of_conventions = 3
@@ -2249,7 +2273,7 @@ def test_custom_layouts(main_window, qtbot):
     settings = mw.layouts.load_window_settings(prefix=prefix, default=True)
 
     # Test layout changes
-    for layout_idx in ['default'] + list(range(4)):
+    for layout_idx in get_class_values(DefaultLayouts):
         with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
             layout = mw.layouts.setup_default_layouts(
                 layout_idx, settings=settings)
@@ -2270,6 +2294,42 @@ def test_custom_layouts(main_window, qtbot):
                             except AttributeError:
                                 # Old API
                                 assert plugin.isVisible()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_programmatic_custom_layouts(main_window, qtbot):
+    """
+    Test that a custom layout gets registered and it is recognized."""
+    mw = main_window
+    mw.first_spyder_run = False
+
+    # Test layout registration
+    layout_id = 'testing layout'
+    # Test the testing plugin is being loaded
+    mw.get_plugin('spyder_boilerplate')
+    # Get the registered layout
+    layout = mw.layouts.get_layout(layout_id)
+
+    with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
+        mw.layouts.quick_layout_switch(layout_id)
+
+        with qtbot.waitSignal(None, timeout=500, raising=False):
+            # Add a wait to see changes
+            pass
+
+        for area in layout._areas:
+            if area['visible']:
+                for plugin_id in area['plugin_ids']:
+                    if plugin_id not in area['hidden_plugin_ids']:
+                        plugin = mw.get_plugin(plugin_id)
+                        print(plugin)  # spyder: test-skip
+                        try:
+                            # New API
+                            assert plugin.get_widget().isVisible()
+                        except AttributeError:
+                            # Old API
+                            assert plugin.isVisible()
 
 
 @pytest.mark.slow
@@ -2616,13 +2676,13 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 def test_preferences_change_interpreter(qtbot, main_window):
     """Test that on main interpreter change signal is emitted."""
     # Check original pyls configuration
     lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
-    jedi = config['configurations']['pyls']['plugins']['jedi']
+    jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] is None
     assert jedi['extra_paths'] == []
 
@@ -2637,7 +2697,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
 
     # Check updated pyls configuration
     config = lsp.generate_python_config()
-    jedi = config['configurations']['pyls']['plugins']['jedi']
+    jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 
