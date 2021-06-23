@@ -1282,7 +1282,13 @@ class CodeEditor(TextEditBaseWidget):
                                              data._selection(),
                                              underline_color=block.color)
             else:
-                data.code_analysis.append((source, code, severity, message))
+                # Don't append messages to data for cloned editors to avoid
+                # showing them twice or more times on hover.
+                # Fixes spyder-ide/spyder#15618
+                if not self.is_cloned:
+                    data.code_analysis.append(
+                        (source, code, severity, message)
+                    )
                 block.setUserData(data)
 
     # ------------- LSP: Completion ---------------------------------------
