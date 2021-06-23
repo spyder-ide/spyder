@@ -145,43 +145,43 @@ class StackedShellConnectWidget(PluginMainWidget):
         """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self._shellwidgets:
-            nsb = self.new_widget(shellwidget)
-            self._stack.addWidget(nsb)
-            self._shellwidgets[shellwidget_id] = nsb
+            widget = self.create_new_widget(shellwidget)
+            self._stack.addWidget(widget)
+            self._shellwidgets[shellwidget_id] = widget
             self.set_shellwidget(shellwidget)
             self.update_actions()
 
     def remove_shellwidget(self, shellwidget):
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
-            nsb = self._shellwidgets.pop(shellwidget_id)
-            self._stack.removeWidget(nsb)
+            widget = self._shellwidgets.pop(shellwidget_id)
+            self._stack.removeWidget(widget)
             self.close_widget(nsb)
 
     def set_shellwidget(self, shellwidget):
         shellwidget_id = id(shellwidget)
-        old_nsb = self.current_widget()
+        old_widget = self.current_widget()
         if shellwidget_id in self._shellwidgets:
-            nsb = self._shellwidgets[shellwidget_id]
-            self.switch_widget(nsb, old_nsb)
-            self._stack.setCurrentWidget(nsb)
+            widget = self._shellwidgets[shellwidget_id]
+            self.switch_widget(widget, old_widget)
+            self._stack.setCurrentWidget(widget)
 
     def new_widget(self, shellwidget):
         raise NotImplementedError
 
-    def close_widget(self, nsb):
+    def close_widget(self, widget):
         raise NotImplementedError
 
-    def switch_widget(self, nsb, old_nsb):
+    def switch_widget(self, widget, old_widget):
         raise NotImplementedError
 
     def refresh(self):
         if self.count():
-            nsb = self.current_widget()
-            nsb.refresh()
+            widget = self.current_widget()
+            widget.refresh()
 
     def update_actions(self):
-        nsb = self.current_widget()
+        widget = self.current_widget()
 
         for __, action in self.get_actions().items():
             if action:
@@ -189,7 +189,7 @@ class StackedShellConnectWidget(PluginMainWidget):
                 # and the context is WidgetWithChildrenShortcut we need to
                 # assign the same actions to the children widgets in order
                 # for shortcuts to work
-                if nsb:
-                    nsb_actions = nsb.actions()
-                    if action not in nsb_actions:
-                        nsb.addAction(action)
+                if widget:
+                    widget_actions = widget.actions()
+                    if action not in widget_actions:
+                        widget.addAction(action)

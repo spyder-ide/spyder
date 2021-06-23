@@ -49,7 +49,7 @@ class Plots(SpyderDockablePlugin, ShellConnectManager):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        # Signals
+        # Register IPython console.
         self.register_ipyconsole(ipyconsole)
 
         # If a figure is loaded raise the dockwidget but do not give focus
@@ -60,7 +60,7 @@ class Plots(SpyderDockablePlugin, ShellConnectManager):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        # Signals
+        # Unregister IPython console.
         self.unregister_ipyconsole(ipyconsole)
 
     def switch_to_plugin(self, force_focus=False):

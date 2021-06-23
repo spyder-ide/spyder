@@ -55,7 +55,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectManager):
         # Preferences
         preferences.register_plugin_preferences(self)
 
-        # Signals
+        # Register IPython console.
         self.register_ipyconsole(ipyconsole)
 
         self.get_widget().sig_free_memory_requested.connect(
@@ -65,7 +65,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectManager):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        # Signals
+        # Unregister IPython console.
         self.unregister_ipyconsole(ipyconsole)
 
     # ---- Public API
