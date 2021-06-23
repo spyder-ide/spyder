@@ -87,6 +87,7 @@ class ShellConnectManager():
         """
         self.get_widget().remove_shellwidget(shellwidget)
 
+
 class StackedShellConnectWidget(PluginMainWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -199,4 +200,3 @@ class StackedShellConnectWidget(PluginMainWidget):
                     nsb_actions = nsb.actions()
                     if action not in nsb_actions:
                         nsb.addAction(action)
-
