@@ -158,8 +158,6 @@ class MainMenu(SpyderPluginV2):
 
         menu = ApplicationMenu(self.main, title, dynamic=dynamic)
         menu.menu_id = menu_id
-        if menu_id == ApplicationMenus.Projects:
-            menu.setObjectName('checkbox-padding')
 
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)
