@@ -107,13 +107,6 @@ class StackedShellConnectWidget(PluginMainWidget):
         self._stack.setStyleSheet(
             "QStackedWidget {padding: 0px; border: 0px}")
 
-    @on_conf_change
-    def on_section_conf_change(self, section):
-        for index in range(self.count()):
-            widget = self._stack.widget(index)
-            if widget:
-                widget.setup()
-
     # ---- Stack accesors
     # ------------------------------------------------------------------------
 

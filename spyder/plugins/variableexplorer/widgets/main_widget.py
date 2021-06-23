@@ -399,6 +399,13 @@ class VariableExplorerWidget(StackedShellConnectWidget):
                     if action not in nsb_actions:
                         nsb.addAction(action)
 
+    @on_conf_change
+    def on_section_conf_change(self, section):
+        for index in range(self.count()):
+            widget = self._stack.widget(index)
+            if widget:
+                widget.setup()
+
     # ---- Stack accesors
     # ------------------------------------------------------------------------
     def update_finder(self, nsb, old_nsb):

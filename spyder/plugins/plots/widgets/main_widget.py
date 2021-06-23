@@ -279,7 +279,7 @@ class PlotsWidget(StackedShellConnectWidget):
     # ------------------------------------------------------------------------
 
     def new_widget(self, shellwidget):
-        fig_browser = FigureBrowser(parent=self._stack,
+        fig_browser = FigureBrowser(parent=self,
                                     background_color=MAIN_BG_COLOR)
         fig_browser.update_splitter_widths(self.width())
         fig_browser.set_shellwidget(shellwidget)
