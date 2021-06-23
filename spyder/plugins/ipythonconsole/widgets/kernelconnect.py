@@ -21,12 +21,14 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
                             QVBoxLayout)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _, get_home_dir
-from spyder.config.manager import CONF
 
 
-class KernelConnectionDialog(QDialog):
+class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
     """Dialog to connect to existing kernels (either local or remote)."""
+
+    CONF_SECTION = 'existing-kernel'
 
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
@@ -164,7 +166,7 @@ class KernelConnectionDialog(QDialog):
 
     def load_connection_settings(self):
         """Load the user's previously-saved kernel connection settings."""
-        existing_kernel = CONF.get("existing-kernel", "settings", {})
+        existing_kernel = self.get_conf("settings", {})
 
         connection_file_path = existing_kernel.get("json_file_path", "")
         is_remote = existing_kernel.get("is_remote", False)
@@ -216,7 +218,7 @@ class KernelConnectionDialog(QDialog):
             "is_ssh_keyfile": is_ssh_key,
             "ssh_key_file_path": self.kf.text()
         }
-        CONF.set("existing-kernel", "settings", connection_settings)
+        self.set_conf("settings", connection_settings)
 
         try:
             import keyring
