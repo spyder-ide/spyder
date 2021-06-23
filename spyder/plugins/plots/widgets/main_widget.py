@@ -22,7 +22,7 @@ from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    StackedShellConnectWidget)
+    ShellConnectMainWidget)
 
 # Localization
 _ = get_translation('spyder')
@@ -59,7 +59,7 @@ class PlotsWidgetMainToolbarSections:
 
 # --- Widgets
 # ----------------------------------------------------------------------------
-class PlotsWidget(StackedShellConnectWidget):
+class PlotsWidget(ShellConnectMainWidget):
     sig_figure_loaded = Signal()
     """This signal is emitted when a figure is loaded succesfully"""
 
@@ -278,7 +278,7 @@ class PlotsWidget(StackedShellConnectWidget):
     # --- Public API:
     # ------------------------------------------------------------------------
 
-    def new_widget(self, shellwidget):
+    def create_new_widget(self, shellwidget):
         fig_browser = FigureBrowser(parent=self,
                                     background_color=MAIN_BG_COLOR)
         fig_browser.update_splitter_widths(self.width())

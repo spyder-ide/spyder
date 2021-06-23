@@ -16,13 +16,13 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
 from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    ShellConnectManager)
+    ShellConnectMixin)
 
 # Localization
 _ = get_translation('spyder')
 
 
-class Plots(SpyderDockablePlugin, ShellConnectManager):
+class Plots(SpyderDockablePlugin, ShellConnectMixin):
     """
     Plots plugin.
     """
@@ -50,7 +50,7 @@ class Plots(SpyderDockablePlugin, ShellConnectManager):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Register IPython console.
-        self.register_ipyconsole(ipyconsole)
+        self.register_ipythonconsole(ipyconsole)
 
         # If a figure is loaded raise the dockwidget but do not give focus
         self.get_widget().sig_figure_loaded.connect(
@@ -61,7 +61,7 @@ class Plots(SpyderDockablePlugin, ShellConnectManager):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Unregister IPython console.
-        self.unregister_ipyconsole(ipyconsole)
+        self.unregister_ipythonconsole(ipyconsole)
 
     def switch_to_plugin(self, force_focus=False):
         # Only switch when inline plotting is muted. This avoids

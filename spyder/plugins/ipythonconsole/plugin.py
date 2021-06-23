@@ -1815,7 +1815,7 @@ class IPythonConsole(SpyderPluginWidget):
         # (i.e. the i in i/A)
         master_id = None
         given_name = None
-        is_master = False
+        external_kernel = False
         slave_ord = ord('A') - 1
         kernel_manager = None
 
@@ -1836,7 +1836,7 @@ class IPythonConsole(SpyderPluginWidget):
         if master_id is None:
             self.master_clients += 1
             master_id = to_text_string(self.master_clients)
-            is_master = True
+            external_kernel = True
 
         # Set full client name
         client_id = dict(int_id=master_id,
@@ -1856,7 +1856,7 @@ class IPythonConsole(SpyderPluginWidget):
                               connection_file=connection_file,
                               menu_actions=self.menu_actions,
                               hostname=hostname,
-                              external_kernel=is_master,
+                              external_kernel=external_kernel,
                               slave=True,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
@@ -1909,7 +1909,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
 
-        if is_master:
+        if external_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_kernel)
 
@@ -1920,7 +1920,7 @@ class IPythonConsole(SpyderPluginWidget):
             lambda: self.sig_shellwidget_deleted.emit(shellwidget, True))
 
         # Set elapsed time, if possible
-        if not is_master:
+        if not external_kernel:
             self.set_elapsed_time(client)
 
         # Adding a new tab for the client

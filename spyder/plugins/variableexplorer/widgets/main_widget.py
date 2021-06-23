@@ -21,7 +21,7 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
 from spyder.utils.programs import is_module_installed
 from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    StackedShellConnectWidget)
+    ShellConnectMainWidget)
 
 # Localization
 _ = get_translation('spyder')
@@ -92,7 +92,7 @@ class VariableExplorerContextMenuSections:
 # ---- Widgets
 # =============================================================================
 
-class VariableExplorerWidget(StackedShellConnectWidget):
+class VariableExplorerWidget(ShellConnectMainWidget):
 
     # PluginMainWidget class constants
     ENABLE_SPINNER = True
@@ -462,7 +462,7 @@ class VariableExplorerWidget(StackedShellConnectWidget):
     # ---- Public API
     # ------------------------------------------------------------------------
 
-    def new_widget(self, shellwidget):
+    def create_new_widget(self, shellwidget):
         nsb = NamespaceBrowser(self)
         nsb.set_shellwidget(shellwidget)
         nsb.setup()

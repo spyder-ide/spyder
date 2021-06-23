@@ -16,13 +16,13 @@ from spyder.plugins.variableexplorer.confpage import (
 from spyder.plugins.variableexplorer.widgets.main_widget import (
     VariableExplorerWidget)
 from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    ShellConnectManager)
+    ShellConnectMixin)
 
 # Localization
 _ = get_translation('spyder')
 
 
-class VariableExplorer(SpyderDockablePlugin, ShellConnectManager):
+class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     """
     Variable explorer plugin.
     """
@@ -56,7 +56,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectManager):
         preferences.register_plugin_preferences(self)
 
         # Register IPython console.
-        self.register_ipyconsole(ipyconsole)
+        self.register_ipythonconsole(ipyconsole)
 
         self.get_widget().sig_free_memory_requested.connect(
             self.sig_free_memory_requested)
@@ -66,7 +66,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectManager):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Unregister IPython console.
-        self.unregister_ipyconsole(ipyconsole)
+        self.unregister_ipythonconsole(ipyconsole)
 
     # ---- Public API
     # ------------------------------------------------------------------------

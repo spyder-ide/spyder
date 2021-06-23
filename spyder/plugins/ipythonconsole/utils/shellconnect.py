@@ -21,15 +21,15 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 _ = get_translation('spyder')
 
 
-class ShellConnectManager():
+class ShellConnectMixin:
     """
     Manager to connect a stacked widget to a shell widget.
 
     It is assumed that self.get_widget() returns a child of
-    StackedShellConnectWidget
+    ShellConnectMainWidget
     """
 
-    def register_ipyconsole(self, ipyconsole):
+    def register_ipythonconsole(self, ipyconsole):
         """Connect to ipyconsole."""
         # Signals
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
@@ -37,7 +37,7 @@ class ShellConnectManager():
         ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
 
-    def unregister_ipyconsole(self, ipyconsole):
+    def unregister_ipythonconsole(self, ipyconsole):
         """Disconnect from ipyconsole."""
         # Signals
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
@@ -88,7 +88,10 @@ class ShellConnectManager():
         self.get_widget().remove_shellwidget(shellwidget)
 
 
-class StackedShellConnectWidget(PluginMainWidget):
+class ShellConnectMainWidget(PluginMainWidget):
+    """
+    Main widget to use in a plugin that shows console-specific content.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -109,7 +112,6 @@ class StackedShellConnectWidget(PluginMainWidget):
 
     # ---- Stack accesors
     # ------------------------------------------------------------------------
-
     def count(self):
         """
         Return the number of widgets in the stack.
@@ -152,13 +154,17 @@ class StackedShellConnectWidget(PluginMainWidget):
             self.update_actions()
 
     def remove_shellwidget(self, shellwidget):
+        """Remove widget associated with shellwidget."""
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
             widget = self._shellwidgets.pop(shellwidget_id)
             self._stack.removeWidget(widget)
-            self.close_widget(nsb)
+            self.close_widget(widget)
 
     def set_shellwidget(self, shellwidget):
+        """
+        Set widget associated with shellwidget as the current widget.
+        """
         shellwidget_id = id(shellwidget)
         old_widget = self.current_widget()
         if shellwidget_id in self._shellwidgets:
@@ -166,21 +172,26 @@ class StackedShellConnectWidget(PluginMainWidget):
             self.switch_widget(widget, old_widget)
             self._stack.setCurrentWidget(widget)
 
-    def new_widget(self, shellwidget):
+    def create_new_widget(self, shellwidget):
+        """Create a widget to communicate with shellwidget."""
         raise NotImplementedError
 
     def close_widget(self, widget):
+        """Close the widget."""
         raise NotImplementedError
 
     def switch_widget(self, widget, old_widget):
+        """Switch the current widget."""
         raise NotImplementedError
 
     def refresh(self):
+        """Refresh widgets."""
         if self.count():
             widget = self.current_widget()
             widget.refresh()
 
     def update_actions(self):
+        """Update the actions."""
         widget = self.current_widget()
 
         for __, action in self.get_actions().items():
