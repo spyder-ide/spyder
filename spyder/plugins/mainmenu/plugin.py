@@ -57,8 +57,7 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
         create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
         create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
-        create_app_menu(
-            ApplicationMenus.Projects, _("&Projects"))
+        create_app_menu(ApplicationMenus.Projects, _("&Projects"))
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.View, _("&View"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
