@@ -15,13 +15,14 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
-
+from spyder.plugins.ipythonconsole.utils.shellconnect import (
+    ShellConnectManager)
 
 # Localization
 _ = get_translation('spyder')
 
 
-class Plots(SpyderDockablePlugin):
+class Plots(SpyderDockablePlugin, ShellConnectManager):
     """
     Plots plugin.
     """
@@ -49,11 +50,7 @@ class Plots(SpyderDockablePlugin):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Signals
-        ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.connect(
-            self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(
-            self.remove_shellwidget)
+        self.register_ipyconsole(ipyconsole)
 
         # If a figure is loaded raise the dockwidget but do not give focus
         self.get_widget().sig_figure_loaded.connect(
@@ -64,10 +61,7 @@ class Plots(SpyderDockablePlugin):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Signals
-        ipyconsole.sig_shellwidget_created.disconnect(
-            self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(
-            self.remove_shellwidget)
+        self.unregister_ipyconsole(ipyconsole)
 
     def switch_to_plugin(self, force_focus=False):
         # Only switch when inline plotting is muted. This avoids
@@ -89,39 +83,3 @@ class Plots(SpyderDockablePlugin):
             The current figure browser widget.
         """
         return self.get_widget().current_widget()
-
-    def add_shellwidget(self, shellwidget):
-        """
-        Add a new shellwidget to be registered with the Plots plugin.
-
-        This function registers a new FigureBrowser for browsing the figures
-        in the shellwidget.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().add_shellwidget(shellwidget)
-
-    def remove_shellwidget(self, shellwidget):
-        """
-        Remove the shellwidget registered with the plots plugin.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().remove_shellwidget(shellwidget)
-
-    def set_shellwidget(self, shellwidget):
-        """
-        Update the current shellwidget displayed with the plots plugin.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().set_shellwidget(shellwidget)

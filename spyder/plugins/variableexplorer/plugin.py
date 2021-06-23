@@ -15,13 +15,14 @@ from spyder.plugins.variableexplorer.confpage import (
     VariableExplorerConfigPage)
 from spyder.plugins.variableexplorer.widgets.main_widget import (
     VariableExplorerWidget)
-
+from spyder.plugins.ipythonconsole.utils.shellconnect import (
+    ShellConnectManager)
 
 # Localization
 _ = get_translation('spyder')
 
 
-class VariableExplorer(SpyderDockablePlugin):
+class VariableExplorer(SpyderDockablePlugin, ShellConnectManager):
     """
     Variable explorer plugin.
     """
@@ -55,11 +56,7 @@ class VariableExplorer(SpyderDockablePlugin):
         preferences.register_plugin_preferences(self)
 
         # Signals
-        ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.connect(
-            self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(
-            self.remove_shellwidget)
+        self.register_ipyconsole(ipyconsole)
 
         self.get_widget().sig_free_memory_requested.connect(
             self.sig_free_memory_requested)
@@ -69,11 +66,7 @@ class VariableExplorer(SpyderDockablePlugin):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Signals
-        ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.disconnect(
-            self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.disconnect(
-            self.remove_shellwidget)
+        self.unregister_ipyconsole(ipyconsole)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -87,20 +80,9 @@ class VariableExplorer(SpyderDockablePlugin):
         """
         return self.get_widget().current_widget()
 
-    def set_shellwidget(self, shelwidget):
+    def add_shellwidget(self, shellwidget, external):
         """
-        Update the current shellwidget associated to the Variable Explorer.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().set_shellwidget(shelwidget)
-
-    def add_shellwidget(self, shelwidget):
-        """
-        Add a new shellwidget to be registered with the Variable Explorer.
+        Add a new shellwidget to be registered.
 
         This function registers a new NamespaceBrowser for browsing variables
         in the shellwidget.
@@ -109,16 +91,11 @@ class VariableExplorer(SpyderDockablePlugin):
         ----------
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
+        external: bool
+            True if the kernel is external
         """
-        self.get_widget().add_shellwidget(shelwidget)
+        if external:
+            shellwidget.set_namespace_view_settings()
+            shellwidget.refresh_namespacebrowser()
 
-    def remove_shellwidget(self, shelwidget):
-        """
-        Remove the shellwidget registered with the Variable Explorer.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().remove_shellwidget(shelwidget)
+        self.get_widget().add_shellwidget(shellwidget)

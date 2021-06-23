@@ -108,7 +108,7 @@ class Help(SpyderDockablePlugin):
 
         if ipyconsole:
             ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-            ipyconsole.sig_shellwidget_created.connect(
+            ipyconsole.sig_shellwidget_connected.connect(
                 self.set_shellwidget)
             ipyconsole.sig_render_plain_text_requested.connect(
                 self.show_plain_text)
@@ -184,7 +184,7 @@ class Help(SpyderDockablePlugin):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def set_shellwidget(self, shellwidget):
+    def set_shellwidget(self, shellwidget, external=None):
         """
         Set IPython Console `shelwidget` as the current shellwidget.
 
