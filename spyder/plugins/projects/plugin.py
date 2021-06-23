@@ -35,7 +35,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
 from spyder.plugins.projects.api import (BaseProjectType, EmptyProject,
                                          WORKSPACE)
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
@@ -50,14 +50,8 @@ from spyder.plugins.completion.decorators import (
 _ = get_translation("spyder")
 
 
-class ProjectsApplicationMenu:
-    New = 'new_section'
-    Secondary = 'secondary_section'
-    RecentProjects = 'recent_projects_section'
-
-
-class RecentProjectMenu:
-    List = 'list_section'
+class ProjectsMenuSubmenus:
+    RecentProjects = 'recent_projects'
 
 
 class ProjectsActions:
@@ -69,9 +63,9 @@ class ProjectsActions:
     MaxRecent = 'max_recent_action'
 
 
-class RecentProjectsMenuSection:
-    Main = 'main_section'
-    Bottom = 'bottom_section'
+class RecentProjectsMenuSections:
+    Recent = 'recent_section'
+    Extras = 'extras_section'
 
 
 @class_register
@@ -276,7 +270,9 @@ class Projects(SpyderDockablePlugin):
             triggered=self.change_max_recent_projects)
 
         self.recent_project_menu = self.get_widget().create_menu(
-            RecentProjectMenu.List, _("Recent Projects"))
+            ProjectsMenuSubmenus.RecentProjects,
+            _("Recent Projects")
+        )
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
         main_menu = self.get_plugin(Plugins.MainMenu)
@@ -286,18 +282,18 @@ class Projects(SpyderDockablePlugin):
             main_menu.add_item_to_application_menu(
                 new_project_action,
                 menu=projects_menu,
-                section=ProjectsApplicationMenu.New)
+                section=ProjectsMenuSections.New)
             for item in [open_project_action, self.close_project_action,
                          self.delete_project_action]:
                 main_menu.add_item_to_application_menu(
                     item,
                     menu=projects_menu,
-                    section=ProjectsApplicationMenu.Secondary)
+                    section=ProjectsMenuSections.Open)
 
             main_menu.add_item_to_application_menu(
                 self.recent_project_menu,
                 menu=projects_menu,
-                section=ProjectsApplicationMenu.RecentProjects)
+                section=ProjectsMenuSections.Extras)
 
         self.setup_menu_actions()
 
@@ -322,13 +318,14 @@ class Projects(SpyderDockablePlugin):
                     self.get_widget().add_item_to_menu(
                         action,
                         menu=self.recent_project_menu,
-                        section=RecentProjectsMenuSection.Main)
+                        section=RecentProjectsMenuSections.Recent)
+
         for item in [self.clear_recent_projects_action,
                      self.max_recent_action]:
             self.get_widget().add_item_to_menu(
                 item,
                 menu=self.recent_project_menu,
-                section=RecentProjectsMenuSection.Bottom)
+                section=RecentProjectsMenuSections.Extras)
         self.update_project_actions()
 
     def update_project_actions(self):
