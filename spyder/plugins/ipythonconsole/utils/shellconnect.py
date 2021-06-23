@@ -33,16 +33,16 @@ class ShellConnectManager():
         """Connect to ipyconsole."""
         # Signals
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_connected.connect(self.add_shellwidget)
-        ipyconsole.sig_shellwidget_disconnected.connect(
+        ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
+        ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
 
     def unregister_ipyconsole(self, ipyconsole):
         """Disconnect from ipyconsole."""
         # Signals
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_connected.disconnect(self.add_shellwidget)
-        ipyconsole.sig_shellwidget_disconnected.disconnect(
+        ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
+        ipyconsole.sig_shellwidget_deleted.disconnect(
             self.remove_shellwidget)
 
     # ---- Public API

@@ -85,7 +85,7 @@ class IPythonConsole(SpyderPluginWidget):
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     sig_pdb_state_changed = Signal(bool, dict)
 
-    sig_shellwidget_connected = Signal(object, bool)
+    sig_shellwidget_created = Signal(object, bool)
     """
     This signal is emitted when a shellwidget is connected to
     a kernel.
@@ -98,7 +98,7 @@ class IPythonConsole(SpyderPluginWidget):
         True if the kernel is external
     """
 
-    sig_shellwidget_disconnected = Signal(object, bool)
+    sig_shellwidget_deleted = Signal(object, bool)
     """
     This signal is emitted when a shellwidget is disconnected from
     a kernel.
@@ -1790,10 +1790,10 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def shellwidget_started(self, client):
-        self.sig_shellwidget_connected.emit(client.shellwidget, False)
+        self.sig_shellwidget_created.emit(client.shellwidget, False)
 
     def shellwidget_deleted(self, client):
-        self.sig_shellwidget_disconnected.emit(client.shellwidget, False)
+        self.sig_shellwidget_deleted.emit(client.shellwidget, False)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
@@ -1915,9 +1915,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Here we notify about external shellwidgets
         shellwidget.check_spyder_kernel()
-        self.sig_shellwidget_connected.emit(shellwidget, True)
+        self.sig_shellwidget_created.emit(shellwidget, True)
         kernel_client.stopped_channels.connect(
-            lambda: self.sig_shellwidget_disconnected.emit(shellwidget, True))
+            lambda: self.sig_shellwidget_deleted.emit(shellwidget, True))
 
         # Set elapsed time, if possible
         if not is_master:
