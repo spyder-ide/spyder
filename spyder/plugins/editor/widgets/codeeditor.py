@@ -95,9 +95,10 @@ except Exception:
 logger = logging.getLogger(__name__)
 
 
+# Regexp to detect noqa inline comments.
+NOQA_INLINE_REGEXP = re.compile(r"#?noqa", re.IGNORECASE)
 
 
-# %% This line is for cell execution testing
 @class_register
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
@@ -1260,6 +1261,17 @@ class CodeEditor(TextEditBaseWidget):
 
             block = document.findBlockByNumber(start['line'])
             data = block.userData()
+
+            # Skip messages according to certain criteria.
+            # This one works for any programming language
+            if 'analysis:ignore' in block.text():
+                continue
+
+            # This only works for Python.
+            if self.language == 'Python':
+                if NOQA_INLINE_REGEXP.search(block.text()) is not None:
+                    continue
+
             if not data:
                 data = BlockUserData(self)
 
