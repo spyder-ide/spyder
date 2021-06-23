@@ -13,7 +13,11 @@ import logging
 from typing import Any, Union, Optional
 import warnings
 
+# Third-party imports
+from qtpy.QtWidgets import QAction, QWidget
+
 # Local imports
+from spyder.config.gui import Shortcut
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
 from spyder.config.user import NoDefault
@@ -200,6 +204,35 @@ class SpyderConfigurationAccessor:
         """
         context = self.CONF_SECTION if context is None else context
         return CONF.get_shortcut(context, name)
+
+    def config_shortcut(
+            self, action: QAction, name: str, parent: QWidget,
+            context: Optional[str] = None) -> Shortcut:
+        """
+        Create a Shortcut namedtuple for a widget.
+
+        The data contained in this tuple will be registered in our shortcuts
+        preferences page.
+
+        Parameters
+        ----------
+        action: QAction
+            Action that will use the shortcut.
+        name: str
+            Key identifier under which the shortcut is stored.
+        parent: QWidget
+            Parent widget for the shortcut.
+        context: Optional[str]
+            Name of the context (plugin) where the shortcut was defined.
+
+        Returns
+        -------
+        shortcut: Shortcut
+            Namedtuple with the information of the shortcut as used for the
+            shortcuts preferences page.
+        """
+        shortcut_context = self.CONF_SECTION if context is None else context
+        return CONF.config_shortcut(action, shortcut_context, name, parent)
 
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):

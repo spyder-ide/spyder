@@ -21,10 +21,6 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.layout.layouts import VerticalSplitLayout2
 
 
-def _(text):
-    return text
-
-
 class SpyderBoilerplateConfigPage(PluginConfigPage):
 
     # --- PluginConfigPage API
@@ -65,7 +61,7 @@ class SpyderBoilerplateWidget(PluginMainWidget):
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return _("Spyder Boilerplate")
+        return "Spyder Boilerplate"
 
     def get_focus_widget(self):
         pass
@@ -125,10 +121,10 @@ class SpyderBoilerplate(SpyderDockablePlugin):
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     def get_name(self):
-        return _("Spyder Boilerplate")
+        return "Spyder Boilerplate"
 
     def get_description(self):
-        return _("Boilerplate needed to create a Spyder Plugin.")
+        return "Boilerplate needed to create a Spyder Plugin."
 
     def get_icon(self):
         return QIcon()

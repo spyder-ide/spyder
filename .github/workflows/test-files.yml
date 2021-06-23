@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - 5.x
+      - 5.*
       - 4.x
     paths:
       - '.github/scripts/*.sh'
@@ -18,7 +18,7 @@ on:
   pull_request:
     branches:
       - master
-      - 5.x
+      - 5.*
       - 4.x
     paths:
       - '.github/scripts/*.sh'
@@ -98,7 +98,7 @@ jobs:
       - name: Use QtAwesome 1.0.1
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
-        run: conda install -q -y qtawesome=1.0.1
+        run: pip install --no-deps qtawesome==1.0.1
       - name: Install QDarkStyle from master
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}

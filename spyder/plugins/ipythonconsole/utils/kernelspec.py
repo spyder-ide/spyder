@@ -18,9 +18,9 @@ import sys
 from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (DEV, is_pynsist, running_under_pytest,
                                 get_safe_mode, running_in_mac_app)
-from spyder.config.manager import CONF
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
@@ -62,8 +62,10 @@ def get_activation_script(quote=False):
 HERE = osp.dirname(os.path.realpath(__file__))
 
 
-class SpyderKernelSpec(KernelSpec):
+class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     """Kernel spec for Spyder kernels"""
+
+    CONF_SECTION = 'ipython_console'
 
     def __init__(self, is_cython=False, is_pylab=False,
                  is_sympy=False, **kwargs):
@@ -80,15 +82,15 @@ class SpyderKernelSpec(KernelSpec):
     def argv(self):
         """Command to start kernels"""
         # Python interpreter used to start kernels
-        if CONF.get('main_interpreter', 'default'):
+        if self.get_conf('default', section='main_interpreter'):
             pyexec = get_python_executable()
         else:
-            pyexec = CONF.get('main_interpreter', 'executable')
+            pyexec = self.get_conf('executable', section='main_interpreter')
             if not is_python_interpreter(pyexec):
                 pyexec = get_python_executable()
-                CONF.set('main_interpreter', 'executable', '')
-                CONF.set('main_interpreter', 'default', True)
-                CONF.set('main_interpreter', 'custom', False)
+                self.set_conf('executable', '', section='main_interpreter')
+                self.set_conf('default', True, section='main_interpreter')
+                self.set_conf('custom', False, section='main_interpreter')
 
         # Part of spyder-ide/spyder#11819
         is_different = is_different_interpreter(pyexec)
@@ -122,7 +124,8 @@ class SpyderKernelSpec(KernelSpec):
     @property
     def env(self):
         """Env vars for kernels"""
-        default_interpreter = CONF.get('main_interpreter', 'default')
+        default_interpreter = self.get_conf(
+            'default', section='main_interpreter')
         env_vars = os.environ.copy()
 
         # Avoid IPython adding the virtualenv on which Spyder is running
@@ -139,40 +142,39 @@ class SpyderKernelSpec(KernelSpec):
 
         # List of paths declared by the user, plus project's path, to
         # add to PYTHONPATH
-        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
+        pathlist = self.get_conf(
+            'spyder_pythonpath', default=[], section='main')
         pypath = os.pathsep.join(pathlist)
 
         # List of modules to exclude from our UMR
-        umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
+        umr_namelist = self.get_conf(
+            'umr/namelist', section='main_interpreter')
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
-            'SPY_UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
-            'SPY_UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
+            'SPY_UMR_ENABLED': self.get_conf(
+                'umr/enabled', section='main_interpreter'),
+            'SPY_UMR_VERBOSE': self.get_conf(
+                'umr/verbose', section='main_interpreter'),
             'SPY_UMR_NAMELIST': ','.join(umr_namelist),
-            'SPY_RUN_LINES_O': CONF.get('ipython_console', 'startup/run_lines'),
-            'SPY_PYLAB_O': CONF.get('ipython_console', 'pylab'),
-            'SPY_BACKEND_O': CONF.get('ipython_console', 'pylab/backend'),
-            'SPY_AUTOLOAD_PYLAB_O': CONF.get('ipython_console',
-                                             'pylab/autoload'),
-            'SPY_FORMAT_O': CONF.get('ipython_console',
-                                     'pylab/inline/figure_format'),
-            'SPY_BBOX_INCHES_O': CONF.get('ipython_console',
-                                          'pylab/inline/bbox_inches'),
-            'SPY_RESOLUTION_O': CONF.get('ipython_console',
-                                         'pylab/inline/resolution'),
-            'SPY_WIDTH_O': CONF.get('ipython_console', 'pylab/inline/width'),
-            'SPY_HEIGHT_O': CONF.get('ipython_console', 'pylab/inline/height'),
-            'SPY_USE_FILE_O': CONF.get('ipython_console',
-                                       'startup/use_run_file'),
-            'SPY_RUN_FILE_O': CONF.get('ipython_console', 'startup/run_file'),
-            'SPY_AUTOCALL_O': CONF.get('ipython_console', 'autocall'),
-            'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
-            'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
-            'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
+            'SPY_RUN_LINES_O': self.get_conf('startup/run_lines'),
+            'SPY_PYLAB_O': self.get_conf('pylab'),
+            'SPY_BACKEND_O': self.get_conf('pylab/backend'),
+            'SPY_AUTOLOAD_PYLAB_O': self.get_conf('pylab/autoload'),
+            'SPY_FORMAT_O': self.get_conf('pylab/inline/figure_format'),
+            'SPY_BBOX_INCHES_O': self.get_conf('pylab/inline/bbox_inches'),
+            'SPY_RESOLUTION_O': self.get_conf('pylab/inline/resolution'),
+            'SPY_WIDTH_O': self.get_conf('pylab/inline/width'),
+            'SPY_HEIGHT_O': self.get_conf('pylab/inline/height'),
+            'SPY_USE_FILE_O': self.get_conf('startup/use_run_file'),
+            'SPY_RUN_FILE_O': self.get_conf('startup/run_file'),
+            'SPY_AUTOCALL_O': self.get_conf('autocall'),
+            'SPY_GREEDY_O': self.get_conf('greedy_completer'),
+            'SPY_JEDI_O': self.get_conf('jedi_completer'),
+            'SPY_SYMPY_O': self.get_conf('symbolic_math'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
-            'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows'),
+            'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
             'SPY_PYTHONPATH': pypath
         })
 

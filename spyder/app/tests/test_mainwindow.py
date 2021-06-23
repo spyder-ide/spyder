@@ -2686,7 +2686,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     # Check original pyls configuration
     lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
-    jedi = config['configurations']['pyls']['plugins']['jedi']
+    jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] is None
     assert jedi['extra_paths'] == []
 
@@ -2701,7 +2701,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
 
     # Check updated pyls configuration
     config = lsp.generate_python_config()
-    jedi = config['configurations']['pyls']['plugins']['jedi']
+    jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 

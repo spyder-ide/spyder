@@ -1,22 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.0.3 is released!
+**Subject**: [ANN] Spyder 5.0.5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.0.3** has been released and is available for
+I'm pleased to announce that Spyder **5.0.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes one week after version 5.0.2 and it contains the
+This release comes two weeks after version 5.0.4 and it contains the
 following important fixes:
 
-* Fix Help pane in the macOS installer.
-* Add rtree as a dependency for our pip packages.
+* Catch any error when trying to detect if Kite installers are available.
 
-In this release we fixed 4 issues and merged 8 pull requests that amount
-to more than 30 commits. For a full list of fixes, please see our
+In this release we fixed 1 issue and merged 2 pull requests that amount
+to more than 10 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

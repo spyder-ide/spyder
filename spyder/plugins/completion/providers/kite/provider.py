@@ -24,7 +24,8 @@ from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
 from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.completion.providers.kite.client import KiteClient
 from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_running, check_if_kite_installed)
+    check_if_kite_running, check_if_kite_installed,
+    check_kite_installers_availability)
 from spyder.plugins.completion.providers.kite.widgets import (
     KiteInstallationErrorMessage, KiteStatusWidget)
 from spyder.utils.icon_manager import ima
@@ -46,7 +47,8 @@ class KiteProvider(SpyderCompletionProvider):
         ('spyder_runs', 1),
         ('show_installation_dialog', True),
         ('show_onboarding', True),
-        ('show_installation_error_message', True)
+        ('show_installation_error_message', True),
+        ('installers_available', True)
     ]
     CONF_VERSION = "0.1.0"
 
@@ -230,8 +232,11 @@ class KiteProvider(SpyderCompletionProvider):
             KiteStatusWidget.ID, 'show_installation_dialog', tuple(), {})
 
     def setup_menus(self):
+        installers_available = check_kite_installers_availability()
+        self.set_conf('installers_available', installers_available)
+
         is_kite_installed, kite_path = check_if_kite_installed()
-        if not is_kite_installed:
+        if not is_kite_installed and installers_available:
             install_kite_action = self.create_action(
                 KiteProviderActions.Installation,
                 _("Install Kite completion engine"),
