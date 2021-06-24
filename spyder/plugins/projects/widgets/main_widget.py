@@ -20,9 +20,14 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 # Local imports
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import get_translation
+from spyder.plugins.explorer.widgets.explorer import DirViewActions
 from spyder.plugins.projects.widgets.explorer import ExplorerTreeWidget
 
 _ = get_translation('spyder')
+
+
+class ProjectExplorerOptionsMenuSections:
+    Main = 'main'
 
 
 class ProjectExplorerWidget(PluginMainWidget):
@@ -60,7 +65,13 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def setup(self):
         """Setup the widget."""
-        pass
+        menu = self.get_options_menu()
+
+        single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
+        self.add_item_to_menu(
+            single_click_action,
+            menu=menu,
+            section=ProjectExplorerOptionsMenuSections.Main)
 
     def update_actions(self):
         pass

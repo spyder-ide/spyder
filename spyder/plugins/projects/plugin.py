@@ -341,11 +341,6 @@ class Projects(SpyderDockablePlugin):
         self.close_project_action.setEnabled(active)
         self.delete_project_action.setEnabled(active)
 
-    @on_conf_change(section='explorer', option='single_click_to_open')
-    def on_single_click_change(self, value):
-        """Set single click to open files and directories."""
-        self.get_widget().treewidget.set_single_click_to_open(value)
-
     def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
