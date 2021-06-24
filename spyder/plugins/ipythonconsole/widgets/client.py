@@ -93,7 +93,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
-                 external_kernel=False, given_name=None,
+                 is_external_kernel=False,
+                 is_spyder_kernel=True,
+                 given_name=None,
                  options_button=None,
                  show_elapsed_time=False,
                  reset_warning=True,
@@ -110,7 +112,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.hostname = hostname
         self.menu_actions = menu_actions
         self.slave = slave
-        self.external_kernel = external_kernel
         self.given_name = given_name
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
@@ -139,7 +140,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                        ipyclient=self,
                                        additional_options=additional_options,
                                        interpreter_versions=interpreter_versions,
-                                       external_kernel=external_kernel,
+                                       is_external_kernel=is_external_kernel,
+                                       is_spyder_kernel=is_spyder_kernel,
                                        local_kernel=True)
 
         self.infowidget = plugin.infowidget
@@ -853,7 +855,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         Show possible errors when setting the selected Matplotlib backend.
         """
-        if not self.external_kernel:
+        if self.shellwidget.is_spyder_kernel:
             self.shellwidget.call_kernel().show_mpl_backend_errors()
 
     def _check_special_console_error(self):

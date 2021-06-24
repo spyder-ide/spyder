@@ -805,7 +805,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client is not None:
             # If spyder-kernels, use runfile
-            if client.shellwidget.is_spyder_kernel():
+            if client.shellwidget.is_spyder_kernel:
                 line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                                     norm(filename))
                 if args:
@@ -1815,7 +1815,8 @@ class IPythonConsole(SpyderPluginWidget):
         # (i.e. the i in i/A)
         master_id = None
         given_name = None
-        external_kernel = False
+        is_external_kernel = True
+        known_spyder_kernel = False
         slave_ord = ord('A') - 1
         kernel_manager = None
 
@@ -1826,6 +1827,8 @@ class IPythonConsole(SpyderPluginWidget):
                 connection_file = cl.connection_file
                 if master_id is None:
                     master_id = cl.id_['int_id']
+                    is_external_kernel = cl.shellwidget.is_external_kernel
+                    known_spyder_kernel = cl.shellwidget.is_spyder_kernel
                 given_name = cl.given_name
                 new_slave_ord = ord(cl.id_['str_id'])
                 if new_slave_ord > slave_ord:
@@ -1836,7 +1839,6 @@ class IPythonConsole(SpyderPluginWidget):
         if master_id is None:
             self.master_clients += 1
             master_id = to_text_string(self.master_clients)
-            external_kernel = True
 
         # Set full client name
         client_id = dict(int_id=master_id,
@@ -1856,7 +1858,8 @@ class IPythonConsole(SpyderPluginWidget):
                               connection_file=connection_file,
                               menu_actions=self.menu_actions,
                               hostname=hostname,
-                              external_kernel=external_kernel,
+                              is_external_kernel=is_external_kernel,
+                              is_spyder_kernel=known_spyder_kernel,
                               slave=True,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
@@ -1909,18 +1912,21 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
 
-        if external_kernel:
+        if not known_spyder_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_kernel)
 
-        # Here we notify about external shellwidgets
-        shellwidget.check_spyder_kernel()
-        self.sig_shellwidget_created.emit(shellwidget, True)
+            # Here we notify about external shellwidgets
+            shellwidget.check_spyder_kernel()
+
+        self.sig_shellwidget_created.emit(
+            shellwidget, is_external_kernel)
         kernel_client.stopped_channels.connect(
-            lambda: self.sig_shellwidget_deleted.emit(shellwidget, True))
+            lambda: self.sig_shellwidget_deleted.emit(
+                shellwidget, is_external_kernel))
 
         # Set elapsed time, if possible
-        if not external_kernel:
+        if not is_external_kernel:
             self.set_elapsed_time(client)
 
         # Adding a new tab for the client
