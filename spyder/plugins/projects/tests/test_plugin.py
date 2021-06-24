@@ -144,7 +144,7 @@ def test_close_project_sets_visible_config(projects, tmpdir, value):
     if value:
         projects.show_explorer()
     else:
-        projects.toggle_view(False)
+        projects.get_widget().hide()
     projects.close_project()
     assert projects.get_conf('visible_if_project_open') == value
 
@@ -163,7 +163,7 @@ def test_on_close_sets_visible_config(projects, tmpdir, value):
     if value:
         projects.show_explorer()
     else:
-        projects.toggle_view(False)
+        projects.get_widget().hide()
     projects.close_project()
     assert projects.get_conf('visible_if_project_open') == value
 

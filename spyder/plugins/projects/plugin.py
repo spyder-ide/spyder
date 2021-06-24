@@ -513,10 +513,10 @@ class Projects(SpyderDockablePlugin):
             self.sig_project_closed.emit(path)
             self.sig_pythonpath_changed.emit()
 
-            if self.get_widget() is not None:
-                new_state = not self.get_conf('visible_if_project_open')
-                self.toggle_view(new_state)
-                self.set_conf('visible_if_project_open', new_state)
+            # Hide pane.
+            self.set_conf('visible_if_project_open',
+                          self.get_widget().isVisible())
+            self.toggle_view(False)
 
             self.get_widget().clear()
             self.restart_consoles()
@@ -640,7 +640,7 @@ class Projects(SpyderDockablePlugin):
                       self.get_widget().treewidget.get_expanded_state())
         self.set_conf('scrollbar_position',
                       self.get_widget().treewidget.get_scrollbar_position())
-        if self.current_active_project and self.get_widget():
+        if self.current_active_project:
             self.set_conf('visible_if_project_open',
                           self.get_widget().isVisible())
 
