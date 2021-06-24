@@ -234,6 +234,11 @@ class SpyderConfigurationAccessor:
         shortcut_context = self.CONF_SECTION if context is None else context
         return CONF.config_shortcut(action, shortcut_context, name, parent)
 
+    @property
+    def old_conf_version(self):
+        """Get old Spyder configuration version."""
+        return CONF.old_spyder_version
+
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     """
