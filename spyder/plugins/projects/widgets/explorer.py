@@ -20,7 +20,6 @@ from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
                             QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import get_translation
 from spyder.py3compat import to_text_string
 from spyder.utils import misc

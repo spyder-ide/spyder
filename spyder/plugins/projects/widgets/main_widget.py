@@ -68,10 +68,6 @@ class ProjectExplorerWidget(PluginMainWidget):
     def get_title(self):
         return _("Project")
 
-    def closing_widget(self):
-        """Perform actions before widget is closed"""
-        pass
-
     def set_project_dir(self, directory):
         """Set the project directory"""
         if directory is not None:

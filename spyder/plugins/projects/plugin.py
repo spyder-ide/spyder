@@ -117,7 +117,7 @@ class Projects(SpyderDockablePlugin):
 
     sig_pythonpath_changed = Signal()
     """
-    This signal is emitted when the Python path is changed.
+    This signal is emitted when the Python path has changed.
     """
 
     def __init__(self, parent=None, configuration=None):
@@ -135,34 +135,32 @@ class Projects(SpyderDockablePlugin):
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     def get_name(self):
-        """Return widget title"""
         return _("Project")
 
     def get_description(self):
-        """Return the description of the explorer widget."""
-        return _("Explore files of a Spyder project.")
+        return _("Create Spyder projects and manage their files.")
 
     def get_icon(self):
-        """Return the explorer icon."""
         return self.create_icon('project')
 
     def register(self):
         """Register plugin in Spyder's main window"""
         widget = self.get_widget()
+        treewidget = widget.treewidget
+
         self.ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         self.completions = self.get_plugin(Plugins.Completions)
         self.editor = self.get_plugin(Plugins.Editor)
         outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
-        treewidget = widget.treewidget
 
         treewidget.sig_delete_project.connect(self.delete_project)
+        treewidget.sig_redirect_stdio_requested.connect(
+            self.sig_redirect_stdio_requested)
         self.sig_switch_to_plugin_requested.connect(
             lambda plugin, check: self.show_explorer())
 
         if self.main:
             widget.sig_open_file_requested.connect(self.main.open_file)
-            treewidget.sig_redirect_stdio_requested.connect(
-                self.main.redirect_internalshell_stdio)
             self.main.project_path = self.get_pythonpath(at_start=True)
 
         if self.editor:
@@ -181,11 +179,15 @@ class Projects(SpyderDockablePlugin):
             treewidget.sig_run_requested.connect(
                 lambda fname:
                 self.ipyconsole.run_script(
-                    fname, osp.dirname(
-                        fname), '', False, False, False, True, False))
+                    fname, osp.dirname(fname), '', False, False, False, True,
+                    False)
+            )
 
         # TODO: This is not necessary anymore due to us starting workspace
         # services in the editor. However, we could restore it in the future.
+        # completions.sig_language_completions_available.connect(
+        #     lambda settings, language:
+        #         self.start_workspace_services())
         if self.completions:
             self.completions.sig_stop_completions.connect(
                 self.stop_workspace_services)
@@ -347,7 +349,6 @@ class Projects(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
-        self.get_widget().closing_widget()
         return True
 
     def unmaximize(self):
