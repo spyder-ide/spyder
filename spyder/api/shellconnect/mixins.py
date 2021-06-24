@@ -8,6 +8,7 @@
 classes to connect to a shellwidget.
 """
 
+
 class ShellConnectMixin:
     """
     Manager to connect a stacked widget to a shell widget.
