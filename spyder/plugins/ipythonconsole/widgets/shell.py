@@ -168,7 +168,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             if self.kernel_client is not None:
                 self.kernel_client.stop_channels()
         if externally_managed:
-            self.spyder_kernel_comm.close()
+            self.spyder_kernel_comm.close(shutdown_channel=False)
             if self.kernel_client is not None:
                 self.kernel_client.stop_channels()
         super(ShellWidget, self).will_close(externally_managed)

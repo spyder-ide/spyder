@@ -93,8 +93,8 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
         external: bool
             True if the kernel is external
         """
+        self.get_widget().add_shellwidget(shellwidget)
+
         if external:
             shellwidget.set_namespace_view_settings()
             shellwidget.refresh_namespacebrowser()
-
-        self.get_widget().add_shellwidget(shellwidget)
