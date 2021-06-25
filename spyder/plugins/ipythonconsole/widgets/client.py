@@ -70,10 +70,15 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
+class ClientWidgetActions:
+    ShowEnvironmentVariables = 'show_environment_variables_action'
+    ShowSystemPath = 'show_system_path_action'
+    ToggleElapsedTime = 'toggle_elapsed_time_action'
 
 #-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
+# TODO: Should inherit from SpyderWidgetMixin, no SpyderConfigurationAccessor
 class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
     """
     Client widget for the IPython Console
