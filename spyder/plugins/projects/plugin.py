@@ -281,6 +281,8 @@ class Projects(SpyderDockablePlugin):
         if main_menu:
             projects_menu = main_menu.get_application_menu(
                 ApplicationMenus.Projects)
+            projects_menu.aboutToShow.connect(self.is_invalid_active_project)
+
             main_menu.add_item_to_application_menu(
                 new_project_action,
                 menu=projects_menu,
@@ -682,6 +684,25 @@ class Projects(SpyderDockablePlugin):
         """Check if a directory is a valid Spyder project"""
         spy_project_dir = osp.join(path, '.spyproject')
         return osp.isdir(path) and osp.isdir(spy_project_dir)
+
+    def is_invalid_active_project(self):
+        """Handle an invalid active project."""
+        try:
+            path = self.get_active_project_path()
+        except AttributeError:
+            return
+
+        if bool(path):
+            if not self.is_valid_project(path):
+                if path:
+                    QMessageBox.critical(
+                        self.get_widget(),
+                        _('Error'),
+                        _("<b>{}</b> is no longer a valid Spyder project! "
+                          "Since it is the current active project, it will "
+                          "be closed automatically.").format(path)
+                    )
+                self.close_project()
 
     def add_to_recent(self, project):
         """
