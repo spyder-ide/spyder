@@ -43,7 +43,6 @@ class BaseProjectType:
         self.root_path = root_path
         self.open_project_files = []
         self.open_non_project_files = []
-
         path = os.path.join(root_path, get_project_config_folder(), 'config')
         self.config = ProjectMultiConfig(
             PROJECT_NAME_MAP,

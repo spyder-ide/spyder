@@ -31,14 +31,30 @@ from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
 from spyder.py3compat import qbytearray_to_str  # FIXME:
 
+
 # Localization
 _ = get_translation("spyder")
 
 # Constants
+
 # Number of default layouts available
 DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
-# Version passed to saveState/restoreState
-WINDOW_STATE_VERSION = 1
+
+# ----------------------------------------------------------------------------
+# ---- Window state version passed to saveState/restoreState.
+# ----------------------------------------------------------------------------
+# This defines the layout version used by different Spyder releases. In case
+# there's a need to reset the layout when moving from one release to another,
+# please increase the number below in integer steps, e.g. from 1 to 2, and
+# leave a mention below explaining what prompted the change.
+#
+# The current versions are:
+#
+# * Spyder 4: Version 0 (it was the default).
+# * Spyder 5.0.0 to 5.0.5: Version 1 (a bump was required due to the new API).
+# * Spyder 5.1.0: Version 2 (a bump was required due to the migration of
+#                            Projects to the new API).
+WINDOW_STATE_VERSION = 2
 
 
 class Layout(SpyderPluginV2):

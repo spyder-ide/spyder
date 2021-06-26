@@ -293,6 +293,7 @@ DEFAULTS = [
               'max_recent_projects': 10,
               'visible_if_project_open': True,
               'date_column': False,
+              'single_click_to_open': False,
               }),
             ('explorer',
              {

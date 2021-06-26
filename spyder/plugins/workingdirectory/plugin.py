@@ -35,7 +35,7 @@ class WorkingDirectory(SpyderPluginV2):
     NAME = 'workingdir'
     REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
     OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
-                Plugins.Find]
+                Plugins.Find, Plugins.Projects]
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
@@ -71,6 +71,7 @@ class WorkingDirectory(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         explorer = self.get_plugin(Plugins.Explorer)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        projects = self.get_plugin(Plugins.Projects)
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
@@ -98,6 +99,22 @@ class WorkingDirectory(SpyderPluginV2):
                 lambda path: explorer.chdir(path, emit=False))
             explorer.sig_dir_opened.connect(
                 lambda path, plugin=explorer: self.chdir(path, plugin))
+
+        if projects:
+            projects.sig_project_loaded.connect(
+                lambda path:
+                self.chdir(
+                    directory=path,
+                    sender_plugin=projects
+                )
+            )
+
+            projects.sig_project_closed[object].connect(
+                lambda path: self.chdir(
+                    directory=projects.get_last_working_dir(),
+                    sender_plugin=projects
+                )
+            )
 
     # --- Public API
     # ------------------------------------------------------------------------
