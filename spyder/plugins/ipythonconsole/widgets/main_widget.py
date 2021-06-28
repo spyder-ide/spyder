@@ -68,8 +68,8 @@ class IPythonConsoleWidgetActions:
     NewTab = 'new_tab_action'
 
     # Variables display
-    ArrayInline = 'arrya_iniline_action'
-    ArrayTable = 'arrya_table_action'
+    ArrayInline = 'array_iniline_action'
+    ArrayTable = 'array_table_action'
 
 
 class IPythonConsoleWidgetOptionsMenus:
