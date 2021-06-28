@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class DebugWrapper(object):
     """
-    Notifies the frontend when debuggging starts/stops
+    Notifies the frontend when debugging starts/stops
     """
     def __init__(self, pdb_obj):
         self.pdb_obj = pdb_obj
@@ -712,6 +712,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         globals defaults to __main__.dict; locals defaults to globals.
         """
+        self.starting = True
         with DebugWrapper(self):
             super(SpyderPdb, self).run(cmd, globals, locals)
 
@@ -720,6 +721,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         globals defaults to __main__.dict; locals defaults to globals.
         """
+        self.starting = True
         with DebugWrapper(self):
             super(SpyderPdb, self).runeval(expr, globals, locals)
 
@@ -728,6 +730,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         Return the result of the function call.
         """
+        self.starting = True
         with DebugWrapper(self):
             super(SpyderPdb, self).runcall(*args, **kwds)
 
