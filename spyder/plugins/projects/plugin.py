@@ -25,7 +25,6 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QMessageBox
 
 # Local imports
-from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -101,18 +100,21 @@ class Projects(SpyderDockablePlugin):
 
     Parameters
     ----------
-    project_packages: object
-        Package to install. Currently not in use.
+    project_path: object
+        Loaded project path.
     """
 
-    sig_project_closed = Signal(object)
+    sig_project_closed = Signal((object,), (bool,))
     """
     This signal is emitted when a project is closed.
 
     Parameters
     ----------
-    project_packages: object
-        Package to install. Currently not in use.
+    project_path: object
+        Closed project path (signature 1).
+    close_project: bool
+        This is emitted only when closing a project but not when switching
+        between projects (signature 2).
     """
 
     sig_pythonpath_changed = Signal()
@@ -220,7 +222,7 @@ class Projects(SpyderDockablePlugin):
                                   update_kind=WorkspaceUpdateKind.DELETION,
                                   instance=self))
         if self.editor:
-            self.sig_project_closed.connect(
+            self.sig_project_closed[bool].connect(
                 lambda v: self.editor.setup_open_files())
         if outline_explorer:
             self.sig_project_closed.connect(
@@ -367,7 +369,6 @@ class Projects(SpyderDockablePlugin):
     def create_new_project(self):
         """Create new project."""
         self.unmaximize()
-        active_project = self.current_active_project
         dlg = ProjectDialog(self.get_widget(),
                             project_types=self.get_project_types())
         result = dlg.exec_()
@@ -376,19 +377,7 @@ class Projects(SpyderDockablePlugin):
         project_type = data.get("project_type", EmptyProject.ID)
 
         if result:
-            # A project was not open before
-            if active_project is None:
-                if self.get_conf('visible_if_project_open'):
-                    self.show_explorer()
-            else:
-                # We are switching projects.
-                # TODO: Don't emit sig_project_closed when we support
-                # multiple workspaces.
-                self.sig_project_closed.emit(active_project.root_path)
-
             self._create_project(root_path, project_type_id=project_type)
-            self.sig_pythonpath_changed.emit()
-            self.restart_consoles()
             dlg.close()
 
     def _create_project(self, root_path, project_type_id=EmptyProject.ID,
@@ -513,6 +502,7 @@ class Projects(SpyderDockablePlugin):
             self.setup_menu_actions()
 
             self.sig_project_closed.emit(path)
+            self.sig_project_closed[bool].emit(True)
             self.sig_pythonpath_changed.emit()
 
             # Hide pane.
