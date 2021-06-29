@@ -21,6 +21,8 @@ from qtpy.QtWidgets import QMainWindow
 import pytest
 
 # Local imports
+from spyder.api.plugins import Plugins
+from spyder.api.startup.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 from spyder.plugins.preferences.api import PreferencePages
 from spyder.plugins.preferences.plugin import Preferences
@@ -45,8 +47,9 @@ class MainWindowMock(QMainWindow):
 
         self.console = Mock()
         self.sig_main_interpreter_changed = Mock()
-        self.preferences = Preferences(self, CONF)
-        self.register_plugin(self.preferences)
+
+        PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
+        PLUGIN_REGISTRY.register_plugin(self, Preferences)
 
         # Load shortcuts for tests
         for context, name, __ in CONF.iter_shortcuts():
@@ -59,10 +62,14 @@ class MainWindowMock(QMainWindow):
             setattr(mock_attr, 'prefs_dialog_instance', lambda: '')
             setattr(self, attr, mock_attr)
 
-    def register_plugin(self, plugin, external=False):
+    def register_plugin(self, plugin_name, external=False):
+        plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
         plugin._register()
-        plugin.register()
         self.add_plugin(plugin, external=external)
+
+    def get_plugin(self, plugin_name):
+        if plugin_name in PLUGIN_REGISTRY:
+            return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
     def add_plugin(self, plugin, external=False):
         self._PLUGINS[plugin.CONF_SECTION] = plugin
@@ -91,10 +98,14 @@ class ConfigDialogTester:
         def reset_spyder(self):
             pass
 
-        def register_plugin(self, plugin, external=False):
+        def register_plugin(self, plugin_name, external=False):
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             plugin._register()
-            plugin.register()
             self.add_plugin(plugin, external=external)
+
+        def get_plugin(self, plugin_name):
+            if plugin_name in PLUGIN_REGISTRY:
+                return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
         def add_plugin(self, plugin, external=False):
             self._PLUGINS[plugin.CONF_SECTION] = plugin
@@ -108,14 +119,17 @@ class ConfigDialogTester:
         setattr(self._main, '_INTERNAL_PLUGINS', OrderedDict())
         setattr(self._main, 'register_plugin',
                 types.MethodType(register_plugin, self._main))
+        setattr(self._main, 'get_plugin',
+                types.MethodType(get_plugin, self._main))
         setattr(self._main, 'add_plugin',
                 types.MethodType(add_plugin, self._main))
         setattr(self._main, 'reset_spyder',
                 types.MethodType(reset_spyder, self._main))
         setattr(self._main, 'set_prefs_size',
                 types.MethodType(set_prefs_size, self._main))
-        setattr(self._main, 'preferences', Preferences(self._main, CONF))
-        self._main.register_plugin(self._main.preferences)
+
+        PLUGIN_REGISTRY.sig_plugin_ready.connect(self._main.register_plugin)
+        PLUGIN_REGISTRY.register_plugin(self._main, Preferences)
 
         if plugins:
             for Plugin in plugins:
@@ -126,10 +140,10 @@ class ConfigDialogTester:
                             self._main._INTERNAL_PLUGINS[
                                 required] = MagicMock()
 
-                    plugin = Plugin(self._main, CONF)
-                    self._main.register_plugin(plugin)
+                    PLUGIN_REGISTRY.register_plugin(self._main, Plugin)
                 else:
-                    plugin = Plugin(self._main)
+                    plugin = PLUGIN_REGISTRY.register_plugin(
+                        self._main, Plugin)
                     self._main.preferences.register_plugin_preferences(plugin)
 
 
@@ -154,7 +168,7 @@ def global_config_dialog(qtbot):
 def config_dialog(qtbot, request, mocker):
     mocker.patch.object(ima, 'icon', lambda x: QIcon())
     main_ref = ConfigDialogTester(request.param)
-    preferences = main_ref._main.preferences
+    preferences = main_ref._main.get_plugin(Plugins.Preferences)
     preferences.open_dialog(None)
 
     container = preferences.get_container()
