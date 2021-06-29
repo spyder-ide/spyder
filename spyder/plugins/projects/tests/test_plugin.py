@@ -466,11 +466,6 @@ def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
             [projects.sig_project_loaded, projects.sig_project_closed]):
         projects.open_project(path=path2)
 
-    # Create new project with an active one. This must emit
-    # sig_project_closed!
-    with qtbot.waitSignal(projects.sig_project_closed):
-        projects.create_new_project()
-
 
 if __name__ == "__main__":
     pytest.main()
