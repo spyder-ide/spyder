@@ -103,9 +103,10 @@ class ConfigDialogTester:
             plugin._register()
             self.add_plugin(plugin, external=external)
 
-        def get_plugin(self, plugin_name):
+        def get_plugin(self, plugin_name, error=False):
             if plugin_name in PLUGIN_REGISTRY:
                 return PLUGIN_REGISTRY.get_plugin(plugin_name)
+            return None
 
         def add_plugin(self, plugin, external=False):
             self._PLUGINS[plugin.CONF_SECTION] = plugin
@@ -142,9 +143,11 @@ class ConfigDialogTester:
 
                     PLUGIN_REGISTRY.register_plugin(self._main, Plugin)
                 else:
-                    plugin = PLUGIN_REGISTRY.register_plugin(
-                        self._main, Plugin)
-                    self._main.preferences.register_plugin_preferences(plugin)
+                    # plugin = PLUGIN_REGISTRY.register_plugin(
+                    #     self._main, Plugin)
+                    plugin = Plugin(self._main)
+                    preferences = self._main.get_plugin(Plugins.Preferences)
+                    preferences.register_plugin_preferences(plugin)
 
 
 @pytest.fixture
