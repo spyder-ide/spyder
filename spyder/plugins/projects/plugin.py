@@ -101,18 +101,21 @@ class Projects(SpyderDockablePlugin):
 
     Parameters
     ----------
-    project_packages: object
-        Package to install. Currently not in use.
+    project_path: object
+        Loaded project path.
     """
 
-    sig_project_closed = Signal(object)
+    sig_project_closed = Signal((object,), (bool,))
     """
     This signal is emitted when a project is closed.
 
     Parameters
     ----------
-    project_packages: object
-        Package to install. Currently not in use.
+    project_path: object
+        Closed project path (signature 1).
+    close_project: bool
+        This is emitted only when closing a project but not when switching
+        between projects (signature 2).
     """
 
     sig_pythonpath_changed = Signal()
@@ -220,7 +223,7 @@ class Projects(SpyderDockablePlugin):
                                   update_kind=WorkspaceUpdateKind.DELETION,
                                   instance=self))
         if self.editor:
-            self.sig_project_closed.connect(
+            self.sig_project_closed[bool].connect(
                 lambda v: self.editor.setup_open_files())
         if outline_explorer:
             self.sig_project_closed.connect(
@@ -513,6 +516,7 @@ class Projects(SpyderDockablePlugin):
             self.setup_menu_actions()
 
             self.sig_project_closed.emit(path)
+            self.sig_project_closed[bool].emit(True)
             self.sig_pythonpath_changed.emit()
 
             # Hide pane.
