@@ -25,7 +25,9 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QMessageBox
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.startup.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.config.base import (get_home_dir, get_project_config_folder,
@@ -145,110 +147,135 @@ class Projects(SpyderDockablePlugin):
     def get_icon(self):
         return self.create_icon('project')
 
-    def register(self):
+    def on_initialize(self):
         """Register plugin in Spyder's main window"""
         widget = self.get_widget()
         treewidget = widget.treewidget
-
-        self.ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.completions = self.get_plugin(Plugins.Completions)
-        self.editor = self.get_plugin(Plugins.Editor)
-        outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
 
         treewidget.sig_delete_project.connect(self.delete_project)
         treewidget.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
         self.sig_switch_to_plugin_requested.connect(
             lambda plugin, check: self.show_explorer())
+        self.sig_project_loaded.connect(self.update_explorer)
 
         if self.main:
             widget.sig_open_file_requested.connect(self.main.open_file)
             self.main.project_path = self.get_pythonpath(at_start=True)
+            self.sig_project_loaded.connect(
+                lambda v: self.main.set_window_title())
+            self.sig_project_closed.connect(
+                lambda v: self.main.set_window_title())
+            self.main.restore_scrollbar_position.connect(
+                self.restore_scrollbar_position)
+            self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
 
-        if self.editor:
-            treewidget.sig_open_file_requested.connect(self.editor.load)
-            treewidget.sig_removed.connect(self.editor.removed)
-            treewidget.sig_tree_removed.connect(self.editor.removed_tree)
-            treewidget.sig_renamed.connect(self.editor.renamed)
-            treewidget.sig_tree_renamed.connect(self.editor.renamed_tree)
-            treewidget.sig_module_created.connect(self.editor.new)
-            treewidget.sig_file_created.connect(
-                lambda t: self.editor.new(text=t))
+        self.register_project_type(self, EmptyProject)
+        self.setup()
 
-        if self.ipyconsole:
-            treewidget.sig_open_interpreter_requested.connect(
-                self.ipyconsole.create_client_from_path)
-            treewidget.sig_run_requested.connect(
-                lambda fname:
-                self.ipyconsole.run_script(
-                    fname, osp.dirname(fname), '', False, False, False, True,
-                    False)
-            )
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        self.editor = self.get_plugin(Plugins.Editor)
+        widget = self.get_widget()
+        treewidget = widget.treewidget
+
+        treewidget.sig_open_file_requested.connect(self.editor.load)
+        treewidget.sig_removed.connect(self.editor.removed)
+        treewidget.sig_tree_removed.connect(self.editor.removed_tree)
+        treewidget.sig_renamed.connect(self.editor.renamed)
+        treewidget.sig_tree_renamed.connect(self.editor.renamed_tree)
+        treewidget.sig_module_created.connect(self.editor.new)
+        treewidget.sig_file_created.connect(
+            lambda t: self.editor.new(text=t))
+
+        self.sig_project_loaded.connect(
+            lambda v: self.editor.setup_open_files())
+        self.sig_project_closed[bool].connect(
+            lambda v: self.editor.setup_open_files())
+        self.editor.set_projects(self)
+        self.sig_project_loaded.connect(
+            lambda v: self.editor.set_current_project_path(v))
+        self.sig_project_closed.connect(
+            lambda v: self.editor.set_current_project_path())
+
+    @on_plugin_available(plugin=Plugins.Completions)
+    def on_completions_available(self):
+        self.completions = self.get_plugin(Plugins.Completions)
 
         # TODO: This is not necessary anymore due to us starting workspace
         # services in the editor. However, we could restore it in the future.
         # completions.sig_language_completions_available.connect(
         #     lambda settings, language:
         #         self.start_workspace_services())
-        if self.completions:
-            self.completions.sig_stop_completions.connect(
+        self.completions.sig_stop_completions.connect(
                 self.stop_workspace_services)
+        self.sig_project_loaded.connect(
+            functools.partial(self.completions.project_path_update,
+                              update_kind=WorkspaceUpdateKind.ADDITION,
+                              instance=self))
+        self.sig_project_closed.connect(
+            functools.partial(self.completions.project_path_update,
+                              update_kind=WorkspaceUpdateKind.DELETION,
+                              instance=self))
 
-        # ---------------------------------------------------------------------
-        # New project connections
-        # Order matters!
-        # ---------------------------------------------------------------------
-        if self.main:
-            self.sig_project_loaded.connect(
-                lambda v: self.main.set_window_title())
-        if self.completions:
-            self.sig_project_loaded.connect(
-                functools.partial(self.completions.project_path_update,
-                                  update_kind=WorkspaceUpdateKind.ADDITION,
-                                  instance=self))
-        if self.editor:
-            self.sig_project_loaded.connect(
-                lambda v: self.editor.setup_open_files())
-        self.sig_project_loaded.connect(self.update_explorer)
-        if outline_explorer:
-            self.sig_project_loaded.connect(
-                lambda v: outline_explorer.update_all_editors())
-        if self.main:
-            self.sig_project_closed.connect(
-                lambda v: self.main.set_window_title())
-        if self.completions:
-            self.sig_project_closed.connect(
-                functools.partial(self.completions.project_path_update,
-                                  update_kind=WorkspaceUpdateKind.DELETION,
-                                  instance=self))
-        if self.editor:
-            self.sig_project_closed[bool].connect(
-                lambda v: self.editor.setup_open_files())
-        if outline_explorer:
-            self.sig_project_closed.connect(
-                lambda v: outline_explorer.update_all_editors())
-        if self.main:
-            self.main.restore_scrollbar_position.connect(
-                self.restore_scrollbar_position)
-            self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
-        if self.editor:
-            self.editor.set_projects(self)
-            self.sig_project_loaded.connect(
-                lambda v: self.editor.set_current_project_path(v))
-            self.sig_project_closed.connect(
-                lambda v: self.editor.set_current_project_path())
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
+        self.ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        widget = self.get_widget()
+        treewidget = widget.treewidget
 
-        self.register_project_type(self, EmptyProject)
-        self.setup()
+        treewidget.sig_open_interpreter_requested.connect(
+            self.ipyconsole.create_client_from_path)
+        treewidget.sig_run_requested.connect(
+            lambda fname:
+            self.ipyconsole.run_script(
+                fname, osp.dirname(fname), '', False, False, False, True,
+                False)
+        )
+
+    @on_plugin_available(plugin=Plugins.OutlineExplorer)
+    def on_outline_explorer_available(self):
+        outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
+        self.sig_project_loaded.connect(
+            lambda v: outline_explorer.update_all_editors())
+        self.sig_project_closed.connect(
+            lambda v: outline_explorer.update_all_editors())
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        new_project_action = self.get_action(ProjectsActions.NewProject)
+        open_project_action = self.get_action(ProjectsActions.OpenProject)
+
+        projects_menu = main_menu.get_application_menu(
+            ApplicationMenus.Projects)
+        projects_menu.aboutToShow.connect(self.is_invalid_active_project)
+
+        main_menu.add_item_to_application_menu(
+            new_project_action,
+            menu=projects_menu,
+            section=ProjectsMenuSections.New)
+
+        for item in [open_project_action, self.close_project_action,
+                     self.delete_project_action]:
+            main_menu.add_item_to_application_menu(
+                item,
+                menu=projects_menu,
+                section=ProjectsMenuSections.Open)
+
+        main_menu.add_item_to_application_menu(
+            self.recent_project_menu,
+            menu=projects_menu,
+            section=ProjectsMenuSections.Extras)
 
     def setup(self):
         """Setup the plugin actions."""
-        new_project_action = self.create_action(
+        self.create_action(
             ProjectsActions.NewProject,
             text=_("New Project..."),
             triggered=self.create_new_project)
 
-        open_project_action = self.create_action(
+        self.create_action(
             ProjectsActions.OpenProject,
             text=_("Open Project..."),
             triggered=lambda v: self.open_project())
@@ -278,29 +305,6 @@ class Projects(SpyderDockablePlugin):
             _("Recent Projects")
         )
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
-
-        main_menu = self.get_plugin(Plugins.MainMenu)
-        if main_menu:
-            projects_menu = main_menu.get_application_menu(
-                ApplicationMenus.Projects)
-            projects_menu.aboutToShow.connect(self.is_invalid_active_project)
-
-            main_menu.add_item_to_application_menu(
-                new_project_action,
-                menu=projects_menu,
-                section=ProjectsMenuSections.New)
-            for item in [open_project_action, self.close_project_action,
-                         self.delete_project_action]:
-                main_menu.add_item_to_application_menu(
-                    item,
-                    menu=projects_menu,
-                    section=ProjectsMenuSections.Open)
-
-            main_menu.add_item_to_application_menu(
-                self.recent_project_menu,
-                menu=projects_menu,
-                section=ProjectsMenuSections.Extras)
-
         self.setup_menu_actions()
 
     def setup_menu_actions(self):
