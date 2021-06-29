@@ -19,11 +19,12 @@ import uuid
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
+from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
 
@@ -32,16 +33,18 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
     get_conf_path, get_home_dir, running_under_pytest)
+from spyder.config.gui import get_font
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets.client import ClientWidgetActions
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
 # TODO: Remove to_text_string calls and other PY2 compatibility logic
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
-from spyder.utils import programs, sourcecode
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
 from spyder.widgets.browser import FrameWebView
@@ -106,6 +109,107 @@ class IPythonConsoleWidget(PluginMainWidget):
     This is a widget with tabs where each one is a ClientWidget
     """
 
+    # Signals
+    sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
+    
+    sig_pdb_state_changed = Signal(bool, dict)
+    """
+    This signal is emitted when the debugging state changes.
+    Parameters
+    ----------
+    waiting_pdb_input: bool
+        If the debugging session is waiting for input.
+    pdb_last_step: dict
+        Dictionary with the information of the last step done
+        in the debugging session.
+    """
+
+    sig_shellwidget_created = Signal(object)
+    """
+    This signal is emitted when a shellwidget is created.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
+    sig_shellwidget_deleted = Signal(object)
+    """
+    This signal is emitted when a shellwidget is deleted/removed.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
+    sig_shellwidget_changed = Signal(object)
+    """
+    This signal is emitted when the current shellwidget changes.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
+    sig_render_plain_text_requested = Signal(str)
+    """
+    This signal is emitted to request a plain text help render.
+
+    Parameters
+    ----------
+    plain_text: str
+        The plain text to render.
+    """
+
+    sig_render_rich_text_requested = Signal(str, bool)
+    """
+    This signal is emitted to request a rich text help render.
+
+    Parameters
+    ----------
+    rich_text: str
+        The rich text.
+    collapse: bool
+        If the text contains collapsed sections, show them closed (True) or
+        open (False).
+    """
+
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Example `{'name': str, 'ignore_unknown': bool}`.
+    """
+
+    sig_current_directory_changed = Signal(str)
+    """
+    This signal is emitted when the current directory of the active shell
+    widget has changed.
+
+    Parameters
+    ----------
+    working_directory: str
+        The new working directory path.
+    """
+
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
@@ -154,7 +258,8 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         self.tabwidget.set_close_function(self.close_client)
 
-        self.main.editor.sig_file_debug_message_requested.connect(
+        # TODO: Check dependenciy with Editor
+        self.plugin.main.editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
         if sys.platform == 'darwin':
@@ -174,7 +279,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         else:
             self.infowidget.setStyleSheet(
                 "background:{}".format(MAIN_BG_COLOR))
-        self.set_infowidget_font()
         layout.addWidget(self.infowidget)
 
         # Label to inform users how to get out of the pager
@@ -355,9 +459,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         #     return client.get_options_menu()
 
     def update_style(self):
-        font = self.get_font()
-        for client in self.clients:
-            client.set_font(font)
+        rich_font = get_font(option='rich_font')
+        font = self.plugin.get_font()
+        self.update_font(font, rich_font)
 
     def update_actions(self):
         pass
@@ -422,14 +526,18 @@ class IPythonConsoleWidget(PluginMainWidget):
         return cf
 
     def _shellwidget_started(self, client):
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.add_shellwidget(client.shellwidget)
+        # TODO: This will change after
+        # https://github.com/spyder-ide/spyder/pull/15922 gets merged
+        if self.plugin.main.variableexplorer is not None:
+            self.plugin.main.variableexplorer.add_shellwidget(client.shellwidget)
 
         self.sig_shellwidget_created.emit(client.shellwidget)
 
     def _shellwidget_deleted(self, client):
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.remove_shellwidget(client.shellwidget)
+        # TODO: This will change after
+        # https://github.com/spyder-ide/spyder/pull/15922 gets merged
+        if self.plugin.main.variableexplorer is not None:
+            self.plugin.main.variableexplorer.remove_shellwidget(client.shellwidget)
 
         self.sig_shellwidget_deleted.emit(client.shellwidget)
 
@@ -554,7 +662,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Set elapsed time, if possible
         if not external_kernel:
-            self.set_elapsed_time(client)
+            self.set_client_elapsed_time(client)
 
         # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())
@@ -578,8 +686,229 @@ class IPythonConsoleWidget(PluginMainWidget):
         for client in self.clients:
             client.set_font(font)
 
+    # ---- For tabs
+    # -------------------------------------------------------------------------
+    def add_tab(self, widget, name, filename='', give_focus=True):
+        """Add tab."""
+        self.clients.append(widget)
+        index = self.tabwidget.addTab(widget, name)
+        self.filenames.insert(index, filename)
+        self.tabwidget.setCurrentIndex(index)
+
+        if self.dockwidget:
+            self.change_visibility(give_focus)
+
+        self.activateWindow()
+        widget.get_control().setFocus()
+        self.update_tabs_text()
+
+    def move_tab(self, index_from, index_to):
+        """
+        Move tab (tabs themselves have already been moved by the tabwidget).
+        """
+        filename = self.filenames.pop(index_from)
+        client = self.clients.pop(index_from)
+        self.filenames.insert(index_to, filename)
+        self.clients.insert(index_to, client)
+        self.update_tabs_text()
+
+    def disambiguate_fname(self, fname):
+        """Generate a file name without ambiguation."""
+        files_path_list = [filename for filename in self.filenames
+                           if filename]
+        return sourcecode.disambiguate_fname(files_path_list, fname)
+
+    def update_tabs_text(self):
+        """Update the text from the tabs."""
+        # This is needed to prevent that hanged consoles make reference
+        # to an index that doesn't exist. See spyder-ide/spyder#4881.
+        try:
+            for index, fname in enumerate(self.filenames):
+                client = self.clients[index]
+                if fname:
+                    self.rename_client_tab(client,
+                                           self.disambiguate_fname(fname))
+                else:
+                    self.rename_client_tab(client, None)
+        except IndexError:
+            pass
+
+    def rename_client_tab(self, client, given_name):
+        """Rename client's tab."""
+        index = self.get_client_index_from_id(id(client))
+
+        if given_name is not None:
+            client.given_name = given_name
+
+        self.tabwidget.setTabText(index, client.get_name())
+
+    def rename_tabs_after_change(self, given_name):
+        """Rename tabs after a change in name."""
+        client = self.get_current_client()
+
+        # Prevent renames that want to assign the same name of
+        # a previous tab
+        repeated = False
+        for cl in self.get_clients():
+            if id(client) != id(cl) and given_name == cl.given_name:
+                repeated = True
+                break
+
+        # Rename current client tab to add str_id
+        if client.allow_rename and u'/' not in given_name and not repeated:
+            self.rename_client_tab(client, given_name)
+        else:
+            self.rename_client_tab(client, None)
+
+        # Rename related clients
+        if client.allow_rename and u'/' not in given_name and not repeated:
+            for cl in self.get_related_clients(client):
+                self.rename_client_tab(cl, given_name)
+
+    def tab_name_editor(self):
+        """Trigger the tab name editor."""
+        index = self.tabwidget.currentIndex()
+        self.tabwidget.tabBar().tab_name_editor.edit_tab(index)
+
     # --- For clients
     # -------------------------------------------------------------------------
+    
+    # ---- For magics and configurations
+    @Slot(object, object)
+    def edit_file(self, filename, line):
+        """Handle %edit magic petitions."""
+        if encoding.is_text_file(filename):
+            # The default line number sent by ipykernel is always the last
+            # one, but we prefer to use the first.
+            self.sig_edit_goto_requested.emit(filename, 1, '')
+
+    def config_options(self):
+        """
+        Generate a Trailets Config instance for shell widgets using our
+        config system
+
+        This lets us create each widget with its own config
+        """
+        # ---- Jupyter config ----
+        try:
+            full_cfg = load_pyconfig_files(['jupyter_qtconsole_config.py'],
+                                           jupyter_config_dir())
+
+            # From the full config we only select the JupyterWidget section
+            # because the others have no effect here.
+            cfg = Config({'JupyterWidget': full_cfg.JupyterWidget})
+        except:
+            cfg = Config()
+
+        # ---- Spyder config ----
+        spy_cfg = Config()
+
+        # Make the pager widget a rich one (i.e a QTextEdit)
+        spy_cfg.JupyterWidget.kind = 'rich'
+
+        # Gui completion widget
+        completion_type_o = self.get_option('completion_type')
+        completions = {0: "droplist", 1: "ncurses", 2: "plain"}
+        spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
+
+        # Calltips
+        calltips_o = self.get_option('show_calltips')
+        spy_cfg.JupyterWidget.enable_calltips = calltips_o
+
+        # Buffer size
+        buffer_size_o = self.get_option('buffer_size')
+        spy_cfg.JupyterWidget.buffer_size = buffer_size_o
+
+        # Prompts
+        in_prompt_o = self.get_option('in_prompt')
+        out_prompt_o = self.get_option('out_prompt')
+        if in_prompt_o:
+            spy_cfg.JupyterWidget.in_prompt = in_prompt_o
+        if out_prompt_o:
+            spy_cfg.JupyterWidget.out_prompt = out_prompt_o
+
+        # Style
+        color_scheme = self.get_conf('selected', section='appearance')
+        style_sheet = create_qss_style(color_scheme)[0]
+        spy_cfg.JupyterWidget.style_sheet = style_sheet
+        spy_cfg.JupyterWidget.syntax_style = color_scheme
+
+        # Merge QtConsole and Spyder configs. Spyder prefs will have
+        # prevalence over QtConsole ones
+        cfg._merge(spy_cfg)
+        return cfg
+
+    def interpreter_versions(self):
+        """Python and IPython versions used by clients"""
+        if self.get_conf('default', section='main_interpreter'):
+            from IPython.core import release
+            versions = dict(
+                python_version = sys.version,
+                ipython_version = release.version
+            )
+        else:
+            import subprocess
+            versions = {}
+            pyexec = self.get_conf('executable', section='main_interpreter')
+            py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
+            ipy_cmd = (
+                u'%s -c "import IPython.core.release as r; print(r.version)"'
+                % pyexec
+            )
+            for cmd in [py_cmd, ipy_cmd]:
+                if PY2:
+                    # We need to encode as run_shell_command will treat the
+                    # string as str
+                    cmd = cmd.encode('utf-8')
+
+                try:
+                    # Use clean environment
+                    proc = programs.run_shell_command(cmd, env={})
+                    output, _err = proc.communicate()
+                except subprocess.CalledProcessError:
+                    output = ''
+                output = output.decode().split('\n')[0].strip()
+                if 'IPython' in cmd:
+                    versions['ipython_version'] = output
+                else:
+                    versions['python_version'] = output
+
+        return versions
+
+    def additional_options(self, is_pylab=False, is_sympy=False):
+        """
+        Additional options for shell widgets that are not defined
+        in JupyterWidget config options
+        """
+        options = dict(
+            pylab=self.get_option('pylab'),
+            autoload_pylab=self.get_option('pylab/autoload'),
+            sympy=self.get_option('symbolic_math'),
+            show_banner=self.get_option('show_banner')
+        )
+
+        if is_pylab is True:
+            options['autoload_pylab'] = True
+            options['sympy'] = False
+        if is_sympy is True:
+            options['autoload_pylab'] = False
+            options['sympy'] = True
+
+        return options
+
+
+    # ---- For client widgets
+    def set_client_elapsed_time(self, client):
+        """Set elapsed time for slave clients."""
+        related_clients = self.get_related_clients(client)
+        for cl in related_clients:
+            if cl.timer is not None:
+                client.create_time_label()
+                client.t0 = cl.t0
+                client.timer.timeout.connect(client.show_time)
+                client.timer.start(1000)
+                break
+    
     def get_clients(self):
         """Return clients list"""
         return [cl for cl in self.clients if isinstance(cl, ClientWidget)]
@@ -641,7 +970,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         if self._test_dir is not None:
             client.stderr_dir = self._test_dir
 
-        self.add_tab(client, name=client.get_name(), filename=filename)
+        self.add_tab(
+            client, name=client.get_name(), filename=filename,
+            give_focus=give_focus)
 
         if cf is None:
             error_msg = self.permission_error_msg.format(jupyter_runtime_dir())
@@ -767,6 +1098,198 @@ class IPythonConsoleWidget(PluginMainWidget):
                 break
         return client
 
+    def register_client(self, client, give_focus=True):
+        """Register new client"""
+        client.configure_shellwidget(give_focus=give_focus)
+
+        # Local vars
+        shellwidget = client.shellwidget
+        control = shellwidget._control
+
+        # Create new clients with Ctrl+T shortcut
+        shellwidget.new_client.connect(self.create_new_client)
+
+        # For tracebacks
+        control.sig_go_to_error_requested.connect(self.go_to_error)
+
+        # For help requests
+        control.sig_help_requested.connect(self.sig_help_requested)
+
+        shellwidget.sig_pdb_step.connect(
+                              lambda fname, lineno, shellwidget=shellwidget:
+                              self.pdb_has_stopped(fname, lineno, shellwidget))
+        shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
+
+        # To handle %edit magic petitions
+        shellwidget.custom_edit_requested.connect(self.edit_file)
+
+        # Set shell cwd according to preferences
+        # TODO: Check dependency with Projects
+        cwd_path = ''
+        if self.get_conf(
+                'console/use_project_or_home_directory', section='workingdir'):
+            cwd_path = get_home_dir()
+            if (self.plugin.main.projects is not None and
+                    self.plugin.main.projects.get_active_project() is not None
+                    ):
+                cwd_path = self.plugin.main.projects.get_active_project_path()
+        elif self.get_conf(
+                'startup/use_fixed_directory', section='workingdir'):
+            cwd_path = self.get_conf(
+                'startup/fixed_directory',
+                default=get_home_dir(),
+                section='workingdir')
+        elif self.get_conf(
+                'console/use_fixed_directory', section='workingdir'):
+            cwd_path = self.get_conf(
+                'console/fixed_directory', section='workingdir')
+
+        if osp.isdir(cwd_path) and self.plugin.main is not None:
+            shellwidget.set_cwd(cwd_path)
+            if give_focus:
+                # Syncronice cwd with explorer and cwd widget
+                shellwidget.update_cwd()
+
+        # Connect client to history log
+        self.sig_history_requested.emit(client.history_filename)
+        client.sig_append_to_history_requested.connect(
+            self.sig_append_to_history_requested)
+
+        # Set font for client
+        client.set_font(self.plugin.get_font())
+
+        # Set editor for the find widget
+        self.find_widget.set_editor(control)
+
+        # Connect to working directory
+        shellwidget.sig_working_directory_changed.connect(
+            self.set_working_directory)
+
+    def close_client(self, index=None, client=None, force=False):
+        """Close client tab from index or widget (or close current tab)"""
+        if not self.tabwidget.count():
+            return
+        if client is not None:
+            if client not in self.clients:
+                # Client already closed
+                return
+            index = self.tabwidget.indexOf(client)
+            # if index is not found in tabwidget it's because this client was
+            # already closed and the call was performed by the exit callback
+            if index == -1:
+                return
+        if index is None and client is None:
+            index = self.tabwidget.currentIndex()
+        if index is not None:
+            client = self.tabwidget.widget(index)
+
+        # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
+        try:
+            # Close client
+            client.stop_button_click_handler()
+        except RuntimeError:
+            pass
+
+        # Disconnect timer needed to update elapsed time
+        try:
+            client.timer.timeout.disconnect(client.show_time)
+        except (RuntimeError, TypeError):
+            pass
+
+        # Check if related clients or kernels are opened
+        # and eventually ask before closing them
+        if not self.mainwindow_close and not force:
+            close_all = True
+            if client.ask_before_closing:
+                close = QMessageBox.question(
+                    self, self.plugin.get_plugin_title(),
+                    _("Do you want to close this console?"),
+                    QMessageBox.Yes | QMessageBox.No)
+                if close == QMessageBox.No:
+                    return
+            if len(self.get_related_clients(client)) > 0:
+                close_all = QMessageBox.question(
+                    self, self.plugin.get_plugin_title(),
+                    _("Do you want to close all other consoles connected "
+                      "to the same kernel as this one?"),
+                    QMessageBox.Yes | QMessageBox.No)
+
+            client.shutdown()
+            if close_all == QMessageBox.Yes:
+                self.close_related_clients(client)
+
+        # if there aren't related clients we can remove stderr_file
+        related_clients = self.get_related_clients(client)
+        if len(related_clients) == 0:
+            client.remove_stderr_file()
+
+        client.dialog_manager.close_all()
+        client.close()
+
+        # Note: client index may have changed after closing related widgets
+        self.tabwidget.removeTab(self.tabwidget.indexOf(client))
+        self.clients.remove(client)
+
+        # This is needed to prevent that hanged consoles make reference
+        # to an index that doesn't exist. See spyder-ide/spyder#4881
+        try:
+            self.filenames.pop(index)
+        except IndexError:
+            pass
+
+        self.update_tabs_text()
+
+        # Create a new client if the console is about to become empty
+        if not self.tabwidget.count() and self.create_new_client_if_empty:
+            self.create_new_client()
+
+        self.sig_update_plugin_title.emit()
+
+    def get_client_index_from_id(self, client_id):
+        """Return client index from id"""
+        for index, client in enumerate(self.clients):
+            if id(client) == client_id:
+                return index
+
+    def get_related_clients(self, client):
+        """
+        Get all other clients that are connected to the same kernel as `client`
+        """
+        related_clients = []
+        for cl in self.get_clients():
+            if cl.connection_file == client.connection_file and \
+              cl is not client:
+                related_clients.append(cl)
+        return related_clients
+
+    def close_related_clients(self, client):
+        """Close all clients related to *client*, except itself"""
+        related_clients = self.get_related_clients(client)
+        for cl in related_clients:
+            self.close_client(client=cl, force=True)
+
+    def restart(self):
+        """
+        Restart the console
+
+        This is needed when we switch projects to update PYTHONPATH
+        and the selected interpreter
+        """
+        self.master_clients = 0
+        self.create_new_client_if_empty = False
+        for i in range(len(self.clients)):
+            client = self.clients[-1]
+            try:
+                client.shutdown()
+            except Exception as e:
+                QMessageBox.warning(self, _('Warning'),
+                    _("It was not possible to restart the IPython console "
+                      "when switching to this project. The error was<br><br>"
+                      "<tt>{0}</tt>").format(e), QMessageBox.Ok)
+            self.close_client(client=client, force=True)
+        self.create_new_client(give_focus=False)
+        self.create_new_client_if_empty = True
+
     # ---- For kernels    
     # -------------------------------------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
@@ -796,9 +1319,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Create a kernel spec for our own kernels"""
         # Before creating our kernel spec, we always need to
         # set this value in spyder.ini
+        # TODO: Check PYTHONPATH management
         self.set_conf(
             'spyder_pythonpath',
-            self.main.get_spyder_pythonpath(),
+            self.plugin.main.get_spyder_pythonpath(),
             section='main')
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
@@ -884,19 +1408,133 @@ class IPythonConsoleWidget(PluginMainWidget):
         kc = shellwidget.kernel_client
         self.sig_shellwidget_changed.emit(sw)
 
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.add_shellwidget(sw)
+        # TODO: This will change after
+        # https://github.com/spyder-ide/spyder/pull/15922 gets merged
+        if self.plugin.main.variableexplorer is not None:
+            self.plugin.main.variableexplorer.add_shellwidget(sw)
             sw.set_namespace_view_settings()
             sw.refresh_namespacebrowser()
             kc.stopped_channels.connect(lambda :
-                self.main.variableexplorer.remove_shellwidget(id(sw)))
+                self.plugin.main.variableexplorer.remove_shellwidget(id(sw)))
 
-        if self.main.plots is not None:
-            self.main.plots.add_shellwidget(sw)
+        if self.plugin.main.plots is not None:
+            self.plugin.main.plots.add_shellwidget(sw)
             kc.stopped_channels.connect(lambda :
-                self.main.plots.remove_shellwidget(id(sw)))
-    
+                self.plugin.main.plots.remove_shellwidget(id(sw)))
 
+    # ---- For running and debugging
+    # --------------------------------------------------------------------------
+    
+    # ---- For general debugging
+    def pdb_has_stopped(self, fname, lineno, shellwidget):
+        """Python debugger has just stopped at frame (fname, lineno)"""
+        # This is a unique form of the sig_edit_goto_requested signal that
+        # is intended to prevent keyboard input from accidentally entering the
+        # editor during repeated, rapid entry of debugging commands.
+        self.sig_edit_goto_requested[str, int, str, bool].emit(
+            fname, lineno, '', False)
+        self.activateWindow()
+        shellwidget._control.setFocus()
+
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_spyder_breakpoints()
+
+    def pdb_execute_command(self, command):
+        """
+        Send command to the pdb kernel if possible.
+        """
+
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            # Needed to handle an error when kernel_client is None.
+            # See spyder-ide/spyder#7578.
+            try:
+                sw.pdb_execute_command(command)
+            except AttributeError:
+                pass
+
+    def stop_debugging(self):
+        """Stop debugging"""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            sw.stop_debugging()
+
+    def get_pdb_state(self):
+        """Get debugging state of the current console."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.is_waiting_pdb_input()
+        return False
+
+    def get_pdb_last_step(self):
+        """Get last pdb step of the current console."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.get_pdb_last_step()
+        return {}
+
+    def check_pdb_state(self):
+        """
+        Check if actions need to be taken checking the last pdb state.
+        """
+        pdb_state = self.get_pdb_state()
+        if pdb_state:
+            pdb_last_step = self.get_pdb_last_step()
+            sw = self.get_current_shellwidget()
+            if 'fname' in pdb_last_step and sw is not None:
+                fname = pdb_last_step['fname']
+                line = pdb_last_step['lineno']
+                self.pdb_has_stopped(fname, line, sw)
+
+    # ---- For cells
+    def run_cell(self, code, cell_name, filename, run_cell_copy,
+                 function='runcell'):
+        """Run cell in current or dedicated client."""
+
+        def norm(text):
+            return remove_backslashes(to_text_string(text))
+
+        self.run_cell_filename = filename
+
+        # Select client to execute code on it
+        client = self.get_client_for_file(filename)
+        if client is None:
+            client = self.get_current_client()
+
+        if client is not None:
+            # Internal kernels, use runcell
+            if client.get_kernel() is not None and not run_cell_copy:
+                line = (to_text_string(
+                        "{}({}, '{}')").format(
+                                to_text_string(function),
+                                repr(cell_name),
+                                norm(filename).replace("'", r"\'")))
+
+            # External kernels and run_cell_copy, just execute the code
+            else:
+                line = code.strip()
+
+            try:
+                self.execute_code(line)
+            except AttributeError:
+                pass
+            self.change_visibility(True)
+        else:
+            # XXX: not sure it can really happen
+            QMessageBox.warning(self, _('Warning'),
+                                _("No IPython console is currently available "
+                                  "to run <b>{}</b>.<br><br>Please open a new "
+                                  "one and try again."
+                                  ).format(osp.basename(filename)),
+                                QMessageBox.Ok)
+
+    def debug_cell(self, code, cell_name, filename, run_cell_copy):
+        """Debug current cell."""
+        self.run_cell(code, cell_name, filename, run_cell_copy, 'debugcell')
+  
+    # ---- For scripts
     def run_script(self, filename, wdir, args, debug, post_mortem,
                    current_client, clear_variables, console_namespace):
         """Run script in current or dedicated client"""
@@ -958,7 +1596,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                                                       clear_variables))
             except AttributeError:
                 pass
-            self.switch_to_plugin()
+            self.change_visibility(True)
         else:
             #XXX: not sure it can really happen
             QMessageBox.warning(self, _('Warning'),
@@ -966,5 +1604,105 @@ class IPythonConsoleWidget(PluginMainWidget):
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
 
+    # ---- For working directory and path management
+    def set_current_client_working_directory(self, directory):
+        """Set current client working directory."""
+        shellwidget = self.get_current_shellwidget()
+        if shellwidget is not None:
+            shellwidget.set_cwd(directory)
 
+    def set_working_directory(self, dirname):
+        """Set current working directory.
+        In the workingdirectory and explorer plugins.
+        """
+        if osp.isdir(dirname):
+            self.sig_current_directory_changed.emit(dirname)
+
+    def update_working_directory(self):
+        """Update working directory to console cwd."""
+        shellwidget = self.get_current_shellwidget()
+        if shellwidget is not None:
+            shellwidget.update_cwd()
+
+    def update_path(self, path_dict, new_path_dict):
+        """Update path on consoles."""
+        for client in self.get_clients():
+            shell = client.shellwidget
+            if shell is not None:
+                # TODO: Change to use the preferences?
+                self.plugin.main.get_spyder_pythonpath()
+                shell.update_syspath(path_dict, new_path_dict)
+
+    # ---- For execution
+    def execute_code_and_focus_editor(self, lines, focus_to_editor=True):
+        """
+        Execute lines in IPython console and eventually set focus
+        to the Editor.
+        """
+        console = self
+        console.switch_to_plugin()
+        console.execute_code(lines)
+        # TODO: Move to a signal?
+        if focus_to_editor and self.plugin.main.editor:
+            self.plugin.main.editor.switch_to_plugin()
+
+    def execute_code(self, lines, current_client=True, clear_variables=False):
+        """Execute code instructions."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            if not current_client:
+                # Clear console and reset namespace for
+                # dedicated clients.
+                # See spyder-ide/spyder#5748.
+                try:
+                    sw.sig_prompt_ready.disconnect()
+                except TypeError:
+                    pass
+                sw.reset_namespace(warning=False)
+            elif current_client and clear_variables:
+                sw.reset_namespace(warning=False)
+            # Needed to handle an error when kernel_client is none.
+            # See spyder-ide/spyder#6308.
+            try:
+                sw.execute(to_text_string(lines))
+            except AttributeError:
+                pass
+            self.activateWindow()
+            self.get_current_client().get_control().setFocus()
    
+    # ---- For error handling
+    def go_to_error(self, text):
+        """Go to error if relevant"""
+        match = get_error_match(to_text_string(text))
+        if match:
+            fname, lnb = match.groups()
+            if ("<ipython-input-" in fname and
+                    self.run_cell_filename is not None):
+                fname = self.run_cell_filename
+            # This is needed to fix issue spyder-ide/spyder#9217.
+            try:
+                self.sig_edit_goto_requested.emit(
+                    osp.abspath(fname), int(lnb), '')
+            except ValueError:
+                pass
+
+    # ---- For documentation and help using the Help plugin
+    # ------------------------------------------------------------------------
+    @Slot()
+    def show_intro(self):
+        """Show intro to IPython help"""
+        from IPython.core.usage import interactive_usage
+        self.sig_render_rich_text_requested.emit(interactive_usage, False)
+
+    @Slot()
+    def show_guiref(self):
+        """Show qtconsole help"""
+        from qtconsole.usage import gui_reference
+        self.sig_render_rich_text_requested.emit(gui_reference, True)
+
+    @Slot()
+    def show_quickref(self):
+        """Show IPython Cheat Sheet"""
+        from IPython.core.usage import quick_reference
+        self.sig_render_plain_text_requested.emit(quick_reference)
+    
