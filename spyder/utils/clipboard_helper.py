@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-clipboard helper module.
+Clipboard helper module.
 """
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QTextCursor
@@ -13,7 +13,7 @@ from qtpy.QtGui import QTextCursor
 from spyder.py3compat import to_text_string
 
 
-class _ClipboardHelp():
+class _ClipboardHelp:
     # Clipboard metadata
     metadata_hash = None
     metadata_indent = None
