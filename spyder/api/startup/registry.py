@@ -130,6 +130,9 @@ class SpyderPluginRegistry(QObject):
 
         logger.debug(f'Registering plugin {plugin_name} - {PluginClass}')
 
+        if PluginClass.CONF_FILE:
+            CONF.register_plugin(PluginClass)
+
         for plugin in list(required_plugins):
             if plugin == Plugins.All:
                 required_plugins = list(set(required_plugins + ALL_PLUGINS))

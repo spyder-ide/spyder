@@ -150,7 +150,7 @@ ZeroDivisionError: division by zero
     # Set config and call register so the dialog is created
     console_plugin.set_conf('previous_crash', error,
                             section='main')
-    console_plugin.register()
+    console_plugin.on_initialize()
 
     # Make sure the error dialog was generated.
     assert widget.error_dlg is not None
