@@ -152,6 +152,10 @@ class Projects(SpyderDockablePlugin):
         widget = self.get_widget()
         treewidget = widget.treewidget
 
+        self.ipyconsole = None
+        self.editor = None
+        self.completions = None
+
         treewidget.sig_delete_project.connect(self.delete_project)
         treewidget.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)

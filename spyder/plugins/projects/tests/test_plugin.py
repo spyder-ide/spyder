@@ -20,8 +20,11 @@ from unittest.mock import Mock, MagicMock
 # Third party imports
 import pytest
 from flaky import flaky
+from qtpy.QtWidgets import QWidget
 
 # Local imports
+from spyder.api.plugins import SpyderPluginV2
+from spyder.api.startup.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 import spyder.plugins.base
 from spyder.plugins.projects.plugin import Projects, QMessageBox
@@ -37,13 +40,24 @@ from spyder.py3compat import to_text_string
 def projects(qtbot, mocker):
     """Projects plugin fixture."""
 
-    class EditorMock(MagicMock):
+    class EditorMock(SpyderPluginV2):
         CONF_SECTION = 'editor'
+        NAME = 'editor'
+        CONF_FILE = False
 
         def get_open_filenames(self):
             # Patch this with mocker to return a different value.
             # See test_set_project_filenames_in_close_project.
             return []
+
+        def on_initialize(self):
+            pass
+
+        def __getattr__(self, attr):
+            try:
+                super().__getattr__(attr)
+            except AttributeError:
+                return MagicMock()
 
     class MainWindowProjectsMock(MainWindowMock):
         def __getattr__(self, attr):
@@ -56,18 +70,17 @@ def projects(qtbot, mocker):
 
     # Main window mock
     main_window = MainWindowProjectsMock()
-    editor = EditorMock()
-    main_window.register_plugin(editor)
+
+    PLUGIN_REGISTRY.register_plugin(main_window, EditorMock)
 
     # Create plugin
-    projects = Projects(configuration=CONF)
+    projects = PLUGIN_REGISTRY.register_plugin(main_window, Projects)
 
     projects.sig_switch_to_plugin_requested.connect(
         lambda x, y: projects.change_visibility(True))
 
     # This can only be done at this point
     projects._main = main_window
-    projects.register()
 
     # Patching necessary to test visible_if_project_open
     projects.shortcut = None

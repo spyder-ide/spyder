@@ -65,7 +65,7 @@ class MainWindowMock(QMainWindow):
 
     def register_plugin(self, plugin_name, external=False):
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-        plugin._register()
+        plugin._register(omit_conf=True)
         self.add_plugin(plugin, external=external)
 
     def get_plugin(self, plugin_name):

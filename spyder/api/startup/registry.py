@@ -366,7 +366,11 @@ class SpyderPluginRegistry(QObject):
         # Set that stores the names of the plugins that are enabled
         self.enabled_plugins = set({})
 
-        self.sig_plugin_ready.disconnect()
+        try:
+            self.sig_plugin_ready.disconnect()
+        except TypeError:
+            # Omit failures if there are no slots connected
+            pass
 
     def __contains__(self, plugin_name: str) -> bool:
         """
