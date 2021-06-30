@@ -142,8 +142,8 @@ def setup_logging(cli_options):
             root_logger.addHandler(handler)
 
 
-def delete_lsp_log_files():
-    """Delete previous dead Spyder instances LSP log files."""
+def delete_debug_log_files():
+    """Delete previous dead Spyder instances LSP and debug log files."""
     regex = re.compile(r'.*_.*_(\d+)[.]log')
     files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
     for f in files:
@@ -152,6 +152,10 @@ def delete_lsp_log_files():
             pid = int(match.group(1))
             if not psutil.pid_exists(pid):
                 os.remove(f)
+
+    debug_file = os.environ['SPYDER_DEBUG_FILE']
+    if osp.exists(debug_file):
+        os.remove(debug_file)
 
 
 def qt_message_handler(msg_type, msg_log_context, msg_string):
