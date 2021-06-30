@@ -168,6 +168,13 @@ def main():
         levels = {'minimal': '2', 'verbose': '3'}
         os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
+    _filename = 'spyder-debug.log'
+    if options.debug_output == 'file':
+        _filepath = osp.realpath(_filename)
+    else:
+        _filepath = get_conf_path(_filename)
+    os.environ['SPYDER_DEBUG_FILE'] = _filepath
+
     if options.paths:
         from spyder.config.base import get_conf_paths
         sys.stdout.write('\nconfig:' + '\n')

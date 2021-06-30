@@ -114,13 +114,10 @@ def setup_logging(cli_options):
         console_filters = [x for x in console_filters if x != '']
 
         handlers = [logging.StreamHandler()]
-        if cli_options.debug_output == 'file':
-            log_file = 'spyder-debug.log'
-            handlers.append(
-                logging.FileHandler(filename=log_file, mode='w+')
-            )
-        else:
-            log_file = None
+        filepath = os.environ['SPYDER_DEBUG_FILE']
+        handlers.append(
+            logging.FileHandler(filename=filepath, mode='w+')
+        )
 
         match_func = lambda x: True
         if console_filters != [''] and len(console_filters) > 0:
