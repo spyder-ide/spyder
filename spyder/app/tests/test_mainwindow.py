@@ -3770,7 +3770,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.waitSignal(main_window.sig_setup_finished, timeout=30000)
 
     # Check that tour is shown automatically and manually show it
-    assert CONF.get('tours', 'show_tour_message')
+    assert tours.get_conf('show_tour_message')
     tours.show_tour_message(force=True)
 
     # Wait for the message to appear
@@ -3781,7 +3781,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.mouseClick(tour_dialog.dismiss_button, Qt.LeftButton)
     qtbot.waitUntil(lambda: not tour_dialog.isVisible(),
                     timeout=2000)
-    assert not CONF.get('tours', 'show_tour_message')
+    assert not tours.get_conf('show_tour_message')
 
     # Confirm that calling show_tour_message() normally doesn't show it again
     tours.show_tour_message()
@@ -3796,7 +3796,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.mouseClick(tour_dialog.launch_tour_button, Qt.LeftButton)
     qtbot.waitUntil(lambda: animated_tour.is_running, timeout=9000)
     assert not tour_dialog.isVisible()
-    assert not CONF.get('tours', 'show_tour_message')
+    assert not tours.get_conf('show_tour_message')
 
     # Close the tour
     animated_tour.close_tour()

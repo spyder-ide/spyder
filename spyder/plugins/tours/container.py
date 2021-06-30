@@ -30,7 +30,6 @@ class TourActions:
     """
     Tours actions.
     """
-
     ShowTour = "show tour"
 
 # --- Plugin
@@ -54,12 +53,12 @@ class ToursContainer(PluginMainContainer):
         self.tour_action = self.create_action(
             TourActions.ShowTour,
             text=_("Show tour"),
+            icon=self.create_action('tour'),
             triggered=lambda: self.show_tour(DEFAULT_TOUR)
         )
 
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------
-
     def setup(self):
         self.tours_menu = self.create_menu(
             "tours_menu", _("Interactive tours"))
