@@ -344,6 +344,30 @@ class SpyderPluginRegistry(QObject):
         """
         return plugin_name in self.enabled_plugins
 
+    def reset(self):
+        """Reset and empty the plugin registry."""
+        # Dictionary that maps a plugin name to a list of the plugin names
+        # that depend on it.
+        self.plugin_dependents = {}  # type: Dict[str, Dict[str, List[str]]]
+
+        # Dictionary that maps a plugin name to a list of the plugin names
+        # that the plugin depends on.
+        self.plugin_dependencies = {}  # type: Dict[str, Dict[str, List[str]]]
+
+        # Plugin dictionary mapped by their names
+        self.plugin_registry = {}  # type: Dict[str, SpyderPluginClass]
+
+        # Dictionary that maps a plugin name to its availability.
+        self.plugin_availability = {}  # type: Dict[str, bool]
+
+        # Set that stores the plugin names of all Spyder 4 plugins.
+        self.old_plugins = set({})  # type: set[str]
+
+        # Set that stores the names of the plugins that are enabled
+        self.enabled_plugins = set({})
+
+        self.sig_plugin_ready.disconnect()
+
     def __contains__(self, plugin_name: str) -> bool:
         """
         Determine if a plugin name is contained in the registry.

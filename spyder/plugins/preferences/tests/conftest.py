@@ -48,6 +48,7 @@ class MainWindowMock(QMainWindow):
         self.console = Mock()
         self.sig_main_interpreter_changed = Mock()
 
+        PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
         PLUGIN_REGISTRY.register_plugin(self, Preferences)
 
