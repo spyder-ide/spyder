@@ -19,15 +19,14 @@ import sys
 from qtconsole.svg import svg_to_clipboard, svg_to_image
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QKeySequence, QPainter, QPixmap
+from qtpy.QtGui import QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
-                            QMenu, QScrollArea, QScrollBar, QSpinBox,
-                            QSplitter, QStyle, QVBoxLayout, QWidget)
+                            QScrollArea, QScrollBar, QSplitter, QStyle,
+                            QVBoxLayout, QWidget)
 
 # Local library imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import SpyderWidgetMixin
-from spyder.config.gui import is_dark_interface
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 
@@ -212,7 +211,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             The available splitter width.
         """
         min_sb_width = self.thumbnails_sb._min_scrollbar_width
-        self.splitter.setSizes([base_width - min_sb_width, min_sb_width])
+        if base_width - min_sb_width > 0:
+            self.splitter.setSizes([base_width - min_sb_width, min_sb_width])
 
     def show_fig_outline_in_viewer(self, state):
         """Draw a frame around the figure viewer if state is True."""
@@ -710,10 +710,7 @@ class ThumbnailScrollBar(QFrame):
             extra_padding -
             self.scrollarea.verticalScrollBar().sizeHint().width()
             )
-        if is_dark_interface():
-            # This is required to take into account some hard-coded padding
-            # and margin in qdarkstyle.
-            figure_canvas_width = figure_canvas_width - 6
+        figure_canvas_width = figure_canvas_width - 6
         return figure_canvas_width
 
     def _setup_thumbnail_size(self, thumbnail):

@@ -87,7 +87,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Release a new version of `spyder-kernels`, if required.
 
-* Release a new version of `python-language-server`, if required.
+* Release a new version of `python-lsp-server`, if required.
 
 * Create a new branch in your fork with the name `update-core-deps`
 
@@ -113,7 +113,7 @@ To release a new version of Spyder you need to follow these steps:
 * Update our subrepos with the following commands, but only if new versions are available!
 
       git subrepo pull external-deps/spyder-kernels
-      git subrepo pull external-deps/python-language-server
+      git subrepo pull external-deps/python-lsp-server
 
 * Merge this PR following the procedure mentioned on `MAINTENANCE.md`
 
@@ -161,13 +161,13 @@ To release a new version of Spyder you need to follow these steps:
 
 * git checkout master
 
-* git merge 4.x
+* git merge 5.x
 
 * git commit -m "Release X.X.X [ci skip]"
 
 * git push upstream master
 
-* git push upstream 4.x
+* git push upstream 5.x
 
 * git push upstream --tags
 
@@ -178,7 +178,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Publish release announcements to our list.
 
-* Merge PRs on Conda-forge that update the `spyder-kernels` and `python-language-server` feedstocks.
+* Merge PRs on Conda-forge that update the `spyder-kernels` and `python-lsp-server` feedstocks.
 
   **Notes**:
 

@@ -18,15 +18,15 @@ Breakpoint widget.
 import sys
 
 # Third party imports
-from qtpy import API
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 from qtpy.QtWidgets import QItemDelegate, QTableView, QVBoxLayout
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import (PluginMainWidgetMenus, PluginMainWidget,
-                                SpyderWidgetMixin)
+from spyder.api.widgets.main_widget import (PluginMainWidgetMenus,
+                                            PluginMainWidget)
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.sourcecode import disambiguate_fname
 
 

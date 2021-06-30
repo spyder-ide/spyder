@@ -62,6 +62,19 @@ class SpyderMenu(QMenu):
             self.addAction(QAction(self))
         self.aboutToShow.connect(self._render)
 
+    def clear_actions(self):
+        """
+        Remove actions from the menu (including custom references)
+
+        Returns
+        -------
+        None.
+        """
+        self.clear()
+        self._sections = []
+        self._actions = []
+        self.ordered_actions = []
+
     def add_action(self, action, section=None, before=None,
                    before_section=None):
         """

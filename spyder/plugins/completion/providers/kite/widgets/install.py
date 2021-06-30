@@ -19,7 +19,6 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
 # Local imports
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
-from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.plugins.completion.providers.kite.utils.install import (
@@ -88,21 +87,54 @@ class KiteIntegrationInfo(QWidget):
         label_layout.addWidget(integration_label)
 
         # Buttons
+        install_button_color = QStylePalette.COLOR_ACCENT_2
+        install_button_hover = QStylePalette.COLOR_ACCENT_3
+        install_button_pressed = QStylePalette.COLOR_ACCENT_4
+        dismiss_button_color = QStylePalette.COLOR_BACKGROUND_4
+        dismiss_button_hover = QStylePalette.COLOR_BACKGROUND_5
+        dismiss_button_pressed = QStylePalette.COLOR_BACKGROUND_6
+        font_color = QStylePalette.COLOR_TEXT_1
         buttons_layout = QHBoxLayout()
         install_button = QPushButton(_('Install Kite'))
         install_button.setAutoDefault(False)
-        install_button.setStyleSheet(
-           f"background-color: {QStylePalette.COLOR_ACCENT_3};"
-           f"font-size: {self.BUTTONS_FONT_SIZE};"
-           f"padding: {self.BUTTONS_PADDING}"
-         )
+        install_button.setStyleSheet((
+          "QPushButton {{ "
+          "background-color: {background_color};"
+          "border-color: {border_color};"
+          "font-size: {font_size};"
+          "color: {font_color};"
+          "padding: {padding}}}"
+          "QPushButton:hover:!pressed {{ "
+          "background-color: {color_hover}}}"
+          "QPushButton:pressed {{ "
+          "background-color: {color_pressed}}}"
+        ).format(background_color=install_button_color,
+                 border_color=install_button_color,
+                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_color=font_color,
+                 padding=self.BUTTONS_PADDING,
+                 color_hover=install_button_hover,
+                 color_pressed=install_button_pressed))
         dismiss_button = QPushButton(_('Dismiss'))
         dismiss_button.setAutoDefault(False)
-        dismiss_button.setStyleSheet(
-           f"background-color: {QStylePalette.COLOR_BACKGROUND_6};"
-           f"font-size: {self.BUTTONS_FONT_SIZE};"
-           f"padding: {self.BUTTONS_PADDING}"
-         )
+        dismiss_button.setStyleSheet((
+          "QPushButton {{ "
+          "background-color: {background_color};"
+          "border-color: {border_color};"
+          "font-size: {font_size};"
+          "color: {font_color};"
+          "padding: {padding}}}"
+          "QPushButton:hover:!pressed {{ "
+          "background-color: {color_hover}}}"
+          "QPushButton:pressed {{ "
+          "background-color: {color_pressed}}}"
+        ).format(background_color=dismiss_button_color,
+                 border_color=dismiss_button_color,
+                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_color=font_color,
+                 padding=self.BUTTONS_PADDING,
+                 color_hover=dismiss_button_hover,
+                 color_pressed=dismiss_button_pressed))
         buttons_layout.addStretch()
         buttons_layout.addWidget(install_button)
         if not MAC:

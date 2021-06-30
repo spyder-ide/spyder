@@ -8,9 +8,11 @@
 spyder.api
 ==========
 
-This package contains bases classes that can be used it to create
-third-party plugins to extend Spyder.
+This package contains base classes, mixins and widgets that can be used
+to create third-party plugins to extend Spyder.
 
 This API should be considered pre-release and is subject to change
-The final API version will be released in Spyder 4.0
+before its version reaches 1.0.
 """
+
+from ._version import __version__

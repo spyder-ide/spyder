@@ -5,3 +5,4 @@ qdarkstyle.utils.images module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

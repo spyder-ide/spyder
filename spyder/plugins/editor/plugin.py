@@ -80,7 +80,7 @@ class Editor(SpyderPluginWidget):
 
     # This is required for the new API
     NAME = 'editor'
-    REQUIRES = []
+    REQUIRES = [Plugins.Console]
     OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
 
     # Signals
@@ -207,11 +207,11 @@ class Editor(SpyderPluginWidget):
 
         # TODO: temporal fix while editor uses new API
         statusbar = self.main.statusbar
-        statusbar.add_status_widget(self.readwrite_status, 3)
-        statusbar.add_status_widget(self.eol_status, 3)
-        statusbar.add_status_widget(self.encoding_status, 3)
-        statusbar.add_status_widget(self.cursorpos_status, 3)
-        statusbar.add_status_widget(self.vcs_status, 3)
+        statusbar.add_status_widget(self.readwrite_status)
+        statusbar.add_status_widget(self.eol_status)
+        statusbar.add_status_widget(self.encoding_status)
+        statusbar.add_status_widget(self.cursorpos_status)
+        statusbar.add_status_widget(self.vcs_status)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -312,12 +312,12 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             # Pass the OutlineExplorer widget to the stacks because they
             # don't need the plugin
-            editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
-        self.outlineexplorer.explorer.edit_goto.connect(
+            editorstack.set_outlineexplorer(self.outlineexplorer.get_widget())
+        self.outlineexplorer.get_widget().edit_goto.connect(
                            lambda filenames, goto, word:
                            self.load(filenames=filenames, goto=goto, word=word,
                                      editorwindow=self))
-        self.outlineexplorer.explorer.edit.connect(
+        self.outlineexplorer.get_widget().edit.connect(
                              lambda filenames:
                              self.load(filenames=filenames, editorwindow=self))
 
@@ -336,11 +336,13 @@ class Editor(SpyderPluginWidget):
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
-
-        status = self.main.completions.start_completion_services_for_language(
-            language.lower())
-        self.main.completions.register_file(
-            language.lower(), filename, codeeditor)
+        status = None
+        if self.main.get_plugin(Plugins.Completions, error=False):
+            status = (
+                self.main.completions.start_completion_services_for_language(
+                    language.lower()))
+            self.main.completions.register_file(
+                language.lower(), filename, codeeditor)
         if status:
             if language.lower() in self.completion_capabilities:
                 # When this condition is True, it means there's a server
@@ -1051,7 +1053,7 @@ class Editor(SpyderPluginWidget):
                                 self.save_action, self.save_all_action] +
                                 self.main.file_toolbar_actions)
 
-        self.main.file_toolbar_actions = file_toolbar_actions
+        self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
         self.main.search_menu_actions = [find_action,
@@ -1068,7 +1070,6 @@ class Editor(SpyderPluginWidget):
                                   self.indent_action, self.unindent_action,
                                   self.text_uppercase_action,
                                   self.text_lowercase_action]
-        self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
 
         # ---- Search menu/toolbar construction ----
         self.main.search_menu_actions += [gotoline_action]
@@ -1081,8 +1082,7 @@ class Editor(SpyderPluginWidget):
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, run_selected_action,
-                               re_run_action]
+                               run_cell_advance_action, run_selected_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
@@ -1209,22 +1209,25 @@ class Editor(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
+        completions = self.main.get_plugin(Plugins.Completions, error=False)
+        outlineexplorer = self.main.get_plugin(
+            Plugins.OutlineExplorer, error=False)
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
         self.main.console.sig_edit_goto_requested.connect(self.load)
-        self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.main.completions.sig_language_completions_available.connect(
-            self.register_completion_capabilities)
-        self.main.completions.sig_open_file.connect(self.load)
-        self.main.completions.sig_editor_rpc.connect(self._rpc_call)
-        self.main.completions.sig_stop_completions.connect(
-            self.stop_completion_services)
+        if completions:
+            self.main.completions.sig_language_completions_available.connect(
+                self.register_completion_capabilities)
+            self.main.completions.sig_open_file.connect(self.load)
+            self.main.completions.sig_editor_rpc.connect(self._rpc_call)
+            self.main.completions.sig_stop_completions.connect(
+                self.stop_completion_services)
 
-        self.sig_file_opened_closed_or_updated.connect(
-            self.main.completions.file_opened_closed_or_updated)
+            self.sig_file_opened_closed_or_updated.connect(
+                self.main.completions.file_opened_closed_or_updated)
 
-        if self.main.outlineexplorer is not None:
+        if outlineexplorer:
             self.set_outlineexplorer(self.main.outlineexplorer)
 
         self.add_dockwidget()
@@ -1346,8 +1349,9 @@ class Editor(SpyderPluginWidget):
                     'completions',
                     ('provider_configuration', 'lsp', 'values', conf_name),
                     checked)
-            completions = self.main.completions
-            completions.after_configuration_update([])
+            if self.main.get_plugin(Plugins.Completions, error=False):
+                completions = self.main.completions
+                completions.after_configuration_update([])
 
     #------ Focus tabwidget
     def __get_focused_editorstack(self):
@@ -1390,7 +1394,8 @@ class Editor(SpyderPluginWidget):
             self.set_last_focused_editorstack(self, editorstack)
             editorstack.set_closable(len(self.editorstacks) > 1)
             if self.outlineexplorer is not None:
-                editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
+                editorstack.set_outlineexplorer(
+                    self.outlineexplorer.get_widget())
             editorstack.set_find_widget(self.find_widget)
             editorstack.reset_statusbar.connect(self.readwrite_status.hide)
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
@@ -1597,7 +1602,7 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    def call_all_editorstacks(self, method, *args, **kwargs):
+    def call_all_editorstacks(self, method, args, **kwargs):
         """Call a method with arguments on all editorstacks."""
         for editorstack in self.editorstacks:
             method = getattr(editorstack, method)
@@ -1644,10 +1649,8 @@ class Editor(SpyderPluginWidget):
             super(Editor, self).switch_to_plugin()
 
     def create_new_window(self):
-        oe_options = self.outlineexplorer.explorer.get_options()
         window = EditorMainWindow(
-            self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
-            outline_explorer_options=oe_options)
+            self, self.stack_menu_actions, self.toolbar_list, self.menu_list)
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -1851,7 +1854,8 @@ class Editor(SpyderPluginWidget):
 
     @Slot(set)
     def update_active_languages(self, languages):
-        self.main.completions.update_client_status(languages)
+        if self.main.get_plugin(Plugins.Completions, error=False):
+            self.main.completions.update_client_status(languages)
 
 
     # ------ Bookmarks

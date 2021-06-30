@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.gui import is_dark_interface
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import create_waitspinner
 
 
@@ -87,6 +87,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self.custom_widget = None
 
         self.set_layout()
+        self.setStyleSheet(self._stylesheet())
 
     def set_layout(self):
         """Set layout for default widgets."""
@@ -134,11 +135,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         if self.show_spinner:
             layout.addWidget(self.spinner)
 
-        if is_dark_interface():
-            layout.addSpacing(0)
-        else:
-            layout.addSpacing(10)
-
+        layout.addSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignVCenter)
 
@@ -184,6 +181,15 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     def get_icon(self):
         """Return the widget tooltip text."""
         return None
+
+    def _stylesheet(self):
+        stylesheet = ("QToolTip {{background-color: {background_color};"
+                      "color: {color};"
+                      "border: none}}").format(
+                      background_color=QStylePalette.COLOR_ACCENT_2,
+                      color=QStylePalette.COLOR_TEXT_1
+                      )
+        return stylesheet
 
 
 class BaseTimerStatus(StatusBarWidget):

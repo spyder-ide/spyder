@@ -13,7 +13,11 @@ import logging
 from typing import Any, Union, Optional
 import warnings
 
+# Third-party imports
+from qtpy.QtWidgets import QAction, QWidget
+
 # Local imports
+from spyder.config.gui import Shortcut
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
 from spyder.config.user import NoDefault
@@ -60,8 +64,7 @@ class SpyderConfigurationAccessor:
         Raises
         ------
         spyder.py3compat.configparser.NoOptionError
-            If the option does not exist in the configuration under the given
-            section and the default value is NoDefault.
+            If the section does not exist in the configuration.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -71,6 +74,34 @@ class SpyderConfigurationAccessor:
             )
 
         return CONF.get(section, option, default)
+
+    def get_conf_options(self, section: Optional[str] = None):
+        """
+        Get all options from the given section.
+
+        Parameters
+        ----------
+        section: Optional[str]
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+
+        Returns
+        -------
+        values: BasicTypes
+            Values of the option in the configuration section.
+
+        Raises
+        ------
+        spyder.py3compat.configparser.NoOptionError
+            If the section does not exist in the configuration.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+        return CONF.options(section)
 
     def set_conf(self,
                  option: ConfigurationKey,
@@ -127,6 +158,86 @@ class SpyderConfigurationAccessor:
                 'class attribute!'
             )
         CONF.remove_option(section, option)
+
+    def get_conf_default(self,
+                         option: ConfigurationKey,
+                         section: Optional[str] = None):
+        """
+        Get an option default value in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: ConfigurationKey
+            Name/Tuple path of the option to remove its value.
+        section: Optional[str]
+            Section in the configuration system, e.g. `shortcuts`. If None,
+            then the value of `CONF_SECTION` is used.
+        """
+        section = self.CONF_SECTION if section is None else section
+        if section is None:
+            raise AttributeError(
+                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
+                'class attribute!'
+            )
+        return CONF.get_default(section, option)
+
+    def get_shortcut(self, name: str, context: Optional[str] = None) -> str:
+        """
+        Get a shortcut sequence stored under the given name and context.
+
+        Parameters
+        ----------
+        name: str
+            Key identifier under which the shortcut is stored.
+        context: Optional[str]
+            Name of the context (plugin) where the shortcut was defined.
+
+        Returns
+        -------
+        shortcut: str
+            Key sequence of the shortcut.
+
+        Raises
+        ------
+        spyder.py3compat.configparser.NoOptionError
+            If the section does not exist in the configuration.
+        """
+        context = self.CONF_SECTION if context is None else context
+        return CONF.get_shortcut(context, name)
+
+    def config_shortcut(
+            self, action: QAction, name: str, parent: QWidget,
+            context: Optional[str] = None) -> Shortcut:
+        """
+        Create a Shortcut namedtuple for a widget.
+
+        The data contained in this tuple will be registered in our shortcuts
+        preferences page.
+
+        Parameters
+        ----------
+        action: QAction
+            Action that will use the shortcut.
+        name: str
+            Key identifier under which the shortcut is stored.
+        parent: QWidget
+            Parent widget for the shortcut.
+        context: Optional[str]
+            Name of the context (plugin) where the shortcut was defined.
+
+        Returns
+        -------
+        shortcut: Shortcut
+            Namedtuple with the information of the shortcut as used for the
+            shortcuts preferences page.
+        """
+        shortcut_context = self.CONF_SECTION if context is None else context
+        return CONF.config_shortcut(action, shortcut_context, name, parent)
+
+    @property
+    def old_conf_version(self):
+        """Get old Spyder configuration version."""
+        return CONF.old_spyder_version
 
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):

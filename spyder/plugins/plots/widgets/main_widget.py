@@ -15,9 +15,9 @@ from qtpy.QtWidgets import QHBoxLayout, QSpinBox, QStackedWidget
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidgetMenus, PluginMainWidget
+from spyder.api.widgets.main_widget import (PluginMainWidgetMenus,
+                                            PluginMainWidget)
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
@@ -257,7 +257,7 @@ class PlotsWidget(PluginMainWidget):
             name=PlotsWidgetActions.MoveToPreviousFigure,
             text=_("Previous plot"),
             tip=_("Previous plot"),
-            icon=self.create_icon('ArrowBack'),
+            icon=self.create_icon('previous'),
             triggered=self.previous_plot,
             register_shortcut=True,
         )
@@ -265,7 +265,7 @@ class PlotsWidget(PluginMainWidget):
             name=PlotsWidgetActions.MoveToNextFigure,
             text=_("Next plot"),
             tip=_("Next plot"),
-            icon=self.create_icon('ArrowForward'),
+            icon=self.create_icon('next'),
             triggered=self.next_plot,
             register_shortcut=True,
         )
@@ -320,7 +320,11 @@ class PlotsWidget(PluginMainWidget):
         for __, action in self.get_actions().items():
             if action and action not in [self.mute_action,
                                          self.outline_action,
-                                         self.fit_action]:
+                                         self.fit_action,
+                                         self.undock_action,
+                                         self.close_action,
+                                         self.dock_action,
+                                         self.toggle_view_action]:
                 action.setEnabled(value)
 
                 # IMPORTANT: Since we are defining the main actions in here

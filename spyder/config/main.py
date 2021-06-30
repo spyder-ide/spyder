@@ -105,9 +105,10 @@ DEFAULTS = [
             ('quick_layouts',
              {
               'place_holder': '',
-              'names': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
-              'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
-              'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'names': [],
+              'order': [],
+              'active': [],
+              'ui_names': []
               }),
             ('internal_console',
              {
@@ -291,6 +292,8 @@ DEFAULTS = [
               'show_hscrollbar': True,
               'max_recent_projects': 10,
               'visible_if_project_open': True,
+              'date_column': False,
+              'single_click_to_open': False,
               }),
             ('explorer',
              {
@@ -491,6 +494,9 @@ DEFAULTS = [
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
               'ipython_console/restart kernel': "Ctrl+.",
+              'ipython_console/inspect current object': "Ctrl+I",
+              'ipython_console/clear shell': "Ctrl+L",
+              'ipython_console/clear line': "Shift+Escape",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
@@ -543,10 +549,6 @@ NAME_MAP = {
          ),
         ('toolbar', [
             'last_visible_toolbars',
-            ]
-         ),
-        ('appearance', [
-            'windows_style',
             ]
          ),
         ('editor', [
@@ -622,4 +624,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '68.0.0'
+CONF_VERSION = '69.1.0'

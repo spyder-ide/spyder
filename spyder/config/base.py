@@ -252,6 +252,10 @@ def get_conf_paths():
             '{}/etc/spyder'.format(CONDA_PREFIX),
         )
 
+    SEARCH_PATH += (
+        '{}/etc/spyder'.format(sys.prefix),
+    )
+
     if running_under_pytest():
         search_paths = []
         tmpfolder = str(tempfile.gettempdir())
@@ -348,7 +352,7 @@ LANGUAGE_CODES = {
 }
 
 # Disabled languages because their translations are outdated or incomplete
-DISABLED_LANGUAGES = ['hu', 'ru', 'pl']
+DISABLED_LANGUAGES = ['hu', 'pl']
 
 def get_available_translations():
     """

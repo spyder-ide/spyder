@@ -13,7 +13,6 @@ from qtpy.QtCore import Signal
 from qtpy.QtGui import QColor, QFont, QTextCharFormat, QTextCursor
 from qtpy.QtWidgets import QApplication
 
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.console.utils.ansihandler import ANSIEscapeCodeHandler
 from spyder.utils.palette import QStylePalette, SpyderPalette
@@ -239,22 +238,34 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 break
             text = text[index+1:]
             self.clear()
+
         if error:
             is_traceback = False
-            for text in text.splitlines(True):
-                if (text.startswith('  File')
-                        and not text.startswith('  File "<')):
+            is_warning = False
+            for line in text.splitlines(True):
+                if (line.startswith('  File')
+                        and not line.startswith('  File "<')):
                     is_traceback = True
+                    is_warning = False
                     # Show error links in blue underlined text
                     cursor.insertText('  ', self.default_style.format)
-                    cursor.insertText(text[2:],
+                    cursor.insertText(line[2:],
                                       self.traceback_link_style.format)
                 else:
+                    # Detect if line is a warning.
+                    if (re.findall('[A-Z].*Warning', line) != [] or
+                            'warnings.warn' in line or
+                            'WARNING' in line):
+                        is_warning = True
+
                     # Show error/warning messages in red
-                    cursor.insertText(text, self.error_style.format)
-                self.sig_exception_occurred.emit(
-                    dict(text=text, is_traceback=is_traceback)
-                )
+                    cursor.insertText(line, self.error_style.format)
+
+                # Don't report warnings as internal errors
+                if not is_warning:
+                    self.sig_exception_occurred.emit(
+                        dict(text=line, is_traceback=is_traceback)
+                    )
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)

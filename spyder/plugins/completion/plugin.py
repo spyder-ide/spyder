@@ -217,6 +217,9 @@ class CompletionPlugin(SpyderPluginV2):
         # Completion request priority
         self.source_priority = {}
 
+        # Completion provider speed: slow or fast
+        self.provider_speed = {}
+
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf('completions_wait_for_ms')
 
@@ -233,7 +236,7 @@ class CompletionPlugin(SpyderPluginV2):
                 raise e
 
         # Register statusbar widgets
-        self.register_statusbar_widgets()
+        self.register_statusbar_widgets(plugin_loaded=False)
 
         # Define configuration page and tabs
         (conf_providers, conf_tabs) = self.gather_providers_and_configtabs()
@@ -259,10 +262,10 @@ class CompletionPlugin(SpyderPluginV2):
         preferences.register_plugin_preferences(self)
 
         container = self.get_container()
-        statusbar = self.get_plugin(Plugins.StatusBar)
-        if statusbar:
+        self.statusbar = self.get_plugin(Plugins.StatusBar)
+        if self.statusbar:
             for sb in container.all_statusbar_widgets():
-                statusbar.add_status_widget(sb, 0)
+                self.statusbar.add_status_widget(sb)
 
         if self.main:
             self.main.sig_pythonpath_changed.connect(
@@ -319,8 +322,10 @@ class CompletionPlugin(SpyderPluginV2):
                         ('enabled_providers', provider_name))
                     if provider_status:
                         self.start_provider_instance(provider_name)
+                        self.register_statusbar_widget(provider_name)
                     else:
                         self.shutdown_provider_instance(provider_name)
+                        self.unregister_statusbar(provider_name)
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
 
@@ -364,7 +369,7 @@ class CompletionPlugin(SpyderPluginV2):
             if opt in options:
                 opt_value = self.get_conf(opt, section=sec)
                 self.sig_editor_rpc.emit('call_all_editorstacks',
-                                         (method_name, (opt_value,)),
+                                         (method_name, (opt_value,),),
                                          {})
 
         # Update entries in the source menu
@@ -378,12 +383,59 @@ class CompletionPlugin(SpyderPluginV2):
             provider_info['instance'].on_mainwindow_visible()
 
     # ---------------------------- Status bar widgets -------------------------
-    def register_statusbar_widgets(self):
-        """Register status bar widgets for all providers with the container."""
-        container = self.get_container()
+    def register_statusbar_widgets(self, plugin_loaded=True):
+        """
+        Register status bar widgets for all providers with the container.
+
+        Parameters
+        ----------
+        plugin_loaded: bool
+            True if the plugin is already loaded in Spyder, False if it is
+            being loaded. This is needed to avoid adding statusbar widgets
+            multiple times at startup.
+        """
         for provider_key in self.providers:
-            provider = self.providers[provider_key]['instance']
-            container.register_statusbar_widgets(provider.STATUS_BAR_CLASSES)
+            provider_on = self.get_conf(
+                ('enabled_providers', provider_key), True)
+            if provider_on:
+                self.register_statusbar_widget(
+                    provider_key, plugin_loaded=plugin_loaded)
+
+    def register_statusbar_widget(self, provider_name, plugin_loaded=True):
+        """
+        Register statusbar widgets for a given provider.
+
+        Parameters
+        ----------
+        provider_name: str
+            Name of the provider that is going to create statusbar widgets.
+        plugin_loaded: bool
+            True if the plugin is already loaded in Spyder, False if it is
+            being loaded.
+        """
+        container = self.get_container()
+        provider = self.providers[provider_name]['instance']
+        widgets_ids = container.register_statusbar_widgets(
+            provider.STATUS_BAR_CLASSES, provider_name)
+        if plugin_loaded:
+            for id_ in widgets_ids:
+                currrent_widget = container.statusbar_widgets[id_]
+                self.statusbar.add_status_widget(currrent_widget)
+
+    def unregister_statusbar(self, provider_name):
+        """
+        Unregister statusbar widgets for a given provider.
+
+        Parameters
+        ----------
+        provider_name: str
+            Name of the provider that is going to delete statusbar widgets.
+        """
+        provider_keys = self.get_container().get_provider_statusbar_keys(
+            provider_name)
+        for id_ in provider_keys:
+            self.get_container().remove_statusbar_widget(id_)
+            self.statusbar.remove_status_widget(id_)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):
@@ -648,8 +700,8 @@ class CompletionPlugin(SpyderPluginV2):
 
         for request in COMPLETION_REQUESTS:
             request_priorities = source_priorities.get(request, {})
-            if provider_name not in request_priorities:
-                request_priorities[provider_name] = provider_priority - 1
+            self.provider_speed[provider_name] = Provider.SLOW
+            request_priorities[provider_name] = provider_priority - 1
             source_priorities[request] = request_priorities
 
         self.source_priority = source_priorities
@@ -682,6 +734,9 @@ class CompletionPlugin(SpyderPluginV2):
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
         provider_name = Provider.COMPLETION_PROVIDER_NAME
+        if provider_name in self._available_providers:
+            return
+
         self._available_providers[provider_name] = Provider
 
         logger.debug("Completion plugin: Registering {0}".format(
@@ -863,8 +918,13 @@ class CompletionPlugin(SpyderPluginV2):
             'timed_out': False,
         }
 
+        # Check if there are two or more slow completion providers
+        # in order to start the timeout counter.
+        providers = self.available_providers_for_language(language.lower())
+        slow_provider_count = sum([self.provider_speed[p] for p in providers])
+
         # Start the timer on this request
-        if req_type in self.AGGREGATE_RESPONSES:
+        if req_type in self.AGGREGATE_RESPONSES and slow_provider_count > 2:
             if self.wait_for_ms > 0:
                 QTimer.singleShot(self.wait_for_ms,
                                   lambda: self.receive_timeout(req_id))
@@ -872,7 +932,6 @@ class CompletionPlugin(SpyderPluginV2):
                 self.requests[req_id]['timed_out'] = True
 
         # Send request to all running completion providers
-        providers = self.available_providers_for_language(language.lower())
         for provider_name in providers:
             provider_info = self.providers[provider_name]
             provider_info['instance'].send_request(
@@ -1035,12 +1094,13 @@ class CompletionPlugin(SpyderPluginV2):
         language = request_responses['language'].lower()
         req_type = request_responses['req_type']
 
+        available_providers = self.available_providers_for_language(
+            language)
+        sorted_providers = self.sort_providers_for_request(
+            available_providers, req_type)
+
         if req_type in self.AGGREGATE_RESPONSES:
             # Wait only for the available providers for the given request
-            available_providers = self.available_providers_for_language(
-                language)
-            sorted_providers = self.sort_providers_for_request(
-                available_providers, req_type)
             timed_out = request_responses['timed_out']
             all_returned = all(source in request_responses['sources']
                                for source in sorted_providers)
@@ -1055,7 +1115,14 @@ class CompletionPlugin(SpyderPluginV2):
                 if all_returned or any_nonempty:
                     self.skip_and_reply(req_id)
         else:
-            self.skip_and_reply(req_id)
+            # Any empty response will be discarded and the completion
+            # loop will wait for the next non-empty response.
+            # This should fix the scenario where Kite does not have a
+            # response for a non-aggregated request but the LSP does.
+            any_nonempty = any(request_responses['sources'].get(source)
+                               for source in sorted_providers)
+            if any_nonempty:
+                self.skip_and_reply(req_id)
 
     def skip_and_reply(self, req_id: int):
         """

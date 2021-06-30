@@ -1,0 +1,6 @@
+include README.md
+include versioneer.py
+include pylsp/_version.py
+include LICENSE
+include .pylintrc
+recursive-include test *.py

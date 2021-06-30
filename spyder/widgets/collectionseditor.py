@@ -37,8 +37,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QWidget)
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import (
-    DataFrame, display_to_value, FakeObject,
-    get_color_name, get_human_readable_type, get_size, Image,
+    DataFrame, display_to_value, FakeObject, get_human_readable_type,
+    get_numpy_type_string, get_size, get_type_string, Image,
     MaskedArray, ndarray, np_savetxt, Series, sort_against,
     try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
     get_type_string, NUMERIC_NUMPY_TYPES)
@@ -59,6 +59,8 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.utils.palette import SpyderPalette
+
 
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6
@@ -468,18 +470,59 @@ class CollectionsModel(ReadOnlyCollectionsModel):
         self.types[index.row()] = get_human_readable_type(value)
         self.sig_setting_data.emit()
 
+    def type_to_color(self, python_type, numpy_type):
+        """Get the color that corresponds to a Python type."""
+        # Color for unknown types
+        color = SpyderPalette.GROUP_12
+
+        if numpy_type != 'Unknown':
+            if numpy_type == 'Array':
+                color = SpyderPalette.GROUP_9
+            elif numpy_type == 'Scalar':
+                color = SpyderPalette.GROUP_2
+        elif python_type == 'bool':
+            color = SpyderPalette.GROUP_1
+        elif python_type in ['int', 'float', 'complex']:
+            color = SpyderPalette.GROUP_2
+        elif python_type in ['str', 'unicode']:
+            color = SpyderPalette.GROUP_3
+        elif 'datetime' in python_type:
+            color = SpyderPalette.GROUP_4
+        elif python_type == 'list':
+            color = SpyderPalette.GROUP_5
+        elif python_type == 'set':
+            color = SpyderPalette.GROUP_6
+        elif python_type == 'tuple':
+            color = SpyderPalette.GROUP_7
+        elif python_type == 'dict':
+            color = SpyderPalette.GROUP_8
+        elif python_type in ['MaskedArray', 'Matrix', 'NDArray']:
+            color = SpyderPalette.GROUP_9
+        elif (python_type in ['DataFrame', 'Series'] or
+                'Index' in python_type):
+            color = SpyderPalette.GROUP_10
+        elif python_type == 'PIL.Image.Image':
+            color = SpyderPalette.GROUP_11
+        else:
+            color = SpyderPalette.GROUP_12
+
+        return color
+
     def get_bgcolor(self, index):
-        """Background color depending on value"""
+        """Background color depending on value."""
         value = self.get_value(index)
         if index.column() < 3:
             color = ReadOnlyCollectionsModel.get_bgcolor(self, index)
         else:
             if self.remote:
-                color_name = value['color']
+                python_type = value['python_type']
+                numpy_type = value['numpy_type']
             else:
-                color_name = get_color_name(value)
+                python_type = get_type_string(value)
+                numpy_type = get_numpy_type_string(value)
+            color_name = self.type_to_color(python_type, numpy_type)
             color = QColor(color_name)
-            color.setAlphaF(.2)
+            color.setAlphaF(0.5)
         return color
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -972,9 +1015,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             try:
                 if 'matplotlib' not in sys.modules:
                     import matplotlib
-                    matplotlib.use("Qt4Agg")
                 return True
-            except:
+            except Exception:
                 QMessageBox.warning(self, _("Import error"),
                                     _("Please install <b>matplotlib</b>"
                                       " or <b>guiqwt</b>."))
@@ -1408,6 +1450,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.dictfilter = None
         self.delegate = None
         self.readonly = False
+        self.finder = None
 
         self.source_model = CollectionsModel(
             self, data, names=True,
@@ -1528,7 +1571,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the variable finder."""
-        if reset or not self.finder.text():
+        if reset or self.finder is None or not self.finder.text():
             text = ''
         else:
             text = self.finder.text().replace(' ', '').lower()

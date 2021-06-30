@@ -22,10 +22,11 @@ import PIL.Image
 
 # Local imports
 from spyder_kernels.py3compat import PY2
-from spyder_kernels.utils.nsview import (sort_against, is_supported,
-                                         value_to_display, get_size,
-                                         get_supported_types, get_type_string,
-                                         is_editable_type)
+from spyder_kernels.utils.nsview import (
+    sort_against, is_supported, value_to_display, get_size,
+    get_supported_types, get_type_string, get_numpy_type_string,
+    is_editable_type)
+
 
 def generate_complex_object():
     """Taken from issue #4221."""
@@ -67,7 +68,7 @@ def test_get_size():
     df = pd.Index([1,2,3])
     assert get_size(df) == (3,)
 
-    arr = np.array([[1,2,3], [1,2,3]], dtype=np.complex)
+    arr = np.array([[1,2,3], [1,2,3]], dtype=np.complex128)
     assert get_size(arr) == (2, 3)
 
     img = PIL.Image.new('RGB', (256,256))
@@ -419,6 +420,30 @@ def test_is_editable_type():
 
     my_instance = MyClass()
     assert not is_editable_type(my_instance)
+
+
+def test_get_numpy_type():
+    """Test for get_numpy_type_string."""
+    # Numpy objects
+    assert get_numpy_type_string(np.array([1, 2, 3])) == 'Array'
+
+    matrix = np.matrix([[1, 2], [3, 4]])
+    assert get_numpy_type_string(matrix) == 'Array'
+
+    assert get_numpy_type_string(np.int32(1)) == 'Scalar'
+
+    # Regular Python objects
+    assert get_numpy_type_string(1.5) == 'Unknown'
+    assert get_numpy_type_string([1, 2, 3]) == 'Unknown'
+    assert get_numpy_type_string({1: 2}) == 'Unknown'
+
+    # PIL images
+    img = PIL.Image.new('RGB', (256,256))
+    assert get_numpy_type_string(img) == 'Unknown'
+
+    # Pandas objects
+    df = pd.DataFrame([1, 2, 3])
+    assert get_numpy_type_string(df) == 'Unknown'
 
 
 if __name__ == "__main__":

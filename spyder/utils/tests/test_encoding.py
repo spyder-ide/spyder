@@ -23,7 +23,7 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
 
 
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win!')
 def test_symlinks(tmpdir):
     """

@@ -1,11 +1,68 @@
-QDarkStylesheet
+QDarkStyleSheet
 ===============
 
 |Build Status| |Docs Status| |Latest PyPI version| |License: MIT|
 |License: CC BY 4.0| |Conduct|
 
-The most complete dark stylesheet for Qt application (Qt4, Qt5, PySide,
-PySide2, PyQt4, PyQt5, QtPy, PyQtGraph, Qt.Py).
+The most complete dark/light style sheet for Qt applications (Qt4*, Qt5,
+PySide*, PySide2, PyQt4*, PyQt5, QtPy, PyQtGraph, Qt.Py) for Python
+2*/3 and C++.
+
+`Check out the complete documentation. <https://qdarkstylesheet.readthedocs.io/en/latest/screenshots.html>`__
+
+
+What is new?
+------------
+
+
+Version 3
+~~~~~~~~~
+
+In the current version 3, `qdarkstyle` is now working as a theme framework,
+currently for dark/light themes, keeping styled widgets identical throughout
+theme colors.
+
+The palette has been redefined and improved (UI/UX) to accept more colors
+and to be able to implement new themes thanks to the
+`Spyder team <https://github.com/spyder-ide/spyder>`__ collaboration.
+
+The current stable version is using Python 3 (preferable 3.6+) and Qt5
+(PyQt5 and PySide 2).
+
+We still preparing the portability to Qt6 since we need changes in
+`QtPy <https://github.com/spyder-ide/qtpy>`__ dependency project.
+
+[*] Python 2, as well as Qt4 (PyQt4 and PySide), will not be supported anymore.
+They still there as it is, but no back-compatibility, fixes, nor features
+will be implemented.
+
+Version 2
+~~~~~~~~~
+
+We moved to QtPy to simplify your code in v2.8, thus this is a required
+dependency now. We included special patches in three main categories:
+operating system, Qt/binding version, application.
+
+Included in that, lots of widgets' styles were included/fixed. A Qt
+application example (Python only) with almost all types of widgets and
+combinations were included to serve as a portfolio and a checklist for
+new styles.
+
+We have added SCSS in v2.7, so the palette can be accessed programmatically.
+Also, many scripts were added to give freedom to developers who want to
+change the colors of our palette. All images and icons were revised, also
+creating SVG files for all of them.
+
+In version 2.6 and later, a restructure stylesheet is provided. The
+palette has only 9 colors. Most widgets are revised and their styles
+were improved. We also provide a command line (script) to get info that
+could be used when opening issues. See the image below.
+
+
+Version 1
+~~~~~~~~~
+
+First stable release of QDarkStyle.
 
 
 Installation
@@ -42,26 +99,28 @@ From code: Download/clone the project, go to ``qdarkstyle`` folder then:
 C++
 ~~~
 
--  Download/clone the project and copy the following files to your
-   application directory (keep the existing directory hierarchy):
+- Download/clone the project and copy the following files to your
+  application directory (keep the existing directory hierarchy).
+  Substitute the **theme** by the currently available (dark/light)
+  the theme you need to use.
 
-    -  **qdarkstyle/style.qss**
-    -  **qdarkstyle/style.qrc**
-    -  **qdarkstyle/rc/** (the whole directory)
+    -  **qdarkstyle/theme/style.qss**
+    -  **qdarkstyle/theme/style.qrc**
+    -  **qdarkstyle/theme/rc/** (the whole directory)
 
 
--  Add **qdarkstyle/style.qrc** to your **.pro file** as follows:
+-  Add **qdarkstyle/theme/style.qrc** to your **.pro file** as follows:
 
     .. code:: c++
 
-        RESOURCES += qdarkstyle/style.qrc
+        RESOURCES += qdarkstyle/theme/style.qrc
 
 
 -  Load the stylesheet:
 
     .. code:: c++
 
-        QFile f(":qdarkstyle/style.qss");
+        QFile f(":qdarkstyle/theme/style.qss");
 
         if (!f.exists())   {
             printf("Unable to set stylesheet, file not found\n");
@@ -78,8 +137,9 @@ resource library. For more information see the discussion
 `here <https://github.com/ColinDuquesnoy/QDarkStyleSheet/pull/87>`__.
 
 
-Usage
------
+Usage in applications
+---------------------
+
 
 If your project already uses QtPy or you need to set it programmatically,
 it is far more simple
@@ -187,65 +247,26 @@ If you are using Qt.py, which is different from qtpy, you should install
 qtpy then set both to the same binding.
 
 
-*There is an example included in the *example* folder. You can run the
-script without installing qdarkstyle. You only need to have PySide or
-PySide2 or PyQt4 or PyQt5 installed on your system.*
+Usage of example/portfolio
+--------------------------
 
 
-What is new?
-------------
+There is an example included in the package. You only need to have PySide2 or
+PyQt5 installed on your system.
 
-In the version 2.6 and later, a reestructure stylesheet is provided. The
-palette has only 9 colors. Most widgets are revised and their styles
-were improved. We also provide a command line (script) to get info that
-could be used when opening issues. See the image below.
+.. code:: bash
 
-From 2.7, we have added SCSS, so the palette can be accessed programatically.
-Also many scripts were added to give freedom fro developers who wants to
-change the colors of our palette. All images and icons were revised, also
-creating SVG files for all of them.
+    # dark theme example
+    $ qdarkstyle.example --palette=dark
 
-From 2.8, we moved to QtPy to simplify your code, thus this is a
-required dependency now.
+    # light theme example
+    $ qdarkstyle.example --palette=light
 
+    # no theme/style sheet applied
+    $ qdarkstyle.example --palette=none
 
-Screenshots
------------
-
-Here are a few snapshots comparing the use of QDarkStyle and the
-default style. Click in the image to zoom.
-
-
-Containers (no tabs) and Buttons
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/dark_containers_buttons.png
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/images/no_dark_containers_buttons.png
-
-
-Containers (tabs) and Displays
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/dark_containers_tabs_displays.png
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/no_dark_containers_tabs_displays.png
-
-
-Widgets and Inputs (fields)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/dark_widgets_inputs_fields.png
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/no_dark_widgets_inputs_fields.png
-
-
-Views and Inputs (no fields)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/dark_views_inputs_no_fields.png
-
-.. image:: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/images/no_dark_views_inputs_no_fields.png
+    # check all options included
+    $ qdarkstyle.example --help
 
 
 Changelog
@@ -258,7 +279,7 @@ License
 -------
 
 This project is licensed under the MIT license. Images contained in this
-project are licensed under CC-BY license.
+project is licensed under CC-BY license.
 
 For more information see `LICENSE <LICENSE.rst>`__ file.
 

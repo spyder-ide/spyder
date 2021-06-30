@@ -182,8 +182,13 @@ def test_get_namespace_view(kernel):
     assert "'a':" in nsview
     assert "'type': 'int'" in nsview or "'type': u'int'" in nsview
     assert "'size': 1" in nsview
-    assert "'color': '#0000ff'" in nsview
     assert "'view': '1'" in nsview
+    assert "'numpy_type': 'Unknown'" in nsview
+
+    if PY3:
+        assert "'python_type': 'int'" in nsview
+    else:
+        assert "'python_type': u'int'" in nsview
 
 
 def test_get_var_properties(kernel):

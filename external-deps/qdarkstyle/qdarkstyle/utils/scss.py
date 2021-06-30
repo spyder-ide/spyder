@@ -14,10 +14,10 @@ import sys
 import qtsass
 
 # Local imports
-from qdarkstyle import (MAIN_SCSS_FILE, MAIN_SCSS_FILEPATH, QSS_PATH,
-                        QSS_FILEPATH, RC_PATH, QSS_FILE,
+from qdarkstyle import (MAIN_SCSS_FILE, MAIN_SCSS_FILEPATH, PACKAGE_PATH,
+                        QSS_FILE, QSS_FILEPATH, QSS_PATH, RC_PATH,
                         VARIABLES_SCSS_FILE, VARIABLES_SCSS_FILEPATH)
-from qdarkstyle.darkpalette import DarkPalette
+from qdarkstyle.palette import Palette
 from qdarkstyle.utils.images import create_images, create_palette_image
 
 # Constants
@@ -25,22 +25,22 @@ PY2 = sys.version[0] == '2'
 
 HEADER_SCSS = '''// ---------------------------------------------------------------------------
 //
-//    File created programmatically
+//    WARNING! File created programmatically. All changes made in this file will be lost!
+//
+//    Created by the qtsass compiler v{}
 //
 //    The definitions are in the "qdarkstyle.palette" module
-//
-//    WARNING! All changes made in this file will be lost!
 //
 //----------------------------------------------------------------------------
 '''
 
 HEADER_QSS = '''/* ---------------------------------------------------------------------------
 
+    WARNING! File created programmatically. All changes made in this file will be lost!
+
     Created by the qtsass compiler v{}
 
     The definitions are in the "qdarkstyle.qss._styles.scss" module
-
-    WARNING! All changes made in this file will be lost!
 
 --------------------------------------------------------------------------- */
 '''
@@ -82,7 +82,7 @@ def _create_scss_variables(variables_scss_filepath, palette,
                            header=HEADER_SCSS):
     """Create a scss variables file."""
     scss = _dict_to_scss(palette.to_dict())
-    data = header + scss + '\n'
+    data = header.format(qtsass.__version__) + scss + '\n'
 
     with open(variables_scss_filepath, 'w') as f:
         f.write(data)
@@ -106,10 +106,23 @@ def _create_qss(main_scss_path, qss_filepath, header=HEADER_QSS):
     return data
 
 
-def create_qss(qss_filepath=QSS_FILEPATH, main_scss_filepath=MAIN_SCSS_FILEPATH,
-               variables_scss_filepath=VARIABLES_SCSS_FILEPATH,
-               palette=DarkPalette):
+def create_qss(palette=None):
     """Create variables files and run qtsass compilation."""
+
+    if palette is None:
+        print("Please pass a palette class in order to create its "
+              "qrc file")
+        sys.exit(1)
+
+    if palette.ID is None:
+        print("A QDarkStyle palette requires an ID!")
+        sys.exit(1)
+
+    palette_path = os.path.join(PACKAGE_PATH, palette.ID)
+    variables_scss_filepath = os.path.join(palette_path, VARIABLES_SCSS_FILE)
+    main_scss_filepath = os.path.join(palette_path, MAIN_SCSS_FILE)
+    qss_filepath = os.path.join(palette_path, QSS_FILE)
+
     _create_scss_variables(variables_scss_filepath, palette)
     stylesheet = _create_qss(main_scss_filepath, qss_filepath)
 
@@ -181,7 +194,7 @@ def create_custom_qss(
     shutil.copytree(QSS_PATH, theme_qss_path)
 
     # Create custom palette
-    custom_palette = type(name, (DarkPalette, ), {})
+    custom_palette = type(name, (Palette, ), {})
     custom_palette.COLOR_BACKGROUND_LIGHT = color_background_light
     custom_palette.COLOR_BACKGROUND_NORMAL = color_background_normal
     custom_palette.COLOR_BACKGROUND_DARK = color_background_dark
@@ -213,7 +226,7 @@ def create_custom_qss(
     with open(theme_main_scss_filepath, 'r') as fh:
         data = fh.read()
 
-    for key, color in DarkPalette.color_palette().items():
+    for key, color in Palette.color_palette().items():
         custom_color = custom_palette.color_palette()[key].upper()
         data = data.replace(color, custom_color)
         stylesheet = stylesheet.replace(color, custom_color)

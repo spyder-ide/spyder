@@ -13,19 +13,19 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QInputDialog, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 from spyder.widgets.tabs import Tabs
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 # Localization
 _ = get_translation('spyder')
@@ -82,6 +82,7 @@ class HistoryWidget(PluginMainWidget):
         self.find_widget = FindReplace(self)
 
         # Setup
+        self.tabwidget.setStyleSheet(self._tabs_stylesheet)
         self.find_widget.hide()
 
         # Layout
@@ -304,6 +305,29 @@ class HistoryWidget(PluginMainWidget):
             editor = None
 
         self.find_widget.set_editor(editor)
+
+    @property
+    def _tabs_stylesheet(self):
+        """
+        Change style of tabs because we don't have a close button here.
+        """
+        tabs_stylesheet = PANES_TABBAR_STYLESHEET.get_copy()
+        css = tabs_stylesheet.get_stylesheet()
+
+        css['QTabBar::tab'].setValues(
+            marginTop='1.0em',
+            padding='4px'
+        )
+
+        css['QTabWidget::left-corner'].setValues(
+            left='0px',
+        )
+
+        css['QTabWidget::right-corner'].setValues(
+            right='0px'
+        )
+
+        return str(tabs_stylesheet)
 
 
 def test():

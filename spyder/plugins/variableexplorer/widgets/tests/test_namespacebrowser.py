@@ -12,10 +12,7 @@ from __future__ import division
 # Standard library imports
 import string
 import sys
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 from flaky import flaky
@@ -24,7 +21,7 @@ from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespaceBrowser)
+    NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
 from spyder.py3compat import PY2
 from spyder.widgets.collectionseditor import ROWS_TO_LOAD
 from spyder.widgets.tests.test_collectioneditor import data, data_table
@@ -42,7 +39,8 @@ def test_automatic_column_width(qtbot):
 
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
     browser.set_data({'a_variable':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}})
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}})
     new_col_width = [browser.editor.columnWidth(i) for i in range(4)]
     assert browser.editor.automatic_column_width
     assert col_width != new_col_width  # Automatic col width is on
@@ -50,7 +48,8 @@ def test_automatic_column_width(qtbot):
     browser.editor.setColumnWidth(0, 100)  # Simulate user changing col width
     assert browser.editor.automatic_column_width == False
     browser.set_data({'a_lengthy_variable_name_which_should_change_width':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}})
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}})
     assert browser.editor.columnWidth(0) == 100  # Automatic col width is off
 
 
@@ -66,9 +65,11 @@ def test_sort_by_column(qtbot):
 
     browser.set_data(
         {'a_variable':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'},
+            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+             'numpy_type': 'Unknown'},
          'b_variable':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '2'}}
+            {'type': 'int', 'size': 1, 'view': '2', 'python_type': 'int',
+             'numpy_type': 'Unknown'}}
     )
 
     header = browser.editor.horizontalHeader()
@@ -112,7 +113,8 @@ def test_keys_sorted_and_sort_with_large_rows(qtbot):
     # Create variables.
     variables = {}
     variables['i'] = (
-        {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}
     )
 
     for i in range(100):
@@ -121,7 +123,8 @@ def test_keys_sorted_and_sort_with_large_rows(qtbot):
         else:
             var = 'd_' + str(i)
         variables[var] = (
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+             'numpy_type': 'Unknown'}
         )
 
     # Set data
@@ -153,6 +156,12 @@ def test_filtering_with_large_rows(qtbot):
     qtbot.addWidget(browser)
     browser.set_shellwidget(Mock())
     browser.setup()
+    text_finder = NamespacesBrowserFinder(
+        browser.editor,
+        callback=browser .editor.set_regex,
+        main=browser,
+        regex_base=VALID_VARIABLE_CHARS)
+    browser.set_text_finder(text_finder)
 
     # Create data
     variables = {}
@@ -160,7 +169,8 @@ def test_filtering_with_large_rows(qtbot):
         letter = string.ascii_lowercase[i // 10]
         var = letter + str(i)
         variables[var] = (
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+             'numpy_type': 'Unknown'}
         )
 
     # Set data
@@ -174,21 +184,22 @@ def test_filtering_with_large_rows(qtbot):
     assert data(model, 49, 0) == 'e49'
 
     # Assert we can filter variables not loaded yet.
-    qtbot.keyClicks(browser.finder.text_finder, "t19")
+    qtbot.keyClicks(text_finder, "t19")
     assert model.rowCount() == 10
 
     # Assert all variables effectively start with 't19'.
     for i in range(10):
         assert data(model, i, 0) == 't19{}'.format(i)
 
-    # Hide finder widget in order to reset it.
-    browser.show_finder(set_visible=False)
+    # Reset text_finder widget.
+    text_finder.setText('')
 
     # Create a new variable that starts with a different letter than
     # the rest.
     new_variables = variables.copy()
     new_variables['z'] = (
-        {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
+         'numpy_type': 'Unknown'}
     )
 
     # Emulate the process of loading those variables after the
@@ -196,7 +207,7 @@ def test_filtering_with_large_rows(qtbot):
     browser.process_remote_view(new_variables)
 
     # Assert that can find 'z' among the declared variables.
-    qtbot.keyClicks(browser.finder.text_finder, "z")
+    qtbot.keyClicks(text_finder, "z")
     assert model.rowCount() == 1
 
 

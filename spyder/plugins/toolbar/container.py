@@ -12,24 +12,21 @@ Toolbar Container.
 from collections import OrderedDict
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import QMenu, QToolBar
+from qtpy.QtCore import QSize, Slot
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.registries import TOOLBAR_REGISTRY
 
+
 # Localization
 _ = get_translation('spyder')
 
-
-# --- Constants
-# ------------------------------------------------------------------------
 
 class ToolbarMenus:
     ToolbarsMenu = "toolbars_menu"
@@ -53,7 +50,7 @@ class ToolbarContainer(PluginMainContainer):
         self._toolbarslist = []
         self._visible_toolbars = []
 
-    # --- Private Methods
+    # ---- Private Methods
     # ------------------------------------------------------------------------
     def _save_visible_toolbars(self):
         """Save the name of the visible toolbars in the options."""
@@ -84,12 +81,11 @@ class ToolbarContainer(PluginMainContainer):
             self._get_visible_toolbars()
 
         for toolbar in self._visible_toolbars:
-            toolbar.toggleViewAction().setChecked(value)
             toolbar.setVisible(value)
 
         self.update_actions()
 
-    # --- PluginMainContainer API
+    # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
         self.show_toolbars_action = self.create_action(
@@ -102,6 +98,7 @@ class ToolbarContainer(PluginMainContainer):
             ToolbarMenus.ToolbarsMenu,
             _("Toolbars"),
         )
+        self.toolbars_menu.setObjectName('checkbox-padding')
 
     def update_actions(self):
         if self.get_conf("toolbars_visible"):
@@ -114,7 +111,7 @@ class ToolbarContainer(PluginMainContainer):
         self.show_toolbars_action.setText(text)
         self.show_toolbars_action.setToolTip(tip)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def create_application_toolbar(self, toolbar_id, title):
         """

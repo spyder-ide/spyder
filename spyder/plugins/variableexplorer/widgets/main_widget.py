@@ -10,14 +10,15 @@ Variable Explorer Main Plugin Widget.
 
 # Third party imports
 from qtpy.QtCore import QTimer, Signal, Slot
-from qtpy.QtWidgets import QAction, QStackedWidget, QVBoxLayout
+from qtpy.QtWidgets import (
+    QAction, QHBoxLayout, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespaceBrowser)
+    NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
 from spyder.utils.programs import is_module_installed
 
 # Localization
@@ -136,9 +137,14 @@ class VariableExplorerWidget(PluginMainWidget):
         self.context_menu = None
         self.empty_context_menu = None
 
+        # --- Finder
+        self.finder = None
+
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(self._stack)
+        # Note: Later with the addition of the first NamespaceBrowser the
+        # find/search widget is added. See 'set_current_widget'
         self.setLayout(layout)
 
         # Signals
@@ -460,8 +466,57 @@ class VariableExplorerWidget(PluginMainWidget):
     def remove_widget(self, nsb):
         self._stack.removeWidget(nsb)
 
-    def set_current_widget(self, nsb):
+    def update_finder(self, nsb, old_nsb):
+        """Initialize or update finder widget."""
+        if self.finder is None:
+            # Initialize finder/search related widgets
+            self.finder = QWidget(self)
+            self.text_finder = NamespacesBrowserFinder(
+                nsb.editor,
+                callback=nsb.editor.set_regex,
+                main=nsb,
+                regex_base=VALID_VARIABLE_CHARS)
+            self.finder.text_finder = self.text_finder
+            self.finder_close_button = self.create_toolbutton(
+                'close_finder',
+                triggered=self.hide_finder,
+                icon=self.create_icon('DialogCloseButton'),
+            )
+
+            finder_layout = QHBoxLayout()
+            finder_layout.addWidget(self.finder_close_button)
+            finder_layout.addWidget(self.text_finder)
+            finder_layout.setContentsMargins(0, 0, 0, 0)
+            self.finder.setLayout(finder_layout)
+
+            layout = self.layout()
+            layout.addSpacing(1)
+            layout.addWidget(self.finder)
+        else:
+            # Just update references to the same text_finder (Custom QLineEdit)
+            # widget to the new current NamespaceBrowser and save current
+            # finder state in the previous NamespaceBrowser
+            if old_nsb is not None:
+                self.save_finder_state(old_nsb)
+            self.text_finder.update_parent(
+                nsb.editor,
+                callback=nsb.editor.set_regex,
+                main=nsb,
+            )
+
+    def set_current_widget(self, nsb, old_nsb):
+        """
+        Set the current NamespaceBrowser.
+
+        This also setup the finder widget to work with the current
+        NamespaceBrowser.
+        """
+        self.update_finder(nsb, old_nsb)
+        finder_visible = nsb.set_text_finder(self.text_finder)
         self._stack.setCurrentWidget(nsb)
+        self.finder.setVisible(finder_visible)
+        search_action = self.get_action(VariableExplorerWidgetActions.Search)
+        search_action.setChecked(finder_visible)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -474,13 +529,14 @@ class VariableExplorerWidget(PluginMainWidget):
         """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self._shellwidgets:
+            old_nsb = self.current_widget()
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)
             nsb.setup()
             self.add_widget(nsb)
             self._set_actions_and_menus(nsb)
             self._shellwidgets[shellwidget_id] = nsb
-            self.set_current_widget(nsb)
+            self.set_current_widget(nsb, old_nsb)
             self.update_actions()
             return nsb
 
@@ -493,9 +549,10 @@ class VariableExplorerWidget(PluginMainWidget):
 
     def set_shellwidget(self, shellwidget):
         shellwidget_id = id(shellwidget)
+        old_nsb = self.current_widget()
         if shellwidget_id in self._shellwidgets:
             nsb = self._shellwidgets[shellwidget_id]
-            self.set_current_widget(nsb)
+            self.set_current_widget(nsb, old_nsb)
 
     def import_data(self, filenames=None):
         """
@@ -521,11 +578,34 @@ class VariableExplorerWidget(PluginMainWidget):
     def show_finder(self, checked):
         if self.count():
             nsb = self.current_widget()
-            nsb.show_finder(checked)
+            if checked:
+                self.finder.text_finder.setText(nsb.last_find)
+            else:
+                self.save_finder_state(nsb)
+                self.finder.text_finder.setText('')
+            self.finder.setVisible(checked)
+            if self.finder.isVisible():
+                self.finder.text_finder.setFocus()
+            else:
+                nsb.editor.setFocus()
 
+    @Slot()
     def hide_finder(self):
         action = self.get_action(VariableExplorerWidgetActions.Search)
         action.setChecked(False)
+        nsb = self.current_widget()
+        self.save_finder_state(nsb)
+        self.finder.text_finder.setText('')
+
+    def save_finder_state(self, nsb):
+        """
+        Save finder state (last input text and visibility).
+
+        The values are saved in the given NamespaceBrowser.
+        """
+        last_find = self.text_finder.text()
+        finder_visibility = self.finder.isVisible()
+        nsb.save_finder_state(last_find, finder_visibility)
 
     def refresh_table(self):
         if self.count():

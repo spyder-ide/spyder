@@ -58,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'QDarkStyle'
-copyright = '2020, Colin Duquesnoy'
+copyright = '2021, Colin Duquesnoy'
 author = 'Colin Duquesnoy'
 
 # The version info for the project you're documenting, acts as replacement for

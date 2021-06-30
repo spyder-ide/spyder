@@ -9,10 +9,7 @@ Tests for bookmarks.
 """
 
 # Stdlib imports
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest

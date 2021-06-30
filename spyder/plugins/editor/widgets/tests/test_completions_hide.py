@@ -14,7 +14,7 @@ from qtpy.QtCore import Qt
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
     """Test on-the-fly completion closing when already complete.
@@ -86,7 +86,7 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_widget_visible(completions_codeeditor, qtbot):
     """

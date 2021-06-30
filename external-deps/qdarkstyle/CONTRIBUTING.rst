@@ -179,7 +179,8 @@ possible widget provided by Qt - common ones. Feel free to add more to
 them.
 
 To simplify the structure, there are separated files in
-`example.ui <./example/ui/>`__ folder.
+`qdarkstyle/example/ui <https://github.com/ColinDuquesnoy/QDarkStyleSheet/tree/master/qdarkstyle/example/ui>`__
+folder.
 
 -  ``dw_buttons.ui``: all types of buttons;
 -  ``dw_containers_no_tabs.ui``: all types of containers except for
@@ -195,44 +196,29 @@ To simplify the structure, there are separated files in
 *Note*: ``dw`` stands for dock widget and ``mw`` for main window.
 
 The entire example is built at runtime, in
-`example.py <./example/example.py>`__. To see more information about it,
-see its documentation.
+`qdarkstyle.example <https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/example/__main__.py>`__.
+To see more information about it, see its reference.
 
-Modifying UI Files
-~~~~~~~~~~~~~~~~~~
-
-Feel free to modify `ui <./example/ui>`__ files with Qt Designer and
-recompile UI using `process\_ui.py <./script/process_ui.py>`__ script,
-inside script folder, using:
-
-.. code:: bash
-
-   python scripts/process_ui.py
-
-It will generate all ``_ui.py`` files for PyQt4, PyQt5, PySide, QtPy,
-PyQtGraph.
+Feel free to modify UI files with Qt Designer.
 
 Modifying QSS File
 ~~~~~~~~~~~~~~~~~~
 
-If you are changing the `stylesheet <./qdarkstyle/style.qss>`__, you
-will need to recompile the QRC files using
-`process\_qrc.py <./script/process_qrc.py>`__ script, inside script
-folder.
+If you are changing the
+`stylesheet <https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/qss/_styles.scss>`__,
+you will need to recompile the QRC files using
+`qdarkstyle.utils <https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/utils/__main__.py>`__.
 
-.. code:: bash
-
-   python scripts/process_qrc.py
-
-This generates all ``_rc.py`` files for PyQt4, PyQt5, PySide, QtPy,
-PyQtGraph.
+This generates all resources files (images), ``style.qrc``,
+``_variables.scss``, ``style.qss``, and finally ``style_rc.py``
+for each palette.
 
 Making It Easy
 ~~~~~~~~~~~~~~
 
 To simplify this process for the developer, if you are changing many
 things, use the script
-`run\_ui\_css\_edition.py <./script/run_ui_css_edition.py>`__:
+`run\_ui\_css\_edition.py <https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/script/run_ui_css_edition.py>`__:
 
 .. code:: bash
 

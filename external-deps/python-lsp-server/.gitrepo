@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/python-lsp/python-lsp-server.git
+	branch = develop
+	commit = 22a746e5e1dc1c075360242cfd27813687f1b142
+	parent = 04e393bcea8ee2968bab4ff9a861300c3f802b20
+	method = merge
+	cmdver = 0.4.3

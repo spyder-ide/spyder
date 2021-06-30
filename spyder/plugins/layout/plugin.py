@@ -16,26 +16,45 @@ from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
 from qtpy.QtWidgets import QApplication, QDesktopWidget, QDockWidget
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
+from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.layout.container import LayoutContainer
-from spyder.plugins.layout.layouts import (HorizontalSplitLayout,
+from spyder.plugins.layout.layouts import (DefaultLayouts,
+                                           HorizontalSplitLayout,
                                            MatlabLayout, RLayout,
-                                           SpyderLayout, VerticalSplitLayout,
-                                           DefaultLayouts)
+                                           SpyderLayout, VerticalSplitLayout)
+from spyder.plugins.preferences.widgets.container import PreferencesActions
 from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
 from spyder.py3compat import qbytearray_to_str  # FIXME:
+
 
 # Localization
 _ = get_translation("spyder")
 
 # Constants
+
 # Number of default layouts available
-DEFAULT_LAYOUTS = 4
-# Version passed to saveState/restoreState
-WINDOW_STATE_VERSION = 1
+DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
+
+# ----------------------------------------------------------------------------
+# ---- Window state version passed to saveState/restoreState.
+# ----------------------------------------------------------------------------
+# This defines the layout version used by different Spyder releases. In case
+# there's a need to reset the layout when moving from one release to another,
+# please increase the number below in integer steps, e.g. from 1 to 2, and
+# leave a mention below explaining what prompted the change.
+#
+# The current versions are:
+#
+# * Spyder 4: Version 0 (it was the default).
+# * Spyder 5.0.0 to 5.0.5: Version 1 (a bump was required due to the new API).
+# * Spyder 5.1.0: Version 2 (a bump was required due to the migration of
+#                            Projects to the new API).
+WINDOW_STATE_VERSION = 2
 
 
 class Layout(SpyderPluginV2):
@@ -71,7 +90,7 @@ class Layout(SpyderPluginV2):
         # toggling out of fullscreen mode in Windows.
         self._saved_normal_geometry = None
         self._state_before_maximizing = None
-        self._interface_locked = self.get_conf('main', 'panes_locked')
+        self._interface_locked = self.get_conf('panes_locked', section='main')
 
         # Register default layouts
         self.register_layout(self, SpyderLayout)
@@ -113,19 +132,25 @@ class Layout(SpyderPluginV2):
         toolbars = self.get_plugin(Plugins.Toolbar)
         if toolbars:
             # Add actions to Main application toolbar
-            for main_layout_action in [container._maximize_dockwidget_action,
-                                       container._fullscreen_action]:
-                toolbars.add_item_to_application_toolbar(
-                    main_layout_action,
-                    toolbar_id=ApplicationToolbars.Main,
-                    section=MainToolbarSections.LayoutSection,
-                    before_section=MainToolbarSections.ApplicationSection)
+            before_action = self.get_action(
+                PreferencesActions.Show,
+                plugin=Plugins.Preferences
+            )
+
+            toolbars.add_item_to_application_toolbar(
+                container._maximize_dockwidget_action,
+                toolbar_id=ApplicationToolbars.Main,
+                section=MainToolbarSections.ApplicationSection,
+                before=before_action
+            )
 
         # Update actions icons and text
-        self._update_maximize_dockwidget_action()
         self._update_fullscreen_action()
 
     def before_mainwindow_visible(self):
+        # Update layout menu
+        self.update_layout_menu_actions()
+        # Setup layout
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
@@ -144,7 +169,6 @@ class Layout(SpyderPluginV2):
         -------
         SpyderDockablePlugin
             The last focused dockable plugin.
-
         """
         return self._last_plugin
 
@@ -158,7 +182,6 @@ class Layout(SpyderPluginV2):
         -------
         bool
             True is the mainwindow is in fullscreen. False otherwise.
-
         """
         return self._fullscreen_flag
 
@@ -188,9 +211,11 @@ class Layout(SpyderPluginV2):
         -------
         Instance of a spyder.plugins.layout.api.BaseGridLayoutType subclass
             Layout.
-
         """
         return self.get_container().get_layout(layout_id)
+
+    def update_layout_menu_actions(self):
+        self.get_container().update_layout_menu_actions()
 
     def setup_layout(self, default=False):
         """Initialize mainwindow layout."""
@@ -203,21 +228,22 @@ class Layout(SpyderPluginV2):
             # First Spyder execution:
             self.main.setWindowState(Qt.WindowMaximized)
             self._first_spyder_run = True
-            self.setup_default_layouts('default', settings)
+            self.setup_default_layouts(DefaultLayouts.SpyderLayout, settings)
 
             # Now that the initial setup is done, copy the window settings,
             # except for the hexstate in the quick layouts sections for the
             # default layouts.
             # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
-            get_func = self.get_conf
-            order = get_func(section, 'order')
+            get_func = self.get_conf_default if default else self.get_conf
+            order = get_func('order', section=section)
 
             # Restore the original defaults if reset layouts is called
             if default:
-                self.set_conf(section, 'active', order)
-                self.set_conf(section, 'order', order)
-                self.set_conf(section, 'names', order)
+                self.set_conf('active', order, section)
+                self.set_conf('order', order, section)
+                self.set_conf('names', order, section)
+                self.set_conf('ui_names', order, section)
 
             for index, _name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
@@ -228,11 +254,11 @@ class Layout(SpyderPluginV2):
             prefix = 'layout_default/'
             section = 'quick_layouts'
             self.save_current_window_settings(prefix, section, none_state=True)
-            self._current_quick_layout = 'default'
+            self._current_quick_layout = DefaultLayouts.SpyderLayout
 
         self.set_window_settings(*settings)
 
-    def setup_default_layouts(self, index, settings):
+    def setup_default_layouts(self, layout_id, settings):
         """Setup default layouts when run for the first time."""
         main = self.main
         main.setUpdatesEnabled(False)
@@ -254,19 +280,8 @@ class Layout(SpyderPluginV2):
             base_width = main.width()
             main.setFixedWidth(base_width)
 
-        # IMPORTANT: order has to be the same as defined in the config file
-        MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(DEFAULT_LAYOUTS)
-
         # Layout selection
-        layouts = {
-            'default': self.get_layout(DefaultLayouts.SpyderLayout),
-            RSTUDIO: self.get_layout(DefaultLayouts.RLayout),
-            MATLAB: self.get_layout(DefaultLayouts.MatlabLayout),
-            VERTICAL: self.get_layout(DefaultLayouts.VerticalSplitLayout),
-            HORIZONTAL: self.get_layout(DefaultLayouts.HorizontalSplitLayout),
-        }
-
-        layout = layouts[index]
+        layout = self.get_layout(layout_id)
 
         # Apply selected layout
         layout.set_main_window_layout(self.main, self.get_dockable_plugins())
@@ -285,19 +300,21 @@ class Layout(SpyderPluginV2):
 
         return layout
 
-    def quick_layout_switch(self, index):
+    def quick_layout_switch(self, index_or_layout_id):
         """
-        Switch to quick layout number *index*.
+        Switch to quick layout.
+
+        Using a number *index* or a registered layout id *layout_id*.
 
         Parameters
         ----------
-        index: int
+        index_or_layout_id: int or str
         """
         section = 'quick_layouts'
         container = self.get_container()
         try:
             settings = self.load_window_settings(
-                'layout_{}/'.format(index), section=section)
+                'layout_{}/'.format(index_or_layout_id), section=section)
             (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
              is_fullscreen) = settings
 
@@ -308,7 +325,7 @@ class Layout(SpyderPluginV2):
                 # The value for hexstate shouldn't be None for a custom saved
                 # layout (ie, where the index is greater than the number of
                 # defaults).  See spyder-ide/spyder#6202.
-                if index != 'default' and index >= DEFAULT_LAYOUTS:
+                if index_or_layout_id not in DEFAULT_LAYOUTS:
                     container.critical_message(
                         _("Warning"),
                         _("Error opening the custom layout.  Please close"
@@ -316,15 +333,20 @@ class Layout(SpyderPluginV2):
                           " then you must use 'Reset to Spyder default' "
                           "from the layout menu."))
                     return
-                self.setup_default_layouts(index, settings)
+                self.setup_default_layouts(index_or_layout_id, settings)
+            else:
+                self.set_window_settings(*settings)
         except cp.NoOptionError:
-            container.critical_message(
-                _("Warning"),
-                _("Quick switch layout #%s has not yet "
-                  "been defined.") % str(index))
-            return
-
-        self.set_window_settings(*settings)
+            try:
+                layout = self.get_layout(index_or_layout_id)
+                layout.set_main_window_layout(
+                    self.main, self.get_dockable_plugins())
+                self.main.sig_layout_setup_ready.emit(layout)
+            except SpyderAPIError:
+                container.critical_message(
+                    _("Warning"),
+                    _("Quick switch layout #%s has not yet "
+                      "been defined.") % str(index_or_layout_id))
 
         # Make sure the flags are correctly set for visible panes
         for plugin in self.get_dockable_plugins():
@@ -336,15 +358,19 @@ class Layout(SpyderPluginV2):
                 action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
-        return index
+        return index_or_layout_id
 
     def load_window_settings(self, prefix, default=False, section='main'):
         """
         Load window layout settings from userconfig-based configuration with
-        *prefix*, under *section* default: if True, do not restore inner
-        layout.
+        *prefix*, under *section*.
+
+        Parameters
+        ----------
+        default: bool
+            if True, do not restore inner layout.
         """
-        get_func = self.get_conf
+        get_func = self.get_conf_default if default else self.get_conf
         window_size = get_func(prefix + 'size', section=section)
         prefs_dialog_size = get_func(
             prefix + 'prefs_dialog_size', section=section)
@@ -367,7 +393,7 @@ class Layout(SpyderPluginV2):
         current_width = screen_shape.width()
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
-            pos = get_func(prefix + 'position', section)
+            pos = self.get_conf_default(prefix + 'position', section)
 
         is_maximized = get_func(prefix + 'is_maximized', section=section)
         is_fullscreen = get_func(prefix + 'is_fullscreen', section=section)
@@ -394,7 +420,8 @@ class Layout(SpyderPluginV2):
                              self.prefs_dialog_size.height())
 
         hexstate = qbytearray_to_str(
-            self.main.saveState(version=WINDOW_STATE_VERSION))
+            self.main.saveState(version=WINDOW_STATE_VERSION)
+        )
         return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
                 is_fullscreen)
 
@@ -419,9 +446,10 @@ class Layout(SpyderPluginV2):
         if hexstate:
             hexstate_valid = self.main.restoreState(
                 QByteArray().fromHex(str(hexstate).encode('utf-8')),
-                version=WINDOW_STATE_VERSION)
+                version=WINDOW_STATE_VERSION
+            )
 
-            # Check layout validity. Spyder 4 and below uses the version 0
+            # Check layout validity. Spyder 4 and below use the version 0
             # state (default), whereas Spyder 5 will use version 1 state.
             # For more info see the version argument for
             # QMainWindow.restoreState:
@@ -456,10 +484,13 @@ class Layout(SpyderPluginV2):
         """
         Save current window settings.
 
-        Takes config form *prefix* in the userconfig-based configuration,
-        under *section*.
+        It saves config with *prefix* in the userconfig-based,
+        configuration under *section*.
         """
-        win_size = self.window_size
+        # Use current size and position when saving window settings.
+        # Fixes spyder-ide/spyder#13882
+        win_size = self.main.size()
+        pos = self.main.pos()
         prefs_size = self.prefs_dialog_size
 
         self.set_conf(
@@ -482,8 +513,6 @@ class Layout(SpyderPluginV2):
             self.main.isFullScreen(),
             section=section,
         )
-
-        pos = self.window_position
         self.set_conf(
             prefix + 'position',
             (pos.x(), pos.y()),
@@ -529,28 +558,11 @@ class Layout(SpyderPluginV2):
                     plugin._toggle_view_action.setChecked(False)
                     break
 
-    def _update_maximize_dockwidget_action(self):
-        if self._state_before_maximizing is None:
-            text = _("Maximize current pane")
-            tip = _("Maximize current pane")
-            icon = self.create_icon('maximize')
-        else:
-            text = _("Restore current pane")
-            tip = _("Restore pane to its original size")
-            icon = self.create_icon('unmaximize')
-
-        container = self.get_container()
-        container._maximize_dockwidget_action.setText(text)
-        container._maximize_dockwidget_action.setIcon(icon)
-        container._maximize_dockwidget_action.setToolTip(tip)
-
     @property
     def maximize_action(self):
         """Expose maximize current dockwidget action."""
         return self.get_container()._maximize_dockwidget_action
 
-    @Slot()
-    @Slot(bool)
     def maximize_dockwidget(self, restore=False):
         """
         Maximize current dockwidget.
@@ -565,7 +577,8 @@ class Layout(SpyderPluginV2):
 
             # Select plugin to maximize
             self._state_before_maximizing = self.main.saveState(
-                version=WINDOW_STATE_VERSION)
+                version=WINDOW_STATE_VERSION
+            )
             focus_widget = QApplication.focusWidget()
 
             for plugin in self.get_dockable_plugins():
@@ -597,7 +610,6 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 self.main.setCentralWidget(self._last_plugin)
-
             self._last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
@@ -628,7 +640,6 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 self._last_plugin.dockwidget.setWidget(self._last_plugin)
-
             self._last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.main.setCentralWidget(None)
 
@@ -640,7 +651,8 @@ class Layout(SpyderPluginV2):
                 self._last_plugin._ismaximized = False
 
             self.main.restoreState(
-                self._state_before_maximizing, version=WINDOW_STATE_VERSION)
+                self._state_before_maximizing, version=WINDOW_STATE_VERSION
+            )
             self._state_before_maximizing = None
             try:
                 # New API
@@ -648,8 +660,6 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 self._last_plugin.get_focus_widget().setFocus()
-
-        self._update_maximize_dockwidget_action()
 
     def _update_fullscreen_action(self):
         if self._fullscreen_flag:
@@ -662,11 +672,6 @@ class Layout(SpyderPluginV2):
     def toggle_fullscreen(self):
         """
         Toggle option to show the mainwindow in fullscreen or windowed.
-
-        Returns
-        -------
-        None.
-
         """
         main = self.main
         if self._fullscreen_flag:

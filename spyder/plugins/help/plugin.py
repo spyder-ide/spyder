@@ -108,7 +108,7 @@ class Help(SpyderDockablePlugin):
 
         if ipyconsole:
             ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-            ipyconsole.sig_shellwidget_process_started.connect(
+            ipyconsole.sig_shellwidget_created.connect(
                 self.set_shellwidget)
             ipyconsole.sig_render_plain_text_requested.connect(
                 self.show_plain_text)
@@ -146,7 +146,7 @@ class Help(SpyderDockablePlugin):
         self.save_history()
         return True
 
-    def apply_conf(self, options_set):
+    def apply_conf(self, options_set, notify=False):
         super().apply_conf(options_set)
         widget = self.get_widget()
 

@@ -6,15 +6,17 @@
 
 """Module checking Spyder runtime dependencies"""
 
-
+# Standard library imports
 import os
+import os.path as osp
 import sys
 
 # Local imports
-from spyder.utils import programs
-from spyder.config.base import _, is_pynsist
+from spyder.config.base import _, DEV, is_pynsist, running_under_pytest
 from spyder.config.utils import is_anaconda
+from spyder.utils import programs
 
+HERE = osp.dirname(osp.abspath(__file__))
 
 # =============================================================================
 # Kind of dependency
@@ -49,25 +51,26 @@ PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
-PYLINT_REQVER = '>=1.0'
-PYLS_REQVER = '>=0.36.2;<1.0.0'
-PYLS_BLACK_REQVER = '>=0.4.6'
-PYLS_SPYDER_REQVER = '>=0.3.2'
+PYLINT_REQVER = '>=2.5.0'
+PYLSP_REQVER = '>=1.0.0'
+PYLSP_BLACK_REQVER = '>=1.0.0'
+PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
-QDARKSTYLE_REQVER = '>=2.8;<3.0'
-QTAWESOME_REQVER = '>=0.5.7'
-QTCONSOLE_REQVER = '>=5.0.3'
+QDARKSTYLE_REQVER = '=3.0.2'
+QSTYLIZER_REQVER = '>=0.1.10'
+QTAWESOME_REQVER = '>=1.0.2'
+QTCONSOLE_REQVER = '>=5.1.0'
 QTPY_REQVER = '>=1.5.0'
-RTREE_REQVER = '>=0.8.3'
-SETUPTOOLS_REQVER = '>=39.0.0'
+RTREE_REQVER = '>=0.9.7'
+SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.0.0dev0'
+SPYDER_KERNELS_REQVER = '>=2.0.4;<2.1.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
-WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3;<2.0.0'
+WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
 
 
 # Optional dependencies
@@ -171,18 +174,18 @@ DESCRIPTIONS = [
      'package_name': "pylint",
      'features': _("Static code analysis"),
      'required_version': PYLINT_REQVER},
-    {'modname': 'pyls',
-     'package_name': 'python-language-server',
+    {'modname': 'pylsp',
+     'package_name': 'python-lsp-server',
      'features': _("Code completion and linting for the Editor"),
-     'required_version': PYLS_REQVER},
-    {'modname': 'pyls_black',
-     'package_name': 'pyls-black',
+     'required_version': PYLSP_REQVER},
+    {'modname': 'pylsp_black',
+     'package_name': 'python-lsp-black',
      'features': _("Autoformat Python files in the Editor with the Black "
                    "package"),
-     'required_version': PYLS_BLACK_REQVER},
+     'required_version': PYLSP_BLACK_REQVER},
     {'modname': 'pyls_spyder',
      'package_name': 'pyls-spyder',
-     'features': _('Spyder plugin for the Python Language Server'),
+     'features': _('Spyder plugin for the Python LSP Server'),
      'required_version': PYLS_SPYDER_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",
@@ -197,6 +200,10 @@ DESCRIPTIONS = [
      'package_name': "qdarkstyle",
      'features': _("Dark style for the entire interface"),
      'required_version': QDARKSTYLE_REQVER},
+    {'modname': "qstylizer",
+     'package_name': "qstylizer",
+     'features': _("Customize Qt stylesheets"),
+     'required_version': QSTYLIZER_REQVER},
     {'modname': "qtawesome",
      'package_name': "qtawesome",
      'features': _("Icon theme based on FontAwesome and Material Design icons"),
@@ -212,8 +219,7 @@ DESCRIPTIONS = [
     {'modname': "rtree",
      'package_name': "rtree",
      'features': _("Fast access to code snippets regions"),
-     'required_version': RTREE_REQVER,
-     'display': is_anaconda() or is_pynsist()},
+     'required_version': RTREE_REQVER},
     {'modname': "setuptools",
      'package_name': "setuptools",
      'features': _("Determine package version"),
@@ -396,6 +402,14 @@ def missing_dependencies():
     """Return the status of missing dependencies (if any)"""
     missing_deps = []
     for dependency in DEPENDENCIES:
+        # Skip checking dependencies for which we have subrepos
+        if DEV or running_under_pytest():
+            repo_path = osp.normpath(osp.join(HERE, '..'))
+            subrepos_path = osp.join(repo_path, 'external-deps')
+            subrepos = os.listdir(subrepos_path)
+            if dependency.package_name in subrepos:
+                continue
+
         if dependency.kind != OPTIONAL and not dependency.check():
             missing_deps.append(dependency)
 

@@ -27,15 +27,15 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
-                                    create_toolbutton, qapplication)
+from spyder.utils.qthelpers import add_actions, create_toolbutton, qapplication
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -185,6 +185,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             toggled=self._toggle_show_callable_attributes_action)
         callable_attributes.setCheckable(True)
         callable_attributes.setChecked(show_callable_attributes)
+        callable_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(callable_attributes)
 
         special_attributes = create_toolbutton(
@@ -193,24 +194,21 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             toggled=self._toggle_show_special_attributes_action)
         special_attributes.setCheckable(True)
         special_attributes.setChecked(show_special_attributes)
+        special_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        self.tools_layout.addSpacing(5)
         self.tools_layout.addWidget(special_attributes)
 
         self.tools_layout.addStretch()
 
         self.options_button = create_toolbutton(
                 self, text=_('Options'), icon=ima.icon('tooloptions'))
+        self.options_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
         self.show_cols_submenu = QMenu(self)
+        self.show_cols_submenu.setObjectName('checkbox-padding')
         self.options_button.setMenu(self.show_cols_submenu)
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+        self.show_cols_submenu.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(self.options_button)
 
     @Slot()
@@ -230,9 +228,13 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
 
     def _setup_views(self):
         """Creates the UI widgets."""
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        layout.addLayout(self.tools_layout)
         self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
-        layout = create_plugin_layout(self.tools_layout,
-                                      self.central_splitter)
+        layout.addWidget(self.central_splitter)
         self.setLayout(layout)
 
         # Stretch last column?

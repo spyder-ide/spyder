@@ -12,23 +12,20 @@ Tests for the IPython console plugin.
 
 # Standard library imports
 import codecs
-from distutils.version import LooseVersion
 import os
 import os.path as osp
 import shutil
 import sys
 import tempfile
 from textwrap import dedent
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
+from pkg_resources import parse_version
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
@@ -43,6 +40,7 @@ from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
+from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
@@ -173,6 +171,8 @@ def ipyconsole(qtbot, request):
         CONF.set('main_interpreter', 'default', True)
         CONF.set('main_interpreter', 'executable', '')
 
+    # Conf css_path in the Appeareance plugin
+    CONF.set('appearance', 'css_path', CSS_PATH)
 
     # Create the console and a new client
     window = MainWindowMock()
@@ -376,7 +376,7 @@ def test_sympy_client(ipyconsole, qtbot):
 @pytest.mark.cython_client
 @pytest.mark.skipif(
     (not sys.platform.startswith('linux') or
-     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+     parse_version(ipy_release.version) == parse_version('7.11.0')),
     reason="It only works reliably on Linux and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
@@ -644,7 +644,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
         shell.execute(u"import os; os.chdir(u'''{}''')".format(tempdir))
 
     # Ask for directory.
-    with qtbot.waitSignal(shell.sig_change_cwd):
+    with qtbot.waitSignal(shell.sig_working_directory_changed):
         shell.update_cwd()
 
     if os.name == 'nt':
@@ -1574,7 +1574,7 @@ def test_calltip(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.test_environment_interpreter
 def test_conda_env_activation(ipyconsole, qtbot):
     """

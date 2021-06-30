@@ -29,7 +29,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-version_info = (5, 0, 0, "dev0")
+version_info = (5, 1, 0, "dev0")
 
 __version__ = '.'.join(map(str, version_info))
 __installer_version__ = __version__
@@ -38,7 +38,7 @@ __author__ = 'Spyder Project Contributors and others'
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'https://groups.google.com/group/spyderlib'
-__trouble_url__ = 'https://docs.spyder-ide.org/current/first-steps.html'
+__trouble_url__ = 'https://tinyurl.com/spyder-first-steps'
 __trouble_url_short__ = 'https://tinyurl.com/SpyderHelp'
 __website_url__ = 'https://www.spyder-ide.org/'
 __docs_url__ = 'https://docs.spyder-ide.org/'

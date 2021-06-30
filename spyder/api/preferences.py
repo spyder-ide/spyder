@@ -98,7 +98,7 @@ class PluginConfigPage(SpyderConfigPage):
         call.
         """
         def wrapper(self, options):
-            opts = self.previous_apply_settings()
+            opts = self.previous_apply_settings() or set({})
             opts |= options
             self.aggregate_sections_partials(opts)
             func(opts)

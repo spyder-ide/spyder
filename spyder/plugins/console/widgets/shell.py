@@ -53,7 +53,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     sig_redirect_stdio_requested = Signal(bool)
     sig_keyboard_interrupt = Signal()
     execute = Signal(str)
-    append_to_history = Signal(str, str)
+    sig_append_to_history_requested = Signal(str, str)
 
     def __init__(self, parent, history_filename, profile=False,
                  initial_message=None, default_foreground_color=None,
