@@ -809,11 +809,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         answer = QMessageBox.information(self, msg_title, msg,
                                          QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self.restart()
-
-    def restart(self):
-        """Restart Spyder."""
-        self.main.restart()
+            # ??? How to emit without going through main?
+            self.main.application.sig_restart_requested.emit()
 
     def add_tab(self, Widget):
         widget = Widget(self)

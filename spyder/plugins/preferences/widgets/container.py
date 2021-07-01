@@ -89,9 +89,6 @@ class PreferencesContainer(PluginMainContainer):
         """Preference page index has changed."""
         self.dialog_index = index
 
-    def reset(self):
-        self.sig_reset_preferences_requested.emit()
-
     def is_dialog_open(self):
         return self.dialog is not None and self.dialog.isVisible()
 
@@ -112,7 +109,7 @@ class PreferencesContainer(PluginMainContainer):
         self.reset_action = self.create_action(
             PreferencesActions.Reset,
             _("Reset Spyder to factory defaults"),
-            triggered=self.reset,
+            triggered=self.sig_reset_preferences_requested,
             icon=self.create_icon('reset_factory_defaults'),
         )
 

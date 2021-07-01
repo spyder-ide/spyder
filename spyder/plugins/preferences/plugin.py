@@ -12,6 +12,7 @@ in Spyder, both internal and external.
 """
 
 # Standard library imports
+import os
 import logging
 from typing import Union
 from packaging.version import Version
@@ -19,6 +20,8 @@ from pkg_resources import parse_version
 
 # Third-party imports
 from qtpy.QtGui import QIcon
+from qtpy.QtCore import Slot
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
@@ -48,6 +51,7 @@ class Preferences(SpyderPluginV2):
 
     NAME = 'preferences'
     CONF_SECTION = 'preferences'
+    REQUIRES = [Plugins.Application]
     OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
@@ -248,7 +252,6 @@ class Preferences(SpyderPluginV2):
         container = self.get_container()
         main = self.get_main()
 
-        container.sig_reset_preferences_requested.connect(main.reset_spyder)
         container.sig_show_preferences_requested.connect(
             lambda: self.open_dialog(main.prefs_dialog_size))
 
@@ -278,6 +281,23 @@ class Preferences(SpyderPluginV2):
             toolbar_id=ApplicationToolbars.Main,
             section=MainToolbarSections.ApplicationSection
         )
+
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        container = self.get_container()
+        container.sig_reset_preferences_requested.connect(self.reset)
+
+    @Slot()
+    def reset(self):
+        answer = QMessageBox.warning(self.main, _("Warning"),
+             _("Spyder will restart and reset to default settings: <br><br>"
+               "Do you want to continue?"),
+             QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            os.environ['SPYDER_RESET'] = 'True'
+            application = self.get_plugin(Plugins.Application)
+            application.sig_restart_requested.emit()
+
 
     def unregister(self):
         pass

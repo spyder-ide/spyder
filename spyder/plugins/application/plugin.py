@@ -56,6 +56,8 @@ class Application(SpyderPluginV2):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
 
+        self.sig_restart_requested.connect(self.restart)
+
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
         if self.is_plugin_available(Plugins.MainMenu):
@@ -209,7 +211,7 @@ class Application(SpyderPluginV2):
         self._main.apply_settings()
 
     @Slot()
-    def restart(self, reset=False):
+    def restart(self):
         """
         Quit and Restart Spyder application.
 
@@ -243,7 +245,6 @@ class Application(SpyderPluginV2):
         env['SPYDER_ARGS'] = spyder_args
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
-        env['SPYDER_RESET'] = str(reset)
 
         if DEV:
             repo_dir = osp.dirname(spyder_start_directory)

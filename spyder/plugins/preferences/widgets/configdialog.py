@@ -71,8 +71,9 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         # Signals and slots
-        if self.main:
-            self.button_reset.clicked.connect(self.main.reset_spyder)
+        # ??? How to emit without going through main?
+        self.button_reset.clicked.connect(
+            self.main.preferences.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
                                              self.pages_widget.setCurrentIndex)

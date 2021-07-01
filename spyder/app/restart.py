@@ -187,7 +187,7 @@ def main():
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
-    reset = os.environ.pop('SPYDER_RESET', None)
+    reset = os.environ.pop('SPYDER_RESET', 'False')
 
     # Get the spyder base folder based on this file
     this_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
