@@ -19,7 +19,7 @@ import uuid
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
@@ -42,8 +42,7 @@ from spyder.plugins.ipythonconsole.widgets.client import ClientWidgetActions
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
-# TODO: Remove to_text_string calls and other PY2 compatibility logic
-from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
+from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
@@ -251,14 +250,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             # a crash when the console is detached from the main window
             # Fixes spyder-ide/spyder#561.
             self.tabwidget.setDocumentMode(True)
-        self.tabwidget.currentChanged.connect(self.refresh_plugin)
+        self.tabwidget.currentChanged.connect(self.refresh_container)
         self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
         self.tabwidget.tabBar().sig_name_changed.connect(
             self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
 
-        # TODO: Check dependenciy with Editor
+        # TODO: Check dependency with Editor
         self.plugin.main.editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
@@ -309,7 +308,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self._init_asyncio_patch()
 
     
-    # ---- PluginMainWidget API
+    # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):
         return _('IPython Console')
@@ -466,8 +465,245 @@ class IPythonConsoleWidget(PluginMainWidget):
     def update_actions(self):
         pass
 
+    def apply_plugin_settings_to_client(
+            self, options, client, disconnect_ready_signal=False):
+        """Apply given plugin settings to the given client."""
+        # GUI options
+        self._apply_gui_plugin_settings(options, client)
+
+        # Matplotlib options
+        self._apply_mpl_plugin_settings(options, client)
+
+        # Advanced options
+        self._apply_advanced_plugin_settings(options, client)
+
+        # Debugging options
+        self._apply_pdb_plugin_settings(options, client)
+
+        if disconnect_ready_signal:
+            client.shellwidget.sig_pdb_prompt_ready.disconnect()
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings."""
+        # TODO: Simplify settings handling when possible by using preferences
+        # subscription
+        restart_needed = False
+        restart_options = []
+
+        # Startup options (needs a restart)
+        run_lines_n = 'startup/run_lines'
+        use_run_file_n = 'startup/use_run_file'
+        run_file_n = 'startup/run_file'
+
+        # Graphic options
+        pylab_n = 'pylab'
+        pylab_o = self.get_option(pylab_n)
+        pylab_backend_n = 'pylab/backend'
+        inline_backend = 0
+        pylab_restart = False
+        client_backend_not_inline = [False] * len(self.clients)
+        if pylab_o and pylab_backend_n in options:
+            pylab_backend_o = self.get_option(pylab_backend_n)
+            client_backend_not_inline = [
+                client.shellwidget.get_matplotlib_backend() != inline_backend
+                for client in self.clients]
+            current_client_backend_not_inline = (
+                self.get_current_client().shellwidget.get_matplotlib_backend()
+                != inline_backend)
+            pylab_restart = (
+                any(client_backend_not_inline) and
+                pylab_backend_o != inline_backend)
+
+        # Advanced options (needs a restart)
+        symbolic_math_n = 'symbolic_math'
+        hide_cmd_windows_n = 'hide_cmd_windows'
+
+        restart_options += [run_lines_n, use_run_file_n, run_file_n,
+                            symbolic_math_n, hide_cmd_windows_n]
+
+        restart_needed = any([restart_option in options
+                              for restart_option in restart_options])
+
+        if (restart_needed or pylab_restart) and not running_under_pytest():
+            restart_dialog = ConsoleRestartDialog(self)
+            restart_dialog.exec_()
+            (restart_all, restart_current,
+             no_restart) = restart_dialog.get_action_value()
+        else:
+            restart_all = False
+            restart_current = False
+            no_restart = True
+
+        # Apply settings
+        for idx, client in enumerate(self.clients):
+            restart = ((pylab_restart and client_backend_not_inline[idx]) or
+                       restart_needed)
+            if not (restart and restart_all) or no_restart:
+                sw = client.shellwidget
+                if sw.is_debugging() and sw._executing:
+                    # Apply settings when the next Pdb prompt is available
+                    sw.sig_pdb_prompt_ready.connect(
+                        lambda o=options, c=client:
+                            self.apply_plugin_settings_to_client(
+                                o, c, disconnect_ready_signal=True)
+                        )
+                else:
+                    self.apply_plugin_settings_to_client(options, client)
+            elif restart and restart_all:
+                client.ask_before_restart = False
+                client.restart_kernel()
+
+        if (((pylab_restart and current_client_backend_not_inline)
+             or restart_needed) and restart_current):
+            current_client = self.get_current_client()
+            current_client.ask_before_restart = False
+            current_client.restart_kernel()
+
+
     # ---- Private API
     # -------------------------------------------------------------------------
+    def _apply_gui_plugin_settings(self, options, client):
+        """Apply GUI related configurations to a client."""
+        # GUI options
+        font_n = 'plugin_font'
+        help_n = 'connect_to_oi'
+        color_scheme_n = 'color_scheme_name'
+        show_time_n = 'show_elapsed_time'
+        reset_namespace_n = 'show_reset_namespace_warning'
+        ask_before_restart_n = 'ask_before_restart'
+        ask_before_closing_n = 'ask_before_closing'
+        show_calltips_n = 'show_calltips'
+        buffer_size_n = 'buffer_size'
+        completion_type_n = 'completion_type'
+
+        # Advanced GUI options
+        in_prompt_n = 'in_prompt'
+        out_prompt_n = 'out_prompt'
+
+        # Client widgets
+        control = client.get_control()
+        sw = client.shellwidget
+        if font_n in options:
+            font_o = self.plugin.get_font()
+            client.set_font(font_o)
+        if help_n in options and control is not None:
+            help_o = self.get_conf('connect/ipython_console', section='help')
+            control.set_help_enabled(help_o)
+        if color_scheme_n in options:
+            color_scheme_o = self.get_conf('selected', section='appearance')
+            client.set_color_scheme(color_scheme_o)
+        if show_time_n in options:
+            show_time_o = self.get_conf(show_time_n)
+            client.show_time_action.setChecked(show_time_o)
+            client.set_elapsed_time_visible(show_time_o)
+        if reset_namespace_n in options:
+            reset_namespace_o = self.get_option(reset_namespace_n)
+            client.reset_warning = reset_namespace_o
+        if ask_before_restart_n in options:
+            ask_before_restart_o = self.get_option(ask_before_restart_n)
+            client.ask_before_restart = ask_before_restart_o
+        if ask_before_closing_n in options:
+            ask_before_closing_o = self.get_option(ask_before_closing_n)
+            client.ask_before_closing = ask_before_closing_o
+        if show_calltips_n in options:
+            show_calltips_o = self.get_option(show_calltips_n)
+            sw.set_show_calltips(show_calltips_o)
+        if buffer_size_n in options:
+            buffer_size_o = self.get_option(buffer_size_n)
+            sw.set_buffer_size(buffer_size_o)
+        if completion_type_n in options:
+            completion_type_o = self.get_option(completion_type_n)
+            completions = {0: "droplist", 1: "ncurses", 2: "plain"}
+            sw._set_completion_widget(completions[completion_type_o])
+
+        # Advanced GUI options
+        if in_prompt_n in options:
+            in_prompt_o = self.get_option(in_prompt_n)
+            sw.set_in_prompt(in_prompt_o)
+        if out_prompt_n in options:
+            out_prompt_o = self.get_option(out_prompt_n)
+            sw.set_out_prompt(out_prompt_o)
+
+    def _apply_mpl_plugin_settings(self, options, client):
+        """Apply Matplotlib related configurations to a client."""
+        # Matplotlib options
+        pylab_n = 'pylab'
+        pylab_o = self.get_option(pylab_n)
+        pylab_autoload_n = 'pylab/autoload'
+        pylab_backend_n = 'pylab/backend'
+        inline_backend_figure_format_n = 'pylab/inline/figure_format'
+        inline_backend_resolution_n = 'pylab/inline/resolution'
+        inline_backend_width_n = 'pylab/inline/width'
+        inline_backend_height_n = 'pylab/inline/height'
+        inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
+
+        # Client widgets
+        sw = client.shellwidget
+        if pylab_o:
+            if pylab_backend_n in options or pylab_autoload_n in options:
+                pylab_autoload_o = self.get_option(pylab_autoload_n)
+                pylab_backend_o = self.get_option(pylab_backend_n)
+                sw.set_matplotlib_backend(pylab_backend_o, pylab_autoload_o)
+            if inline_backend_figure_format_n in options:
+                inline_backend_figure_format_o = self.get_option(
+                    inline_backend_figure_format_n)
+                sw.set_mpl_inline_figure_format(inline_backend_figure_format_o)
+            if inline_backend_resolution_n in options:
+                inline_backend_resolution_o = self.get_option(
+                    inline_backend_resolution_n)
+                sw.set_mpl_inline_resolution(inline_backend_resolution_o)
+            if (inline_backend_width_n in options or
+                    inline_backend_height_n in options):
+                inline_backend_width_o = self.get_option(
+                    inline_backend_width_n)
+                inline_backend_height_o = self.get_option(
+                    inline_backend_height_n)
+                sw.set_mpl_inline_figure_size(
+                    inline_backend_width_o, inline_backend_height_o)
+            if inline_backend_bbox_inches_n in options:
+                inline_backend_bbox_inches_o = self.get_option(
+                    inline_backend_bbox_inches_n)
+                sw.set_mpl_inline_bbox_inches(inline_backend_bbox_inches_o)
+
+    def _apply_advanced_plugin_settings(self, options, client):
+        """Apply advanced configurations to a client."""
+        # Advanced options
+        greedy_completer_n = 'greedy_completer'
+        jedi_completer_n = 'jedi_completer'
+        autocall_n = 'autocall'
+
+        # Client widget
+        sw = client.shellwidget
+        if greedy_completer_n in options:
+            greedy_completer_o = self.get_option(greedy_completer_n)
+            sw.set_greedy_completer(greedy_completer_o)
+        if jedi_completer_n in options:
+            jedi_completer_o = self.get_option(jedi_completer_n)
+            sw.set_jedi_completer(jedi_completer_o)
+        if autocall_n in options:
+            autocall_o = self.get_option(autocall_n)
+            sw.set_autocall(autocall_o)
+
+    def _apply_pdb_plugin_settings(self, options, client):
+        """Apply debugging configurations to a client."""
+        # Debugging options
+        pdb_ignore_lib_n = 'pdb_ignore_lib'
+        pdb_execute_events_n = 'pdb_execute_events'
+        pdb_use_exclamation_mark_n = 'pdb_use_exclamation_mark'
+
+        # Client widget
+        sw = client.shellwidget
+        if pdb_ignore_lib_n in options:
+            pdb_ignore_lib_o = self.get_option(pdb_ignore_lib_n)
+            sw.set_pdb_ignore_lib(pdb_ignore_lib_o)
+        if pdb_execute_events_n in options:
+            pdb_execute_events_o = self.get_option(pdb_execute_events_n)
+            sw.set_pdb_execute_events(pdb_execute_events_o)
+        if pdb_use_exclamation_mark_n in options:
+            pdb_use_exclamation_mark_o = self.get_option(
+                pdb_use_exclamation_mark_n)
+            sw.set_pdb_use_exclamation_mark(pdb_use_exclamation_mark_o)
+
     def _init_asyncio_patch(self):
         """
         - This was fixed in Tornado 6.1!
@@ -581,7 +817,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # it means this is a new master client
         if master_id is None:
             self.master_clients += 1
-            master_id = to_text_string(self.master_clients)
+            master_id = str(self.master_clients)
             external_kernel = True
 
         # Set full client name
@@ -623,7 +859,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             QMessageBox.critical(self, _('Connection error'),
                                  _("An error occurred while trying to load "
                                    "the kernel connection file. The error "
-                                   "was:\n\n") + to_text_string(e))
+                                   "was:\n\n") + str(e))
             return
 
         if hostname is not None:
@@ -644,7 +880,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             except Exception as e:
                 QMessageBox.critical(self, _('Connection error'),
                                    _("Could not open ssh tunnel. The "
-                                     "error was:\n\n") + to_text_string(e))
+                                     "error was:\n\n") + str(e))
                 return
 
         # Assign kernel manager and client to shellwidget
@@ -670,7 +906,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Register client
         self.register_client(client)
 
-
     # ---- Public API
     # -------------------------------------------------------------------------
     
@@ -685,6 +920,52 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         for client in self.clients:
             client.set_font(font)
+
+    def refresh_container(self):
+        """Refresh tabwidget"""
+        client = None
+        if self.tabwidget.count():
+            client = self.tabwidget.currentWidget()
+
+            # Decide what to show for each client
+            if client.info_page != client.blank_page:
+                # Show info_page if it has content
+                client.set_info_page()
+                client.shellwidget.hide()
+                client.layout.addWidget(self.infowidget)
+                self.infowidget.show()
+            else:
+                self.infowidget.hide()
+                client.shellwidget.show()
+
+            # Give focus to the control widget of the selected tab
+            control = client.get_control()
+            control.setFocus()
+
+            if isinstance(control, PageControlWidget):
+                self.pager_label.show()
+            else:
+                self.pager_label.hide()
+
+            # Create corner widgets
+            buttons = [[b, -7] for b in client.get_toolbar_buttons()]
+            buttons = sum(buttons, [])[:-1]
+            widgets = [client.create_time_label()] + buttons
+        else:
+            control = None
+            widgets = []
+        self.find_widget.set_editor(control)
+        self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+
+        if client:
+            sw = client.shellwidget
+            self.main.variableexplorer.set_shellwidget(sw)
+            self.sig_pdb_state_changed.emit(
+                sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
+            self.sig_shellwidget_changed.emit(sw)
+
+        self.update_tabs_text()
+        # self.sig_update_plugin_title.emit()
 
     # ---- For tabs
     # -------------------------------------------------------------------------
@@ -856,11 +1137,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                 % pyexec
             )
             for cmd in [py_cmd, ipy_cmd]:
-                if PY2:
-                    # We need to encode as run_shell_command will treat the
-                    # string as str
-                    cmd = cmd.encode('utf-8')
-
                 try:
                     # Use clean environment
                     proc = programs.run_shell_command(cmd, env={})
@@ -942,7 +1218,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                           is_pylab=False, is_sympy=False, given_name=None):
         """Create a new client"""
         self.master_clients += 1
-        client_id = dict(int_id=to_text_string(self.master_clients),
+        client_id = dict(int_id=str(self.master_clients),
                          str_id='A')
         cf = self._new_connection_file()
         show_elapsed_time = self.get_conf('show_elapsed_time')
@@ -1494,7 +1770,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Run cell in current or dedicated client."""
 
         def norm(text):
-            return remove_backslashes(to_text_string(text))
+            return remove_backslashes(str(text))
 
         self.run_cell_filename = filename
 
@@ -1506,9 +1782,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         if client is not None:
             # Internal kernels, use runcell
             if client.get_kernel() is not None and not run_cell_copy:
-                line = (to_text_string(
+                line = (str(
                         "{}({}, '{}')").format(
-                                to_text_string(function),
+                                str(function),
                                 repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
 
@@ -1538,7 +1814,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     def run_script(self, filename, wdir, args, debug, post_mortem,
                    current_client, clear_variables, console_namespace):
         """Run script in current or dedicated client"""
-        norm = lambda text: remove_backslashes(to_text_string(text))
+        norm = lambda text: remove_backslashes(str(text))
 
         # Run Cython files in a dedicated console
         is_cython = osp.splitext(filename)[1] == '.pyx'
@@ -1574,7 +1850,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 line = "%run "
                 if debug:
                     line += "-d "
-                line += "\"%s\"" % to_text_string(filename)
+                line += "\"%s\"" % str(filename)
                 if args:
                     line += " %s" % norm(args)
 
@@ -1664,7 +1940,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             # Needed to handle an error when kernel_client is none.
             # See spyder-ide/spyder#6308.
             try:
-                sw.execute(to_text_string(lines))
+                sw.execute(str(lines))
             except AttributeError:
                 pass
             self.activateWindow()
@@ -1673,7 +1949,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     # ---- For error handling
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = get_error_match(to_text_string(text))
+        match = get_error_match(str(text))
         if match:
             fname, lnb = match.groups()
             if ("<ipython-input-" in fname and
