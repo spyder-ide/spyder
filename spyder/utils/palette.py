@@ -39,8 +39,8 @@ class SpyderPaletteDark:
 
     # Icon colors
     ICON_1 = Gray.B140
-    ICON_2 = Blue.B70
-    ICON_3 = Green.B60
+    ICON_2 = Blue.B80
+    ICON_3 = Green.B80
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B30
@@ -97,8 +97,8 @@ class SpyderPaletteLight:
 
     # Icon colors
     ICON_1 = Gray.B30
-    ICON_2 = Blue.B70
-    ICON_3 = Green.B70
+    ICON_2 = Blue.B50
+    ICON_3 = Green.B30
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B140
