@@ -694,14 +694,9 @@ class BaseEditMixin(object):
     def get_text_with_eol(self):
         """Same as 'toPlainText', replace '\n'
         by correct end-of-line characters"""
-        utext = to_text_string(self.toPlainText())
+        utext = self.toPlainText()
         linesep = self.get_line_separator()
-        if linesep != '\n':
-            lines = utext.splitlines()
-            txt = linesep.join(lines)
-            if utext.endswith('\n'):
-                txt += linesep
-            return txt
+        utext.replace('\n', linesep)
         return utext
 
     #------Positions, coordinates (cursor, EOF, ...)
