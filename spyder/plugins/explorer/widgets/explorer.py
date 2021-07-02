@@ -43,6 +43,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import file_uri, start_file
+from spyder.widgets.comboboxes import PatternComboBox
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -127,6 +128,8 @@ class DirViewContextMenuSections:
 class ExplorerTreeWidgetActions:
     # Toggles
     ToggleFilter = 'toggle_filter_files_action'
+    ToggleExcludeCase = 'toggle_filter_case_sensitivity'
+    ToggleFilterRegex = 'toggle_filter_regular_expression'
 
     # Triggers
     Next = 'next_action'
@@ -1855,6 +1858,39 @@ class ExplorerTreeWidget(DirView):
         )
         self.filter_button.setCheckable(True)
 
+        self.search_regexp_action = self.create_action(
+            ExplorerTreeWidgetActions.ToggleFilterRegex,
+            text=_('Regular expression'),
+            tip=_('Regular expression'),
+            icon=self.create_icon('regex'),
+            toggled=self.filter_changed,
+            initial=self.get_conf('filter_text_regexp'),
+            option='filter_text_regexp'
+        )
+        self.search_regexp_action.setCheckable(True)
+
+        self.case_action = self.create_action(
+            ExplorerTreeWidgetActions.ToggleExcludeCase,
+            text=_("Case sensitive"),
+            tip=_("Case sensitive"),
+            icon=self.create_icon("format_letter_case"),
+            toggled=self.filter_changed,
+            initial=self.get_conf('case_sensitive'),
+            option='case_sensitive'
+        )
+        self.case_action.setCheckable(True)
+
+        # Filter Text Combo Box
+        filter_text = self.get_conf('filter_text', '')
+        if not isinstance(filter_text, (list, tuple)):
+            filter_text = [filter_text]
+        self.filter_text_edit = PatternComboBox(
+            self,
+            filter_text,
+            _("Filter pattern"),
+        )
+        self.filter_text_edit.editTextChanged.connect(self.filter_changed)
+
     def update_actions(self):
         """Update the widget actions."""
         super().update_actions()
@@ -1925,6 +1961,11 @@ class ExplorerTreeWidget(DirView):
             Path to the clicked directory.
         """
         self.chdir(directory=dirname)
+
+    @Slot()
+    @Slot(bool)
+    def filter_changed(self, toggled=False):
+        self.filter_files([self.filter_text_edit.currentText()])
 
     # ---- Files/Directories Actions
     @Slot()
