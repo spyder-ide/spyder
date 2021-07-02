@@ -1799,7 +1799,7 @@ class EditorStack(QWidget):
         Returns:
             int: computed hash.
         """
-        txt = fileinfo.editor.get_text_with_eol()
+        txt = to_text_string(fileinfo.editor.get_text_with_eol())
         return hash(txt)
 
     def _write_to_file(self, fileinfo, filename):
@@ -1812,7 +1812,7 @@ class EditorStack(QWidget):
         This is a low-level function that only saves the text to file in the
         correct encoding without doing any error handling.
         """
-        txt = fileinfo.editor.get_text_with_eol()
+        txt = to_text_string(fileinfo.editor.get_text_with_eol())
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False, save_new_files=True):
