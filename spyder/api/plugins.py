@@ -925,7 +925,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         """
 
         if self._conf is not None:
-            self._conf.unregister_plugin()
+            self._conf.unregister_plugin(self)
 
         self._container = None
         self.is_compatible = None
@@ -1029,7 +1029,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
                     'A spyder plugin must define a `CONF_SECTION` class '
                     'attribute!'
                 )
-
             return self._conf.get(section, option, default)
 
     @Slot(str, object)

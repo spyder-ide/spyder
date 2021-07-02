@@ -14,14 +14,11 @@ import sys
 import qdarkstyle
 import qstylizer
 from qstylizer.parser import parse as parse_stylesheet
-from qtpy import PYQT_VERSION
 
 # Local imports
+from spyder.config.gui import OLD_PYQT
 from spyder.utils.palette import QStylePalette
-from spyder.utils import programs
 
-
-OLD_PYQT = programs.check_version(PYQT_VERSION, "5.12", "<")
 
 # =============================================================================
 # ---- Base stylesheet class

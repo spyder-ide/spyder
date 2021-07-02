@@ -1,5 +1,88 @@
 # History of changes
 
+## Version 5.0.5 (2021-06-23)
+
+### Important fixes
+* Catch any error when trying to detect if Kite installers are available.
+
+### Issues Closed
+
+* [Issue 15876](https://github.com/spyder-ide/spyder/issues/15876) - Spyder 5.0.4 crashes with proxy error to kite.com ([PR 15889](https://github.com/spyder-ide/spyder/pull/15889) by [@andfoy](https://github.com/andfoy))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 15916](https://github.com/spyder-ide/spyder/pull/15916) - PR: Add border around WebView widgets, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15889](https://github.com/spyder-ide/spyder/pull/15889) - PR: Prevent connection errors when trying to verify Kite installers, by [@andfoy](https://github.com/andfoy) ([15876](https://github.com/spyder-ide/spyder/issues/15876))
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
+## Version 5.0.4 (2021-06-11)
+
+### New API features
+* Programmatic addition of new layouts
+
+### Important fixes
+* Fix debugger for IPython 7.24.0
+* Fix loading complex third-party plugins
+* Fix errors when restarting kernels
+
+### Issues Closed
+
+* [Issue 15788](https://github.com/spyder-ide/spyder/issues/15788) - "import sys" doesn't seem to work at console startup ([PR 15801](https://github.com/spyder-ide/spyder/pull/15801) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15768](https://github.com/spyder-ide/spyder/issues/15768) - Logging error after kernel died or is restarted or a log entry is created form the IPython Console ([PR 15777](https://github.com/spyder-ide/spyder/pull/15777) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15738](https://github.com/spyder-ide/spyder/issues/15738) - Debugger broken with IPython 7.24.0 ([PR 15735](https://github.com/spyder-ide/spyder/pull/15735) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15714](https://github.com/spyder-ide/spyder/issues/15714) - Spyder crashes due to uncaught FileNotFoundError on startup ([PR 15715](https://github.com/spyder-ide/spyder/pull/15715) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15712](https://github.com/spyder-ide/spyder/issues/15712) - Crashed while pressing backspace ([PR 15716](https://github.com/spyder-ide/spyder/pull/15716) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15692](https://github.com/spyder-ide/spyder/issues/15692) - PYTHONPATH manager does not work with unicode characters in path  ([PR 15702](https://github.com/spyder-ide/spyder/pull/15702) by [@rhkarls](https://github.com/rhkarls))
+* [Issue 15689](https://github.com/spyder-ide/spyder/issues/15689) - Titlebar doesn't use dark mode on macOS ([PR 15690](https://github.com/spyder-ide/spyder/pull/15690) by [@mrclary](https://github.com/mrclary))
+* [Issue 15645](https://github.com/spyder-ide/spyder/issues/15645) - AttributeError when closing console ([PR 15680](https://github.com/spyder-ide/spyder/pull/15680) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15498](https://github.com/spyder-ide/spyder/issues/15498) - "Warning, no such comm" shown when restarting the kernel ([PR 15719](https://github.com/spyder-ide/spyder/pull/15719) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15417](https://github.com/spyder-ide/spyder/issues/15417) - UMR message is still printed for the Windows installer ([PR 15766](https://github.com/spyder-ide/spyder/pull/15766) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15313](https://github.com/spyder-ide/spyder/issues/15313) - Right click on editor tabs selects the wrong tab ([PR 15490](https://github.com/spyder-ide/spyder/pull/15490) by [@impact27](https://github.com/impact27))
+* [Issue 15163](https://github.com/spyder-ide/spyder/issues/15163) - No QcoreApplication Found - Spyder 5 installation problem  ([PR 15777](https://github.com/spyder-ide/spyder/pull/15777) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 14803](https://github.com/spyder-ide/spyder/issues/14803) - RuntimeError when switching projects with watchdog>=2.0.0 ([PR 15676](https://github.com/spyder-ide/spyder/pull/15676) by [@mrclary](https://github.com/mrclary))
+
+In this release 13 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 15837](https://github.com/spyder-ide/spyder/pull/15837) - PR: Update dependencies for 5.0.4, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15828](https://github.com/spyder-ide/spyder/pull/15828) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 15827](https://github.com/spyder-ide/spyder/pull/15827) - PR: Update translation strings, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15809](https://github.com/spyder-ide/spyder/pull/15809) - PR: Display message to explain how to use modules that don't come with our installers, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15801](https://github.com/spyder-ide/spyder/pull/15801) - PR: Sync subrepo with spyder-kernels#299, by [@ccordoba12](https://github.com/ccordoba12) ([15788](https://github.com/spyder-ide/spyder/issues/15788))
+* [PR 15782](https://github.com/spyder-ide/spyder/pull/15782) - PR: Add restriction to pytest-qt to be < 4.0, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15778](https://github.com/spyder-ide/spyder/pull/15778) - PR: Disable Kite call-to-action and dialog if installers are not available, by [@andfoy](https://github.com/andfoy)
+* [PR 15777](https://github.com/spyder-ide/spyder/pull/15777) - PR: Fix some issues with the logging module, by [@ccordoba12](https://github.com/ccordoba12) ([15768](https://github.com/spyder-ide/spyder/issues/15768), [15163](https://github.com/spyder-ide/spyder/issues/15163))
+* [PR 15766](https://github.com/spyder-ide/spyder/pull/15766) - PR: Sync subrepo with spyder-kernels#298, by [@ccordoba12](https://github.com/ccordoba12) ([15417](https://github.com/spyder-ide/spyder/issues/15417))
+* [PR 15749](https://github.com/spyder-ide/spyder/pull/15749) - PR: Fix unregistering plugins in new API, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15739](https://github.com/spyder-ide/spyder/pull/15739) - PR: Install IPython 7.23 until debugger issues are solved (Testing), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15735](https://github.com/spyder-ide/spyder/pull/15735) - PR: Sync subrepo with spyder-kernels#297, by [@ccordoba12](https://github.com/ccordoba12) ([15738](https://github.com/spyder-ide/spyder/issues/15738))
+* [PR 15719](https://github.com/spyder-ide/spyder/pull/15719) - PR: Avoid showing "No such comm" warning when restarting the kernel (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([15498](https://github.com/spyder-ide/spyder/issues/15498))
+* [PR 15718](https://github.com/spyder-ide/spyder/pull/15718) - PR: Remove remaining code from the mainwindow (IPython Console), by [@dalthviz](https://github.com/dalthviz)
+* [PR 15716](https://github.com/spyder-ide/spyder/pull/15716) - PR: Catch another KeyError when trying to highlight a folding block (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([15712](https://github.com/spyder-ide/spyder/issues/15712))
+* [PR 15715](https://github.com/spyder-ide/spyder/pull/15715) - PR: Catch an error when restoring files on Windows (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([15714](https://github.com/spyder-ide/spyder/issues/15714))
+* [PR 15702](https://github.com/spyder-ide/spyder/pull/15702) - PR: Force reading of path stored in Spyder configuration folder as utf-8, by [@rhkarls](https://github.com/rhkarls) ([15692](https://github.com/spyder-ide/spyder/issues/15692))
+* [PR 15690](https://github.com/spyder-ide/spyder/pull/15690) - PR: Fix dark mode compliance in macOS app, by [@mrclary](https://github.com/mrclary) ([15689](https://github.com/spyder-ide/spyder/issues/15689))
+* [PR 15687](https://github.com/spyder-ide/spyder/pull/15687) - PR: Initial reorganizations of IPython Console actions for the mainmenu, by [@dalthviz](https://github.com/dalthviz)
+* [PR 15680](https://github.com/spyder-ide/spyder/pull/15680) - PR: Catch an error when shutting down the comm channel (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([15645](https://github.com/spyder-ide/spyder/issues/15645))
+* [PR 15676](https://github.com/spyder-ide/spyder/pull/15676) - PR: Revert the constraint on Watchdog 2.0, by [@mrclary](https://github.com/mrclary) ([14803](https://github.com/spyder-ide/spyder/issues/14803))
+* [PR 15523](https://github.com/spyder-ide/spyder/pull/15523) - PR: Fix loading complex third party plugins, by [@steff456](https://github.com/steff456)
+* [PR 15490](https://github.com/spyder-ide/spyder/pull/15490) - PR: Fixes the selected tab when right clicking, by [@impact27](https://github.com/impact27) ([15313](https://github.com/spyder-ide/spyder/issues/15313))
+* [PR 15288](https://github.com/spyder-ide/spyder/pull/15288) - PR: Programmatic addition of new layouts and layouts config update, by [@dalthviz](https://github.com/dalthviz)
+
+In this release 24 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0.3 (2021-05-17)
 
 ### Important fixes

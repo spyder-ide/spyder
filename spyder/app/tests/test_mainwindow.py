@@ -295,6 +295,10 @@ def main_window(request, tmpdir):
         window.outlineexplorer.stop_symbol_services('python')
         # Reset cwd
         window.explorer.chdir(get_home_dir())
+        spyder_boilerplate = window.get_plugin(
+            'spyder_boilerplate', error=False)
+        if spyder_boilerplate is not None:
+            window.unregister_plugin(spyder_boilerplate)
 
     # Remove Kite (In case it was registered via setup.py)
     window.completions.providers.pop('kite', None)
@@ -1136,6 +1140,7 @@ def test_run_cython_code(main_window, qtbot):
 def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
@@ -1150,17 +1155,19 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select notebook in the project explorer
-    idx = projects.explorer.treewidget.get_index('notebook.ipynb')
-    projects.explorer.treewidget.setCurrentIndex(idx)
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'notebook.ipynb'))
+    projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Prese Enter there
-    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
 
     # Convert notebook to a Python file
-    projects.explorer.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
+    projects.get_widget().treewidget.convert_notebook(
+        osp.join(project_dir, 'notebook.ipynb'))
 
     # Assert notebook was open
     assert 'untitled' in editorstack.get_current_filename()
@@ -1183,6 +1190,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that file are run from the Project explorer."""
     projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
@@ -1197,17 +1205,18 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select file in the project explorer
-    idx = projects.explorer.treewidget.get_index('script.py')
-    projects.explorer.treewidget.setCurrentIndex(idx)
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'script.py'))
+    projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Press Enter there
-    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     # Assert that the file was open
     assert 'script.py' in editorstack.get_current_filename()
 
     # Run Python file
-    projects.explorer.treewidget.run([osp.join(project_dir, 'script.py')])
+    projects.get_widget().treewidget.run([osp.join(project_dir, 'script.py')])
 
     # Wait until the new console is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -2294,8 +2303,6 @@ def test_custom_layouts(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(
-    sys.platform.startswith('linux'), reason="Fake plugin registration fails")
 def test_programmatic_custom_layouts(main_window, qtbot):
     """
     Test that a custom layout gets registered and it is recognized."""
@@ -2680,7 +2687,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     # Check original pyls configuration
     lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
-    jedi = config['configurations']['pyls']['plugins']['jedi']
+    jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] is None
     assert jedi['extra_paths'] == []
 
@@ -2695,7 +2702,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
 
     # Check updated pyls configuration
     config = lsp.generate_python_config()
-    jedi = config['configurations']['pyls']['plugins']['jedi']
+    jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 

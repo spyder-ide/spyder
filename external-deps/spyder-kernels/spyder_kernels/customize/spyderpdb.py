@@ -15,8 +15,8 @@ import traceback
 from collections import namedtuple
 
 from IPython.core.autocall import ZMQExitAutocall
-from IPython.core.getipython import get_ipython
 from IPython.core.debugger import Pdb as ipyPdb
+from IPython.core.getipython import get_ipython
 
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.utils import path_is_library
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class DebugWrapper(object):
     """
-    Notifies the frontend when debuggging starts/stops
+    Notifies the frontend when debugging starts/stops
     """
     def __init__(self, pdb_obj):
         self.pdb_obj = pdb_obj
@@ -91,6 +91,10 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         super(SpyderPdb, self).__init__()
         self._pdb_breaking = False
         self._frontend_notified = False
+
+        # Don't report hidden frames for IPython 7.24+. This attribute
+        # has no effect in previous versions.
+        self.report_skipped = False
 
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
@@ -708,6 +712,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         globals defaults to __main__.dict; locals defaults to globals.
         """
+        self.starting = True
         with DebugWrapper(self):
             super(SpyderPdb, self).run(cmd, globals, locals)
 
@@ -716,6 +721,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         globals defaults to __main__.dict; locals defaults to globals.
         """
+        self.starting = True
         with DebugWrapper(self):
             super(SpyderPdb, self).runeval(expr, globals, locals)
 
@@ -724,6 +730,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         Return the result of the function call.
         """
+        self.starting = True
         with DebugWrapper(self):
             super(SpyderPdb, self).runcall(*args, **kwds)
 

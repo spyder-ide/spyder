@@ -15,10 +15,16 @@ import sys
 
 # Third-party imports
 import psutil
+import requests
 
 NOT_INSTALLED = 'not installed'
 RUNNING = 'ready'
 NOT_RUNNING = 'not running'
+
+# Installer URLs
+WINDOWS_URL = "https://release.kite.com/dls/windows/current"
+LINUX_URL = "https://release.kite.com/dls/linux/current"
+MAC_URL = "https://release.kite.com/dls/mac/current"
 
 logger = logging.getLogger(__name__)
 
@@ -98,3 +104,25 @@ def status(extra_status=''):
         return RUNNING + extra_status
     else:
         return NOT_RUNNING + extra_status
+
+
+def check_kite_installers_availability():
+    """Check if Kite installers are available."""
+    url = LINUX_URL
+    if os.name == 'nt':
+        url = WINDOWS_URL
+    elif sys.platform == 'darwin':
+        url = MAC_URL
+
+    available = False
+    try:
+        req = requests.head(url)
+        available = req.ok
+        if req.ok:
+            if req.is_redirect:
+                loc = req.headers['Location']
+                req = requests.head(loc)
+                available = req.ok
+    except Exception:
+        pass
+    return available

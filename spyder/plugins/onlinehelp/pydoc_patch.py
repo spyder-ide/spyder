@@ -639,7 +639,7 @@ def _url_handler(url, content_type="text/html"):
                 css_path = "static/css/light_pydoc.css"
 
             css_link = (
-                '<link rel="stylesheet" type="text/css" href="%s">' %
+                '<link rel="stylesheet" type="text/css" href="/%s">' %
                 css_path)
 
             code_style = (

@@ -7,6 +7,7 @@
 """Tests for code formatting."""
 
 # Standard library imports
+import os
 import os.path as osp
 
 # Third party imports
@@ -21,6 +22,14 @@ from spyder.config.manager import CONF
 
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
+
+autopep8 = pytest.param(
+    'autopep8',
+    marks=pytest.mark.skipif(
+        os.name == 'nt',
+        reason='autopep8 produces a different output on Windows'
+    )
+)
 
 
 def get_formatter_values(formatter, range_fmt=False):
@@ -39,7 +48,7 @@ def get_formatter_values(formatter, range_fmt=False):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', ['autopep8', 'yapf', 'black'])
+@pytest.mark.parametrize('formatter', [autopep8, 'yapf', 'black'])
 def test_document_formatting(formatter, completions_codeeditor, qtbot):
     """Validate text autoformatting via autopep8, yapf or black."""
     code_editor, completion_plugin = completions_codeeditor
@@ -72,7 +81,8 @@ def test_document_formatting(formatter, completions_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', ['autopep8', 'yapf', 'black'])
+@pytest.mark.parametrize(
+    'formatter', [autopep8, 'yapf', 'black'])
 def test_document_range_formatting(formatter, completions_codeeditor, qtbot):
     """Validate text range autoformatting."""
     code_editor, completion_plugin = completions_codeeditor

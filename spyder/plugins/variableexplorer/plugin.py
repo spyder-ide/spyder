@@ -56,9 +56,9 @@ class VariableExplorer(SpyderDockablePlugin):
 
         # Signals
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_process_started.connect(
+        ipyconsole.sig_shellwidget_created.connect(
             self.add_shellwidget)
-        ipyconsole.sig_shellwidget_process_finished.connect(
+        ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
 
         self.get_widget().sig_free_memory_requested.connect(
@@ -70,9 +70,9 @@ class VariableExplorer(SpyderDockablePlugin):
 
         # Signals
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_process_started.disconnect(
+        ipyconsole.sig_shellwidget_created.disconnect(
             self.add_shellwidget)
-        ipyconsole.sig_shellwidget_process_finished.disconnect(
+        ipyconsole.sig_shellwidget_deleted.disconnect(
             self.remove_shellwidget)
 
     # ---- Public API
