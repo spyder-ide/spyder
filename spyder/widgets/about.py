@@ -22,6 +22,8 @@ from spyder import (__project_url__, __forum_url__,
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import APP_STYLESHEET
 
 
 class AboutDialog(QDialog):
@@ -37,35 +39,48 @@ class AboutDialog(QDialog):
         if versions['revision']:
             rev = versions['revision']
             revlink = " (<a href='https://github.com/spyder-ide/spyder/" \
-                      "commit/%s'>Commit: %s</a>)" % (rev, rev)
+                      "commit/%s'>Commit: <br> %s</a>)" % (rev, rev)
 
         # Get current font properties
         font = self.font()
         font_family = font.family()
         font_size = font.pointSize()
+        buttons_padding = '4px 10px'
+        buttons_font_size = '13pt'
         if sys.platform == 'darwin':
-            font_size -= 0
-
+            font_size += 1
+            buttons_padding = '6px'
+            buttons_font_size = '15pt'
+        dialog_background_color = QStylePalette.COLOR_BACKGROUND_2
         self.label_overview = QLabel((
             """
             <div style='font-family: "{font_family}";
                         font-size: {font_size}pt;
                         font-weight: normal;
                         '>
-            <p>
-            <b>Spyder {spyder_ver}</b> {revision}
             <br>
+            <p>
+            <b> Spyder IDE</b>
+            <br> <br>
             The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
             <br>
             <p>
             Python {python_ver} {bitness}-bit | Qt {qt_ver} |
             {qt_api} {qt_api_ver} | {os_name} {os_ver}
+            </p>
+            <br> <br>
+            <a href="{github_url}">GitHub </a>| <a href="{twitter_url}">Twitter </a>|
+            <a href="{facebook_url}">Facebook </a>| <a href="{youtube_url}">YouTube </a>|
+            <a href="{instagram_url}">Instagram </a>
 
             </div>""").format(
-                spyder_ver=versions['spyder'],
-                revision=revlink,
                 website_url=__website_url__,
+                github_url=__project_url__,
+                twitter_url="https://twitter.com/Spyder_IDE",
+                facebook_url="https://www.facebook.com/SpyderIDE",
+                youtube_url="https://www.youtube.com/Spyder-IDE",
+                instagram_url="https://www.instagram.com/spyderide/",
                 python_ver=versions['python'],
                 bitness=versions['bitness'],
                 qt_ver=versions['qt'],
@@ -84,7 +99,8 @@ class AboutDialog(QDialog):
                         font-size: {font_size}pt;
                         font-weight: normal;
                         '>
-                        </p>
+            <br>
+            <p>
             Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
             Developed by the
             <a href="{github_url}/graphs/contributors">international
@@ -119,14 +135,15 @@ class AboutDialog(QDialog):
                         font-size: {font_size}pt;
                         font-weight: normal;
                         '>
+            <br>
+            <p>
             Copyright &copy; 2009-2020 Spyder Project Contributors and
             <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
-            <br>
             Distributed under the terms of the
             <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
             </p>
             <p>
-            <p><small>Certain source files under other compatible permissive
+            <p>Certain source files under other compatible permissive
             licenses and/or originally by other authors.
             Spyder 3 theme icons derived from
             <a href="https://fontawesome.com/">Font Awesome</a> 4.7
@@ -142,7 +159,7 @@ class AboutDialog(QDialog):
             the <a href="http://www.famfamfam.com/lab/icons/silk/">FamFamFam
             Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
             the <a href="https://www.kde.org/">KDE Oxygen icons</a>
-            (&copy; 2007 KDE Artists; LGPL 3.0+).</small>
+            (&copy; 2007 KDE Artists; LGPL 3.0+).
             </p>
             <p>
             See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
@@ -159,28 +176,25 @@ class AboutDialog(QDialog):
         self.label_overview.setAlignment(Qt.AlignTop)
         self.label_overview.setOpenExternalLinks(True)
         self.label_overview.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_overview.setFixedWidth(280)
-        #self.label_overview.setFixedHeight(200)
+        self.label_overview.setContentsMargins(15, 0, 25, 0)
 
         self.label_community.setWordWrap(True)
         self.label_community.setAlignment(Qt.AlignTop)
         self.label_community.setOpenExternalLinks(True)
         self.label_community.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_community.setFixedWidth(280)
-        #self.label_community.setFixedHeight(200)
+        self.label_community.setContentsMargins(15, 0, 25, 0)
 
         self.label_legal.setWordWrap(True)
         self.label_legal.setAlignment(Qt.AlignTop)
         self.label_legal.setOpenExternalLinks(True)
         self.label_legal.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_legal.setFixedWidth(280)
-        #self.label_legal.setFixedHeight(200)
+        self.label_legal.setContentsMargins(15, 0, 25, 0)
 
         icon_filename = "spyder_about"
         pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
         self.label_pic.setPixmap(
-            pixmap.scaledToWidth(80, Qt.SmoothTransformation))
+            pixmap.scaledToWidth(100, Qt.SmoothTransformation))
         self.label_pic.setAlignment(Qt.AlignBottom)
         self.info = QLabel((
                     """
@@ -189,17 +203,26 @@ class AboutDialog(QDialog):
                         font-weight: normal;
                         '>
                     <p>
-                    <b>Spyder {spyder_ver}</b>
+                    <b>Spyder IDE</b>
+                    <br>{spyder_ver}
                     <br> {revision}
                     <br> """).format(
                 spyder_ver=versions['spyder'],
                 revision=revlink,
                 font_family=font_family,
                 font_size=font_size))
-        self.info.setAlignment(Qt.AlignTop)
+        self.info.setAlignment(Qt.AlignHCenter)
 
         btn = QPushButton(_("Copy version info"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        bbox.setStyleSheet(
+           f"font-size: {buttons_font_size};"
+           f"padding: {buttons_padding}"
+         )
+        btn.setStyleSheet(
+           f"font-size: {buttons_font_size};"
+           f"padding: {buttons_padding}"
+         )
 
         # Widget setup
         self.setWindowIcon(ima.icon('MessageBoxInformation'))
@@ -209,45 +232,35 @@ class AboutDialog(QDialog):
         piclayout = QVBoxLayout()
         piclayout.addWidget(self.label_pic)
         piclayout.addWidget(self.info)
-        overview_widget = QWidget()
-        community_widget = QWidget()
-        legal_widget = QWidget()
+        piclayout.setContentsMargins(20, 0, 15, 0)
 
         scroll_overview = QScrollArea(self)
+        scroll_overview.setWidgetResizable(True)
         scroll_overview.setWidget(self.label_overview)
-        overview_layout = QVBoxLayout(overview_widget)
-        overview_layout.addWidget(scroll_overview)
-        overview_widget.setLayout(overview_layout)
 
         scroll_community = QScrollArea(self)
-        scroll_community.setWidget(self.label_community)
-        scroll_community.setMinimumHeight(280)
         scroll_community.setWidgetResizable(True)
-        community_layout = QVBoxLayout(community_widget)
-        community_layout.addWidget(scroll_community)
-        community_widget.setLayout(community_layout)
+        scroll_community.setWidget(self.label_community)
 
         scroll_legal = QScrollArea(self)
+        scroll_legal.setWidgetResizable(True)
         scroll_legal.setWidget(self.label_legal)
-        legal_layout = QVBoxLayout(legal_widget)
-        legal_layout.addWidget(scroll_legal)
-        legal_widget.setLayout(legal_layout)
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(overview_widget),
-                             _('Overview'))
-        self.tabs.addTab(self.create_tab(community_widget),
-                             _('Community'))
-        self.tabs.addTab(self.create_tab(legal_widget),
-                             _('Legal'))
-
+        self.tabs.addTab(scroll_overview, _('Overview'))
+        self.tabs.addTab(scroll_community, _('Community'))
+        self.tabs.addTab(scroll_legal, _('Legal'))
+        self.tabs.setStyleSheet(
+            f"background-color: {dialog_background_color}")
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
+        tabslayout.setContentsMargins(0, 15, 15, 0)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addWidget(btn)
         btmhlayout.addWidget(bbox)
+        btmhlayout.setContentsMargins(100, 20, 0, 20)
         btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
@@ -262,16 +275,12 @@ class AboutDialog(QDialog):
         # Signals
         btn.clicked.connect(self.copy_to_clipboard)
         bbox.accepted.connect(self.accept)
-
-    def create_tab(self, *widgets):
-        """Create simple tab widget page: widgets added in a horizontal layout"""
-        widget = QWidget()
-        layout = QHBoxLayout()
-        for widg in widgets:
-            layout.addWidget(widg)
-        layout.addStretch(1)
-        widget.setLayout(layout)
-        return widget
+        self.resize(550, 430)
+        css = APP_STYLESHEET.get_copy()
+        css = css.get_stylesheet()
+        css.QDialog.setValues(backgroundColor=dialog_background_color)
+        css.QLabel.setValues(backgroundColor=dialog_background_color)
+        self.setStyleSheet(str(css))
 
     def copy_to_clipboard(self):
         versions = get_versions()
