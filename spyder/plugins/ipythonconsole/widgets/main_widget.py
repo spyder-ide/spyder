@@ -29,6 +29,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
@@ -376,8 +377,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.show_time_action = self.create_action(
             ClientWidgetActions.ToggleElapsedTime,
             text=_("Show elapsed time"),
-            toggled=lambda val: self.set_option('show_elapsed_time', val),
-            initial=self.get_option('show_elapsed_time')
+            toggled=lambda val: self.set_conf('show_elapsed_time', val),
+            initial=self.get_conf('show_elapsed_time')
         )
 
         options_menu = self.get_options_menu()
@@ -482,6 +483,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         if disconnect_ready_signal:
             client.shellwidget.sig_pdb_prompt_ready.disconnect()
 
+    @on_conf_change
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings."""
         # TODO: Simplify settings handling when possible by using preferences
@@ -496,13 +498,13 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Graphic options
         pylab_n = 'pylab'
-        pylab_o = self.get_option(pylab_n)
+        pylab_o = self.get_conf(pylab_n)
         pylab_backend_n = 'pylab/backend'
         inline_backend = 0
         pylab_restart = False
         client_backend_not_inline = [False] * len(self.clients)
         if pylab_o and pylab_backend_n in options:
-            pylab_backend_o = self.get_option(pylab_backend_n)
+            pylab_backend_o = self.get_conf(pylab_backend_n)
             client_backend_not_inline = [
                 client.shellwidget.get_matplotlib_backend() != inline_backend
                 for client in self.clients]
@@ -595,38 +597,38 @@ class IPythonConsoleWidget(PluginMainWidget):
             client.show_time_action.setChecked(show_time_o)
             client.set_elapsed_time_visible(show_time_o)
         if reset_namespace_n in options:
-            reset_namespace_o = self.get_option(reset_namespace_n)
+            reset_namespace_o = self.get_conf(reset_namespace_n)
             client.reset_warning = reset_namespace_o
         if ask_before_restart_n in options:
-            ask_before_restart_o = self.get_option(ask_before_restart_n)
+            ask_before_restart_o = self.get_conf(ask_before_restart_n)
             client.ask_before_restart = ask_before_restart_o
         if ask_before_closing_n in options:
-            ask_before_closing_o = self.get_option(ask_before_closing_n)
+            ask_before_closing_o = self.get_conf(ask_before_closing_n)
             client.ask_before_closing = ask_before_closing_o
         if show_calltips_n in options:
-            show_calltips_o = self.get_option(show_calltips_n)
+            show_calltips_o = self.get_conf(show_calltips_n)
             sw.set_show_calltips(show_calltips_o)
         if buffer_size_n in options:
-            buffer_size_o = self.get_option(buffer_size_n)
+            buffer_size_o = self.get_conf(buffer_size_n)
             sw.set_buffer_size(buffer_size_o)
         if completion_type_n in options:
-            completion_type_o = self.get_option(completion_type_n)
+            completion_type_o = self.get_conf(completion_type_n)
             completions = {0: "droplist", 1: "ncurses", 2: "plain"}
             sw._set_completion_widget(completions[completion_type_o])
 
         # Advanced GUI options
         if in_prompt_n in options:
-            in_prompt_o = self.get_option(in_prompt_n)
+            in_prompt_o = self.get_conf(in_prompt_n)
             sw.set_in_prompt(in_prompt_o)
         if out_prompt_n in options:
-            out_prompt_o = self.get_option(out_prompt_n)
+            out_prompt_o = self.get_conf(out_prompt_n)
             sw.set_out_prompt(out_prompt_o)
 
     def _apply_mpl_plugin_settings(self, options, client):
         """Apply Matplotlib related configurations to a client."""
         # Matplotlib options
         pylab_n = 'pylab'
-        pylab_o = self.get_option(pylab_n)
+        pylab_o = self.get_conf(pylab_n)
         pylab_autoload_n = 'pylab/autoload'
         pylab_backend_n = 'pylab/backend'
         inline_backend_figure_format_n = 'pylab/inline/figure_format'
@@ -639,27 +641,27 @@ class IPythonConsoleWidget(PluginMainWidget):
         sw = client.shellwidget
         if pylab_o:
             if pylab_backend_n in options or pylab_autoload_n in options:
-                pylab_autoload_o = self.get_option(pylab_autoload_n)
-                pylab_backend_o = self.get_option(pylab_backend_n)
+                pylab_autoload_o = self.get_conf(pylab_autoload_n)
+                pylab_backend_o = self.get_conf(pylab_backend_n)
                 sw.set_matplotlib_backend(pylab_backend_o, pylab_autoload_o)
             if inline_backend_figure_format_n in options:
-                inline_backend_figure_format_o = self.get_option(
+                inline_backend_figure_format_o = self.get_conf(
                     inline_backend_figure_format_n)
                 sw.set_mpl_inline_figure_format(inline_backend_figure_format_o)
             if inline_backend_resolution_n in options:
-                inline_backend_resolution_o = self.get_option(
+                inline_backend_resolution_o = self.get_conf(
                     inline_backend_resolution_n)
                 sw.set_mpl_inline_resolution(inline_backend_resolution_o)
             if (inline_backend_width_n in options or
                     inline_backend_height_n in options):
-                inline_backend_width_o = self.get_option(
+                inline_backend_width_o = self.get_conf(
                     inline_backend_width_n)
-                inline_backend_height_o = self.get_option(
+                inline_backend_height_o = self.get_conf(
                     inline_backend_height_n)
                 sw.set_mpl_inline_figure_size(
                     inline_backend_width_o, inline_backend_height_o)
             if inline_backend_bbox_inches_n in options:
-                inline_backend_bbox_inches_o = self.get_option(
+                inline_backend_bbox_inches_o = self.get_conf(
                     inline_backend_bbox_inches_n)
                 sw.set_mpl_inline_bbox_inches(inline_backend_bbox_inches_o)
 
@@ -673,13 +675,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Client widget
         sw = client.shellwidget
         if greedy_completer_n in options:
-            greedy_completer_o = self.get_option(greedy_completer_n)
+            greedy_completer_o = self.get_conf(greedy_completer_n)
             sw.set_greedy_completer(greedy_completer_o)
         if jedi_completer_n in options:
-            jedi_completer_o = self.get_option(jedi_completer_n)
+            jedi_completer_o = self.get_conf(jedi_completer_n)
             sw.set_jedi_completer(jedi_completer_o)
         if autocall_n in options:
-            autocall_o = self.get_option(autocall_n)
+            autocall_o = self.get_conf(autocall_n)
             sw.set_autocall(autocall_o)
 
     def _apply_pdb_plugin_settings(self, options, client):
@@ -692,13 +694,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Client widget
         sw = client.shellwidget
         if pdb_ignore_lib_n in options:
-            pdb_ignore_lib_o = self.get_option(pdb_ignore_lib_n)
+            pdb_ignore_lib_o = self.get_conf(pdb_ignore_lib_n)
             sw.set_pdb_ignore_lib(pdb_ignore_lib_o)
         if pdb_execute_events_n in options:
-            pdb_execute_events_o = self.get_option(pdb_execute_events_n)
+            pdb_execute_events_o = self.get_conf(pdb_execute_events_n)
             sw.set_pdb_execute_events(pdb_execute_events_o)
         if pdb_use_exclamation_mark_n in options:
-            pdb_use_exclamation_mark_o = self.get_option(
+            pdb_use_exclamation_mark_o = self.get_conf(
                 pdb_use_exclamation_mark_n)
             sw.set_pdb_use_exclamation_mark(pdb_use_exclamation_mark_o)
 
@@ -823,9 +825,9 @@ class IPythonConsoleWidget(PluginMainWidget):
                          str_id=chr(slave_ord + 1))
 
         # Creating the client
-        show_elapsed_time = self.get_option('show_elapsed_time')
-        reset_warning = self.get_option('show_reset_namespace_warning')
-        ask_before_restart = self.get_option('ask_before_restart')
+        show_elapsed_time = self.get_conf('show_elapsed_time')
+        reset_warning = self.get_conf('show_reset_namespace_warning')
+        ask_before_restart = self.get_conf('ask_before_restart')
         client = ClientWidget(self,
                               id_=client_id,
                               given_name=given_name,
@@ -1087,21 +1089,21 @@ class IPythonConsoleWidget(PluginMainWidget):
         spy_cfg.JupyterWidget.kind = 'rich'
 
         # Gui completion widget
-        completion_type_o = self.get_option('completion_type')
+        completion_type_o = self.get_conf('completion_type')
         completions = {0: "droplist", 1: "ncurses", 2: "plain"}
         spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
 
         # Calltips
-        calltips_o = self.get_option('show_calltips')
+        calltips_o = self.get_conf('show_calltips')
         spy_cfg.JupyterWidget.enable_calltips = calltips_o
 
         # Buffer size
-        buffer_size_o = self.get_option('buffer_size')
+        buffer_size_o = self.get_conf('buffer_size')
         spy_cfg.JupyterWidget.buffer_size = buffer_size_o
 
         # Prompts
-        in_prompt_o = self.get_option('in_prompt')
-        out_prompt_o = self.get_option('out_prompt')
+        in_prompt_o = self.get_conf('in_prompt')
+        out_prompt_o = self.get_conf('out_prompt')
         if in_prompt_o:
             spy_cfg.JupyterWidget.in_prompt = in_prompt_o
         if out_prompt_o:
@@ -1156,10 +1158,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         in JupyterWidget config options
         """
         options = dict(
-            pylab=self.get_option('pylab'),
-            autoload_pylab=self.get_option('pylab/autoload'),
-            sympy=self.get_option('symbolic_math'),
-            show_banner=self.get_option('show_banner')
+            pylab=self.get_conf('pylab'),
+            autoload_pylab=self.get_conf('pylab/autoload'),
+            sympy=self.get_conf('symbolic_math'),
+            show_banner=self.get_conf('show_banner')
         )
 
         if is_pylab is True:
