@@ -33,6 +33,7 @@ def status_bar(qtbot):
     window = MainWindowMock()
     plugin = StatusBar(parent=window, configuration=CONF)
     plugin.remove_status_widgets()
+    plugin.initialize()
     # plugin.register()
 
     qtbot.addWidget(window)
