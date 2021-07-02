@@ -70,6 +70,7 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
+
 class ClientWidgetActions:
     ShowEnvironmentVariables = 'show_environment_variables_action'
     ShowSystemPath = 'show_system_path_action'
