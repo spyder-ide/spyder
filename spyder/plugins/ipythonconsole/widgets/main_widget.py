@@ -59,13 +59,14 @@ _ = get_translation('spyder')
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
 
+
 class IPythonConsoleWidgetActions:
     # Clients creation
     CreateNewClient = 'create_new_client_action'
     CreateCythonClient = 'create_cython_client_action'
     CreateSymPyClient = 'create_sympy_client_action'
     CreatePyLabClient = 'create_pylab_client_action'
-    
+
     # Current console actions
     ClearConsole = 'clear_console_action'
     ClearLine = 'clear_line'
@@ -122,7 +123,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     word: str
         Word to select on given row.
     """
-    
+
     sig_pdb_state_changed = Signal(bool, dict)
     """
     This signal is emitted when the debugging state changes.
@@ -213,10 +214,10 @@ class IPythonConsoleWidget(PluginMainWidget):
     permission_error_msg = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
                              "make it writable.")
-    
-    def __init__ (self, name=None, plugin=None, parent=None):
+
+    def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
-        
+
         self.tabwidget = None
         self.menu_actions = None
         self.master_clients = 0
@@ -307,7 +308,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
-    
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -409,7 +409,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
         self.update_execution_state_kernel()
-
 
         create_pylab_action = self.create_action(
             IPythonConsoleWidgetActions.CreatePyLabClient,
@@ -558,7 +557,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             current_client = self.get_current_client()
             current_client.ask_before_restart = False
             current_client.restart_kernel()
-
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -864,11 +862,12 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         if hostname is not None:
             try:
-                connection_info = dict(ip = kernel_client.ip,
-                                       shell_port = kernel_client.shell_port,
-                                       iopub_port = kernel_client.iopub_port,
-                                       stdin_port = kernel_client.stdin_port,
-                                       hb_port = kernel_client.hb_port)
+                connection_info = dict(
+                    ip=kernel_client.ip,
+                    shell_port=kernel_client.shell_port,
+                    iopub_port=kernel_client.iopub_port,
+                    stdin_port=kernel_client.stdin_port,
+                    hb_port=kernel_client.hb_port)
                 newports = self.tunnel_to_kernel(connection_info, hostname,
                                                  sshkey, password)
                 (kernel_client.shell_port,
@@ -879,8 +878,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 kernel_client.ssh_parameters = (hostname, sshkey, password)
             except Exception as e:
                 QMessageBox.critical(self, _('Connection error'),
-                                   _("Could not open ssh tunnel. The "
-                                     "error was:\n\n") + str(e))
+                                     _("Could not open ssh tunnel. The "
+                                       "error was:\n\n") + str(e))
                 return
 
         # Assign kernel manager and client to shellwidget
@@ -908,7 +907,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    
+
     # ---- General
     # -------------------------------------------------------------------------
     def update_font(self, font, rich_font):
@@ -1053,7 +1052,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # --- For clients
     # -------------------------------------------------------------------------
-    
+
     # ---- For magics and configurations
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -1078,7 +1077,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             # From the full config we only select the JupyterWidget section
             # because the others have no effect here.
             cfg = Config({'JupyterWidget': full_cfg.JupyterWidget})
-        except:
+        except Exception:
             cfg = Config()
 
         # ---- Spyder config ----
@@ -1124,8 +1123,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         if self.get_conf('default', section='main_interpreter'):
             from IPython.core import release
             versions = dict(
-                python_version = sys.version,
-                ipython_version = release.version
+                python_version=sys.version,
+                ipython_version=release.version
             )
         else:
             import subprocess
@@ -1172,7 +1171,6 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         return options
 
-
     # ---- For client widgets
     def set_client_elapsed_time(self, client):
         """Set elapsed time for slave clients."""
@@ -1184,7 +1182,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.timer.timeout.connect(client.show_time)
                 client.timer.start(1000)
                 break
-    
+
     def get_clients(self):
         """Return clients list"""
         return [cl for cl in self.clients if isinstance(cl, ClientWidget)]
@@ -1207,7 +1205,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         client = self.get_current_client()
         if client is not None:
             return client.shellwidget
-    
+
     @Slot()
     @Slot(bool)
     @Slot(str)
@@ -1406,8 +1404,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 'console/use_project_or_home_directory', section='workingdir'):
             cwd_path = get_home_dir()
             if (self.plugin.main.projects is not None and
-                    self.plugin.main.projects.get_active_project() is not None
-                    ):
+                    self.plugin.main.projects.get_active_project()
+                    is not None):
                 cwd_path = self.plugin.main.projects.get_active_project_path()
         elif self.get_conf(
                 'startup/use_fixed_directory', section='workingdir'):
@@ -1558,7 +1556,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             try:
                 client.shutdown()
             except Exception as e:
-                QMessageBox.warning(self, _('Warning'),
+                QMessageBox.warning(
+                    self, _('Warning'),
                     _("It was not possible to restart the IPython console "
                       "when switching to this project. The error was<br><br>"
                       "<tt>{0}</tt>").format(e), QMessageBox.Ok)
@@ -1566,7 +1565,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.create_new_client(give_focus=False)
         self.create_new_client_if_empty = True
 
-    # ---- For kernels    
+    # ---- For kernels
     # -------------------------------------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
         if os.name == 'nt':
@@ -1690,17 +1689,19 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.plugin.main.variableexplorer.add_shellwidget(sw)
             sw.set_namespace_view_settings()
             sw.refresh_namespacebrowser()
-            kc.stopped_channels.connect(lambda :
+            kc.stopped_channels.connect(
+                lambda:
                 self.plugin.main.variableexplorer.remove_shellwidget(id(sw)))
 
         if self.plugin.main.plots is not None:
             self.plugin.main.plots.add_shellwidget(sw)
-            kc.stopped_channels.connect(lambda :
+            kc.stopped_channels.connect(
+                lambda:
                 self.plugin.main.plots.remove_shellwidget(id(sw)))
 
     # ---- For running and debugging
     # --------------------------------------------------------------------------
-    
+
     # ---- For general debugging
     def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""
@@ -1809,7 +1810,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     def debug_cell(self, code, cell_name, filename, run_cell_copy):
         """Debug current cell."""
         self.run_cell(code, cell_name, filename, run_cell_copy, 'debugcell')
-  
+
     # ---- For scripts
     def run_script(self, filename, wdir, args, debug, post_mortem,
                    current_client, clear_variables, console_namespace):
@@ -1874,8 +1875,9 @@ class IPythonConsoleWidget(PluginMainWidget):
                 pass
             self.change_visibility(True)
         else:
-            #XXX: not sure it can really happen
-            QMessageBox.warning(self, _('Warning'),
+            # XXX: not sure it can really happen
+            QMessageBox.warning(
+                self, _('Warning'),
                 _("No IPython console is currently available to run <b>%s</b>."
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
@@ -1945,7 +1947,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 pass
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
-   
+
     # ---- For error handling
     def go_to_error(self, text):
         """Go to error if relevant"""
@@ -1981,4 +1983,3 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
         self.sig_render_plain_text_requested.emit(quick_reference)
-    
