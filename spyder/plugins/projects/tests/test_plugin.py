@@ -24,7 +24,6 @@ from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2
-from spyder.api.startup.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 import spyder.plugins.base
 from spyder.plugins.projects.plugin import Projects, QMessageBox
@@ -40,24 +39,11 @@ from spyder.py3compat import to_text_string
 def projects(qtbot, mocker):
     """Projects plugin fixture."""
 
-    class EditorMock(SpyderPluginV2):
-        CONF_SECTION = 'editor'
-        NAME = 'editor'
-        CONF_FILE = False
-
+    class EditorMock(MagicMock):
         def get_open_filenames(self):
             # Patch this with mocker to return a different value.
             # See test_set_project_filenames_in_close_project.
             return []
-
-        def on_initialize(self):
-            pass
-
-        def __getattr__(self, attr):
-            try:
-                super().__getattr__(attr)
-            except AttributeError:
-                return MagicMock()
 
     class MainWindowProjectsMock(MainWindowMock):
         def __getattr__(self, attr):
@@ -71,10 +57,11 @@ def projects(qtbot, mocker):
     # Main window mock
     main_window = MainWindowProjectsMock()
 
-    PLUGIN_REGISTRY.register_plugin(main_window, EditorMock)
-
     # Create plugin
-    projects = PLUGIN_REGISTRY.register_plugin(main_window, Projects)
+    projects = Projects(configuration=CONF)
+    projects.initialize()
+
+    projects.editor = EditorMock()
 
     projects.sig_switch_to_plugin_requested.connect(
         lambda x, y: projects.change_visibility(True))
@@ -152,7 +139,6 @@ def test_close_project_sets_visible_config(projects, tmpdir, value):
     visible_if_project_open is set to the correct value."""
     # Set config to opposite value so that we can check that it's set correctly
     projects.set_conf('visible_if_project_open', not value)
-
     projects.open_project(path=to_text_string(tmpdir))
     if value:
         projects.show_explorer()
