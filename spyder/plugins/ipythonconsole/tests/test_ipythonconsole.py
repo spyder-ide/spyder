@@ -1358,7 +1358,7 @@ def test_console_working_directory(ipyconsole, qtbot):
 @pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
                     reason="It only works on Linux with python 3.")
 def test_console_complete(ipyconsole, qtbot, tmpdir):
-    """Test for checking the working directory."""
+    """Test code completions in the console."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
