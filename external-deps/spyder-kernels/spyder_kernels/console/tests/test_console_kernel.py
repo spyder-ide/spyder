@@ -46,7 +46,7 @@ except ImportError:
 # Constants
 # =============================================================================
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
-IPYKERNEL_6 = ipykernel.__version__[0] == '6'
+IPYKERNEL_6 = ipykernel.__version__[0] >= '6'
 TIMEOUT = 15
 SETUP_TIMEOUT = 60
 

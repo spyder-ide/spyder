@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = test-ipykernel-6
-	commit = 64aff677b96761eeece6791001dae1cb1b73f28f
-	parent = 17d007763d99bf55b31ed536e77edd061aef50af
+	branch = 2.x
+	commit = b034d79135eae3baa11eb465451b30c9d749b332
+	parent = 8ef3d9816d994709ce21b6eb15159c9c66ec943e
 	method = merge
 	cmdver = 0.4.3
