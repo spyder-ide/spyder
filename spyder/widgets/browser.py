@@ -12,7 +12,8 @@ import sre_constants
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QUrl, Signal, Slot
+import qstylizer
+from qtpy.QtCore import QEvent, Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
                                      QWebEngineSettings, QWebEngineView)
@@ -22,8 +23,10 @@ from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
 from spyder.api.translations import get_translation
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
+from spyder.config.gui import OLD_PYQT
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (action2button, create_plugin_layout,
                                     create_toolbutton)
 from spyder.widgets.comboboxes import UrlComboBox
@@ -86,6 +89,15 @@ class WebPage(QWebEnginePage):
 class WebView(QWebEngineView, SpyderWidgetMixin):
     """
     Web view.
+    """
+    sig_focus_in_event = Signal()
+    """
+    This signal is emitted when the widget receives focus.
+    """
+
+    sig_focus_out_event = Signal()
+    """
+    This signal is emitted when the widget loses focus.
     """
 
     def __init__(self, parent, handle_links=True, class_parent=None):
@@ -342,11 +354,41 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         https://bugreports.qt.io/browse/QTBUG-52999
         """
         if WEBENGINE:
-            self.setEnabled(False)
+            if OLD_PYQT:
+                self.setEnabled(False)
             super(WebView, self).setHtml(html, baseUrl)
-            self.setEnabled(True)
+            if OLD_PYQT:
+                self.setEnabled(True)
         else:
             super(WebView, self).setHtml(html, baseUrl)
+
+        # The event filter needs to be installed every time html is set
+        # because the proxy changes with new content.
+        self.focusProxy().installEventFilter(self)
+
+    def load(self, url):
+        """
+        Load url.
+
+        This is reimplemented to install our event filter after the
+        url is loaded.
+        """
+        super().load(url)
+        self.focusProxy().installEventFilter(self)
+
+    def eventFilter(self, widget, event):
+        """
+        Handle events that affect the view.
+
+        All events (e.g. focus in/out) reach the focus proxy, not this
+        widget itself. That's why this event filter is necessary.
+        """
+        if self.focusProxy() is widget:
+            if event.type() == QEvent.FocusIn:
+                self.sig_focus_in_event.emit()
+            elif event.type() == QEvent.FocusOut:
+                self.sig_focus_out_event.emit()
+        return super().eventFilter(widget, event)
 
 
 class WebBrowser(QWidget):
@@ -488,26 +530,34 @@ class WebBrowser(QWidget):
 
 class FrameWebView(QFrame):
     """
-    Framed QWebEngineView for UI consistency in Spyder.
+    Framed WebView for UI consistency in Spyder.
     """
     linkClicked = Signal(QUrl)
 
-    def __init__(self, parent):
+    def __init__(self, parent, handle_links=True):
         super().__init__(parent)
 
-        self._webview = WebView(self, class_parent=parent)
+        self._webview = WebView(
+            self,
+            handle_links=handle_links,
+            class_parent=parent
+        )
+        self._webview.sig_focus_in_event.connect(
+            lambda: self._apply_stylesheet(focus=True))
+        self._webview.sig_focus_out_event.connect(
+            lambda: self._apply_stylesheet(focus=False))
 
         layout = QHBoxLayout()
         layout.addWidget(self._webview)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+        self._apply_stylesheet()
 
-        self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
-
-        if WEBENGINE:
-            self._webview.page().linkClicked.connect(self.linkClicked)
-        else:
-            self._webview.linkClicked.connect(self.linkClicked)
+        if handle_links:
+            if WEBENGINE:
+                self._webview.page().linkClicked.connect(self.linkClicked)
+            else:
+                self._webview.linkClicked.connect(self.linkClicked)
 
     def __getattr__(self, name):
         if name == '_webview':
@@ -521,6 +571,23 @@ class FrameWebView(QFrame):
     @property
     def web_widget(self):
         return self._webview
+
+    def _apply_stylesheet(self, focus=False):
+        """Apply stylesheet according to the current focus."""
+        if focus:
+            border_color = QStylePalette.COLOR_ACCENT_3
+        else:
+            border_color = QStylePalette.COLOR_BACKGROUND_4
+
+        css = qstylizer.style.StyleSheet()
+        css.QFrame.setValues(
+            border=f'1px solid {border_color}',
+            margin='0px 1px 0px 1px',
+            padding='0px 0px 1px 0px',
+            borderRadius='3px'
+        )
+
+        self.setStyleSheet(css.toString())
 
 
 def test():

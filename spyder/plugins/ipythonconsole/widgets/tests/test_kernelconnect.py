@@ -14,7 +14,6 @@ import os
 import pytest
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QDialogButtonBox
-import time
 
 # Local imports
 from spyder.plugins.ipythonconsole.widgets.kernelconnect import (

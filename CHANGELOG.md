@@ -1,5 +1,27 @@
 # History of changes
 
+## Version 5.0.5 (2021-06-23)
+
+### Important fixes
+* Catch any error when trying to detect if Kite installers are available.
+
+### Issues Closed
+
+* [Issue 15876](https://github.com/spyder-ide/spyder/issues/15876) - Spyder 5.0.4 crashes with proxy error to kite.com ([PR 15889](https://github.com/spyder-ide/spyder/pull/15889) by [@andfoy](https://github.com/andfoy))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 15916](https://github.com/spyder-ide/spyder/pull/15916) - PR: Add border around WebView widgets, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 15889](https://github.com/spyder-ide/spyder/pull/15889) - PR: Prevent connection errors when trying to verify Kite installers, by [@andfoy](https://github.com/andfoy) ([15876](https://github.com/spyder-ide/spyder/issues/15876))
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
 ## Version 5.0.4 (2021-06-11)
 
 ### New API features
