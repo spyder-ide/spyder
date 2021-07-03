@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 2.0.5 (2021-07-03)
+
+### Pull Requests Merged
+
+* [PR 292](https://github.com/spyder-ide/spyder-kernels/pull/292) - PR: Add support for ipykernel 6, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 2.0.4 (2021-06-10)
 
 ### Issues Closed
