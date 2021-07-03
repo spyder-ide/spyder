@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-06-09 12:19-0500\n"
-"PO-Revision-Date: 2021-06-09 22:01\n"
+"PO-Revision-Date: 2021-07-03 08:29\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -4356,7 +4356,7 @@ msgstr "Alle benutzerdefinierten Variablen werden entfernt. Sind Sie sicher, das
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:502
 msgid "<br><br>Removing all variables...<br>"
-msgstr ""
+msgstr "<br><br>Alle Variablen werden entfernt...<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:671
 msgid "Changing backend to Qt for Mayavi"
