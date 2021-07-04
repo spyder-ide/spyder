@@ -70,8 +70,10 @@ class AboutDialog(QDialog):
             {qt_api} {qt_api_ver} | {os_name} {os_ver}
             </p>
             <br> <br>
-            <a href="{github_url}">GitHub </a>| <a href="{twitter_url}">Twitter </a>|
-            <a href="{facebook_url}">Facebook </a>| <a href="{youtube_url}">YouTube </a>|
+            <a href="{github_url}">GitHub </a>| <a href="{twitter_url}">
+            Twitter </a>|
+            <a href="{facebook_url}">Facebook </a>| <a href="{youtube_url}">
+            YouTube </a>|
             <a href="{instagram_url}">Instagram </a>
 
             </div>""").format(
