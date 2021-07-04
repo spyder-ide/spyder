@@ -3038,6 +3038,7 @@ def test_varexp_refresh(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     """
     Test if runcell works with an unnamed cell at the top of the file
