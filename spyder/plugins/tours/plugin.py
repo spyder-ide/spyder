@@ -43,7 +43,7 @@ class Tours(SpyderPluginV2):
         return _("Provide interactive tours.")
 
     def get_icon(self):
-        return self.create_icon('keyboard')
+        return self.create_icon('tour')
 
     def register(self):
         self.register_tour(
