@@ -21,8 +21,10 @@ from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap
 from qtpy.QtWidgets import QApplication, QSplashScreen
 
 # Local imports
-from spyder.config.base import (DEV, get_conf_path, get_debug_level,
-                                running_under_pytest)
+from spyder.config.base import (
+    DEV, get_conf_path, get_debug_level, running_in_mac_app,
+    running_under_pytest)
+from spyder.config.manager import CONF
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import file_uri, qapplication
 from spyder.utils.external.dafsa.dafsa import DAFSA
@@ -241,3 +243,73 @@ def create_application():
     sys.argv = ['']
 
     return app
+
+
+def create_window(WindowClass, app, splash, options, args):
+    """
+    Create and show Spyder's main window and start QApplication event loop.
+
+    Parameters
+    ----------
+    WindowClass: QMainWindow
+        Subclass to instantiate the Window.
+    app: QApplication
+        Instance to start the application.
+    splash: QSplashScreen
+        Splash screen instamce.
+    options: argparse.Namespace
+        Command line options passed to Spyder
+    args: list
+        List of file names passed to the Spyder executable in the
+        command line.
+    """
+    # Main window
+    main = WindowClass(splash, options)
+    try:
+        main.setup()
+    except BaseException:
+        if main.console is not None:
+            try:
+                main.console.exit_interpreter()
+            except BaseException:
+                pass
+        raise
+
+    main.pre_visible_setup()
+    main.show()
+    main.post_visible_setup()
+
+    if main.console:
+        namespace = CONF.get('internal_console', 'namespace', {})
+        main.console.start_interpreter(namespace)
+        main.console.set_namespace_item('spy', Spy(app=app, window=main))
+
+    # Propagate current configurations to all configuration observers
+    CONF.notify_all_observers()
+
+    # Don't show icons in menus for Mac
+    if sys.platform == 'darwin':
+        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
+
+    # Open external files with our Mac app
+    if running_in_mac_app():
+        app.sig_open_external_file.connect(main.open_external_file)
+        app._has_started = True
+        if hasattr(app, '_pending_file_open'):
+            if args:
+                args = app._pending_file_open + args
+            else:
+                args = app._pending_file_open
+
+    # Open external files passed as args
+    if args:
+        for a in args:
+            main.open_external_file(a)
+
+    # To give focus again to the last focused widget after restoring
+    # the window
+    app.focusChanged.connect(main.change_last_focused_widget)
+
+    if not running_under_pytest():
+        app.exec_()
+    return main

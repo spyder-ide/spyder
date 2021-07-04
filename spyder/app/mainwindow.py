@@ -69,10 +69,10 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
-from spyder.app.utils import (create_application, create_splash_screen,
-                              delete_lsp_log_files, qt_message_handler,
-                              set_links_color, setup_logging,
-                              set_opengl_implementation, Spy)
+from spyder.app.utils import (
+    create_application, create_splash_screen, create_window,
+    delete_lsp_log_files, qt_message_handler, set_links_color, setup_logging,
+    set_opengl_implementation, Spy)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_module_source_path,
@@ -2010,66 +2010,6 @@ class MainWindow(QMainWindow):
 
 
 #==============================================================================
-# Utilities for the 'main' function below
-#==============================================================================
-def create_window(app, splash, options, args):
-    """
-    Create and show Spyder's main window and start QApplication event loop.
-    """
-    # Main window
-    main = MainWindow(splash, options)
-    try:
-        main.setup()
-    except BaseException:
-        if main.console is not None:
-            try:
-                main.console.exit_interpreter()
-            except BaseException:
-                pass
-        raise
-
-    main.pre_visible_setup()
-    main.show()
-    main.post_visible_setup()
-
-    if main.console:
-        namespace = CONF.get('internal_console', 'namespace', {})
-        main.console.start_interpreter(namespace)
-        main.console.set_namespace_item('spy', Spy(app=app, window=main))
-
-    # Propagate current configurations to all configuration observers
-    CONF.notify_all_observers()
-
-    # Don't show icons in menus for Mac
-    if sys.platform == 'darwin':
-        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
-
-    # Open external files with our Mac app
-    if running_in_mac_app():
-        app.sig_open_external_file.connect(main.open_external_file)
-        app._has_started = True
-        if hasattr(app, '_pending_file_open'):
-            if args:
-                args = app._pending_file_open + args
-            else:
-                args = app._pending_file_open
-
-
-    # Open external files passed as args
-    if args:
-        for a in args:
-            main.open_external_file(a)
-
-    # To give focus again to the last focused widget after restoring
-    # the window
-    app.focusChanged.connect(main.change_last_focused_widget)
-
-    if not running_under_pytest():
-        app.exec_()
-    return main
-
-
-#==============================================================================
 # Main
 #==============================================================================
 def main(options, args):
@@ -2081,7 +2021,7 @@ def main(options, args):
             set_opengl_implementation(option)
 
         app = create_application()
-        window = create_window(app, None, options, None)
+        window = create_window(MainWindow, app, None, options, None)
         return window
 
     # **** Handle hide_console option ****
@@ -2167,9 +2107,11 @@ def main(options, args):
             import faulthandler
             with open(faulthandler_file, 'w') as f:
                 faulthandler.enable(file=f)
-                mainwindow = create_window(app, splash, options, args)
+                mainwindow = create_window(
+                    MainWindow, app, splash, options, args
+                )
         else:
-            mainwindow = create_window(app, splash, options, args)
+            mainwindow = create_window(MainWindow, app, splash, options, args)
     except FontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
