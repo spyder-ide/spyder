@@ -14,7 +14,7 @@ import subprocess
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QTimer, Slot
+from qtpy.QtCore import Qt, QThread, QTimer, Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
@@ -41,27 +41,13 @@ class Application(SpyderPluginV2):
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
-    CONF_FROM_OPTIONS = {
-        # Screen resolution section
-        'normal_screen_resolution': ('main', 'normal_screen_resolution'),
-        'high_dpi_scaling': ('main', 'high_dpi_scaling'),
-        'high_dpi_custom_scale_factor': ('main',
-                                         'high_dpi_custom_scale_factor'),
-        'high_dpi_custom_scale_factors': ('main',
-                                          'high_dpi_custom_scale_factors'),
-        # Panes section
-        'vertical_tabs': ('main', 'vertical_tabs'),
-        'use_custom_margin': ('main', 'use_custom_margin'),
-        'custom_margin': ('main', 'custom_margin'),
-        'use_custom_cursor_blinking': ('main', 'use_custom_cursor_blinking'),
-        # Advanced settings
-        'opengl': ('main', 'opengl'),
-        'single_instance': ('main', 'single_instance'),
-        'prompt_on_exit': ('main', 'prompt_on_exit'),
-        'check_updates_on_startup': ('main', 'check_updates_on_startup'),
-        'show_internal_errors': ('main', 'show_internal_errors'),
-    }
     CONF_WIDGET_CLASS = ApplicationConfigPage
+
+    def __init__(self, parent, configuration=None):
+        super().__init__(parent, configuration)
+
+        # Compute dependencies in a thread to not block the interface.
+        self.dependencies_thread = QThread()
 
     def get_name(self):
         return _('Application')
@@ -108,13 +94,17 @@ class Application(SpyderPluginV2):
         """Actions after the mainwindow in visible."""
         # Show dialog with missing dependencies
         if not running_under_pytest():
+            container = self.get_container()
+            self.dependencies_thread.run = container.compute_dependencies
+            self.dependencies_thread.finished.connect(
+                container.report_missing_dependencies)
+
             # This avoids computing missing deps before the window is fully up
-            timer_report_deps = QTimer(self)
-            timer_report_deps.setInterval(2000)
-            timer_report_deps.setSingleShot(True)
-            timer_report_deps.timeout.connect(
-                self.get_container().report_missing_dependencies)
-            timer_report_deps.start()
+            dependencies_timer = QTimer(self)
+            dependencies_timer.setInterval(10000)
+            dependencies_timer.setSingleShot(True)
+            dependencies_timer.timeout.connect(self.dependencies_thread.start)
+            dependencies_timer.start()
 
     # --- Private methods
     # ------------------------------------------------------------------------
