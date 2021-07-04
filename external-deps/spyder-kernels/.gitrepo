@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ccordoba12/spyder-kernels.git
 	branch = delayed-modules
-	commit = 6c7a9d8ebf0331c01d40b93c71edba92dca3c007
-	parent = af5b6db77334d2b7d36dde5f35e582dfa7f9d38c
+	commit = 1362995de6c2d3ce91116e7e632915feca568253
+	parent = b22c4c229f2b075be53280c0ad3f8052950e734b
 	method = merge
 	cmdver = 0.4.3
