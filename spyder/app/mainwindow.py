@@ -49,7 +49,7 @@ requirements.check_spyder_kernels()
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QIcon, QKeySequence
+from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QMenu,
                             QMessageBox, QShortcut, QStyleFactory, QCheckBox)
 
@@ -69,9 +69,10 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
-from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
-                              qt_message_handler, set_links_color,
-                              setup_logging, set_opengl_implementation, Spy)
+from spyder.app.utils import (create_application, create_splash_screen,
+                              delete_lsp_log_files, qt_message_handler,
+                              set_links_color, setup_logging,
+                              set_opengl_implementation, Spy)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_module_source_path,
@@ -2011,47 +2012,6 @@ class MainWindow(QMainWindow):
 #==============================================================================
 # Utilities for the 'main' function below
 #==============================================================================
-def create_application():
-    """Create application and patch sys.exit."""
-    # Our QApplication
-    app = qapplication()
-
-    # --- Set application icon
-    app_icon = QIcon(get_image_path("spyder"))
-    app.setWindowIcon(app_icon)
-
-    # Required for correct icon on GNOME/Wayland:
-    if hasattr(app, 'setDesktopFileName'):
-        app.setDesktopFileName('spyder')
-
-    #----Monkey patching QApplication
-    class FakeQApplication(QApplication):
-        """Spyder's fake QApplication"""
-        def __init__(self, args):
-            self = app  # analysis:ignore
-        @staticmethod
-        def exec_():
-            """Do nothing because the Qt mainloop is already running"""
-            pass
-    from qtpy import QtWidgets
-    QtWidgets.QApplication = FakeQApplication
-
-    # ----Monkey patching sys.exit
-    def fake_sys_exit(arg=[]):
-        pass
-    sys.exit = fake_sys_exit
-
-    # ----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
-    def spy_excepthook(type_, value, tback):
-        sys.__excepthook__(type_, value, tback)
-    sys.excepthook = spy_excepthook
-
-    # Removing arguments from sys.argv as in standard Python interpreter
-    sys.argv = ['']
-
-    return app
-
-
 def create_window(app, splash, options, args):
     """
     Create and show Spyder's main window and start QApplication event loop.

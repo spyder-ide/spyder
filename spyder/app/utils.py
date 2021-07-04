@@ -17,14 +17,14 @@ import sys
 # Third-party imports
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
-from qtpy.QtGui import QColor, QPalette, QPixmap
-from qtpy.QtWidgets import QSplashScreen
+from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap
+from qtpy.QtWidgets import QApplication, QSplashScreen
 
 # Local imports
 from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.qthelpers import file_uri
+from spyder.utils.qthelpers import file_uri, qapplication
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.stylesheet import QStylePalette
 
@@ -200,3 +200,44 @@ def set_links_color(app):
     app_palette = app.palette()
     app_palette.setColor(QPalette.Normal, QPalette.Link, qcolor)
     app.setPalette(app_palette)
+
+
+def create_application():
+    """Create application and patch sys.exit."""
+    # Our QApplication
+    app = qapplication()
+
+    # --- Set application icon
+    app_icon = QIcon(get_image_path("spyder"))
+    app.setWindowIcon(app_icon)
+
+    # Required for correct icon on GNOME/Wayland:
+    if hasattr(app, 'setDesktopFileName'):
+        app.setDesktopFileName('spyder')
+
+    #----Monkey patching QApplication
+    class FakeQApplication(QApplication):
+        """Spyder's fake QApplication"""
+        def __init__(self, args):
+            self = app  # analysis:ignore
+        @staticmethod
+        def exec_():
+            """Do nothing because the Qt mainloop is already running"""
+            pass
+    from qtpy import QtWidgets
+    QtWidgets.QApplication = FakeQApplication
+
+    # ----Monkey patching sys.exit
+    def fake_sys_exit(arg=[]):
+        pass
+    sys.exit = fake_sys_exit
+
+    # ----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
+    def spy_excepthook(type_, value, tback):
+        sys.__excepthook__(type_, value, tback)
+    sys.excepthook = spy_excepthook
+
+    # Removing arguments from sys.argv as in standard Python interpreter
+    sys.argv = ['']
+
+    return app
