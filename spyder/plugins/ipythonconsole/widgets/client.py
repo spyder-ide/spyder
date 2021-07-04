@@ -31,9 +31,9 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (_, get_module_source_path,
                                 running_under_pytest)
-from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
@@ -74,7 +74,7 @@ except AttributeError:
 #-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
-class ClientWidget(QWidget, SaveHistoryMixin):
+class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
     """
     Client widget for the IPython Console
 
@@ -82,11 +82,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     plugin and each shell widget.
     """
 
+    sig_append_to_history_requested = Signal(str, str)
+
+    CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
-
-    append_to_history = Signal(str, str)
 
     def __init__(self, plugin, id_,
                  history_filename, config_options,
@@ -516,29 +517,27 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         inspect_action = create_action(
             self,
             _("Inspect current object"),
-            QKeySequence(CONF.get_shortcut('console',
-                                           'inspect current object')),
+            QKeySequence(self.get_shortcut('inspect current object')),
             icon=ima.icon('MessageBoxInformation'),
             triggered=self.inspect_object)
 
         clear_line_action = create_action(
             self,
             _("Clear line or block"),
-            QKeySequence(CONF.get_shortcut('console', 'clear line')),
+            QKeySequence(self.get_shortcut('clear line')),
             triggered=self.clear_line)
 
         reset_namespace_action = create_action(
             self,
             _("Remove all variables"),
-            QKeySequence(CONF.get_shortcut('ipython_console',
-                                           'reset namespace')),
+            QKeySequence(self.get_shortcut('reset namespace')),
             icon=ima.icon('editdelete'),
             triggered=self.reset_namespace)
 
         clear_console_action = create_action(
             self,
             _("Clear console"),
-            QKeySequence(CONF.get_shortcut('console', 'clear shell')),
+            QKeySequence(self.get_shortcut('clear shell')),
             triggered=self.clear_console)
 
         quit_action = create_action(
@@ -891,10 +890,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         control = self.shellwidget._control
         page_control = self.shellwidget._page_control
 
-        control.focus_changed.connect(
-            lambda: self.plugin.focus_changed.emit())
-        page_control.focus_changed.connect(
-            lambda: self.plugin.focus_changed.emit())
-        control.visibility_changed.connect(self.plugin.refresh_plugin)
-        page_control.visibility_changed.connect(self.plugin.refresh_plugin)
-        page_control.show_find_widget.connect(self.plugin.find_widget.show)
+        control.sig_focus_changed.connect(
+            lambda: self.plugin.sig_focus_changed.emit())
+        page_control.sig_focus_changed.connect(
+            lambda: self.plugin.sig_focus_changed.emit())
+        control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
+        page_control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
+        page_control.sig_show_find_widget_requested.connect(
+            self.plugin.find_widget.show)

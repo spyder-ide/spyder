@@ -51,10 +51,10 @@ PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
-PYLINT_REQVER = '>=1.0'
-PYLS_REQVER = '>=0.36.2;<1.0.0'
-PYLS_BLACK_REQVER = '>=0.4.6'
-PYLS_SPYDER_REQVER = '>=0.3.2;<0.4.0'
+PYLINT_REQVER = '>=2.5.0'
+PYLSP_REQVER = '>=1.0.0'
+PYLSP_BLACK_REQVER = '>=1.0.0'
+PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
 QDARKSTYLE_REQVER = '=3.0.2'
@@ -63,7 +63,7 @@ QTAWESOME_REQVER = '>=1.0.2'
 QTCONSOLE_REQVER = '>=5.1.0'
 QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.9.7'
-SETUPTOOLS_REQVER = '>=39.0.0'
+SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=2.0.4;<2.1.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
@@ -174,18 +174,18 @@ DESCRIPTIONS = [
      'package_name': "pylint",
      'features': _("Static code analysis"),
      'required_version': PYLINT_REQVER},
-    {'modname': 'pyls',
-     'package_name': 'python-language-server',
+    {'modname': 'pylsp',
+     'package_name': 'python-lsp-server',
      'features': _("Code completion and linting for the Editor"),
-     'required_version': PYLS_REQVER},
-    {'modname': 'pyls_black',
-     'package_name': 'pyls-black',
+     'required_version': PYLSP_REQVER},
+    {'modname': 'pylsp_black',
+     'package_name': 'python-lsp-black',
      'features': _("Autoformat Python files in the Editor with the Black "
                    "package"),
-     'required_version': PYLS_BLACK_REQVER},
+     'required_version': PYLSP_BLACK_REQVER},
     {'modname': 'pyls_spyder',
      'package_name': 'pyls-spyder',
-     'features': _('Spyder plugin for the Python Language Server'),
+     'features': _('Spyder plugin for the Python LSP Server'),
      'required_version': PYLS_SPYDER_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",

@@ -21,13 +21,13 @@ pexpect >=4.4.0
 pickleshare >=0.4
 psutil >=5.3
 pygments >=2.0
-pylint >=1.0
-pyls-black >=0.4.6
-pyls-spyder >=0.3.2,<0.4.0
+pylint >=2.5.0
+python-lsp-black >=1.0.0
+pyls-spyder >=0.4.0
 pyqt <5.13
-# There's no need to set a version for python-language-server
+# There's no need to set a version for python-lsp-server
 # because we install it from master for our tests.
-python-language-server
+python-lsp-server
 pyxdg >=0.26
 pyzmq >=17
 qdarkstyle =3.0.2
@@ -36,7 +36,7 @@ qtawesome >=1.0.2
 qtconsole >=5.1.0
 qtpy >=1.5.0
 rtree >=0.9.7
-setuptools >=39.0.0
+setuptools >=49.6.0
 sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
 # here because we're using a subrepo for it to run our tests.

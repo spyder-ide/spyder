@@ -617,8 +617,6 @@ class MainWindow(QMainWindow):
         self.run_menu_actions = []
         self.debug_menu = None
         self.debug_menu_actions = []
-        self.projects_menu = None
-        self.projects_menu_actions = []
 
         # TODO: Move to corresponding Plugins
         self.main_toolbar = None
@@ -858,8 +856,7 @@ class MainWindow(QMainWindow):
             # Non-migrated plugins
             if plugin_name in [
                     Plugins.Editor,
-                    Plugins.IPythonConsole,
-                    Plugins.Projects]:
+                    Plugins.IPythonConsole]:
                 if plugin_name == Plugins.IPythonConsole:
                     plugin_instance = plugin_class(self)
                     plugin_instance.sig_exception_occurred.connect(
@@ -868,12 +865,8 @@ class MainWindow(QMainWindow):
                     plugin_instance = plugin_class(self)
                 plugin_instance.register_plugin()
                 self.add_plugin(plugin_instance)
-                if plugin_name == Plugins.Projects:
-                    self.project_path = plugin_instance.get_pythonpath(
-                        at_start=True)
-                else:
-                    self.preferences.register_plugin_preferences(
-                        plugin_instance)
+                self.preferences.register_plugin_preferences(
+                    plugin_instance)
             # Migrated or new plugins
             elif plugin_name in [
                     Plugins.MainMenu,
@@ -899,6 +892,7 @@ class MainWindow(QMainWindow):
                     Plugins.Find,
                     Plugins.Pylint,
                     Plugins.WorkingDirectory,
+                    Plugins.Projects,
                     Plugins.Layout]:
                 plugin_instance = plugin_class(self, configuration=CONF)
                 self.register_plugin(plugin_instance)
@@ -985,8 +979,6 @@ class MainWindow(QMainWindow):
         self.source_menu.aboutToShow.connect(self.update_source_menu)
         self.run_menu = mainmenu.get_application_menu("run_menu")
         self.debug_menu = mainmenu.get_application_menu("debug_menu")
-        self.projects_menu = mainmenu.get_application_menu("projects_menu")
-        self.projects_menu.aboutToShow.connect(self.valid_project)
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -1136,7 +1128,6 @@ class MainWindow(QMainWindow):
         add_actions(self.source_menu, self.source_menu_actions)
         add_actions(self.run_menu, self.run_menu_actions)
         add_actions(self.debug_menu, self.debug_menu_actions)
-        add_actions(self.projects_menu, self.projects_menu_actions)
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -1284,6 +1275,8 @@ class MainWindow(QMainWindow):
         self._update_shortcuts_in_panes_menu()
 
         # Load project, if any.
+        # TODO: Remove this reference to projects once we can send the command
+        # line options to the plugins.
         if self.open_project:
             if not running_in_mac_app():
                 self.projects.open_project(
@@ -1407,6 +1400,8 @@ class MainWindow(QMainWindow):
         if self.window_title is not None:
             title += u' -- ' + to_text_string(self.window_title)
 
+        # TODO: Remove self.projects reference once there's an API for setting
+        # window title.
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
@@ -1429,24 +1424,6 @@ class MainWindow(QMainWindow):
         )
 
     # --- Other
-    def valid_project(self):
-        """Handle an invalid active project."""
-        try:
-            path = self.projects.get_active_project_path()
-        except AttributeError:
-            return
-
-        if bool(path):
-            if not self.projects.is_valid_project(path):
-                if path:
-                    QMessageBox.critical(
-                        self,
-                        _('Error'),
-                        _("<b>{}</b> is no longer a valid Spyder project! "
-                          "Since it is the current active project, it will "
-                          "be closed automatically.").format(path))
-                self.projects.close_project()
-
     def update_source_menu(self):
         """Update source menu options that vary dynamically."""
         # This is necessary to avoid an error at startup.

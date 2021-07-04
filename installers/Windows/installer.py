@@ -44,7 +44,7 @@ ASSETS_URL = os.environ.get(
     'releases/download/0.0.1/assets.zip')
 
 # Packages to remove from the requirements for example pip or
-# external direct dependencies (python-language-server spyder-kernels)
+# external direct dependencies (python-lsp-server spyder-kernels)
 
 UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', '').split()
 
@@ -55,12 +55,12 @@ SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
 
 # Packages to be added to the packages section regardless wheel checks or
 # packages skipped, for example external direct dependencies
-# (spyder-kernels python-language-server)
+# (spyder-kernels python-lsp-server)
 
 ADD_PACKAGES = os.environ.get('ADD_PACKAGES', '').split()
 
 # Packages to be installed using the editable flag
-# (python-language-server in PRs)
+# (python-lsp-server in PRs)
 
 INSTALL_EDITABLE_PACKAGES = os.environ.get(
     'INSTALL_EDITABLE_PACKAGES', '').split()

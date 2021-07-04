@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
-from spyder.widgets.browser import WebView, WebViewActions
+from spyder.widgets.browser import FrameWebView, WebViewActions
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
 
@@ -142,8 +142,10 @@ class PydocBrowser(PluginMainWidget):
         # Widgets
         self.label = QLabel(_("Package:"))
         self.url_combo = UrlComboBox(self)
-        self.webview = WebView(self,
-                               handle_links=self.get_conf('handle_links'))
+        self.webview = FrameWebView(
+            self,
+            handle_links=self.get_conf('handle_links')
+        )
         self.find_widget = FindReplace(self)
 
         # Setup
@@ -157,12 +159,10 @@ class PydocBrowser(PluginMainWidget):
         self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
 
         # Layout
-        spacing = 10
         layout = QVBoxLayout()
         layout.addWidget(self.webview)
-        layout.addSpacing(spacing)
+        layout.addSpacing(1)
         layout.addWidget(self.find_widget)
-        layout.addSpacing(int(spacing / 2))
         self.setLayout(layout)
 
         # Signals

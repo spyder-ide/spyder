@@ -1,0 +1,53 @@
+name: Linux pip tests
+
+on:
+  push:
+    branches:
+    - master
+    - 2.*
+  pull_request:
+    branches:
+    - master
+    - 2.*
+
+jobs:
+  linux:
+    name: Py${{ matrix.PYTHON_VERSION }}
+    runs-on: ubuntu-latest
+    env:
+      CI: True
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUNNER_OS: 'ubuntu'
+    strategy:
+      fail-fast: false 
+      matrix:
+        PYTHON_VERSION: ['2.7', '3.7', '3.8', '3.9']
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v1
+      - name: Install System Packages
+        run: | 
+          sudo apt-get update
+          sudo apt-get install libegl1-mesa
+      - name: Install Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+           activate-environment: test
+           auto-update-conda: false
+           auto-activate-base: false
+           python-version: ${{ matrix.PYTHON_VERSION }} 
+      - name: Install package and dependencies
+        shell: bash -l {0}
+        run: pip install -e .[test]
+      - name: Show environment information
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Run tests
+        shell: bash -l {0}
+        run: xvfb-run --auto-servernum pytest spyder_kernels --cov=spyder_kernels -x -vv
+      - name: Upload coverage to Codecov
+        if: matrix.PYTHON_VERSION == '3.8'
+        shell: bash -l {0}
+        run: codecov -t 02fa9892-fa7f-4cf8-ac3c-d54143ddc933

@@ -79,6 +79,11 @@ class ConfigurationManager(object):
             remove_obsolete=False,
         )
 
+        # This is useful to know in order to execute certain operations when
+        # bumping CONF_VERSION
+        self.old_spyder_version = (
+            self._user_config._configs_map['spyder']._old_version)
+
         # Store plugin configurations when CONF_FILE = True
         self._plugin_configs = {}
 
@@ -137,8 +142,7 @@ class ConfigurationManager(object):
 
             # Recreate external plugin configs to deal with part two
             # (the shortcut conflicts) of spyder-ide/spyder#11132
-            spyder_config = self._user_config._configs_map['spyder']
-            if check_version(spyder_config._old_version, '54.0.0', '<'):
+            if check_version(self.old_spyder_version, '54.0.0', '<'):
                 # Remove all previous .ini files
                 try:
                     plugin_config.cleanup()

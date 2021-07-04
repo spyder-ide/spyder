@@ -1000,7 +1000,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
                     'A spyder plugin must define a `CONF_SECTION` class '
                     'attribute!'
                 )
-
             return self._conf.get(section, option, default)
 
     @Slot(str, object)

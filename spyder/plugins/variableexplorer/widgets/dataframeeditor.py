@@ -51,7 +51,6 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.config.manager import CONF
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
                               to_text_string, perf_counter)
 from spyder.utils.icon_manager import ima
@@ -509,7 +508,7 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class DataFrameView(QTableView):
+class DataFrameView(QTableView, SpyderConfigurationAccessor):
     """
     Data Frame view class.
 
@@ -521,6 +520,8 @@ class DataFrameView(QTableView):
     sig_sort_by_column = Signal()
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
+
+    CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent, model, header, hscroll, vscroll):
         """Constructor."""
@@ -535,11 +536,7 @@ class DataFrameView(QTableView):
         self.header_class = header
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        CONF.config_shortcut(
-            self.copy,
-            context='variable_explorer',
-            name='copy',
-            parent=self)
+        self.config_shortcut(self.copy, 'copy', self)
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)

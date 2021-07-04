@@ -4,15 +4,15 @@ on:
   push:
     branches:
     - master
-    - 2.x
+    - 2.*
   pull_request:
     branches:
     - master
-    - 2.x
+    - 2.*
 
 jobs:
   linux:
-    name: Linux Py${{ matrix.PYTHON_VERSION }}
+    name: Py${{ matrix.PYTHON_VERSION }}
     runs-on: ubuntu-latest
     env:
       CI: True
@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false 
       matrix:
-        PYTHON_VERSION: ['2.7', '3.6', '3.7', '3.8']
+        PYTHON_VERSION: ['2.7', '3.7', '3.8', '3.9']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1
@@ -44,7 +44,6 @@ jobs:
         run: |
           conda install nomkl -y -q
           conda install --file requirements/tests.txt -y -q
-          if [ "$PYTHON_VERSION" != "2.7" ]; then conda install -y -q jedi=0.17.2; fi
           if [ "$PYTHON_VERSION" = "2.7" ]; then conda install -y -q click=7; fi
       - name: Install Package
         shell: bash -l {0}

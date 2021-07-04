@@ -57,7 +57,7 @@ from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
-from spyder.widgets.browser import WebView
+from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
@@ -81,13 +81,13 @@ class IPythonConsole(SpyderPluginWidget):
     OPTIONAL = [Plugins.Editor, Plugins.History]
 
     # Signals
-    focus_changed = Signal()
-    edit_goto = Signal((str, int, str), (str, int, str, bool))
-    sig_pdb_state = Signal(bool, dict)
+    sig_focus_changed = Signal()
+    sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
+    sig_pdb_state_changed = Signal(bool, dict)
 
-    sig_shellwidget_process_started = Signal(object)
+    sig_shellwidget_created = Signal(object)
     """
-    This signal is emitted when a shellwidget process starts.
+    This signal is emitted when a shellwidget is created.
 
     Parameters
     ----------
@@ -95,9 +95,9 @@ class IPythonConsole(SpyderPluginWidget):
         The shellwigdet.
     """
 
-    sig_shellwidget_process_finished = Signal(object)
+    sig_shellwidget_deleted = Signal(object)
     """
-    This signal is emitted when a shellwidget process finishes.
+    This signal is emitted when a shellwidget is deleted/removed.
 
     Parameters
     ----------
@@ -207,7 +207,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
-        self.tabwidget.tabBar().sig_change_name.connect(
+        self.tabwidget.tabBar().sig_name_changed.connect(
             self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
@@ -226,7 +226,7 @@ class IPythonConsole(SpyderPluginWidget):
             layout.addWidget(self.tabwidget)
 
         # Info widget
-        self.infowidget = WebView(self)
+        self.infowidget = FrameWebView(self)
         if WEBENGINE:
             self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
         else:
@@ -584,7 +584,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client:
             sw = client.shellwidget
             self.main.variableexplorer.set_shellwidget(sw)
-            self.sig_pdb_state.emit(
+            self.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
@@ -724,10 +724,10 @@ class IPythonConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.add_dockwidget()
 
-        self.focus_changed.connect(self.main.plugin_focus_changed)
+        self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         if self.main.editor:
-            self.edit_goto.connect(self.main.editor.load)
-            self.edit_goto[str, int, str, bool].connect(
+            self.sig_edit_goto_requested.connect(self.main.editor.load)
+            self.sig_edit_goto_requested[str, int, str, bool].connect(
                              lambda fname, lineno, word, processevents:
                              self.main.editor.load(
                                  fname, lineno, word,
@@ -738,7 +738,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
             self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
             # Connect Editor debug action with Console
-            self.sig_pdb_state.connect(self.main.editor.update_pdb_state)
+            self.sig_pdb_state_changed.connect(
+                self.main.editor.update_pdb_state)
             self.main.editor.exec_in_extconsole.connect(
                 self.execute_code_and_focus_editor)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
@@ -1119,9 +1120,9 @@ class IPythonConsole(SpyderPluginWidget):
         # tests in our CIs
         if not self.testing:
             kc.started_channels.connect(
-                lambda c=client: self.process_started(c))
+                lambda c=client: self.shellwidget_started(c))
             kc.stopped_channels.connect(
-                lambda c=client: self.process_finished(c))
+                lambda c=client: self.shellwidget_deleted(c))
         kc.start_channels(shell=True, iopub=True)
 
         shellwidget = client.shellwidget
@@ -1135,7 +1136,7 @@ class IPythonConsole(SpyderPluginWidget):
         if encoding.is_text_file(filename):
             # The default line number sent by ipykernel is always the last
             # one, but we prefer to use the first.
-            self.edit_goto.emit(filename, 1, '')
+            self.sig_edit_goto_requested.emit(filename, 1, '')
 
     def config_options(self):
         """
@@ -1271,7 +1272,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
-        shellwidget.sig_pdb_state.connect(self.sig_pdb_state)
+        shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
@@ -1298,7 +1299,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect client to our history log
         if self.main.historylog is not None:
             self.main.historylog.add_history(client.history_filename)
-            client.append_to_history.connect(
+            client.sig_append_to_history_requested.connect(
                 self.main.historylog.append_to_history)
 
         # Set font for client
@@ -1308,7 +1309,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(control)
 
         # Connect to working directory
-        shellwidget.sig_change_cwd.connect(self.set_working_directory)
+        shellwidget.sig_working_directory_changed.connect(
+            self.set_working_directory)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1435,10 +1437,11 @@ class IPythonConsole(SpyderPluginWidget):
 
     def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""
-        # This is a unique form of the edit_goto signal that is intended to
-        # prevent keyboard input from accidentally entering the editor
-        # during repeated, rapid entry of debugging commands.
-        self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
+        # This is a unique form of the sig_edit_goto_requested signal that
+        # is intended to prevent keyboard input from accidentally entering the
+        # editor during repeated, rapid entry of debugging commands.
+        self.sig_edit_goto_requested[str, int, str, bool].emit(
+            fname, lineno, '', False)
         self.activateWindow()
         shellwidget._control.setFocus()
 
@@ -1712,7 +1715,8 @@ class IPythonConsole(SpyderPluginWidget):
                 fname = self.run_cell_filename
             # This is needed to fix issue spyder-ide/spyder#9217.
             try:
-                self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+                self.sig_edit_goto_requested.emit(
+                    osp.abspath(fname), int(lnb), '')
             except ValueError:
                 pass
 
@@ -1792,17 +1796,17 @@ class IPythonConsole(SpyderPluginWidget):
             cf = cf if not os.path.exists(cf) else ''
         return cf
 
-    def process_started(self, client):
+    def shellwidget_started(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.add_shellwidget(client.shellwidget)
 
-        self.sig_shellwidget_process_started.emit(client.shellwidget)
+        self.sig_shellwidget_created.emit(client.shellwidget)
 
-    def process_finished(self, client):
+    def shellwidget_deleted(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.remove_shellwidget(client.shellwidget)
 
-        self.sig_shellwidget_process_finished.emit(client.shellwidget)
+        self.sig_shellwidget_deleted.emit(client.shellwidget)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
