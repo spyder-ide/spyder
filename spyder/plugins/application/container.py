@@ -269,11 +269,13 @@ class ApplicationContainer(PluginMainContainer):
         """Show Windows current user environment variables."""
         self.dialog_manager.show(WinUserEnvDialog(self))
 
+    def compute_dependencies(self):
+        """Compute dependencies"""
+        dependencies.declare_dependencies()
+
     @Slot()
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies."""
-        # Declare dependencies before trying to detect the missing ones
-        dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
 
         if missing_deps:
@@ -283,8 +285,7 @@ class ApplicationContainer(PluginMainContainer):
             missing_deps = (missing_deps.replace('<br>', '\n').
                             replace('<', '&lt;').replace('\n', '<br>'))
 
-            QMessageBox.critical(
-                self, _('Error'),
+            message = (
                 _("<b>You have missing dependencies!</b>"
                   "<br><br><tt>%s</tt><br>"
                   "<b>Please install them to avoid this message.</b>"
@@ -297,4 +298,14 @@ class ApplicationContainer(PluginMainContainer):
                   " Please be sure that any found bugs are not the direct "
                   "result of missing dependencies, prior to reporting a new "
                   "issue."
-                  ) % missing_deps, QMessageBox.Ok)
+                  ) % missing_deps
+            )
+
+            message_box = QMessageBox(self)
+            message_box.setIcon(QMessageBox.Critical)
+            message_box.setAttribute(Qt.WA_DeleteOnClose)
+            message_box.setStandardButtons(QMessageBox.Ok)
+            message_box.setWindowModality(Qt.NonModal)
+            message_box.setWindowTitle(_('Error'))
+            message_box.setText(message)
+            message_box.show()
