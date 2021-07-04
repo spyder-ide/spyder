@@ -1214,11 +1214,21 @@ class MainWindow(QMainWindow):
 
 
     def post_visible_setup(self):
-        """Actions to be performed only after the main window's `show` method
-        was triggered"""
+        """
+        Actions to be performed only after the main window's `show` method
+        is triggered.
+        """
+        # Process pending events and hide splash before loading the
+        # previous session.
+        QApplication.processEvents()
+        if self.splash is not None:
+            self.splash.hide()
+
+        # Call on_mainwindow_visible for all plugins.
         for __, plugin in self._PLUGINS.items():
             try:
                 plugin.on_mainwindow_visible()
+                QApplication.processEvents()
             except AttributeError:
                 pass
 
@@ -1264,12 +1274,7 @@ class MainWindow(QMainWindow):
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
-        # Process pending events and hide splash before loading the
-        # previous session.
-        QApplication.processEvents()
-        if self.splash is not None:
-            self.splash.hide()
-
+        # Load project, if any.
         # TODO: Remove this reference to projects once we can send the command
         # line options to the plugins.
         if self.open_project:
@@ -1301,6 +1306,12 @@ class MainWindow(QMainWindow):
             self.current_dpi = screen.logicalDotsPerInch()
             screen.logicalDotsPerInchChanged.connect(
                 self.show_dpi_change_message)
+
+        # To avoid regressions. We shouldn't have loaded the modules
+        # below at this point.
+        if DEV is not None:
+            assert 'pandas' not in sys.modules
+            assert 'matplotlib' not in sys.modules
 
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False

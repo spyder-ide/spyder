@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog,
                             QMessageBox, QVBoxLayout, QWidget)
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
-from spyder_kernels.utils.nsview import REMOTE_SETTINGS, get_supported_types
+from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -38,7 +38,6 @@ from spyder.widgets.helperwidgets import FinderLineEdit
 _ = get_translation('spyder')
 
 # Constants
-SUPPORTED_TYPES = get_supported_types()
 VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
 
 
