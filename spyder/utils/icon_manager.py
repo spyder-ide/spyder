@@ -309,6 +309,7 @@ class IconManager():
             'no_match':                [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'github':                  [('mdi.github',), {'color': self.MAIN_FG_COLOR}],
             # --- Spyder Tour --------------------------------------------------------
+            'tour':                    [('mdi.map-outline',), {'color': self.MAIN_FG_COLOR}],
             'tour.close':              [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
             'tour.home':               [('mdi.skip-backward',), {'color': self.MAIN_FG_COLOR}],
             'tour.previous':           [('mdi.skip-previous',), {'color': self.MAIN_FG_COLOR}],

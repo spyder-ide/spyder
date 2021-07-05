@@ -4,7 +4,6 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Spyder API Version."""
-
-VERSION_INFO = (0, 3, 0)
-__version__ = '.'.join(map(str, VERSION_INFO))
+"""
+Tour tests.
+"""

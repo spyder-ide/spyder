@@ -617,6 +617,7 @@ class Plugins:
     Shortcuts = 'shortcuts'
     StatusBar = 'statusbar'
     Toolbar = "toolbar"
+    Tours = "tours"
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 
@@ -801,6 +802,34 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     error dialog.
 
     This signal is automatically connected to the main container/widget.
+    """
+
+    sig_mainwindow_resized = Signal("QResizeEvent")
+    """
+    This signal is emitted when the main window is resized.
+
+    Parameters
+    ----------
+    resize_event: QResizeEvent
+        The event triggered on main window resize.
+
+    Notes
+    -----
+    To be used by plugins tracking main window size changes.
+    """
+
+    sig_mainwindow_moved = Signal("QMoveEvent")
+    """
+    This signal is emitted when the main window is moved.
+
+    Parameters
+    ----------
+    move_event: QMoveEvent
+        The event triggered on main window move.
+
+    Notes
+    -----
+    To be used by plugins tracking main window position changes.
     """
 
     # --- Private attributes -------------------------------------------------
@@ -1000,7 +1029,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
                     'A spyder plugin must define a `CONF_SECTION` class '
                     'attribute!'
                 )
-
             return self._conf.get(section, option, default)
 
     @Slot(str, object)

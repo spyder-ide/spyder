@@ -1959,3 +1959,7 @@ class IPythonConsole(SpyderPluginWidget):
                       'in debug mode.')
         self.get_current_client().shellwidget.append_html_message(
                     debug_msg, before_prompt=True)
+
+    # TODO: To be updated after migration
+    def on_mainwindow_visible(self):
+        return
