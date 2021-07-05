@@ -469,13 +469,13 @@ class IPythonConsoleWidget(PluginMainWidget):
             self, options, client, disconnect_ready_signal=False):
         """Apply given plugin settings to the given client."""
         # GUI options
-        self._apply_gui_plugin_settings(options, client)
+        # self._apply_gui_plugin_settings(options, client)
 
         # Matplotlib options
         self._apply_mpl_plugin_settings(options, client)
 
         # Advanced options
-        self._apply_advanced_plugin_settings(options, client)
+        # self._apply_advanced_plugin_settings(options, client)
 
         # Debugging options
         self._apply_pdb_plugin_settings(options, client)
@@ -484,7 +484,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             client.shellwidget.sig_pdb_prompt_ready.disconnect()
 
     @on_conf_change
-    def apply_plugin_settings(self, options):
+    def change_possible_restart_conf(self, options):
         """Apply configuration file's plugin settings."""
         # TODO: Simplify settings handling when possible by using preferences
         # subscription
@@ -564,142 +564,148 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option='plugin_font')
     def change_clients_font(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Review if this is valid or the value needs to be retrieved
+            # TODO: Review if this is valid or the value needs to be
+            # retrieved
             # font = self.plugin.get_font()
-            client.set_font(value)
+            font = value
+            self._change_client_conf(
+                client,
+                client.set_font,
+                font)
 
     @on_conf_change(option='connect_to_oi')
     def change_clients_help_connection(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Review management of the preference
-            control = client.get_control()
+            # TODO: Review management of the preference (where it should go?)
             help_o = self.get_conf('connect/ipython_console', section='help')
-            control.set_help_enabled(help_o)
+            self._change_client_conf(
+                client,
+                client.get_control().set_help_enabled,
+                help_o)
 
     @on_conf_change(option='color_scheme_name')
     def change_clients_color_scheme(self, value):
         for idx, client in enumerate(self.clients):
             # TODO: Review management of the preference
             color_scheme_o = self.get_conf('selected', section='appearance')
-            client.set_color_scheme(color_scheme_o)
+            self._change_client_conf(
+                client,
+                client.set_color_scheme,
+                color_scheme_o)
 
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
         for idx, client in enumerate(self.clients):
+            # TODO: Move action change to set method
             client.show_time_action.setChecked(value)
-            client.set_elapsed_time_visible(value)
+            self._change_client_conf(
+                client,
+                client.set_elapsed_time_visible,
+                value)
 
     @on_conf_change(option='show_reset_namespace_warning')
     def change_clients_show_reset_namespace_warning(self, value):
         for idx, client in enumerate(self.clients):
+            # TODO: Add debugging handling
             client.reset_warning = value
 
     @on_conf_change(option='ask_before_restart')
     def change_clients_ask_before_restart(self, value):
         for idx, client in enumerate(self.clients):
+            # TODO: Add debugging handling
             client.ask_before_restart = value
 
     @on_conf_change(option='ask_before_closing')
     def change_clients_ask_before_closing(self, value):
         for idx, client in enumerate(self.clients):
+            # TODO: Add debugging handling
             client.ask_before_closing = value
 
     @on_conf_change(option='show_calltips')
     def change_clients_show_calltips(self, value):
         for idx, client in enumerate(self.clients):
-            sw = client.shellwidget
-            sw.set_show_calltips(value)
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_show_calltips,
+                value)
 
     @on_conf_change(option='buffer_size')
     def change_clients_buffer_size(self, value):
         for idx, client in enumerate(self.clients):
-            sw = client.shellwidget
-            sw.set_buffer_size(value)
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_buffer_size,
+                value)
 
     @on_conf_change(option='completion_type')
     def change_clients_completion_type(self, value):
         for idx, client in enumerate(self.clients):
-            sw = client.shellwidget
             # TODO: Maybe this is a constant in spyder-kernels?
             completions = {0: "droplist", 1: "ncurses", 2: "plain"}
-            sw._set_completion_widget(completions[value])
+            self._change_client_conf(
+                client,
+                client.shellwidget._set_completion_widget,
+                completions[value])
 
     # ---- Advanced GUI options
     @on_conf_change(option='in_prompt')
     def change_clients_in_prompt(self, value):
         for idx, client in enumerate(self.clients):
-            sw = client.shellwidget
-            sw.set_in_prompt(value)
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_in_prompt,
+                value)
 
     @on_conf_change(option='out_prompt')
     def change_clients_out_prompt(self, value):
         for idx, client in enumerate(self.clients):
-            sw = client.shellwidget
-            sw.set_out_prompt(value)
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_out_prompt,
+                value)
+
+    # ---- Advanced options
+    @on_conf_change(option='greedy_completer')
+    def change_clients_greedy_completer(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_greedy_completer,
+                value)
+
+    @on_conf_change(option='jedi_completer')
+    def change_clients_jedi_completer(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_jedi_completer,
+                value)
+
+    @on_conf_change(option='autocall')
+    def change_clients_autocall(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_autocall,
+                value)
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _apply_gui_plugin_settings(self, options, client):
-        """Apply GUI related configurations to a client."""
-        # GUI options
-        # font_n = 'plugin_font'
-        # help_n = 'connect_to_oi'
-        # color_scheme_n = 'color_scheme_name'
-        # show_time_n = 'show_elapsed_time'
-        # reset_namespace_n = 'show_reset_namespace_warning'
-        # ask_before_restart_n = 'ask_before_restart'
-        # ask_before_closing_n = 'ask_before_closing'
-        # show_calltips_n = 'show_calltips'
-        # buffer_size_n = 'buffer_size'
-        # completion_type_n = 'completion_type'
-
-        # Advanced GUI options
-        # in_prompt_n = 'in_prompt'
-        # out_prompt_n = 'out_prompt'
-
-        # Client widgets
-        control = client.get_control()
+    def _change_client_conf(self, client, client_conf_func, value):
         sw = client.shellwidget
-        # if font_n in options:
-        #     font_o = self.plugin.get_font()
-        #     client.set_font(font_o)
-        # if help_n in options and control is not None:
-        #     help_o = self.get_conf('connect/ipython_console', section='help')
-        #     control.set_help_enabled(help_o)
-        # if color_scheme_n in options:
-        #     color_scheme_o = self.get_conf('selected', section='appearance')
-        #     client.set_color_scheme(color_scheme_o)
-        # if show_time_n in options:
-        #     show_time_o = self.get_conf(show_time_n)
-        #     client.show_time_action.setChecked(show_time_o)
-        #     client.set_elapsed_time_visible(show_time_o)
-        # if reset_namespace_n in options:
-        #     reset_namespace_o = self.get_conf(reset_namespace_n)
-        #     client.reset_warning = reset_namespace_o
-        # if ask_before_restart_n in options:
-        #     ask_before_restart_o = self.get_conf(ask_before_restart_n)
-        #     client.ask_before_restart = ask_before_restart_o
-        # if ask_before_closing_n in options:
-        #     ask_before_closing_o = self.get_conf(ask_before_closing_n)
-        #     client.ask_before_closing = ask_before_closing_o
-        # if show_calltips_n in options:
-        #     show_calltips_o = self.get_conf(show_calltips_n)
-        #     sw.set_show_calltips(show_calltips_o)
-        # if buffer_size_n in options:
-        #     buffer_size_o = self.get_conf(buffer_size_n)
-        #     sw.set_buffer_size(buffer_size_o)
-        # if completion_type_n in options:
-        #     completion_type_o = self.get_conf(completion_type_n)
-        #     completions = {0: "droplist", 1: "ncurses", 2: "plain"}
-        #     sw._set_completion_widget(completions[completion_type_o])
+        if not sw.is_debugging() and not sw._executing:
+            client_conf_func(value)
+        else:
+            sw.sig_pdb_prompt_ready.connect(
+                lambda c=client, ccf=client_conf_func, value=value:
+                    self._change_client_conf_on_debugging(c, ccf, value)
+                    )
 
-        # Advanced GUI options
-        # if in_prompt_n in options:
-        #     in_prompt_o = self.get_conf(in_prompt_n)
-        #     sw.set_in_prompt(in_prompt_o)
-        # if out_prompt_n in options:
-        #     out_prompt_o = self.get_conf(out_prompt_n)
-        #     sw.set_out_prompt(out_prompt_o)
+    def _change_client_conf_on_debugging(
+            self, client, client_conf_func, value):
+        sw = client.shellwidget
+        client_conf_func(value)
+        sw.sig_pdb_prompt_ready.disconnect(client_conf_func)
 
     def _apply_mpl_plugin_settings(self, options, client):
         """Apply Matplotlib related configurations to a client."""
@@ -741,25 +747,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                 inline_backend_bbox_inches_o = self.get_conf(
                     inline_backend_bbox_inches_n)
                 sw.set_mpl_inline_bbox_inches(inline_backend_bbox_inches_o)
-
-    def _apply_advanced_plugin_settings(self, options, client):
-        """Apply advanced configurations to a client."""
-        # Advanced options
-        greedy_completer_n = 'greedy_completer'
-        jedi_completer_n = 'jedi_completer'
-        autocall_n = 'autocall'
-
-        # Client widget
-        sw = client.shellwidget
-        if greedy_completer_n in options:
-            greedy_completer_o = self.get_conf(greedy_completer_n)
-            sw.set_greedy_completer(greedy_completer_o)
-        if jedi_completer_n in options:
-            jedi_completer_o = self.get_conf(jedi_completer_n)
-            sw.set_jedi_completer(jedi_completer_o)
-        if autocall_n in options:
-            autocall_o = self.get_conf(autocall_n)
-            sw.set_autocall(autocall_o)
 
     def _apply_pdb_plugin_settings(self, options, client):
         """Apply debugging configurations to a client."""
