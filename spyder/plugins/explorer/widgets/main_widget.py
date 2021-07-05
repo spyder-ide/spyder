@@ -229,8 +229,8 @@ class ExplorerWidget(PluginMainWidget):
                      self.get_action(ExplorerTreeWidgetActions.Next),
                      self.get_action(ExplorerTreeWidgetActions.Parent),
                      self.treewidget.filter_text_edit,
-                     self.get_action(ExplorerTreeWidgetActions.ToggleFilterRegex),
-                     self.get_action(ExplorerTreeWidgetActions.ToggleExcludeCase),
+                     self.get_action(ExplorerTreeWidgetActions.ToggleRegex),
+                     self.get_action(ExplorerTreeWidgetActions.ToggleCase),
                      self.get_action(ExplorerTreeWidgetActions.ToggleFilter),
                      ]:
             self.add_item_to_toolbar(

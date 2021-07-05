@@ -303,7 +303,6 @@ DEFAULTS = [
               'single_click_to_open': False,
               'file_associations': {},
               'filter_text_regexp': False,
-              'filter_text': [''],
               'case_sensitive': False,
               }),
             ('find_in_files',
