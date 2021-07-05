@@ -127,6 +127,8 @@ class DirViewContextMenuSections:
 class ExplorerTreeWidgetActions:
     # Toggles
     ToggleFilter = 'toggle_filter_files_action'
+    ToggleCase = 'toggle_filter_case_sensitivity'
+    ToggleRegex = 'toggle_filter_regular_expression'
 
     # Triggers
     Next = 'next_action'
@@ -1855,6 +1857,41 @@ class ExplorerTreeWidget(DirView):
         )
         self.filter_button.setCheckable(True)
 
+        self.search_regexp_action = self.create_action(
+            ExplorerTreeWidgetActions.ToggleRegex,
+            text=_('Regular expression'),
+            tip=_('Regular expression'),
+            icon=self.create_icon('regex'),
+            toggled=self.filter_changed,
+            initial=self.get_conf('filter_text_regexp'),
+            option='filter_text_regexp'
+        )
+        self.search_regexp_action.setCheckable(True)
+
+        self.case_action = self.create_action(
+            ExplorerTreeWidgetActions.ToggleCase,
+            text=_("Case sensitive"),
+            tip=_("Case sensitive"),
+            icon=self.create_icon("format_letter_case"),
+            toggled=self.filter_changed,
+            initial=self.get_conf('case_sensitive'),
+            option='case_sensitive'
+        )
+        self.case_action.setCheckable(True)
+
+        # Filter Text Combo Box
+        filter_text = self.get_conf('filter_text', '')
+        if not isinstance(filter_text, (list, tuple)):
+            filter_text = [filter_text]
+        self.filter_text_edit = QLineEdit(
+            "",
+            self
+        )
+        self.filter_text_edit.setPlaceholderText(_("Filter pattern"))
+        if hasattr(self.filter_text_edit, "setClearButtonEnabled"):
+            self.filter_text_edit.setClearButtonEnabled(True)
+        self.filter_text_edit.textChanged.connect(self.filter_changed)
+
     def update_actions(self):
         """Update the widget actions."""
         super().update_actions()
@@ -1925,6 +1962,11 @@ class ExplorerTreeWidget(DirView):
             Path to the clicked directory.
         """
         self.chdir(directory=dirname)
+
+    @Slot()
+    @Slot(bool)
+    def filter_changed(self, toggled=False):
+        self.filter_files([self.filter_text_edit.text()])
 
     # ---- Files/Directories Actions
     @Slot()

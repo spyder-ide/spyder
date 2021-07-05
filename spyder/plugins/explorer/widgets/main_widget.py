@@ -228,7 +228,11 @@ class ExplorerWidget(PluginMainWidget):
         for item in [self.get_action(ExplorerTreeWidgetActions.Previous),
                      self.get_action(ExplorerTreeWidgetActions.Next),
                      self.get_action(ExplorerTreeWidgetActions.Parent),
-                     self.get_action(ExplorerTreeWidgetActions.ToggleFilter)]:
+                     self.treewidget.filter_text_edit,
+                     self.get_action(ExplorerTreeWidgetActions.ToggleRegex),
+                     self.get_action(ExplorerTreeWidgetActions.ToggleCase),
+                     self.get_action(ExplorerTreeWidgetActions.ToggleFilter),
+                     ]:
             self.add_item_to_toolbar(
                 item, toolbar=toolbar,
                 section=ExplorerWidgetMainToolbarSections.Main)
