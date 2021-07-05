@@ -122,11 +122,11 @@ def test_solve_plugin_dependencies_3():
 
 def test_find_internal_plugins():
     internal = find_internal_plugins()
-    assert len(internal) == 27
+    assert len(internal) == 28
 
     # Assert we have the same number of plugins declared in our enum
     # 27 internal plugins + the 'All' extra entry
-    assert len(get_class_values(Plugins)) == 27 + 1
+    assert len(get_class_values(Plugins)) == 28 + 1
 
 
 def test_solve_internal_plugins():
@@ -134,4 +134,4 @@ def test_solve_internal_plugins():
     # Test that solver doesn't crash and returns all available plugins
     solved_dependencies = solve_plugin_dependencies(internal)
     print(solved_dependencies)
-    assert len(solve_plugin_dependencies(internal)) == 27
+    assert len(solve_plugin_dependencies(internal)) == 28
