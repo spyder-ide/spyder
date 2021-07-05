@@ -56,10 +56,6 @@ class Help(SpyderDockablePlugin):
     LOG_PATH = get_conf_path(CONF_SECTION)
     FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    CONF_FROM_OPTIONS = {
-        'editor_shortcut': ('shortcuts', 'editor/inspect current object'),
-        'console_shortcut': ('shortcuts', 'console/inspect current object'),
-    }
 
     # Signals
     sig_focus_changed = Signal()  # TODO: What triggers this?

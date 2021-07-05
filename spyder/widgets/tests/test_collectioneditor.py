@@ -304,8 +304,9 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
     for rng_name, rng in generate_pandas_indexes().items():
         MockDataFrameEditor = Mock()
         mockDataFrameEditor_instance = MockDataFrameEditor()
-        monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionsdelegate.DataFrameEditor',
-                            MockDataFrameEditor)
+        attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
+                                'dataframeeditor.DataFrameEditor')
+        monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
         coll = {'rng': rng}
         editor = CollectionsEditorTableView(None, coll)
         editor.delegate.createEditor(None, None,
@@ -629,12 +630,12 @@ def test_editor_parent_set(monkeypatch):
 
     MockArrayEditor = Mock()
     attr_to_patch_arredit = ('spyder.plugins.variableexplorer.widgets.' +
-                             'collectionsdelegate.ArrayEditor')
+                             'arrayeditor.ArrayEditor')
     monkeypatch.setattr(attr_to_patch_arredit, MockArrayEditor)
 
     MockDataFrameEditor = Mock()
     attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
-                            'collectionsdelegate.DataFrameEditor')
+                            'dataframeeditor.DataFrameEditor')
     monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
 
     MockTextEditor = Mock()

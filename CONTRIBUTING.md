@@ -156,8 +156,8 @@ Spyder and spyder-kernels are developed jointly because a lot of communication h
 
 | Spyder branch       | Associated spyder-kernels branch  |
 | ------------------- | --------------------------------- |
-| 4.x                 | 1.x                               |
-| master (future 5.x) | master (future 2.x)               |
+| 5.x                 | 2.x                               |
+| master (future 6.x) | master (future 3.x)               |
 
 For this reason, a clone of spyder-kernels is placed in the `external-deps` subfolder of the Spyder repository. The instructions on this section will help you in case you need to make changes that touch both repositories at the same time.
 
@@ -193,7 +193,7 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
 
     $ cd ~/spyder
     $ git checkout fix_in_spyder
-    $ git subrepo pull external-deps/spyder-kernels
+    $ git subrepo clone https://github.com/myuser/spyder-kernels.git external-deps/spyder-kernels -b fix_in_kernel -f
     $ git push origin fix_in_spyder
     ```
 
@@ -227,7 +227,7 @@ Due to that, a clone of that project is placed in the `external-deps` directory,
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo pull external-deps/python-lsp-server
+    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_pylsp -f
     $ git push origin fix_in_spyder
     ```
 
@@ -235,7 +235,7 @@ Due to that, a clone of that project is placed in the `external-deps` directory,
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/palantir/python-lsp-server.git external-deps/python-lsp-server -b develop -f
+    $ git subrepo clone https://github.com/python-lsp/python-lsp-server.git external-deps/python-lsp-server -b develop -f
     ```
 
 

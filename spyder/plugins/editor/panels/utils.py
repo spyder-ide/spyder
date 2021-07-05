@@ -12,7 +12,6 @@ import uuid
 
 # Third-party imports
 from intervaltree import IntervalTree
-import textdistance
 
 # --------------------- Code Folding Panel ------------------------------------
 
@@ -132,6 +131,10 @@ def merge_interval(parent, node):
 
 def merge_folding(ranges, current_tree, root):
     """Compare previous and current code folding tree information."""
+    # Leave this import here to avoid importing Numpy (which is used by
+    # textdistance) too early at startup.
+    import textdistance
+
     folding_ranges = []
     for starting_line, ending_line, text in ranges:
         if ending_line > starting_line:
