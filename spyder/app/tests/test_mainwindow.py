@@ -47,6 +47,7 @@ from spyder import __trouble_url__, __project_url__
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
+from spyder.api.startup.registry import PLUGIN_REGISTRY
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
 from spyder.config.base import get_home_dir, get_conf_path, get_module_path
@@ -330,6 +331,7 @@ def cleanup(request):
             except AttributeError:
                 pass
         remove_fake_entrypoints()
+        PLUGIN_REGISTRY.reset()
 
     request.addfinalizer(remove_test_dir)
 
