@@ -109,6 +109,8 @@ jobs:
         run: |
           conda info
           conda list
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Run file tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
