@@ -92,8 +92,7 @@ from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
                                     qapplication, start_file)
 from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.app.solver import (
-    find_external_plugins, find_internal_plugins, solve_plugin_dependencies)
+from spyder.app.solver import find_external_plugins, find_internal_plugins
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
@@ -1129,7 +1128,7 @@ class MainWindow(QMainWindow):
             self.tabify_plugin(plugin_instance, Plugins.Console)
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 plugin_instance.get_widget().toggle_view(False)
-        
+
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
