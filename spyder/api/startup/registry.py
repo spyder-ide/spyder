@@ -9,7 +9,6 @@
 # Standard library imports
 import logging
 from typing import Dict, List, Union, Type, Any
-import weakref
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -50,15 +49,11 @@ class SpyderPluginRegistry(QObject):
     Notes
     -----
     1. This class should be instantiated as a singleton.
-    2. This class is the only that has hard references to all Spyder plugins.
-       If another object wants to access a plugin, it should call the
-       `get_plugin` method of this class, which will return a weak reference
-       to the plugin.
-    3. A plugin should not depend on other plugin to perform its
+    2. A plugin should not depend on other plugin to perform its
        initialization since it could cause deadlocks.
     """
 
-    sig_plugin_ready = Signal(str)
+    sig_plugin_ready = Signal(str, bool)
     """
     This signal is used to signal the main window that a plugin is ready.
 
@@ -66,6 +61,8 @@ class SpyderPluginRegistry(QObject):
     ----------
     plugin_name: str
         Name of the plugin that is available.
+    omit_conf: bool
+        True if the plugin configuration does not need to be written.
     """
 
     def __init__(self):
@@ -88,7 +85,13 @@ class SpyderPluginRegistry(QObject):
         self.old_plugins = set({})  # type: set[str]
 
         # Set that stores the names of the plugins that are enabled
-        self.enabled_plugins = set({})
+        self.enabled_plugins = set({})  # type: set[str]
+
+        # Set that stores the names of the internal plugins
+        self.internal_plugins = set({})  # type: set[str]
+
+        # Set that stores the names of the external plugins
+        self.external_plugins = set({})  # type: set[str]
 
     # ------------------------- PRIVATE API -----------------------------------
     def _update_dependents(self, plugin: str, dependent_plugin: str, key: str):
@@ -122,7 +125,8 @@ class SpyderPluginRegistry(QObject):
 
     def _instantiate_spyder5_plugin(
             self, main_window: Any,
-            PluginClass: Type[Spyder5PluginClass]) -> Spyder5PluginClass:
+            PluginClass: Type[Spyder5PluginClass],
+            external: bool) -> Spyder5PluginClass:
         """Instantiate and register a Spyder 5+ plugin."""
         required_plugins = list(set(PluginClass.REQUIRES))
         optional_plugins = list(set(PluginClass.OPTIONAL))
@@ -151,7 +155,8 @@ class SpyderPluginRegistry(QObject):
 
         # Connect plugin availability signal to notification system
         plugin_instance.sig_plugin_ready.connect(
-            lambda: self.notify_plugin_availability(plugin_name))
+            lambda: self.notify_plugin_availability(
+                plugin_name, omit_conf=PluginClass.CONF_FILE))
 
         # Initialize plugin instance
         plugin_instance.initialize()
@@ -159,12 +164,20 @@ class SpyderPluginRegistry(QObject):
         # Register plugins that are already available
         self._notify_plugin_dependencies(plugin_name)
 
+        # Register the name of the plugin under the external or
+        # internal plugin set
+        if external:
+            self.external_plugins |= {plugin_name}
+        else:
+            self.internal_plugins |= {plugin_name}
+
         return plugin_instance
 
     def _instantiate_spyder4_plugin(
             self, main_window: Any,
             PluginClass: Type[Spyder4PluginClass],
-            args: tuple, kwargs: dict) -> weakref.ProxyType:
+            external: bool,
+            args: tuple, kwargs: dict) -> Spyder4PluginClass:
         """Instantiate and register a Spyder 4 plugin."""
         plugin_name = PluginClass.NAME
 
@@ -180,6 +193,13 @@ class SpyderPluginRegistry(QObject):
 
         # Register plugin in the registry
         self.plugin_registry[plugin_name] = plugin_instance
+
+        # Register the name of the plugin under the external or
+        # internal plugin set
+        if external:
+            self.external_plugins |= {plugin_name}
+        else:
+            self.internal_plugins |= {plugin_name}
 
         # Since Spyder 5+ plugins are loaded before old ones, preferences
         # will be available at this point.
@@ -208,7 +228,8 @@ class SpyderPluginRegistry(QObject):
     def register_plugin(
             self, main_window: Any,
             PluginClass: Type[SpyderPluginClass],
-            *args: tuple, **kwargs: dict) -> weakref.ProxyType:
+            *args: tuple, external: bool = False,
+            **kwargs: dict) -> SpyderPluginClass:
         """
         Register a plugin into the Spyder registry.
 
@@ -222,12 +243,15 @@ class SpyderPluginRegistry(QObject):
         *args: tuple
             Positional arguments used to initialize the plugin
             instance.
+        external: bool
+            If True, then the plugin is stored as a external plugin. Otherwise
+            it will be marked as an internal plugin. Default: False
         **kwargs: dict
             Optional keyword arguments used to initialize the plugin instance.
 
         Returns
         -------
-        plugin: weakref.ProxyType
+        plugin: SpyderPluginClass
             The instance of the plugin registered.
 
         Raises
@@ -249,16 +273,17 @@ class SpyderPluginRegistry(QObject):
         if issubclass(PluginClass, SpyderPluginV2):
             # Register a Spyder 5+ plugin
             instance = self._instantiate_spyder5_plugin(
-                main_window, PluginClass)
+                main_window, PluginClass, external)
         elif issubclass(PluginClass, SpyderPlugin):
             # Register a Spyder 4 plugin
             instance = self._instantiate_spyder4_plugin(
-                main_window, PluginClass, args, kwargs)
+                main_window, PluginClass, external, args, kwargs)
 
-        return weakref.proxy(instance)
+        return instance
 
     def notify_plugin_availability(self, plugin_name: str,
-                                   notify_main: bool = True):
+                                   notify_main: bool = True,
+                                   omit_conf: bool = False):
         """
         Notify dependent plugins of a given plugin of its availability.
 
@@ -269,6 +294,9 @@ class SpyderPluginRegistry(QObject):
         notify_main: bool
             If True, then a signal is emitted to the main window to perform
             further registration steps.
+        omit_conf: bool
+            If True, then the main window is instructed to not write the
+            plugin configuration into the Spyder configuration file.
         """
         logger.debug(f'Plugin {plugin_name} has finished loading, '
                      'sending notifications')
@@ -278,7 +306,7 @@ class SpyderPluginRegistry(QObject):
 
         # Notify the main window that the plugin is ready
         if notify_main:
-            self.sig_plugin_ready.emit(plugin_name)
+            self.sig_plugin_ready.emit(plugin_name, omit_conf)
 
         # Notify plugin dependents
         plugin_dependents = self.plugin_dependents.get(plugin_name, {})
@@ -290,7 +318,7 @@ class SpyderPluginRegistry(QObject):
                 plugin_instance = self.plugin_registry[plugin]
                 plugin_instance._on_plugin_available(plugin_name)
 
-    def get_plugin(self, plugin_name: str) -> weakref.ProxyType:
+    def get_plugin(self, plugin_name: str) -> SpyderPluginClass:
         """
         Get a reference to a plugin instance by its name.
 
@@ -301,8 +329,8 @@ class SpyderPluginRegistry(QObject):
 
         Returns
         -------
-        plugin: weakref.ProxyType
-            A weak reference to the plugin requested
+        plugin: SpyderPluginClass
+            The instance of the requested plugin.
 
         Raises
         ------
@@ -311,7 +339,7 @@ class SpyderPluginRegistry(QObject):
         """
         if plugin_name in self.plugin_registry:
             plugin_instance = self.plugin_registry[plugin_name]
-            return weakref.proxy(plugin_instance)
+            return plugin_instance
         else:
             raise SpyderAPIError(f'Plugin {plugin_name} was not found in '
                                  'the registry')
@@ -365,6 +393,12 @@ class SpyderPluginRegistry(QObject):
 
         # Set that stores the names of the plugins that are enabled
         self.enabled_plugins = set({})
+
+        # Set that stores the names of the internal plugins
+        self.internal_plugins = set({})
+
+        # Set that stores the names of the external plugins
+        self.external_plugins = set({})
 
         try:
             self.sig_plugin_ready.disconnect()

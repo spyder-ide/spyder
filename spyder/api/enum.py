@@ -42,5 +42,6 @@ class Plugins:
     Shortcuts = 'shortcuts'
     StatusBar = 'statusbar'
     Toolbar = "toolbar"
+    Tours = 'tours'
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'

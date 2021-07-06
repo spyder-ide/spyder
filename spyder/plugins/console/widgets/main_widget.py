@@ -26,6 +26,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.startup.registry import PLUGIN_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.config.decorators import on_conf_change
@@ -379,21 +380,15 @@ class ConsoleWidget(PluginMainWidget):
                 or self.dismiss_error):
             return
 
-        # Get internal plugin names
-        if internal_plugins is None:
-            internal_plugins = find_internal_plugins()
-
-        internal_plugin_names = []
-        for __, val in internal_plugins.items():
-            name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
-            internal_plugin_names.append(name)
+        # Retrieve internal plugins
+        internal_plugins = PLUGIN_REGISTRY.internal_plugins
 
         # Get if sender is internal or not
         is_internal_plugin = True
         if sender is not None:
             sender_name = getattr(
                 sender, 'NAME', getattr(sender, 'CONF_SECTION'))
-            is_internal_plugin = sender_name in internal_plugin_names
+            is_internal_plugin = sender_name in internal_plugins
 
         # Set repo
         repo = "spyder-ide/spyder"

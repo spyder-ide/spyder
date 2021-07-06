@@ -218,6 +218,11 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading {}...").format(plugin.get_name()))
         logger.info("Loading {}...".format(plugin.NAME))
 
+        if plugin_name in [Plugins.Breakpoints,
+                           Plugins.Profiler,
+                           Plugins.Pylint]:
+            self.thirdparty_plugins.append(plugin)
+
         # Check plugin compatibility
         is_compatible, message = plugin.check_compatibility()
         plugin.is_compatible = is_compatible
@@ -770,7 +775,9 @@ class MainWindow(QMainWindow):
 
     def setup(self):
         """Setup main window."""
-        PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
+        PLUGIN_REGISTRY.sig_plugin_ready.connect(
+            lambda plugin_name, omit_conf: self.register_plugin(
+                plugin_name, omit_conf=omit_conf))
 
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
@@ -877,7 +884,8 @@ class MainWindow(QMainWindow):
             if plugin_name in enabled_plugins:
                 PluginClass = internal_plugins[plugin_name]
                 if issubclass(PluginClass, SpyderPluginV2):
-                    PLUGIN_REGISTRY.register_plugin(self, PluginClass)
+                    PLUGIN_REGISTRY.register_plugin(self, PluginClass,
+                                                    external=False)
 
         # Instantiate internal Spyder 4 plugins
         for plugin_name in internal_plugins:
@@ -886,12 +894,12 @@ class MainWindow(QMainWindow):
                 if issubclass(PluginClass, SpyderPlugin):
                     if plugin_name == Plugins.IPythonConsole:
                         plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                            self, PluginClass)
+                            self, PluginClass, external=False)
                         plugin_instance.sig_exception_occurred.connect(
                             self.handle_exception)
                     else:
                         plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                            self, PluginClass)
+                            self, PluginClass, external=False)
                     if plugin_name == Plugins.Projects:
                         self.project_path = plugin_instance.get_pythonpath(
                             at_start=True)
@@ -905,7 +913,7 @@ class MainWindow(QMainWindow):
                 PluginClass = external_plugins[plugin_name]
                 try:
                     plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                        self, PluginClass)
+                        self, PluginClass, external=True)
 
                     if not running_under_pytest():
                         # These attributes come from spyder.app.solver
@@ -923,7 +931,8 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading old third-party plugins..."))
         for mod in get_spyderplugins_mods():
             try:
-                plugin = PLUGIN_REGISTRY.register_plugin(self, mod)
+                plugin = PLUGIN_REGISTRY.register_plugin(self, mod,
+                                                         external=True)
                 if plugin.check_compatibility()[0]:
                     if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
                         self.preferences.register_plugin_preferences(plugin)
