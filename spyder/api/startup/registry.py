@@ -15,7 +15,7 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.api.enum import Plugins
+from spyder.api.plugins_enum import Plugins
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import (
     SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,

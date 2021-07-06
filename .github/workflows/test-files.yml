@@ -113,6 +113,7 @@ jobs:
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: xvfb-run --auto-servernum .github/scripts/modules_test.sh || xvfb-run --auto-servernum .github/scripts/modules_test.sh
+      # Uncomment this to debug the CI job
       - name: Setup tmate session
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3

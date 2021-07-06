@@ -38,7 +38,7 @@ from qtpy.QtWidgets import QApplication, QWidget
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.enum import Plugins
+from spyder.api.plugins_enum import Plugins
 from spyder.api.translations import get_translation
 from spyder.api.startup.mixins import SpyderPluginObserver
 from spyder.api.widgets.main_container import PluginMainContainer
