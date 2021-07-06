@@ -782,6 +782,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
         """Update elapsed time visibility."""
         self.time_label.setVisible(self.show_elapsed_time)
 
+    def set_show_elapsed_time(self, state):
+        self.show_time_action.setChecked(state)
+
     @Slot(bool)
     def set_elapsed_time_visible(self, state):
         """Slot to show/hide elapsed time label."""

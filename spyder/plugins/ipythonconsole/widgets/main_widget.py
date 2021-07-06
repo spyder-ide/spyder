@@ -465,24 +465,6 @@ class IPythonConsoleWidget(PluginMainWidget):
     def update_actions(self):
         pass
 
-    def apply_plugin_settings_to_client(
-            self, options, client, disconnect_ready_signal=False):
-        """Apply given plugin settings to the given client."""
-        # GUI options
-        # self._apply_gui_plugin_settings(options, client)
-
-        # Matplotlib options
-        self._apply_mpl_plugin_settings(options, client)
-
-        # Advanced options
-        # self._apply_advanced_plugin_settings(options, client)
-
-        # Debugging options
-        self._apply_pdb_plugin_settings(options, client)
-
-        if disconnect_ready_signal:
-            client.shellwidget.sig_pdb_prompt_ready.disconnect()
-
     @on_conf_change
     def change_possible_restart_conf(self, options):
         """Apply configuration file's plugin settings."""
@@ -542,14 +524,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
-                    # Apply settings when the next Pdb prompt is available
-                    sw.sig_pdb_prompt_ready.connect(
-                        lambda o=options, c=client:
-                            self.apply_plugin_settings_to_client(
-                                o, c, disconnect_ready_signal=True)
-                        )
+                    # Apply conf when the next Pdb prompt is available
+                    def change_client_mpl_conf(o=options, c=client):
+                        self._change_client_mpl_conf(o, c)
+                        sw.sig_pdb_prompt_ready.disconnect(
+                            change_client_mpl_conf)
+                    sw.sig_pdb_prompt_ready.connect(change_client_mpl_conf)
                 else:
-                    self.apply_plugin_settings_to_client(options, client)
+                    self._change_client_mpl_conf(options, client)
             elif restart and restart_all:
                 client.ask_before_restart = False
                 client.restart_kernel()
@@ -596,30 +578,40 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Move action change to set method
-            client.show_time_action.setChecked(value)
             self._change_client_conf(
                 client,
-                client.set_elapsed_time_visible,
+                client.set_show_elapsed_time,
                 value)
 
     @on_conf_change(option='show_reset_namespace_warning')
     def change_clients_show_reset_namespace_warning(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Add debugging handling
-            client.reset_warning = value
+            def change_client_reset_warning(value=value):
+                client.reset_warning = value
+            self._change_client_conf(
+                client,
+                change_client_reset_warning,
+                value)
 
     @on_conf_change(option='ask_before_restart')
     def change_clients_ask_before_restart(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Add debugging handling
-            client.ask_before_restart = value
+            def change_client_ask_before_restart(value=value):
+                client.ask_before_restart = value
+            self._change_client_conf(
+                client,
+                change_client_ask_before_restart,
+                value)
 
     @on_conf_change(option='ask_before_closing')
     def change_clients_ask_before_closing(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Add debugging handling
-            client.ask_before_closing = value
+            def change_client_ask_before_closing(value=value):
+                client.ask_before_closing = value
+            self._change_client_conf(
+                client,
+                change_client_ask_before_closing,
+                value)
 
     @on_conf_change(option='show_calltips')
     def change_clients_show_calltips(self, value):
@@ -689,25 +681,61 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.shellwidget.set_autocall,
                 value)
 
+    # ---- Debugging options
+    @on_conf_change(option='pdb_ignore_lib')
+    def change_clients_pdb_ignore_lib(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_pdb_ignore_lib,
+                value)
+
+    @on_conf_change(option='pdb_execute_events')
+    def change_clients_pdb_execute_events(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_pdb_execute_events,
+                value)
+
+    @on_conf_change(option='pdb_use_exclamation_mark')
+    def change_clients_pdb_use_exclamation_mark(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_pdb_use_exclamation_mark,
+                value)
+
     # ---- Private API
     # -------------------------------------------------------------------------
     def _change_client_conf(self, client, client_conf_func, value):
+        """
+        Change a client configuration while handling a possible debugging state
+
+        Parameters
+        ----------
+        client : ClientWidget
+            Client to update configuration.
+        client_conf_func : Callable
+            Client method to use to change the configuration.
+        value : any
+            New value for the client configuration.
+
+        Returns
+        -------
+        None.
+
+        """
         sw = client.shellwidget
         if not sw.is_debugging() and not sw._executing:
             client_conf_func(value)
         else:
-            sw.sig_pdb_prompt_ready.connect(
-                lambda c=client, ccf=client_conf_func, value=value:
-                    self._change_client_conf_on_debugging(c, ccf, value)
-                    )
+            def change_conf(c=client, ccf=client_conf_func, value=value):
+                client_conf_func(value)
+                sw.sig_pdb_prompt_ready.disconnect(change_conf)
+            sw.sig_pdb_prompt_ready.connect(change_conf)
 
-    def _change_client_conf_on_debugging(
-            self, client, client_conf_func, value):
-        sw = client.shellwidget
-        client_conf_func(value)
-        sw.sig_pdb_prompt_ready.disconnect(client_conf_func)
-
-    def _apply_mpl_plugin_settings(self, options, client):
+    def _change_client_mpl_conf(self, options, client):
         """Apply Matplotlib related configurations to a client."""
         # Matplotlib options
         pylab_n = 'pylab'
@@ -747,26 +775,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                 inline_backend_bbox_inches_o = self.get_conf(
                     inline_backend_bbox_inches_n)
                 sw.set_mpl_inline_bbox_inches(inline_backend_bbox_inches_o)
-
-    def _apply_pdb_plugin_settings(self, options, client):
-        """Apply debugging configurations to a client."""
-        # Debugging options
-        pdb_ignore_lib_n = 'pdb_ignore_lib'
-        pdb_execute_events_n = 'pdb_execute_events'
-        pdb_use_exclamation_mark_n = 'pdb_use_exclamation_mark'
-
-        # Client widget
-        sw = client.shellwidget
-        if pdb_ignore_lib_n in options:
-            pdb_ignore_lib_o = self.get_conf(pdb_ignore_lib_n)
-            sw.set_pdb_ignore_lib(pdb_ignore_lib_o)
-        if pdb_execute_events_n in options:
-            pdb_execute_events_o = self.get_conf(pdb_execute_events_n)
-            sw.set_pdb_execute_events(pdb_execute_events_o)
-        if pdb_use_exclamation_mark_n in options:
-            pdb_use_exclamation_mark_o = self.get_conf(
-                pdb_use_exclamation_mark_n)
-            sw.set_pdb_use_exclamation_mark(pdb_use_exclamation_mark_o)
 
     def _init_asyncio_patch(self):
         """
