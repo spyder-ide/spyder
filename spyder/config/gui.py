@@ -18,6 +18,7 @@ Important note regarding shortcuts:
 from collections import namedtuple
 
 # Third party imports
+from qtconsole.styles import dark_color
 from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
@@ -29,8 +30,6 @@ from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 
-# Third-party imports
-from qtconsole.styles import dark_color
 
 # To save metadata about widget shortcuts (needed to build our
 # preferences page)
