@@ -15,8 +15,8 @@ import os
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QThread, Slot
-from qtpy.QtWidgets import QMessageBox, QAction
+from qtpy.QtCore import Qt, QThread, QTimer, Slot
+from qtpy.QtWidgets import QAction, QMessageBox
 
 # Local imports
 from spyder import (
@@ -174,6 +174,7 @@ class ApplicationContainer(PluginMainContainer):
         box = MessageCheckBox(icon=QMessageBox.Information,
                               parent=self)
         box.setWindowTitle(_("New Spyder version"))
+        box.setAttribute(Qt.WA_ShowWithoutActivating)
         box.set_checkbox_text(_("Check for updates at startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
@@ -216,7 +217,7 @@ class ApplicationContainer(PluginMainContainer):
                 msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
-                box.exec_()
+                box.show()
                 check_updates = box.is_checked()
             elif feedback:
                 msg = _("Spyder is up to date.")
@@ -249,7 +250,15 @@ class ApplicationContainer(PluginMainContainer):
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)
         self.thread_updates.started.connect(self.worker_updates.start)
-        self.thread_updates.start()
+
+        # Delay starting this check to avoid blocking the main window
+        # while loading.
+        # Fixes spyder-ide/spyder#15839
+        updates_timer = QTimer(self)
+        updates_timer.setInterval(15000)
+        updates_timer.setSingleShot(True)
+        updates_timer.timeout.connect(self.thread_updates.start)
+        updates_timer.start()
 
     @Slot()
     def show_dependencies(self):
@@ -304,6 +313,7 @@ class ApplicationContainer(PluginMainContainer):
             message_box = QMessageBox(self)
             message_box.setIcon(QMessageBox.Critical)
             message_box.setAttribute(Qt.WA_DeleteOnClose)
+            message_box.setAttribute(Qt.WA_ShowWithoutActivating)
             message_box.setStandardButtons(QMessageBox.Ok)
             message_box.setWindowModality(Qt.NonModal)
             message_box.setWindowTitle(_('Error'))
