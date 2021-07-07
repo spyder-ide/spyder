@@ -92,9 +92,10 @@ class Application(SpyderPluginV2):
 
     def on_mainwindow_visible(self):
         """Actions after the mainwindow in visible."""
+        container = self.get_container()
+
         # Show dialog with missing dependencies
         if not running_under_pytest():
-            container = self.get_container()
             self.dependencies_thread.run = container.compute_dependencies
             self.dependencies_thread.finished.connect(
                 container.report_missing_dependencies)
@@ -105,6 +106,11 @@ class Application(SpyderPluginV2):
             dependencies_timer.setSingleShot(True)
             dependencies_timer.timeout.connect(self.dependencies_thread.start)
             dependencies_timer.start()
+
+        # Check for updates
+        if DEV is None and self.get_conf('check_updates_on_startup'):
+            container.give_updates_feedback = False
+            container.check_updates(startup=True)
 
     # --- Private methods
     # ------------------------------------------------------------------------

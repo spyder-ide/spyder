@@ -24,7 +24,6 @@ from spyder import (
 from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.config.base import DEV
 from spyder.config.utils import is_anaconda
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
@@ -142,11 +141,6 @@ class ApplicationContainer(PluginMainContainer):
             shortcut_context="_",
             register_shortcut=True)
 
-        # Initialize
-        if DEV is None and self.get_conf('check_updates_on_startup'):
-            self.give_updates_feedback = False
-            self.check_updates(startup=True)
-
     def update_actions(self):
         pass
 
@@ -255,7 +249,7 @@ class ApplicationContainer(PluginMainContainer):
         # while loading.
         # Fixes spyder-ide/spyder#15839
         updates_timer = QTimer(self)
-        updates_timer.setInterval(15000)
+        updates_timer.setInterval(3000)
         updates_timer.setSingleShot(True)
         updates_timer.timeout.connect(self.thread_updates.start)
         updates_timer.start()
