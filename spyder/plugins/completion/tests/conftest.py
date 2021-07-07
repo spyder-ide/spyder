@@ -14,7 +14,7 @@ from unittest.mock import Mock, MagicMock
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
-from spyder.api.startup.registry import PLUGIN_REGISTRY
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 from spyder.plugins.completion.plugin import CompletionPlugin
 from spyder.plugins.completion.providers.kite.utils.status import (

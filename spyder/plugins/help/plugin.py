@@ -17,7 +17,7 @@ from qtpy.QtCore import Qt, Signal
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA

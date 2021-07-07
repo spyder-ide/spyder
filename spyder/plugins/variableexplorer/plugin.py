@@ -10,7 +10,7 @@ Variable Explorer Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.variableexplorer.confpage import (
     VariableExplorerConfigPage)

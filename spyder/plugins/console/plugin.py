@@ -18,7 +18,7 @@ from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.application.plugin import ApplicationActions
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget

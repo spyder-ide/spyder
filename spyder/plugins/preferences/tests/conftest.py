@@ -22,7 +22,7 @@ import pytest
 
 # Local imports
 from spyder.api.plugins import Plugins
-from spyder.api.startup.registry import PLUGIN_REGISTRY
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 from spyder.plugins.preferences.api import PreferencePages
 from spyder.plugins.preferences.plugin import Preferences

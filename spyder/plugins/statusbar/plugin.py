@@ -14,7 +14,7 @@ from qtpy.QtCore import Slot
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import running_under_pytest

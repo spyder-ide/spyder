@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QMenu
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import DEV, get_module_path, running_under_pytest
 from spyder.plugins.application.confpage import ApplicationConfigPage

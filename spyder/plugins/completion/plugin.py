@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,

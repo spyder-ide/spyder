@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QInputDialog, QMessageBox
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.config.base import (get_home_dir, get_project_config_folder,

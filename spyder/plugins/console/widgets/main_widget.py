@@ -26,7 +26,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.startup.registry import PLUGIN_REGISTRY
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.config.decorators import on_conf_change

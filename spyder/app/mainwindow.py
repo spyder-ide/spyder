@@ -72,7 +72,7 @@ from spyder import dependencies
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
                               qt_message_handler, set_links_color,
                               setup_logging, set_opengl_implementation, Spy)
-from spyder.api.startup.registry import PLUGIN_REGISTRY
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_module_source_path,
                                 get_safe_mode, is_pynsist, running_in_mac_app,

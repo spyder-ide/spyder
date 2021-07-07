@@ -11,7 +11,7 @@ Toolbar Plugin.
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.api.startup.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
