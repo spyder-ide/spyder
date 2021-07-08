@@ -12,7 +12,7 @@ Tests for tour.py
 import pytest
 
 # Local imports
-from spyder.app.tour import TourTestWindow
+from spyder.plugins.tours.widgets import TourTestWindow
 
 
 @pytest.fixture

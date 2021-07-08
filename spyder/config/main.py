@@ -84,7 +84,6 @@ DEFAULTS = [
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,
-              'show_tour_message': True,
               }),
             ('toolbar',
              {
@@ -351,6 +350,11 @@ DEFAULTS = [
               'console/use_fixed_directory': False,
               'startup/use_fixed_directory': False,
               }),
+            ('tours',
+             {
+              'enable': True,
+              'show_tour_message': True,
+             }),
             ('shortcuts',
              {
               # ---- Global ----
