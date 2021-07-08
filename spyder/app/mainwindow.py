@@ -168,6 +168,7 @@ class MainWindow(QMainWindow):
         return None
 
     def get_dockable_plugins(self):
+        """Get a list of all dockable plugins."""
         dockable_plugins = []
         for plugin_name in PLUGIN_REGISTRY:
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)

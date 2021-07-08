@@ -130,7 +130,7 @@ class SpyderBoilerplate(SpyderDockablePlugin):
         return QIcon()
 
     def on_initialize(self):
-        widget = self.get_widget()
+        pass
 
     def check_compatibility(self):
         valid = True

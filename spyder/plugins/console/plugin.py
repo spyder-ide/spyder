@@ -96,7 +96,7 @@ class Console(SpyderDockablePlugin):
         widget.sig_refreshed.connect(self.sig_refreshed)
         widget.sig_help_requested.connect(self.sig_help_requested)
 
-         # Crash handling
+        # Crash handling
         previous_crash = self.get_conf(
             'previous_crash',
             default='',

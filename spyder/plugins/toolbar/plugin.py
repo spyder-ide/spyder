@@ -54,13 +54,13 @@ class Toolbar(SpyderPluginV2):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         # View menu Toolbar section
         mainmenu.add_item_to_application_menu(
-                self.toolbars_menu,
-                menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.Toolbar)
+            self.toolbars_menu,
+            menu_id=ApplicationMenus.View,
+            section=ViewMenuSections.Toolbar)
         mainmenu.add_item_to_application_menu(
-                self.show_toolbars_action,
-                menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.Toolbar)
+            self.show_toolbars_action,
+            menu_id=ApplicationMenus.View,
+            section=ViewMenuSections.Toolbar)
 
     def on_mainwindow_visible(self):
         container = self.get_container()

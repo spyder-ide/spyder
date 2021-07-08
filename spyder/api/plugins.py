@@ -1235,7 +1235,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        All the calls performed on this method should not call other plugins.
+        All calls performed on this method should not call other plugins.
         """
         if hasattr(self, 'register'):
             raise SpyderAPIError(

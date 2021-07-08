@@ -55,7 +55,7 @@ class SpyderPluginRegistry(QObject):
 
     sig_plugin_ready = Signal(str, bool)
     """
-    This signal is used to signal the main window that a plugin is ready.
+    This signal is used to let the main window know that a plugin is ready.
 
     Parameters
     ----------
@@ -164,8 +164,8 @@ class SpyderPluginRegistry(QObject):
         # Register plugins that are already available
         self._notify_plugin_dependencies(plugin_name)
 
-        # Register the name of the plugin under the external or
-        # internal plugin set
+        # Register the plugin name under the external or internal
+        # plugin set
         if external:
             self.external_plugins |= {plugin_name}
         else:
@@ -238,8 +238,8 @@ class SpyderPluginRegistry(QObject):
         main_window: spyder.app.mainwindow.MainWindow
             Reference to Spyder's main window.
         PluginClass: type[SpyderPluginClass]
-            The class of the plugin to register and create. It must be
-            one of `spyder.app.registry.SpyderPluginClass`.
+            The plugin class to register and create. It must be one of
+            `spyder.app.registry.SpyderPluginClass`.
         *args: tuple
             Positional arguments used to initialize the plugin
             instance.
@@ -252,7 +252,7 @@ class SpyderPluginRegistry(QObject):
         Returns
         -------
         plugin: SpyderPluginClass
-            The instance of the plugin registered.
+            The instance of the registered plugin.
 
         Raises
         ------
@@ -262,7 +262,7 @@ class SpyderPluginRegistry(QObject):
 
         Notes
         -----
-        The optional `*args` and `**kwargs` will be removed once all the
+        The optional `*args` and `**kwargs` will be removed once all
         plugins are migrated.
         """
         if not issubclass(PluginClass, (SpyderPluginV2, SpyderPlugin)):

@@ -107,7 +107,7 @@ class WorkingDirectory(SpyderPluginV2):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         self.sig_current_directory_changed.connect(
-        ipyconsole.set_current_client_working_directory)
+            ipyconsole.set_current_client_working_directory)
         # TODO: chdir_current_client might follow a better naming
         # convention
         ipyconsole.sig_current_directory_changed.connect(

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder API plugin startup decorators.
+Spyder API plugin registration decorators.
 """
 
 # Standard library imports
@@ -19,10 +19,10 @@ def on_plugin_available(func: Callable = None,
     """
     Method decorator used to handle plugin availability on Spyder.
 
-    The methods that use this decorator must have the following signature
-    `def method(self)` when observing a single plugin and
+    The methods that use this decorator must have the following signature:
+    `def method(self)` when observing a single plugin or
     `def method(self, plugin): ...` when observing multiple plugins or
-    all the plugins that were listed as dependencies
+    all plugins that were listed as dependencies.
 
     Parameters
     ----------

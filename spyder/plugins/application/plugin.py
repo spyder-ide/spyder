@@ -106,7 +106,7 @@ class Application(SpyderPluginV2):
             ConsoleActions.SpyderReportAction,
             _("Report issue..."),
             icon=self.create_icon('bug'),
-            triggered=self.report_issue) # console.report_issue)
+            triggered=self.report_issue)
 
         if not self.console_available:
             report_action.setVisible(False)

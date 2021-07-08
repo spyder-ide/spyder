@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder API plugin startup mixins.
+Spyder API plugin registration mixins.
 """
 
 # Standard library imports
@@ -21,7 +21,7 @@ class SpyderPluginObserver:
     This mixin enables a class to receive notifications when a plugin
     is available, by registering methods using the
     :function:`spyder.api.plugin_registration.decorators.on_plugin_available`
-    decorator, which plugin to observe.
+    decorator.
 
     When any of the requested plugins is ready, the corresponding registered
     method is called.
@@ -29,7 +29,7 @@ class SpyderPluginObserver:
     Notes
     -----
     This mixin will only operate over the plugin requirements listed under
-    `REQUIRES` and `OPTIONAL`.
+    `REQUIRES` and `OPTIONAL` class constants.
     """
 
     def __init__(self):
