@@ -14,7 +14,7 @@ import subprocess
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QTimer, Slot
+from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
@@ -41,26 +41,6 @@ class Application(SpyderPluginV2):
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
-    CONF_FROM_OPTIONS = {
-        # Screen resolution section
-        'normal_screen_resolution': ('main', 'normal_screen_resolution'),
-        'high_dpi_scaling': ('main', 'high_dpi_scaling'),
-        'high_dpi_custom_scale_factor': ('main',
-                                         'high_dpi_custom_scale_factor'),
-        'high_dpi_custom_scale_factors': ('main',
-                                          'high_dpi_custom_scale_factors'),
-        # Panes section
-        'vertical_tabs': ('main', 'vertical_tabs'),
-        'use_custom_margin': ('main', 'use_custom_margin'),
-        'custom_margin': ('main', 'custom_margin'),
-        'use_custom_cursor_blinking': ('main', 'use_custom_cursor_blinking'),
-        # Advanced settings
-        'opengl': ('main', 'opengl'),
-        'single_instance': ('main', 'single_instance'),
-        'prompt_on_exit': ('main', 'prompt_on_exit'),
-        'check_updates_on_startup': ('main', 'check_updates_on_startup'),
-        'show_internal_errors': ('main', 'show_internal_errors'),
-    }
     CONF_WIDGET_CLASS = ApplicationConfigPage
 
     def get_name(self):
@@ -106,19 +86,19 @@ class Application(SpyderPluginV2):
 
     def on_mainwindow_visible(self):
         """Actions after the mainwindow in visible."""
+        container = self.get_container()
+
         # Show dialog with missing dependencies
         if not running_under_pytest():
-            # This avoids computing missing deps before the window is fully up
-            timer_report_deps = QTimer(self)
-            timer_report_deps.setInterval(2000)
-            timer_report_deps.setSingleShot(True)
-            timer_report_deps.timeout.connect(
-                self.get_container().report_missing_dependencies)
-            timer_report_deps.start()
+            container.compute_dependencies()
 
-    # --- Private methods
+        # Check for updates
+        if DEV is None and self.get_conf('check_updates_on_startup'):
+            container.give_updates_feedback = False
+            container.check_updates(startup=True)
+
+    # ---- Private methods
     # ------------------------------------------------------------------------
-
     def _populate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         if mainmenu:
@@ -182,7 +162,7 @@ class Application(SpyderPluginV2):
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.About)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def get_application_context_menu(self, parent=None):
         """

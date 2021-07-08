@@ -30,18 +30,10 @@ import dis
 import copy
 import glob
 
-# Third party imports
-# - If pandas fails to import here (for any reason), Spyder
-#   will crash at startup (e.g. see Issue 2300)
-# - This also prevents Spyder to start IPython kernels
-#   (see Issue 2456)
-try:
-    import pandas as pd
-except:
-    pd = None            #analysis:ignore
-
 # Local imports
 from spyder_kernels.py3compat import getcwd, pickle, PY2, to_text_string
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd, PIL, scipy as sp)
 
 
 class MatlabStruct(dict):
@@ -110,8 +102,6 @@ def get_matlab_value(val):
     From the oct2py project, see
     https://pythonhosted.org/oct2py/conversions.html
     """
-    import numpy as np
-
     # Extract each item of a list.
     if isinstance(val, list):
         return [get_matlab_value(v) for v in val]
@@ -156,113 +146,102 @@ def get_matlab_value(val):
     return val
 
 
-try:
-    import numpy as np
+def load_matlab(filename):
+    if sp.io is FakeObject:
+        return None, ''
+
     try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            import scipy.io as spio
-    except AttributeError:
-        # Python 2.5: warnings.catch_warnings was introduced in Python 2.6
-        import scipy.io as spio  # analysis:ignore
-    except:
-        spio = None
-
-    if spio is None:
-        load_matlab = None
-        save_matlab = None
-    else:
-        def load_matlab(filename):
-            try:
-                out = spio.loadmat(filename, struct_as_record=True)
-                data = dict()
-                for (key, value) in out.items():
-                    data[key] = get_matlab_value(value)
-                return data, None
-            except Exception as error:
-                return None, str(error)
-
-        def save_matlab(data, filename):
-            try:
-                spio.savemat(filename, data, oned_as='row')
-            except Exception as error:
-                return str(error)
-except:
-    load_matlab = None
-    save_matlab = None
+        out = sp.io.loadmat(filename, struct_as_record=True)
+        data = dict()
+        for (key, value) in out.items():
+            data[key] = get_matlab_value(value)
+        return data, None
+    except Exception as error:
+        return None, str(error)
 
 
-try:
-    import numpy as np  # analysis:ignore
+def save_matlab(data, filename):
+    if sp.io is FakeObject:
+        return
 
-    def load_array(filename):
-        try:
-            name = osp.splitext(osp.basename(filename))[0]
-            data = np.load(filename)
-            if isinstance(data, np.lib.npyio.NpzFile):
-                return dict(data), None
-            elif hasattr(data, 'keys'):
-                return data, None
-            else:
-                return {name: data}, None
-        except Exception as error:
-            return None, str(error)
-
-    def __save_array(data, basename, index):
-        """Save numpy array"""
-        fname = basename + '_%04d.npy' % index
-        np.save(fname, data)
-        return fname
-except:
-    load_array = None
+    try:
+        sp.io.savemat(filename, data, oned_as='row')
+    except Exception as error:
+        return str(error)
 
 
-try:
-    from spyder.pil_patch import Image
+def load_array(filename):
+    if np.load is FakeObject:
+        return None, ''
 
-    if sys.byteorder == 'little':
-        _ENDIAN = '<'
-    else:
-        _ENDIAN = '>'
-    DTYPES = {
-              "1": ('|b1', None),
-              "L": ('|u1', None),
-              "I": ('%si4' % _ENDIAN, None),
-              "F": ('%sf4' % _ENDIAN, None),
-              "I;16": ('|u2', None),
-              "I;16S": ('%si2' % _ENDIAN, None),
-              "P": ('|u1', None),
-              "RGB": ('|u1', 3),
-              "RGBX": ('|u1', 4),
-              "RGBA": ('|u1', 4),
-              "CMYK": ('|u1', 4),
-              "YCbCr": ('|u1', 4),
-              }
-    def __image_to_array(filename):
-        img = Image.open(filename)
-        try:
-            dtype, extra = DTYPES[img.mode]
-        except KeyError:
-            raise RuntimeError("%s mode is not supported" % img.mode)
-        shape = (img.size[1], img.size[0])
-        if extra is not None:
-            shape += (extra,)
-        return np.array(img.getdata(), dtype=np.dtype(dtype)).reshape(shape)
+    try:
+        name = osp.splitext(osp.basename(filename))[0]
+        data = np.load(filename)
+        if isinstance(data, np.lib.npyio.NpzFile):
+            return dict(data), None
+        elif hasattr(data, 'keys'):
+            return data, None
+        else:
+            return {name: data}, None
+    except Exception as error:
+        return None, str(error)
 
-    def load_image(filename):
-        try:
-            name = osp.splitext(osp.basename(filename))[0]
-            return {name: __image_to_array(filename)}, None
-        except Exception as error:
-            return None, str(error)
-except:
-    load_image = None
+
+def __save_array(data, basename, index):
+    """Save numpy array"""
+    fname = basename + '_%04d.npy' % index
+    np.save(fname, data)
+    return fname
+
+
+if sys.byteorder == 'little':
+    _ENDIAN = '<'
+else:
+    _ENDIAN = '>'
+
+DTYPES = {
+    "1": ('|b1', None),
+    "L": ('|u1', None),
+    "I": ('%si4' % _ENDIAN, None),
+    "F": ('%sf4' % _ENDIAN, None),
+    "I;16": ('|u2', None),
+    "I;16S": ('%si2' % _ENDIAN, None),
+    "P": ('|u1', None),
+    "RGB": ('|u1', 3),
+    "RGBX": ('|u1', 4),
+    "RGBA": ('|u1', 4),
+    "CMYK": ('|u1', 4),
+    "YCbCr": ('|u1', 4),
+}
+
+
+def __image_to_array(filename):
+    img = PIL.Image.open(filename)
+    try:
+        dtype, extra = DTYPES[img.mode]
+    except KeyError:
+        raise RuntimeError("%s mode is not supported" % img.mode)
+    shape = (img.size[1], img.size[0])
+    if extra is not None:
+        shape += (extra,)
+    return np.array(img.getdata(), dtype=np.dtype(dtype)).reshape(shape)
+
+
+def load_image(filename):
+    if PIL.Image is FakeObject or np.array is FakeObject:
+        return None, ''
+
+    try:
+        name = osp.splitext(osp.basename(filename))[0]
+        return {name: __image_to_array(filename)}, None
+    except Exception as error:
+        return None, str(error)
 
 
 def load_pickle(filename):
     """Load a pickle file as a dictionary"""
     try:
-        if pd:
+        if pd.read_pickle is not FakeObject:
             return pd.read_pickle(filename), None
         else:
             with open(filename, 'rb') as fid:
@@ -315,13 +294,13 @@ def save_dictionary(data, filename):
             raise RuntimeError('No supported objects to save')
 
         saved_arrays = {}
-        if load_array is not None:
+        if np.ndarray is not FakeObject:
             # Saving numpy arrays with np.save
             arr_fname = osp.splitext(filename)[0]
             for name in list(data.keys()):
                 try:
-                    if isinstance(data[name],
-                                  np.ndarray) and data[name].size > 0:
+                    if (isinstance(data[name], np.ndarray) and
+                            data[name].size > 0):
                         # Save arrays at data root
                         fname = __save_array(data[name], arr_fname,
                                              len(saved_arrays))
@@ -335,8 +314,8 @@ def save_dictionary(data, filename):
                             iterator = iter(list(data[name].items()))
                         to_remove = []
                         for index, value in iterator:
-                            if isinstance(value,
-                                          np.ndarray) and value.size > 0:
+                            if (isinstance(value, np.ndarray) and
+                                    value.size > 0):
                                 fname = __save_array(value, arr_fname,
                                                      len(saved_arrays))
                                 saved_arrays[(name, index)] = (
@@ -407,12 +386,12 @@ def load_dictionary(filename):
         with open(pickle_filename, 'rb') as fdesc:
             data = pickle.loads(fdesc.read())
         saved_arrays = {}
-        if load_array is not None:
+        if np.load is not FakeObject:
             # Loading numpy arrays saved with np.save
             try:
                 saved_arrays = data.pop('__saved_arrays__')
                 for (name, index), fname in list(saved_arrays.items()):
-                    arr = np.load( osp.join(tmp_folder, fname) )
+                    arr = np.load(osp.join(tmp_folder, fname))
                     if index is None:
                         data[name] = arr
                     elif isinstance(data[name], dict):

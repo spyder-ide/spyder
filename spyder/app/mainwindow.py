@@ -69,7 +69,6 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
-from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
                               qt_message_handler, set_links_color,
                               setup_logging, set_opengl_implementation, Spy)
@@ -122,9 +121,6 @@ ORIGINAL_SYS_EXIT = sys.exit
 # used in the last session
 CWD = getcwd_or_home()
 
-# Set the index for the default tour
-DEFAULT_TOUR = 0
-
 #==============================================================================
 # Install Qt messaage handler
 #==============================================================================
@@ -151,8 +147,8 @@ class MainWindow(QMainWindow):
     sig_pythonpath_changed = Signal(object, object)
     sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")     # Related to interactive tour
-    sig_moved = Signal("QMoveEvent")         # Related to interactive tour
+    sig_resized = Signal("QResizeEvent")
+    sig_moved = Signal("QMoveEvent")
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     # --- Plugin handling methods
@@ -217,7 +213,7 @@ class MainWindow(QMainWindow):
             self.show_compatibility_message(message)
             return
 
-        # Signals
+        # Connect Plugin Signals to main window methods
         plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
@@ -232,6 +228,10 @@ class MainWindow(QMainWindow):
                 self.switch_to_plugin)
             plugin.sig_update_ancestor_requested.connect(
                 lambda: plugin.set_ancestor(self))
+
+        # Connect Main window Signals to plugin signals
+        self.sig_moved.connect(plugin.sig_mainwindow_moved)
+        self.sig_resized.connect(plugin.sig_mainwindow_resized)
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
@@ -585,12 +585,6 @@ class MainWindow(QMainWindow):
 
         self.thirdparty_plugins = []
 
-        # Tour
-        # TODO: Should be a plugin
-        self.tour = None
-        self.tours_available = None
-        self.tour_dialog = None
-
         # File switcher
         self.switcher = None
 
@@ -698,9 +692,6 @@ class MainWindow(QMainWindow):
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
-
-        # To show the message about starting the tour
-        self.sig_setup_finished.connect(self.show_tour_message)
 
         # Apply main window settings
         self.apply_settings()
@@ -892,8 +883,9 @@ class MainWindow(QMainWindow):
                     Plugins.Find,
                     Plugins.Pylint,
                     Plugins.WorkingDirectory,
-                    Plugins.Projects,
-                    Plugins.Layout]:
+                    Plugins.Layout,
+                    Plugins.Tours,
+                    Plugins.Projects]:
                 plugin_instance = plugin_class(self, configuration=CONF)
                 self.register_plugin(plugin_instance)
                 # TODO: Check thirdparty attribute usage
@@ -1090,37 +1082,6 @@ class MainWindow(QMainWindow):
 
         self.set_splash(_("Setting up main window..."))
 
-        #----- Tours
-        # TODO: Move tours to a plugin structure
-        self.tour = tour.AnimatedTour(self)
-        # self.tours_menu = QMenu(_("Interactive tours"), self)
-        # self.tour_menu_actions = []
-        # # TODO: Only show intro tour for now. When we are close to finish
-        # # 3.0, we will finish and show the other tour
-        self.tours_available = tour.get_tours(DEFAULT_TOUR)
-
-        for i, tour_available in enumerate(self.tours_available):
-            self.tours_available[i]['last'] = 0
-            tour_name = tour_available['name']
-
-        #     def trigger(i=i, self=self):  # closure needed!
-        #         return lambda: self.show_tour(i)
-
-        #     temp_action = create_action(self, tour_name, tip="",
-        #                                 triggered=trigger())
-        #     self.tour_menu_actions += [temp_action]
-
-        # self.tours_menu.addActions(self.tour_menu_actions)
-        self.tour_action = create_action(
-            self,
-            self.tours_available[DEFAULT_TOUR]['name'],
-            tip=_("Interactive tour introducing Spyder's panes and features"),
-            triggered=lambda: self.show_tour(DEFAULT_TOUR))
-        mainmenu.add_item_to_application_menu(
-            self.tour_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.Documentation)
-
         # TODO: Migrate to use the MainMenu Plugin instead of list of actions
         # Filling out menu/toolbar entries:
         add_actions(self.edit_menu, self.edit_menu_actions)
@@ -1214,13 +1175,20 @@ class MainWindow(QMainWindow):
 
 
     def post_visible_setup(self):
-        """Actions to be performed only after the main window's `show` method
-        was triggered"""
+        """
+        Actions to be performed only after the main window's `show` method
+        is triggered.
+        """
+        # Process pending events and hide splash before loading the
+        # previous session.
+        QApplication.processEvents()
+        if self.splash is not None:
+            self.splash.hide()
+
+        # Call on_mainwindow_visible for all plugins.
         for __, plugin in self._PLUGINS.items():
-            try:
-                plugin.on_mainwindow_visible()
-            except AttributeError:
-                pass
+            plugin.on_mainwindow_visible()
+            QApplication.processEvents()
 
         self.restore_scrollbar_position.emit()
 
@@ -1264,12 +1232,7 @@ class MainWindow(QMainWindow):
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
-        # Process pending events and hide splash before loading the
-        # previous session.
-        QApplication.processEvents()
-        if self.splash is not None:
-            self.splash.hide()
-
+        # Load project, if any.
         # TODO: Remove this reference to projects once we can send the command
         # line options to the plugins.
         if self.open_project:
@@ -1301,6 +1264,12 @@ class MainWindow(QMainWindow):
             self.current_dpi = screen.logicalDotsPerInch()
             screen.logicalDotsPerInchChanged.connect(
                 self.show_dpi_change_message)
+
+        # To avoid regressions. We shouldn't have loaded the modules
+        # below at this point.
+        if DEV is not None:
+            assert 'pandas' not in sys.modules
+            assert 'matplotlib' not in sys.modules
 
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
@@ -1987,14 +1956,6 @@ class MainWindow(QMainWindow):
         """Wrapper to handle plugins request to restart Spyder."""
         self.application.restart(reset=reset)
 
-    # ---- Interactive Tours
-    def show_tour(self, index):
-        """Show interactive tour."""
-        self.layouts.maximize_dockwidget(restore=True)
-        frames = self.tours_available[index]
-        self.tour.set_tour(index, frames, self)
-        self.tour.start_tour()
-
     # ---- Global Switcher
     def open_switcher(self, symbol=False):
         """Open switcher dialog box."""
@@ -2030,19 +1991,6 @@ class MainWindow(QMainWindow):
             self.switcher = Switcher(self)
 
         return self.switcher
-
-    @Slot()
-    def show_tour_message(self, force=False):
-        """
-        Show message about starting the tour the first time Spyder starts.
-        """
-        should_show_tour = CONF.get('main', 'show_tour_message')
-        if force or (should_show_tour and not running_under_pytest()
-                     and not get_safe_mode()):
-            CONF.set('main', 'show_tour_message', False)
-            self.tour_dialog = tour.OpenTourDialog(
-                self, lambda: self.show_tour(DEFAULT_TOUR))
-            self.tour_dialog.show()
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
