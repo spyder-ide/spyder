@@ -14,7 +14,7 @@ import subprocess
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QThread, QTimer, Slot
+from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
@@ -42,12 +42,6 @@ class Application(SpyderPluginV2):
     CONF_SECTION = 'main'
     CONF_FILE = False
     CONF_WIDGET_CLASS = ApplicationConfigPage
-
-    def __init__(self, parent, configuration=None):
-        super().__init__(parent, configuration)
-
-        # Compute dependencies in a thread to not block the interface.
-        self.dependencies_thread = QThread()
 
     def get_name(self):
         return _('Application')
@@ -96,25 +90,15 @@ class Application(SpyderPluginV2):
 
         # Show dialog with missing dependencies
         if not running_under_pytest():
-            self.dependencies_thread.run = container.compute_dependencies
-            self.dependencies_thread.finished.connect(
-                container.report_missing_dependencies)
-
-            # This avoids computing missing deps before the window is fully up
-            dependencies_timer = QTimer(self)
-            dependencies_timer.setInterval(10000)
-            dependencies_timer.setSingleShot(True)
-            dependencies_timer.timeout.connect(self.dependencies_thread.start)
-            dependencies_timer.start()
+            container.compute_dependencies()
 
         # Check for updates
         if DEV is None and self.get_conf('check_updates_on_startup'):
             container.give_updates_feedback = False
             container.check_updates(startup=True)
 
-    # --- Private methods
+    # ---- Private methods
     # ------------------------------------------------------------------------
-
     def _populate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         if mainmenu:
@@ -178,7 +162,7 @@ class Application(SpyderPluginV2):
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.About)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def get_application_context_menu(self, parent=None):
         """

@@ -63,7 +63,11 @@ class ApplicationActions:
 
 
 class ApplicationContainer(PluginMainContainer):
+
     def setup(self):
+        # Compute dependencies in a thread to not block the interface.
+        self.dependencies_thread = QThread()
+
         # Attributes
         self.dialog_manager = DialogManager()
         self.give_updates_feedback = False
@@ -274,7 +278,16 @@ class ApplicationContainer(PluginMainContainer):
 
     def compute_dependencies(self):
         """Compute dependencies"""
-        dependencies.declare_dependencies()
+        self.dependencies_thread.run = dependencies.declare_dependencies
+        self.dependencies_thread.finished.connect(
+            self.report_missing_dependencies)
+
+        # This avoids computing missing deps before the window is fully up
+        dependencies_timer = QTimer(self)
+        dependencies_timer.setInterval(10000)
+        dependencies_timer.setSingleShot(True)
+        dependencies_timer.timeout.connect(self.dependencies_thread.start)
+        dependencies_timer.start()
 
     @Slot()
     def report_missing_dependencies(self):
