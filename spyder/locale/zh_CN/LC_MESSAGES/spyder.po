@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-06-09 12:19-0500\n"
-"PO-Revision-Date: 2021-06-10 13:39\n"
+"PO-Revision-Date: 2021-07-08 07:32\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4556,7 +4556,7 @@ msgstr "打开控制台的主Python解释器。"
 
 #: spyder/plugins/maininterpreter/widgets/status.py:160
 msgid "Change default environment in Preferences..."
-msgstr "在首选面中更改默认的环境..."
+msgstr "在偏好设置中更改默认的环境..."
 
 #: spyder/plugins/mainmenu/plugin.py:38
 msgid "Main menus"
