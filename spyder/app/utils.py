@@ -178,7 +178,7 @@ def create_splash_screen():
     if not running_under_pytest():
         splash = QSplashScreen(QPixmap(get_image_path('splash')))
         splash_font = splash.font()
-        splash_font.setPixelSize(10)
+        splash_font.setPixelSize(14)
         splash.setFont(splash_font)
     else:
         splash = None
