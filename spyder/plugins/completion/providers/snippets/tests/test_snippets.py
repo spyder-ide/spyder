@@ -35,7 +35,7 @@ def test_snippet_completions(qtbot_module, snippets_completions, trigger):
             'kind': CompletionItemKind.SNIPPET,
             'insertText': text,
             'label': f'{trigger} ({description})',
-            'sortText': trigger,
+            'sortText': f'zzz{trigger}',
             'filterText': trigger,
             'documentation': '',
             'provider': 'Snippets',

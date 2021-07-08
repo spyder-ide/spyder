@@ -208,7 +208,7 @@ def test_dependencies_for_binder_in_sync():
     # There's no need to test for this because we install it
     # from master in some cases.
     for req in [spyder_env, spyder_reqs]:
-        req.pop('python-language-server')
+        req.pop('python-lsp-server')
 
     # Check that the requirement files match the environment yaml file
     full_reqs = {}
@@ -229,7 +229,7 @@ def test_dependencies_for_spyder_dialog_in_sync():
     # a subrepo for them or we're installing them from master.
     for req in [spyder_deps, spyder_reqs]:
         req.pop('spyder-kernels')
-        req.pop('python-language-server')
+        req.pop('python-lsp-server')
 
     if 'pyqt' in spyder_reqs:
         spyder_reqs.pop('pyqt')
@@ -255,11 +255,7 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     # a subrepo for them or we're installing them from master.
     for req in [spyder_reqs, spyder_setup]:
         req.pop('spyder-kernels')
-        req.pop('python-language-server')
-
-    # rtree is only available through conda
-    if 'rtree' in spyder_reqs:
-        spyder_reqs.pop('rtree')
+        req.pop('python-lsp-server')
 
     if 'pyqtwebengine' in spyder_setup:
         spyder_setup.pop('pyqtwebengine')

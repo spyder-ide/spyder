@@ -10,10 +10,7 @@ Tests for projectdialog.py
 
 # Standard library imports
 import os
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest

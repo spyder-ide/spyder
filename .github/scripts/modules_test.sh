@@ -47,7 +47,10 @@ for f in spyder/*/*.py; do
         continue
     fi
     if [[ $f == spyder/widgets/about.py ]]; then
-    continue
+        continue
+    fi
+    if [[ $f == spyder/api/__init__.py ]]; then
+        continue
     fi
     python "$f"
     if [ $? -ne 0 ]; then

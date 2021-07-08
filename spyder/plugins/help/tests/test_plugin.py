@@ -11,10 +11,7 @@ Tests for the Spyder `help` plugn, `help.py`.
 """
 
 # Standard library imports
-try:
-    from unittest.mock import Mock, MagicMock
-except ImportError:
-    from mock import Mock, MagicMock  # Python 2
+from unittest.mock import Mock, MagicMock
 
 # Third party imports
 from qtpy import PYQT_VERSION

@@ -27,7 +27,7 @@ INSTALL_TIMEOUT = 360000
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skip(reason="Fail on CIs and it's too heavy to run locally")
 def test_kite_install(qtbot):
     """Test the correct execution of the installation process of kite."""

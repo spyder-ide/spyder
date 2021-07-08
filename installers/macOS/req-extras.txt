@@ -7,5 +7,4 @@ pydocstyle
 pyflakes
 pyxdg
 rope
-rtree
 yapf

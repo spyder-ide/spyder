@@ -38,14 +38,13 @@ from qtpy.QtWidgets import QApplication, QWidget
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer, PluginMainWidget
+from spyder.api.widgets.main_container import PluginMainContainer
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import get_color_scheme, get_font
-from spyder.config.manager import CONF  # TODO: Remove after migration
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
-from spyder.py3compat import configparser as cp
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
@@ -711,6 +710,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     # ADDITIONAL_CONF_TABS = {'plugin_name': [<SpyderPreferencesTab classes>]}
     ADDITIONAL_CONF_TABS = None
 
+    # Define custom layout classes that the plugin wantes to be registered.
+    # THe custom classes should extend from
+    #       `spyder.pluginsl.layout.api::BaseGridLayoutType`
+    CUSTOM_LAYOUTS = []
+
     # Path for images relative to the plugin path
     # A Python package can include one or several Spyder plugins. In this case
     # the package may be using images from a global folder outside the plugin
@@ -859,7 +863,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
-    def _register(self):
+    def _register(self, omit_conf=False):
         """
         Setup and register plugin in Spyder's main window and connect it to
         other plugins.
@@ -876,7 +880,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
         # Setup configuration
         # --------------------------------------------------------------------
-        if self._conf is not None:
+        if self._conf is not None and not omit_conf:
             self._conf.register_plugin(self)
 
         # Signals
@@ -892,7 +896,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         """
 
         if self._conf is not None:
-            self._conf.unregister_plugin()
+            self._conf.unregister_plugin(self)
 
         self._container = None
         self.is_compatible = None
@@ -996,7 +1000,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
                     'A spyder plugin must define a `CONF_SECTION` class '
                     'attribute!'
                 )
-
             return self._conf.get(section, option, default)
 
     @Slot(str, object)

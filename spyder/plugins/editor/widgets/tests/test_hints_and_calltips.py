@@ -32,7 +32,7 @@ some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin' and PY2,
                     reason='Fails on Mac and Python 2')
 def test_hide_calltip(completions_codeeditor, qtbot):
@@ -64,7 +64,7 @@ def test_hide_calltip(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @pytest.mark.skipif(
     os.name == 'nt' and PY2,
     reason='Fails on Win',
@@ -131,7 +131,7 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
@@ -173,7 +173,7 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 def test_get_hints_not_triggered(qtbot, completions_codeeditor):
     """Test that the editor is not returning hover hints for empty docs."""

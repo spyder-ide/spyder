@@ -9,16 +9,9 @@ Tests for profiler.py
 """
 
 
-# Standard library imports
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
-
 # Third party imports
 from qtpy.QtGui import QIcon
 import pytest
-import mock
 
 # Local imports
 from spyder.plugins.profiler.widgets.main_widget import ProfilerDataTree

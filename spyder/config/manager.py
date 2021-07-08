@@ -79,6 +79,11 @@ class ConfigurationManager(object):
             remove_obsolete=False,
         )
 
+        # This is useful to know in order to execute certain operations when
+        # bumping CONF_VERSION
+        self.old_spyder_version = (
+            self._user_config._configs_map['spyder']._old_version)
+
         # Store plugin configurations when CONF_FILE = True
         self._plugin_configs = {}
 
@@ -102,6 +107,11 @@ class ConfigurationManager(object):
 
         # Setup
         self.remove_deprecated_config_locations()
+
+    def unregister_plugin(self, plugin_instance):
+        conf_section = plugin_instance.CONF_SECTION
+        if conf_section in self._plugin_configs:
+            self._plugin_configs.pop(conf_section, None)
 
     def register_plugin(self, plugin_class):
         """Register plugin configuration."""
@@ -132,8 +142,7 @@ class ConfigurationManager(object):
 
             # Recreate external plugin configs to deal with part two
             # (the shortcut conflicts) of spyder-ide/spyder#11132
-            spyder_config = self._user_config._configs_map['spyder']
-            if check_version(spyder_config._old_version, '54.0.0', '<'):
+            if check_version(self.old_spyder_version, '54.0.0', '<'):
                 # Remove all previous .ini files
                 try:
                     plugin_config.cleanup()
@@ -605,8 +614,9 @@ class ConfigurationManager(object):
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
         for context_name, keystr in self._user_config.items('shortcuts'):
-            context, name = context_name.split('/', 1)
-            yield context, name, keystr
+            if 'additional_configuration' not in context_name:
+                context, name = context_name.split('/', 1)
+                yield context, name, keystr
 
         for _, (_, plugin_config) in self._plugin_configs.items():
             items = plugin_config.items('shortcuts')

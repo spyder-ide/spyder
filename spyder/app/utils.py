@@ -17,7 +17,7 @@ import sys
 # Third-party imports
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
-from qtpy.QtGui import QPixmap
+from qtpy.QtGui import QColor, QPalette, QPixmap
 from qtpy.QtWidgets import QSplashScreen
 
 # Local imports
@@ -26,6 +26,7 @@ from spyder.config.base import (DEV, get_conf_path, get_debug_level,
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import file_uri
 from spyder.utils.external.dafsa.dafsa import DAFSA
+from spyder.utils.stylesheet import QStylePalette
 
 # For spyder-ide/spyder#7447.
 try:
@@ -183,3 +184,17 @@ def create_splash_screen():
         splash = None
 
     return splash
+
+
+def set_links_color(app):
+    """
+    Fix color for links.
+
+    This was taken from QDarkstyle, which is MIT licensed.
+    """
+    color = QStylePalette.COLOR_ACCENT_3
+    qcolor = QColor(color)
+
+    app_palette = app.palette()
+    app_palette.setColor(QPalette.Normal, QPalette.Link, qcolor)
+    app.setPalette(app_palette)

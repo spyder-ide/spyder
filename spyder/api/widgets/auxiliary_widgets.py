@@ -9,13 +9,12 @@ Spyder API auxiliary widgets.
 """
 
 # Third party imports
-from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QHBoxLayout, QMainWindow, QWidget
-import qdarkstyle
+from qtpy.QtCore import Signal, QSize
+from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.config.gui import is_dark_interface
+from spyder.utils.stylesheet import APP_STYLESHEET
 
 
 class SpyderWindowWidget(QMainWindow):
@@ -37,8 +36,7 @@ class SpyderWindowWidget(QMainWindow):
         self.widget = widget
 
         # Setting interface theme
-        if is_dark_interface():
-            self.setStyleSheet(qdarkstyle.load_stylesheet())
+        self.setStyleSheet(str(APP_STYLESHEET))
 
     def closeEvent(self, event):
         """Override Qt method to emit a custom `sig_close` signal."""
@@ -46,26 +44,27 @@ class SpyderWindowWidget(QMainWindow):
         self.sig_closed.emit()
 
 
-class MainCornerWidget(QWidget):
+class MainCornerWidget(QToolBar):
     """
     Corner widget to hold options menu, spinner and additional options.
     """
 
     def __init__(self, parent, name):
         super().__init__(parent)
+        self._icon_size = QSize(16, 16)
+        self.setIconSize(self._icon_size)
 
         self._widgets = {}
+        self._actions = []
         self.setObjectName(name)
 
-        self._layout = QHBoxLayout()
-        self.setLayout(self._layout)
-
-        spacing = 2
-        self._layout.setSpacing(2)
-
-        # left, top, right, bottom
-        self._layout.setContentsMargins(spacing, 0, spacing, spacing)
-        self.setContentsMargins(0, 0, 0, 0)
+        # We add an strut widget here so that there is a spacing
+        # between the first item of the corner widget and the last
+        # item of the MainWidgetToolbar.
+        self._strut = QWidget()
+        self._strut.setFixedWidth(0)
+        self._strut.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.addWidget(self._strut)
 
     def add_widget(self, widget_id, widget):
         """
@@ -79,7 +78,7 @@ class MainCornerWidget(QWidget):
 
         widget.ID = widget_id
         self._widgets[widget_id] = widget
-        self._layout.insertWidget(0, widget)
+        self._actions.append(self.addWidget(widget))
 
     def get_widget(self, widget_id):
         """

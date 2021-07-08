@@ -29,7 +29,6 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
@@ -1489,7 +1488,7 @@ class SaveHistoryMixin(object):
     SEPARATOR = None
     HISTORY_FILENAMES = []
 
-    append_to_history = None
+    sig_append_to_history_requested = None
 
     def __init__(self, history_filename=''):
         self.history_filename = history_filename
@@ -1527,8 +1526,9 @@ class SaveHistoryMixin(object):
             encoding.write(text, self.history_filename, mode='ab')
         except EnvironmentError:
             pass
-        if self.append_to_history is not None:
-            self.append_to_history.emit(self.history_filename, text)
+        if self.sig_append_to_history_requested is not None:
+            self.sig_append_to_history_requested.emit(
+                self.history_filename, text)
 
 
 class BrowseHistory(object):

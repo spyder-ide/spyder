@@ -9,10 +9,7 @@
 """Fixtures for the Editor plugin tests."""
 
 import os.path as osp
-try:
-    from unittest.mock import MagicMock, Mock
-except ImportError:
-    from mock import MagicMock, Mock  # Python 2
+from unittest.mock import MagicMock, Mock
 
 # This is needed to avoid an error because QtAwesome
 # needs a QApplication to work correctly.

@@ -87,10 +87,14 @@ def test_files(tmpdir_factory):
 @pytest.fixture
 def outlineexplorer(qtbot):
     """Set up an OutlineExplorerWidget."""
-    outlineexplorer = OutlineExplorerWidget(
-        show_fullpath=False, show_all_files=True, group_cells=True,
-        show_comments=True, sort_files_alphabetically=False,
-        display_variables=True)
+    outlineexplorer = OutlineExplorerWidget(None, None, None)
+    outlineexplorer.set_conf('show_fullpath', False)
+    outlineexplorer.set_conf('show_all_files', True)
+    outlineexplorer.set_conf('group_cells', True)
+    outlineexplorer.set_conf('show_comments', True)
+    outlineexplorer.set_conf('sort_files_alphabetically', False)
+    outlineexplorer.set_conf('display_variables', True)
+
     # Fix the size of the outline explorer to prevent an
     # 'Unable to set geometry ' warning if the test fails.
     outlineexplorer.setFixedSize(400, 350)
@@ -283,7 +287,7 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
     code_editor, outlineexplorer = completions_codeeditor_outline
@@ -399,7 +403,7 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 def test_empty_file(qtbot, completions_codeeditor_outline):
     """
     Test that the outline explorer is updated correctly when
@@ -417,7 +421,7 @@ def test_empty_file(qtbot, completions_codeeditor_outline):
     qtbot.wait(3000)
 
     # Assert the spinner is not shown.
-    assert not outlineexplorer.loading_widget.isSpinning()
+    assert not outlineexplorer._spinner.isSpinning()
 
     # Add some content
     code_editor.set_text("""
@@ -443,7 +447,7 @@ def foo():
     # Assert the tree is empty and the spinner is not shown.
     root_tree = get_tree_elements(treewidget)
     assert root_tree == {'test.py': []}
-    assert not outlineexplorer.loading_widget.isSpinning()
+    assert not outlineexplorer._spinner.isSpinning()
 
 
 if __name__ == "__main__":

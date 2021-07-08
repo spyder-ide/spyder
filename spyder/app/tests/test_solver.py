@@ -100,7 +100,9 @@ def test_solve_plugin_dependencies_missing_optional():
 
 def test_solve_plugin_dependencies_missing_requires():
     found_plugins = [A, B, C, D]
-    assert solve_plugin_dependencies(found_plugins) == found_plugins[:-1]
+    expected = found_plugins[:-1]
+    solved = solve_plugin_dependencies(found_plugins)
+    assert solved == expected
 
 
 def test_solve_plugin_dependencies_1():

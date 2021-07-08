@@ -62,7 +62,7 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     """Test that the editor is ignoring some warnings."""
@@ -114,7 +114,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_adding_warnings(qtbot, completions_codeeditor_linting):
     """Test that warnings are saved in the editor blocks."""
@@ -149,7 +149,7 @@ def test_adding_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_move_warnings(qtbot, completions_codeeditor_linting):
     """Test that moving to next/previous warnings is working."""
@@ -185,7 +185,7 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_get_warnings(qtbot, completions_codeeditor_linting):
     """Test that the editor is returning the right list of warnings."""
@@ -218,7 +218,7 @@ def test_get_warnings(qtbot, completions_codeeditor_linting):
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting):
     """
@@ -257,7 +257,7 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting):
     """
@@ -294,7 +294,7 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
 
 
 @pytest.mark.slow
-@pytest.mark.second
+@pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linting):
     """
@@ -328,4 +328,43 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     # Assert that the error is gone.
     qtbot.wait(2000)
     expected = [['D100: Missing docstring in public module', 1]]
+    assert editor.get_current_warnings() == expected
+
+
+@pytest.mark.slow
+@pytest.mark.order(2)
+@flaky(max_runs=5)
+@pytest.mark.parametrize(
+    'ignore_comment', ['#noqa', '# NOQA', '# analysis:ignore', '# no-work']
+)
+def test_ignore_warnings_with_comments(
+    qtbot, completions_codeeditor_linting, ignore_comment
+):
+    """
+    Test that ignoring linting messages with inline comments works as
+    expected.
+    """
+    editor, _ = completions_codeeditor_linting
+    editor.textCursor().insertText(
+        f"foo {ignore_comment}\n"
+        "bar\n"
+    )
+
+    if ignore_comment == '# no-work':
+        expected = [
+            ["undefined name 'foo'", 1],
+            ['D100: Missing docstring in public module', 1],
+            ['E261 at least two spaces before inline comment', 1],
+            ["undefined name 'bar'", 2]
+        ]
+    else:
+        expected = [["undefined name 'bar'", 2]]
+
+    # Notify changes.
+    with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    # Wait for linting info to arrive
+    qtbot.wait(2000)
+
     assert editor.get_current_warnings() == expected

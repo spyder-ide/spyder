@@ -14,8 +14,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QFontComboBox,
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
-from spyder.config.gui import (get_font, is_dark_font_color, is_dark_interface,
-                               set_font)
+from spyder.config.gui import get_font, is_dark_font_color, set_font
 from spyder.config.manager import CONF
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
@@ -27,7 +26,6 @@ _ = get_translation('spyder')
 
 
 class AppearanceConfigPage(PluginConfigPage):
-    APPLY_CONF_PAGE_SETTINGS = True
 
     def setup_page(self):
         names = self.get_option("names")
@@ -49,18 +47,6 @@ class AppearanceConfigPage(PluginConfigPage):
                                               'ui_theme',
                                               restart=True)
 
-        styles = [str(txt) for txt in list(QStyleFactory.keys())]
-        # Don't offer users the possibility to change to a different
-        # style in Gtk-based desktops
-        # See spyder-ide/spyder#2036.
-        if is_gtk_desktop() and ('GTK+' in styles):
-            styles = ['GTK+']
-        choices = list(zip(styles, [style.lower() for style in styles]))
-        style_combo = self.create_combobox(_('Qt windows style'), choices,
-                                           'windows_style',
-                                           default=self.main.default_style)
-        self.style_combobox = style_combo.combobox
-
         themes = ['Spyder 2', 'Spyder 3']
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
@@ -69,10 +55,8 @@ class AppearanceConfigPage(PluginConfigPage):
         theme_comboboxes_layout = QGridLayout()
         theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
         theme_comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
-        theme_comboboxes_layout.addWidget(style_combo.label, 1, 0)
-        theme_comboboxes_layout.addWidget(self.style_combobox, 1, 1)
-        theme_comboboxes_layout.addWidget(icons_combo.label, 2, 0)
-        theme_comboboxes_layout.addWidget(icons_combo.combobox, 2, 1)
+        theme_comboboxes_layout.addWidget(icons_combo.label, 1, 0)
+        theme_comboboxes_layout.addWidget(icons_combo.combobox, 1, 1)
 
         theme_layout = QVBoxLayout()
         theme_layout.addLayout(theme_comboboxes_layout)
@@ -172,7 +156,6 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.update_combobox()
         self.update_preview()
-        self.update_qt_style_combobox()
 
     def get_font(self, option):
         """Return global font used in Spyder."""
@@ -186,7 +169,7 @@ class AppearanceConfigPage(PluginConfigPage):
         for plugin in plugins:
             plugin.update_font()
 
-    def apply_settings(self, options):
+    def apply_settings(self):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
         ui_theme = self.get_option('ui_theme')
@@ -237,16 +220,9 @@ class AppearanceConfigPage(PluginConfigPage):
                 self.update_combobox()
                 self.update_preview()
 
-        qapp = QApplication.instance()
-        if 'windows_style' in options:
-            style_name = self.get_option('windows_style')
-            style = QStyleFactory.create(style_name)
-            if style is not None:
-                style.setProperty('name', style_name)
-                qapp.setStyle(style)
-
         if self.main.historylog is not None:
             self.main.historylog.apply_conf(['color_scheme_name'])
+        return set(self.changed_options)
 
     # Helpers
     # -------------------------------------------------------------------------
@@ -261,13 +237,6 @@ class AppearanceConfigPage(PluginConfigPage):
     @property
     def current_scheme_index(self):
         return self.schemes_combobox.currentIndex()
-
-    def update_qt_style_combobox(self):
-        """Enable/disable the Qt style combobox."""
-        if is_dark_interface():
-            self.style_combobox.setEnabled(False)
-        else:
-            self.style_combobox.setEnabled(True)
 
     def update_combobox(self):
         """Recreates the combobox contents."""

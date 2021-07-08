@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class FallbackProvider(SpyderCompletionProvider):
     COMPLETION_PROVIDER_NAME = 'fallback'
-    DEFAULT_ORDER = 3
+    DEFAULT_ORDER = 2
 
     def __init__(self, parent, config):
         SpyderCompletionProvider.__init__(self, parent, config)

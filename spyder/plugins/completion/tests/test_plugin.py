@@ -165,7 +165,7 @@ def test_provider_detection(completion_plugin_all):
 
 
 @pytest.mark.slow
-# @pytest.mark.third
+# @pytest.mark.order(3)
 def test_plugin_completion_gather(qtbot_module, completion_receiver):
     completion, receiver = completion_receiver
 
@@ -215,7 +215,7 @@ def test_plugin_completion_gather(qtbot_module, completion_receiver):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 def test_plugin_first_response_request(qtbot_module, completion_receiver):
     completion, receiver = completion_receiver
 

@@ -12,17 +12,18 @@ Holds references for base actions in the Application of Spyder.
 
 # Standard library imports
 import os
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, Slot
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QMessageBox, QAction
 
 # Local imports
 from spyder import (
     __docs_url__, __forum_url__, __project_url__, __trouble_url__)
 from spyder import dependencies
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import DEV
 from spyder.config.utils import is_anaconda
 from spyder.utils.qthelpers import start_file, DialogManager
@@ -114,6 +115,8 @@ class ApplicationContainer(PluginMainContainer):
             _("About %s...") % "Spyder",
             icon=self.create_icon('MessageBoxInformation'),
             triggered=self.show_about)
+        if sys.platform == 'darwin':
+            self.about_action.setMenuRole(QAction.AboutRole)
 
         # Tools actions
         if WinUserEnvDialog is not None:

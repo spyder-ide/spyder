@@ -10,10 +10,7 @@ Testing utilities to be used with pytest.
 
 # Stdlib imports
 import os
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
@@ -150,7 +147,7 @@ def mock_completions_codeeditor(qtbot_module, request):
 
 @pytest.fixture
 def completions_codeeditor(completion_plugin_all_started, qtbot_module,
-                           request, capsys):
+                           request, capsys, tmp_path):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = codeeditor_factory()
@@ -161,15 +158,19 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
 
     CONF.set('completions', 'enable_code_snippets', False)
     completion_plugin.after_configuration_update([])
+    CONF.notify_section_all_observers('completions')
 
     # Redirect editor LSP requests to lsp_manager
     editor.sig_perform_completion_request.connect(
         completion_plugin.send_request)
 
-    editor.filename = 'test.py'
+    file_path = tmp_path / 'test.py'
+    file_path.write_text('')
+
+    editor.filename = str(file_path)
     editor.language = 'Python'
 
-    completion_plugin.register_file('python', 'test.py', editor)
+    completion_plugin.register_file('python', str(file_path), editor)
     editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 

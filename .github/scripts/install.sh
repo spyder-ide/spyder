@@ -19,14 +19,14 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
+    # Install Pyzmq 19 because our tests are failing with version 20
     if [ "$OS" = "win" ]; then
-        # Install Pyzmq 19 because our tests are failing with version 20
         conda install pyzmq=19
     fi
 
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
-    conda remove python-language-server --force -q -y
+    conda remove python-lsp-server --force -q -y
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -48,13 +48,14 @@ else
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
-    pip uninstall python-language-server -q -y
+    pip uninstall python-lsp-server -q -y
+
 fi
 
 # This is necessary only for Windows (don't know why).
 if [ "$OS" = "win" ]; then
-    # Install python-language-server from our subrepo
-    pushd external-deps/python-language-server
+    # Install python-lsp-server from our subrepo
+    pushd external-deps/python-lsp-server
     pip install --no-deps -q -e .
     popd
 fi

@@ -88,6 +88,8 @@ class SnippetsActor(QObject):
             snippets = []
 
             if current_word is None:
+                snippets = {'params': snippets}
+                self.sig_snippets_response.emit(_id, snippets)
                 return
 
             if language in self.language_snippets:
@@ -104,7 +106,7 @@ class SnippetsActor(QObject):
                                 'kind': CompletionItemKind.SNIPPET,
                                 'insertText': text,
                                 'label': f'{trigger} ({description})',
-                                'sortText': trigger,
+                                'sortText': f'zzz{trigger}',
                                 'filterText': trigger,
                                 'documentation': '',
                                 'provider': SNIPPETS_COMPLETION,

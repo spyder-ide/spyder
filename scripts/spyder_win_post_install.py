@@ -134,8 +134,7 @@ def install():
     if not osp.exists(script): # if not installed to the site scripts dir
         script = osp.abspath(osp.join(osp.dirname(osp.abspath(__file__)), 'spyder'))
     workdir = "%HOMEDRIVE%%HOMEPATH%"
-    import distutils.sysconfig
-    lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+    lib_dir = sysconfig.get_path("platlib")
     ico_dir = osp.join(lib_dir, 'spyder', 'windows')
     # if user is running -install manually then icons are in Scripts/
     if not osp.isdir(ico_dir):

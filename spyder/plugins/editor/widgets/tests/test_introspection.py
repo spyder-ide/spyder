@@ -59,7 +59,7 @@ def set_executable_config_helper(executable=None):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
                     reason='Only works on Linux and Python 3')
 @flaky(max_runs=5)
@@ -139,7 +139,7 @@ def test_fallback_completions(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 def test_space_completion(completions_codeeditor, qtbot):
     """Validate completion's space character handling."""
     code_editor, _ = completions_codeeditor
@@ -175,7 +175,7 @@ def test_space_completion(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 def test_hide_widget_completion(completions_codeeditor, qtbot):
@@ -223,7 +223,7 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions(completions_codeeditor, qtbot):
     """Test on-the-fly completions."""
@@ -314,7 +314,7 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
     """
@@ -349,7 +349,7 @@ def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
     """Test that completions are not invoked when pressing the space key."""
@@ -439,7 +439,7 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completions(completions_codeeditor, qtbot):
     """Exercise code completion in several ways."""
@@ -687,7 +687,7 @@ def test_completions(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(not rtree_available or PY2 or os.name == 'nt',
                     reason='Only works if rtree is installed')
 def test_code_snippets(completions_codeeditor, qtbot):
@@ -1003,7 +1003,7 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completion_order(completions_codeeditor, qtbot):
     code_editor, _ = completions_codeeditor
@@ -1045,7 +1045,7 @@ def test_completion_order(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_text_snippet_completions(completions_codeeditor, qtbot):
     code_editor, _ = completions_codeeditor
@@ -1072,7 +1072,7 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
     """Test textEdit completions such as those returned by the Kite provider.
@@ -1121,7 +1121,7 @@ def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason='Hangs on Windows')
 def test_completions_extra_paths(completions_codeeditor, qtbot, tmpdir):
@@ -1175,7 +1175,7 @@ def spam():
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.environ.get('CI') is None,
                     reason='Run tests only on CI.')
 @flaky(max_runs=5)

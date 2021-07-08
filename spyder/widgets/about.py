@@ -19,7 +19,6 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 from spyder import (__project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions)
 from spyder.config.base import _
-from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 

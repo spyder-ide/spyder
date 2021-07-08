@@ -22,17 +22,16 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Qt,
-                         Signal, Slot)
-from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QMessageBox,
-                            QSizePolicy, QTreeWidgetItem, QVBoxLayout, QWidget)
+from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
+                         Slot)
+from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
+                            QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_conf_path, running_in_mac_app
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
@@ -65,7 +64,7 @@ MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
-    RunCodeAnalysis = "run analysis"
+    RunCodeAnalysis = "run_analysis_action"
     BrowseFile = "browse_action"
     ShowLog = "log_action"
 
@@ -426,13 +425,10 @@ class PylintWidget(PluginMainWidget):
         )
         self.code_analysis_action = self.create_action(
             PylintWidgetActions.RunCodeAnalysis,
-            icon_text=_("Analyze"),
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
             triggered=lambda: self.sig_start_analysis_requested.emit(),
-            context=Qt.ApplicationShortcut,
-            register_shortcut=True
         )
         self.browse_action = self.create_action(
             PylintWidgetActions.BrowseFile,
@@ -444,7 +440,6 @@ class PylintWidget(PluginMainWidget):
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
             text=_("Output"),
-            icon_text=_("Output"),
             tip=_("Complete output"),
             icon=self.create_icon("log"),
             triggered=self.show_log,
@@ -528,18 +523,9 @@ class PylintWidget(PluginMainWidget):
             self._update_combobox_history()
 
     def update_actions(self):
-        fm = self.ratelabel.fontMetrics()
-        toolbar = self.get_main_toolbar()
-        width = max([fm.width(_("Stop")), fm.width(_("Analyze"))])
-        widget = toolbar.widgetForAction(self.code_analysis_action)
-        if widget:
-            widget.setMinimumWidth(width * 1.5)
-
         if self._is_running():
-            self.code_analysis_action.setIconText(_("Stop"))
             self.code_analysis_action.setIcon(self.create_icon("stop"))
         else:
-            self.code_analysis_action.setIconText(_("Analyze"))
             self.code_analysis_action.setIcon(self.create_icon("run"))
 
         self.remove_obsolete_items()

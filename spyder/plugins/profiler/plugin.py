@@ -84,7 +84,7 @@ class Profiler(SpyderDockablePlugin):
             ProfilerActions.ProfileCurrentFile,
             text=_("Run profiler"),
             tip=_("Run profiler"),
-            icon=self.create_icon('run'),
+            icon=self.create_icon('profiler'),
             triggered=self.run_profiler,
             register_shortcut=True,
         )

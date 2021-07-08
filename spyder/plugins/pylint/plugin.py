@@ -12,7 +12,7 @@ Pylint Code Analysis Plugin.
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 
 # Local imports
 from spyder.plugins.mainmenu.api import ApplicationMenus
@@ -26,6 +26,10 @@ from spyder.plugins.pylint.main_widget import (PylintWidget,
 
 # Localization
 _ = get_translation("spyder")
+
+
+class PylintActions:
+    AnalyzeCurrentFile = 'run analysis'
 
 
 class Pylint(SpyderDockablePlugin):
@@ -92,7 +96,15 @@ class Pylint(SpyderDockablePlugin):
                 lambda value: widget.set_conf("project_dir", None))
 
         # Add action to application menus
-        pylint_act = self.get_action(PylintWidgetActions.RunCodeAnalysis)
+        pylint_act = self.create_action(
+            PylintActions.AnalyzeCurrentFile,
+            text=_("Run code analysis"),
+            tip=_("Run code analysis"),
+            icon=self.create_icon("pylint"),
+            triggered=lambda: self.start_code_analysis(),
+            context=Qt.ApplicationShortcut,
+            register_shortcut=True
+        )
         pylint_act.setEnabled(is_module_installed("pylint"))
 
         if mainmenu:

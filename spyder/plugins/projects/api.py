@@ -43,7 +43,6 @@ class BaseProjectType:
         self.root_path = root_path
         self.open_project_files = []
         self.open_non_project_files = []
-
         path = os.path.join(root_path, get_project_config_folder(), 'config')
         self.config = ProjectMultiConfig(
             PROJECT_NAME_MAP,
@@ -84,7 +83,16 @@ class BaseProjectType:
 
     def get_recent_files(self):
         """Return a list of files opened by the project."""
-        recent_files = self.get_option("recent_files", default=[])
+
+        # Check if recent_files in [main] (Spyder 4)
+        recent_files = self.get_option("recent_files", 'main', [])
+        if recent_files:
+            # Move to [workspace] (Spyder 5)
+            self.config.remove_option('main', 'recent_files')
+            self.set_recent_files(recent_files)
+        else:
+            recent_files = self.get_option("recent_files", default=[])
+
         recent_files = [recent_file if os.path.isabs(recent_file)
                         else os.path.join(self.root_path, recent_file)
                         for recent_file in recent_files]

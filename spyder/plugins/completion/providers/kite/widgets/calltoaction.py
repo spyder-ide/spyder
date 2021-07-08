@@ -8,8 +8,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QLabel, QVBoxLayout, QFrame,
                             QHBoxLayout, QPushButton)
 
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.plugins.completion.providers.kite.bloomfilter import (
     KiteBloomFilter)
 from spyder.plugins.completion.providers.kite.parsing import (
@@ -18,8 +18,8 @@ from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed)
 from spyder.plugins.completion.providers.fallback.actor import (
     FALLBACK_COMPLETION)
-from spyder.utils.icon_manager import is_dark_interface
 from spyder.utils.palette import QStylePalette
+
 
 COVERAGE_MESSAGE = (
     _("No completions found."
@@ -27,7 +27,9 @@ COVERAGE_MESSAGE = (
 )
 
 
-class KiteCallToAction(QFrame):
+class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
+    CONF_SECTION = 'completions'
+
     def __init__(self, textedit, ancestor):
         super(KiteCallToAction, self).__init__(ancestor)
         self.textedit = textedit
@@ -36,17 +38,16 @@ class KiteCallToAction(QFrame):
         self.setAutoFillBackground(True)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.setFocusPolicy(Qt.NoFocus)
-        if is_dark_interface():
-            self.setObjectName("kite-call-to-action")
-            self.setStyleSheet(self.styleSheet() +
-                               ("#kite-call-to-action "
-                                "{{ border: 1px solid; "
-                                "  border-color: {border_color}; "
-                                "  border-radius: 4px;}} "
-                                "#kite-call-to-action:hover "
-                                "{{ border:1px solid {border}; }}").format(
-                                border_color=QStylePalette.COLOR_BACKGROUND_4,
-                                border=QStylePalette.COLOR_ACCENT_4))
+        self.setObjectName("kite-call-to-action")
+        self.setStyleSheet(self.styleSheet() +
+                           ("#kite-call-to-action "
+                            "{{ border: 1px solid; "
+                            "  border-color: {border_color}; "
+                            "  border-radius: 4px;}} "
+                            "#kite-call-to-action:hover "
+                            "{{ border:1px solid {border}; }}").format(
+                            border_color=QStylePalette.COLOR_BACKGROUND_4,
+                            border=QStylePalette.COLOR_ACCENT_4))
 
         # sub-layout: horizontally aligned links
         actions = QFrame(self)
@@ -57,13 +58,10 @@ class KiteCallToAction(QFrame):
         actions.setLayout(actions_layout)
 
         self._install_button = QPushButton(_("Install Kite"))
-        self._learn_button = QPushButton(_("Learn More"))
         self._dismiss_button = QPushButton(_("Dismiss Forever"))
         self._install_button.clicked.connect(self._install_kite)
-        self._learn_button.clicked.connect(self._learn_more)
         self._dismiss_button.clicked.connect(self._dismiss_forever)
         actions_layout.addWidget(self._install_button)
-        actions_layout.addWidget(self._learn_button)
         actions_layout.addWidget(self._dismiss_button)
 
         # main layout: message + horizontally aligned links
@@ -76,11 +74,12 @@ class KiteCallToAction(QFrame):
         main_layout.addWidget(actions)
         main_layout.addStretch()
 
-        self._enabled = CONF.get('completions', 'kite_call_to_action')
+        self._enabled = self.get_conf('kite_call_to_action')
         self._escaped = False
         self.hide()
 
         is_kite_installed, __ = check_if_kite_installed()
+
         if is_kite_installed:
             self._dismiss_forever()
 
@@ -94,8 +93,16 @@ class KiteCallToAction(QFrame):
         self.hide()
 
     def handle_processed_completions(self, completions):
-        if not self._enabled:
+        if not self.get_conf('kite_call_to_action'):
             return
+
+        installers_available = self.get_conf(
+            ('provider_configuration', 'kite', 'values',
+             'installers_available'))
+
+        if not installers_available:
+            return
+
         if self._escaped:
             return
         if not self.textedit.completion_widget.isHidden():
@@ -130,18 +137,10 @@ class KiteCallToAction(QFrame):
     def _dismiss_forever(self):
         self.hide()
         self._enabled = False
-        CONF.set('completions', 'kite_call_to_action', False)
-
-    def _learn_more(self):
-        self.hide()
-        self._enabled = False
-        kite = self.parent().completions.get_client('kite')
-        kite.installer.welcome()
-        kite.installer.show()
+        self.set_conf('kite_call_to_action', False)
 
     def _install_kite(self):
         self.hide()
         self._enabled = False
-        kite = self.parent().completions.get_client('kite')
-        kite.installer.install()
-        kite.installer.show()
+        kite = self.parent().completions.get_provider('kite')
+        kite.show_kite_installation()

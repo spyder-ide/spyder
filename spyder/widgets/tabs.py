@@ -24,13 +24,13 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 
 class EditTabNamePopup(QLineEdit):
@@ -129,22 +129,19 @@ class EditTabNamePopup(QLineEdit):
             # We are editing a valid tab, update name
             tab_text = to_text_string(self.text())
             self.main.setTabText(self.tab_index, tab_text)
-            self.main.sig_change_name.emit(tab_text)
+            self.main.sig_name_changed.emit(tab_text)
 
 
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
-    sig_change_name = Signal(str)
+    sig_name_changed = Signal(str)
 
     def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
                  split_index=0):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.setObjectName('pane-tabbar')
 
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -249,10 +246,7 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         self.setUsesScrollButtons(True)
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.tabBar().setObjectName('pane-tabbar')
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
@@ -264,20 +258,7 @@ class BaseTabs(QTabWidget):
         else:
             self.menu = menu
 
-        # QTabBar forces the corner widgets to be smaller than they should on
-        # some plugins, like History. The top margin added allows the
-        # toolbuttons to expand to their normal size.
-        # See: spyder-ide/spyder#13600
-        top_margin = 9 if os.name == "nt" else 5
-        self.setStyleSheet(
-            f"""
-            QTabBar::tab {{
-                margin-top: {top_margin}px;
-            }}
-            QTabWidget::tab-bar {{
-                alignment: left;
-            }}
-            """)
+        self.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
         # Corner widgets
         if corner_widgets is None:
@@ -287,9 +268,10 @@ class BaseTabs(QTabWidget):
 
         self.browse_button = create_toolbutton(
             self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
-        self.browse_button.setStyleSheet(STYLE_BUTTON_CSS)
+        self.browse_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
         self.browse_tabs_menu = QMenu(self)
+        self.browse_tabs_menu.setObjectName('checkbox-padding')
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(self.browse_button.InstantPopup)
         self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
@@ -347,6 +329,13 @@ class BaseTabs(QTabWidget):
         for corner, widgets in list(self.corner_widgets.items()):
             cwidget = QWidget()
             cwidget.hide()
+
+            # This removes some white dots in our tabs (not all but most).
+            # See spyder-ide/spyder#15081
+            cwidget.setObjectName('corner-widget')
+            cwidget.setStyleSheet(
+                "QWidget#corner-widget {border-radius: '0px'}")
+
             prev_widget = self.cornerWidget(corner)
             if prev_widget:
                 prev_widget.close()
@@ -370,17 +359,11 @@ class BaseTabs(QTabWidget):
         Add offset to position event to capture the mouse cursor
         inside a tab.
         """
-        # This is necessary because self.tabBar().tabAt(event.pos()) is not
-        # returning the expected index. For further information see
-        # spyder-ide/spyder#12617
-        point = event.pos()
-        if sys.platform == 'darwin':
-            # The close button on tab is on the left
-            point.setX(point.x() + 3)
-        else:
-            # The close button on tab is on the right
-            point.setX(point.x() - 30)
-        return self.tabBar().tabAt(point)
+        # This is necessary because event.pos() is the position in this
+        # widget, not in the tabBar. see spyder-ide/spyder#12617
+        tb = self.tabBar()
+        point = tb.mapFromGlobal(event.globalPos())
+        return tb.tabAt(point)
 
     def contextMenuEvent(self, event):
         """Override Qt method"""

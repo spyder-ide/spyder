@@ -84,6 +84,9 @@ class dummyComm():
             }
         self.other.message_callback(msg)
 
+    def _send_msg(self, *args, **kwargs):
+        pass
+
     def on_msg(self, callback):
         self.message_callback = callback
 
@@ -159,11 +162,6 @@ def test_comm_base(comms):
     # Send another unhandled message
     commsend._send_message('test_message', content='content', data='data')
     assert len(received_messages) == 2
-
-    # Test closing
-    commsend.close()
-    assert not commsend.is_open()
-    assert not commrecv.is_open()
 
 
 @pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")

@@ -34,6 +34,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginWidget
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
 from spyder.config.gui import get_font
@@ -46,6 +47,8 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
@@ -54,7 +57,7 @@ from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
-from spyder.widgets.browser import WebView
+from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
@@ -78,13 +81,13 @@ class IPythonConsole(SpyderPluginWidget):
     OPTIONAL = [Plugins.Editor, Plugins.History]
 
     # Signals
-    focus_changed = Signal()
-    edit_goto = Signal((str, int, str), (str, int, str, bool))
-    sig_pdb_state = Signal(bool, dict)
+    sig_focus_changed = Signal()
+    sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
+    sig_pdb_state_changed = Signal(bool, dict)
 
-    sig_shellwidget_process_started = Signal(object)
+    sig_shellwidget_created = Signal(object)
     """
-    This signal is emitted when a shellwidget process starts.
+    This signal is emitted when a shellwidget is created.
 
     Parameters
     ----------
@@ -92,9 +95,9 @@ class IPythonConsole(SpyderPluginWidget):
         The shellwigdet.
     """
 
-    sig_shellwidget_process_finished = Signal(object)
+    sig_shellwidget_deleted = Signal(object)
     """
-    This signal is emitted when a shellwidget process finishes.
+    This signal is emitted when a shellwidget is deleted/removed.
 
     Parameters
     ----------
@@ -156,13 +159,16 @@ class IPythonConsole(SpyderPluginWidget):
         The new working directory path.
     """
 
+    # Remove when this plugin is migrated
+    sig_exception_occurred = Signal(dict)
+
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
     def __init__(self, parent, testing=False, test_dir=None,
-                 test_no_stderr=False, css_path=None):
+                 test_no_stderr=False):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -173,7 +179,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
-        self.css_path = css_path
+        self.css_path = CONF.get('appearance', 'css_path')
         self.run_cell_filename = None
         self.interrupt_action = None
 
@@ -201,7 +207,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
-        self.tabwidget.tabBar().sig_change_name.connect(
+        self.tabwidget.tabBar().sig_name_changed.connect(
             self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
@@ -220,7 +226,7 @@ class IPythonConsole(SpyderPluginWidget):
             layout.addWidget(self.tabwidget)
 
         # Info widget
-        self.infowidget = WebView(self)
+        self.infowidget = FrameWebView(self)
         if WEBENGINE:
             self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
         else:
@@ -234,7 +240,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.pager_label.setStyleSheet(
             f"background-color: {QStylePalette.COLOR_ACCENT_2};"
             f"color: {QStylePalette.COLOR_TEXT_1};"
-            "margin: 0px 4px 4px 4px;"
+            "margin: 0px 1px 4px 1px;"
             "padding: 5px;"
             "qproperty-alignment: AlignCenter;"
         )
@@ -578,7 +584,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client:
             sw = client.shellwidget
             self.main.variableexplorer.set_shellwidget(sw)
-            self.sig_pdb_state.emit(
+            self.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
@@ -655,13 +661,49 @@ class IPythonConsole(SpyderPluginWidget):
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
 
-        # Add the action to the 'Consoles' menu on the main window
-        main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [special_console_menu, connect_to_kernel_action,
-                               MENU_SEPARATOR,
-                               self.interrupt_action, restart_action,
-                               reset_action]
+        # Add actions to the 'Consoles' menu on the main window
+        console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
+        console_menu.aboutToShow.connect(self.update_execution_state_kernel)
+        new_consoles_actions = [
+            create_client_action, special_console_menu,
+            connect_to_kernel_action]
+        restart_connect_consoles_actions = [
+            self.interrupt_action, restart_action, reset_action]
+        for console_new_action in new_consoles_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                console_new_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.New)
+        for console_restart_connect_action in restart_connect_consoles_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                console_restart_connect_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.Restart)
+
+        # IPython documentation
+        self.ipython_menu = SpyderMenu(
+            parent=self,
+            title=_("IPython documentation"))
+        intro_action = create_action(
+            self,
+            _("Intro to IPython"),
+            triggered=self.show_intro)
+        quickref_action = create_action(
+            self,
+            _("Quick reference"),
+            triggered=self.show_quickref)
+        guiref_action = create_action(
+            self,
+            _("Console help"),
+            triggered=self.show_guiref)
+        add_actions(
+            self.ipython_menu,
+            (intro_action, guiref_action, quickref_action))
+        self.main.mainmenu.add_item_to_application_menu(
+            self.ipython_menu,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.ExternalDocumentation,
+            before_section=HelpMenuSections.About)
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,
@@ -682,22 +724,34 @@ class IPythonConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.add_dockwidget()
 
-        self.focus_changed.connect(self.main.plugin_focus_changed)
-        self.edit_goto.connect(self.main.editor.load)
-        self.edit_goto[str, int, str, bool].connect(
-                         lambda fname, lineno, word, processevents:
-                         self.main.editor.load(fname, lineno, word,
-                                               processevents=processevents))
-        self.main.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
-        self.main.editor.run_in_current_ipyclient.connect(self.run_script)
-        self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
-        self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
+        self.sig_focus_changed.connect(self.main.plugin_focus_changed)
+        if self.main.editor:
+            self.sig_edit_goto_requested.connect(self.main.editor.load)
+            self.sig_edit_goto_requested[str, int, str, bool].connect(
+                             lambda fname, lineno, word, processevents:
+                             self.main.editor.load(
+                                 fname, lineno, word,
+                                 processevents=processevents))
+            self.main.editor.breakpoints_saved.connect(
+                self.set_spyder_breakpoints)
+            self.main.editor.run_in_current_ipyclient.connect(self.run_script)
+            self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
+            self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
+            # Connect Editor debug action with Console
+            self.sig_pdb_state_changed.connect(
+                self.main.editor.update_pdb_state)
+            self.main.editor.exec_in_extconsole.connect(
+                self.execute_code_and_focus_editor)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
 
         # Update kernels if python path is changed
         self.main.sig_pythonpath_changed.connect(self.update_path)
+
+        # Show history file if no console is visible
+        if not self._isvisible and self.main.historylog:
+            self.main.historylog.add_history(get_conf_path('history.py'))
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -865,6 +919,17 @@ class IPythonConsole(SpyderPluginWidget):
                 self.main.get_spyder_pythonpath()
                 shell.update_syspath(path_dict, new_path_dict)
 
+    def execute_code_and_focus_editor(self, lines, focus_to_editor=True):
+        """
+        Execute lines in IPython console and eventually set focus
+        to the Editor.
+        """
+        console = self
+        console.switch_to_plugin()
+        console.execute_code(lines)
+        if focus_to_editor and self.main.editor:
+            self.main.editor.switch_to_plugin()
+
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
@@ -988,19 +1053,19 @@ class IPythonConsole(SpyderPluginWidget):
             has_spyder_kernels = programs.is_module_installed(
                 'spyder_kernels',
                 interpreter=pyexec,
-                version='>=1.10.0;<1.11.0')
+                version='>=2.0.1;<2.1.0')
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed (>= 1.10.0 and < 1.11.0). "
+                      "version of it installed (>= 2.0.1 and < 2.1.0). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
                       "<br><br>"
-                      "<tt>conda install spyder-kernels</tt>"
+                      "<tt>conda install spyder-kernels=2.0</tt>"
                       "<br><br>or<br><br>"
-                      "<tt>pip install spyder-kernels</tt>")
+                      "<tt>pip install spyder-kernels==2.0.*</tt>")
                 )
                 return
 
@@ -1055,15 +1120,15 @@ class IPythonConsole(SpyderPluginWidget):
         # tests in our CIs
         if not self.testing:
             kc.started_channels.connect(
-                lambda c=client: self.process_started(c))
+                lambda c=client: self.shellwidget_started(c))
             kc.stopped_channels.connect(
-                lambda c=client: self.process_finished(c))
+                lambda c=client: self.shellwidget_deleted(c))
         kc.start_channels(shell=True, iopub=True)
 
         shellwidget = client.shellwidget
         shellwidget.set_kernel_client_and_manager(kc, km)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.handle_exception)
+            self.sig_exception_occurred)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -1071,7 +1136,7 @@ class IPythonConsole(SpyderPluginWidget):
         if encoding.is_text_file(filename):
             # The default line number sent by ipykernel is always the last
             # one, but we prefer to use the first.
-            self.edit_goto.emit(filename, 1, '')
+            self.sig_edit_goto_requested.emit(filename, 1, '')
 
     def config_options(self):
         """
@@ -1199,7 +1264,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.new_client.connect(self.create_new_client)
 
         # For tracebacks
-        control.go_to_error.connect(self.go_to_error)
+        control.sig_go_to_error_requested.connect(self.go_to_error)
 
         # For help requests
         control.sig_help_requested.connect(self.sig_help_requested)
@@ -1207,7 +1272,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
-        shellwidget.sig_pdb_state.connect(self.sig_pdb_state)
+        shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
@@ -1234,7 +1299,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect client to our history log
         if self.main.historylog is not None:
             self.main.historylog.add_history(client.history_filename)
-            client.append_to_history.connect(
+            client.sig_append_to_history_requested.connect(
                 self.main.historylog.append_to_history)
 
         # Set font for client
@@ -1244,7 +1309,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(control)
 
         # Connect to working directory
-        shellwidget.sig_change_cwd.connect(self.set_working_directory)
+        shellwidget.sig_working_directory_changed.connect(
+            self.set_working_directory)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1371,10 +1437,11 @@ class IPythonConsole(SpyderPluginWidget):
 
     def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""
-        # This is a unique form of the edit_goto signal that is intended to
-        # prevent keyboard input from accidentally entering the editor
-        # during repeated, rapid entry of debugging commands.
-        self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
+        # This is a unique form of the sig_edit_goto_requested signal that
+        # is intended to prevent keyboard input from accidentally entering the
+        # editor during repeated, rapid entry of debugging commands.
+        self.sig_edit_goto_requested[str, int, str, bool].emit(
+            fname, lineno, '', False)
         self.activateWindow()
         shellwidget._control.setFocus()
 
@@ -1648,7 +1715,8 @@ class IPythonConsole(SpyderPluginWidget):
                 fname = self.run_cell_filename
             # This is needed to fix issue spyder-ide/spyder#9217.
             try:
-                self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+                self.sig_edit_goto_requested.emit(
+                    osp.abspath(fname), int(lnb), '')
             except ValueError:
                 pass
 
@@ -1728,17 +1796,17 @@ class IPythonConsole(SpyderPluginWidget):
             cf = cf if not os.path.exists(cf) else ''
         return cf
 
-    def process_started(self, client):
+    def shellwidget_started(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.add_shellwidget(client.shellwidget)
 
-        self.sig_shellwidget_process_started.emit(client.shellwidget)
+        self.sig_shellwidget_created.emit(client.shellwidget)
 
-    def process_finished(self, client):
+    def shellwidget_deleted(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.remove_shellwidget(client.shellwidget)
 
-        self.sig_shellwidget_process_finished.emit(client.shellwidget)
+        self.sig_shellwidget_deleted.emit(client.shellwidget)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
@@ -1852,7 +1920,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.handle_exception)
+            self.sig_exception_occurred)
 
         if external_kernel:
             shellwidget.sig_is_spykernel.connect(
@@ -1887,9 +1955,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def print_debug_file_msg(self):
         """Print message in the current console when a file can't be closed."""
-        debug_msg = _('<br><hr>'
-                      '\nThe current file cannot be closed because it is '
-                      'in debug mode. \n'
-                      '<hr><br>')
-        self.get_current_client().shellwidget._append_html(
+        debug_msg = _('The current file cannot be closed because it is '
+                      'in debug mode.')
+        self.get_current_client().shellwidget.append_html_message(
                     debug_msg, before_prompt=True)

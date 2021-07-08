@@ -12,9 +12,6 @@ Spyder API Mixins.
 """
 
 # Standard library imports
-import functools
-from collections import OrderedDict
-import types
 from typing import Any, Optional, Dict
 
 # Third party imports
@@ -22,15 +19,12 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget, QToolButton
 
 # Local imports
-from spyder.api.config.mixins import (
-    SpyderConfigurationObserver, SpyderConfigurationAccessor)
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.types import ConfigurationKey
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (
-    create_action, create_toolbutton, SpyderAction)
+from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
     ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 
@@ -356,7 +350,8 @@ class SpyderActionMixin:
                       toggled=None, triggered=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
                       register_shortcut=False, section=None, option=None,
-                      parent=None):
+                      parent=None, register_action=True, overwrite=False,
+                      context_name=None):
         """
         name: str
             unique identifiable name for the action
@@ -395,6 +390,17 @@ class SpyderActionMixin:
             The default value is `False`.
         parent: QWidget (None)
             Define the parent of the widget. Use `self` if not provided.
+        register_action: bool, optional
+            If True, the action will be registered and searchable.
+            The default value is `True`.
+        overwrite: bool, optional
+            If True, in case of action overwriting no warning will be shown.
+            The default value is `False`
+        context_name: Optional[str]
+            Name of the context that holds the action in case of registration.
+            The combination of `name` and `context_name` is unique so trying
+            to register an action with the same `name` and `context_name` will
+            cause a warning unless `overwrite` is set to `True`
 
         Notes
         -----
@@ -435,8 +441,10 @@ class SpyderActionMixin:
             option=option,
             id_=name,
             plugin=self.PLUGIN_NAME,
-            context_name=self.CONTEXT_NAME,
-            register_action=True
+            context_name=(
+                self.CONTEXT_NAME if context_name is None else context_name),
+            register_action=register_action,
+            overwrite=overwrite
         )
         action.name = name
         if icon_text:

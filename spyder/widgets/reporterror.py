@@ -111,7 +111,7 @@ class DescriptionWidget(SimpleCodeEditor):
 class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
     """Widget to show errors as they appear in the Internal console."""
     QT_CLASS = QPlainTextEdit
-    go_to_error = Signal(str)
+    sig_go_to_error_requested = Signal(str)
 
     def __init__(self, parent=None):
         ConsoleBaseWidget.__init__(self, parent)

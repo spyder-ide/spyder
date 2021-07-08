@@ -12,10 +12,7 @@ Tests for editor.py
 import os
 import os.path as osp
 import sys
-try:
-    from unittest.mock import Mock, MagicMock
-except ImportError:
-    from mock import Mock, MagicMock  # Python 2
+from unittest.mock import Mock, MagicMock
 
 # Third party imports
 import pytest

@@ -33,7 +33,7 @@ from spyder import __docs_url__
 from spyder.api.panel import Panel
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
-from spyder.config.gui import is_dark_interface
+from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.icon_manager import ima
@@ -115,7 +115,7 @@ def get_tour(index):
                          environment. This tip panel supports rich text. <br>\
                          <br> it also supports image insertion to the right so\
                          far",
-             'image': 'tour-spyder-logo.png'},
+             'image': 'spyder_about'},
 
             {'title': "Widget display",
              'content': ("This show how a widget is displayed. The tip panel "
@@ -152,7 +152,7 @@ def get_tour(index):
                            "important features.<br><br>"
                            "Please use the arrow keys or click on the buttons "
                            "below to move along the tour."),
-              'image': 'tour-spyder-logo.png'},
+              'image': 'spyder_about'},
 
              {'title': _("Editor"),
               'content': _("This is where you write Python code before "
@@ -274,7 +274,7 @@ def get_tour(index):
                            'information, check out our '
                            '<a href="{}">documentation</a>.'
                            '<br><br>').format(__docs_url__),
-              'image': 'tour-spyder-logo.png'
+              'image': 'spyder_about'
               },
 
              ]
@@ -323,7 +323,7 @@ def get_tour(index):
     feat30 = [{'title': "New features in Spyder 3.0",
                'content': _("<b>Spyder</b> is an interactive development "
                             "environment based on bla"),
-               'image': 'spyder.png'},
+               'image': 'spyder_about'},
 
               {'title': _("Welcome to Spyder introduction tour"),
                'content': _("Spyder is an interactive development environment "
@@ -459,9 +459,12 @@ class FadingCanvas(FadingDialog):
         self.parent = parent
         self.tour = tour
 
-        self.color = color              # Canvas color
-        self.color_decoration = SpyderPalette.COLOR_ERROR_2 # Decoration color
-        self.stroke_decoration = 2      # width in pixels for decoration
+        # Canvas color
+        self.color = color
+        # Decoration color
+        self.color_decoration = QColor(SpyderPalette.COLOR_ERROR_2)
+        # Width in pixels for decoration
+        self.stroke_decoration = 2
 
         self.region_mask = None
         self.region_subtract = None
@@ -1278,7 +1281,8 @@ class AnimatedTour(QWidget):
             'layout_current_temp/',
             section="quick_layouts",
         )
-        self.spy_window.layouts.quick_layout_switch('default')
+        self.spy_window.layouts.quick_layout_switch(
+            DefaultLayouts.SpyderLayout)
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
 #        self.parent_x = x
@@ -1437,24 +1441,52 @@ class OpenTourDialog(QDialog):
         # Buttons
         buttons_layout = QHBoxLayout()
         dialog_tour_color = QStylePalette.COLOR_BACKGROUND_2
-        start_tour_color = QStylePalette.COLOR_ACCENT_3
-        dismiss_tour_color = QStylePalette.COLOR_BACKGROUND_6
+        start_tour_color = QStylePalette.COLOR_ACCENT_2
+        start_tour_hover = QStylePalette.COLOR_ACCENT_3
+        start_tour_pressed = QStylePalette.COLOR_ACCENT_4
+        dismiss_tour_color = QStylePalette.COLOR_BACKGROUND_4
+        dismiss_tour_hover = QStylePalette.COLOR_BACKGROUND_5
+        dismiss_tour_pressed = QStylePalette.COLOR_BACKGROUND_6
         font_color = QStylePalette.COLOR_TEXT_1
         self.launch_tour_button = QPushButton(_('Start tour'))
-        self.launch_tour_button.setStyleSheet(
-          f"background-color: {start_tour_color};"
-          f"font-size: {self.BUTTONS_FONT_SIZE};"
-          f"color: {font_color};"
-          f"padding: {self.BUTTONS_PADDING}"
-        )
+        self.launch_tour_button.setStyleSheet((
+          "QPushButton {{ "
+          "background-color: {background_color};"
+          "border-color: {border_color};"
+          "font-size: {font_size};"
+          "color: {font_color};"
+          "padding: {padding}}}"
+          "QPushButton:hover:!pressed {{ "
+          "background-color: {color_hover}}}"
+          "QPushButton:pressed {{ "
+          "background-color: {color_pressed}}}"
+        ).format(background_color=start_tour_color,
+                 border_color=start_tour_color,
+                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_color=font_color,
+                 padding=self.BUTTONS_PADDING,
+                 color_hover=start_tour_hover,
+                 color_pressed=start_tour_pressed))
         self.launch_tour_button.setAutoDefault(False)
         self.dismiss_button = QPushButton(_('Dismiss'))
-        self.dismiss_button.setStyleSheet(
-          f"background-color: {dismiss_tour_color};"
-          f"font-size: {self.BUTTONS_FONT_SIZE};"
-          f"color: {font_color};"
-          f"padding: {self.BUTTONS_PADDING}"
-        )
+        self.dismiss_button.setStyleSheet((
+          "QPushButton {{ "
+          "background-color: {background_color};"
+          "border-color: {border_color};"
+          "font-size: {font_size};"
+          "color: {font_color};"
+          "padding: {padding}}}"
+          "QPushButton:hover:!pressed {{ "
+          "background-color: {color_hover}}}"
+          "QPushButton:pressed {{ "
+          "background-color: {color_pressed}}}"
+        ).format(background_color=dismiss_tour_color,
+                 border_color=dismiss_tour_color,
+                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_color=font_color,
+                 padding=self.BUTTONS_PADDING,
+                 color_hover=dismiss_tour_hover,
+                 color_pressed=dismiss_tour_pressed))
         self.dismiss_button.setAutoDefault(False)
 
         buttons_layout.addStretch()

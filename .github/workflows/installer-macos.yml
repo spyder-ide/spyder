@@ -26,31 +26,26 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Update System
-        run: |
-          brew install spatialindex
-          brew link python@3.9
       - name: Install Dependencies
         run: |
           INSTALL_FLAGS=()
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
-          python3.9 -m pip install -c req-const.txt -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" ${GITHUB_WORKSPACE}
+          python3.9 -m pip install -U pip setuptools
+          python3.9 -m pip install -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
           python3.9 -m pip uninstall -q -y spyder
-          cd ${GITHUB_WORKSPACE}
-          python3.9 setup.py develop egg_info
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: |
-          SPK_REPO=${GITHUB_WORKSPACE}/external-deps/spyder-kernels
-          PLS_REPO=${GITHUB_WORKSPACE}/external-deps/python-language-server
-          SITE_PACKAGES=`python3.9 -c 'import site; print(site.getsitepackages()[0])'`
-          python3.9 -m pip uninstall -q -y spyder-kernels python-language-server
-          cd ${SPK_REPO}
-          python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
-          cd ${PLS_REPO}
-          python3.9 setup.py develop --no-deps --install-dir=${SITE_PACKAGES}
+          python3.9 -m pip install \
+            -e ${GITHUB_WORKSPACE}/external-deps/spyder-kernels \
+            -e ${GITHUB_WORKSPACE}/external-deps/python-lsp-server \
+            -e ${GITHUB_WORKSPACE}/external-deps/qdarkstyle
+      - name: Show Build Environment
+        run: |
+          python3.9 -V -V
+          python3.9 -m pip list
       - name: Build Application Bundle
         run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Build Disk Image

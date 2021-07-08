@@ -30,5 +30,6 @@ insert your information after the last one.
 -  2020 - `tsilia <https://github.com/tsilia>`__ - bug fixes.
 -  2021 - `isabela-pf <https://github.com/isabela-pf>`__ - new palette design.
 -  2021 - `juanis2112 <https://github.com/juanis2112>`__ - improvements.
+-  2021 - `ccordoba12 <https://github.com/ccordoba12>`__ - mainteiner/improvements.
 
 And all people that reported bugs, thank you all!

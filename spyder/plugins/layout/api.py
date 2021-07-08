@@ -102,8 +102,12 @@ class BaseGridLayoutType:
         if not any(self._visible_areas):
             raise SpyderAPIError("At least 1 area must be `visible`")
 
-        # Check that there is only 1 `default` area!
+        # Check that there is a `default` area!
         if not any(default_areas):
+            raise SpyderAPIError("No area is the `default`!")
+
+        # Check that there is 1 `default` area!
+        if default_areas.count(True) != 1:
             raise SpyderAPIError("Only 1 area can be the `default`!")
 
         # Check one area has row zero and column zero
@@ -372,13 +376,14 @@ class BaseGridLayoutType:
         for area in patched_areas:
             current_area = area
             plugin_id = current_area["plugin_ids"][0]
-            plugin = main_window.get_plugin(plugin_id)
-            dock = plugin.dockwidget
-            docks[(current_area["row"], current_area["column"])] = dock
-            dock.area = area["area"]
-            dock.col_span = area["col_span"]
-            dock.row_span = area["row_span"]
-            plugin.toggle_view(area["visible"])
+            plugin = main_window.get_plugin(plugin_id, error=False)
+            if plugin:
+                dock = plugin.dockwidget
+                docks[(current_area["row"], current_area["column"])] = dock
+                dock.area = area["area"]
+                dock.col_span = area["col_span"]
+                dock.row_span = area["row_span"]
+                plugin.toggle_view(area["visible"])
 
         # Define base layout (distribution of dockwidgets
         # following defined areas)
@@ -432,25 +437,31 @@ class BaseGridLayoutType:
         plugins_to_tabify = []
         for area in patched_areas:
             area_visible = area["visible"]
-            base_plugin = main_window.get_plugin(area["plugin_ids"][0])
-            plugin_ids = area["plugin_ids"][1:]
-            hidden_plugin_ids = area["hidden_plugin_ids"]
-            for plugin_id in plugin_ids:
-                current_plugin = main_window.get_plugin(plugin_id)
-                if (plugin_id in unassgined_plugin_ids and
-                        hasattr(current_plugin, 'TABIFY')):
-                    plugins_to_tabify.append((current_plugin, base_plugin))
-                else:
-                    main_window.tabify_plugins(base_plugin, current_plugin)
-                    if plugin_id not in hidden_plugin_ids:
-                        current_plugin.toggle_view(area_visible)
-                    else:
-                        current_plugin.toggle_view(False)
+            base_plugin = main_window.get_plugin(
+                area["plugin_ids"][0], error=False)
+            if base_plugin:
+                plugin_ids = area["plugin_ids"][1:]
+                hidden_plugin_ids = area["hidden_plugin_ids"]
+                for plugin_id in plugin_ids:
+                    current_plugin = main_window.get_plugin(
+                        plugin_id, error=False)
+                    if current_plugin:
+                        if (plugin_id in unassgined_plugin_ids and
+                                hasattr(current_plugin, 'TABIFY')):
+                            plugins_to_tabify.append(
+                                (current_plugin, base_plugin))
+                        else:
+                            main_window.tabify_plugins(
+                                base_plugin, current_plugin)
+                            if plugin_id not in hidden_plugin_ids:
+                                current_plugin.toggle_view(area_visible)
+                            else:
+                                current_plugin.toggle_view(False)
 
-            # Raise front widget per area
-            if area["visible"]:
-                base_plugin.dockwidget.show()
-                base_plugin.dockwidget.raise_()
+                # Raise front widget per area
+                if area["visible"]:
+                    base_plugin.dockwidget.show()
+                    base_plugin.dockwidget.raise_()
 
         # try to use the TABIFY attribute to add the plugin to the layout.
         # Otherwise use the default area base plugin

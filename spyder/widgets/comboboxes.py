@@ -18,7 +18,6 @@ import os
 import os.path as osp
 
 # Third party imports
-import qdarkstyle
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
@@ -26,8 +25,8 @@ from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.helperwidgets import IconLineEdit
 
 
@@ -255,9 +254,8 @@ class PathComboBox(EditableComboBox):
         opts = sorted([opt for opt in opts if osp.isdir(opt)])
 
         completer = QCompleter(opts, self)
-        if is_dark_interface():
-            dark_qss = qdarkstyle.load_stylesheet()
-            completer.popup().setStyleSheet(dark_qss)
+        qss = str(APP_STYLESHEET)
+        completer.popup().setStyleSheet(qss)
         self.setCompleter(completer)
 
         return opts
@@ -370,9 +368,8 @@ class FileComboBox(PathComboBox):
                        if osp.isdir(opt) or osp.isfile(opt)])
 
         completer = QCompleter(opts, self)
-        if is_dark_interface():
-            dark_qss = qdarkstyle.load_stylesheet()
-            completer.popup().setStyleSheet(dark_qss)
+        qss = str(APP_STYLESHEET)
+        completer.popup().setStyleSheet(qss)
         self.setCompleter(completer)
 
         return opts

@@ -10,6 +10,7 @@ from __future__ import absolute_import, division, print_function
 import logging
 import os
 import re
+import sys
 import tempfile
 
 # Third party imports
@@ -18,14 +19,14 @@ from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from qdarkstyle import (IMAGES_PATH, STYLES_SCSS_FILEPATH, QRC_FILEPATH, RC_PATH,
-                        SVG_PATH)
-from qdarkstyle.darkpalette import DarkPalette
+from qdarkstyle import (IMAGES_PATH, PACKAGE_PATH, QRC_FILE,
+                        STYLES_SCSS_FILEPATH, SVG_PATH)
+
 
 IMAGE_BLACKLIST = ['base_palette']
 
 TEMPLATE_QRC_HEADER = '''
-<RCC warning="File created programmatically. All changes made in this file will be lost!">
+<RCC warning="WARNING! File created programmatically. All changes made in this file will be lost!">
   <qresource prefix="{resource_prefix}">
 '''
 
@@ -88,16 +89,25 @@ def convert_svg_to_png(svg_path, png_path, height, width):
 
 
 def create_palette_image(base_svg_path=SVG_PATH, path=IMAGES_PATH,
-                         palette=DarkPalette):
+                         palette=None):
     """
     Create palette image svg and png image on specified path.
     """
     # Needed to use QPixmap
     _ = QApplication([])
 
+    if palette is None:
+        print("Please pass a palette class in order to create its "
+              "associated images")
+        sys.exit(1)
+
+    if palette.ID is None:
+        print("A QDarkStyle palette requires an ID!")
+        sys.exit(1)
+
     base_palette_svg_path = os.path.join(base_svg_path, 'base_palette.svg')
-    palette_svg_path = os.path.join(path, 'palette.svg')
-    palette_png_path = os.path.join(path, 'palette.png')
+    palette_svg_path = os.path.join(path, palette.ID, 'palette.svg')
+    palette_png_path = os.path.join(path, palette.ID, 'palette.png')
 
     _logger.info("Creating palette image ...")
     _logger.info("Base SVG: %s" % base_palette_svg_path)
@@ -120,8 +130,7 @@ def create_palette_image(base_svg_path=SVG_PATH, path=IMAGES_PATH,
     return palette_svg_path, palette_png_path
 
 
-def create_images(base_svg_path=SVG_PATH, rc_path=RC_PATH,
-                  palette=DarkPalette):
+def create_images(base_svg_path=SVG_PATH, rc_path=None, palette=None):
     """Create resources `rc` png image files from base svg files and palette.
 
     Search all SVG files in `base_svg_path` excluding IMAGE_BLACKLIST,
@@ -130,12 +139,24 @@ def create_images(base_svg_path=SVG_PATH, rc_path=RC_PATH,
 
     Args:
         base_svg_path (str, optional): [description]. Defaults to SVG_PATH.
-        rc_path (str, optional): [description]. Defaults to RC_PATH.
-        palette (DarkPalette, optional): Palette . Defaults to DarkPalette.
+        rc_path (str, optional): [description].
+        palette (Palette, optional): Palette.
     """
 
     # Needed to use QPixmap
     _ = QApplication([])
+
+    if palette is None:
+        print("Please pass a palette class in order to create its "
+              "associated file")
+        sys.exit(1)
+
+    if palette.ID is None:
+        print("A QDarkStyle palette requires an ID!")
+        sys.exit(1)
+
+    if not rc_path:
+        rc_path = os.path.join(PACKAGE_PATH, palette.ID, 'rc')
 
     temp_dir = tempfile.mkdtemp()
     svg_fnames = [f for f in os.listdir(base_svg_path) if f.endswith('.svg')]
@@ -211,7 +232,8 @@ def create_images(base_svg_path=SVG_PATH, rc_path=RC_PATH,
     _logger.info("RC links not in RC: %s" % rc_list)
 
 
-def generate_qrc_file(resource_prefix='qss_icons', style_prefix='qdarkstyle'):
+def generate_qrc_file(resource_prefix='qss_icons', style_prefix='qdarkstyle',
+                      palette=None):
     """
     Generate the QRC file programmaticaly.
 
@@ -222,18 +244,33 @@ def generate_qrc_file(resource_prefix='qss_icons', style_prefix='qdarkstyle'):
             Defaults to 'qss_icons'.
         style_prefix (str, optional): Prefix used to this style.
             Defaults to 'qdarkstyle'.
+        palette (Palette, optional): Palette.
     """
 
     files = []
+
+    if palette is None:
+        print("Please pass a palette class in order to create its "
+              "qrc file")
+        sys.exit(1)
+
+    if palette.ID is None:
+        print("A QDarkStyle palette requires an ID!")
+        sys.exit(1)
+
+    rc_path = os.path.join(PACKAGE_PATH, palette.ID, 'rc')
+    qrc_filepath = os.path.join(PACKAGE_PATH, palette.ID, QRC_FILE)
+    resource_prefix = resource_prefix + '/' + palette.ID
+    style_prefix = style_prefix + '/' + palette.ID
 
     _logger.info("Generating QRC file ...")
     _logger.info("Resource prefix: %s" % resource_prefix)
     _logger.info("Style prefix: %s" % style_prefix)
 
-    _logger.info("Searching in: %s" % RC_PATH)
+    _logger.info("Searching in: %s" % rc_path)
 
     # Search by png images
-    for fname in sorted(os.listdir(RC_PATH)):
+    for fname in sorted(os.listdir(rc_path)):
         files.append(TEMPLATE_QRC_FILE.format(fname=fname))
 
     # Join parts
@@ -241,10 +278,10 @@ def generate_qrc_file(resource_prefix='qss_icons', style_prefix='qdarkstyle'):
                    + '\n'.join(files)
                    + TEMPLATE_QRC_FOOTER.format(style_prefix=style_prefix))
 
-    _logger.info("Writing in: %s" % QRC_FILEPATH)
+    _logger.info("Writing in: %s" % qrc_filepath)
 
     # Write qrc file
-    with open(QRC_FILEPATH, 'w') as fh:
+    with open(qrc_filepath, 'w') as fh:
         fh.write(qrc_content)
 
 

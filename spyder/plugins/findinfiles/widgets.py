@@ -29,9 +29,8 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainWidget
+from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.gui import get_font
-from spyder.config.main import EXCLUDE_PATTERNS  # This could be more general?
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import SpyderPalette, QStylePalette
@@ -954,7 +953,6 @@ class FindInFilesWidget(PluginMainWidget):
         )
         self.find_action = self.create_action(
             FindInFilesWidgetActions.Find,
-            icon_text=_('Search'),
             text=_("&Find in files"),
             tip=_("Search text in multiple files"),
             icon=self.create_icon('find'),
@@ -1034,27 +1032,8 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
     def update_actions(self):
-        stop_text = _('Stop')
-        search_text = _('Search')
-        if self.running:
-            icon_text = stop_text
-            icon = self.create_icon('stop')
-        else:
-            icon_text = search_text
-            icon = self.create_icon('find')
-
-        self.find_action.setIconText(icon_text)
-        self.find_action.setIcon(icon)
-        widget = self.get_main_toolbar().widgetForAction(self.find_action)
-        if widget:
-            w1 = widget.fontMetrics().width(stop_text)
-            w2 = widget.fontMetrics().width(search_text)
-
-            # Ensure the search/stop button has the same size independent on
-            # the length of the words.
-            width = (self.get_options_menu_button().width() + max([w1, w2])
-                     + EXTRA_BUTTON_PADDING)
-            widget.setMinimumWidth(width)
+        self.find_action.setIcon(self.create_icon(
+            'stop' if self.running else 'find'))
 
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(
@@ -1163,7 +1142,7 @@ class FindInFilesWidget(PluginMainWidget):
         hist_limit = self.get_conf('hist_limit')
         search_texts = [str(self.search_text_edit.itemText(index))
                         for index in range(self.search_text_edit.count())]
-        excludes = [str(self.search_text_edit.itemText(index))
+        excludes = [str(self.exclude_pattern_edit.itemText(index))
                     for index in range(self.exclude_pattern_edit.count())]
         path_history = self.path_selection_combo.get_external_paths()
 
@@ -1361,7 +1340,7 @@ class FindInFilesWidget(PluginMainWidget):
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(1, 10000)
             dialog.setIntStep(1)
-            dialog.setIntValue(self.get_option('max_results'))
+            dialog.setIntValue(self.get_conf('max_results'))
 
             # Connect slot
             dialog.intValueSelected.connect(

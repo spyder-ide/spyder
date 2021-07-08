@@ -34,7 +34,7 @@ def lsp_client_and_completion(request):
 
 
 @pytest.mark.slow
-@pytest.mark.third
+@pytest.mark.order(3)
 def test_didOpen(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
 
@@ -60,7 +60,7 @@ def test_didOpen(lsp_client_and_completion, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.third
+@pytest.mark.order(3)
 def test_get_signature(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
 
@@ -99,7 +99,7 @@ def test_get_signature(lsp_client_and_completion, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.third
+@pytest.mark.order(3)
 def test_get_completions(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
 
@@ -139,7 +139,7 @@ def test_get_completions(lsp_client_and_completion, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.third
+@pytest.mark.order(3)
 def test_go_to_definition(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
 
@@ -179,7 +179,7 @@ def test_go_to_definition(lsp_client_and_completion, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.third
+@pytest.mark.order(3)
 def test_local_signature(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
 
@@ -224,7 +224,7 @@ def test_local_signature(lsp_client_and_completion, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.third
+@pytest.mark.order(3)
 def test_send_workspace_folders_change(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
     folder = '/tmp/'

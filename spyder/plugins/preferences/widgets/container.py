@@ -4,12 +4,16 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+# Standard library imports
+import sys
+
 # Third party imports
 from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import PluginMainContainer
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
 
 
@@ -104,10 +108,14 @@ class PreferencesContainer(PluginMainContainer):
             triggered=self.show_preferences
         )
 
+        if sys.platform == 'darwin':
+            self.show_action.setMenuRole(QAction.PreferencesRole)
+
         self.reset_action = self.create_action(
             PreferencesActions.Reset,
             _("Reset Spyder to factory defaults"),
-            triggered=self.reset
+            triggered=self.reset,
+            icon=self.create_icon('reset_factory_defaults'),
         )
 
     def update_actions(self):
