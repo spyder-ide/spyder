@@ -92,7 +92,7 @@ from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
                                     qapplication, start_file)
 from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.app.solver import find_external_plugins, find_internal_plugins
+from spyder.app.find_plugins import find_external_plugins, find_internal_plugins
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
@@ -901,12 +901,8 @@ class MainWindow(QMainWindow):
                     else:
                         plugin_instance = PLUGIN_REGISTRY.register_plugin(
                             self, PluginClass, external=False)
-                    if plugin_name == Plugins.Projects:
-                        self.project_path = plugin_instance.get_pythonpath(
-                            at_start=True)
-                    else:
-                        self.preferences.register_plugin_preferences(
-                            plugin_instance)
+                    self.preferences.register_plugin_preferences(
+                        plugin_instance)
 
         # Instantiate external Spyder 5 plugins
         for plugin_name in external_plugins:
@@ -917,7 +913,7 @@ class MainWindow(QMainWindow):
                         self, PluginClass, external=True)
 
                     if not running_under_pytest():
-                        # These attributes come from spyder.app.solver
+                        # These attributes come from spyder.app.find_plugins
                         module = PluginClass._spyder_module_name
                         package_name = PluginClass._spyder_package_name
                         version = PluginClass._spyder_version

@@ -144,8 +144,6 @@ class ConfigDialogTester:
 
                     PLUGIN_REGISTRY.register_plugin(self._main, Plugin)
                 else:
-                    # plugin = PLUGIN_REGISTRY.register_plugin(
-                    #     self._main, Plugin)
                     plugin = Plugin(self._main)
                     preferences = self._main.get_plugin(Plugins.Preferences)
                     preferences.register_plugin_preferences(plugin)

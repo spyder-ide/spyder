@@ -878,11 +878,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         if self.NAME is None:
             raise SpyderAPIError('A Spyder Plugin must define a `NAME`!')
 
-        # if self.NAME in self._main._PLUGINS:
-        #     raise SpyderAPIError(
-        #         'A Spyder Plugin with NAME="{}" already exists!'.format(
-        #             self.NAME))
-
         # Setup configuration
         # --------------------------------------------------------------------
         if self._conf is not None and not omit_conf:

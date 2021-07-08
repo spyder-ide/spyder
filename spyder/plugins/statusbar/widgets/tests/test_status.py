@@ -34,7 +34,6 @@ def status_bar(qtbot):
     plugin = StatusBar(parent=window, configuration=CONF)
     plugin.remove_status_widgets()
     plugin.initialize()
-    # plugin.register()
 
     qtbot.addWidget(window)
     window.resize(640, 480)

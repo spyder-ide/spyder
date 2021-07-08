@@ -25,7 +25,6 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QMessageBox
 
 # Local imports
-from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation

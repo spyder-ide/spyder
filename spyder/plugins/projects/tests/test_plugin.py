@@ -20,10 +20,8 @@ from unittest.mock import Mock, MagicMock
 # Third party imports
 import pytest
 from flaky import flaky
-from qtpy.QtWidgets import QWidget
 
 # Local imports
-from spyder.api.plugins import SpyderPluginV2
 from spyder.config.manager import CONF
 import spyder.plugins.base
 from spyder.plugins.projects.plugin import Projects, QMessageBox
