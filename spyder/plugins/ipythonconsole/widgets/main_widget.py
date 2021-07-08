@@ -32,9 +32,9 @@ from zmq.ssh import tunnel as zmqtunnel
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import (
     get_conf_path, get_home_dir, running_under_pytest)
-from spyder.config.gui import get_font
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
@@ -78,6 +78,11 @@ class IPythonConsoleWidgetActions:
     RemoveAllVariables = 'remove_all_variables_action'
     ResetNamespace = 'reset_namespace_action'
 
+    # Documentation and help
+    IPythonDocumentation = 'ipython_documentation'
+    ConsoleHelp = 'console_help'
+    QuickReference = 'quick_reference'
+
     # Tabs
     RenameTab = 'rename_tab_action'
     NewTab = 'new_tab_action'
@@ -111,6 +116,8 @@ class IPythonConsoleWidget(PluginMainWidget):
     """
 
     # Signals
+    sig_history_requested = Signal(str)
+
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
@@ -260,7 +267,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.tabwidget.set_close_function(self.close_client)
 
         # TODO: Check dependency with Editor
-        self.plugin.main.editor.sig_file_debug_message_requested.connect(
+        self._plugin.main.editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
         if sys.platform == 'darwin':
@@ -272,6 +279,23 @@ class IPythonConsoleWidget(PluginMainWidget):
             layout.addWidget(tab_container)
         else:
             layout.addWidget(self.tabwidget)
+
+        self.time_label = QLabel("")
+
+        self.stop_button = self.create_toolbutton(
+            'interrupt',
+            text=_("Interrupt kernel"),
+            tip=_("Interrupt kernel"),
+            icon=self.create_icon('stop'),
+            triggered=self.interrupt_kernel,
+        )
+        self.reset_button = self.create_toolbutton(
+            'reset',
+            text=_("Remove all variables"),
+            tip=_("Remove all variables from kernel namespace"),
+            icon=self.create_icon("editdelete"),
+            triggered=self.reset_kernel,
+        )
 
         # Info widget
         self.infowidget = FrameWebView(self)
@@ -297,7 +321,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts(self.find_widget)
+        # self.register_widget_shortcuts(self.find_widget)
         layout.addWidget(self.find_widget)
 
         self.setLayout(layout)
@@ -321,19 +345,19 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def setup(self):
         # ---- Options menu actions
-        create_client_action = self.create_action(
+        self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
             text=_("New console (default settings)"),
             icon=self.create_icon('ipython_console'),
             triggered=self.create_new_client,
         )
-        restart_action = self.create_action(
+        self.restart_action = self.create_action(
             IPythonConsoleWidgetActions.Restart,
             text=_("Restart kernel"),
             icon=self.create_icon('restart'),
             triggered=self.restart_kernel,
         )
-        reset_action = self.create_action(
+        self.reset_action = self.create_action(
             IPythonConsoleWidgetActions.RemoveAllVariables,
             text=_("Remove all variables"),
             icon=self.create_icon('editdelete'),
@@ -345,7 +369,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             icon=self.create_icon('stop'),
             triggered=self.interrupt_kernel,
         )
-        connect_to_kernel_action = self.create_action(
+        self.connect_to_kernel_action = self.create_action(
             IPythonConsoleWidgetActions.ConnectToKernel,
             text=_("Connect to an existing kernel"),
             tip=_("Open a new IPython console connected to an existing "
@@ -360,19 +384,19 @@ class IPythonConsoleWidget(PluginMainWidget):
         )
 
         # From client:
-        env_action = self.create_action(
-            ClientWidgetActions.ShowEnvironmentVariables,
-            text=_("Show environment variables"),
-            icon=self.create_icon('environ'),
-            triggered=self.request_env,
-        )
+        # env_action = self.create_action(
+        #     ClientWidgetActions.ShowEnvironmentVariables,
+        #     text=_("Show environment variables"),
+        #     icon=self.create_icon('environ'),
+        #     triggered=self.request_env,
+        # )
 
-        syspath_action = self.create_action(
-            ClientWidgetActions.ShowSystemPath,
-            text=_("Show sys.path contents"),
-            icon=self.create_icon('syspath'),
-            triggered=self.request_syspath,
-        )
+        # syspath_action = self.create_action(
+        #     ClientWidgetActions.ShowSystemPath,
+        #     text=_("Show sys.path contents"),
+        #     icon=self.create_icon('syspath'),
+        #     triggered=self.request_syspath,
+        # )
 
         self.show_time_action = self.create_action(
             ClientWidgetActions.ToggleElapsedTime,
@@ -382,27 +406,35 @@ class IPythonConsoleWidget(PluginMainWidget):
         )
 
         options_menu = self.get_options_menu()
-        consoles_submenu = self.create_menu(
+        self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
             _('Special consoles'))
 
-        for item in [create_client_action, consoles_submenu,
-                     connect_to_kernel_action]:
+        for item in [
+                self.create_client_action,
+                self.special_console_menu,
+                self.connect_to_kernel_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
                 section=IPythonConsoleWidgetOptionsMenuSections.Consoles,
             )
 
-        for item in [self.interrupt_action, restart_action, reset_action,
-                     rename_tab_action]:
+        for item in [
+                self.interrupt_action,
+                self.restart_action,
+                self.reset_action,
+                rename_tab_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
                 section=IPythonConsoleWidgetOptionsMenuSections.Edit,
             )
 
-        for item in [env_action, syspath_action, self.show_time_action]:
+        for item in [
+                # env_action,
+                # syspath_action,
+                self.show_time_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -451,6 +483,26 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.add_corner_widget('start_interrupt', self.stop_button)
         self.add_corner_widget('timer', self.time_label)
 
+        self.ipython_menu = SpyderMenu(
+            parent=self,
+            title=_("IPython documentation"))
+        intro_action = self.create_action(
+            IPythonConsoleWidgetActions.IPythonDocumentation,
+            text=_("Intro to IPython"),
+            triggered=self.show_intro)
+        quickref_action = self.create_action(
+            IPythonConsoleWidgetActions.QuickReference,
+            text=_("Quick reference"),
+            triggered=self.show_quickref)
+        guiref_action = self.create_action(
+            IPythonConsoleWidgetActions.ConsoleHelp,
+            text=_("Console help"),
+            triggered=self.show_guiref)
+
+        for help_action in [
+                intro_action, guiref_action, quickref_action]:
+            self.ipython_menu.add_action(help_action)
+
         # Check for a current client. Since it manages more actions.
         # TODO: Check other actions that are defined at client level
         # client = self.get_current_client()
@@ -458,8 +510,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         #     return client.get_options_menu()
 
     def update_style(self):
-        rich_font = get_font(option='rich_font')
-        font = self.plugin.get_font()
+        rich_font = self._plugin.get_font(option='rich_font')
+        font = self._plugin.get_font()
         self.update_font(font, rich_font)
 
     def update_actions(self):
@@ -543,37 +595,21 @@ class IPythonConsoleWidget(PluginMainWidget):
             current_client.restart_kernel()
 
     # ---- GUI options
-    @on_conf_change(option='plugin_font')
-    def change_clients_font(self, value):
-        for idx, client in enumerate(self.clients):
-            # TODO: Review if this is valid or the value needs to be
-            # retrieved
-            # font = self.plugin.get_font()
-            font = value
-            self._change_client_conf(
-                client,
-                client.set_font,
-                font)
-
-    @on_conf_change(option='connect_to_oi')
+    @on_conf_change(section='help', option='connect/ipython_console')
     def change_clients_help_connection(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Review management of the preference (where it should go?)
-            help_o = self.get_conf('connect/ipython_console', section='help')
             self._change_client_conf(
                 client,
                 client.get_control().set_help_enabled,
-                help_o)
+                value)
 
-    @on_conf_change(option='color_scheme_name')
+    @on_conf_change(section='appearance', option='selected')
     def change_clients_color_scheme(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Review management of the preference
-            color_scheme_o = self.get_conf('selected', section='appearance')
             self._change_client_conf(
                 client,
                 client.set_color_scheme,
-                color_scheme_o)
+                value)
 
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
@@ -706,7 +742,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.shellwidget.set_pdb_use_exclamation_mark,
                 value)
 
-    # ---- Private API
+    # ---- Private methods
     # -------------------------------------------------------------------------
     def _change_client_conf(self, client, client_conf_func, value):
         """
@@ -836,16 +872,16 @@ class IPythonConsoleWidget(PluginMainWidget):
     def _shellwidget_started(self, client):
         # TODO: This will change after
         # https://github.com/spyder-ide/spyder/pull/15922 gets merged
-        if self.plugin.main.variableexplorer is not None:
-            self.plugin.main.variableexplorer.add_shellwidget(client.shellwidget)
+        if self._plugin.main.variableexplorer is not None:
+            self._plugin.main.variableexplorer.add_shellwidget(client.shellwidget)
 
         self.sig_shellwidget_created.emit(client.shellwidget)
 
     def _shellwidget_deleted(self, client):
         # TODO: This will change after
         # https://github.com/spyder-ide/spyder/pull/15922 gets merged
-        if self.plugin.main.variableexplorer is not None:
-            self.plugin.main.variableexplorer.remove_shellwidget(client.shellwidget)
+        if self._plugin.main.variableexplorer is not None:
+            self._plugin.main.variableexplorer.remove_shellwidget(client.shellwidget)
 
         self.sig_shellwidget_deleted.emit(client.shellwidget)
 
@@ -1032,7 +1068,9 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         if client:
             sw = client.shellwidget
-            self.main.variableexplorer.set_shellwidget(sw)
+            # TODO: This will change after
+            # https://github.com/spyder-ide/spyder/pull/15922 gets merged
+            self._plugin.main.variableexplorer.set_shellwidget(sw)
             self.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
@@ -1305,8 +1343,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                                       is_sympy=is_sympy),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              menu_actions=self.menu_actions,
-                              options_button=self.options_button,
+                              # menu_actions=self.menu_actions,
+                              # options_button=self.options_button,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
@@ -1477,10 +1515,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         if self.get_conf(
                 'console/use_project_or_home_directory', section='workingdir'):
             cwd_path = get_home_dir()
-            if (self.plugin.main.projects is not None and
-                    self.plugin.main.projects.get_active_project()
+            if (self._plugin.main.projects is not None and
+                    self._plugin.main.projects.get_active_project()
                     is not None):
-                cwd_path = self.plugin.main.projects.get_active_project_path()
+                cwd_path = self._plugin.main.projects.get_active_project_path()
         elif self.get_conf(
                 'startup/use_fixed_directory', section='workingdir'):
             cwd_path = self.get_conf(
@@ -1492,19 +1530,20 @@ class IPythonConsoleWidget(PluginMainWidget):
             cwd_path = self.get_conf(
                 'console/fixed_directory', section='workingdir')
 
-        if osp.isdir(cwd_path) and self.plugin.main is not None:
+        if osp.isdir(cwd_path) and self._plugin.main is not None:
             shellwidget.set_cwd(cwd_path)
             if give_focus:
                 # Syncronice cwd with explorer and cwd widget
                 shellwidget.update_cwd()
 
         # Connect client to history log
+        # TODO: Review signal
         self.sig_history_requested.emit(client.history_filename)
-        client.sig_append_to_history_requested.connect(
-            self.sig_append_to_history_requested)
+        # client.sig_append_to_history_requested.connect(
+        #     self.sig_append_to_history_requested)
 
         # Set font for client
-        client.set_font(self.plugin.get_font())
+        client.set_font(self._plugin.get_font())
 
         # Set editor for the find widget
         self.find_widget.set_editor(control)
@@ -1550,14 +1589,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             close_all = True
             if client.ask_before_closing:
                 close = QMessageBox.question(
-                    self, self.plugin.get_plugin_title(),
+                    self, self._plugin.get_plugin_title(),
                     _("Do you want to close this console?"),
                     QMessageBox.Yes | QMessageBox.No)
                 if close == QMessageBox.No:
                     return
             if len(self.get_related_clients(client)) > 0:
                 close_all = QMessageBox.question(
-                    self, self.plugin.get_plugin_title(),
+                    self, self._plugin.get_plugin_title(),
                     _("Do you want to close all other consoles connected "
                       "to the same kernel as this one?"),
                     QMessageBox.Yes | QMessageBox.No)
@@ -1671,7 +1710,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # TODO: Check PYTHONPATH management
         self.set_conf(
             'spyder_pythonpath',
-            self.plugin.main.get_spyder_pythonpath(),
+            self._plugin.main.get_spyder_pythonpath(),
             section='main')
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
@@ -1759,19 +1798,19 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # TODO: This will change after
         # https://github.com/spyder-ide/spyder/pull/15922 gets merged
-        if self.plugin.main.variableexplorer is not None:
-            self.plugin.main.variableexplorer.add_shellwidget(sw)
+        if self._plugin.main.variableexplorer is not None:
+            self._plugin.main.variableexplorer.add_shellwidget(sw)
             sw.set_namespace_view_settings()
             sw.refresh_namespacebrowser()
             kc.stopped_channels.connect(
                 lambda:
-                self.plugin.main.variableexplorer.remove_shellwidget(id(sw)))
+                self._plugin.main.variableexplorer.remove_shellwidget(id(sw)))
 
-        if self.plugin.main.plots is not None:
-            self.plugin.main.plots.add_shellwidget(sw)
+        if self._plugin.main.plots is not None:
+            self._plugin.main.plots.add_shellwidget(sw)
             kc.stopped_channels.connect(
                 lambda:
-                self.plugin.main.plots.remove_shellwidget(id(sw)))
+                self._plugin.main.plots.remove_shellwidget(id(sw)))
 
     # ---- For running and debugging
     # --------------------------------------------------------------------------
@@ -1838,6 +1877,13 @@ class IPythonConsoleWidget(PluginMainWidget):
                 fname = pdb_last_step['fname']
                 line = pdb_last_step['lineno']
                 self.pdb_has_stopped(fname, line, sw)
+
+    def print_debug_file_msg(self):
+        """Print message in the current console when a file can't be closed."""
+        debug_msg = _('The current file cannot be closed because it is '
+                      'in debug mode.')
+        self.get_current_client().shellwidget.append_html_message(
+                    debug_msg, before_prompt=True)
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, run_cell_copy,
@@ -1982,7 +2028,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             shell = client.shellwidget
             if shell is not None:
                 # TODO: Change to use the preferences?
-                self.plugin.main.get_spyder_pythonpath()
+                self._plugin.main.get_spyder_pythonpath()
                 shell.update_syspath(path_dict, new_path_dict)
 
     # ---- For execution
@@ -1995,8 +2041,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         console.switch_to_plugin()
         console.execute_code(lines)
         # TODO: Move to a signal?
-        if focus_to_editor and self.plugin.main.editor:
-            self.plugin.main.editor.switch_to_plugin()
+        if focus_to_editor and self._plugin.main.editor:
+            self._plugin.main.editor.switch_to_plugin()
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""

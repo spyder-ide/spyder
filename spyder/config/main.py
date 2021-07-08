@@ -165,6 +165,9 @@ DEFAULTS = [
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': True,
               'pdb_stop_first_line': True,
+              'testing': False,
+              'test_dir': None,
+              'test_no_stderr': False
               }),
             ('variable_explorer',
              {

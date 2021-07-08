@@ -845,15 +845,16 @@ class MainWindow(QMainWindow):
         for plugin_class in plugin_deps:
             plugin_name = plugin_class.NAME
             # Non-migrated plugins
+            # TODO: Remove IPython Console old load
             if plugin_name in [
                     Plugins.Editor,
-                    Plugins.IPythonConsole]:
-                if plugin_name == Plugins.IPythonConsole:
-                    plugin_instance = plugin_class(self)
-                    plugin_instance.sig_exception_occurred.connect(
-                        self.handle_exception)
-                else:
-                    plugin_instance = plugin_class(self)
+                    ]:  # Plugins.IPythonConsole]:
+                # if plugin_name == Plugins.IPythonConsole:
+                #     plugin_instance = plugin_class(self)
+                #     plugin_instance.sig_exception_occurred.connect(
+                #         self.handle_exception)
+                # else:
+                plugin_instance = plugin_class(self)
                 plugin_instance.register_plugin()
                 self.add_plugin(plugin_instance)
                 self.preferences.register_plugin_preferences(
@@ -885,7 +886,8 @@ class MainWindow(QMainWindow):
                     Plugins.WorkingDirectory,
                     Plugins.Layout,
                     Plugins.Tours,
-                    Plugins.Projects]:
+                    Plugins.Projects,
+                    Plugins.IPythonConsole]:
                 plugin_instance = plugin_class(self, configuration=CONF)
                 self.register_plugin(plugin_instance)
                 # TODO: Check thirdparty attribute usage
