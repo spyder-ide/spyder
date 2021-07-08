@@ -15,8 +15,8 @@ import os
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QThread, Slot
-from qtpy.QtWidgets import QMessageBox, QAction
+from qtpy.QtCore import Qt, QThread, QTimer, Slot
+from qtpy.QtWidgets import QAction, QMessageBox
 
 # Local imports
 from spyder import (
@@ -24,7 +24,6 @@ from spyder import (
 from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.config.base import DEV
 from spyder.config.utils import is_anaconda
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
@@ -64,7 +63,11 @@ class ApplicationActions:
 
 
 class ApplicationContainer(PluginMainContainer):
+
     def setup(self):
+        # Compute dependencies in a thread to not block the interface.
+        self.dependencies_thread = QThread()
+
         # Attributes
         self.dialog_manager = DialogManager()
         self.give_updates_feedback = False
@@ -142,11 +145,6 @@ class ApplicationContainer(PluginMainContainer):
             shortcut_context="_",
             register_shortcut=True)
 
-        # Initialize
-        if DEV is None and self.get_conf('check_updates_on_startup'):
-            self.give_updates_feedback = False
-            self.check_updates(startup=True)
-
     def update_actions(self):
         pass
 
@@ -174,6 +172,7 @@ class ApplicationContainer(PluginMainContainer):
         box = MessageCheckBox(icon=QMessageBox.Information,
                               parent=self)
         box.setWindowTitle(_("New Spyder version"))
+        box.setAttribute(Qt.WA_ShowWithoutActivating)
         box.set_checkbox_text(_("Check for updates at startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
@@ -216,7 +215,7 @@ class ApplicationContainer(PluginMainContainer):
                 msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
-                box.exec_()
+                box.show()
                 check_updates = box.is_checked()
             elif feedback:
                 msg = _("Spyder is up to date.")
@@ -249,7 +248,15 @@ class ApplicationContainer(PluginMainContainer):
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)
         self.thread_updates.started.connect(self.worker_updates.start)
-        self.thread_updates.start()
+
+        # Delay starting this check to avoid blocking the main window
+        # while loading.
+        # Fixes spyder-ide/spyder#15839
+        updates_timer = QTimer(self)
+        updates_timer.setInterval(3000)
+        updates_timer.setSingleShot(True)
+        updates_timer.timeout.connect(self.thread_updates.start)
+        updates_timer.start()
 
     @Slot()
     def show_dependencies(self):
@@ -271,7 +278,16 @@ class ApplicationContainer(PluginMainContainer):
 
     def compute_dependencies(self):
         """Compute dependencies"""
-        dependencies.declare_dependencies()
+        self.dependencies_thread.run = dependencies.declare_dependencies
+        self.dependencies_thread.finished.connect(
+            self.report_missing_dependencies)
+
+        # This avoids computing missing deps before the window is fully up
+        dependencies_timer = QTimer(self)
+        dependencies_timer.setInterval(10000)
+        dependencies_timer.setSingleShot(True)
+        dependencies_timer.timeout.connect(self.dependencies_thread.start)
+        dependencies_timer.start()
 
     @Slot()
     def report_missing_dependencies(self):
@@ -304,6 +320,7 @@ class ApplicationContainer(PluginMainContainer):
             message_box = QMessageBox(self)
             message_box.setIcon(QMessageBox.Critical)
             message_box.setAttribute(Qt.WA_DeleteOnClose)
+            message_box.setAttribute(Qt.WA_ShowWithoutActivating)
             message_box.setStandardButtons(QMessageBox.Ok)
             message_box.setWindowModality(Qt.NonModal)
             message_box.setWindowTitle(_('Error'))
