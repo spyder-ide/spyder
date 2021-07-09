@@ -480,7 +480,7 @@ the sympy module (e.g. plot)
             box.set_check_visible(True)
             box.setText(warn_str)
 
-            answer = box.exec_()
+            answer = box.show()
 
             # Update checkbox based on user interaction
             self.set_conf(

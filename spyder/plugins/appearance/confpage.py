@@ -6,6 +6,7 @@
 
 """Appearance entry in Preferences."""
 
+from qtconsole.styles import dark_color
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import (QApplication, QDialog, QFontComboBox,
                             QGridLayout, QGroupBox, QMessageBox,
@@ -19,6 +20,7 @@ from spyder.config.manager import CONF
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
+from spyder.utils.palette import QStylePalette
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 # Localization
@@ -172,11 +174,14 @@ class AppearanceConfigPage(PluginConfigPage):
     def apply_settings(self):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
+
+        # A dark color scheme is characterized by a light font and viceversa
+        is_dark_color_scheme = not is_dark_font_color(color_scheme)
         ui_theme = self.get_option('ui_theme')
-        style_sheet = self.main.styleSheet()
+
         if ui_theme == 'automatic':
-            if ((not is_dark_font_color(color_scheme) and not style_sheet)
-                    or (is_dark_font_color(color_scheme) and style_sheet)):
+            if ((self.is_dark_interface() and not is_dark_color_scheme) or
+                    (not self.is_dark_interface() and is_dark_color_scheme)):
                 self.changed_options.add('ui_theme')
             elif 'ui_theme' in self.changed_options:
                 self.changed_options.remove('ui_theme')
@@ -201,8 +206,8 @@ class AppearanceConfigPage(PluginConfigPage):
                 self.update_preview()
         else:
             if 'ui_theme' in self.changed_options:
-                if (style_sheet and ui_theme == 'dark' or
-                        not style_sheet and ui_theme == 'light'):
+                if ((self.is_dark_interface() and ui_theme == 'dark') or
+                    (not self.is_dark_interface() and ui_theme == 'light')):
                     self.changed_options.remove('ui_theme')
 
             if 'ui_theme' not in self.changed_options:
@@ -429,3 +434,13 @@ class AppearanceConfigPage(PluginConfigPage):
                 self.set_option(option, value)
 
             self.load_from_conf()
+
+    def is_dark_interface(self):
+        """
+        Check if our interface is dark independently from our config
+        system.
+
+        We need to do this because when applying settings we can't
+        detect correctly the current theme.
+        """
+        return dark_color(QStylePalette.COLOR_BACKGROUND_1)

@@ -692,15 +692,14 @@ class BaseEditMixin(object):
             return os.linesep
 
     def get_text_with_eol(self):
-        """Same as 'toPlainText', replace '\n'
-        by correct end-of-line characters"""
-        utext = to_text_string(self.toPlainText())
-        lines = utext.splitlines()
+        """
+        Same as 'toPlainText', replacing '\n' by correct end-of-line
+        characters.
+        """
+        text = self.toPlainText()
         linesep = self.get_line_separator()
-        txt = linesep.join(lines)
-        if utext.endswith('\n'):
-            txt += linesep
-        return txt
+        text.replace('\n', linesep)
+        return text
 
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):

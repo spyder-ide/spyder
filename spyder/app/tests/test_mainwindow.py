@@ -277,6 +277,9 @@ def main_window(request, tmpdir):
         pass
 
     if not hasattr(main_window, 'window'):
+        from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+        PLUGIN_REGISTRY.reset()
+
         # Start the window
         window = start.main()
         main_window.window = window

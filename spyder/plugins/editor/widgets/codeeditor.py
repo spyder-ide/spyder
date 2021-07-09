@@ -1086,7 +1086,7 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
         cursor = self.textCursor()
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP as it doesn't support IPython
             text = self.ipython_to_python(text)
@@ -1135,7 +1135,7 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP
             text = self.ipython_to_python(text)
@@ -1478,7 +1478,7 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Hover/Mouse ---------------------------------------
     @request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
     def request_cursor_event(self):
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         cursor = self.textCursor()
         params = {
             'file': self.filename,
@@ -1710,7 +1710,7 @@ class CodeEditor(TextEditBaseWidget):
         if edits is None:
             return
 
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         text_tokens = list(text)
         merged_text = None
         for edit in edits:
@@ -1851,7 +1851,7 @@ class CodeEditor(TextEditBaseWidget):
         """Send save request."""
         params = {'file': self.filename}
         if self.save_include_text:
-            params['text'] = self.toPlainText()
+            params['text'] = self.get_text_with_eol()
         return params
 
     @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,

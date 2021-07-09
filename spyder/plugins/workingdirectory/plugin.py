@@ -16,6 +16,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
@@ -65,56 +66,70 @@ class WorkingDirectory(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon('DirOpenIcon')
 
-    def register(self):
+    def on_initialize(self):
         container = self.get_container()
-        toolbar = self.get_plugin(Plugins.Toolbar)
-        editor = self.get_plugin(Plugins.Editor)
-        explorer = self.get_plugin(Plugins.Explorer)
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        projects = self.get_plugin(Plugins.Projects)
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
 
-        toolbar.add_application_toolbar(container.toolbar)
         container.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
         self.sig_current_directory_changed.connect(
             lambda path, plugin=None: self.chdir(path, plugin))
+
         container.set_history(self.load_history())
 
-        if editor:
-            editor.sig_dir_opened.connect(
-                lambda path, plugin=editor: self.chdir(path, editor))
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.add_application_toolbar(container.toolbar)
 
-        if ipyconsole:
-            self.sig_current_directory_changed.connect(
-                ipyconsole.set_current_client_working_directory)
-            # TODO: chdir_current_client might follow a better naming
-            # convention
-            ipyconsole.sig_current_directory_changed.connect(
-                lambda path, plugin=ipyconsole: self.chdir(path, plugin))
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
 
-        if explorer:
-            self.sig_current_directory_changed.connect(
-                lambda path: explorer.chdir(path, emit=False))
-            explorer.sig_dir_opened.connect(
-                lambda path, plugin=explorer: self.chdir(path, plugin))
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        editor = self.get_plugin(Plugins.Editor)
+        editor.sig_dir_opened.connect(
+            lambda path, plugin=editor: self.chdir(path, editor))
 
-        if projects:
-            projects.sig_project_loaded.connect(
-                lambda path:
-                self.chdir(
-                    directory=path,
-                    sender_plugin=projects
-                )
+    @on_plugin_available(plugin=Plugins.Explorer)
+    def on_explorer_available(self):
+        explorer = self.get_plugin(Plugins.Explorer)
+
+        self.sig_current_directory_changed.connect(
+            lambda path: explorer.chdir(path, emit=False))
+        explorer.sig_dir_opened.connect(
+            lambda path, plugin=explorer: self.chdir(path, plugin))
+
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+
+        self.sig_current_directory_changed.connect(
+            ipyconsole.set_current_client_working_directory)
+        # TODO: chdir_current_client might follow a better naming
+        # convention
+        ipyconsole.sig_current_directory_changed.connect(
+            lambda path, plugin=ipyconsole: self.chdir(path, plugin))
+
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(
+            lambda path:
+            self.chdir(
+                directory=path,
+                sender_plugin=projects
+           )
+        )
+
+        projects.sig_project_closed[object].connect(
+            lambda path: self.chdir(
+                directory=projects.get_last_working_dir(),
+                sender_plugin=projects
             )
-
-            projects.sig_project_closed[object].connect(
-                lambda path: self.chdir(
-                    directory=projects.get_last_working_dir(),
-                    sender_plugin=projects
-                )
-            )
+        )
 
     # --- Public API
     # ------------------------------------------------------------------------

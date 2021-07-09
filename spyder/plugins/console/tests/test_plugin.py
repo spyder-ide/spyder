@@ -22,6 +22,7 @@ from flaky import flaky
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 from spyder.plugins.console.plugin import Console
 from spyder.widgets.reporterror import SpyderErrorDialog
@@ -56,7 +57,8 @@ def console_plugin(qtbot):
                 return self.__dict__[attr]
 
     window = MainWindowMock()
-    console_plugin = Console(parent=window, configuration=CONF)
+    console_plugin = PLUGIN_REGISTRY.register_plugin(
+        window, Console, external=False)
     console_plugin.start_interpreter({})
     window.setCentralWidget(console_plugin.get_widget())
 
@@ -150,7 +152,7 @@ ZeroDivisionError: division by zero
     # Set config and call register so the dialog is created
     console_plugin.set_conf('previous_crash', error,
                             section='main')
-    console_plugin.register()
+    console_plugin.on_initialize()
 
     # Make sure the error dialog was generated.
     assert widget.error_dlg is not None

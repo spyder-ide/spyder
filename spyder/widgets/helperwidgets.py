@@ -67,7 +67,8 @@ class MessageCheckBox(QMessageBox):
     def __init__(self, *args, **kwargs):
         super(MessageCheckBox, self).__init__(*args, **kwargs)
 
-        self._checkbox = QCheckBox()
+        self.setWindowModality(Qt.NonModal)
+        self._checkbox = QCheckBox(self)
 
         # Set layout to include checkbox
         size = 9

@@ -14,12 +14,13 @@ import subprocess
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QThread, QTimer, Slot
+from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import DEV, get_module_path, running_under_pytest
 from spyder.plugins.application.confpage import ApplicationConfigPage
@@ -43,12 +44,6 @@ class Application(SpyderPluginV2):
     CONF_FILE = False
     CONF_WIDGET_CLASS = ApplicationConfigPage
 
-    def __init__(self, parent, configuration=None):
-        super().__init__(parent, configuration)
-
-        # Compute dependencies in a thread to not block the interface.
-        self.dependencies_thread = QThread()
-
     def get_name(self):
         return _('Application')
 
@@ -58,57 +53,82 @@ class Application(SpyderPluginV2):
     def get_description(self):
         return _('Provide main application base actions.')
 
-    def register(self):
-        # Register with Preferences plugin
-        console = self.get_plugin(Plugins.Console)
-        main_menu = self.get_plugin(Plugins.MainMenu)
-        preferences = self.get_plugin(Plugins.Preferences)
+    def on_initialize(self):
+        self.console_available = False
+        self.main_menu_available = False
+        self.shortcuts_available = False
 
+    @on_plugin_available(plugin=Plugins.Shortcuts)
+    def on_shortcuts_available(self):
+        self.shortcuts_available = True
+        if self.main_menu_available:
+            self._populate_help_menu()
+
+    @on_plugin_available(plugin=Plugins.Console)
+    def on_console_available(self):
+        self.console_available = True
+
+        if self.main_menu_available:
+            report_action = self.get_action(ConsoleActions.SpyderReportAction)
+            report_action.setVisible(True)
+
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
         # Register conf page
+        preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-        # Main menu population
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        self.main_menu_available = True
+
         self._populate_file_menu()
         self._populate_tools_menu()
-        self._populate_help_menu()
+
+        if self.is_plugin_enabled(Plugins.Shortcuts):
+            if self.shortcuts_available:
+                self._populate_help_menu()
+        else:
+            self._populate_help_menu()
+
+        dependencies_action = self.get_action(
+            ApplicationActions.SpyderDependenciesAction)
 
         # Actions
         report_action = self.create_action(
             ConsoleActions.SpyderReportAction,
             _("Report issue..."),
             icon=self.create_icon('bug'),
-            triggered=console.report_issue)
-        dependencies_action = self.get_action(
-            ApplicationActions.SpyderDependenciesAction)
-        if main_menu:
-            main_menu.add_item_to_application_menu(
-                report_action,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.Support,
-                before=dependencies_action)
+            triggered=self.report_issue)
+
+        if not self.console_available:
+            report_action.setVisible(False)
+
+        main_menu.add_item_to_application_menu(
+            report_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.Support,
+            before=dependencies_action)
 
     def on_close(self):
         self.get_container().on_close()
 
     def on_mainwindow_visible(self):
         """Actions after the mainwindow in visible."""
+        container = self.get_container()
+
         # Show dialog with missing dependencies
         if not running_under_pytest():
-            container = self.get_container()
-            self.dependencies_thread.run = container.compute_dependencies
-            self.dependencies_thread.finished.connect(
-                container.report_missing_dependencies)
+            container.compute_dependencies()
 
-            # This avoids computing missing deps before the window is fully up
-            dependencies_timer = QTimer(self)
-            dependencies_timer.setInterval(10000)
-            dependencies_timer.setSingleShot(True)
-            dependencies_timer.timeout.connect(self.dependencies_thread.start)
-            dependencies_timer.start()
+        # Check for updates
+        if DEV is None and self.get_conf('check_updates_on_startup'):
+            container.give_updates_feedback = False
+            container.check_updates(startup=True)
 
-    # --- Private methods
+    # ---- Private methods
     # ------------------------------------------------------------------------
-
     def _populate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         if mainmenu:
@@ -172,7 +192,7 @@ class Application(SpyderPluginV2):
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.About)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def get_application_context_menu(self, parent=None):
         """
@@ -203,6 +223,11 @@ class Application(SpyderPluginV2):
         add_actions(menu, actions)
 
         return menu
+
+    def report_issue(self):
+        if self.console_available:
+            console = self.get_plugin(Plugins.Console)
+            console.report_issue()
 
     def apply_settings(self):
         """Apply applications settings."""
