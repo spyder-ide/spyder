@@ -18,6 +18,7 @@ from qtpy.QtWidgets import QApplication, QDesktopWidget, QDockWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
@@ -78,8 +79,7 @@ class Layout(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon("history")  # FIXME:
 
-    def register(self):
-        container = self.get_container()
+    def on_initialize(self):
         self._last_plugin = None
         self._first_spyder_run = False
         self._fullscreen_flag = None
@@ -99,53 +99,56 @@ class Layout(SpyderPluginV2):
         self.register_layout(self, HorizontalSplitLayout)
         self.register_layout(self, VerticalSplitLayout)
 
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        if mainmenu:
-            # Add Panes related actions to View application menu
-            panes_items = [
-                container._plugins_menu,
-                container._lock_interface_action,
-                container._close_dockwidget_action,
-                container._maximize_dockwidget_action]
-            for panes_item in panes_items:
-                mainmenu.add_item_to_application_menu(
-                    panes_item,
-                    menu_id=ApplicationMenus.View,
-                    section=ViewMenuSections.Pane,
-                    before_section=ViewMenuSections.Toolbar)
-            # Add layouts menu to View application menu
-            layout_items = [
-                container._layouts_menu,
-                container._toggle_next_layout_action,
-                container._toggle_previous_layout_action]
-            for layout_item in layout_items:
-                mainmenu.add_item_to_application_menu(
-                    layout_item,
-                    menu_id=ApplicationMenus.View,
-                    section=ViewMenuSections.Layout)
-            # Add fullscreen action to View application menu
-            mainmenu.add_item_to_application_menu(
-                container._fullscreen_action,
-                menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.Bottom)
-
-        toolbars = self.get_plugin(Plugins.Toolbar)
-        if toolbars:
-            # Add actions to Main application toolbar
-            before_action = self.get_action(
-                PreferencesActions.Show,
-                plugin=Plugins.Preferences
-            )
-
-            toolbars.add_item_to_application_toolbar(
-                container._maximize_dockwidget_action,
-                toolbar_id=ApplicationToolbars.Main,
-                section=MainToolbarSections.ApplicationSection,
-                before=before_action
-            )
-
-        # Update actions icons and text
         self._update_fullscreen_action()
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        container = self.get_container()
+        # Add Panes related actions to View application menu
+        panes_items = [
+            container._plugins_menu,
+            container._lock_interface_action,
+            container._close_dockwidget_action,
+            container._maximize_dockwidget_action]
+        for panes_item in panes_items:
+            mainmenu.add_item_to_application_menu(
+                panes_item,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Pane,
+                before_section=ViewMenuSections.Toolbar)
+        # Add layouts menu to View application menu
+        layout_items = [
+            container._layouts_menu,
+            container._toggle_next_layout_action,
+            container._toggle_previous_layout_action]
+        for layout_item in layout_items:
+            mainmenu.add_item_to_application_menu(
+                layout_item,
+                menu_id=ApplicationMenus.View,
+                section=ViewMenuSections.Layout)
+        # Add fullscreen action to View application menu
+        mainmenu.add_item_to_application_menu(
+            container._fullscreen_action,
+            menu_id=ApplicationMenus.View,
+            section=ViewMenuSections.Bottom)
+
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        container = self.get_container()
+        toolbars = self.get_plugin(Plugins.Toolbar)
+        # Add actions to Main application toolbar
+        before_action = self.get_action(
+            PreferencesActions.Show,
+            plugin=Plugins.Preferences
+        )
+
+        toolbars.add_item_to_application_toolbar(
+            container._maximize_dockwidget_action,
+            toolbar_id=ApplicationToolbars.Main,
+            section=MainToolbarSections.ApplicationSection,
+            before=before_action
+        )
 
     def before_mainwindow_visible(self):
         # Update layout menu

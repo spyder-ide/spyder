@@ -20,6 +20,7 @@ from qtpy.QtWidgets import QMenu
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import DEV, get_module_path, running_under_pytest
 from spyder.plugins.application.confpage import ApplicationConfigPage
@@ -52,34 +53,63 @@ class Application(SpyderPluginV2):
     def get_description(self):
         return _('Provide main application base actions.')
 
-    def register(self):
-        # Register with Preferences plugin
-        console = self.get_plugin(Plugins.Console)
-        main_menu = self.get_plugin(Plugins.MainMenu)
-        preferences = self.get_plugin(Plugins.Preferences)
+    def on_initialize(self):
+        self.console_available = False
+        self.main_menu_available = False
+        self.shortcuts_available = False
 
+    @on_plugin_available(plugin=Plugins.Shortcuts)
+    def on_shortcuts_available(self):
+        self.shortcuts_available = True
+        if self.main_menu_available:
+            self._populate_help_menu()
+
+    @on_plugin_available(plugin=Plugins.Console)
+    def on_console_available(self):
+        self.console_available = True
+
+        if self.main_menu_available:
+            report_action = self.get_action(ConsoleActions.SpyderReportAction)
+            report_action.setVisible(True)
+
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
         # Register conf page
+        preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-        # Main menu population
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        self.main_menu_available = True
+
         self._populate_file_menu()
         self._populate_tools_menu()
-        self._populate_help_menu()
+
+        if self.is_plugin_enabled(Plugins.Shortcuts):
+            if self.shortcuts_available:
+                self._populate_help_menu()
+        else:
+            self._populate_help_menu()
+
+        dependencies_action = self.get_action(
+            ApplicationActions.SpyderDependenciesAction)
 
         # Actions
         report_action = self.create_action(
             ConsoleActions.SpyderReportAction,
             _("Report issue..."),
             icon=self.create_icon('bug'),
-            triggered=console.report_issue)
-        dependencies_action = self.get_action(
-            ApplicationActions.SpyderDependenciesAction)
-        if main_menu:
-            main_menu.add_item_to_application_menu(
-                report_action,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.Support,
-                before=dependencies_action)
+            triggered=self.report_issue)
+
+        if not self.console_available:
+            report_action.setVisible(False)
+
+        main_menu.add_item_to_application_menu(
+            report_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.Support,
+            before=dependencies_action)
 
     def on_close(self):
         self.get_container().on_close()
@@ -193,6 +223,11 @@ class Application(SpyderPluginV2):
         add_actions(menu, actions)
 
         return menu
+
+    def report_issue(self):
+        if self.console_available:
+            console = self.get_plugin(Plugins.Console)
+            console.report_issue()
 
     def apply_settings(self):
         """Apply applications settings."""

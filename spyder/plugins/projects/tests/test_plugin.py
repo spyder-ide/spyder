@@ -38,8 +38,6 @@ def projects(qtbot, mocker):
     """Projects plugin fixture."""
 
     class EditorMock(MagicMock):
-        CONF_SECTION = 'editor'
-
         def get_open_filenames(self):
             # Patch this with mocker to return a different value.
             # See test_set_project_filenames_in_close_project.
@@ -56,18 +54,18 @@ def projects(qtbot, mocker):
 
     # Main window mock
     main_window = MainWindowProjectsMock()
-    editor = EditorMock()
-    main_window.register_plugin(editor)
 
     # Create plugin
     projects = Projects(configuration=CONF)
+    projects.initialize()
+
+    projects.editor = EditorMock()
 
     projects.sig_switch_to_plugin_requested.connect(
         lambda x, y: projects.change_visibility(True))
 
     # This can only be done at this point
     projects._main = main_window
-    projects.register()
 
     # Patching necessary to test visible_if_project_open
     projects.shortcut = None
@@ -139,7 +137,6 @@ def test_close_project_sets_visible_config(projects, tmpdir, value):
     visible_if_project_open is set to the correct value."""
     # Set config to opposite value so that we can check that it's set correctly
     projects.set_conf('visible_if_project_open', not value)
-
     projects.open_project(path=to_text_string(tmpdir))
     if value:
         projects.show_explorer()

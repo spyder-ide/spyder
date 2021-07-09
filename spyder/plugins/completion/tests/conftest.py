@@ -14,6 +14,7 @@ from unittest.mock import Mock, MagicMock
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 from spyder.plugins.completion.plugin import CompletionPlugin
 from spyder.plugins.completion.providers.kite.utils.status import (
@@ -46,8 +47,8 @@ class MainWindowMock(QMainWindow):
 
         self.console = Mock()
         self.sig_main_interpreter_changed = Mock()
-        self.preferences = MagicMock()
-        self.register_plugin(self.preferences)
+
+        PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
 
         # Load shortcuts for tests
         for context, name, __ in CONF.iter_shortcuts():
@@ -60,10 +61,14 @@ class MainWindowMock(QMainWindow):
             setattr(mock_attr, 'prefs_dialog_instance', lambda: '')
             setattr(self, attr, mock_attr)
 
-    def register_plugin(self, plugin, external=False):
+    def register_plugin(self, plugin_name, external=False):
+        plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
         plugin._register()
-        plugin.register()
         self.add_plugin(plugin, external=external)
+
+    def get_plugin(self, plugin_name):
+        if plugin_name in PLUGIN_REGISTRY:
+            return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
     def add_plugin(self, plugin, external=False):
         self._PLUGINS[plugin.CONF_SECTION] = plugin

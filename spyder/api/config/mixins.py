@@ -255,6 +255,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     """
 
     def __init__(self):
+        super().__init__()
         if self.CONF_SECTION is None:
             warnings.warn(
                 'A SpyderConfigurationObserver must define a `CONF_SECTION` '
