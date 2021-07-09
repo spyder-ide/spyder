@@ -7,6 +7,7 @@
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.api.plugins import Plugins
 
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
@@ -71,9 +72,9 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         # Signals and slots
-        # ??? How to emit without going through main?
+        container = self.main.get_plugin(Plugins.Preferences).get_container()
         self.button_reset.clicked.connect(
-            self.main.preferences.sig_reset_preferences_requested)
+            container.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
                                              self.pages_widget.setCurrentIndex)

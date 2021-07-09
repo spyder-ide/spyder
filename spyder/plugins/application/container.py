@@ -62,6 +62,7 @@ class ApplicationActions:
     # The name of the action needs to match the name of the shortcut
     # so 'Restart' is used instead of something like 'restart_action'
     SpyderRestart = "Restart"
+    SpyderRestartDebug = "Restart in DEBUG mode"
 
 
 class ApplicationContainer(PluginMainContainer):
@@ -150,8 +151,17 @@ class ApplicationContainer(PluginMainContainer):
             ApplicationActions.SpyderRestart,
             _("&Restart"),
             icon=self.create_icon('restart'),
-            tip=_("Restart"),
-            triggered=self.sig_restart_requested,
+            tip=_("Restart in normal mode"),
+            triggered=self.restart_normal,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_",
+            register_shortcut=True)
+        self.restart_debug_action = self.create_action(
+            ApplicationActions.SpyderRestartDebug,
+            _("&Restart in DEBUG mode"),
+            icon=self.create_icon('restart'),
+            tip=_("Restart in DEBUG mode"),
+            triggered=self.restart_debug,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True)
@@ -342,3 +352,19 @@ class ApplicationContainer(PluginMainContainer):
             message_box.setWindowTitle(_('Error'))
             message_box.setText(message)
             message_box.show()
+
+    @Slot()
+    def restart_normal(self):
+        # always restart in standard mode
+        os.environ['SPYDER_DEBUG'] = ''
+        self.sig_restart_requested.emit()
+
+    @Slot()
+    def restart_debug(self):
+        answer = QMessageBox.warning(self, _("Warning"),
+             _("Spyder will restart in DEBUG mode: <br><br>"
+               "Do you want to continue?"),
+             QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            os.environ['SPYDER_DEBUG'] = '3'
+            self.sig_restart_requested.emit()

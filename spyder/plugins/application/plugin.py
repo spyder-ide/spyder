@@ -114,6 +114,10 @@ class Application(SpyderPluginV2):
             self.restart_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.Restart)
+        mainmenu.add_item_to_application_menu(
+            self.restart_debug_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Restart)
 
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -321,6 +325,11 @@ class Application(SpyderPluginV2):
     def restart_action(self):
         """Restart Spyder action."""
         return self.get_container().restart_action
+
+    @property
+    def restart_debug_action(self):
+        """Restart Spyder in DEBUG mode action."""
+        return self.get_container().restart_debug_action
 
     @property
     def report_action(self):
