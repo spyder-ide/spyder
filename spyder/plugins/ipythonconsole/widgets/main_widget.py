@@ -117,6 +117,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # Signals
     sig_history_requested = Signal(str)
+    sig_focus_changed = Signal()
 
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """

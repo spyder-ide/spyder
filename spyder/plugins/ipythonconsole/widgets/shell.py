@@ -749,7 +749,8 @@ the sympy module (e.g. plot)
 
     def get_editorstack(self):
         """Get the current editorstack."""
-        plugin = self.ipyclient.plugin
+        # TODO: Should not call the Editor directly
+        plugin = self.ipyclient.container._plugin
         if plugin.main.editor is not None:
             editor = plugin.main.editor
             return editor.get_current_editorstack()

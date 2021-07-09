@@ -313,6 +313,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def register(self):
         # TODO: Check main_widget signals connection
         widget = self.get_widget()
+        widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)

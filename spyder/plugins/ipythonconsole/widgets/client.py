@@ -31,7 +31,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import (_, get_module_source_path,
                                 running_under_pytest)
 from spyder.utils.icon_manager import ima
@@ -80,7 +80,7 @@ class ClientWidgetActions:
 # Client widget
 #-----------------------------------------------------------------------------
 # TODO: Should inherit from SpyderWidgetMixin, no SpyderConfigurationAccessor
-class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
+class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     """
     Client widget for the IPython Console
 
@@ -95,7 +95,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
 
-    def __init__(self, plugin, id_,
+    def __init__(self, parent, id_,
                  history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
@@ -107,11 +107,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
                  ask_before_restart=True,
                  ask_before_closing=False,
                  css_path=None):
-        super(ClientWidget, self).__init__(plugin)
+        super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
-        self.plugin = plugin
+        self.container = parent
         self.id_ = id_
         self.connection_file = connection_file
         self.hostname = hostname
@@ -149,7 +149,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
                                        external_kernel=external_kernel,
                                        local_kernel=True)
 
-        self.infowidget = plugin.infowidget
+        self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
         # To keep a reference to the page to be displayed
@@ -181,7 +181,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
         self.setLayout(self.layout)
 
         # --- Exit function
-        self.exit_callback = lambda: plugin.close_client(client=self)
+        self.exit_callback = lambda: self.container.close_client(client=self)
 
         # --- Dialog manager
         self.dialog_manager = DialogManager()
@@ -900,10 +900,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
         page_control = self.shellwidget._page_control
 
         control.sig_focus_changed.connect(
-            lambda: self.plugin.sig_focus_changed.emit())
+            lambda: self.container.sig_focus_changed.emit())
         page_control.sig_focus_changed.connect(
-            lambda: self.plugin.sig_focus_changed.emit())
-        control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
-        page_control.sig_visibility_changed.connect(self.plugin.refresh_plugin)
+            lambda: self.container.sig_focus_changed.emit())
+        control.sig_visibility_changed.connect(self.container.refresh_container)
+        page_control.sig_visibility_changed.connect(self.container.refresh_container)
         page_control.sig_show_find_widget_requested.connect(
-            self.plugin.find_widget.show)
+            self.container.find_widget.show)
