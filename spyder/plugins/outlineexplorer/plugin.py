@@ -11,6 +11,7 @@ from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.py3compat import is_text_string
@@ -44,11 +45,14 @@ class OutlineExplorer(SpyderDockablePlugin):
         """Return the outline explorer icon."""
         return self.create_icon('outline_explorer')
 
-    def register(self):
-        completions = self.get_plugin(Plugins.Completions)
+    def on_initialize(self):
         if self.main:
             self.main.restore_scrollbar_position.connect(
                 self.restore_scrollbar_position)
+
+    @on_plugin_available(plugin=Plugins.Completions)
+    def on_completions_available(self):
+        completions = self.get_plugin(Plugins.Completions)
 
         completions.sig_language_completions_available.connect(
             self.start_symbol_services)
