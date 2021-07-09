@@ -76,10 +76,10 @@ class ClientWidgetActions:
     ShowSystemPath = 'show_system_path_action'
     ToggleElapsedTime = 'toggle_elapsed_time_action'
 
-#-----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
 # Client widget
-#-----------------------------------------------------------------------------
-# TODO: Should inherit from SpyderWidgetMixin, no SpyderConfigurationAccessor
+# ----------------------------------------------------------------------------
 class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     """
     Client widget for the IPython Console

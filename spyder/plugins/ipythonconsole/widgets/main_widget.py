@@ -116,8 +116,28 @@ class IPythonConsoleWidget(PluginMainWidget):
     """
 
     # Signals
+    sig_append_to_history_requested = Signal(str, str)
+    """
+    This signal is emitted when the plugin requires to add commands to a
+    history file.
+    Parameters
+    ----------
+    filename: str
+        History file filename.
+    text: str
+        Text to append to the history file.
+    """
+
     sig_history_requested = Signal(str)
+    """
+    This signal is emitted when the plugin wants a specific history file
+    to be shown.
+    """
+
     sig_focus_changed = Signal()
+    """
+    This signal is emitted when the plugin focus changes.
+    """
 
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
@@ -266,10 +286,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
-
-        # TODO: Check dependency with Editor
-        self._plugin.main.editor.sig_file_debug_message_requested.connect(
-            self.print_debug_file_msg)
 
         if sys.platform == 'darwin':
             tab_container = QWidget()
@@ -1344,8 +1360,9 @@ class IPythonConsoleWidget(PluginMainWidget):
                                       is_sympy=is_sympy),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              # menu_actions=self.menu_actions,
-                              # options_button=self.options_button,
+                              menu_actions=self.menu_actions,
+                              # Check action to options button addition
+                              # options_button=self._options_button,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
@@ -1540,8 +1557,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Connect client to history log
         # TODO: Review signal
         self.sig_history_requested.emit(client.history_filename)
-        # client.sig_append_to_history_requested.connect(
-        #     self.sig_append_to_history_requested)
+        client.sig_append_to_history_requested.connect(
+            self.sig_append_to_history_requested)
 
         # Set font for client
         client.set_font(self._plugin.get_font())
@@ -1631,7 +1648,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
 
-        self.sig_update_plugin_title.emit()
+        # self.sig_update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
