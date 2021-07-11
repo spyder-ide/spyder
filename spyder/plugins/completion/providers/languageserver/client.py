@@ -433,6 +433,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.is_down():
             return
 
+        # Don't send requests to the server before it's been initialized.
+        if not self.initialized and method != 'initialize':
+            return
+
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq
