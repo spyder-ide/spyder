@@ -192,7 +192,7 @@ def set_links_color(app):
 
     This was taken from QDarkstyle, which is MIT licensed.
     """
-    color = QStylePalette.COLOR_ACCENT_3
+    color = QStylePalette.COLOR_ACCENT_4
     qcolor = QColor(color)
 
     app_palette = app.palette()
