@@ -164,8 +164,12 @@ class AboutDialog(QDialog):
             (&copy; 2007 KDE Artists; LGPL 3.0+).
             </p>
             <p>
-            Splash screen photo by 
-            <a href="https://unsplash.com/@benchaccounting?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Bench Accounting</a> on <a href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+            Splash screen photo by
+            <a href="https://unsplash.com/@benchaccounting?utm_source=
+            unsplash&utm_medium=referral&utm_content=creditCopyText">Bench
+            Accounting</a> on <a href="https://unsplash.com/?utm_source=
+            unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash
+            </a>
             </p>
             <p>
             See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
