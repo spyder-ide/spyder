@@ -1,4 +1,4 @@
-![Spyder — The Scientific Python Development Environment](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/spyder_readme_banner.png)
+![Spyder — The Scientific Python Development Environment](https://raw.githubusercontent.com/spyder-ide/spyder/master/branding/logo/spyder_readme_banner.png)
 
 *Copyright © 2009–2021 [Spyder Project Contributors](
 https://github.com/spyder-ide/spyder/graphs/contributors)*
