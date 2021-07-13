@@ -31,8 +31,6 @@ def snippets_completions(qtbot_module, request):
 
     snippets = SnippetsProvider(None, dict(SnippetsProvider.CONF_DEFAULTS))
     completions = CompletionManagerMock(None)
-    qtbot_module.addWidget(snippets)
-    qtbot_module.addWidget(completions)
 
     with qtbot_module.waitSignal(snippets.sig_provider_ready, timeout=30000):
         snippets.start()
