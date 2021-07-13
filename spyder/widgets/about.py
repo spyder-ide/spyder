@@ -184,7 +184,7 @@ class AboutDialog(QDialog):
         )
 
         for label in [self.label_overview, self.label_community,
-                        self.label_legal]:
+                      self.label_legal]:
             label.setWordWrap(True)
             label.setAlignment(Qt.AlignTop)
             label.setOpenExternalLinks(True)
