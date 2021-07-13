@@ -18,6 +18,7 @@ from spyder.plugins.variableexplorer.confpage import (
 from spyder.plugins.variableexplorer.widgets.main_widget import (
     VariableExplorerWidget)
 
+
 # Localization
 _ = get_translation('spyder')
 
@@ -60,15 +61,15 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def on_ipyconsole_available(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        # Signals
-        ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.connect(
-            self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(
-            self.remove_shellwidget)
-
         # Register IPython console.
         self.register_ipythonconsole(ipyconsole)
+
+    def unregister(self):
+        # Plugins
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+
+        # Unregister IPython console.
+        self.unregister_ipythonconsole(ipyconsole)
 
     # ---- Public API
     # ------------------------------------------------------------------------
