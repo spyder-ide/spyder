@@ -17,6 +17,7 @@ import string
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextOption
+from spyder_kernels.utils.lazymodules import numpy as np
 from spyder_kernels.utils.nsview import (get_size, get_human_readable_type,
                                          value_to_display)
 
@@ -24,14 +25,8 @@ from spyder_kernels.utils.nsview import (get_size, get_human_readable_type,
 from spyder.config.base import _
 from spyder.py3compat import TEXT_TYPES, to_text_string
 
-# Attribute models constants
-try:
-    import numpy as np
-except Exception:
-    _NUMPY_INSTALLED = False
-else:
-    _NUMPY_INSTALLED = True
 
+# Attribute models constants
 SMALL_COL_WIDTH = 120
 MEDIUM_COL_WIDTH = 200
 
@@ -117,7 +112,7 @@ def tio_summary(tree_item):
             return _("{} of {} item").format(type(tio).__name__, n_items)
         else:
             return _("{} of {} items").format(type(tio).__name__, n_items)
-    elif _NUMPY_INSTALLED and isinstance(tio, np.ndarray):
+    elif isinstance(tio, np.ndarray):
         return _("array of {}, shape: {}").format(tio.dtype, tio.shape)
     elif callable(tio) or inspect.ismodule(tio):
         return ""

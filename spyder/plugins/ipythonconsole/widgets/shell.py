@@ -21,10 +21,9 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
-from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
-from spyder.utils import programs, encoding
+from spyder.utils import encoding
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
@@ -404,8 +403,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Pylab additions
         pylab_o = self.additional_options['pylab']
         autoload_pylab_o = self.additional_options['autoload_pylab']
-        mpl_installed = programs.is_module_installed('matplotlib')
-        if mpl_installed and (pylab_o and autoload_pylab_o):
+        if pylab_o and autoload_pylab_o:
             pylab_message = ("\nPopulating the interactive namespace from "
                              "numpy and matplotlib\n")
             banner = banner + pylab_message
@@ -446,7 +444,7 @@ the sympy module (e.g. plot)
         self._reading = False
 
     def _reset_namespace(self):
-        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
+        warning = self.get_conf('show_reset_namespace_warning')
         self.reset_namespace(warning=warning)
 
     def reset_namespace(self, warning=False, message=False):
@@ -478,11 +476,11 @@ the sympy module (e.g. plot)
             box.set_check_visible(True)
             box.setText(warn_str)
 
-            answer = box.exec_()
+            answer = box.show()
 
             # Update checkbox based on user interaction
-            CONF.set('ipython_console', 'show_reset_namespace_warning',
-                     not box.is_checked())
+            self.set_conf(
+                'show_reset_namespace_warning', not box.is_checked())
             self.ipyclient.reset_warning = not box.is_checked()
 
             if answer != QMessageBox.Yes:
@@ -526,49 +524,49 @@ the sympy module (e.g. plot)
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
-        inspect = CONF.config_shortcut(
+        inspect = self.config_shortcut(
             self._control.inspect_current_object,
             context='Console',
             name='Inspect current object',
             parent=self)
 
-        clear_console = CONF.config_shortcut(
+        clear_console = self.config_shortcut(
             self.clear_console,
             context='Console',
             name='Clear shell',
             parent=self)
 
-        restart_kernel = CONF.config_shortcut(
+        restart_kernel = self.config_shortcut(
             self.ipyclient.restart_kernel,
             context='ipython_console',
             name='Restart kernel',
             parent=self)
 
-        new_tab = CONF.config_shortcut(
+        new_tab = self.config_shortcut(
             lambda: self.new_client.emit(),
             context='ipython_console',
             name='new tab',
             parent=self)
 
-        reset_namespace = CONF.config_shortcut(
+        reset_namespace = self.config_shortcut(
             lambda: self._reset_namespace(),
             context='ipython_console',
             name='reset namespace',
             parent=self)
 
-        array_inline = CONF.config_shortcut(
+        array_inline = self.config_shortcut(
             self._control.enter_array_inline,
             context='array_builder',
             name='enter array inline',
             parent=self)
 
-        array_table = CONF.config_shortcut(
+        array_table = self.config_shortcut(
             self._control.enter_array_table,
             context='array_builder',
             name='enter array table',
             parent=self)
 
-        clear_line = CONF.config_shortcut(
+        clear_line = self.config_shortcut(
             self.ipyclient.clear_line,
             context='console',
             name='clear line',
@@ -760,7 +758,8 @@ the sympy module (e.g. plot)
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self.get_editorstack()
-        if save_all and CONF.get('editor', 'save_all_before_run', True):
+        if save_all and self.get_conf(
+                'save_all_before_run', default=True, section='editor'):
             editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 

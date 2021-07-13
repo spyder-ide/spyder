@@ -61,7 +61,7 @@ class OnlineHelp(SpyderDockablePlugin):
                       self.get_widget().get_zoom_factor())
         return True
 
-    def register(self):
+    def on_initialize(self):
         widget = self.get_widget()
         widget.load_history(self.load_history())
         widget.sig_load_finished.connect(self.sig_load_finished)

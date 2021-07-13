@@ -10,6 +10,7 @@ Variable Explorer Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.translations import get_translation
 from spyder.plugins.variableexplorer.confpage import (
@@ -46,26 +47,28 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def get_icon(self):
         return self.create_icon('dictedit')
 
-    def register(self):
-        # Plugins
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        preferences = self.get_plugin(Plugins.Preferences)
-
-        # Preferences
-        preferences.register_plugin_preferences(self)
-
-        # Register IPython console.
-        self.register_ipythonconsole(ipyconsole)
-
+    def on_initialize(self):
         self.get_widget().sig_free_memory_requested.connect(
             self.sig_free_memory_requested)
 
-    def unregister(self):
-        # Plugins
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_available(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        # Unregister IPython console.
-        self.unregister_ipythonconsole(ipyconsole)
+        # Signals
+        ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
+        ipyconsole.sig_shellwidget_created.connect(
+            self.add_shellwidget)
+        ipyconsole.sig_shellwidget_deleted.connect(
+            self.remove_shellwidget)
+
+        # Register IPython console.
+        self.register_ipythonconsole(ipyconsole)
 
     # ---- Public API
     # ------------------------------------------------------------------------

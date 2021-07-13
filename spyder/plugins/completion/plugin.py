@@ -27,6 +27,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
@@ -256,17 +257,7 @@ class CompletionPlugin(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon('lspserver')
 
-    def register(self):
-        """Start all available completion providers."""
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
-
-        container = self.get_container()
-        self.statusbar = self.get_plugin(Plugins.StatusBar)
-        if self.statusbar:
-            for sb in container.all_statusbar_widgets():
-                self.statusbar.add_status_widget(sb)
-
+    def on_initialize(self):
         if self.main:
             self.main.sig_pythonpath_changed.connect(
                 self.sig_pythonpath_changed)
@@ -281,6 +272,18 @@ class CompletionPlugin(SpyderPluginV2):
                 return
 
         self.start_all_providers()
+
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.StatusBar)
+    def on_statusbar_available(self):
+        container = self.get_container()
+        self.statusbar = self.get_plugin(Plugins.StatusBar)
+        for sb in container.all_statusbar_widgets():
+            self.statusbar.add_status_widget(sb)
 
     def unregister(self):
         """Stop all running completion providers."""

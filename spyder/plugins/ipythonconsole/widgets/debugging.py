@@ -9,22 +9,23 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
+# Standard library imports
 import pdb
 import re
 
+# Third-party imports
 from IPython.core.history import HistoryManager
-from IPython import __version__ as ipy_version
 from IPython.core.inputtransformer2 import TransformerManager
 from IPython.lib.lexers import IPythonLexer, IPython3Lexer
 from pygments.lexer import bygroups
 from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
-from spyder.config.base import _, get_conf_path
-from spyder.config.manager import CONF
+# Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.config.base import get_conf_path
 
 
 class SpyderIPy3Lexer(IPython3Lexer):
@@ -170,12 +171,14 @@ class DebuggingHistoryWidget(RichJupyterWidget):
             self.__history_index = history_index
 
 
-class DebuggingWidget(DebuggingHistoryWidget):
+class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     """
     Widget with the necessary attributes and methods to handle
     communications between a console in debugging mode and
     Spyder
     """
+
+    CONF_SECTION = 'ipython_console'
 
     def __init__(self, *args, **kwargs):
         # Communication state
@@ -349,13 +352,12 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def get_pdb_settings(self):
         """Get pdb settings"""
         return {
-            "breakpoints": CONF.get('run', 'breakpoints', {}),
-            "pdb_ignore_lib": CONF.get('ipython_console', 'pdb_ignore_lib'),
-            "pdb_execute_events": CONF.get(
-                'ipython_console', 'pdb_execute_events'),
+            "breakpoints": self.get_conf(
+                'breakpoints', default={}, section='run'),
+            "pdb_ignore_lib": self.get_conf('pdb_ignore_lib'),
+            "pdb_execute_events": self.get_conf('pdb_execute_events'),
             "pdb_use_exclamation_mark": self.is_pdb_using_exclamantion_mark(),
-            "pdb_stop_first_line": CONF.get(
-                'ipython_console', 'pdb_stop_first_line'),
+            "pdb_stop_first_line": self.get_conf('pdb_stop_first_line'),
         }
 
     # --- To Sort --------------------------------------------------
@@ -369,7 +371,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into a debugging session"""
         self.call_kernel(interrupt=True).set_breakpoints(
-            CONF.get('run', 'breakpoints', {}))
+            self.get_conf('breakpoints', default={}, section='run'))
 
     def set_pdb_ignore_lib(self, pdb_ignore_lib):
         """Set pdb_ignore_lib into a debugging session"""
@@ -387,7 +389,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
             pdb_use_exclamation_mark)
 
     def is_pdb_using_exclamantion_mark(self):
-        return CONF.get('ipython_console', 'pdb_use_exclamation_mark')
+        return self.get_conf('pdb_use_exclamation_mark')
 
     def do_where(self):
         """Where was called, go to the current location."""
@@ -603,7 +605,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
 
         self._pdb_input_ready = True
 
-        start_line = CONF.get('ipython_console', 'startup/pdb_run_lines', '')
+        start_line = self.get_conf('startup/pdb_run_lines', default='')
         # Only run these lines when printing a new prompt
         if start_line and print_prompt and self.is_waiting_pdb_input():
             # Send a few commands

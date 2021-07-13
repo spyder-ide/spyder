@@ -12,10 +12,8 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import division
-
-import sys
 from math import ceil
+import sys
 
 # Third party imports
 from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
@@ -31,315 +29,22 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 # Local imports
 from spyder import __docs_url__
 from spyder.api.panel import Panel
+from spyder.api.translations import get_translation
 from spyder.config.base import _
-from spyder.utils.image_path_manager import get_image_path
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
-from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.icon_manager import ima
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.qthelpers import add_actions, create_action
 
 
 MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
 
+# Localization
+_ = get_translation('spyder')
+
 MAC = sys.platform == 'darwin'
-
-# FIXME: Known issues
-# How to handle if an specific dockwidget does not exists/load, like ipython
-# on python3.3, should that frame be removed? should it display a warning?
-
-class SpyderWidgets(object):
-    """List of supported widgets to highlight/decorate"""
-    # Panes
-    ipython_console = 'ipyconsole'
-    editor = 'editor'
-    panel = Panel.Position.LEFT
-    editor_line_number_area = (
-        f'editor.get_current_editor().panels._panels[{panel}].values()')
-    editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
-    file_explorer = 'explorer'
-    help_plugin = 'help'
-    variable_explorer = 'variableexplorer'
-    history_log = "historylog"
-    plots_plugin = "plots"
-    find_plugin = "findinfiles"
-    profiler = "Profiler"
-    code_analysis = "Pylint"
-
-    # Toolbars
-    toolbars = ''
-    toolbars_active = ''
-    toolbar_file = ''
-    toolbar_edit = ''
-    toolbar_run = ''
-    toolbar_debug = ''
-    toolbar_main = ''
-
-    status_bar = ''
-    menu_bar = ''
-    menu_file = ''
-    menu_edit = ''
-
-
-def get_tours(index=None):
-    """
-    Get the list of available tours (if index=None), or the your given by
-    index
-    """
-    return get_tour(index)
-
-
-def get_tour(index):
-    """
-    This function generates a list of tours.
-
-    The index argument is used to retrieve a particular tour. If None is
-    passed, it will return the full list of tours. If instead -1 is given,
-    this function will return a test tour
-
-    To add more tours a new variable needs to be created to hold the list of
-    dicts and the tours variable at the bottom of this function needs to be
-    updated accordingly
-    """
-    sw = SpyderWidgets
-    qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
-    button_text = ""
-    if sys.platform != "darwin":
-        button_text = ("Please click on the button below to run some simple "
-                       "code in this console. This will be useful to show "
-                       "you other important features.")
-
-    # This test should serve as example of keys to use in the tour frame dics
-    test = [{'title': "Welcome to Spyder introduction tour",
-             'content': "<b>Spyder</b> is an interactive development \
-                         environment. This tip panel supports rich text. <br>\
-                         <br> it also supports image insertion to the right so\
-                         far",
-             'image': 'spyder_about'},
-
-            {'title': "Widget display",
-             'content': ("This show how a widget is displayed. The tip panel "
-                         "is adjusted based on the first widget in the list"),
-             'widgets': ['button1'],
-             'decoration': ['button2'],
-             'interact': True},
-
-            {'title': "Widget display",
-             'content': ("This show how a widget is displayed. The tip panel "
-                         "is adjusted based on the first widget in the list"),
-             'widgets': ['button1'],
-             'decoration': ['button1'],
-             'interact': True},
-
-            {'title': "Widget display",
-             'content': ("This show how a widget is displayed. The tip panel "
-                         "is adjusted based on the first widget in the list"),
-             'widgets': ['button1'],
-             'interact': True},
-
-            {'title': "Widget display and highlight",
-             'content': "This shows how a highlighted widget looks",
-             'widgets': ['button'],
-             'decoration': ['button'],
-             'interact': False},
-            ]
-
-    intro = [{'title': _("Welcome to the introduction tour!"),
-              'content': _("<b>Spyder</b> is a powerful Interactive "
-                           "Development Environment (or IDE) for the Python "
-                           "programming language.<br><br>"
-                           "Here, we are going to guide you through its most "
-                           "important features.<br><br>"
-                           "Please use the arrow keys or click on the buttons "
-                           "below to move along the tour."),
-              'image': 'spyder_about'},
-
-             {'title': _("Editor"),
-              'content': _("This is where you write Python code before "
-                           "evaluating it. You can get automatic "
-                           "completions while typing, along with calltips "
-                           "when calling a function and help when hovering "
-                           "over an object."
-                           "<br><br>The Editor comes "
-                           "with a line number area (highlighted here in red) "
-                           "where Spyder shows warnings and syntax errors. "
-                           "They can help you to detect potential problems "
-                           "before running your code.<br><br>"
-                           "You can also set debug breakpoints in the line "
-                           "number area by clicking next to "
-
-                           "any non-empty line."),
-              'widgets': [sw.editor],
-              'decoration': [sw.editor_line_number_area]},
-
-             {'title': _("IPython Console"),
-              'content': _("This is where you can run Python code, either "
-                           "from the Editor or interactively. To run the "
-                           "current file, press <b>F5</b> by default, "
-                           "or press <b>F9</b> to execute the current "
-                           "line or selection.<br><br>"
-                           "The IPython Console comes with many "
-                           "useful features that greatly improve your "
-                           "programming workflow, like syntax highlighting, "
-                           "autocompletion, plotting and 'magic' commands. "
-                           "To learn more, check out the "
-                           "<a href=\"{0}\">documentation</a>."
-                           "<br><br>{1}").format(qtconsole_link, button_text),
-              'widgets': [sw.ipython_console],
-              'run': [
-                  "test_list_tour = [1, 2, 3, 4, 5]",
-                  "test_dict_tour = {'a': 1, 'b': 2}",
-                  ]
-              },
-
-             {'title': _("Variable Explorer"),
-              'content': _("In this pane you can view and edit the variables "
-                           "generated during the execution of a program, or "
-                           "those entered directly in the "
-                           "IPython Console.<br><br>"
-                           "If you ran the code in the previous step, "
-                           "the Variable Explorer will show "
-                           "the list and dictionary objects it generated. "
-                           "By double-clicking any variable, "
-                           "a new window will be opened where you "
-                           "can inspect and modify their contents."),
-              'widgets': [sw.variable_explorer],
-              'interact': True},
-
-             {'title': _("Help"),
-              'content': _("This pane displays documentation of the "
-                           "functions, classes, methods or modules you are "
-                           "currently using in the Editor or the "
-                           "IPython Console."
-                           "<br><br>To use it, press <b>Ctrl+I</b> "
-                           "(<b>Cmd-I</b> on macOS) with the text cursor "
-                           "in or next to the object you want help on."),
-              'widgets': [sw.help_plugin],
-              'interact': True},
-
-             {'title': _("Plots"),
-              'content': _("This pane shows the figures and images created "
-                           "during your code execution. It allows you to browse, "
-                           "zoom, copy, and save the generated plots."),
-              'widgets': [sw.plots_plugin],
-              'interact': True},
-
-             {'title': _("Files"),
-              'content': _("This pane lets you browse the files and "
-                           "directories on your computer.<br><br>"
-                           "You can open any file in its "
-                           "corresponding application by double-clicking it, "
-                           "and supported file types will be opened right "
-                           "inside of Spyder.<br><br>"
-                           "The Files pane also allows you to copy one or "
-                           "many absolute or relative paths, automatically "
-                           "formatted as Python strings or lists, and perform "
-                           "a variety of other file operations."),
-              'widgets': [sw.file_explorer],
-              'interact': True},
-
-             {'title': _("History Log"),
-              'content': _("This pane records all the commands and code run "
-                           "in any IPython console, allowing you to easily "
-                           "retrace your steps for reproducible research."),
-
-              'widgets': [sw.history_log],
-              'interact': True},
-
-             {'title': _("Find"),
-              'content': _("The Find pane allows you to search for text in a "
-                           "given directory and navigate through all the found "
-                           "occurrences."),
-              'widgets': [sw.find_plugin],
-              'interact': True},
-
-             {'title': _("Profiler"),
-              'content': _("The Profiler helps you optimize your code by determining "
-                           "the run time and number of calls for every function and "
-                           "method used in a file. It also allows you to save and "
-                           "compare your results between runs."),
-              'widgets': [sw.profiler],
-              'interact': True},
-
-             {'title': _("Code Analysis"),
-              'content': _("The Code Analysis helps you improve the quality of "
-                           "your programs by detecting style issues, bad practices "
-                           "and potential bugs."),
-              'widgets': [sw.code_analysis],
-              'interact': True},
-
-             {'title': _("The end"),
-              'content': _('You have reached the end of our tour and are '
-                           'ready to start using Spyder! For more '
-                           'information, check out our '
-                           '<a href="{}">documentation</a>.'
-                           '<br><br>').format(__docs_url__),
-              'image': 'spyder_about'
-              },
-
-             ]
-
-#                   ['The run toolbar',
-#                       'Should be short',
-#                       ['self.run_toolbar'], None],
-#                   ['The debug toolbar',
-#                       '',
-#                       ['self.debug_toolbar'], None],
-#                   ['The main toolbar',
-#                       '',
-#                       ['self.main_toolbar'], None],
-#                   ['The editor',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.editor.dockwidget'], None],
-#                   ['The editor',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.outlineexplorer.dockwidget'], None],
-#
-#                   ['The menu bar',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.menuBar()'], None],
-#
-#                   ['The menu bar',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.statusBar()'], None],
-#
-#
-#                   ['The toolbars!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.variableexplorer.dockwidget'], None],
-#                   ['The toolbars MO!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.extconsole.dockwidget'], None],
-#                   ['The whole window?!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self'], None],
-#                   ['Lets try something!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.extconsole.dockwidget',
-#                        'self.variableexplorer.dockwidget'], None]
-#
-#                      ]
-
-    feat30 = [{'title': "New features in Spyder 3.0",
-               'content': _("<b>Spyder</b> is an interactive development "
-                            "environment based on bla"),
-               'image': 'spyder_about'},
-
-              {'title': _("Welcome to Spyder introduction tour"),
-               'content': _("Spyder is an interactive development environment "
-                            "based on bla"),
-               'widgets': ['variableexplorer']},
-              ]
-
-    tours = [{'name': _('Introduction tour'), 'tour': intro},
-             {'name': _('New features in version 3.0'), 'tour': feat30}]
-
-    if index is None:
-        return tours
-    elif index == -1:
-        return [test]
-    else:
-        return [tours[index]]
 
 
 class FadingDialog(QDialog):
@@ -368,40 +73,33 @@ class FadingDialog(QDialog):
         self.setModal(False)
 
     def _run(self, funcs):
-        """ """
         for func in funcs:
             func()
 
     def _run_before_fade_in(self):
-        """ """
         self._run(self._funcs_before_fade_in)
 
     def _run_after_fade_in(self):
-        """ """
         self._run(self._funcs_after_fade_in)
 
     def _run_before_fade_out(self):
-        """ """
         self._run(self._funcs_before_fade_out)
 
     def _run_after_fade_out(self):
-        """ """
         self._run(self._funcs_after_fade_out)
 
     def _set_fade_finished(self):
-        """ """
         self._fade_running = False
 
     def _fade_setup(self):
-        """ """
         self._fade_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(self.effect, to_binary_string("opacity"))
+        self.anim = QPropertyAnimation(
+                    self.effect, to_binary_string("opacity"))
 
     # --- public api
     def fade_in(self, on_finished_connect):
-        """ """
         self._run_before_fade_in()
         self._fade_setup()
         self.show()
@@ -416,7 +114,6 @@ class FadingDialog(QDialog):
         self.anim.start()
 
     def fade_out(self, on_finished_connect):
-        """ """
         self._run_before_fade_out()
         self._fade_setup()
         self.anim.setEasingCurve(self.easing_curve_out)
@@ -429,23 +126,18 @@ class FadingDialog(QDialog):
         self.anim.start()
 
     def is_fade_running(self):
-        """ """
         return self._fade_running
 
     def set_funcs_before_fade_in(self, funcs):
-        """ """
         self._funcs_before_fade_in = funcs
 
     def set_funcs_after_fade_in(self, funcs):
-        """ """
         self._funcs_after_fade_in = funcs
 
     def set_funcs_before_fade_out(self, funcs):
-        """ """
         self._funcs_before_fade_out = funcs
 
     def set_funcs_after_fade_out(self, funcs):
-        """ """
         self._funcs_after_fade_out = funcs
 
 
@@ -491,11 +183,9 @@ class FadingCanvas(FadingDialog):
                                        lambda: self.update_decoration(None)])
 
     def set_interaction(self, value):
-        """ """
         self.interaction_on = value
 
     def update_canvas(self):
-        """ """
         w, h = self.parent.size().width(), self.parent.size().height()
 
         self.path_full = QPainterPath()
@@ -567,11 +257,9 @@ class FadingCanvas(FadingDialog):
         self.repaint()
 
     def update_widgets(self, widgets):
-        """ """
         self.widgets = widgets
 
     def update_decoration(self, widgets):
-        """ """
         self.decoration = widgets
 
     def paintEvent(self, event):
@@ -611,7 +299,7 @@ class FadingCanvas(FadingDialog):
 
 
 class FadingTipBox(FadingDialog):
-    """ """
+    """Dialog that contains the text for each frame in the tour."""
     def __init__(self, parent, opacity, duration, easing_curve, tour=None,
                  color_top=None, color_back=None, combobox_background=None):
         super(FadingTipBox, self).__init__(parent, opacity, duration,
@@ -690,7 +378,6 @@ class FadingTipBox(FadingDialog):
                              QComboBox::down-arrow {{
                              image: url({});
                              }}
-
                              '''.format(self.combobox_background.name(), arrow)
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
@@ -756,12 +443,10 @@ class FadingTipBox(FadingDialog):
         # These are defined every time by the AnimatedTour Class
 
     def _disable_widgets(self):
-        """ """
         for widget in self.widgets:
             widget.setDisabled(True)
 
     def _enable_widgets(self):
-        """ """
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint |
                             Qt.WindowStaysOnTopHint)
         for widget in self.widgets:
@@ -777,7 +462,6 @@ class FadingTipBox(FadingDialog):
 
     def set_data(self, title, content, current, image, run, frames=None,
                  step=None):
-        """ """
         self.label_title.setText(title)
         self.combo_title.clear()
         self.combo_title.addItems(frames)
@@ -811,13 +495,11 @@ class FadingTipBox(FadingDialog):
         self.layout().activate()
 
     def set_pos(self, x, y):
-        """ """
         self.x = ceil(x)
         self.y = ceil(y)
         self.move(QPoint(self.x, self.y))
 
     def build_paths(self):
-        """ """
         geo = self.geometry()
         radius = 0
         shadow = self.offset_shadow
@@ -856,7 +538,7 @@ class FadingTipBox(FadingDialog):
         self.top_rect_path.lineTo(right, top + header)
 
     def paintEvent(self, event):
-        """ """
+        """Override Qt method."""
         self.build_paths()
 
         painter = QPainter(self)
@@ -869,7 +551,7 @@ class FadingTipBox(FadingDialog):
         # TODO: Build the pointing arrow?
 
     def keyReleaseEvent(self, event):
-        """ """
+        """Override Qt method."""
         key = event.key()
         self.key_pressed = key
 
@@ -882,7 +564,7 @@ class FadingTipBox(FadingDialog):
                 self.sig_key_pressed.emit()
 
     def mousePressEvent(self, event):
-        """override Qt method"""
+        """Override Qt method."""
         # Raise the main application window on click
         self.parent.raise_()
         self.raise_()
@@ -899,7 +581,6 @@ class FadingTipBox(FadingDialog):
         self.tour.lost_focus()
 
     def context_menu_requested(self, event):
-        """ """
         pos = QPoint(event.x(), event.y())
         menu = QMenu(self)
 
@@ -922,7 +603,7 @@ class FadingTipBox(FadingDialog):
 
 
 class AnimatedTour(QWidget):
-    """ """
+    """Widget to display an interactive tour."""
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -991,7 +672,6 @@ class AnimatedTour(QWidget):
         self.hidden = False
 
     def _resized(self, event):
-        """ """
         if self.is_running:
             geom = self.parent.geometry()
             self.canvas.setFixedSize(geom.width(), geom.height())
@@ -1001,7 +681,6 @@ class AnimatedTour(QWidget):
                 self._set_data()
 
     def _moved(self, event):
-        """ """
         if self.is_running:
             geom = self.parent.geometry()
             self.canvas.move(geom.x(), geom.y())
@@ -1010,12 +689,10 @@ class AnimatedTour(QWidget):
                 self._set_data()
 
     def _close_canvas(self):
-        """ """
         self.tips.hide()
         self.canvas.fade_out(self.canvas.hide)
 
     def _clear_canvas(self):
-        """ """
         # TODO: Add option to also make it white... might be useful?
         # Make canvas black before transitions
         self.canvas.update_widgets(None)
@@ -1023,7 +700,6 @@ class AnimatedTour(QWidget):
         self.canvas.update_canvas()
 
     def _move_step(self):
-        """ """
         self._set_data()
 
         # Show/raise the widget so it is located first!
@@ -1041,7 +717,6 @@ class AnimatedTour(QWidget):
         self.tips.raise_()
 
     def _set_modal(self, value, widgets):
-        """ """
         platform = sys.platform.lower()
 
         if 'linux' in platform:
@@ -1057,7 +732,6 @@ class AnimatedTour(QWidget):
             pass
 
     def _process_widgets(self, names, spy_window):
-        """ """
         widgets = []
         dockwidgets = []
 
@@ -1154,7 +828,6 @@ class AnimatedTour(QWidget):
         self.setting_data = False
 
     def _locate_tip_box(self):
-        """ """
         dockwidgets = self.dockwidgets
 
         # Store the dimensions of the main window
@@ -1173,7 +846,8 @@ class AnimatedTour(QWidget):
         if dockwidgets is not None:
             if dockwidgets[0] is not None:
                 geo = dockwidgets[0].geometry()
-                x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
+                x, y, width, height = (geo.x(), geo.y(),
+                                       geo.width(), geo.height())
 
                 point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
                 x_glob, y_glob = point.x(), point.y()
@@ -1189,8 +863,8 @@ class AnimatedTour(QWidget):
                 if (y + self.tips.height()) > (self.y_main + self.height_main):
                     y = (
                         y
-                        - (y + self.tips.height() - (self.y_main + self.height_main))
-                        - offset
+                        - (y + self.tips.height() - (
+                            self.y_main + self.height_main)) - offset
                     )
         else:
             # Center on parent
@@ -1200,7 +874,6 @@ class AnimatedTour(QWidget):
         self.tips.set_pos(x, y)
 
     def _check_buttons(self):
-        """ """
         step, steps = self.step_current, self.steps
         self.tips.button_disable = None
 
@@ -1211,7 +884,6 @@ class AnimatedTour(QWidget):
             self.tips.button_disable = 'next'
 
     def _key_pressed(self):
-        """ """
         key = self.tips.key_pressed
 
         if ((key == Qt.Key_Right or key == Qt.Key_Down or
@@ -1236,14 +908,12 @@ class AnimatedTour(QWidget):
 
     # --- public api
     def run_code(self):
-        """ """
         codelines = self.run
         console = self.widgets[0]
         for codeline in codelines:
             console.execute_code(codeline)
 
     def set_tour(self, index, frames, spy_window):
-        """ """
         self.spy_window = spy_window
         self.active_tour_index = index
         self.last_frame_active = frames['last']
@@ -1273,7 +943,6 @@ class AnimatedTour(QWidget):
         return False
 
     def start_tour(self):
-        """ """
         self.spy_window.setUpdatesEnabled(False)
         if self._handle_fullscreen():
             return
@@ -1304,7 +973,6 @@ class AnimatedTour(QWidget):
         self.is_running = True
 
     def close_tour(self):
-        """ """
         self.tips.fade_out(self._close_canvas)
         self.spy_window.setUpdatesEnabled(False)
         self.canvas.set_interaction(False)
@@ -1316,7 +984,7 @@ class AnimatedTour(QWidget):
             # parent. This info will be lost on restart.
             self.parent.tours_available[self.active_tour_index]['last'] =\
                 self.step_current
-        except:
+        except Exception:
             pass
 
         self.is_running = False
@@ -1335,29 +1003,24 @@ class AnimatedTour(QWidget):
         self.hidden = False
 
     def next_step(self):
-        """ """
         self._clear_canvas()
         self.step_current += 1
         self.tips.fade_out(self._move_step)
 
     def previous_step(self):
-        """ """
         self._clear_canvas()
         self.step_current -= 1
         self.tips.fade_out(self._move_step)
 
     def go_to_step(self, number, id_=None):
-        """ """
         self._clear_canvas()
         self.step_current = number
         self.tips.fade_out(self._move_step)
 
     def last_step(self):
-        """ """
         self.go_to_step(self.steps - 1)
 
     def first_step(self):
-        """ """
         self.go_to_step(0)
 
     def lost_focus(self):
@@ -1376,7 +1039,7 @@ class AnimatedTour(QWidget):
     def gain_focus(self):
         """Confirm if the tour regains focus and unhides the tips."""
         if (self.is_running and self.any_has_focus() and
-            not self.setting_data and self.hidden):
+           not self.setting_data and self.hidden):
             self.unhide_tips()
 
     def any_has_focus(self):
@@ -1393,7 +1056,7 @@ class AnimatedTour(QWidget):
 
 
 class OpenTourDialog(QDialog):
-    """Initial Widget with tour"""
+    """Initial widget with tour."""
 
     ICON_SCALE_FACTOR = 0.7 if MAC else 0.75
     TITLE_FONT_SIZE = '19pt' if MAC else '16pt'
@@ -1403,8 +1066,12 @@ class OpenTourDialog(QDialog):
 
     def __init__(self, parent, tour_function):
         super().__init__(parent)
-        self.setWindowFlags(
-            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        if MAC:
+            flags = (self.windowFlags() | Qt.WindowStaysOnTopHint
+                     & ~Qt.WindowContextHelpButtonHint)
+        else:
+            flags = self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+        self.setWindowFlags(flags)
         self.tour_function = tour_function
 
         # Image
@@ -1545,7 +1212,7 @@ class OpenTourDialog(QDialog):
 
 # ----------------------------------------------------------------------------
 # Used for testing the functionality
-
+# ----------------------------------------------------------------------------
 
 class TourTestWindow(QMainWindow):
     """ """
@@ -1597,7 +1264,6 @@ class TourTestWindow(QMainWindow):
         self.tour = AnimatedTour(self)
 
     def action1(self):
-        """ """
         frames = get_tour('test')
         index = 0
         dic = {'last': 0, 'tour': frames}
@@ -1605,7 +1271,6 @@ class TourTestWindow(QMainWindow):
         self.tour.start_tour()
 
     def action2(self):
-        """ """
         self.anim.start()
 
     def resizeEvent(self, event):
@@ -1619,8 +1284,9 @@ class TourTestWindow(QMainWindow):
         self.sig_moved.emit(event)
 
 
-def test():
-    """ """
+def local_test():
+    from spyder.utils.qthelpers import qapplication
+
     app = QApplication([])
     win = TourTestWindow()
     win.show()
@@ -1628,4 +1294,4 @@ def test():
 
 
 if __name__ == '__main__':
-    test()
+    local_test()

@@ -872,8 +872,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         Create widget actions, add to menu and other setup requirements.
         """
         raise NotImplementedError(
-            'A PluginMainWidget subclass must define a `setup` '
-            'method!')
+            f'{type(self)} must define a `setup` method!')
 
     def update_actions(self):
         """

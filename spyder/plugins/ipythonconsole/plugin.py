@@ -57,7 +57,7 @@ from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
-from spyder.widgets.browser import WebView
+from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
@@ -232,7 +232,7 @@ class IPythonConsole(SpyderPluginWidget):
             layout.addWidget(self.tabwidget)
 
         # Info widget
-        self.infowidget = WebView(self)
+        self.infowidget = FrameWebView(self)
         if WEBENGINE:
             self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
         else:
@@ -1957,3 +1957,7 @@ class IPythonConsole(SpyderPluginWidget):
                       'in debug mode.')
         self.get_current_client().shellwidget.append_html_message(
                     debug_msg, before_prompt=True)
+
+    # TODO: To be updated after migration
+    def on_mainwindow_visible(self):
+        return

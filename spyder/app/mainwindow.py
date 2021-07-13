@@ -69,10 +69,10 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
-from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
                               qt_message_handler, set_links_color,
                               setup_logging, set_opengl_implementation, Spy)
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_module_source_path,
                                 get_safe_mode, is_pynsist, running_in_mac_app,
@@ -92,12 +92,13 @@ from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
                                     qapplication, start_file)
 from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.app.solver import (
-    find_external_plugins, find_internal_plugins, solve_plugin_dependencies)
+from spyder.app.find_plugins import find_external_plugins, find_internal_plugins
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
+from spyder.api.plugins import (
+    Plugins, SpyderPlugin, SpyderPluginV2, SpyderDockablePlugin,
+    SpyderPluginWidget)
 
 #==============================================================================
 # Windows only local imports
@@ -121,9 +122,6 @@ ORIGINAL_SYS_EXIT = sys.exit
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
 CWD = getcwd_or_home()
-
-# Set the index for the default tour
-DEFAULT_TOUR = 0
 
 #==============================================================================
 # Install Qt messaage handler
@@ -151,8 +149,8 @@ class MainWindow(QMainWindow):
     sig_pythonpath_changed = Signal(object, object)
     sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")     # Related to interactive tour
-    sig_moved = Signal("QMoveEvent")         # Related to interactive tour
+    sig_resized = Signal("QResizeEvent")
+    sig_moved = Signal("QMoveEvent")
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     # --- Plugin handling methods
@@ -161,15 +159,26 @@ class MainWindow(QMainWindow):
         """
         Return a plugin instance by providing the plugin class.
         """
-        for name, plugin in self._PLUGINS.items():
-            if plugin_name == name:
-                return plugin
-        else:
-            if error:
-                raise SpyderAPIError(
-                    'Plugin "{}" not found!'.format(plugin_name))
-            else:
-                return None
+        if plugin_name in PLUGIN_REGISTRY:
+            return PLUGIN_REGISTRY.get_plugin(plugin_name)
+
+        if error:
+            raise SpyderAPIError(f'Plugin "{plugin_name}" not found!')
+
+        return None
+
+    def get_dockable_plugins(self):
+        """Get a list of all dockable plugins."""
+        dockable_plugins = []
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+            if isinstance(plugin, (SpyderDockablePlugin, SpyderPluginWidget)):
+                dockable_plugins.append((plugin_name, plugin))
+        return dockable_plugins
+
+    def is_plugin_enabled(self, plugin_name):
+        """Determine if a given plugin is going to be loaded."""
+        return PLUGIN_REGISTRY.is_plugin_enabled(plugin_name)
 
     def show_status_message(self, message, timeout):
         """
@@ -201,12 +210,19 @@ class MainWindow(QMainWindow):
         else:
             self._INTERNAL_PLUGINS[plugin.NAME] = plugin
 
-    def register_plugin(self, plugin, external=False, omit_conf=False):
+    def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
         Register a plugin in Spyder Main Window.
         """
+        plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+
         self.set_splash(_("Loading {}...").format(plugin.get_name()))
         logger.info("Loading {}...".format(plugin.NAME))
+
+        if plugin_name in [Plugins.Breakpoints,
+                           Plugins.Profiler,
+                           Plugins.Pylint]:
+            self.thirdparty_plugins.append(plugin)
 
         # Check plugin compatibility
         is_compatible, message = plugin.check_compatibility()
@@ -217,7 +233,7 @@ class MainWindow(QMainWindow):
             self.show_compatibility_message(message)
             return
 
-        # Signals
+        # Connect Plugin Signals to main window methods
         plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
@@ -233,9 +249,12 @@ class MainWindow(QMainWindow):
             plugin.sig_update_ancestor_requested.connect(
                 lambda: plugin.set_ancestor(self))
 
+        # Connect Main window Signals to plugin signals
+        self.sig_moved.connect(plugin.sig_mainwindow_moved)
+        self.sig_resized.connect(plugin.sig_mainwindow_resized)
+
         # Register plugin
         plugin._register(omit_conf=omit_conf)
-        plugin.register()
 
         if isinstance(plugin, SpyderDockablePlugin):
             # Add dockwidget
@@ -249,6 +268,11 @@ class MainWindow(QMainWindow):
 
         self.add_plugin(plugin, external=external)
 
+        if plugin_name == Plugins.Shortcuts:
+            for action, context, action_name in self.shortcut_queue:
+                self.register_shortcut(action, context, action_name)
+            self.shortcut_queue = []
+
         logger.info("Registering shortcuts for {}...".format(plugin.NAME))
         for action_name, action in plugin.get_actions().items():
             context = (getattr(action, 'shortcut_context', plugin.NAME)
@@ -257,8 +281,10 @@ class MainWindow(QMainWindow):
             if getattr(action, 'register_shortcut', True):
                 if isinstance(action_name, Enum):
                     action_name = action_name.value
-
-                self.register_shortcut(action, context, action_name)
+                if Plugins.Shortcuts in PLUGIN_REGISTRY:
+                    self.register_shortcut(action, context, action_name)
+                else:
+                    self.shortcut_queue.append((action, context, action_name))
 
         if isinstance(plugin, SpyderDockablePlugin):
             try:
@@ -274,8 +300,14 @@ class MainWindow(QMainWindow):
             sc.setContext(Qt.ApplicationShortcut)
             plugin._shortcut = sc
 
-            self.register_shortcut(sc, context, name)
-            self.register_shortcut(plugin.toggle_view_action, context, name)
+            if Plugins.Shortcuts in PLUGIN_REGISTRY:
+                self.register_shortcut(sc, context, name)
+                self.register_shortcut(
+                    plugin.toggle_view_action, context, name)
+            else:
+                self.shortcut_queue.append((sc, context, name))
+                self.shortcut_queue.append(
+                    (plugin.toggle_view_action, context, name))
 
     def unregister_plugin(self, plugin):
         """
@@ -556,6 +588,7 @@ class MainWindow(QMainWindow):
 
         # Shortcut management data
         self.shortcut_data = []
+        self.shortcut_queue = []
 
         # Handle Spyder path
         self.path = ()
@@ -585,12 +618,6 @@ class MainWindow(QMainWindow):
 
         self.thirdparty_plugins = []
 
-        # Tour
-        # TODO: Should be a plugin
-        self.tour = None
-        self.tours_available = None
-        self.tour_dialog = None
-
         # File switcher
         self.switcher = None
 
@@ -617,8 +644,6 @@ class MainWindow(QMainWindow):
         self.run_menu_actions = []
         self.debug_menu = None
         self.debug_menu_actions = []
-        self.projects_menu = None
-        self.projects_menu_actions = []
 
         # TODO: Move to corresponding Plugins
         self.main_toolbar = None
@@ -701,9 +726,6 @@ class MainWindow(QMainWindow):
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
 
-        # To show the message about starting the tour
-        self.sig_setup_finished.connect(self.show_tour_message)
-
         # Apply main window settings
         self.apply_settings()
 
@@ -728,7 +750,8 @@ class MainWindow(QMainWindow):
         shortcut assigned to the `Switch to Plugin...` action, but is not
         triggered by that shortcut.
         """
-        for plugin_id, plugin in self._PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if isinstance(plugin, SpyderDockablePlugin):
                 try:
                     # New API
@@ -753,6 +776,10 @@ class MainWindow(QMainWindow):
 
     def setup(self):
         """Setup main window."""
+        PLUGIN_REGISTRY.sig_plugin_ready.connect(
+            lambda plugin_name, omit_conf: self.register_plugin(
+                plugin_name, omit_conf=omit_conf))
+
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
@@ -848,108 +875,67 @@ class MainWindow(QMainWindow):
             try:
                 if CONF.get(plugin_main_attribute_name, "enable"):
                     enabled_plugins[plugin_name] = plugin
+                    PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):
                 enabled_plugins[plugin_name] = plugin
+                PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
 
-        # Get ordered list of plugins classes and instantiate them
-        plugin_deps = solve_plugin_dependencies(list(enabled_plugins.values()))
-        for plugin_class in plugin_deps:
-            plugin_name = plugin_class.NAME
-            # Non-migrated plugins
-            if plugin_name in [
-                    Plugins.Editor,
-                    Plugins.IPythonConsole,
-                    Plugins.Projects]:
-                if plugin_name == Plugins.IPythonConsole:
-                    plugin_instance = plugin_class(self)
-                    plugin_instance.sig_exception_occurred.connect(
-                        self.handle_exception)
-                else:
-                    plugin_instance = plugin_class(self)
-                plugin_instance.register_plugin()
-                self.add_plugin(plugin_instance)
-                if plugin_name == Plugins.Projects:
-                    self.project_path = plugin_instance.get_pythonpath(
-                        at_start=True)
-                else:
+        # Instantiate internal Spyder 5 plugins
+        for plugin_name in internal_plugins:
+            if plugin_name in enabled_plugins:
+                PluginClass = internal_plugins[plugin_name]
+                if issubclass(PluginClass, SpyderPluginV2):
+                    PLUGIN_REGISTRY.register_plugin(self, PluginClass,
+                                                    external=False)
+
+        # Instantiate internal Spyder 4 plugins
+        for plugin_name in internal_plugins:
+            if plugin_name in enabled_plugins:
+                PluginClass = internal_plugins[plugin_name]
+                if issubclass(PluginClass, SpyderPlugin):
+                    if plugin_name == Plugins.IPythonConsole:
+                        plugin_instance = PLUGIN_REGISTRY.register_plugin(
+                            self, PluginClass, external=False)
+                        plugin_instance.sig_exception_occurred.connect(
+                            self.handle_exception)
+                    else:
+                        plugin_instance = PLUGIN_REGISTRY.register_plugin(
+                            self, PluginClass, external=False)
                     self.preferences.register_plugin_preferences(
                         plugin_instance)
-            # Migrated or new plugins
-            elif plugin_name in [
-                    Plugins.MainMenu,
-                    Plugins.OnlineHelp,
-                    Plugins.Toolbar,
-                    Plugins.Preferences,
-                    Plugins.Appearance,
-                    Plugins.Run,
-                    Plugins.Shortcuts,
-                    Plugins.StatusBar,
-                    Plugins.Completions,
-                    Plugins.OutlineExplorer,
-                    Plugins.Console,
-                    Plugins.MainInterpreter,
-                    Plugins.Breakpoints,
-                    Plugins.History,
-                    Plugins.Profiler,
-                    Plugins.Explorer,
-                    Plugins.Help,
-                    Plugins.Plots,
-                    Plugins.VariableExplorer,
-                    Plugins.Application,
-                    Plugins.Find,
-                    Plugins.Pylint,
-                    Plugins.WorkingDirectory,
-                    Plugins.Layout]:
-                plugin_instance = plugin_class(self, configuration=CONF)
-                self.register_plugin(plugin_instance)
-                # TODO: Check thirdparty attribute usage
-                # For now append plugins to the thirdparty attribute as was
-                # being done
-                if plugin_name in [
-                        Plugins.Breakpoints,
-                        Plugins.Profiler,
-                        Plugins.Pylint]:
-                    self.thirdparty_plugins.append(plugin_instance)
-            # Load external_plugins adding their dependencies
-            elif (issubclass(plugin_class, SpyderPluginV2) and
-                  plugin_class.NAME in external_plugins):
-                try:
-                    if plugin_class.CONF_FILE:
-                        CONF.register_plugin(plugin_class)
-                    plugin_instance = plugin_class(
-                        self,
-                        configuration=CONF,
-                    )
-                    self.register_plugin(plugin_instance, external=True,
-                                         omit_conf=plugin_class.CONF_FILE)
 
-                    # These attributes come from spyder.app.solver to add
-                    # plugins to the dependencies dialog
+        # Instantiate external Spyder 5 plugins
+        for plugin_name in external_plugins:
+            if plugin_name in enabled_plugins:
+                PluginClass = external_plugins[plugin_name]
+                try:
+                    plugin_instance = PLUGIN_REGISTRY.register_plugin(
+                        self, PluginClass, external=True)
+
                     if not running_under_pytest():
-                        module = plugin_class._spyder_module_name
-                        package_name = plugin_class._spyder_package_name
-                        version = plugin_class._spyder_version
+                        # These attributes come from spyder.app.find_plugins
+                        module = PluginClass._spyder_module_name
+                        package_name = PluginClass._spyder_package_name
+                        version = PluginClass._spyder_version
                         description = plugin_instance.get_description()
-                        dependencies.add(
-                            module, package_name, description, version, None,
-                            kind=dependencies.PLUGIN)
+                        dependencies.add(module, package_name, description,
+                                         version, None,
+                                         kind=dependencies.PLUGIN)
                 except Exception as error:
-                    print("%s: %s" % (plugin_class, str(error)), file=STDERR)
+                    print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
 
         self.set_splash(_("Loading old third-party plugins..."))
         for mod in get_spyderplugins_mods():
             try:
-                plugin = mod.PLUGIN_CLASS(self)
+                plugin = PLUGIN_REGISTRY.register_plugin(self, mod,
+                                                         external=True)
                 if plugin.check_compatibility()[0]:
                     if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
                         self.preferences.register_plugin_preferences(plugin)
 
-                    if hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
-                        self.completions.register_completion_plugin(plugin)
-                    else:
+                    if not hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
                         self.thirdparty_plugins.append(plugin)
-                        plugin.register_plugin()
 
                     # Add to dependencies dialog
                     module = mod.__name__
@@ -985,8 +971,6 @@ class MainWindow(QMainWindow):
         self.source_menu.aboutToShow.connect(self.update_source_menu)
         self.run_menu = mainmenu.get_application_menu("run_menu")
         self.debug_menu = mainmenu.get_application_menu("debug_menu")
-        self.projects_menu = mainmenu.get_application_menu("projects_menu")
-        self.projects_menu.aboutToShow.connect(self.valid_project)
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -1098,37 +1082,6 @@ class MainWindow(QMainWindow):
 
         self.set_splash(_("Setting up main window..."))
 
-        #----- Tours
-        # TODO: Move tours to a plugin structure
-        self.tour = tour.AnimatedTour(self)
-        # self.tours_menu = QMenu(_("Interactive tours"), self)
-        # self.tour_menu_actions = []
-        # # TODO: Only show intro tour for now. When we are close to finish
-        # # 3.0, we will finish and show the other tour
-        self.tours_available = tour.get_tours(DEFAULT_TOUR)
-
-        for i, tour_available in enumerate(self.tours_available):
-            self.tours_available[i]['last'] = 0
-            tour_name = tour_available['name']
-
-        #     def trigger(i=i, self=self):  # closure needed!
-        #         return lambda: self.show_tour(i)
-
-        #     temp_action = create_action(self, tour_name, tip="",
-        #                                 triggered=trigger())
-        #     self.tour_menu_actions += [temp_action]
-
-        # self.tours_menu.addActions(self.tour_menu_actions)
-        self.tour_action = create_action(
-            self,
-            self.tours_available[DEFAULT_TOUR]['name'],
-            tip=_("Interactive tour introducing Spyder's panes and features"),
-            triggered=lambda: self.show_tour(DEFAULT_TOUR))
-        mainmenu.add_item_to_application_menu(
-            self.tour_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.Documentation)
-
         # TODO: Migrate to use the MainMenu Plugin instead of list of actions
         # Filling out menu/toolbar entries:
         add_actions(self.edit_menu, self.edit_menu_actions)
@@ -1136,7 +1089,6 @@ class MainWindow(QMainWindow):
         add_actions(self.source_menu, self.source_menu_actions)
         add_actions(self.run_menu, self.run_menu_actions)
         add_actions(self.debug_menu, self.debug_menu_actions)
-        add_actions(self.projects_menu, self.projects_menu_actions)
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -1185,7 +1137,8 @@ class MainWindow(QMainWindow):
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 plugin_instance.get_widget().toggle_view(False)
 
-        for plugin_id, plugin_instance in self._PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
                 plugin_instance.before_mainwindow_visible()
             except AttributeError:
@@ -1223,11 +1176,22 @@ class MainWindow(QMainWindow):
 
 
     def post_visible_setup(self):
-        """Actions to be performed only after the main window's `show` method
-        was triggered"""
-        for __, plugin in self._PLUGINS.items():
+        """
+        Actions to be performed only after the main window's `show` method
+        is triggered.
+        """
+        # Process pending events and hide splash before loading the
+        # previous session.
+        QApplication.processEvents()
+        if self.splash is not None:
+            self.splash.hide()
+
+        # Call on_mainwindow_visible for all plugins.
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
                 plugin.on_mainwindow_visible()
+                QApplication.processEvents()
             except AttributeError:
                 pass
 
@@ -1273,12 +1237,9 @@ class MainWindow(QMainWindow):
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
-        # Process pending events and hide splash before loading the
-        # previous session.
-        QApplication.processEvents()
-        if self.splash is not None:
-            self.splash.hide()
-
+        # Load project, if any.
+        # TODO: Remove this reference to projects once we can send the command
+        # line options to the plugins.
         if self.open_project:
             if not running_in_mac_app():
                 self.projects.open_project(
@@ -1308,6 +1269,12 @@ class MainWindow(QMainWindow):
             self.current_dpi = screen.logicalDotsPerInch()
             screen.logicalDotsPerInchChanged.connect(
                 self.show_dpi_change_message)
+
+        # To avoid regressions. We shouldn't have loaded the modules
+        # below at this point.
+        if DEV is not None:
+            assert 'pandas' not in sys.modules
+            assert 'matplotlib' not in sys.modules
 
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
@@ -1396,6 +1363,8 @@ class MainWindow(QMainWindow):
         if self.window_title is not None:
             title += u' -- ' + to_text_string(self.window_title)
 
+        # TODO: Remove self.projects reference once there's an API for setting
+        # window title.
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
@@ -1418,24 +1387,6 @@ class MainWindow(QMainWindow):
         )
 
     # --- Other
-    def valid_project(self):
-        """Handle an invalid active project."""
-        try:
-            path = self.projects.get_active_project_path()
-        except AttributeError:
-            return
-
-        if bool(path):
-            if not self.projects.is_valid_project(path):
-                if path:
-                    QMessageBox.critical(
-                        self,
-                        _('Error'),
-                        _("<b>{}</b> is no longer a valid Spyder project! "
-                          "Since it is the current active project, it will "
-                          "be closed automatically.").format(path))
-                self.projects.close_project()
-
     def update_source_menu(self):
         """Update source menu options that vary dynamically."""
         # This is necessary to avoid an error at startup.
@@ -2010,14 +1961,6 @@ class MainWindow(QMainWindow):
         """Wrapper to handle plugins request to restart Spyder."""
         self.application.restart(reset=reset)
 
-    # ---- Interactive Tours
-    def show_tour(self, index):
-        """Show interactive tour."""
-        self.layouts.maximize_dockwidget(restore=True)
-        frames = self.tours_available[index]
-        self.tour.set_tour(index, frames, self)
-        self.tour.start_tour()
-
     # ---- Global Switcher
     def open_switcher(self, symbol=False):
         """Open switcher dialog box."""
@@ -2053,19 +1996,6 @@ class MainWindow(QMainWindow):
             self.switcher = Switcher(self)
 
         return self.switcher
-
-    @Slot()
-    def show_tour_message(self, force=False):
-        """
-        Show message about starting the tour the first time Spyder starts.
-        """
-        should_show_tour = CONF.get('main', 'show_tour_message')
-        if force or (should_show_tour and not running_under_pytest()
-                     and not get_safe_mode()):
-            CONF.set('main', 'show_tour_message', False)
-            self.tour_dialog = tour.OpenTourDialog(
-                self, lambda: self.show_tour(DEFAULT_TOUR))
-            self.tour_dialog.show()
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
