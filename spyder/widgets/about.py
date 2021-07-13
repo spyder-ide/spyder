@@ -182,23 +182,14 @@ class AboutDialog(QDialog):
                 font_size=font_size,
             )
         )
-        self.label_overview.setWordWrap(True)
-        self.label_overview.setAlignment(Qt.AlignTop)
-        self.label_overview.setOpenExternalLinks(True)
-        self.label_overview.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_overview.setContentsMargins(15, 0, 25, 0)
 
-        self.label_community.setWordWrap(True)
-        self.label_community.setAlignment(Qt.AlignTop)
-        self.label_community.setOpenExternalLinks(True)
-        self.label_community.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_community.setContentsMargins(15, 0, 25, 0)
-
-        self.label_legal.setWordWrap(True)
-        self.label_legal.setAlignment(Qt.AlignTop)
-        self.label_legal.setOpenExternalLinks(True)
-        self.label_legal.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label_legal.setContentsMargins(15, 0, 25, 0)
+        for label in [self.label_overview, self.label_community,
+                        self.label_legal]:
+            label.setWordWrap(True)
+            label.setAlignment(Qt.AlignTop)
+            label.setOpenExternalLinks(True)
+            label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            label.setContentsMargins(15, 0, 25, 0)
 
         icon_filename = "spyder_about"
         pixmap = QPixmap(get_image_path(icon_filename))
@@ -207,20 +198,20 @@ class AboutDialog(QDialog):
             pixmap.scaledToWidth(100, Qt.SmoothTransformation))
         self.label_pic.setAlignment(Qt.AlignBottom)
         self.info = QLabel((
-                    """
-                    <div style='font-family: "{font_family}";
-                        font-size: {font_size}pt;
-                        font-weight: normal;
-                        '>
-                    <p>
-                    <b>Spyder IDE</b>
-                    <br>{spyder_ver}
-                    <br> {revision}
-                    <br> """).format(
-                spyder_ver=versions['spyder'],
-                revision=revlink,
-                font_family=font_family,
-                font_size=font_size))
+            """
+            <div style='font-family: "{font_family}";
+                font-size: {font_size}pt;
+                font-weight: normal;
+                '>
+            <p>
+            <b>Spyder IDE</b>
+            <br>{spyder_ver}
+            <br> {revision}
+            <br> """).format(
+            spyder_ver=versions['spyder'],
+            revision=revlink,
+            font_family=font_family,
+            font_size=font_size))
         self.info.setAlignment(Qt.AlignHCenter)
 
         btn = QPushButton(_("Copy version info"), )
@@ -285,7 +276,11 @@ class AboutDialog(QDialog):
         # Signals
         btn.clicked.connect(self.copy_to_clipboard)
         bbox.accepted.connect(self.accept)
+
+        # Size
         self.resize(550, 430)
+
+        # Style
         css = APP_STYLESHEET.get_copy()
         css = css.get_stylesheet()
         css.QDialog.setValues(backgroundColor=dialog_background_color)
