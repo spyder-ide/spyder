@@ -20,11 +20,13 @@ from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
                             QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.py3compat import to_text_string
 from spyder.utils import misc
 from spyder.utils.qthelpers import create_action, create_plugin_layout
 from spyder.plugins.explorer.widgets.explorer import FilteredDirView
+
+_ = get_translation('spyder')
 
 
 class ExplorerTreeWidget(FilteredDirView):
@@ -42,24 +44,11 @@ class ExplorerTreeWidget(FilteredDirView):
         self.setDragEnabled(True)
         self.setDragDropMode(FilteredDirView.DragDrop)
 
-    #------DirView API---------------------------------------------------------
-    def setup_common_actions(self):
-        """Setup context menu common actions"""
-        actions = FilteredDirView.setup_common_actions(self)
-
-        # Toggle horizontal scrollbar
-        hscrollbar_action = create_action(self, _("Show horizontal scrollbar"),
-                                          toggled=self.toggle_hscrollbar)
-        hscrollbar_action.setChecked(self.show_hscrollbar)
-        self.toggle_hscrollbar(self.show_hscrollbar)
-
-        return actions + [hscrollbar_action]
-
-    #------Public API----------------------------------------------------------
+    # ------Public API---------------------------------------------------------
     @Slot(bool)
     def toggle_hscrollbar(self, checked):
         """Toggle horizontal scrollbar"""
-        self.parent_widget.sig_option_changed.emit('show_hscrollbar', checked)
+        self.set_conf('show_hscrollbar', checked)
         self.show_hscrollbar = checked
         self.header().setStretchLastSection(not checked)
         self.header().setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
@@ -68,7 +57,7 @@ class ExplorerTreeWidget(FilteredDirView):
         except:  # support for qtpy<1.2.0
             self.header().setResizeMode(QHeaderView.ResizeToContents)
 
-    #---- Internal drag & drop
+    # ---- Internal drag & drop
     def dragMoveEvent(self, event):
         """Reimplement Qt method"""
         index = self.indexAt(event.pos())
@@ -150,6 +139,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                        "<br><br>Error message:<br>%s"
                                        ) % (action_str, src,
                                             to_text_string(error)))
+
     @Slot()
     def delete(self, fnames=None):
         """Delete files"""
@@ -165,120 +155,3 @@ class ExplorerTreeWidget(FilteredDirView):
                 if yes_to_all is not None and not yes_to_all:
                     # Canceled
                     break
-
-
-class ProjectExplorerWidget(QWidget):
-    """Project Explorer"""
-    sig_option_changed = Signal(str, object)
-    sig_open_file_requested = Signal(str)
-
-    def __init__(self, parent, name_filters=[], show_hscrollbar=True,
-                 options_button=None, single_click_to_open=False):
-        # TODO: Remove once Projects is Migrated
-        self.CONF_SECTION = parent.CONF_SECTION
-        QWidget.__init__(self, parent)
-
-        self.name_filters = name_filters
-        self.show_hscrollbar = show_hscrollbar
-
-        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup()
-        self.treewidget.setup_view()
-        self.treewidget.hide()
-        self.treewidget.sig_open_file_requested.connect(
-            self.sig_open_file_requested)
-
-        self.emptywidget = ExplorerTreeWidget(self)
-
-        if options_button:
-            btn_layout = QHBoxLayout()
-            btn_layout.setAlignment(Qt.AlignLeft)
-            btn_layout.addStretch()
-            btn_layout.addWidget(options_button, Qt.AlignRight)
-            layout = create_plugin_layout(btn_layout)
-        else:
-            layout = QVBoxLayout()
-            layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.emptywidget)
-        layout.addWidget(self.treewidget)
-        self.setLayout(layout)
-
-    def closing_widget(self):
-        """Perform actions before widget is closed"""
-        pass
-
-    def set_project_dir(self, directory):
-        """Set the project directory"""
-        if directory is not None:
-            self.treewidget.set_root_path(osp.dirname(directory))
-            self.treewidget.set_folder_names([osp.basename(directory)])
-        self.treewidget.setup_project_view()
-        try:
-            self.treewidget.setExpanded(self.treewidget.get_index(directory),
-                                        True)
-        except TypeError:
-            pass
-
-    def clear(self):
-        """Show an empty view"""
-        self.treewidget.hide()
-        self.emptywidget.show()
-
-    def setup_project(self, directory):
-        """Setup project"""
-        self.emptywidget.hide()
-        self.treewidget.show()
-
-        # Setup the directory shown by the tree
-        self.set_project_dir(directory)
-
-
-#==============================================================================
-# Tests
-#==============================================================================
-class ProjectExplorerTest(QWidget):
-    def __init__(self, directory=None):
-        QWidget.__init__(self)
-        self.CONF_SECTION = 'project_explorer'
-        vlayout = QVBoxLayout()
-        self.setLayout(vlayout)
-
-        self.explorer = ProjectExplorerWidget(self)
-        if directory is not None:
-            self.directory = directory
-        else:
-            self.directory = osp.dirname(osp.abspath(__file__))
-        self.explorer.setup_project(self.directory)
-        vlayout.addWidget(self.explorer)
-
-        hlayout1 = QHBoxLayout()
-        vlayout.addLayout(hlayout1)
-        label = QLabel("<b>Open file:</b>")
-        label.setAlignment(Qt.AlignRight)
-        hlayout1.addWidget(label)
-        self.label1 = QLabel()
-        hlayout1.addWidget(self.label1)
-        self.explorer.sig_open_file_requested.connect(self.label1.setText)
-
-        hlayout3 = QHBoxLayout()
-        vlayout.addLayout(hlayout3)
-        label = QLabel("<b>Option changed:</b>")
-        label.setAlignment(Qt.AlignRight)
-        hlayout3.addWidget(label)
-        self.label3 = QLabel()
-        hlayout3.addWidget(self.label3)
-        self.explorer.sig_option_changed.connect(
-           lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
-
-
-def test():
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-    test = ProjectExplorerTest()
-    test.resize(250, 480)
-    test.show()
-    app.exec_()
-
-
-if __name__ == "__main__":
-    test()

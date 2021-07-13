@@ -26,8 +26,10 @@ from traitlets.config.loader import LazyConfigValue
 from spyder_kernels.py3compat import TEXT_TYPES, to_text_string
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.py3compat import PY3, input
-from spyder_kernels.utils.misc import (
+from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
+from spyder_kernels.utils.nsview import get_remote_data, make_remote_view
 
 
 # Excluded variables from the Variable Explorer (i.e. they are not
@@ -157,7 +159,6 @@ class SpyderKernel(IPythonKernel):
         * 'numpy_type' is its Numpy type (if any) computed with
           `get_numpy_type_string`.
         """
-        from spyder_kernels.utils.nsview import make_remote_view
 
         settings = self.namespace_view_settings
         if settings:
@@ -172,8 +173,6 @@ class SpyderKernel(IPythonKernel):
         Get some properties of the variables in the current
         namespace
         """
-        from spyder_kernels.utils.nsview import get_remote_data
-
         settings = self.namespace_view_settings
         if settings:
             ns = self._get_current_namespace()
@@ -234,11 +233,9 @@ class SpyderKernel(IPythonKernel):
         In the other hand, with 'overwrite=False', a new variable will be
         created with a sufix starting with 000 i.e 'var000' (default behavior).
         """
-        from spyder_kernels.utils.iofuncs import iofunctions
         from spyder_kernels.utils.misc import fix_reference_name
 
         glbs = self._mglobals()
-
         load_func = iofunctions.load_funcs[ext]
         data, error_message = load_func(filename)
 
@@ -261,9 +258,6 @@ class SpyderKernel(IPythonKernel):
 
     def save_namespace(self, filename):
         """Save namespace into filename"""
-        from spyder_kernels.utils.nsview import get_remote_data
-        from spyder_kernels.utils.iofuncs import iofunctions
-
         ns = self._get_current_namespace()
         settings = self.namespace_view_settings
         data = get_remote_data(ns, settings, mode='picklable',

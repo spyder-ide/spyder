@@ -77,8 +77,8 @@ def find_internal_plugins():
             try:
                 mod = importlib.import_module(module)
                 internal_plugins[name] = getattr(mod, class_name, None)
-            except (ModuleNotFoundError, ImportError):
-                pass
+            except (ModuleNotFoundError, ImportError) as e:
+                raise e
     else:
         import spyder.plugins as plugin_mod
 
@@ -136,95 +136,3 @@ def find_external_plugins():
                 traceback.print_exc(file=STDERR)
 
     return external_plugins
-
-
-def solve_plugin_dependencies(plugins):
-    """
-    Return a list of plugins sorted by dependencies.
-
-    Notes
-    -----
-    * Prune the plugins for which required dependencies are not met
-    * Prune the optional dependencies from the remaining plugins based on
-        the remaining plugins available.
-    * Group the remaining optional dependencies with the required
-        dependencies.
-    * Sort with toposort algorithm.
-    """
-    # Back up dependencies
-    for plugin in plugins:
-        if plugin.REQUIRES is None:
-            plugin.REQUIRES = []
-
-        if plugin.OPTIONAL is None:
-            plugin.OPTIONAL = []
-
-        plugin._REQUIRES = plugin.REQUIRES.copy()
-        plugin._OPTIONAL = plugin.OPTIONAL.copy()
-
-    plugin_names = {plugin.NAME: plugin for plugin in plugins}
-    dependencies_dict = {}
-
-    # Prune plugins based on required dependencies or populate the dependencies
-    # if using a wildcard i.e 'Plugins.All' or to add base dependencies for
-    # example the Shortcuts plugin to all SpyderDockablePlugin's (shortcut for
-    # the "switch to plugin" action).
-    remaining_plugins = []
-    plugins_requiring_all_plugins = []
-    pruning_requires = True
-    import copy
-    while pruning_requires:
-        pruning_requires = False
-        remaining_plugins = []
-        current_plugins = copy.deepcopy(plugins)
-        for plugin in current_plugins:
-            if issubclass(plugin, (SpyderDockablePlugin, SpyderPluginWidget)):
-                if Plugins.Shortcuts not in plugin.REQUIRES:
-                    plugin.REQUIRES.append(Plugins.Shortcuts)
-                    plugin._REQUIRES = plugin.REQUIRES.copy()
-            for required in plugin.REQUIRES[:]:
-                # Check self references
-                if plugin.NAME == required:
-                    raise SpyderAPIError("Plugin is self referencing!")
-
-                if (required == Plugins.All and len(plugin.REQUIRES) == 1):
-                    all_plugins = plugin_names.copy()
-                    all_plugins.pop(plugin.NAME)
-                    plugin.REQUIRES = list(all_plugins)
-                    plugin._REQUIRES = plugin.REQUIRES.copy()
-                    logger.info(
-                        "Added all plugins as dependencies to plugin: " +
-                        plugin.NAME)
-                    plugins_requiring_all_plugins.append(plugin)
-                    continue
-
-                if required not in plugin_names:
-                    plugin_names.pop(plugin.NAME)
-                    plugins.remove(plugin)
-                    for plugin_req_all in plugins_requiring_all_plugins:
-                        plugin_req_all.REQUIRES = [Plugins.All]
-                        plugin_req_all._REQUIRES = [Plugins.All]
-                    logger.error("Pruned plugin: {}".format(plugin.NAME))
-                    logger.error("Missing requirement: {}".format(required))
-                    logger.error("Restart plugins pruning by REQUIRES check")
-                    pruning_requires = True
-                    break
-            else:
-                if plugin.NAME in plugin_names:
-                    remaining_plugins.append(plugin)
-
-    # Prune optional dependencies from remaining plugins
-    for plugin in remaining_plugins:
-        for optional in plugin.OPTIONAL:
-            if optional not in plugin_names:
-                plugin._OPTIONAL.remove(optional)
-
-        plugin._REQUIRES += plugin._OPTIONAL
-        dependencies_dict[plugin.NAME] = set(plugin._REQUIRES)
-
-    # Now use toposort with plugin._REQUIRES!
-    deps = toposort_flatten(dependencies_dict)
-
-    plugin_deps = [plugin_names[name] for name in deps]
-
-    return plugin_deps

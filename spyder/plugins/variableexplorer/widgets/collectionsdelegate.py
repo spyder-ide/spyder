@@ -18,26 +18,22 @@ from qtpy.compat import to_qvariant
 from qtpy.QtCore import QDateTime, Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
                             QItemDelegate, QLineEdit, QMessageBox, QTableView)
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd, PIL)
+from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
+                                         is_known_type)
 
 # Local imports
 from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder_kernels.utils.nsview import (
-    array, DataFrame, Index, display_to_value, FakeObject,
-    Image, is_editable_type, is_known_type, MaskedArray, ndarray, Series)
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
+from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
+from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
+    DataFrameEditor)
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
     import safe_tio_call
-
-if ndarray is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.arrayeditor import (
-            ArrayEditor)
-
-if DataFrame is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-            DataFrameEditor)
 
 
 LARGE_COLLECTION = 1e5
@@ -172,8 +168,10 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for a Numpy array
-        elif (isinstance(value, (ndarray, MaskedArray)) and
-                ndarray is not FakeObject and not object_explorer):
+        elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
+                np.ndarray is not FakeObject and not object_explorer):
+            # We need to leave this import here for tests to pass.
+            from .arrayeditor import ArrayEditor
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -181,20 +179,24 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for an images
-        elif (isinstance(value, Image) and ndarray is not FakeObject and
-                Image is not FakeObject and not object_explorer):
-            arr = array(value)
+        elif (isinstance(value, PIL.Image.Image) and
+                np.ndarray is not FakeObject and
+                PIL.Image is not FakeObject and
+                not object_explorer):
+            arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
-            conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
+            conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
         # DataFrameEditor for a pandas dataframe, series or index
-        elif (isinstance(value, (DataFrame, Index, Series))
-                and DataFrame is not FakeObject and not object_explorer):
+        elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
+                and pd.DataFrame is not FakeObject and not object_explorer):
+            # We need to leave this import here for tests to pass.
+            from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
@@ -461,8 +463,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for a Numpy array
-        elif (isinstance(value, (ndarray, MaskedArray)) and
-                ndarray is not FakeObject):
+        elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
+                np.ndarray is not FakeObject):
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -470,20 +472,20 @@ class ToggleColumnDelegate(CollectionsDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for an images
-        elif (isinstance(value, Image) and ndarray is not FakeObject and
-                Image is not FakeObject):
-            arr = array(value)
+        elif (isinstance(value, PIL.Image.Image) and
+                np.ndarray is not FakeObject and PIL.Image is not FakeObject):
+            arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
-            conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
+            conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
         # DataFrameEditor for a pandas dataframe, series or index
-        elif (isinstance(value, (DataFrame, Index, Series))
-                and DataFrame is not FakeObject):
+        elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
+                and pd.DataFrame is not FakeObject):
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return

@@ -35,7 +35,7 @@ from qtpy.QtCore import (QEvent, QRegExp, Qt, QTimer, QThread, QUrl, Signal,
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
-                        QTextCharFormat)
+                        QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
                             QToolTip, QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
@@ -95,9 +95,10 @@ except Exception:
 logger = logging.getLogger(__name__)
 
 
+# Regexp to detect noqa inline comments.
+NOQA_INLINE_REGEXP = re.compile(r"#?noqa", re.IGNORECASE)
 
 
-# %% This line is for cell execution testing
 @class_register
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
@@ -1085,7 +1086,7 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
         cursor = self.textCursor()
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP as it doesn't support IPython
             text = self.ipython_to_python(text)
@@ -1134,7 +1135,7 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP
             text = self.ipython_to_python(text)
@@ -1260,6 +1261,17 @@ class CodeEditor(TextEditBaseWidget):
 
             block = document.findBlockByNumber(start['line'])
             data = block.userData()
+
+            # Skip messages according to certain criteria.
+            # This one works for any programming language
+            if 'analysis:ignore' in block.text():
+                continue
+
+            # This only works for Python.
+            if self.language == 'Python':
+                if NOQA_INLINE_REGEXP.search(block.text()) is not None:
+                    continue
+
             if not data:
                 data = BlockUserData(self)
 
@@ -1282,7 +1294,13 @@ class CodeEditor(TextEditBaseWidget):
                                              data._selection(),
                                              underline_color=block.color)
             else:
-                data.code_analysis.append((source, code, severity, message))
+                # Don't append messages to data for cloned editors to avoid
+                # showing them twice or more times on hover.
+                # Fixes spyder-ide/spyder#15618
+                if not self.is_cloned:
+                    data.code_analysis.append(
+                        (source, code, severity, message)
+                    )
                 block.setUserData(data)
 
     # ------------- LSP: Completion ---------------------------------------
@@ -1460,7 +1478,7 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Hover/Mouse ---------------------------------------
     @request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
     def request_cursor_event(self):
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         cursor = self.textCursor()
         params = {
             'file': self.filename,
@@ -1692,7 +1710,7 @@ class CodeEditor(TextEditBaseWidget):
         if edits is None:
             return
 
-        text = self.toPlainText()
+        text = self.get_text_with_eol()
         text_tokens = list(text)
         merged_text = None
         for edit in edits:
@@ -1833,7 +1851,7 @@ class CodeEditor(TextEditBaseWidget):
         """Send save request."""
         params = {'file': self.filename}
         if self.save_include_text:
-            params['text'] = self.toPlainText()
+            params['text'] = self.get_text_with_eol()
         return params
 
     @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
@@ -2237,14 +2255,36 @@ class CodeEditor(TextEditBaseWidget):
         offset = self.get_position('cursor')
         return sourcecode.get_primary_at(source_code, offset)
 
+    def next_cursor_position(self, position=None,
+                             mode=QTextLayout.SkipCharacters):
+        """
+        Get next valid cursor position.
+
+        Adapted from:
+        https://github.com/qt/qtbase/blob/5.15.2/src/gui/text/qtextdocument_p.cpp#L1361
+        """
+        cursor = self.textCursor()
+        if cursor.atEnd():
+            return position
+        if position is None:
+            position = cursor.position()
+        else:
+            cursor.setPosition(position)
+        it = cursor.block()
+        start = it.position()
+        end = start + it.length() - 1
+        if (position == end):
+            return end + 1
+        return it.layout().nextCursorPosition(position - start, mode) + start
+
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
         if not self.has_selected_text():
             cursor = self.textCursor()
-            position = cursor.position()
             if not cursor.atEnd():
-                cursor.setPosition(position + 1, QTextCursor.KeepAnchor)
+                cursor.setPosition(
+                    self.next_cursor_position(), QTextCursor.KeepAnchor)
             self.setTextCursor(cursor)
         self.remove_selected_text()
 
@@ -3934,7 +3974,7 @@ class CodeEditor(TextEditBaseWidget):
                 document.characterAt(position)):
             position -= 1
         cursor = self.textCursor()
-        cursor.setPosition(position + 1)
+        cursor.setPosition(self.next_cursor_position())
         return cursor
 
     def _get_word_end_cursor(self, position):
@@ -3949,10 +3989,10 @@ class CodeEditor(TextEditBaseWidget):
         end = cursor.position()
         while (position < end and
                not self.is_letter_or_number(document.characterAt(position))):
-            position += 1
+            position = self.next_cursor_position(position)
         while (position < end and
                self.is_letter_or_number(document.characterAt(position))):
-            position += 1
+            position = self.next_cursor_position(position)
         cursor.setPosition(position)
         return cursor
 

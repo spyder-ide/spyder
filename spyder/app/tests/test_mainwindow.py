@@ -46,6 +46,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder import __trouble_url__, __project_url__
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
+from spyder.api.plugins import Plugins
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
 from spyder.config.base import get_home_dir, get_conf_path, get_module_path
@@ -277,6 +278,9 @@ def main_window(request, tmpdir):
         pass
 
     if not hasattr(main_window, 'window'):
+        from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+        PLUGIN_REGISTRY.reset()
+
         # Start the window
         window = start.main()
         main_window.window = window
@@ -1140,6 +1144,7 @@ def test_run_cython_code(main_window, qtbot):
 def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
@@ -1154,17 +1159,19 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select notebook in the project explorer
-    idx = projects.explorer.treewidget.get_index('notebook.ipynb')
-    projects.explorer.treewidget.setCurrentIndex(idx)
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'notebook.ipynb'))
+    projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Prese Enter there
-    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
 
     # Convert notebook to a Python file
-    projects.explorer.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
+    projects.get_widget().treewidget.convert_notebook(
+        osp.join(project_dir, 'notebook.ipynb'))
 
     # Assert notebook was open
     assert 'untitled' in editorstack.get_current_filename()
@@ -1187,6 +1194,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that file are run from the Project explorer."""
     projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
@@ -1201,17 +1209,18 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
         projects._create_project(project_dir)
 
     # Select file in the project explorer
-    idx = projects.explorer.treewidget.get_index('script.py')
-    projects.explorer.treewidget.setCurrentIndex(idx)
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'script.py'))
+    projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Press Enter there
-    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     # Assert that the file was open
     assert 'script.py' in editorstack.get_current_filename()
 
     # Run Python file
-    projects.explorer.treewidget.run([osp.join(project_dir, 'script.py')])
+    projects.get_widget().treewidget.run([osp.join(project_dir, 'script.py')])
 
     # Wait until the new console is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -3033,6 +3042,7 @@ def test_varexp_refresh(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     """
     Test if runcell works with an unnamed cell at the top of the file
@@ -3549,8 +3559,6 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Fails sometimes on macOS")
 def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     """
     Test that the variable explorer is cleared after a kernel restart.
@@ -3763,46 +3771,49 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     'main_window',
-    [{'spy_config': ('main', 'show_tour_message', 2)}],
+    [{'spy_config': ('tours', 'show_tour_message', 2)}],
     indirect=True)
 def test_tour_message(main_window, qtbot):
     """Test that the tour message displays and sends users to the tour."""
     # Wait until window setup is finished, which is when the message appears
+    tours = main_window.get_plugin(Plugins.Tours)
+    tour_dialog = tours.get_container()._tour_dialog
+    animated_tour = tours.get_container()._tour_widget
     qtbot.waitSignal(main_window.sig_setup_finished, timeout=30000)
 
     # Check that tour is shown automatically and manually show it
-    assert CONF.get('main', 'show_tour_message')
-    main_window.show_tour_message(force=True)
+    assert tours.get_conf('show_tour_message')
+    tours.show_tour_message(force=True)
 
     # Wait for the message to appear
-    qtbot.waitUntil(lambda: bool(main_window.tour_dialog), timeout=5000)
-    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=2000)
+    qtbot.waitUntil(lambda: bool(tour_dialog), timeout=5000)
+    qtbot.waitUntil(lambda: tour_dialog.isVisible(), timeout=2000)
 
     # Check that clicking dismiss hides the dialog and disables it
-    qtbot.mouseClick(main_window.tour_dialog.dismiss_button, Qt.LeftButton)
-    qtbot.waitUntil(lambda: not main_window.tour_dialog.isVisible(),
+    qtbot.mouseClick(tour_dialog.dismiss_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: not tour_dialog.isVisible(),
                     timeout=2000)
-    assert not CONF.get('main', 'show_tour_message')
+    assert not tours.get_conf('show_tour_message')
 
     # Confirm that calling show_tour_message() normally doesn't show it again
-    main_window.show_tour_message()
+    tours.show_tour_message()
     qtbot.wait(2000)
-    assert not main_window.tour_dialog.isVisible()
+    assert not tour_dialog.isVisible()
 
     # Ensure that it opens again with force=True
-    main_window.show_tour_message(force=True)
-    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=5000)
+    tours.show_tour_message(force=True)
+    qtbot.waitUntil(lambda: tour_dialog.isVisible(), timeout=5000)
 
     # Run the tour and confirm it's running and the dialog is closed
-    qtbot.mouseClick(main_window.tour_dialog.launch_tour_button, Qt.LeftButton)
-    qtbot.waitUntil(lambda: main_window.tour.is_running, timeout=9000)
-    assert not main_window.tour_dialog.isVisible()
-    assert not CONF.get('main', 'show_tour_message')
+    qtbot.mouseClick(tour_dialog.launch_tour_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: animated_tour.is_running, timeout=9000)
+    assert not tour_dialog.isVisible()
+    assert not tours.get_conf('show_tour_message')
 
     # Close the tour
-    main_window.tour.close_tour()
-    qtbot.waitUntil(lambda: not main_window.tour.is_running, timeout=9000)
-    main_window.tour_dialog.hide()
+    animated_tour.close_tour()
+    qtbot.waitUntil(lambda: not animated_tour.is_running, timeout=9000)
+    tour_dialog.hide()
 
 
 @pytest.mark.slow

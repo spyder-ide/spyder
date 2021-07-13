@@ -44,19 +44,13 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
                             QMessageBox, QPushButton, QTableView,
                             QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
-from pandas import DataFrame, Index, Series, isna
-try:
-    from pandas._libs.tslib import OutOfBoundsDatetime
-except ImportError:  # For pandas version < 0.20
-    from pandas.tslib import OutOfBoundsDatetime
-import numpy as np
+from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.config.manager import CONF
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
                               to_text_string, perf_counter)
 from spyder.utils.icon_manager import ima
@@ -112,7 +106,8 @@ def global_max(col_vals, index):
 
 
 class DataFrameModel(QAbstractTableModel):
-    """ DataFrame Table Model.
+    """
+    DataFrame Table Model.
 
     Partly based in ExtDataModel and ExtFrameModel classes
     of the gtabview project.
@@ -292,7 +287,7 @@ class DataFrameModel(QAbstractTableModel):
         if not self.bgcolor_enabled:
             return
         value = self.get_value(index.row(), column)
-        if self.max_min_col[column] is None or isna(value):
+        if self.max_min_col[column] is None or pd.isna(value):
             color = QColor(BACKGROUND_NONNUMBER_COLOR)
             if is_text_string(value):
                 color.setAlphaF(BACKGROUND_STRING_ALPHA)
@@ -324,7 +319,7 @@ class DataFrameModel(QAbstractTableModel):
         # handling, so fallback uses iloc
         try:
             value = self.df.iat[row, column]
-        except OutOfBoundsDatetime:
+        except pd._libs.tslib.OutOfBoundsDatetime:
             value = self.df.iloc[:, column].astype(str).iat[row]
         except:
             value = self.df.iloc[row, column]
@@ -513,7 +508,7 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class DataFrameView(QTableView):
+class DataFrameView(QTableView, SpyderConfigurationAccessor):
     """
     Data Frame view class.
 
@@ -525,6 +520,8 @@ class DataFrameView(QTableView):
     sig_sort_by_column = Signal()
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
+
+    CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent, model, header, hscroll, vscroll):
         """Constructor."""
@@ -539,11 +536,7 @@ class DataFrameView(QTableView):
         self.header_class = header
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        CONF.config_shortcut(
-            self.copy,
-            context='variable_explorer',
-            name='copy',
-            parent=self)
+        self.config_shortcut(self.copy, 'copy', self)
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
@@ -923,11 +916,11 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:
             title = _("%s editor") % data.__class__.__name__
-        if isinstance(data, Series):
+        if isinstance(data, pd.Series):
             self.is_series = True
             data = data.to_frame()
-        elif isinstance(data, Index):
-            data = DataFrame(data)
+        elif isinstance(data, pd.Index):
+            data = pd.DataFrame(data)
 
         self.setWindowTitle(title)
 
@@ -1383,31 +1376,32 @@ def test():
     from numpy import nan
     from pandas.util.testing import assert_frame_equal, assert_series_equal
 
-    df1 = DataFrame([
-                     [True, "bool"],
-                     [1+1j, "complex"],
-                     ['test', "string"],
-                     [1.11, "float"],
-                     [1, "int"],
-                     [np.random.rand(3, 3), "Unkown type"],
-                     ["Large value", 100],
-                     ["áéí", "unicode"]
-                    ],
-                    index=['a', 'b', nan, nan, nan, 'c',
-                           "Test global max", 'd'],
-                    columns=[nan, 'Type'])
+    df1 = pd.DataFrame(
+        [
+            [True, "bool"],
+            [1+1j, "complex"],
+            ['test', "string"],
+            [1.11, "float"],
+            [1, "int"],
+            [np.random.rand(3, 3), "Unkown type"],
+            ["Large value", 100],
+            ["áéí", "unicode"]
+        ],
+        index=['a', 'b', nan, nan, nan, 'c', "Test global max", 'd'],
+        columns=[nan, 'Type']
+    )
     out = test_edit(df1)
     assert_frame_equal(df1, out)
 
-    result = Series([True, "bool"], index=[nan, 'Type'], name='a')
+    result = pd.Series([True, "bool"], index=[nan, 'Type'], name='a')
     out = test_edit(df1.iloc[0])
     assert_series_equal(result, out)
 
-    df1 = DataFrame(np.random.rand(100100, 10))
+    df1 = pd.DataFrame(np.random.rand(100100, 10))
     out = test_edit(df1)
     assert_frame_equal(out, df1)
 
-    series = Series(np.arange(10), name=0)
+    series = pd.Series(np.arange(10), name=0)
     out = test_edit(series)
     assert_series_equal(series, out)
 

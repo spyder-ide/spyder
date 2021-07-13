@@ -13,6 +13,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.history.confpage import HistoryConfigPage
 from spyder.plugins.history.widgets import HistoryWidget
@@ -33,9 +34,6 @@ class HistoryLog(SpyderDockablePlugin):
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = HistoryConfigPage
     CONF_FILE = False
-    CONF_FROM_OPTIONS = {
-        'color_scheme_name': ('appearance', 'selected'),
-    }
 
     # --- Signals
     # ------------------------------------------------------------------------
@@ -56,13 +54,17 @@ class HistoryLog(SpyderDockablePlugin):
     def get_icon(self):
         return self.create_icon('history')
 
-    def register(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(self)
-
+    def on_initialize(self):
         widget = self.get_widget()
         widget.sig_focus_changed.connect(self.sig_focus_changed)
 
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.Console)
+    def on_console_available(self):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.connect(self.refresh)
 

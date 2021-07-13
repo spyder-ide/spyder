@@ -9,13 +9,21 @@ Generic object editor dialog
 """
 
 # Standard library imports
-from __future__ import print_function
+import datetime
 
 # Third party imports
 from qtpy.QtCore import QObject
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd, PIL)
+from spyder_kernels.utils.nsview import is_known_type
 
 # Local imports
 from spyder.py3compat import is_text_string
+from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
+from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
+    DataFrameEditor)
+from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.widgets.collectionseditor import CollectionsEditor
 
 
 class DialogKeeper(QObject):
@@ -58,36 +66,23 @@ def create_dialog(obj, obj_name):
     oedit to show eMZed related data)
     """
     # Local import
-    from spyder_kernels.utils.nsview import (ndarray, FakeObject,
-                                             Image, is_known_type, DataFrame,
-                                             Series)
-    from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-    from spyder.plugins.variableexplorer.widgets.arrayeditor import (
-            ArrayEditor)
-    from spyder.widgets.collectionseditor import CollectionsEditor
-
-    if DataFrame is not FakeObject:
-        from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-                DataFrameEditor)
-
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
-    if isinstance(obj, ndarray) and ndarray is not FakeObject:
+    if isinstance(obj, np.ndarray) and np.ndarray is not FakeObject:
         dialog = ArrayEditor()
         if not dialog.setup_and_check(obj, title=obj_name,
                                       readonly=readonly):
             return
-    elif isinstance(obj, Image) and Image is not FakeObject \
-      and ndarray is not FakeObject:
+    elif (isinstance(obj, PIL.Image.Image) and PIL.Image is not FakeObject
+            and np.ndarray is not FakeObject):
         dialog = ArrayEditor()
-        import numpy as np
         data = np.array(obj)
         if not dialog.setup_and_check(data, title=obj_name,
                                       readonly=readonly):
             return
-        from spyder.pil_patch import Image
-        conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
-    elif isinstance(obj, (DataFrame, Series)) and DataFrame is not FakeObject:
+        conv_func = lambda data: PIL.Image.fromarray(data, mode=obj.mode)
+    elif (isinstance(obj, (pd.DataFrame, pd.Series)) and
+            pd.DataFrame is not FakeObject):
         dialog = DataFrameEditor()
         if not dialog.setup_and_check(obj):
             return
@@ -151,11 +146,8 @@ def oedit(obj, modal=True, namespace=None):
 #==============================================================================
 def test():
     """Run object editor test"""
-    import datetime
-    import numpy as np
-    from spyder.pil_patch import Image
     data = np.random.randint(1, 256, size=(100, 100)).astype('uint8')
-    image = Image.fromarray(data)
+    image = PIL.Image.fromarray(data)
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],
                'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},

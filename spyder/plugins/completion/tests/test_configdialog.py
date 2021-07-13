@@ -72,6 +72,10 @@ def WrappedCompletionPlugin():
     [[MainWindowMock, [], [WrappedCompletionPlugin()]]],
     indirect=True)
 def test_config_dialog(request, config_dialog):
+    expected_titles = {'General', 'Snippets', 'Linting', 'Introspection',
+                       'Code style and formatting', 'Docstring style',
+                       'Advanced', 'Other languages'}
+
     def teardown():
         # Remove fake entry points from pkg_resources
         pkg_resources.working_set.by_key.pop('unknown')
@@ -83,4 +87,8 @@ def test_config_dialog(request, config_dialog):
 
     configpage = config_dialog.get_page()
     assert configpage
+    tabs = configpage.tabs
+    for i in range(0, tabs.count()):
+        tab_text = tabs.tabText(i)
+        assert tab_text in expected_titles
     configpage.save_to_conf()

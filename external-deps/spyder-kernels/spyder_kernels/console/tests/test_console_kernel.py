@@ -21,6 +21,7 @@ import sys
 import inspect
 
 # Test imports
+import ipykernel
 import IPython
 import pytest
 from flaky import flaky
@@ -29,17 +30,23 @@ from jupyter_client import BlockingKernelClient
 from ipython_genutils import py3compat
 import numpy as np
 
-
 # Local imports
 from spyder_kernels.py3compat import PY3, to_text_string
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 
+# For ipykernel 6
+try:
+    import asyncio
+except ImportError:
+    pass
+
 # =============================================================================
 # Constants
 # =============================================================================
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
+IPYKERNEL_6 = ipykernel.__version__[0] >= '6'
 TIMEOUT = 15
 SETUP_TIMEOUT = 60
 
@@ -131,7 +138,10 @@ def kernel(request):
 
     # Teardown
     def reset_kernel():
-        kernel.do_execute('reset -f', True)
+        if IPYKERNEL_6:
+            asyncio.run(kernel.do_execute('reset -f', True))
+        else:
+            kernel.do_execute('reset -f', True)
     request.addfinalizer(reset_kernel)
 
     return kernel
@@ -176,7 +186,10 @@ def test_get_namespace_view(kernel):
     """
     Test the namespace view of the kernel.
     """
-    execute = kernel.do_execute('a = 1', True)
+    if IPYKERNEL_6:
+        execute = asyncio.run(kernel.do_execute('a = 1', True))
+    else:
+        execute = kernel.do_execute('a = 1', True)
 
     nsview = repr(kernel.get_namespace_view())
     assert "'a':" in nsview
@@ -195,7 +208,10 @@ def test_get_var_properties(kernel):
     """
     Test the properties fo the variables in the namespace.
     """
-    execute = kernel.do_execute('a = 1', True)
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute('a = 1', True))
+    else:
+        kernel.do_execute('a = 1', True)
 
     var_properties = repr(kernel.get_var_properties())
     assert "'a'" in var_properties
@@ -213,7 +229,10 @@ def test_get_var_properties(kernel):
 def test_get_value(kernel):
     """Test getting the value of a variable."""
     name = 'a'
-    kernel.do_execute("a = 124", True)
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute("a = 124", True))
+    else:
+        kernel.do_execute("a = 124", True)
 
     # Check data type send
     assert kernel.get_value(name) == 124
@@ -222,7 +241,10 @@ def test_get_value(kernel):
 def test_set_value(kernel):
     """Test setting the value of a variable."""
     name = 'a'
-    execute = kernel.do_execute('a = 0', True)
+    if IPYKERNEL_6:
+         asyncio.run(kernel.do_execute('a = 0', True))
+    else:
+        kernel.do_execute('a = 0', True)
     value = 10
     kernel.set_value(name, value)
     log_text = get_log_text(kernel)
@@ -236,7 +258,10 @@ def test_set_value(kernel):
 def test_remove_value(kernel):
     """Test the removal of a variable."""
     name = 'a'
-    execute = kernel.do_execute('a = 1', True)
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute('a = 1', True))
+    else:
+        kernel.do_execute('a = 1', True)
 
     var_properties = repr(kernel.get_var_properties())
     assert "'a'" in var_properties
@@ -258,7 +283,10 @@ def test_copy_value(kernel):
     """Test the copy of a variable."""
     orig_name = 'a'
     new_name = 'b'
-    execute = kernel.do_execute('a = 1', True)
+    if IPYKERNEL_6:
+         asyncio.run(kernel.do_execute('a = 1', True))
+    else:
+        kernel.do_execute('a = 1', True)
 
     var_properties = repr(kernel.get_var_properties())
     assert "'a'" in var_properties
@@ -294,7 +322,12 @@ def test_load_npz_data(kernel, load):
     namespace_file = osp.join(FILES_PATH, 'load_data.npz')
     extention = '.npz'
     overwrite, execute, variables = load
-    kernel.do_execute(execute, True)
+
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute(execute, True))
+    else:
+        kernel.do_execute(execute, True)
+
     kernel.load_data(namespace_file, extention, overwrite=overwrite)
     for var, value in variables.items():
         assert value == kernel.get_value(var)
@@ -321,7 +354,11 @@ def test_load_data(kernel):
 def test_save_namespace(kernel):
     """Test saving the namespace into filename."""
     namespace_file = osp.join(FILES_PATH, 'save_data.spydata')
-    execute = kernel.do_execute('b = 1', True)
+
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute('b = 1', True))
+    else:
+        kernel.do_execute('b = 1', True)
 
     kernel.save_namespace(namespace_file)
     assert osp.isfile(namespace_file)
@@ -365,7 +402,11 @@ libc.printf(('Hello from C\\n').encode('utf8'))
 
     # With Wurlitzer we have the expected output
     kernel._load_wurlitzer()
-    reply = kernel.do_execute(code, True)
+
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute(code, True))
+    else:
+        kernel.do_execute(code, True)
     captured = capsys.readouterr()
     assert captured.out == "Hello from C\n"
 
@@ -701,7 +742,10 @@ def test_do_complete(kernel):
     """
     Check do complete works in normal and debugging mode.
     """
-    kernel.do_execute('abba = 1', True)
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute('abba = 1', True))
+    else:
+        kernel.do_execute('abba = 1', True)
     assert kernel.get_value('abba') == 1
     match = kernel.do_complete('ab', 2)
     assert 'abba' in match['matches']
@@ -723,9 +767,15 @@ def test_callables_and_modules(kernel, exclude_callables_and_modules,
     Tests that callables and modules are in the namespace view only
     when the right options are passed to the kernel.
     """
-    kernel.do_execute('import numpy', True)
-    kernel.do_execute('a = 10', True)
-    kernel.do_execute('def f(x): return x', True)
+    if IPYKERNEL_6:
+        asyncio.run(kernel.do_execute('import numpy', True))
+        asyncio.run(kernel.do_execute('a = 10', True))
+        asyncio.run(kernel.do_execute('def f(x): return x', True))
+    else:
+        kernel.do_execute('import numpy', True)
+        kernel.do_execute('a = 10', True)
+        kernel.do_execute('def f(x): return x', True)
+
     settings = kernel.namespace_view_settings
 
     settings['exclude_callables_and_modules'] = exclude_callables_and_modules
