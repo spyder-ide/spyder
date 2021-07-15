@@ -18,18 +18,15 @@ class ClipboardHelper:
     metadata_indent = None
     metadata_tab_stop_width_spaces = None
 
-
     def get_current_hash(self):
         clipboard = QApplication.clipboard()
         return hash(to_text_string(clipboard.text()))
-    
     
     def get_line_indentation(self, text, tab_stop_width_spaces=None):
         """Get indentation for given line."""
         if tab_stop_width_spaces:
             text = text.replace("\t", " " * tab_stop_width_spaces)
         return len(text)-len(text.lstrip())
-    
     
     def save_indentation(self, preceding_text, tab_stop_width_spaces=None):
         """
@@ -41,7 +38,6 @@ class ClipboardHelper:
         self.metadata_indent = self.get_line_indentation(
             preceding_text, tab_stop_width_spaces)
         self.metadata_tab_stop_width_spaces = tab_stop_width_spaces
-    
     
     def remaining_lines_adjustment(self, preceding_text):
         """
