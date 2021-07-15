@@ -2286,9 +2286,7 @@ def test_custom_layouts(main_window, qtbot):
             layout = mw.layouts.setup_default_layouts(
                 layout_idx, settings=settings)
 
-            with qtbot.waitSignal(None, timeout=500, raising=False):
-                # Add a wait to see changes
-                pass
+            qtbot.wait(500)
 
             for area in layout._areas:
                 if area['visible']:
@@ -2322,9 +2320,7 @@ def test_programmatic_custom_layouts(main_window, qtbot):
     with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
         mw.layouts.quick_layout_switch(layout_id)
 
-        with qtbot.waitSignal(None, timeout=500, raising=False):
-            # Add a wait to see changes
-            pass
+        qtbot.wait(500)
 
         for area in layout._areas:
             if area['visible']:
