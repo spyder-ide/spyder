@@ -26,30 +26,36 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          # This is the last version working with py2app and modulegraph
+          python-version: '3.9.5'
+          architecture: 'x64'
       - name: Install Dependencies
         run: |
           INSTALL_FLAGS=()
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
-          python3.9 -m pip install -U pip setuptools
-          python3.9 -m pip install -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
-          python3.9 -m pip uninstall -q -y spyder
+          ${pythonLocation}/bin/python -m pip install -U pip setuptools
+          ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
+          ${pythonLocation}/bin/python -m pip uninstall -q -y spyder
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: |
-          python3.9 -m pip install \
+          ${pythonLocation}/bin/python -m pip install \
             -e ${GITHUB_WORKSPACE}/external-deps/spyder-kernels \
             -e ${GITHUB_WORKSPACE}/external-deps/python-lsp-server \
             -e ${GITHUB_WORKSPACE}/external-deps/qdarkstyle
       - name: Show Build Environment
         run: |
-          python3.9 -V -V
-          python3.9 -m pip list
+          ${pythonLocation}/bin/python -V -V
+          ${pythonLocation}/bin/python -m pip list
       - name: Build Application Bundle
-        run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
+        run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Build Disk Image
-        run: python3.9 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
+        run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
