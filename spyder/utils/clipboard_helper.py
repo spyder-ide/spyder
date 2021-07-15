@@ -12,7 +12,7 @@ from qtpy.QtWidgets import QApplication
 from spyder.py3compat import to_text_string
 
 
-class ClipboardHelp:
+class ClipboardHelper:
     # Clipboard metadata
     metadata_hash = None
     metadata_indent = None
@@ -57,4 +57,4 @@ class ClipboardHelp:
         return 0
 
 
-CLIPHELP = ClipboardHelp()
+CLIPBOARD_HELPER = ClipboardHelper()

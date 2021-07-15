@@ -77,7 +77,7 @@ from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, sourcecode
-from spyder.utils.clipboard_helper import CLIPHELP
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette, QStylePalette
@@ -2767,7 +2767,7 @@ class CodeEditor(TextEditBaseWidget):
         first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
         first_line = preceding_text + first_line_selected
 
-        lines_adjustment = CLIPHELP.remaining_lines_adjustment(
+        lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
             preceding_text)
 
         if preceding_text.strip() == "" and first_line.strip != "":
@@ -2817,7 +2817,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.setPosition(cursor.block().position(),
                            QTextCursor.KeepAnchor)
         preceding_text = cursor.selectedText()
-        CLIPHELP.save_indentation(
+        CLIPBOARD_HELPER.save_indentation(
             preceding_text, self.tab_stop_width_spaces)
 
     @Slot()

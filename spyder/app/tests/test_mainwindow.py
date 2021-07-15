@@ -59,7 +59,7 @@ from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
-from spyder.utils.clipboard_helper import CLIPHELP
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
 
 
@@ -4129,7 +4129,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, "c", modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == (
         "def c():\n            print()\n")
-    assert CLIPHELP.metadata_indent == 8
+    assert CLIPBOARD_HELPER.metadata_indent == 8
 
     # Test paste in console
     qtbot.keyClick(shell._control, "v", modifier=Qt.ControlModifier)
@@ -4143,7 +4143,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
     # Check again that the clipboard is ready
     assert QApplication.clipboard().text() == (
         "def c():\n            print()\n")
-    assert CLIPHELP.metadata_indent == 8
+    assert CLIPBOARD_HELPER.metadata_indent == 8
     qtbot.keyClick(code_editor, "v", modifier=Qt.ControlModifier)
     assert "\ndef c():\n    print()" in code_editor.toPlainText()
 

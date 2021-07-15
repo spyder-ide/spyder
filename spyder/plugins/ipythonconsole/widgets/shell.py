@@ -25,7 +25,7 @@ from spyder.config.base import (
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils import encoding
-from spyder.utils.clipboard_helper import CLIPHELP
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
@@ -820,7 +820,7 @@ the sympy module (e.g. plot)
         if indent_adjustment > 0:
             return ' ' * indent_adjustment + line
 
-        max_indent = CLIPHELP.get_line_indentation(line)
+        max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
         indent_adjustment = min(max_indent, -indent_adjustment)
 
         return line[indent_adjustment:]
@@ -847,7 +847,7 @@ the sympy module (e.g. plot)
 
             # Adjust indentation of multilines pastes
             if len(text.splitlines()) > 1:
-                lines_adjustment = CLIPHELP.remaining_lines_adjustment(
+                lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
                     self._get_preceding_text())
                 eol_chars = "\n"
                 first_line, *remaining_lines = (text + eol_chars).splitlines()
@@ -895,7 +895,7 @@ the sympy module (e.g. plot)
 
         Must be called right after copying.
         """
-        CLIPHELP.save_indentation(self._get_preceding_text(), 4)
+        CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
 
     def copy(self):
         """
