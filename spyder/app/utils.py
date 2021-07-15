@@ -176,7 +176,9 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 def create_splash_screen():
     """Create splash screen."""
     if not running_under_pytest():
-        splash = QSplashScreen(QPixmap(get_image_path('splash')))
+        pixmap = QPixmap(get_image_path('splash'))
+        splash = QSplashScreen(
+            pixmap.scaledToWidth(500, Qt.SmoothTransformation))
         splash_font = splash.font()
         splash_font.setPixelSize(14)
         splash.setFont(splash_font)
