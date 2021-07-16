@@ -1117,11 +1117,15 @@ class BaseEditMixin(object):
 
         return word
 
+    def get_line_indentation(self, text):
+        """Get indentation for given line."""
+        text = text.replace("\t", " "*self.tab_stop_width_spaces)
+        return len(text)-len(text.lstrip())
+
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)."""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
-        text = text.replace("\t", " "*self.tab_stop_width_spaces)
-        return len(text)-len(text.lstrip())
+        return self.get_line_indentation(text)
 
     def get_selection_bounds(self, cursor=None):
         """Return selection bounds (block numbers)."""

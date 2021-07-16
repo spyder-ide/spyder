@@ -17,6 +17,7 @@ from textwrap import dedent
 # Third party imports
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
+from qtpy import QtCore, QtWidgets, QtGui
 
 # Local imports
 from spyder.config.base import (
@@ -24,6 +25,7 @@ from spyder.config.base import (
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils import encoding
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
@@ -809,6 +811,106 @@ the sympy module (e.g. plot)
     def request_restart_kernel(self):
         """Reimplemented to call our own restart mechanism."""
         self.ipyclient.restart_kernel()
+
+    def adjust_indentation(self, line, indent_adjustment):
+        """Adjust indentation."""
+        if indent_adjustment == 0 or line == "":
+            return line
+
+        if indent_adjustment > 0:
+            return ' ' * indent_adjustment + line
+
+        max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
+        indent_adjustment = min(max_indent, -indent_adjustment)
+
+        return line[indent_adjustment:]
+
+    def paste(self, mode=QtGui.QClipboard.Clipboard):
+        """ Paste the contents of the clipboard into the input region.
+
+        Parameters
+        ----------
+        mode : QClipboard::Mode, optional [default QClipboard::Clipboard]
+
+            Controls which part of the system clipboard is used. This can be
+            used to access the selection clipboard in X11 and the Find buffer
+            in Mac OS. By default, the regular clipboard is used.
+        """
+        if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
+            # Make sure the paste is safe.
+            self._keep_cursor_in_buffer()
+            cursor = self._control.textCursor()
+
+            # Remove any trailing newline, which confuses the GUI and forces
+            # the user to backspace.
+            text = QtWidgets.QApplication.clipboard().text(mode).rstrip()
+
+            # Adjust indentation of multilines pastes
+            if len(text.splitlines()) > 1:
+                lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
+                    self._get_preceding_text())
+                eol_chars = "\n"
+                first_line, *remaining_lines = (text + eol_chars).splitlines()
+                remaining_lines = [
+                    self.adjust_indentation(line, lines_adjustment)
+                    for line in remaining_lines]
+                text = eol_chars.join([first_line, *remaining_lines])
+
+            # dedent removes "common leading whitespace" but to preserve
+            # relative indent of multiline code, we have to compensate for any
+            # leading space on the first line, if we're pasting into
+            # an indented position.
+            cursor_offset = cursor.position() - self._get_line_start_pos()
+            if text.startswith(' ' * cursor_offset):
+                text = text[cursor_offset:]
+
+            self._insert_plain_text_into_buffer(cursor, dedent(text))
+
+    def _get_preceding_text(self):
+        """Get preciding text."""
+        cursor = self._control.textCursor()
+        text = cursor.selection().toPlainText()
+        if text == "":
+            return ""
+        first_line_selection = text.splitlines()[0]
+        cursor.setPosition(cursor.selectionStart())
+        cursor.setPosition(cursor.block().position(),
+                           QtGui.QTextCursor.KeepAnchor)
+        preceding_text = cursor.selection().toPlainText()
+        first_line = preceding_text + first_line_selection
+        len_with_prompt = len(first_line)
+        # Remove prompt
+        first_line = self._highlighter.transform_classic_prompt(first_line)
+        first_line = self._highlighter.transform_ipy_prompt(first_line)
+
+        prompt_len = len_with_prompt - len(first_line)
+        if prompt_len >= len(preceding_text):
+            return ""
+
+        return preceding_text[prompt_len:]
+
+    def _save_clipboard_indentation(self):
+        """
+        Save the indentation corresponding to the clipboard data.
+
+        Must be called right after copying.
+        """
+        CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
+
+    def copy(self):
+        """
+        Copy the currently selected text to the clipboard.
+        """
+        super().copy()
+        self._save_clipboard_indentation()
+
+    def cut(self):
+        """
+        Copy the currently selected text to the clipboard and delete it
+        if it's inside the input buffer.
+        """
+        super().cut()
+        self._save_clipboard_indentation()
 
     # ---- Private methods (overrode by us) -----------------------------------
     def _handle_error(self, msg):

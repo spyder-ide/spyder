@@ -375,6 +375,8 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
         qtbot.keyPress(code_editor, Qt.Key_Return)
 
     qtbot.keyPress(code_editor, Qt.Key_Up)
+    # Add a tab for correct indentation
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
     code_editor.paste()
     qtbot.wait(3000)
 
