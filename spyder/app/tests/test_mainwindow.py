@@ -37,7 +37,7 @@ import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QUrl
 from qtpy.QtTest import QTest
-from qtpy.QtGui import QImage
+from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
                             QTabBar, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -59,6 +59,7 @@ from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.misc import remove_backslashes
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
 
 
@@ -4093,6 +4094,69 @@ def test_goto_find(main_window, qtbot, tmpdir):
         cursor = code_editor.textCursor()
         position = (cursor.selectionStart(), cursor.selectionEnd())
         assert position == match_positions[i]
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="test fails on windows.")
+def test_copy_paste(main_window, qtbot, tmpdir):
+    """Test copy paste."""
+    code = (
+        "if True:\n"
+        "    class a():\n"
+        "        def b():\n"
+        "            print()\n"
+        "        def c():\n"
+        "            print()\n"
+        )
+
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    # Test copy
+    cursor = code_editor.textCursor()
+    cursor.setPosition(69)
+    cursor.movePosition(QTextCursor.End,
+                        QTextCursor.KeepAnchor)
+    code_editor.setTextCursor(cursor)
+    qtbot.keyClick(code_editor, "c", modifier=Qt.ControlModifier)
+    assert QApplication.clipboard().text() == (
+        "def c():\n            print()\n")
+    assert CLIPBOARD_HELPER.metadata_indent == 8
+
+    # Test paste in console
+    qtbot.keyClick(shell._control, "v", modifier=Qt.ControlModifier)
+    expected = "In [1]: def c():\n   ...:     print()"
+    assert expected in shell._control.toPlainText()
+
+    # Test paste at zero indentation
+    qtbot.keyClick(code_editor, Qt.Key_Backspace)
+    qtbot.keyClick(code_editor, Qt.Key_Backspace)
+    qtbot.keyClick(code_editor, Qt.Key_Backspace)
+    # Check again that the clipboard is ready
+    assert QApplication.clipboard().text() == (
+        "def c():\n            print()\n")
+    assert CLIPBOARD_HELPER.metadata_indent == 8
+    qtbot.keyClick(code_editor, "v", modifier=Qt.ControlModifier)
+    assert "\ndef c():\n    print()" in code_editor.toPlainText()
+
+    # Test paste at automatic indentation
+    qtbot.keyClick(code_editor, "z", modifier=Qt.ControlModifier)
+    qtbot.keyClick(code_editor, Qt.Key_Tab)
+    qtbot.keyClick(code_editor, "v", modifier=Qt.ControlModifier)
+    expected = (
+        "\n"
+        "            def c():\n"
+        "                print()\n"
+        )
+    assert expected in code_editor.toPlainText()
 
 
 if __name__ == "__main__":

@@ -196,6 +196,14 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # super init
         super(DebuggingWidget, self).__init__(*args, **kwargs)
 
+        # Adapted from qtconsole/frontend_widget.py
+        # This adds the IPdb as a prompt self._highlighter recognises
+        self._highlighter._ipy_prompt_re = re.compile(
+            r'^({})?('.format(re.escape(self.other_output_prefix)) +
+            r'[ \t]*\(*IPdb \[\d+\]\)*: |' +
+            r'[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )')
+
+
     # --- Public API --------------------------------------------------
 
     def will_close(self, externally_managed):
@@ -506,11 +514,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if prompt == self._pdb_prompt[0]:
             # Nothing to do
             return
-        # Adapted from qtconsole/frontend_widget.py
-        # This adds `prompt` as a prompt self._highlighter recognises
-        self._highlighter._ipy_prompt_re = re.compile(
-            r'^({})?([ \t]*{}|[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )'
-            .format(re.escape(self.other_output_prefix), re.escape(prompt)))
+
         if password is None:
             password = self._pdb_prompt[1]
         self._pdb_prompt = (prompt, password)
