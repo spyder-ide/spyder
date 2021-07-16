@@ -27,7 +27,7 @@ app = qapplication()
 
 # PyTest imports
 import pytest
-from pytestqt.plugin import QtBot
+from pytestqt.qtbot import QtBot
 
 
 class MainWindowMock(QMainWindow):

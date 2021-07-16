@@ -10,7 +10,7 @@ from unittest.mock import Mock, MagicMock
 from qtpy.QtCore import QObject, Signal, Slot
 from qtpy.QtWidgets import QWidget
 import pytest
-from pytestqt.plugin import QtBot
+from pytestqt.qtbot import QtBot
 
 from spyder.config.manager import CONF
 from spyder.plugins.completion.api import SERVER_CAPABILITES

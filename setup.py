@@ -258,7 +258,7 @@ extras_require = {
         'pytest-lazy-fixture',
         'pytest-mock',
         'pytest-order',
-        'pytest-qt<4.0',
+        'pytest-qt',
         'pyyaml',
         'scipy',
         'sympy',
