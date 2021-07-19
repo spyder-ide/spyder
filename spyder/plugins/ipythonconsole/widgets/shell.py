@@ -455,14 +455,62 @@ the sympy module (e.g. plot)
 
     def reset_namespace(self, warning=False, message=False):
         """Reset the namespace by removing all names defined by the user."""
-        reset_str = _("Remove all variables")
-        warn_str = _("All user-defined variables will be removed. "
-                     "Are you sure you want to proceed?")
-
         # Don't show the warning when running our tests.
         if running_under_pytest():
             warning = False
 
+        if warning:
+            reset_str = _("Remove all variables")
+            warn_str = _("All user-defined variables will be removed. "
+                         "Are you sure you want to proceed?")
+            box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
+            box.setWindowTitle(reset_str)
+            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            box.setDefaultButton(QMessageBox.Yes)
+
+            box.set_checkbox_text(_("Don't show again."))
+            box.set_checked(False)
+            box.set_check_visible(True)
+            box.setText(warn_str)
+
+            box.buttonClicked.connect(
+                lambda button: self.handle_reset_message_answer(
+                    box, button, message)
+            )
+            box.show()
+        else:
+            self._perform_reset(message)
+
+    def handle_reset_message_answer(self, message_box, button, message):
+        """
+        Handle the answer of the reset namespace message box.
+
+        Parameters
+        ----------
+        message_box
+            Instance of the message box shown to the user.
+        button: QPushButton
+            Instance of the button clicked by the user on the dialog.
+        message: bool
+            Whether to show a message in the console telling users the
+            namespace was reset.
+        """
+        if message_box.buttonRole(button) == QMessageBox.YesRole:
+            self._update_reset_options(message_box)
+            self._perform_reset(message)
+        else:
+            self._update_reset_options(message_box)
+
+    def _perform_reset(self, message):
+        """
+        Perform the reset namespace operation.
+
+        Parameters
+        ----------
+        message: bool
+            Whether to show a message in the console telling users the
+            namespace was reset.
+        """
         # This is necessary to make resetting variables work in external
         # kernels.
         # See spyder-ide/spyder#9505.
@@ -470,27 +518,6 @@ the sympy module (e.g. plot)
             kernel_env = self.kernel_manager._kernel_spec.env
         except AttributeError:
             kernel_env = {}
-
-        if warning:
-            box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
-            box.setWindowTitle(reset_str)
-            box.set_checkbox_text(_("Don't show again."))
-            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            box.setDefaultButton(QMessageBox.Yes)
-
-            box.set_checked(False)
-            box.set_check_visible(True)
-            box.setText(warn_str)
-
-            answer = box.show()
-
-            # Update checkbox based on user interaction
-            self.set_conf(
-                'show_reset_namespace_warning', not box.is_checked())
-            self.ipyclient.reset_warning = not box.is_checked()
-
-            if answer != QMessageBox.Yes:
-                return
 
         try:
             if self.is_waiting_pdb_input():
@@ -527,6 +554,17 @@ the sympy module (e.g. plot)
                     self.call_kernel().close_all_mpl_figures()
         except AttributeError:
             pass
+
+    def _update_reset_options(self, message_box):
+        """
+        Update options and variables based on the interaction in the
+        reset warning message box shown to the user.
+        """
+        self.set_conf(
+            'show_reset_namespace_warning',
+            not message_box.is_checked()
+        )
+        self.ipyclient.reset_warning = not message_box.is_checked()
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
