@@ -217,24 +217,26 @@ def create_application():
     if hasattr(app, 'setDesktopFileName'):
         app.setDesktopFileName('spyder')
 
-    #----Monkey patching QApplication
+    # ---- Monkey patching QApplication
     class FakeQApplication(QApplication):
         """Spyder's fake QApplication"""
         def __init__(self, args):
             self = app  # analysis:ignore
+
         @staticmethod
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
+
     from qtpy import QtWidgets
     QtWidgets.QApplication = FakeQApplication
 
-    # ----Monkey patching sys.exit
+    # ---- Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass
     sys.exit = fake_sys_exit
 
-    # ----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
+    # ---- Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
     def spy_excepthook(type_, value, tback):
         sys.__excepthook__(type_, value, tback)
     sys.excepthook = spy_excepthook
