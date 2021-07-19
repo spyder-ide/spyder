@@ -697,9 +697,12 @@ class BaseEditMixin(object):
         characters.
         """
         text = self.toPlainText()
+        lines = text.splitlines()
         linesep = self.get_line_separator()
-        text.replace('\n', linesep)
-        return text
+        text_with_eol = linesep.join(lines)
+        if text.endswith('\n'):
+            text_with_eol += linesep
+        return text_with_eol
 
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
