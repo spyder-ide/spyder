@@ -72,13 +72,12 @@ from spyder import dependencies
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window,
     delete_lsp_log_files, qt_message_handler, set_links_color, setup_logging,
-    set_opengl_implementation, Spy)
+    set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, get_module_source_path,
-                                get_safe_mode, is_pynsist, running_in_mac_app,
+                                is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
-from spyder.utils.image_path_manager import get_image_path
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
@@ -961,10 +960,8 @@ class MainWindow(QMainWindow):
         # Menus
         # TODO: Remove when all menus are migrated to use the Main Menu Plugin
         logger.info("Creating Menus...")
-        from spyder.api.widgets.menus import SpyderMenu
         from spyder.plugins.mainmenu.api import (
-            ApplicationMenus, HelpMenuSections, ToolsMenuSections,
-            FileMenuSections)
+            ApplicationMenus, ToolsMenuSections, FileMenuSections)
         mainmenu = self.mainmenu
         self.edit_menu = mainmenu.get_application_menu("edit_menu")
         self.search_menu = mainmenu.get_application_menu("search_menu")
