@@ -101,6 +101,7 @@ packages=
 files={package_dist_info} > $INSTDIR/pkgs
     black-20.8b1.dist-info > $INSTDIR/pkgs
     __main__.py > $INSTDIR/pkgs/jedi/inference/compiled/subprocess
+    __init__.py > $INSTDIR/pkgs/pylint
     lib
     tcl86t.dll > $INSTDIR/pkgs
     tk86t.dll > $INSTDIR/pkgs
@@ -352,6 +353,11 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             shutil.copy(
                 "installers/Windows/assets/jedi/__main__.py",
                 os.path.join(work_dir, "__main__.py"))
+
+            print("Copying patched __init__.py for Pylint")
+            shutil.copy(
+                "installers/Windows/assets/pylint/__init__.py",
+                os.path.join(work_dir, "__init__.py"))
 
             print("Copying required assets for Tkinter to work")
             shutil.copytree(
