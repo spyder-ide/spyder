@@ -13,6 +13,8 @@ import uuid
 
 # Third party imports
 from intervaltree import IntervalTree
+from pkg_resources import parse_version
+from qtpy import PYSIDE2
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
@@ -25,6 +27,9 @@ from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.onecolumntree import OneColumnTree
+
+if PYSIDE2:
+    from qtpy import PYSIDE_VERSION
 
 
 # ---- Constants
@@ -722,7 +727,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.ordered_editor_ids if
                 self.editor_items.get(e_id) is not None]
 
-        if current_ordered_items != new_ordered_items:
+        # PySide <= 5.15.0 doesn’t support == and != comparison for the data
+        # types inside the compared lists (see [1], [2])
+        #
+        # [1] https://bugreports.qt.io/browse/PYSIDE-74
+        # [2] https://codereview.qt-project.org/c/pyside/pyside-setup/+/312945
+        update = (
+            (PYSIDE2 and parse_version(PYSIDE_VERSION) <= parse_version("5.15.0"))
+            or (current_ordered_items != new_ordered_items)
+        )
+        if update:
             selected_items = self.selectedItems()
             self.save_expanded_state()
             for index in range(self.topLevelItemCount()):
