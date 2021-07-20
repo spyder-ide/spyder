@@ -161,21 +161,19 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.time_label = None
         self.t0 = time.monotonic()
         self.timer = QTimer(self)
-        self.show_time_action = create_action(self, _("Show elapsed time"),
-                                         toggled=self.set_elapsed_time_visible)
 
         # --- Layout
         self.layout = QVBoxLayout()
-        toolbar_buttons = self.get_toolbar_buttons()
+        # toolbar_buttons = self.get_toolbar_buttons()
 
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(self.create_time_label())
-        hlayout.addStretch(0)
-        for button in toolbar_buttons:
-            hlayout.addWidget(button)
+        # hlayout = QHBoxLayout()
+        # hlayout.addWidget(self.create_time_label())
+        # hlayout.addStretch(0)
+        # for button in toolbar_buttons:
+        #     hlayout.addWidget(button)
 
-        self.layout.addLayout(hlayout)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        # self.layout.addLayout(hlayout)
+        # self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.shellwidget)
         self.layout.addWidget(self.infowidget)
         self.setLayout(self.layout)
@@ -187,7 +185,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.dialog_manager = DialogManager()
 
         # Show timer
-        self.update_time_label_visibility()
+        # self.update_time_label_visibility()
 
         # Poll for stderr changes
         self.stderr_mtime = 0
@@ -782,8 +780,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Update elapsed time visibility."""
         self.time_label.setVisible(self.show_elapsed_time)
 
-    def set_show_elapsed_time(self, state):
+    def set_show_elapsed_time_state(self, state):
         self.show_time_action.setChecked(state)
+        self.set_elapsed_time_visible(state)
 
     @Slot(bool)
     def set_elapsed_time_visible(self, state):

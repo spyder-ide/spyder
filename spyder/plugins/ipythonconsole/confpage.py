@@ -22,9 +22,9 @@ from spyder.py3compat import PY2
 
 class IPythonConsoleConfigPage(PluginConfigPage):
 
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("IPython console")
+    # def __init__(self, plugin, parent):
+    #     PluginConfigPage.__init__(self, plugin, parent)
+    #     self.get_name = lambda: _("IPython console")
 
     def setup_page(self):
         newcb = self.create_checkbox

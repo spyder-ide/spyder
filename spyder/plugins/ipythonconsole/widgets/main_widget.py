@@ -244,7 +244,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, name=None, plugin=None, parent=None):
+    def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent)
 
         self.tabwidget = None
@@ -401,24 +401,29 @@ class IPythonConsoleWidget(PluginMainWidget):
         )
 
         # From client:
-        # env_action = self.create_action(
-        #     ClientWidgetActions.ShowEnvironmentVariables,
-        #     text=_("Show environment variables"),
-        #     icon=self.create_icon('environ'),
-        #     triggered=self.request_env,
-        # )
+        env_action = self.create_action(
+            ClientWidgetActions.ShowEnvironmentVariables,
+            text=_("Show environment variables"),
+            icon=self.create_icon('environ'),
+            triggered=lambda:
+                self.get_current_shellwidget().request_env()
+                if self.get_current_shellwidget() else None,
+        )
 
-        # syspath_action = self.create_action(
-        #     ClientWidgetActions.ShowSystemPath,
-        #     text=_("Show sys.path contents"),
-        #     icon=self.create_icon('syspath'),
-        #     triggered=self.request_syspath,
-        # )
+        syspath_action = self.create_action(
+            ClientWidgetActions.ShowSystemPath,
+            text=_("Show sys.path contents"),
+            icon=self.create_icon('syspath'),
+            triggered=lambda:
+                self.get_current_shellwidget().request_syspath()
+                if self.get_current_shellwidget() else None,
+        )
 
-        self.show_time_action = self.create_action(
+        show_time_action = self.create_action(
             ClientWidgetActions.ToggleElapsedTime,
             text=_("Show elapsed time"),
-            toggled=lambda val: self.set_conf('show_elapsed_time', val),
+            toggled=lambda val:
+                self.get_current_client().set_show_elapsed_time_state(val),
             initial=self.get_conf('show_elapsed_time')
         )
 
@@ -449,9 +454,9 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
         for item in [
-                # env_action,
-                # syspath_action,
-                self.show_time_action]:
+                env_action,
+                syspath_action,
+                show_time_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -539,6 +544,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Apply configuration file's plugin settings."""
         # TODO: Simplify settings handling when possible by using preferences
         # subscription
+        if not self.get_current_client():
+            return
         restart_needed = False
         restart_options = []
 
@@ -630,11 +637,12 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
+        print(bool(value))
         for idx, client in enumerate(self.clients):
             self._change_client_conf(
                 client,
-                client.set_show_elapsed_time,
-                value)
+                client.set_show_elapsed_time_state,
+                bool(value))
 
     @on_conf_change(option='show_reset_namespace_warning')
     def change_clients_show_reset_namespace_warning(self, value):
@@ -1362,7 +1370,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               connection_file=cf,
                               menu_actions=self.menu_actions,
                               # Check action to options button addition
-                              # options_button=self._options_button,
+                              options_button=self.get_options_menu_button(),
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
