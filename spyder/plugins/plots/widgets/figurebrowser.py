@@ -203,7 +203,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
 
     def update_splitter_widths(self, base_width):
         """
-        Update the widths to provide the scrollbar with a fixed minimumwidth.
+        Update the widths to provide the scrollbar with a fixed minimum width.
 
         Parameters
         ----------
