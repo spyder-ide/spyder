@@ -249,7 +249,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        super().__init__(parent=parent, class_parent=parent)
+        QTreeView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Attributes
         self._parent = parent

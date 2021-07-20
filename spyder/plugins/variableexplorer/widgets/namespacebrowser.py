@@ -55,7 +55,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     sig_hide_finder_requested = Signal()
 
     def __init__(self, parent):
-        super().__init__(parent=parent, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Attributes
         self.filename = None

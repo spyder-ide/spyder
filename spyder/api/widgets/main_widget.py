@@ -187,7 +187,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
 
     def __init__(self, name, plugin, parent=None):
-        super().__init__(parent=parent, class_parent=plugin)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=plugin)
 
         # Attributes
         # --------------------------------------------------------------------

@@ -137,7 +137,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent=None, background_color=None):
-        super().__init__(parent=parent, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
         self.shellwidget = None
         self.is_visible = True
         self.figviewer = None
@@ -317,7 +318,8 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        super().__init__(parent, class_parent=parent)
+        QScrollArea.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
         self.setAlignment(Qt.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
