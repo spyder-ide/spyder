@@ -212,8 +212,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file."""
         for checkbox, (sec, option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default, section=sec))
-            checkbox.clicked.connect(lambda _, opt=option, sect=sec:
-                                     self.has_been_modified(sect, opt))
+            checkbox.clicked[bool].connect(lambda _, opt=option, sect=sec:
+                                           self.has_been_modified(sect, opt))
             if checkbox.restart_required:
                 self.restart_options[(sec, option)] = checkbox.text()
         for radiobutton, (sec, option, default) in list(
