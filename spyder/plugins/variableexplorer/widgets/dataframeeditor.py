@@ -960,14 +960,16 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(5)
 
-        btn = QPushButton(_("Format"))
+        btn_format = QPushButton(_("Format"))
         # disable format button for int type
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.change_format)
-        btn = QPushButton(_('Resize'))
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.resize_to_contents)
+        btn_layout.addWidget(btn_format)
+        btn_format.clicked.connect(self.change_format)
+
+        btn_resize = QPushButton(_('Resize'))
+        btn_layout.addWidget(btn_resize)
+        btn_resize.clicked.connect(self.resize_to_contents)
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
