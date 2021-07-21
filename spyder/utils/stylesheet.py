@@ -172,6 +172,15 @@ class AppStylesheet(SpyderStyleSheet):
                 backgroundColor=color
             )
 
+        # Adjust padding of QPushButton's in QDialog's
+        css["QDialog QPushButton"].setValues(
+            padding='3px 15px 3px 15px',
+        )
+
+        css["QDialogButtonBox QPushButton:!default"].setValues(
+            padding='3px 0px 3px 0px',
+        )
+
 
 APP_STYLESHEET = AppStylesheet()
 
