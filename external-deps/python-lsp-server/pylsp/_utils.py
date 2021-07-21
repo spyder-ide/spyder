@@ -125,6 +125,8 @@ def merge_dicts(dict_a, dict_b):
             if key in a and key in b:
                 if isinstance(a[key], dict) and isinstance(b[key], dict):
                     yield (key, dict(_merge_dicts_(a[key], b[key])))
+                elif isinstance(a[key], list) and isinstance(b[key], list):
+                    yield (key, list(set(a[key] + b[key])))
                 elif b[key] is not None:
                     yield (key, b[key])
                 else:

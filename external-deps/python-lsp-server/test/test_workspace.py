@@ -69,6 +69,45 @@ def test_root_project_with_no_setup_py(pylsp):
     assert workspace_root in test_doc.sys_path()
 
 
+def test_multiple_workspaces_from_initialize(pylsp_w_workspace_folders):
+    pylsp, workspace_folders = pylsp_w_workspace_folders
+
+    assert len(pylsp.workspaces) == 2
+
+    folders_uris = [uris.from_fs_path(str(folder)) for folder in workspace_folders]
+
+    for folder_uri in folders_uris:
+        assert folder_uri in pylsp.workspaces
+
+    assert folders_uris[0] == pylsp.root_uri
+
+    # Create file in the first workspace folder.
+    file1 = workspace_folders[0].join('file1.py')
+    file1.write('import os')
+    msg1 = {
+        'uri': path_as_uri(str(file1)),
+        'version': 1,
+        'text': 'import os'
+    }
+
+    pylsp.m_text_document__did_open(textDocument=msg1)
+    assert msg1['uri'] in pylsp.workspace._docs
+    assert msg1['uri'] in pylsp.workspaces[folders_uris[0]]._docs
+
+    # Create file in the second workspace folder.
+    file2 = workspace_folders[1].join('file2.py')
+    file2.write('import sys')
+    msg2 = {
+        'uri': path_as_uri(str(file2)),
+        'version': 1,
+        'text': 'import sys'
+    }
+
+    pylsp.m_text_document__did_open(textDocument=msg2)
+    assert msg2['uri'] not in pylsp.workspace._docs
+    assert msg2['uri'] in pylsp.workspaces[folders_uris[1]]._docs
+
+
 def test_multiple_workspaces(tmpdir, pylsp):
     workspace1_dir = tmpdir.mkdir('workspace1')
     workspace2_dir = tmpdir.mkdir('workspace2')
