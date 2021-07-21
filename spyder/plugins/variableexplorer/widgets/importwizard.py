@@ -600,7 +600,7 @@ class ImportWizard(BaseDialog):
         data = self._simplify_shape(
                 self.table_widget.get_data())
         if self.table_widget.array_btn.isChecked():
-            return array(data)
+            return np.array(data)
         elif (pd.read_csv is not FakeObject and
                 self.table_widget.df_btn.isChecked()):
             info = self.table_widget.pd_info
