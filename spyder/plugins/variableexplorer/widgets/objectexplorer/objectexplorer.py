@@ -75,7 +75,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
-        QDialog.__init__(self, parent=parent)
+        super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # Options
