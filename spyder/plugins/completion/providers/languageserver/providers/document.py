@@ -92,6 +92,9 @@ class DocumentProvider:
     def process_document_completion(self, response, req_id):
         if isinstance(response, dict):
             response = response['items']
+
+        must_resolve = self.server_capabilites['completionProvider'].get(
+            'resolveProvider', False)
         if response is not None:
             for item in response:
                 item['kind'] = item.get('kind', CompletionItemKind.TEXT)
@@ -103,10 +106,33 @@ class DocumentProvider:
                     'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
                 item['insertText'] = item.get('insertText', item['label'])
                 item['provider'] = LSP_COMPLETION
+                item['resolve'] = must_resolve
 
         if req_id in self.req_reply:
             self.req_reply[req_id](
                 CompletionRequestTypes.DOCUMENT_COMPLETION,
+                {'params': response}
+            )
+
+    @send_request(method=CompletionRequestTypes.COMPLETION_RESOLVE)
+    def completion_resolve_request(self, params):
+        return params['completion_item']
+
+    @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
+    def handle_completion_resolve(self, response, req_id):
+        response['kind'] = response.get('kind', CompletionItemKind.TEXT)
+        response['detail'] = response.get('detail', '')
+        response['documentation'] = response.get('documentation', '')
+        response['sortText'] = response.get('sortText', response['label'])
+        response['filterText'] = response.get('filterText', response['label'])
+        response['insertTextFormat'] = response.get(
+            'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
+        response['insertText'] = response.get('insertText', response['label'])
+        response['provider'] = LSP_COMPLETION
+
+        if req_id in self.req_reply:
+            self.req_reply[req_id](
+                CompletionRequestTypes.COMPLETION_RESOLVE,
                 {'params': response}
             )
 
