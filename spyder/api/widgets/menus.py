@@ -46,7 +46,6 @@ class SpyderMenu(QMenu):
         self._title = title
         self._sections = []
         self._actions = []
-        self._ordered_actions = []
         self.unintroduced_actions = {}
         self._dirty = False
 
@@ -74,7 +73,6 @@ class SpyderMenu(QMenu):
         self.clear()
         self._sections = []
         self._actions = []
-        self.ordered_actions = []
         self.unintroduced_actions = {}
 
     def add_action(self, action, section=None, before=None,
@@ -134,7 +132,6 @@ class SpyderMenu(QMenu):
 
         # Track state of menu to avoid re-rendering if menu has not changed
         self._dirty = True
-        self._ordered_actions = []
 
     def get_title(self):
         """
@@ -180,7 +177,6 @@ class SpyderMenu(QMenu):
 
             actions = self.get_actions()
             add_actions(self, actions)
-            self._ordered_actions = actions
             self._dirty = False
 
 
@@ -211,6 +207,4 @@ class MainWidgetMenu(SpyderMenu):
                     actions.append(action)
 
             add_actions(self, actions)
-
-            self._ordered_actions = actions
             self._dirty = False
