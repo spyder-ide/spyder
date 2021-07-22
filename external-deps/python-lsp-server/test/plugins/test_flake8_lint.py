@@ -85,3 +85,77 @@ def test_flake8_executable_param(workspace):
 
         (call_args,) = popen_mock.call_args[0]
         assert flake8_executable in call_args
+
+
+def get_flake8_cfg_settings(workspace, config_str):
+    """Write a ``setup.cfg``, load it in the workspace, and return the flake8 settings.
+
+    This function creates a ``setup.cfg``; you'll have to delete it yourself.
+    """
+
+    with open(os.path.join(workspace.root_path, "setup.cfg"), "w+") as f:
+        f.write(config_str)
+
+    workspace.update_config({"pylsp": {"configurationSources": ["flake8"]}})
+
+    return workspace._config.plugin_settings("flake8")
+
+
+def test_flake8_multiline(workspace):
+    config_str = r"""[flake8]
+exclude =
+    blah/,
+    file_2.py
+    """
+
+    doc_str = "print('hi')\nimport os\n"
+
+    doc_uri = uris.from_fs_path(os.path.join(workspace.root_path, "blah/__init__.py"))
+    workspace.put_document(doc_uri, doc_str)
+
+    flake8_settings = get_flake8_cfg_settings(workspace, config_str)
+
+    assert "exclude" in flake8_settings
+    assert len(flake8_settings["exclude"]) == 2
+
+    with patch('pylsp.plugins.flake8_lint.Popen') as popen_mock:
+        mock_instance = popen_mock.return_value
+        mock_instance.communicate.return_value = [bytes(), bytes()]
+
+        doc = workspace.get_document(doc_uri)
+        flake8_lint.pylsp_lint(workspace, doc)
+
+    call_args = popen_mock.call_args[0][0]
+    assert call_args == ["flake8", "-", "--exclude=blah/,file_2.py"]
+
+    os.unlink(os.path.join(workspace.root_path, "setup.cfg"))
+
+
+def test_flake8_per_file_ignores(workspace):
+    config_str = r"""[flake8]
+ignores = F403
+per-file-ignores =
+    **/__init__.py:F401,E402
+    test_something.py:E402,
+exclude =
+    file_1.py
+    file_2.py
+    """
+
+    doc_str = "print('hi')\nimport os\n"
+
+    doc_uri = uris.from_fs_path(os.path.join(workspace.root_path, "blah/__init__.py"))
+    workspace.put_document(doc_uri, doc_str)
+
+    flake8_settings = get_flake8_cfg_settings(workspace, config_str)
+
+    assert "perFileIgnores" in flake8_settings
+    assert len(flake8_settings["perFileIgnores"]) == 2
+    assert "exclude" in flake8_settings
+    assert len(flake8_settings["exclude"]) == 2
+
+    doc = workspace.get_document(doc_uri)
+    res = flake8_lint.pylsp_lint(workspace, doc)
+    assert not res
+
+    os.unlink(os.path.join(workspace.root_path, "setup.cfg"))

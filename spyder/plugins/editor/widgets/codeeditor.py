@@ -77,6 +77,7 @@ from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, sourcecode
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette, QStylePalette
@@ -518,6 +519,7 @@ class CodeEditor(TextEditBaseWidget):
         self.will_save_until_notify = False
         self.enable_hover = True
         self.auto_completion_characters = []
+        self.resolve_completions_enabled = False
         self.signature_completion_characters = []
         self.go_to_definition_enabled = False
         self.find_references_enabled = False
@@ -1056,6 +1058,8 @@ class CodeEditor(TextEditBaseWidget):
             'foldingRangeProvider', False)
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
+        self.resolve_completions_enabled = (
+            completion_options.get('resolveProvider', False))
         self.signature_completion_characters = (
             signature_options['triggerCharacters'] + ['='])  # FIXME:
         self.go_to_definition_enabled = capabilities['definitionProvider']
@@ -1417,6 +1421,17 @@ class CodeEditor(TextEditBaseWidget):
             return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
+
+    @request(method=CompletionRequestTypes.COMPLETION_RESOLVE)
+    def resolve_completion_item(self, item):
+        return {
+            'file': self.filename,
+            'completion_item': item
+        }
+
+    @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
+    def handle_completion_item_resolution(self, response):
+        self.completion_widget.augment_completion_info(response['params'])
 
     # ------------- LSP: Signature Hints ------------------------------------
     @request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
@@ -2699,6 +2714,29 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(text)
         self.document_did_change()
 
+    def adjust_indentation(self, line, indent_adjustment):
+        """Adjust indentation."""
+        if indent_adjustment == 0 or line == "":
+            return line
+        using_spaces = self.indent_chars != '\t'
+
+        if indent_adjustment > 0:
+            if using_spaces:
+                return ' ' * indent_adjustment + line
+            else:
+                return (
+                    self.indent_chars
+                    * indent_adjustment // self.tab_stop_width_spaces
+                    + line)
+
+        max_indent = self.get_line_indentation(line)
+        indent_adjustment = min(max_indent, -indent_adjustment)
+
+        indent_adjustment = (indent_adjustment if using_spaces else
+                             indent_adjustment // self.tab_stop_width_spaces)
+
+        return line[indent_adjustment:]
+
     @Slot()
     def paste(self):
         """
@@ -2728,16 +2766,73 @@ class CodeEditor(TextEditBaseWidget):
                                           + '"' for url in urls)
                 else:
                     text = urls[0].toLocalFile().replace(osp.os.sep, '/')
+        eol_chars = self.get_line_separator()
         if len(text.splitlines()) > 1:
-            eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
+
+        # Align multiline text based on first line
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        cursor.removeSelectedText()
+        cursor.setPosition(cursor.selectionStart())
+        cursor.setPosition(cursor.block().position(),
+                           QTextCursor.KeepAnchor)
+        preceding_text = cursor.selectedText()
+        first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
+        first_line = preceding_text + first_line_selected
+
+        lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
+            preceding_text)
+
+        if preceding_text.strip() == "" and first_line.strip != "":
+            # The indent is controlled by preceding_text. Remove extra indent
+            extra_indent = self.get_line_indentation(first_line_selected)
+            lines_adjustment -= extra_indent
+            first_line = self.adjust_indentation(
+                first_line, -extra_indent)
+
+        # Fix indentation of multiline text
+        if self.is_python_like() and len(preceding_text.strip()) == 0:
+            # Correct indentation
+            desired_indent = self.find_indentation()
+            if desired_indent:
+                first_line_adjustment = (
+                    desired_indent - self.get_line_indentation(first_line))
+                if first_line_adjustment < 0:
+                    # Only dedent, don't indent
+                    lines_adjustment += first_line_adjustment
+                    first_line = self.adjust_indentation(
+                        first_line, first_line_adjustment)
+
+        # Get new text
+        remaining_lines = [
+            self.adjust_indentation(line, lines_adjustment)
+            for line in remaining_lines]
+        text = eol_chars.join([first_line, *remaining_lines])
+
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(text)
-        TextEditBaseWidget.insertPlainText(self, text)
+        cursor.removeSelectedText()
+        cursor.insertText(text)
+        cursor.endEditBlock()
         self.sig_text_was_inserted.emit()
 
         self.document_did_change(text)
         self.skip_rstrip = False
+
+    def _save_clipboard_indentation(self):
+        """
+        Save the indentation corresponding to the clipboard data.
+
+        Must be called right after copying.
+        """
+        cursor = self.textCursor()
+        cursor.setPosition(cursor.selectionStart())
+        cursor.setPosition(cursor.block().position(),
+                           QTextCursor.KeepAnchor)
+        preceding_text = cursor.selectedText()
+        CLIPBOARD_HELPER.save_indentation(
+            preceding_text, self.tab_stop_width_spaces)
 
     @Slot()
     def cut(self):
@@ -2748,8 +2843,15 @@ class CodeEditor(TextEditBaseWidget):
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
         TextEditBaseWidget.cut(self)
+        self._save_clipboard_indentation()
         self.sig_text_was_inserted.emit()
         self.document_did_change('')
+
+    @Slot()
+    def copy(self):
+        """Reimplement copy to save indentation."""
+        TextEditBaseWidget.copy(self)
+        self._save_clipboard_indentation()
 
     @Slot()
     def undo(self):
@@ -3365,10 +3467,10 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(indentation)
         return False  # simple indentation don't fix indentation
 
-    def fix_indent_smart(self, forward=True, comment_or_string=False,
+    def find_indentation(self, forward=True, comment_or_string=False,
                          cur_indent=None):
         """
-        Fix indentation (Python only, no text selection)
+        Find indentation (Python only, no text selection)
 
         forward=True: fix indent only if text is not enough indented
                       (otherwise force indent)
@@ -3384,7 +3486,7 @@ class CodeEditor(TextEditBaseWidget):
         cur_indent: current indent. This is the indent before we started
             processing. E.g. when returning, indent before rstrip.
 
-        Returns True if indent needed to be fixed
+        Returns the indentation for the current line
 
         Assumes self.is_python_like() to return True
         """
@@ -3492,8 +3594,37 @@ class CodeEditor(TextEditBaseWidget):
                 # Ceiling division
                 correct_indent = -(-cur_indent // len(self.indent_chars)) * \
                     len(self.indent_chars)
+        return correct_indent
 
+    def fix_indent_smart(self, forward=True, comment_or_string=False,
+                         cur_indent=None):
+        """
+        Fix indentation (Python only, no text selection)
+
+        forward=True: fix indent only if text is not enough indented
+                      (otherwise force indent)
+        forward=False: fix indent only if text is too much indented
+                       (otherwise force unindent)
+
+        comment_or_string: Do not adjust indent level for
+            unmatched opening brackets and keywords
+
+        max_blank_lines: maximum number of blank lines to search before giving
+            up
+
+        cur_indent: current indent. This is the indent before we started
+            processing. E.g. when returning, indent before rstrip.
+
+        Returns True if indent needed to be fixed
+
+        Assumes self.is_python_like() to return True
+        """
+        cursor = self.textCursor()
+        block_nb = cursor.blockNumber()
         indent = self.get_block_indentation(block_nb)
+
+        correct_indent = self.find_indentation(
+            forward, comment_or_string, cur_indent)
 
         if correct_indent >= 0 and not (
                 indent == correct_indent or

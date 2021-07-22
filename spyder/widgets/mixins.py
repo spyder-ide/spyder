@@ -697,9 +697,12 @@ class BaseEditMixin(object):
         characters.
         """
         text = self.toPlainText()
+        lines = text.splitlines()
         linesep = self.get_line_separator()
-        text.replace('\n', linesep)
-        return text
+        text_with_eol = linesep.join(lines)
+        if text.endswith('\n'):
+            text_with_eol += linesep
+        return text_with_eol
 
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
@@ -1117,11 +1120,15 @@ class BaseEditMixin(object):
 
         return word
 
+    def get_line_indentation(self, text):
+        """Get indentation for given line."""
+        text = text.replace("\t", " "*self.tab_stop_width_spaces)
+        return len(text)-len(text.lstrip())
+
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)."""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
-        text = text.replace("\t", " "*self.tab_stop_width_spaces)
-        return len(text)-len(text.lstrip())
+        return self.get_line_indentation(text)
 
     def get_selection_bounds(self, cursor=None):
         """Return selection bounds (block numbers)."""
