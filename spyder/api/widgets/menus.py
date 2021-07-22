@@ -47,6 +47,7 @@ class SpyderMenu(QMenu):
         self._sections = []
         self._actions = []
         self._ordered_actions = []
+        self.unintroduced_actions = {}
         self._dirty = False
 
         if title is None:
@@ -74,21 +75,49 @@ class SpyderMenu(QMenu):
         self._sections = []
         self._actions = []
         self.ordered_actions = []
+        self.unintroduced_actions = {}
 
     def add_action(self, action, section=None, before=None,
-                   before_section=None):
+                   before_section=None, check_before=True):
         """
         Add action to a given menu section.
+
+        Parameters
+        ----------
+        action: SpyderAction
+            The action to add.
+        section: str or None
+            The section id in which to insert the `action`.
+        before: SpyderAction or None
+            Make the action appear before another given action.
+        before_section: Section or None
+            Make the item section (if provided) appear before another
+            given section.
+        check_before: bool
+            Check if the `before` action is part of the menu. This is
+            necessary to avoid an infinite recursion when adding
+            unintroduced actions with this method again.
         """
         if before is None:
             self._actions.append((section, action))
         else:
             new_actions = []
+            added = False
             for sec, act in self._actions:
                 if act == before:
+                    added = True
                     new_actions.append((section, action))
 
                 new_actions.append((sec, act))
+
+            # Actions can't be added to the menu if the `before` action is
+            # not part of it yet. That's why we need to save them in the
+            # `unintroduced_actions` dict, so we can add them again when
+            # the menu is rendered.
+            if not added and check_before:
+                before_actions = self.unintroduced_actions.get(before, [])
+                before_actions.append((section, action))
+                self.unintroduced_actions[before] = before_actions
 
             self._actions = new_actions
 
@@ -141,6 +170,14 @@ class SpyderMenu(QMenu):
         """
         if self._dirty:
             self.clear()
+
+            # Update actions with those that were not introduced because
+            # a `before` action they required was not part of the menu yet.
+            for before, actions in self.unintroduced_actions.items():
+                for section, action in actions:
+                    self.add_action(action, section=section, before=before,
+                                    check_before=False)
+
             actions = self.get_actions()
             add_actions(self, actions)
             self._ordered_actions = actions
