@@ -62,7 +62,7 @@ class ApplicationActions:
     # The name of the action needs to match the name of the shortcut
     # so 'Restart' is used instead of something like 'restart_action'
     SpyderRestart = "Restart"
-    SpyderRestartDebug = "Restart in DEBUG mode"
+    SpyderRestartDebug = "Restart in debug mode"
 
 
 class ApplicationContainer(PluginMainContainer):
@@ -362,7 +362,7 @@ class ApplicationContainer(PluginMainContainer):
     @Slot()
     def restart_debug(self):
         answer = QMessageBox.warning(self, _("Warning"),
-             _("Spyder will restart in DEBUG mode: <br><br>"
+             _("Spyder will restart in debug mode: <br><br>"
                "Do you want to continue?"),
              QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
