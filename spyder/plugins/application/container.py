@@ -158,9 +158,8 @@ class ApplicationContainer(PluginMainContainer):
             register_shortcut=True)
         self.restart_debug_action = self.create_action(
             ApplicationActions.SpyderRestartDebug,
-            _("&Restart in DEBUG mode"),
-            icon=self.create_icon('restart'),
-            tip=_("Restart in DEBUG mode"),
+            _("&Restart in debug mode"),
+            tip=_("Restart in debug mode"),
             triggered=self.restart_debug,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
