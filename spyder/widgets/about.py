@@ -23,7 +23,7 @@ from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.utils.stylesheet import APP_STYLESHEET
+from spyder.utils.stylesheet import APP_STYLESHEET, DialogStyle
 
 
 class AboutDialog(QDialog):
@@ -44,18 +44,14 @@ class AboutDialog(QDialog):
         # Get current font properties
         font = self.font()
         font_family = font.family()
-        font_size = font.pointSize()
-        buttons_padding = '4px 10px'
-        buttons_font_size = '13pt'
-        if sys.platform == 'darwin':
-            font_size += 1
-            buttons_padding = '6px'
-            buttons_font_size = '15pt'
+        buttons_padding = DialogStyle.ButtonsPadding
+        buttons_font_size = DialogStyle.ButtonsFontSize
+        font_size = DialogStyle.ContentFontSize
         dialog_background_color = QStylePalette.COLOR_BACKGROUND_2
         self.label_overview = QLabel((
             """
             <div style='font-family: "{font_family}";
-                        font-size: {font_size}pt;
+                        font-size: {font_size};
                         font-weight: normal;
                         '>
             <br>
