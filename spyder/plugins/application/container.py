@@ -151,7 +151,7 @@ class ApplicationContainer(PluginMainContainer):
             ApplicationActions.SpyderRestart,
             _("&Restart"),
             icon=self.create_icon('restart'),
-            tip=_("Restart in normal mode"),
+            tip=_("Restart"),
             triggered=self.restart_normal,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
