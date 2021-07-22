@@ -28,6 +28,7 @@ OPTIONS = [
     ('ignore', 'plugins.flake8.ignore', list),
     ('max-line-length', 'plugins.flake8.maxLineLength', int),
     ('select', 'plugins.flake8.select', list),
+    ('per-file-ignores', 'plugins.flake8.perFileIgnores', list),
 ]
 
 
@@ -48,3 +49,9 @@ class Flake8Config(ConfigSource):
         files = find_parents(self.root_path, document_path, PROJECT_CONFIGS)
         config = self.read_config_from_files(files)
         return self.parse_config(config, CONFIG_KEY, OPTIONS)
+
+    @classmethod
+    def _parse_list_opt(cls, string):
+        if string.startswith("\n"):
+            return [s.strip().rstrip(",") for s in string.split("\n") if s.strip()]
+        return [s.strip() for s in string.split(",") if s.strip()]

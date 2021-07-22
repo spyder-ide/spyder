@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Mypy cache
+.mypy_cache/
+
 # IntelliJ
 *.iml
 *.ipr

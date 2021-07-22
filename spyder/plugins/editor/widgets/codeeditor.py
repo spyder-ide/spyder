@@ -519,6 +519,7 @@ class CodeEditor(TextEditBaseWidget):
         self.will_save_until_notify = False
         self.enable_hover = True
         self.auto_completion_characters = []
+        self.resolve_completions_enabled = False
         self.signature_completion_characters = []
         self.go_to_definition_enabled = False
         self.find_references_enabled = False
@@ -1057,6 +1058,8 @@ class CodeEditor(TextEditBaseWidget):
             'foldingRangeProvider', False)
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
+        self.resolve_completions_enabled = (
+            completion_options.get('resolveProvider', False))
         self.signature_completion_characters = (
             signature_options['triggerCharacters'] + ['='])  # FIXME:
         self.go_to_definition_enabled = capabilities['definitionProvider']
@@ -1418,6 +1421,17 @@ class CodeEditor(TextEditBaseWidget):
             return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
+
+    @request(method=CompletionRequestTypes.COMPLETION_RESOLVE)
+    def resolve_completion_item(self, item):
+        return {
+            'file': self.filename,
+            'completion_item': item
+        }
+
+    @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
+    def handle_completion_item_resolution(self, response):
+        self.completion_widget.augment_completion_info(response['params'])
 
     # ------------- LSP: Signature Hints ------------------------------------
     @request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
