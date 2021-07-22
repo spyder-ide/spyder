@@ -107,8 +107,11 @@ def pylsp_completions(config, document, position):
 @hookimpl
 def pylsp_completion_item_resolve(completion_item, document):
     """Resolve formatted completion for given non-resolved completion"""
-    completion, data = document.shared_data['LAST_JEDI_COMPLETIONS'].get(completion_item['label'])
-    return _resolve_completion(completion, data)
+    shared_data = document.shared_data['LAST_JEDI_COMPLETIONS'].get(completion_item['label'])
+    if shared_data:
+        completion, data = shared_data
+        return _resolve_completion(completion, data)
+    return completion_item
 
 
 def is_exception_class(name):
