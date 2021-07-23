@@ -1056,10 +1056,11 @@ class Editor(SpyderPluginWidget):
         self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
-        self.main.search_menu_actions = [find_action,
-                                         find_next_action,
-                                         find_previous_action,
-                                         replace_action]
+        search_menu_actions = [find_action,
+                               find_next_action,
+                               find_previous_action,
+                               replace_action,
+                               gotoline_action]
         self.main.search_toolbar_actions = [find_action,
                                             find_next_action,
                                             replace_action]
@@ -1072,7 +1073,8 @@ class Editor(SpyderPluginWidget):
                                   self.text_lowercase_action]
 
         # ---- Search menu/toolbar construction ----
-        self.main.search_menu_actions += [gotoline_action]
+        self.main.search_menu_actions = (
+            search_menu_actions + self.main.search_menu_actions)
 
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
@@ -1080,7 +1082,8 @@ class Editor(SpyderPluginWidget):
                             re_run_last_cell_action, MENU_SEPARATOR,
                             run_selected_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
-        self.main.run_menu_actions += run_menu_actions
+        self.main.run_menu_actions = (
+            run_menu_actions + self.main.run_menu_actions)
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, run_selected_action]
         self.main.run_toolbar_actions += run_toolbar_actions
@@ -1105,7 +1108,8 @@ class Editor(SpyderPluginWidget):
             MENU_SEPARATOR,
             self.winpdb_action
         ]
-        self.main.debug_menu_actions += debug_menu_actions
+        self.main.debug_menu_actions = (
+            debug_menu_actions + self.main.debug_menu_actions)
         debug_toolbar_actions = [
             self.debug_action,
             self.debug_next_action,
@@ -1141,7 +1145,8 @@ class Editor(SpyderPluginWidget):
             fixindentation_action,
             self.formatting_action
         ]
-        self.main.source_menu_actions += source_menu_actions
+        self.main.source_menu_actions = (
+            source_menu_actions + self.main.source_menu_actions)
 
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
