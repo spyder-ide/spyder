@@ -419,11 +419,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                 if self.get_current_shellwidget() else None,
         )
 
-        show_time_action = self.create_action(
+        self.show_time_action = self.create_action(
             ClientWidgetActions.ToggleElapsedTime,
             text=_("Show elapsed time"),
-            toggled=lambda val:
-                self.get_current_client().set_show_elapsed_time_state(val),
+            toggled=self.set_show_elapsed_time_current_client,
             initial=self.get_conf('show_elapsed_time')
         )
 
@@ -456,7 +455,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         for item in [
                 env_action,
                 syspath_action,
-                show_time_action]:
+                self.show_time_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -530,6 +529,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         # client = self.get_current_client()
         # if client:
         #     return client.get_options_menu()
+
+    def set_show_elapsed_time_current_client(self, state):
+        if self.get_current_client():
+            print(state)
+            self.time_label.setVisible(state)
+            print(self.time_label.isVisible())
+            self.get_current_client().set_show_elapsed_time(state)
 
     def update_style(self):
         rich_font = self._plugin.get_font(option='rich_font')
@@ -969,7 +975,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=connection_file,
-                              menu_actions=self.menu_actions,
+                              # menu_actions=self.menu_actions,
+                              time_label=self.time_label,
                               hostname=hostname,
                               external_kernel=external_kernel,
                               slave=True,
@@ -1056,9 +1063,20 @@ class IPythonConsoleWidget(PluginMainWidget):
             client.set_font(font)
 
     def refresh_container(self):
-        """Refresh tabwidget"""
+        """
+        Refresh interface depending on the current widget client available.
+
+        Refreshes corner widgets and actions as well as the info widget and
+        sets the shellwdiget for other plugins (Variable Explorer and Plots)
+        """
         client = None
         if self.tabwidget.count():
+            for instance_client in self.clients:
+                try:
+                    instance_client.timer.timeout.disconnect()
+                except (RuntimeError, TypeError):
+                    pass
+
             client = self.tabwidget.currentWidget()
 
             # Decide what to show for each client
@@ -1082,14 +1100,18 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.pager_label.hide()
 
             # Create corner widgets
-            buttons = [[b, -7] for b in client.get_toolbar_buttons()]
-            buttons = sum(buttons, [])[:-1]
-            widgets = [client.create_time_label()] + buttons
+            # buttons = [[b, -7] for b in client.get_toolbar_buttons()]
+            # buttons = sum(buttons, [])[:-1]
+            # widgets = [client.create_time_label()] + buttons
+            show_elapsed_time = client.show_elapsed_time
+            self.show_time_action.setChecked(show_elapsed_time)
+            client.timer.timeout.connect(client.show_time)
+            self.time_label.setVisible(show_elapsed_time)
         else:
             control = None
-            widgets = []
+            # widgets = []
         self.find_widget.set_editor(control)
-        self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+        # self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
 
         if client:
             sw = client.shellwidget
@@ -1101,6 +1123,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.sig_shellwidget_changed.emit(sw)
 
         self.update_tabs_text()
+        self.update_execution_state_kernel()
         # self.sig_update_plugin_title.emit()
 
     # ---- For tabs
@@ -1314,7 +1337,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         related_clients = self.get_related_clients(client)
         for cl in related_clients:
             if cl.timer is not None:
-                client.create_time_label()
+                # client.create_time_label()
                 client.t0 = cl.t0
                 client.timer.timeout.connect(client.show_time)
                 client.timer.start(1000)
@@ -1368,9 +1391,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                                       is_sympy=is_sympy),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              menu_actions=self.menu_actions,
+                              # menu_actions=self.menu_actions,
                               # Check action to options button addition
-                              options_button=self.get_options_menu_button(),
+                              # options_button=self.get_options_menu_button(),
+                              time_label=self.time_label,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
@@ -1577,6 +1601,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Connect to working directory
         shellwidget.sig_working_directory_changed.connect(
             self.set_working_directory)
+
+        client.sig_update_execution_state_requested.connect(
+            self.update_execution_state_kernel)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1789,29 +1816,30 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Restart kernel of current client."""
         client = self.get_current_client()
         if client is not None:
-            self.switch_to_plugin()
+            self.change_visibility(True)
             client.restart_kernel()
 
     def reset_kernel(self):
         """Reset kernel of current client."""
         client = self.get_current_client()
         if client is not None:
-            self.switch_to_plugin()
+            self.change_visibility(True)
             client.reset_namespace()
 
     def interrupt_kernel(self):
         """Interrupt kernel of current client."""
         client = self.get_current_client()
         if client is not None:
-            self.switch_to_plugin()
+            self.change_visibility(True)
             client.stop_button_click_handler()
 
     def update_execution_state_kernel(self):
         """Update actions following the execution state of the kernel."""
         client = self.get_current_client()
         if client is not None:
-            executing = client.stop_button.isEnabled()
+            executing = client.is_client_executing()
             self.interrupt_action.setEnabled(executing)
+            self.stop_button.setEnabled(executing)
 
     def connect_external_kernel(self, shellwidget):
         """
@@ -2064,7 +2092,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         to the Editor.
         """
         console = self
-        console.switch_to_plugin()
+        console.change_visibility(True)
         console.execute_code(lines)
         # TODO: Move to a signal?
         if focus_to_editor and self._plugin.main.editor:

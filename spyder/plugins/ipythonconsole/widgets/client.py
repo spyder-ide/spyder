@@ -89,6 +89,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     """
 
     sig_append_to_history_requested = Signal(str, str)
+    sig_update_execution_state_requested = Signal()
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -102,6 +103,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  menu_actions=None, slave=False,
                  external_kernel=False, given_name=None,
                  options_button=None,
+                 time_label=None,
                  show_elapsed_time=False,
                  reset_warning=True,
                  ask_before_restart=True,
@@ -125,10 +127,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.ask_before_closing = ask_before_closing
 
         # --- Other attrs
+        self.time_label = time_label
         self.options_button = options_button
+        # TODO: Buttons need to be handle different (all the toolbar)
         self.stop_button = None
-        self.reset_button = None
-        self.stop_icon = ima.icon('stop')
+        # self.reset_button = None
+        # self.stop_icon = ima.icon('stop')
         self.history = []
         self.allow_rename = True
         self.stderr_dir = None
@@ -158,7 +162,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._before_prompt_is_ready()
 
         # Elapsed time
-        self.time_label = None
+        # self.time_label = None
         self.t0 = time.monotonic()
         self.timer = QTimer(self)
 
@@ -173,7 +177,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         #     hlayout.addWidget(button)
 
         # self.layout.addLayout(hlayout)
-        # self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.shellwidget)
         self.layout.addWidget(self.infowidget)
         self.setLayout(self.layout)
@@ -298,10 +302,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.refresh_namespacebrowser)
 
         # To enable the stop button when executing a process
-        self.shellwidget.executing.connect(self.enable_stop_button)
+        # TODO: Check handling of interrupt button update
+        self.shellwidget.executing.connect(
+            self.sig_update_execution_state_requested)
 
         # To disable the stop button after execution stopped
-        self.shellwidget.executed.connect(self.disable_stop_button)
+        self.shellwidget.executed.connect(
+            self.sig_update_execution_state_requested)
 
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted_message.connect(
@@ -361,25 +368,29 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if self.give_focus:
             self.shellwidget._control.setFocus()
 
-    def enable_stop_button(self):
-        self.stop_button.setEnabled(True)
+    # def enable_stop_button(self):
+    #     self.stop_button.setEnabled(True)
 
-    def disable_stop_button(self):
-        # This avoids disabling automatically the button when
-        # re-running files on dedicated consoles.
-        # See spyder-ide/spyder#5958.
-        if not self.shellwidget._executing:
-            # This avoids disabling the button while debugging
-            # see spyder-ide/spyder#13283
-            if not self.shellwidget.is_waiting_pdb_input():
-                self.stop_button.setDisabled(True)
-            else:
-                self.stop_button.setEnabled(True)
+    # def disable_stop_button(self):
+    #     # This avoids disabling automatically the button when
+    #     # re-running files on dedicated consoles.
+    #     # See spyder-ide/spyder#5958.
+    #     if not self.shellwidget._executing:
+    #         # This avoids disabling the button while debugging
+    #         # see spyder-ide/spyder#13283
+    #         if not self.shellwidget.is_waiting_pdb_input():
+    #             self.stop_button.setDisabled(True)
+    #         else:
+    #             self.stop_button.setEnabled(True)
+
+    def is_client_executing(self):
+        return (self.shellwidget._executing or
+                self.shellwidget.is_waiting_pdb_input())
 
     @Slot()
     def stop_button_click_handler(self):
         """Method to handle what to do when the stop button is pressed"""
-        self.stop_button.setDisabled(True)
+        # self.stop_button.setDisabled(True)
         # Interrupt computations or stop debugging
         if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
@@ -444,116 +455,116 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Get kernel associated with this client"""
         return self.shellwidget.kernel_manager
 
-    def get_options_menu(self):
-        """Return options menu"""
-        env_action = create_action(
-                        self,
-                        _("Show environment variables"),
-                        icon=ima.icon('environ'),
-                        triggered=self.shellwidget.request_env
-                     )
+    # def get_options_menu(self):
+    #     """Return options menu"""
+    #     env_action = create_action(
+    #                     self,
+    #                     _("Show environment variables"),
+    #                     icon=ima.icon('environ'),
+    #                     triggered=self.shellwidget.request_env
+    #                  )
 
-        syspath_action = create_action(
-                            self,
-                            _("Show sys.path contents"),
-                            icon=ima.icon('syspath'),
-                            triggered=self.shellwidget.request_syspath
-                         )
+    #     syspath_action = create_action(
+    #                         self,
+    #                         _("Show sys.path contents"),
+    #                         icon=ima.icon('syspath'),
+    #                         triggered=self.shellwidget.request_syspath
+    #                      )
 
-        self.show_time_action.setChecked(self.show_elapsed_time)
-        additional_actions = [MENU_SEPARATOR,
-                              env_action,
-                              syspath_action,
-                              self.show_time_action]
+    #     self.show_time_action.setChecked(self.show_elapsed_time)
+    #     additional_actions = [MENU_SEPARATOR,
+    #                           env_action,
+    #                           syspath_action,
+    #                           self.show_time_action]
 
-        if self.menu_actions is not None:
-            console_menu = self.menu_actions + additional_actions
-            return console_menu
+    #     if self.menu_actions is not None:
+    #         console_menu = self.menu_actions + additional_actions
+    #         return console_menu
 
-        else:
-            return additional_actions
+    #     else:
+    #         return additional_actions
 
-    def get_toolbar_buttons(self):
-        """Return toolbar buttons list."""
-        buttons = []
+    # def get_toolbar_buttons(self):
+    #     """Return toolbar buttons list."""
+    #     buttons = []
 
-        # Code to add the stop button
-        if self.stop_button is None:
-            self.stop_button = create_toolbutton(
-                                   self,
-                                   text=_("Stop"),
-                                   icon=self.stop_icon,
-                                   tip=_("Stop the current command"))
-            self.disable_stop_button()
-            # set click event handler
-            self.stop_button.clicked.connect(self.stop_button_click_handler)
-        if self.stop_button is not None:
-            buttons.append(self.stop_button)
-        self.stop_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
+    #     # Code to add the stop button
+    #     if self.stop_button is None:
+    #         self.stop_button = create_toolbutton(
+    #                                self,
+    #                                text=_("Stop"),
+    #                                icon=self.stop_icon,
+    #                                tip=_("Stop the current command"))
+    #         self.disable_stop_button()
+    #         # set click event handler
+    #         self.stop_button.clicked.connect(self.stop_button_click_handler)
+    #     if self.stop_button is not None:
+    #         buttons.append(self.stop_button)
+    #     self.stop_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
-        # Reset namespace button
-        if self.reset_button is None:
-            self.reset_button = create_toolbutton(
-                                    self,
-                                    text=_("Remove"),
-                                    icon=ima.icon('editdelete'),
-                                    tip=_("Remove all variables"),
-                                    triggered=self.reset_namespace)
-        if self.reset_button is not None:
-            buttons.append(self.reset_button)
-        self.reset_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
-        if self.options_button is None:
-            options = self.get_options_menu()
-            if options:
-                self.options_button = create_toolbutton(self,
-                        text=_('Options'), icon=ima.icon('tooloptions'))
-                self.options_button.setPopupMode(QToolButton.InstantPopup)
-                menu = QMenu(self)
-                add_actions(menu, options)
-                self.options_button.setMenu(menu)
-        if self.options_button is not None:
-            buttons.append(self.options_button)
+    #     # Reset namespace button
+    #     if self.reset_button is None:
+    #         self.reset_button = create_toolbutton(
+    #                                 self,
+    #                                 text=_("Remove"),
+    #                                 icon=ima.icon('editdelete'),
+    #                                 tip=_("Remove all variables"),
+    #                                 triggered=self.reset_namespace)
+    #     if self.reset_button is not None:
+    #         buttons.append(self.reset_button)
+    #     self.reset_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
+    #     if self.options_button is None:
+    #         options = self.get_options_menu()
+    #         if options:
+    #             self.options_button = create_toolbutton(self,
+    #                     text=_('Options'), icon=ima.icon('tooloptions'))
+    #             self.options_button.setPopupMode(QToolButton.InstantPopup)
+    #             menu = QMenu(self)
+    #             add_actions(menu, options)
+    #             self.options_button.setMenu(menu)
+    #     if self.options_button is not None:
+    #         buttons.append(self.options_button)
 
-        return buttons
+    #     return buttons
 
-    def add_actions_to_context_menu(self, menu):
-        """Add actions to IPython widget context menu"""
-        inspect_action = create_action(
-            self,
-            _("Inspect current object"),
-            QKeySequence(self.get_shortcut('inspect current object')),
-            icon=ima.icon('MessageBoxInformation'),
-            triggered=self.inspect_object)
+    # def add_actions_to_context_menu(self, menu):
+    #     """Add actions to IPython widget context menu"""
+    #     inspect_action = create_action(
+    #         self,
+    #         _("Inspect current object"),
+    #         QKeySequence(self.get_shortcut('inspect current object')),
+    #         icon=ima.icon('MessageBoxInformation'),
+    #         triggered=self.inspect_object)
 
-        clear_line_action = create_action(
-            self,
-            _("Clear line or block"),
-            QKeySequence(self.get_shortcut('clear line')),
-            triggered=self.clear_line)
+    #     clear_line_action = create_action(
+    #         self,
+    #         _("Clear line or block"),
+    #         QKeySequence(self.get_shortcut('clear line')),
+    #         triggered=self.clear_line)
 
-        reset_namespace_action = create_action(
-            self,
-            _("Remove all variables"),
-            QKeySequence(self.get_shortcut('reset namespace')),
-            icon=ima.icon('editdelete'),
-            triggered=self.reset_namespace)
+    #     reset_namespace_action = create_action(
+    #         self,
+    #         _("Remove all variables"),
+    #         QKeySequence(self.get_shortcut('reset namespace')),
+    #         icon=ima.icon('editdelete'),
+    #         triggered=self.reset_namespace)
 
-        clear_console_action = create_action(
-            self,
-            _("Clear console"),
-            QKeySequence(self.get_shortcut('clear shell')),
-            triggered=self.clear_console)
+    #     clear_console_action = create_action(
+    #         self,
+    #         _("Clear console"),
+    #         QKeySequence(self.get_shortcut('clear shell')),
+    #         triggered=self.clear_console)
 
-        quit_action = create_action(
-            self,
-            _("&Quit"),
-            icon=ima.icon('exit'),
-            triggered=self.exit_callback)
+    #     quit_action = create_action(
+    #         self,
+    #         _("&Quit"),
+    #         icon=ima.icon('exit'),
+    #         triggered=self.exit_callback)
 
-        add_actions(menu, (None, inspect_action, clear_line_action,
-                           clear_console_action, reset_namespace_action,
-                           None, quit_action))
-        return menu
+    #     add_actions(menu, (None, inspect_action, clear_line_action,
+    #                        clear_console_action, reset_namespace_action,
+    #                        None, quit_action))
+    #     return menu
 
     def set_font(self, font):
         """Set IPython widget's font"""
@@ -687,8 +698,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw.insert_horizontal_ruler()
 
         self._hide_loading_page()
-        self.stop_button.setDisabled(True)
+        # self.stop_button.setDisabled(True)
         self.restart_thread = None
+        self.sig_update_execution_state_requested.emit()
 
     @Slot(str)
     def kernel_restarted_message(self, msg):
@@ -747,11 +759,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Show environment variables."""
         self.dialog_manager.show(RemoteEnvDialog(env, parent=self))
 
-    def create_time_label(self):
-        """Create elapsed time label widget (if necessary) and return it"""
-        if self.time_label is None:
-            self.time_label = QLabel()
-        return self.time_label
+    # def create_time_label(self):
+    #     """Create elapsed time label widget (if necessary) and return it"""
+    #     if self.time_label is None:
+    #         self.time_label = QLabel()
+    #     return self.time_label
 
     def show_time(self, end=False):
         """Text to show in time_label."""
@@ -774,22 +786,25 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         text = "<span style=\'color: %s\'><b>%s" \
                "</b></span>" % (color,
                                 time.strftime(fmt, time.gmtime(elapsed_time)))
-        self.time_label.setText(text)
+        if self.show_elapsed_time:
+            self.time_label.setText(text)
+        else:
+            self.time_label.setText("")
 
-    def update_time_label_visibility(self):
-        """Update elapsed time visibility."""
-        self.time_label.setVisible(self.show_elapsed_time)
+    # def update_time_label_visibility(self):
+    #     """Update elapsed time visibility."""
+    #     self.time_label.setVisible(self.show_elapsed_time)
 
-    def set_show_elapsed_time_state(self, state):
-        self.show_time_action.setChecked(state)
-        self.set_elapsed_time_visible(state)
+    # def set_show_elapsed_time_state(self, state):
+    #     # self.show_time_action.setChecked(state)
+    #     self.set_elapsed_time_visible(state)
 
     @Slot(bool)
-    def set_elapsed_time_visible(self, state):
+    def set_show_elapsed_time(self, state):
         """Slot to show/hide elapsed time label."""
         self.show_elapsed_time = state
-        if self.time_label is not None:
-            self.time_label.setVisible(state)
+        # if self.time_label is not None:
+        #     self.time_label.setVisible(state)
 
     def set_info_page(self):
         """Set current info_page."""
