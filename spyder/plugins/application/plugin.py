@@ -54,21 +54,16 @@ class Application(SpyderPluginV2):
         return _('Provide main application base actions.')
 
     def on_initialize(self):
-        self.console_available = False
-        self.main_menu_available = False
-        self.shortcuts_available = False
+        pass
 
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
-        self.shortcuts_available = True
-        if self.main_menu_available:
+        if self.is_plugin_available(Plugins.MainMenu):
             self._populate_help_menu()
 
     @on_plugin_available(plugin=Plugins.Console)
     def on_console_available(self):
-        self.console_available = True
-
-        if self.main_menu_available:
+        if self.is_plugin_available(Plugins.MainMenu):
             report_action = self.get_action(ConsoleActions.SpyderReportAction)
             report_action.setVisible(True)
 
@@ -81,13 +76,12 @@ class Application(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
-        self.main_menu_available = True
 
         self._populate_file_menu()
         self._populate_tools_menu()
 
         if self.is_plugin_enabled(Plugins.Shortcuts):
-            if self.shortcuts_available:
+            if self.is_plugin_available(Plugins.Shortcuts):
                 self._populate_help_menu()
         else:
             self._populate_help_menu()
@@ -102,7 +96,7 @@ class Application(SpyderPluginV2):
             icon=self.create_icon('bug'),
             triggered=self.report_issue)
 
-        if not self.console_available:
+        if not self.is_plugin_available(Plugins.Console):
             report_action.setVisible(False)
 
         main_menu.add_item_to_application_menu(
@@ -225,7 +219,7 @@ class Application(SpyderPluginV2):
         return menu
 
     def report_issue(self):
-        if self.console_available:
+        if self.is_plugin_available(Plugins.Console):
             console = self.get_plugin(Plugins.Console)
             console.report_issue()
 
