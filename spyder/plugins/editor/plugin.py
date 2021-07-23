@@ -64,9 +64,6 @@ from spyder.plugins.mainmenu.api import ApplicationMenus
 logger = logging.getLogger(__name__)
 
 
-WINPDB_PATH = programs.find_program('winpdb')
-
-
 class Editor(SpyderPluginWidget):
     """
     Multi-file Editor widget
@@ -602,10 +599,6 @@ class Editor(SpyderPluginWidget):
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
 
-        self.winpdb_action = create_action(self, _("Debug with winpdb"),
-                                           triggered=self.run_winpdb)
-        self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
-
         # --- Debug toolbar ---
         self.debug_action = create_action(
             self, _("&Debug"),
@@ -1089,9 +1082,6 @@ class Editor(SpyderPluginWidget):
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
-        # NOTE: 'list_breakpoints' is used by the breakpoints
-        # plugin to add its "List breakpoints" action to this
-        # menu
         debug_menu_actions = [
             self.debug_action,
             self.debug_cell_action,
@@ -1104,9 +1094,6 @@ class Editor(SpyderPluginWidget):
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
-            'list_breakpoints',
-            MENU_SEPARATOR,
-            self.winpdb_action
         ]
         self.main.debug_menu_actions = (
             debug_menu_actions + self.main.debug_menu_actions)
@@ -1169,7 +1156,6 @@ class Editor(SpyderPluginWidget):
             re_run_last_cell_action,
             blockcomment_action,
             unblockcomment_action,
-            self.winpdb_action
         ]
         self.cythonfile_compatible_actions = [run_action, configure_action]
         self.file_dependent_actions = (
@@ -1828,10 +1814,7 @@ class Editor(SpyderPluginWidget):
                     enable = cython_enable
                 else:
                     enable = python_enable
-                if action is self.winpdb_action:
-                    action.setEnabled(enable and WINPDB_PATH is not None)
-                else:
-                    action.setEnabled(enable)
+                action.setEnabled(enable)
             self.sig_file_opened_closed_or_updated.emit(
                 self.get_current_filename(), self.get_current_language())
 
@@ -2485,24 +2468,6 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         line, column = editor.get_cursor_line_column()
         self.add_cursor_position_to_history(filename, position, line, column)
-
-    @Slot()
-    def run_winpdb(self):
-        """Run winpdb to debug current file"""
-        if self.save():
-            fname = self.get_current_filename()
-            runconf = get_run_configuration(fname)
-            if runconf is None:
-                args = []
-                wdir = None
-            else:
-                args = runconf.get_arguments().split()
-                wdir = runconf.get_working_directory()
-            # Handle the case where wdir comes back as an empty string
-            # when the working directory dialog checkbox is unchecked.
-            # (subprocess "cwd" default is None, so empty str
-            # must be changed to None in this case.)
-            programs.run_program(WINPDB_PATH, [fname] + args, cwd=wdir or None)
 
     def toggle_eol_chars(self, os_name, checked):
         if checked:
