@@ -376,6 +376,7 @@ class IconManager():
                                 directory=self._resource['directory'])
                     self._resource['loaded'] = True
                 args, kwargs = self._qtaargs[name]
+                kwargs['color_disabled'] = SpyderPalette.COLOR_DISABLED
                 if scale_factor is not None:
                     kwargs['scale_factor'] = scale_factor
                 return qta.icon(*args, **kwargs)

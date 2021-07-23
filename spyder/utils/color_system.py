@@ -117,3 +117,10 @@ class Logos:
     B30 = '#414141'
     B40 = '#fafafa'
     B50 = '#ee0000'
+
+class Opacity:
+    """
+    Opacity settings for toolbar button states.
+    """
+
+    OPACITY_DISABLED = 165
