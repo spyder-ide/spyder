@@ -79,7 +79,7 @@ class SpyderPaletteDark:
     SPYDER_LOGO_SNAKE = Logos.B50
 
     # Colors for disabled state toolbar buttons
-    COLOR_DISABLED = ICON_1, OPACITY_DISABLED
+    COLOR_DISABLED = ICON_1, Opacity.OPACITY_DISABLED
 
 
 class SpyderPaletteLight:
