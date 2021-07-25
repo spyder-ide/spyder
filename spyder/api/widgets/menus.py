@@ -47,6 +47,7 @@ class SpyderMenu(QMenu):
         self._sections = []
         self._actions = []
         self.unintroduced_actions = {}
+        self.unintroduced_sections = []
         self._dirty = False
 
         if title is None:
@@ -74,6 +75,7 @@ class SpyderMenu(QMenu):
         self._sections = []
         self._actions = []
         self.unintroduced_actions = {}
+        self.unintroduced_sections = []
 
     def add_action(self, action, section=None, before=None,
                    before_section=None, check_before=True):
@@ -119,14 +121,16 @@ class SpyderMenu(QMenu):
 
             self._actions = new_actions
 
-        if before_section is not None and before_section in self._sections:
-            new_sections = []
-            for sec in self._sections:
-                if sec == before_section:
-                    new_sections.append(section)
-                if sec != section:
-                    new_sections.append(sec)
-            self._sections = new_sections
+        if before_section is not None:
+            if before_section in self._sections:
+                self._update_sections(section, before_section)
+            else:
+                # If `before_section` has not been introduced yet to the menu,
+                # we save `section` to introduce it when the menu is rendered.
+                if (section, before_section) not in self.unintroduced_sections:
+                    self.unintroduced_sections.append(
+                        (section, before_section)
+                    )
         elif section not in self._sections:
             self._sections.append(section)
 
@@ -168,6 +172,21 @@ class SpyderMenu(QMenu):
         if self._dirty:
             self.clear()
 
+            # Iterate over unintroduced sections until all of them have been
+            # introduced.
+            iter_sections = iter(self.unintroduced_sections)
+            while len(self.unintroduced_sections) > 0:
+                section, before_section = next(iter_sections)
+                self._update_sections(section, before_section)
+
+                # If section was introduced, remove it from the list and
+                # update iterator.
+                if section in self._sections:
+                    self.unintroduced_sections.remove(
+                        (section, before_section)
+                    )
+                    iter_sections = iter(self.unintroduced_sections)
+
             # Update actions with those that were not introduced because
             # a `before` action they required was not part of the menu yet.
             for before, actions in self.unintroduced_actions.items():
@@ -178,6 +197,16 @@ class SpyderMenu(QMenu):
             actions = self.get_actions()
             add_actions(self, actions)
             self._dirty = False
+
+    def _update_sections(self, section, before_section):
+        """Update sections ordering."""
+        new_sections = []
+        for sec in self._sections:
+            if sec == before_section:
+                new_sections.append(section)
+            if sec != section:
+                new_sections.append(sec)
+        self._sections = new_sections
 
 
 class MainWidgetMenu(SpyderMenu):
