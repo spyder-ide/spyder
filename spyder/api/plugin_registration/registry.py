@@ -372,6 +372,22 @@ class SpyderPluginRegistry(QObject):
         """
         return plugin_name in self.enabled_plugins
 
+    def is_plugin_available(self, plugin_name: str) -> bool:
+        """
+        Determine if a given plugin was loaded and is available.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to query.
+
+        Returns
+        -------
+        plugin_available: bool
+            True if the plugin is available and False if not.
+        """
+        return self.plugin_availability.get(plugin_name, False)
+
     def reset(self):
         """Reset and empty the plugin registry."""
         # Dictionary that maps a plugin name to a list of the plugin names

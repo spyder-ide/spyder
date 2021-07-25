@@ -956,6 +956,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """Determine if a given plugin is going to be loaded."""
         return self._main.is_plugin_enabled(plugin_name)
 
+    def is_plugin_available(self, plugin_name):
+        """Determine if a given plugin is available."""
+        return self._main.is_plugin_available(plugin_name)
+
     def get_dockable_plugins(self):
         """
         Return a list of the required plugin instances.
