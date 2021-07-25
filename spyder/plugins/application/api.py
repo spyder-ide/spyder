@@ -5,5 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder preference dialogs and widgets.
+Spyder application API.
 """
+
+from spyder.plugins.application.container import ApplicationActions

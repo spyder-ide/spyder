@@ -289,7 +289,7 @@ class SpyderMenuMixin:
         ------
         KeyError
             If either of `name`, `context` or `plugin` keys do not exist in the
-            toolbar registry.
+            menu registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -495,7 +495,7 @@ class SpyderActionMixin:
         ------
         KeyError
             If either of `name`, `context` or `plugin` keys do not exist in the
-            toolbar registry.
+            action registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
