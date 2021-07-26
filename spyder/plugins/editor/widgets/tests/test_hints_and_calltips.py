@@ -145,15 +145,25 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
     code_editor, _ = completions_codeeditor
     param, expected_output_text = params
 
+    # Move mouse to another position to be sure the hover is displayed when
+    # the cursor is put on top of the tested word.
+    qtbot.mouseMove(code_editor, QPoint(400, 400))
+
     # Set text in editor
     code_editor.set_text(param)
 
     # Get cursor coordinates
     code_editor.moveCursor(QTextCursor.End)
     qtbot.keyPress(code_editor, Qt.Key_Left)
+
+    # Wait a bit in case the window manager repositions the window.
+    qtbot.wait(1000)
+
+    # Position cursor on top of word we want the hover for.
     x, y = code_editor.get_coordinates('cursor')
     point = code_editor.calculate_real_position(QPoint(x, y))
 
+    # Get hover and compare
     with qtbot.waitSignal(code_editor.sig_display_object_info,
                           timeout=30000) as blocker:
         qtbot.mouseMove(code_editor, point)
@@ -182,13 +192,23 @@ def test_get_hints_not_triggered(qtbot, completions_codeeditor):
     # Set text in editor
     code_editor.set_text('def test():\n    pass\n\ntest')
 
+    # Move mouse to another position.
+    qtbot.mouseMove(code_editor, QPoint(400, 400))
+
     # Get cursor coordinates
     code_editor.moveCursor(QTextCursor.End)
     qtbot.keyPress(code_editor, Qt.Key_Left)
+
+    # Wait a bit in case the window manager repositions the window.
+    qtbot.wait(1000)
+
+    # Position cursor on top of word we want the hover for.
     x, y = code_editor.get_coordinates('cursor')
     point = code_editor.calculate_real_position(QPoint(x, y))
 
-    with qtbot.waitSignal(code_editor.sig_display_object_info, timeout=30000):
+    # Check that no hover was generated.
+    with qtbot.waitSignal(code_editor.completions_response_signal,
+                          timeout=30000):
         qtbot.mouseMove(code_editor, point)
         qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point)
         qtbot.wait(1000)
