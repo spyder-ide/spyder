@@ -1531,12 +1531,15 @@ class CodeEditor(TextEditBaseWidget):
         try:
             content = contents['params']
 
-            if isinstance(content, list):
-                # Prevent sporious errors when a client return a list
+            # - Don't display hover if there's no content to display.
+            # - Prevent spurious errors when a client returns a list.
+            if not content or isinstance(content, list):
                 return
 
-            self.sig_display_object_info.emit(content,
-                                              self._request_hover_clicked)
+            self.sig_display_object_info.emit(
+                content,
+                self._request_hover_clicked
+            )
             if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word
