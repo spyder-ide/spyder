@@ -912,7 +912,6 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(20, 20, 20, 0)
         self.setLayout(self.layout)
-        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:

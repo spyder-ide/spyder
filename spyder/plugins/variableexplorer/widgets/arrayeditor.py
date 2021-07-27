@@ -694,7 +694,6 @@ class ArrayEditor(BaseDialog):
 
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title) + " - " + _("NumPy object array")
         else:
