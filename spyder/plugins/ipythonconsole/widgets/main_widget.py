@@ -244,7 +244,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, name, plugin, parent=None):
+    def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
         self.tabwidget = None
@@ -532,10 +532,11 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def set_show_elapsed_time_current_client(self, state):
         if self.get_current_client():
-            print(state)
-            self.time_label.setVisible(state)
-            print(self.time_label.isVisible())
-            self.get_current_client().set_show_elapsed_time(state)
+            client = self.get_current_client()
+            client.set_show_elapsed_time(state)
+            self.refresh_container()
+            # client.timer.timeout.connect(client.show_time)
+            # client.timer.start(1000)
 
     def update_style(self):
         rich_font = self._plugin.get_font(option='rich_font')
@@ -544,85 +545,6 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def update_actions(self):
         pass
-
-    @on_conf_change
-    def change_possible_restart_conf(self, options):
-        """Apply configuration file's plugin settings."""
-        # TODO: Simplify settings handling when possible by using preferences
-        # subscription
-        if not self.get_current_client():
-            return
-        restart_needed = False
-        restart_options = []
-
-        # Startup options (needs a restart)
-        run_lines_n = 'startup/run_lines'
-        use_run_file_n = 'startup/use_run_file'
-        run_file_n = 'startup/run_file'
-
-        # Graphic options
-        pylab_n = 'pylab'
-        pylab_o = self.get_conf(pylab_n)
-        pylab_backend_n = 'pylab/backend'
-        inline_backend = 0
-        pylab_restart = False
-        client_backend_not_inline = [False] * len(self.clients)
-        if pylab_o and pylab_backend_n in options:
-            pylab_backend_o = self.get_conf(pylab_backend_n)
-            client_backend_not_inline = [
-                client.shellwidget.get_matplotlib_backend() != inline_backend
-                for client in self.clients]
-            current_client_backend_not_inline = (
-                self.get_current_client().shellwidget.get_matplotlib_backend()
-                != inline_backend)
-            pylab_restart = (
-                any(client_backend_not_inline) and
-                pylab_backend_o != inline_backend)
-
-        # Advanced options (needs a restart)
-        symbolic_math_n = 'symbolic_math'
-        hide_cmd_windows_n = 'hide_cmd_windows'
-
-        restart_options += [run_lines_n, use_run_file_n, run_file_n,
-                            symbolic_math_n, hide_cmd_windows_n]
-
-        restart_needed = any([restart_option in options
-                              for restart_option in restart_options])
-
-        if (restart_needed or pylab_restart) and not running_under_pytest():
-            restart_dialog = ConsoleRestartDialog(self)
-            restart_dialog.exec_()
-            (restart_all, restart_current,
-             no_restart) = restart_dialog.get_action_value()
-        else:
-            restart_all = False
-            restart_current = False
-            no_restart = True
-
-        # Apply settings
-        for idx, client in enumerate(self.clients):
-            restart = ((pylab_restart and client_backend_not_inline[idx]) or
-                       restart_needed)
-            if not (restart and restart_all) or no_restart:
-                sw = client.shellwidget
-                if sw.is_debugging() and sw._executing:
-                    # Apply conf when the next Pdb prompt is available
-                    def change_client_mpl_conf(o=options, c=client):
-                        self._change_client_mpl_conf(o, c)
-                        sw.sig_pdb_prompt_ready.disconnect(
-                            change_client_mpl_conf)
-                    sw.sig_pdb_prompt_ready.connect(change_client_mpl_conf)
-                else:
-                    self._change_client_mpl_conf(options, client)
-            elif restart and restart_all:
-                client.ask_before_restart = False
-                client.restart_kernel()
-
-        if (((pylab_restart and current_client_backend_not_inline)
-             or restart_needed) and restart_current):
-            current_client = self.get_current_client()
-            current_client.ask_before_restart = False
-            current_client.restart_kernel()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -643,12 +565,13 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
-        print(bool(value))
+        print("value", value)
         for idx, client in enumerate(self.clients):
             self._change_client_conf(
                 client,
-                client.set_show_elapsed_time_state,
-                bool(value))
+                client.set_show_elapsed_time,
+                value)
+        self.set_show_elapsed_time_current_client(value)
 
     @on_conf_change(option='show_reset_namespace_warning')
     def change_clients_show_reset_namespace_warning(self, value):
@@ -773,6 +696,90 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.shellwidget.set_pdb_use_exclamation_mark,
                 value)
 
+    # @on_conf_change(option=[
+    #     'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
+    #     'pylab', 'pylab/backend', 'symbolic_math', 'hide_cmd_windows'])
+    def change_possible_restart_conf(self, option, value):
+        """Apply configuration file's plugin settings."""
+        # TODO: Simplify settings handling when possible by using preferences
+        # subscription
+        print(option, value)
+        if not self.get_current_client():
+            return
+        restart_needed = False
+        restart_options = []
+
+        # Startup options (needs a restart)
+        run_lines_n = 'startup/run_lines'
+        use_run_file_n = 'startup/use_run_file'
+        run_file_n = 'startup/run_file'
+
+        # Graphic options
+        pylab_n = 'pylab'
+        pylab_o = self.get_conf(pylab_n)
+        pylab_backend_n = 'pylab/backend'
+
+        # Advanced options (needs a restart)
+        symbolic_math_n = 'symbolic_math'
+        hide_cmd_windows_n = 'hide_cmd_windows'
+
+        restart_options += [run_lines_n, use_run_file_n, run_file_n,
+                            symbolic_math_n, hide_cmd_windows_n]
+
+        inline_backend = 0
+        pylab_restart = False
+        client_backend_not_inline = [False] * len(self.clients)
+        if pylab_o and pylab_backend_n == option:
+            pylab_backend_o = self.get_conf(pylab_backend_n)
+            client_backend_not_inline = [
+                client.shellwidget.get_matplotlib_backend() != inline_backend
+                for client in self.clients]
+            current_client_backend_not_inline = (
+                self.get_current_client().shellwidget.get_matplotlib_backend()
+                != inline_backend)
+            pylab_restart = (
+                any(client_backend_not_inline) and
+                pylab_backend_o != inline_backend)
+
+        restart_needed = option in restart_options
+
+        if (restart_needed or pylab_restart) and not running_under_pytest():
+            restart_dialog = ConsoleRestartDialog(self)
+            restart_dialog.exec_()
+            (restart_all, restart_current,
+             no_restart) = restart_dialog.get_action_value()
+        else:
+            restart_all = False
+            restart_current = False
+            no_restart = True
+
+        # Apply settings
+        options = {option: value}
+        for idx, client in enumerate(self.clients):
+            restart = ((pylab_restart and client_backend_not_inline[idx]) or
+                       restart_needed)
+            if not (restart and restart_all) or no_restart:
+                sw = client.shellwidget
+                if sw.is_debugging() and sw._executing:
+                    # Apply conf when the next Pdb prompt is available
+                    def change_client_mpl_conf(o=options, c=client):
+                        self._change_client_mpl_conf(o, c)
+                        sw.sig_pdb_prompt_ready.disconnect(
+                            change_client_mpl_conf)
+                    sw.sig_pdb_prompt_ready.connect(change_client_mpl_conf)
+                else:
+                    self._change_client_mpl_conf(options, client)
+            elif restart and restart_all:
+                client.ask_before_restart = False
+                client.restart_kernel()
+
+        if (((pylab_restart and current_client_backend_not_inline)
+             or restart_needed) and restart_current):
+            current_client = self.get_current_client()
+            current_client.ask_before_restart = False
+            current_client.restart_kernel()
+
+
     # ---- Private methods
     # -------------------------------------------------------------------------
     def _change_client_conf(self, client, client_conf_func, value):
@@ -794,12 +801,12 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         """
         sw = client.shellwidget
-        if not sw.is_debugging() and not sw._executing:
+        if not client.is_client_executing():
             client_conf_func(value)
         else:
             def change_conf(c=client, ccf=client_conf_func, value=value):
-                client_conf_func(value)
-                sw.sig_pdb_prompt_ready.disconnect(change_conf)
+                ccf(value)
+                c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
             sw.sig_pdb_prompt_ready.connect(change_conf)
 
     def _change_client_mpl_conf(self, options, client):
@@ -1106,7 +1113,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             show_elapsed_time = client.show_elapsed_time
             self.show_time_action.setChecked(show_elapsed_time)
             client.timer.timeout.connect(client.show_time)
-            self.time_label.setVisible(show_elapsed_time)
         else:
             control = None
             # widgets = []
