@@ -134,12 +134,12 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
 @pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('params', [
-            # Parameter, Expected Output
-            ('"".format', '-> str'),
-            ('import math', 'module'),
-            (TEST_TEXT, TEST_DOCSTRING)
-        ]
-    )
+        # Parameter, Expected Output
+        ('"".format', '-> str'),
+        ('import math', 'module'),
+        (TEST_TEXT, TEST_DOCSTRING)
+    ]
+)
 def test_get_hints(qtbot, completions_codeeditor, params, capsys):
     """Test that the editor is returning hover hints."""
     code_editor, _ = completions_codeeditor
@@ -185,19 +185,27 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
 @pytest.mark.slow
 @pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
-def test_get_hints_not_triggered(qtbot, completions_codeeditor):
+@pytest.mark.parametrize('text', [
+        'def test():\n    pass\n\ntest',
+        '# a comment',
+        '"a string"',
+    ]
+)
+def test_get_hints_not_triggered(qtbot, completions_codeeditor, text):
     """Test that the editor is not returning hover hints for empty docs."""
     code_editor, _ = completions_codeeditor
 
     # Set text in editor
-    code_editor.set_text('def test():\n    pass\n\ntest')
+    code_editor.set_text(text)
 
     # Move mouse to another position.
     qtbot.mouseMove(code_editor, QPoint(400, 400))
 
     # Get cursor coordinates
     code_editor.moveCursor(QTextCursor.End)
-    qtbot.keyPress(code_editor, Qt.Key_Left)
+
+    for _ in range(3):
+        qtbot.keyPress(code_editor, Qt.Key_Left)
 
     # Wait a bit in case the window manager repositions the window.
     qtbot.wait(1000)
