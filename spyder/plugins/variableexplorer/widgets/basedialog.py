@@ -10,7 +10,7 @@ Base variable explorer dialog
 
 # Third party imports
 from qtpy.QtWidgets import QDialog
-import qstylizer
+import qstylizer.style
 
 
 class BaseDialog(QDialog):

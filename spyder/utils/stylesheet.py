@@ -12,8 +12,8 @@ import sys
 
 # Third-party imports
 import qdarkstyle
-import qstylizer
 from qstylizer.parser import parse as parse_stylesheet
+import qstylizer.style
 
 # Local imports
 from spyder.config.gui import OLD_PYQT
