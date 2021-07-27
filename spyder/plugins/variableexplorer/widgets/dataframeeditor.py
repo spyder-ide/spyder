@@ -749,7 +749,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
         """Get the information to put in the header."""
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return Qt.AlignCenter | Qt.AlignBottom
+                return Qt.AlignCenter
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
@@ -841,7 +841,7 @@ class DataFrameLevelModel(QAbstractTableModel):
         """
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return Qt.AlignCenter | Qt.AlignBottom
+                return Qt.AlignCenter
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
