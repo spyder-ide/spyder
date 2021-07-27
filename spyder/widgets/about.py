@@ -94,7 +94,7 @@ class AboutDialog(QDialog):
         self.label_community = QLabel((
             """
             <div style='font-family: "{font_family}";
-                        font-size: {font_size}pt;
+                        font-size: {font_size};
                         font-weight: normal;
                         '>
             <br>
@@ -130,7 +130,7 @@ class AboutDialog(QDialog):
         self.label_legal = QLabel((
             """
             <div style='font-family: "{font_family}";
-                        font-size: {font_size}pt;
+                        font-size: {font_size};
                         font-weight: normal;
                         '>
             <br>
@@ -196,7 +196,7 @@ class AboutDialog(QDialog):
         self.info = QLabel((
             """
             <div style='font-family: "{font_family}";
-                font-size: {font_size}pt;
+                font-size: {font_size};
                 font-weight: normal;
                 '>
             <p>

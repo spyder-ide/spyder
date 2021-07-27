@@ -352,7 +352,7 @@ PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
 
 
 # =============================================================================
-# ---- Special Dialogs stylesheet
+# ---- Style for special dialogs
 # =============================================================================
 class DialogStyle:
     """Style constants for tour, about and kite dialogs."""
