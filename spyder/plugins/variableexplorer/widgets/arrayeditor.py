@@ -804,7 +804,8 @@ class ArrayEditor(BaseDialog):
 
         btn_resize = QPushButton(_("Resize"))
         btn_layout_bottom.addWidget(btn_resize)
-        btn_resize.clicked.connect(lambda: self.arraywidget.view.resize_to_contents())
+        btn_resize.clicked.connect(
+            lambda: self.arraywidget.view.resize_to_contents())
 
         self.bgcolor = QCheckBox(_('Background color'))
         self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)
