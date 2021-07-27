@@ -703,7 +703,7 @@ class ArrayEditor(BaseDialog):
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
 
-        # Stack widget
+        # ---- Stack widget
         self.stack = QStackedWidget(self)
         if is_record_array:
             for name in data.dtype.names:
@@ -739,29 +739,13 @@ class ArrayEditor(BaseDialog):
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
-        # Buttons configuration
-        btn_layout = QHBoxLayout()
-
-        btn_format = QPushButton(_("Format"))
-        # disable format button for int type
-        btn_format.setEnabled(is_float(self.arraywidget.data.dtype))
-        btn_layout.addWidget(btn_format)
-        btn_format.clicked.connect(lambda: self.arraywidget.change_format())
-
-        btn_resize = QPushButton(_("Resize"))
-        btn_layout.addWidget(btn_resize)
-        btn_resize.clicked.connect(lambda: self.arraywidget.view.resize_to_contents())
-
-        self.bgcolor = QCheckBox(_('Background color'))
-        self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)
-        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
-        self.bgcolor.stateChanged.connect(
-            lambda state: self.arraywidget.model.bgcolor(state))
-        btn_layout.addWidget(self.bgcolor)
-
+        # ---- Top row of buttons
+        btn_layout_top = None
         if is_record_array or is_masked_array or data.ndim == 3:
+            btn_layout_top = QHBoxLayout()
+
             if is_record_array:
-                btn_layout.addWidget(QLabel(_("Record array fields:")))
+                btn_layout_top.addWidget(QLabel(_("Record array fields:")))
                 names = []
                 for name in data.dtype.names:
                     field = data.dtype.fields[name]
@@ -774,6 +758,7 @@ class ArrayEditor(BaseDialog):
                     names.append(text)
             else:
                 names = [_('Masked data'), _('Data'), _('Mask')]
+
             if data.ndim == 3:
                 # QComboBox
                 names = [str(i) for i in range(3)]
@@ -783,46 +768,77 @@ class ArrayEditor(BaseDialog):
 
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
-                btn_layout.addWidget(label)
-                btn_layout.addWidget(ra_combo)
-                btn_layout.addWidget(self.shape_label)
+                btn_layout_top.addWidget(label)
+                btn_layout_top.addWidget(ra_combo)
+                btn_layout_top.addWidget(self.shape_label)
 
                 label = QLabel(_("Index:"))
-                btn_layout.addWidget(label)
-                btn_layout.addWidget(self.index_spin)
+                btn_layout_top.addWidget(label)
+                btn_layout_top.addWidget(self.index_spin)
 
-                btn_layout.addWidget(self.slicing_label)
+                btn_layout_top.addWidget(self.slicing_label)
             else:
                 ra_combo = QComboBox(self)
                 ra_combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
                 ra_combo.addItems(names)
-                btn_layout.addWidget(ra_combo)
-            if is_masked_array:
-                label = QLabel(_(
-                    "<u>Warning</u>: changes are applied separately"))
-                label.setToolTip(_("For performance reasons, changes applied "
-                                   "to masked array won't be reflected in "
-                                   "array's data (and vice-versa)."))
-                btn_layout.addWidget(label)
+                btn_layout_top.addWidget(ra_combo)
 
-        btn_layout.addStretch()
+            if is_masked_array:
+                label = QLabel(
+                    _("<u>Warning</u>: Changes are applied separately")
+                )
+                label.setToolTip(_("For performance reasons, changes applied "
+                                   "to masked arrays won't be reflected in "
+                                   "array's data (and vice-versa)."))
+                btn_layout_top.addWidget(label)
+
+            btn_layout_top.addStretch()
+
+        # ---- Bottom row of buttons
+        btn_layout_bottom = QHBoxLayout()
+
+        btn_format = QPushButton(_("Format"))
+        # disable format button for int type
+        btn_format.setEnabled(is_float(self.arraywidget.data.dtype))
+        btn_layout_bottom.addWidget(btn_format)
+        btn_format.clicked.connect(lambda: self.arraywidget.change_format())
+
+        btn_resize = QPushButton(_("Resize"))
+        btn_layout_bottom.addWidget(btn_resize)
+        btn_resize.clicked.connect(lambda: self.arraywidget.view.resize_to_contents())
+
+        self.bgcolor = QCheckBox(_('Background color'))
+        self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)
+        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
+        self.bgcolor.stateChanged.connect(
+            lambda state: self.arraywidget.model.bgcolor(state))
+        btn_layout_bottom.addWidget(self.bgcolor)
+
+        btn_layout_bottom.addStretch()
 
         if not readonly:
             self.btn_save_and_close = QPushButton(_('Save and Close'))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
-            btn_layout.addWidget(self.btn_save_and_close)
+            btn_layout_bottom.addWidget(self.btn_save_and_close)
 
         self.btn_close = QPushButton(_('Close'))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
-        btn_layout.addWidget(self.btn_close)
+        btn_layout_bottom.addWidget(self.btn_close)
 
-        btn_layout.setContentsMargins(4, 4, 4, 4)
-        self.layout.addLayout(btn_layout, 2, 0)
+        # ---- Final layout
+        btn_layout_bottom.setContentsMargins(4, 4, 4, 4)
+        if btn_layout_top is not None:
+            btn_layout_top.setContentsMargins(4, 4, 4, 4)
+            self.layout.addLayout(btn_layout_top, 2, 0)
+            self.layout.addLayout(btn_layout_bottom, 3, 0)
+        else:
+            self.layout.addLayout(btn_layout_bottom, 2, 0)
 
-        self.setMinimumSize(400, 300)
+        # Set minimum size
+        self.setMinimumSize(500, 300)
 
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
