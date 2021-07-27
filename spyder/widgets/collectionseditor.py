@@ -1379,6 +1379,7 @@ class CollectionsEditor(BaseDialog):
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(4, 4, 4, 4)
         btn_layout.addStretch()
 
         if not readonly:

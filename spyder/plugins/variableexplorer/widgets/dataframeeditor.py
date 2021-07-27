@@ -910,7 +910,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         self.layout = QGridLayout()
         self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setContentsMargins(20, 20, 20, 0)
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
@@ -997,7 +997,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
-        btn_layout.setContentsMargins(4, 4, 4, 4)
+        btn_layout.setContentsMargins(0, 16, 0, 16)
         self.layout.addLayout(btn_layout, 4, 0, 1, 2)
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
