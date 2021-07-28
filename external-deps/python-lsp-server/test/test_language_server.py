@@ -75,6 +75,7 @@ def client_exited_server():
     assert client_server_pair.process.is_alive() is False
 
 
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Too flaky on Mac')
 def test_initialize(client_server):  # pylint: disable=redefined-outer-name
     response = client_server._endpoint.request('initialize', {
         'rootPath': os.path.dirname(__file__),
