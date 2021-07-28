@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = feat/isatty
-	commit = 0fce2342d30fde27389bb3f319cfc5b9d7f8c448
-	parent = 12eebb38342da80377478f31c9db58765de10d57
+	branch = patch-terminal-size
+	commit = c262584b37a8ca541d3d30f1e50e03162f253fd6
+	parent = 1de9716e79de75bbf670a034dd1ed74c1940c5dc
 	method = merge
 	cmdver = 0.4.3
