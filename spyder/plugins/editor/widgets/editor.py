@@ -20,7 +20,7 @@ import functools
 import unicodedata
 
 # Third party imports
-import qstylizer
+import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
