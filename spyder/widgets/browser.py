@@ -12,7 +12,7 @@ import sre_constants
 import sys
 
 # Third party imports
-import qstylizer
+import qstylizer.style
 from qtpy.QtCore import QEvent, Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
