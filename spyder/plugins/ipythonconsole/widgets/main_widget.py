@@ -257,6 +257,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.css_path = self.get_conf('css_path', section='appearance')
         self.run_cell_filename = None
         self.interrupt_action = None
+        self.initial_conf_options = self.get_conf_options()
 
         # Attrs for testing
         self._testing = self.get_conf('testing')
@@ -698,16 +699,23 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.shellwidget.set_pdb_use_exclamation_mark,
                 value)
 
-    # @on_conf_change(option=[
-    #     'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-    #     'pylab', 'pylab/backend', 'symbolic_math', 'hide_cmd_windows'])
+    @on_conf_change(option=[
+        'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
+        'pylab', 'pylab/backend', 'symbolic_math', 'hide_cmd_windows'])
     def change_possible_restart_conf(self, option, value):
         """Apply configuration file's plugin settings."""
         # TODO: Simplify settings handling when possible by using preferences
         # subscription
-        print(option, value)
         if not self.get_current_client():
             return
+
+        # Review that we are not triggering validations in the initial
+        # notification sent when Spyder is starting or when another option
+        # already required a restart and the restart dialog was shown
+        if option in self.initial_conf_options:
+            self.initial_conf_options.remove(option)
+            return
+
         restart_needed = False
         restart_options = []
 
@@ -746,6 +754,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         restart_needed = option in restart_options
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
+            self.initial_conf_options = self.get_conf_options()
+            self.initial_conf_options.remove(option)
             restart_dialog = ConsoleRestartDialog(self)
             restart_dialog.exec_()
             (restart_all, restart_current,
