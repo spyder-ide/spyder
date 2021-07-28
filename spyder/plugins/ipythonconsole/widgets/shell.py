@@ -95,7 +95,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._cwd = ''
 
         # Keyboard shortcuts
-        self.shortcuts = self.create_shortcuts()
+        # TODO: Define shortcuts for the actions in the client
+        # self.shortcuts = self.create_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is

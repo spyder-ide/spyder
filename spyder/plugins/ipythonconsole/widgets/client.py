@@ -108,6 +108,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
+                 context_menu_actions=None,
                  menu_actions=None, slave=False,
                  external_kernel=False, given_name=None,
                  options_button=None,
@@ -135,6 +136,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.ask_before_closing = ask_before_closing
 
         # --- Other attrs
+        self.context_menu_actions = context_menu_actions
         self.time_label = time_label
         self.options_button = options_button
         # TODO: Buttons need to be handle different (all the toolbar)
@@ -537,44 +539,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
-        inspect_action = self.create_action(
-            ClientWidgetContextMenuActions.InspectCurrentObject,
-            text=_("Inspect current object"),
-            icon=self.create_icon('MessageBoxInformation'),
-            triggered=self.inspect_object,
-            overwrite=True)
-
-        clear_line_action = self.create_action(
-            ClientWidgetContextMenuActions.ClearLine,
-            text=_("Clear line or block"),
-            triggered=self.clear_line,
-            overwrite=True)
-
-        reset_namespace_action = self.create_action(
-            ClientWidgetContextMenuActions.ResetNamespace,
-            text=_("Remove all variables"),
-            icon=self.create_icon('editdelete'),
-            triggered=self.reset_namespace,
-            overwrite=True)
-
-        clear_console_action = self.create_action(
-            ClientWidgetContextMenuActions.ClearConsole,
-            text=_("Clear console"),
-            triggered=self.clear_console,
-            overwrite=True)
-
-        quit_action = self.create_action(
-            ClientWidgetContextMenuActions.Quit,
-            _("&Quit"),
-            icon=ima.icon('exit'),
-            triggered=self.exit_callback,
-            overwrite=True)
-
-        add_actions(
-            menu,
-            (None, inspect_action, clear_line_action,
-             clear_console_action, reset_namespace_action,
-             None, quit_action))
+        add_actions(menu, self.context_menu_actions)
 
         return menu
 

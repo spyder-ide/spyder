@@ -39,7 +39,8 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.plugins.ipythonconsole.widgets.client import ClientWidgetActions
+from spyder.plugins.ipythonconsole.widgets.client import (
+    ClientWidgetActions, ClientWidgetContextMenuActions)
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
@@ -85,9 +86,11 @@ class IPythonConsoleWidgetActions:
 
     # Tabs
     RenameTab = 'rename_tab_action'
+    # TODO: Missing actions to be trigger with shortcut
     NewTab = 'new_tab_action'
 
     # Variables display
+    # TODO: Missing actions to be trigger with shortcut
     ArrayInline = 'array_iniline_action'
     ArrayTable = 'array_table_action'
 
@@ -374,12 +377,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             text=_("Restart kernel"),
             icon=self.create_icon('restart'),
             triggered=self.restart_kernel,
+            register_shortcut=True
         )
         self.reset_action = self.create_action(
             IPythonConsoleWidgetActions.RemoveAllVariables,
             text=_("Remove all variables"),
             icon=self.create_icon('editdelete'),
             triggered=self.reset_namespace,
+            register_shortcut=True
         )
         self.interrupt_action = self.create_action(
             IPythonConsoleWidgetActions.Interrupt,
@@ -426,6 +431,56 @@ class IPythonConsoleWidget(PluginMainWidget):
             toggled=self.set_show_elapsed_time_current_client,
             initial=self.get_conf('show_elapsed_time')
         )
+
+        # Context menu actions
+        self.inspect_action = self.create_action(
+            ClientWidgetContextMenuActions.InspectCurrentObject,
+            text=_("Inspect current object"),
+            icon=self.create_icon('MessageBoxInformation'),
+            triggered=self.current_client_inspect_object,
+            overwrite=True,
+            register_shortcut=True,
+            parent=self.tabwidget)
+
+        self.clear_line_action = self.create_action(
+            ClientWidgetContextMenuActions.ClearLine,
+            text=_("Clear line or block"),
+            triggered=self.current_client_clear_line,
+            overwrite=True,
+            register_shortcut=True)
+
+        # self.reset_namespace_action = self.create_action(
+        #     ClientWidgetContextMenuActions.ResetNamespace,
+        #     text=_("Remove all variables"),
+        #     icon=self.create_icon('editdelete'),
+        #     triggered=self.reset_namespace,
+        #     overwrite=True,
+        #     shortcut_context='ipython_console',
+        #     context_name='ipython_console',
+        #     register_shortcut=True,
+        #     parent=self.shellwidget)
+
+        self.clear_console_action = self.create_action(
+            ClientWidgetContextMenuActions.ClearConsole,
+            text=_("Clear console"),
+            triggered=self.current_client_clear_console,
+            overwrite=True,
+            shortcut_context='ipython_console',
+            context_name='ipython_console',
+            register_shortcut=True)
+
+        self.quit_action = self.create_action(
+            ClientWidgetContextMenuActions.Quit,
+            _("&Quit"),
+            icon=self.create_icon('exit'),
+            triggered=self.current_client_quit)
+
+        self.context_menu_actions = (
+            None,
+            self.inspect_action, self.clear_line_action,
+            self.clear_console_action, self.reset_action,
+            None,
+            self.quit_action)
 
         options_menu = self.get_options_menu()
         self.special_console_menu = self.create_menu(
@@ -995,6 +1050,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=connection_file,
                               # menu_actions=self.menu_actions,
+                              context_menu_actions=self.context_menu_actions,
                               time_label=self.time_label,
                               hostname=hostname,
                               external_kernel=external_kernel,
@@ -1412,6 +1468,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               # menu_actions=self.menu_actions,
                               # Check action to options button addition
                               # options_button=self.get_options_menu_button(),
+                              context_menu_actions=self.context_menu_actions,
                               time_label=self.time_label,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
@@ -1748,6 +1805,26 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.close_client(client=client, force=True)
         self.create_new_client(give_focus=False)
         self.create_new_client_if_empty = True
+
+    def current_client_inspect_object(self):
+        client = self.get_current_client()
+        if client:
+            client.inspect_object()
+
+    def current_client_clear_line(self):
+        client = self.get_current_client()
+        if client:
+            client.clear_line()
+
+    def current_client_clear_console(self):
+        client = self.get_current_client()
+        if client:
+            client.clear_console()
+
+    def current_client_quit(self):
+        client = self.get_current_client()
+        if client:
+            client.exit_callback()
 
     # ---- For kernels
     # -------------------------------------------------------------------------
