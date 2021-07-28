@@ -16,7 +16,7 @@ from qdarkstyle.light.palette import LightPalette
 # Local imports
 from spyder.config.gui import is_dark_interface
 from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
-                                       GroupLight, Logos, Opacity)
+                                       GroupLight, Logos)
 
 # =============================================================================
 # ---- Spyder palettes
@@ -78,9 +78,12 @@ class SpyderPaletteDark:
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
 
+<<<<<<< HEAD
     # Colors for disabled state toolbar buttons
     COLOR_DISABLED = ICON_1, Opacity.OPACITY_DISABLED
 
+=======
+>>>>>>> parent of 1373e8594... Add constant and argument for disabled toolbar buttons
 
 class SpyderPaletteLight:
     """Light palette for Spyder."""
@@ -138,10 +141,6 @@ class SpyderPaletteLight:
     SPYDER_LOGO_BACKGROUND = Logos.B30
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
-
-    # Colors for disabled state toolbar buttons
-    COLOR_DISABLED = ICON_1, Opacity.OPACITY_DISABLED
-
 
 # =============================================================================
 # ---- Exported classes
