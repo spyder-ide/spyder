@@ -1,6 +1,8 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
+import os
+
 from pylsp import uris
 from pylsp.plugins.hover import pylsp_hover
 from pylsp.workspace import Document
@@ -72,3 +74,28 @@ def test_hover(workspace):
     } == pylsp_hover(doc, hov_position)
 
     assert {'contents': ''} == pylsp_hover(doc, no_hov_position)
+
+
+def test_document_path_hover(workspace_other_root_path, tmpdir):
+    # Create a dummy module out of the workspace's root_path and try to get
+    # a definition on it in another file placed next to it.
+    module_content = '''
+def foo():
+    """A docstring for foo."""
+    pass
+'''
+
+    p = tmpdir.join("mymodule.py")
+    p.write(module_content)
+
+    # Content of doc to test definition
+    doc_content = """from mymodule import foo
+foo"""
+    doc_path = str(tmpdir) + os.path.sep + 'myfile.py'
+    doc_uri = uris.from_fs_path(doc_path)
+    doc = Document(doc_uri, workspace_other_root_path, doc_content)
+
+    cursor_pos = {'line': 1, 'character': 3}
+    contents = pylsp_hover(doc, cursor_pos)['contents']
+
+    assert contents[1] == 'A docstring for foo.'
