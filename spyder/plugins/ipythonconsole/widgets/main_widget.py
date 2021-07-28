@@ -311,7 +311,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             text=_("Remove all variables"),
             tip=_("Remove all variables from kernel namespace"),
             icon=self.create_icon("editdelete"),
-            triggered=self.reset_kernel,
+            triggered=self.reset_namespace,
         )
 
         # Info widget
@@ -378,7 +378,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             IPythonConsoleWidgetActions.RemoveAllVariables,
             text=_("Remove all variables"),
             icon=self.create_icon('editdelete'),
-            triggered=self.reset_kernel,
+            triggered=self.reset_namespace,
         )
         self.interrupt_action = self.create_action(
             IPythonConsoleWidgetActions.Interrupt,
@@ -632,19 +632,21 @@ class IPythonConsoleWidget(PluginMainWidget):
     # ---- Advanced GUI options
     @on_conf_change(option='in_prompt')
     def change_clients_in_prompt(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_in_prompt,
-                value)
+        if bool(value):
+            for idx, client in enumerate(self.clients):
+                self._change_client_conf(
+                    client,
+                    client.shellwidget.set_in_prompt,
+                    value)
 
     @on_conf_change(option='out_prompt')
     def change_clients_out_prompt(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_out_prompt,
-                value)
+        if bool(value):
+            for idx, client in enumerate(self.clients):
+                self._change_client_conf(
+                    client,
+                    client.shellwidget.set_out_prompt,
+                    value)
 
     # ---- Advanced options
     @on_conf_change(option='greedy_completer')
@@ -1268,9 +1270,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Prompts
         in_prompt_o = self.get_conf('in_prompt')
         out_prompt_o = self.get_conf('out_prompt')
-        if in_prompt_o:
+        if bool(in_prompt_o):
             spy_cfg.JupyterWidget.in_prompt = in_prompt_o
-        if out_prompt_o:
+        if bool(out_prompt_o):
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
 
         # Style
@@ -1608,7 +1610,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         shellwidget.sig_working_directory_changed.connect(
             self.set_working_directory)
 
-        client.sig_update_execution_state_requested.connect(
+        client.sig_execution_state_changed.connect(
             self.update_execution_state_kernel)
 
     def close_client(self, index=None, client=None, force=False):
@@ -1825,8 +1827,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.change_visibility(True)
             client.restart_kernel()
 
-    def reset_kernel(self):
-        """Reset kernel of current client."""
+    def reset_namespace(self):
+        """Reset namespace of current client."""
         client = self.get_current_client()
         if client is not None:
             self.change_visibility(True)

@@ -77,6 +77,14 @@ class ClientWidgetActions:
     ToggleElapsedTime = 'toggle_elapsed_time_action'
 
 
+class ClientWidgetContextMenuActions:
+    InspectCurrentObject = 'inspect current object'
+    ClearLine = 'clear line'
+    ResetNamespace = 'reset namespace'
+    ClearConsole = 'clear shell'
+    Quit = 'exit'
+
+
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
@@ -89,7 +97,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     """
 
     sig_append_to_history_requested = Signal(str, str)
-    sig_update_execution_state_requested = Signal()
+    sig_execution_state_changed = Signal()
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -304,11 +312,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To enable the stop button when executing a process
         # TODO: Check handling of interrupt button update
         self.shellwidget.executing.connect(
-            self.sig_update_execution_state_requested)
+            self.sig_execution_state_changed)
 
         # To disable the stop button after execution stopped
         self.shellwidget.executed.connect(
-            self.sig_update_execution_state_requested)
+            self.sig_execution_state_changed)
 
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted_message.connect(
@@ -527,44 +535,48 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     #     return buttons
 
-    # def add_actions_to_context_menu(self, menu):
-    #     """Add actions to IPython widget context menu"""
-    #     inspect_action = create_action(
-    #         self,
-    #         _("Inspect current object"),
-    #         QKeySequence(self.get_shortcut('inspect current object')),
-    #         icon=ima.icon('MessageBoxInformation'),
-    #         triggered=self.inspect_object)
+    def add_actions_to_context_menu(self, menu):
+        """Add actions to IPython widget context menu"""
+        inspect_action = self.create_action(
+            ClientWidgetContextMenuActions.InspectCurrentObject,
+            text=_("Inspect current object"),
+            icon=self.create_icon('MessageBoxInformation'),
+            triggered=self.inspect_object,
+            overwrite=True)
 
-    #     clear_line_action = create_action(
-    #         self,
-    #         _("Clear line or block"),
-    #         QKeySequence(self.get_shortcut('clear line')),
-    #         triggered=self.clear_line)
+        clear_line_action = self.create_action(
+            ClientWidgetContextMenuActions.ClearLine,
+            text=_("Clear line or block"),
+            triggered=self.clear_line,
+            overwrite=True)
 
-    #     reset_namespace_action = create_action(
-    #         self,
-    #         _("Remove all variables"),
-    #         QKeySequence(self.get_shortcut('reset namespace')),
-    #         icon=ima.icon('editdelete'),
-    #         triggered=self.reset_namespace)
+        reset_namespace_action = self.create_action(
+            ClientWidgetContextMenuActions.ResetNamespace,
+            text=_("Remove all variables"),
+            icon=self.create_icon('editdelete'),
+            triggered=self.reset_namespace,
+            overwrite=True)
 
-    #     clear_console_action = create_action(
-    #         self,
-    #         _("Clear console"),
-    #         QKeySequence(self.get_shortcut('clear shell')),
-    #         triggered=self.clear_console)
+        clear_console_action = self.create_action(
+            ClientWidgetContextMenuActions.ClearConsole,
+            text=_("Clear console"),
+            triggered=self.clear_console,
+            overwrite=True)
 
-    #     quit_action = create_action(
-    #         self,
-    #         _("&Quit"),
-    #         icon=ima.icon('exit'),
-    #         triggered=self.exit_callback)
+        quit_action = self.create_action(
+            ClientWidgetContextMenuActions.Quit,
+            _("&Quit"),
+            icon=ima.icon('exit'),
+            triggered=self.exit_callback,
+            overwrite=True)
 
-    #     add_actions(menu, (None, inspect_action, clear_line_action,
-    #                        clear_console_action, reset_namespace_action,
-    #                        None, quit_action))
-    #     return menu
+        add_actions(
+            menu,
+            (None, inspect_action, clear_line_action,
+             clear_console_action, reset_namespace_action,
+             None, quit_action))
+
+        return menu
 
     def set_font(self, font):
         """Set IPython widget's font"""
@@ -700,7 +712,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._hide_loading_page()
         # self.stop_button.setDisabled(True)
         self.restart_thread = None
-        self.sig_update_execution_state_requested.emit()
+        self.sig_execution_state_changed.emit()
 
     @Slot(str)
     def kernel_restarted_message(self, msg):
