@@ -28,21 +28,13 @@ class SpyderStyleSheet:
 
     def __init__(self):
         self._stylesheet = qstylizer.style.StyleSheet()
-        self._stylesheet_as_string = None
+        self.set_stylesheet()
 
     def get_stylesheet(self):
         return self._stylesheet
 
     def to_string(self):
-        "Save stylesheet as a string for quick access."
-        if self._stylesheet_as_string is None:
-            # Leave this line here so that stylesheets are computed when
-            # used and not when importing this module.
-            self.set_stylesheet()
-
-            # Cache stylesheet string
-            self._stylesheet_as_string = self._stylesheet.toString()
-        return self._stylesheet_as_string
+        return self._stylesheet.toString()
 
     def get_copy(self):
         """
@@ -74,6 +66,16 @@ class AppStylesheet(SpyderStyleSheet):
     Class to build and access the stylesheet we use in the entire
     application.
     """
+
+    def __init__(self):
+        super().__init__()
+        self._stylesheet_as_string = None
+
+    def to_string(self):
+        "Save stylesheet as a string for quick access."
+        if self._stylesheet_as_string is None:
+            self._stylesheet_as_string = self._stylesheet.toString()
+        return self._stylesheet_as_string
 
     def set_stylesheet(self):
         """
@@ -343,7 +345,6 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         )
 
     def to_string(self):
-        super().to_string()
         css_string = self._stylesheet.toString()
 
         # TODO: We need to fix this in qstylizer
