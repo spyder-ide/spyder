@@ -475,7 +475,7 @@ class ImportWizard(BaseDialog):
     """Text data import wizard"""
     def __init__(self, parent, text,
                  title=None, icon=None, contents_title=None, varname=None):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -600,7 +600,7 @@ class ImportWizard(BaseDialog):
         data = self._simplify_shape(
                 self.table_widget.get_data())
         if self.table_widget.array_btn.isChecked():
-            return array(data)
+            return np.array(data)
         elif (pd.read_csv is not FakeObject and
                 self.table_widget.df_btn.isChecked()):
             info = self.table_widget.pd_info

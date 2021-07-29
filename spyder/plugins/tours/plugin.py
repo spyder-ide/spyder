@@ -12,8 +12,10 @@ Tours Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.config.base import get_safe_mode, running_under_pytest
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.tours.container import ToursContainer
 from spyder.plugins.tours.tours import INTRO_TOUR, TourIdentifiers
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
@@ -45,21 +47,26 @@ class Tours(SpyderPluginV2):
     def get_icon(self):
         return self.create_icon('tour')
 
-    def register(self):
+    def on_initialize(self):
         self.register_tour(
             TourIdentifiers.IntroductionTour,
             _("Introduction to Spyder"),
             INTRO_TOUR,
         )
 
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        if mainmenu:
-            mainmenu.add_item_to_application_menu(
-                self.get_container().tour_action,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.Documentation,
-                before=None,
-                before_section=HelpMenuSections.Support)
+
+        docs_action = self.get_action(
+            ApplicationActions.SpyderDocumentationAction,
+            plugin=Plugins.Application)
+
+        mainmenu.add_item_to_application_menu(
+            self.get_container().tour_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.Documentation,
+            before=docs_action)
 
     def on_mainwindow_visible(self):
         self.show_tour_message()

@@ -12,8 +12,8 @@ import sys
 
 # Third-party imports
 import qdarkstyle
-import qstylizer
 from qstylizer.parser import parse as parse_stylesheet
+import qstylizer.style
 
 # Local imports
 from spyder.config.gui import OLD_PYQT
@@ -171,6 +171,15 @@ class AppStylesheet(SpyderStyleSheet):
             css[f'QToolButton:{state}'].setValues(
                 backgroundColor=color
             )
+
+        # Adjust padding of QPushButton's in QDialog's
+        css["QDialog QPushButton"].setValues(
+            padding='3px 15px 3px 15px',
+        )
+
+        css["QDialogButtonBox QPushButton:!default"].setValues(
+            padding='3px 0px 3px 0px',
+        )
 
 
 APP_STYLESHEET = AppStylesheet()

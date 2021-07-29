@@ -66,6 +66,9 @@ class MainWindowMock(QMainWindow):
         self._PLUGINS['editor'] = self.editor
         self._PLUGINS['projects'] = self.projects
 
+    def get_plugin(self, plugin_name):
+        return self._PLUGINS[plugin_name]
+
 
 @pytest.fixture
 def pylint_plugin(mocker, qtbot):

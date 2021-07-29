@@ -14,6 +14,7 @@ from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 from . import lsp, _utils, uris
 from .config import config
 from .workspace import Workspace
+from ._version import __version__
 
 log = logging.getLogger(__name__)
 
@@ -161,8 +162,8 @@ class PythonLSPServer(MethodDispatcher):
                 'resolveProvider': False,  # We may need to make this configurable
             },
             'completionProvider': {
-                'resolveProvider': False,  # We know everything ahead of time
-                'triggerCharacters': ['.']
+                'resolveProvider': True,  # We could know everything ahead of time, but this takes time to transfer
+                'triggerCharacters': ['.'],
             },
             'documentFormattingProvider': True,
             'documentHighlightProvider': True,
@@ -198,7 +199,8 @@ class PythonLSPServer(MethodDispatcher):
         log.info('Server capabilities: %s', server_capabilities)
         return server_capabilities
 
-    def m_initialize(self, processId=None, rootUri=None, rootPath=None, initializationOptions=None, **_kwargs):
+    def m_initialize(self, processId=None, rootUri=None, rootPath=None,
+                     initializationOptions=None, workspaceFolders=None, **_kwargs):
         log.debug('Language server initialized with %s %s %s %s', processId, rootUri, rootPath, initializationOptions)
         if rootUri is None:
             rootUri = uris.from_fs_path(rootPath) if rootPath is not None else ''
@@ -209,6 +211,19 @@ class PythonLSPServer(MethodDispatcher):
                                     processId, _kwargs.get('capabilities', {}))
         self.workspace = Workspace(rootUri, self._endpoint, self.config)
         self.workspaces[rootUri] = self.workspace
+        if workspaceFolders:
+            for folder in workspaceFolders:
+                uri = folder['uri']
+                if uri == rootUri:
+                    # Already created
+                    continue
+                workspace_config = config.Config(
+                    uri, self.config._init_opts,
+                    self.config._process_id, self.config._capabilities)
+                workspace_config.update(self.config._settings)
+                self.workspaces[uri] = Workspace(
+                    uri, self._endpoint, workspace_config)
+
         self._dispatchers = self._hook('pylsp_dispatchers')
         self._hook('pylsp_initialize')
 
@@ -225,7 +240,13 @@ class PythonLSPServer(MethodDispatcher):
             self.watching_thread.daemon = True
             self.watching_thread.start()
         # Get our capabilities
-        return {'capabilities': self.capabilities()}
+        return {
+            'capabilities': self.capabilities(),
+            'serverInfo': {
+                'name': 'pylsp',
+                'version': __version__,
+            },
+        }
 
     def m_initialized(self, **_kwargs):
         self._hook('pylsp_initialized')
@@ -242,6 +263,10 @@ class PythonLSPServer(MethodDispatcher):
             'isIncomplete': False,
             'items': flatten(completions)
         }
+
+    def completion_item_resolve(self, completion_item):
+        doc_uri = completion_item.get('data', {}).get('doc_uri', None)
+        return self._hook('pylsp_completion_item_resolve', doc_uri, completion_item=completion_item)
 
     def definitions(self, doc_uri, position):
         return flatten(self._hook('pylsp_definitions', doc_uri, position=position))
@@ -288,6 +313,9 @@ class PythonLSPServer(MethodDispatcher):
 
     def folding(self, doc_uri):
         return flatten(self._hook('pylsp_folding_range', doc_uri))
+
+    def m_completion_item__resolve(self, **completionItem):
+        return self.completion_item_resolve(completionItem)
 
     def m_text_document__did_close(self, textDocument=None, **_kwargs):
         workspace = self._match_uri_to_workspace(textDocument['uri'])
@@ -356,8 +384,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_workspace__did_change_configuration(self, settings=None):
         self.config.update((settings or {}).get('pylsp', {}))
-        for workspace_uri in self.workspaces:
-            workspace = self.workspaces[workspace_uri]
+        for workspace in self.workspaces.values():
             workspace.update_config(settings)
             for doc_uri in workspace.documents:
                 self.lint(doc_uri, is_saved=False)
@@ -426,8 +453,7 @@ class PythonLSPServer(MethodDispatcher):
             # Only externally changed python files and lint configs may result in changed diagnostics.
             return
 
-        for workspace_uri in self.workspaces:
-            workspace = self.workspaces[workspace_uri]
+        for workspace in self.workspaces.values():
             for doc_uri in workspace.documents:
                 # Changes in doc_uri are already handled by m_text_document__did_save
                 if doc_uri not in changed_py_files:

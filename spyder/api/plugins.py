@@ -28,6 +28,7 @@ import logging
 import os
 import os.path as osp
 from typing import List, Union
+import warnings
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
@@ -37,7 +38,9 @@ from qtpy.QtWidgets import QApplication, QWidget
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins_enum import Plugins
 from spyder.api.translations import get_translation
+from spyder.api.plugin_registration.mixins import SpyderPluginObserver
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
@@ -52,6 +55,8 @@ from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 _ = get_translation('spyder')
 logger = logging.getLogger(__name__)
 
+# Plugins enum
+Plugins
 
 # =============================================================================
 # SpyderPlugin
@@ -582,49 +587,10 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
         pass
 
 
-##############################################################################
-#
-# New API: Migrate plugins one by one and test changes on the way.
-#
-##############################################################################
-class Plugins:
-    """
-    Convenience class for accessing Spyder internal plugins.
-    """
-    All = "all"   # Wildcard to populate REQUIRES with all available plugins
-    Appearance = 'appearance'
-    Application = 'application'
-    Breakpoints = 'breakpoints'
-    Completions = 'completions'
-    Console = 'internal_console'
-    Editor = 'editor'
-    Explorer = 'explorer'
-    Find = 'find_in_files'
-    Help = 'help'
-    History = 'historylog'
-    IPythonConsole = 'ipython_console'
-    Layout = 'layout'
-    MainInterpreter = 'main_interpreter'
-    MainMenu = 'mainmenu'
-    OnlineHelp = 'onlinehelp'
-    OutlineExplorer = 'outline_explorer'
-    Plots = 'plots'
-    Preferences = 'preferences'
-    Profiler = 'profiler'
-    Projects = 'project_explorer'
-    Pylint = 'pylint'
-    Run = 'run'
-    Shortcuts = 'shortcuts'
-    StatusBar = 'statusbar'
-    Toolbar = "toolbar"
-    Tours = "tours"
-    VariableExplorer = 'variable_explorer'
-    WorkingDirectory = 'workingdir'
-
-
 # --- Base API plugins
 # ----------------------------------------------------------------------------
-class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
+class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
+                     SpyderPluginObserver):
     """
     A Spyder plugin to extend functionality without a dockable widget.
 
@@ -645,7 +611,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     # These values are defined in the `Plugins` class present in this file.
     # If a plugin is using a widget from another plugin, that other
     # must be declared as a required dependency.
-    REQUIRES = None
+    REQUIRES = []
 
     # List of optional plugin dependencies.
     # Example: [Plugins.Plots, Plugins.IPythonConsole, ...].
@@ -657,7 +623,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     # depend on either of those plugins.
     # Methods in the plugin that make use of optional plugins must check
     # existence before using those methods or applying signal connections.
-    OPTIONAL = None
+    OPTIONAL = []
 
     # This must subclass a `PluginMainContainer` for non dockable plugins that
     # create a widget, like a status bar widget, a toolbar, a menu, etc.
@@ -737,6 +703,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     """
     This signal can be emitted to request the main application to garbage
     collect deleted objects.
+    """
+
+    sig_plugin_ready = Signal()
+    """
+    This signal can be emitted to reflect that the plugin was initialized.
     """
 
     sig_quit_requested = Signal()
@@ -841,6 +812,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
     def __init__(self, parent, configuration=None):
         super().__init__(parent)
 
+        # This is required since the MRO of this class does not go up until to
+        # SpyderPluginObserver when using super(), see
+        # https://fuhm.net/super-harmful/
+        SpyderPluginObserver.__init__(self)
+
         self._main = parent
         self._widget = None
         self._conf = configuration
@@ -902,11 +878,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         if self.NAME is None:
             raise SpyderAPIError('A Spyder Plugin must define a `NAME`!')
 
-        if self.NAME in self._main._PLUGINS:
-            raise SpyderAPIError(
-                'A Spyder Plugin with NAME="{}" already exists!'.format(
-                    self.NAME))
-
         # Setup configuration
         # --------------------------------------------------------------------
         if self._conf is not None and not omit_conf:
@@ -963,29 +934,31 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         """
         # Ensure that this plugin has the plugin corresponding to
         # `plugin_name` listed as required or optional.
-        requires = self.REQUIRES or []
-        optional = self.OPTIONAL or []
-        deps = []
+        requires = set(self.REQUIRES or [])
+        optional = set(self.OPTIONAL or [])
+        full_set = requires | optional
 
-        for dependency in requires + optional:
-            deps.append(dependency)
-
-        PLUGINS = self._main._PLUGINS
-        if plugin_name in deps:
-            for name, plugin_instance in PLUGINS.items():
-                if name == plugin_name and name in deps:
-                    return plugin_instance
-            else:
-                if plugin_name in requires:
-                    raise SpyderAPIError(
-                        'Required Plugin "{}" not found!'.format(plugin_name))
-                else:
+        if plugin_name in full_set or Plugins.All in full_set:
+            try:
+                return self._main.get_plugin(plugin_name)
+            except SpyderAPIError as e:
+                if plugin_name in optional:
                     return None
+                else:
+                    raise e
         else:
             raise SpyderAPIError(
                 'Plugin "{}" not part of REQUIRES or '
                 'OPTIONAL requirements!'.format(plugin_name)
             )
+
+    def is_plugin_enabled(self, plugin_name):
+        """Determine if a given plugin is going to be loaded."""
+        return self._main.is_plugin_enabled(plugin_name)
+
+    def is_plugin_available(self, plugin_name):
+        """Determine if a given plugin is available."""
+        return self._main.is_plugin_available(plugin_name)
 
     def get_dockable_plugins(self):
         """
@@ -993,11 +966,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
 
         Only required plugins that extend SpyderDockablePlugin are returned.
         """
-        requires = self.REQUIRES or []
+        requires = set(self.REQUIRES or [])
         dockable_plugins_required = []
-        PLUGINS = self._main._PLUGINS
-        for name, plugin_instance in PLUGINS.items():
-            if name in requires and isinstance(
+        for name, plugin_instance in self._main.get_dockable_plugins():
+            if (name in requires or Plugins.All in requires) and isinstance(
                     plugin_instance,
                     (SpyderDockablePlugin, SpyderPluginWidget)):
                 dockable_plugins_required.append(plugin_instance)
@@ -1161,6 +1133,19 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         if self._conf is not None:
             return get_color_scheme(self._conf.get('appearance', 'selected'))
 
+    def initialize(self):
+        """
+        Initialize a plugin instance.
+
+        Notes
+        -----
+        This method should be called to initialize the plugin, but it should
+        not be overriden, since it internally calls `on_initialize` and emits
+        the `sig_plugin_ready` signal.
+        """
+        self.on_initialize()
+        self.sig_plugin_ready.emit()
+
     @staticmethod
     def create_icon(name):
         """
@@ -1243,12 +1228,22 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver):
         """
         raise NotImplementedError('A plugin icon must be defined!')
 
-    def register(self):
+    def on_initialize(self):
         """
-        Setup and register plugin in Spyder's main window and connect it to
-        other plugins.
+        Setup the plugin.
+
+        Notes
+        -----
+        All calls performed on this method should not call other plugins.
         """
-        raise NotImplementedError('Must define a register method!')
+        if hasattr(self, 'register'):
+            raise SpyderAPIError(
+                'register was replaced by on_initialize, please check the '
+                'Spyder 5.1.0 migration guide to get more information')
+
+        raise NotImplementedError(
+            f'The plugin {type(self)} is missing an implementation of '
+            'on_initialize')
 
     # --- API: Optional methods to override ----------------------------------
     # ------------------------------------------------------------------------

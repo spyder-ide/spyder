@@ -19,7 +19,7 @@ NEW_DIR = 'new_workingdir'
 
 
 @pytest.fixture
-def setup_workingdirectory(qtbot, request):
+def setup_workingdirectory(request):
     """Setup working directory plugin."""
     CONF.reset_to_defaults()
     use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
@@ -36,14 +36,13 @@ def setup_workingdirectory(qtbot, request):
 
     workingdirectory = WorkingDirectory(None, configuration=CONF)
     workingdirectory.close = lambda: True
-    qtbot.addWidget(workingdirectory)
 
-    return workingdirectory, qtbot
+    return workingdirectory
 
 
 def test_basic_initialization(setup_workingdirectory):
     """Test Working Directory plugin initialization."""
-    workingdirectory, qtbot = setup_workingdirectory
+    workingdirectory = setup_workingdirectory
 
     # Assert that workingdirectory exists
     assert workingdirectory is not None
@@ -51,7 +50,7 @@ def test_basic_initialization(setup_workingdirectory):
 
 def test_get_workingdir(setup_workingdirectory):
     """Test the method that defines the working directory at home."""
-    workingdirectory, qtbot = setup_workingdirectory
+    workingdirectory = setup_workingdirectory
     # Start the working directory on the home directory
     act_wdir = workingdirectory.get_workdir()
     assert act_wdir == get_home_dir()
@@ -60,7 +59,7 @@ def test_get_workingdir(setup_workingdirectory):
 @pytest.mark.use_startup_wdir
 def test_get_workingdir_startup(setup_workingdirectory):
     """Test the method that defines the working directory at home."""
-    workingdirectory, qtbot = setup_workingdirectory
+    workingdirectory = setup_workingdirectory
     # Start the working directory on the home directory
     act_wdir = workingdirectory.get_workdir()
     folders = osp.split(act_wdir)

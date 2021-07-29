@@ -109,6 +109,7 @@ if os.name == 'nt' and HIDE_CMD_WINDOWS:
 
     subprocess.Popen = SubprocessPopen
 
+
 # =============================================================================
 # Importing user's sitecustomize
 # =============================================================================
@@ -184,6 +185,7 @@ try:
     QtGui.QApplication = SpyderQApplication
 except Exception:
     pass
+
 
 # =============================================================================
 # IPython adjustments
@@ -309,6 +311,16 @@ if not PY2:
         multiprocessing.spawn.get_preparation_data = _patched_preparation_data
     except Exception:
         pass
+
+
+# =============================================================================
+# os adjustments
+# =============================================================================
+# This is necessary to have better support for Rich and Colorama.
+def _patched_get_terminal_size(fd=None):
+    return os.terminal_size((80, 30))
+
+os.get_terminal_size = _patched_get_terminal_size
 
 
 # =============================================================================

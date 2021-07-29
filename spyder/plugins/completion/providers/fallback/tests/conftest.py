@@ -25,8 +25,6 @@ class CompletionManagerMock(QObject):
 def fallback_completions(qtbot_module, request):
     fallback = FallbackProvider(None, {})
     completions = CompletionManagerMock(None)
-    qtbot_module.addWidget(fallback)
-    qtbot_module.addWidget(completions)
 
     with qtbot_module.waitSignal(fallback.sig_provider_ready, timeout=30000):
         fallback.start()

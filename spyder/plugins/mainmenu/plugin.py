@@ -43,7 +43,7 @@ class MainMenu(SpyderPluginV2):
     def get_description(self):
         return _('Provide main application menu management.')
 
-    def register(self):
+    def on_initialize(self):
         # Reference holder dict for the menus
         self._APPLICATION_MENUS = OrderedDict()
         # Create Application menus using plugin public API
