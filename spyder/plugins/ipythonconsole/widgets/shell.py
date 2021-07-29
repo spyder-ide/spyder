@@ -87,7 +87,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
-
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions

@@ -438,15 +438,12 @@ class IPythonConsoleWidget(PluginMainWidget):
             text=_("Inspect current object"),
             icon=self.create_icon('MessageBoxInformation'),
             triggered=self.current_client_inspect_object,
-            overwrite=True,
-            register_shortcut=True,
-            parent=self.tabwidget)
+            register_shortcut=True)
 
         self.clear_line_action = self.create_action(
             ClientWidgetContextMenuActions.ClearLine,
             text=_("Clear line or block"),
             triggered=self.current_client_clear_line,
-            overwrite=True,
             register_shortcut=True)
 
         # self.reset_namespace_action = self.create_action(
@@ -464,9 +461,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             ClientWidgetContextMenuActions.ClearConsole,
             text=_("Clear console"),
             triggered=self.current_client_clear_console,
-            overwrite=True,
-            shortcut_context='ipython_console',
-            context_name='ipython_console',
             register_shortcut=True)
 
         self.quit_action = self.create_action(
@@ -621,7 +615,6 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
-        print("value", value)
         for idx, client in enumerate(self.clients):
             self._change_client_conf(
                 client,
