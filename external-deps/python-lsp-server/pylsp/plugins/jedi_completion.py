@@ -3,7 +3,10 @@
 
 import logging
 import os.path as osp
+from collections import defaultdict
+from time import time
 
+from jedi.api.classes import Completion
 import parso
 
 from pylsp import _utils, hookimpl, lsp
@@ -37,10 +40,12 @@ _ERRORS = ('error_node', )
 @hookimpl
 def pylsp_completions(config, document, position):
     """Get formatted completions for current code position"""
+    # pylint: disable=too-many-locals
     settings = config.plugin_settings('jedi_completion', document_path=document.path)
+    resolve_eagerly = settings.get('eager', False)
     code_position = _utils.position_to_jedi_linecolumn(document, position)
 
-    code_position["fuzzy"] = settings.get("fuzzy", False)
+    code_position['fuzzy'] = settings.get('fuzzy', False)
     completions = document.jedi_script(use_document_path=True).complete(**code_position)
 
     if not completions:
@@ -52,23 +57,61 @@ def pylsp_completions(config, document, position):
     should_include_params = settings.get('include_params')
     should_include_class_objects = settings.get('include_class_objects', True)
 
+    max_labels_resolve = settings.get('resolve_at_most_labels', 25)
+    modules_to_cache_labels_for = settings.get('cache_labels_for', None)
+    if modules_to_cache_labels_for is not None:
+        LABEL_RESOLVER.cached_modules = modules_to_cache_labels_for
+
     include_params = snippet_support and should_include_params and use_snippets(document, position)
     include_class_objects = snippet_support and should_include_class_objects and use_snippets(document, position)
 
     ready_completions = [
-        _format_completion(c, include_params)
-        for c in completions
+        _format_completion(
+            c,
+            include_params,
+            resolve=resolve_eagerly,
+            resolve_label=(i < max_labels_resolve)
+        )
+        for i, c in enumerate(completions)
     ]
 
+    # TODO split up once other improvements are merged
     if include_class_objects:
-        for c in completions:
+        for i, c in enumerate(completions):
             if c.type == 'class':
-                completion_dict = _format_completion(c, False)
+                completion_dict = _format_completion(
+                    c,
+                    False,
+                    resolve=resolve_eagerly,
+                    resolve_label=(i < max_labels_resolve)
+                )
                 completion_dict['kind'] = lsp.CompletionItemKind.TypeParameter
                 completion_dict['label'] += ' object'
                 ready_completions.append(completion_dict)
 
+    for completion_dict in ready_completions:
+        completion_dict['data'] = {
+            'doc_uri': document.uri
+        }
+
+    # most recently retrieved completion items, used for resolution
+    document.shared_data['LAST_JEDI_COMPLETIONS'] = {
+        # label is the only required property; here it is assumed to be unique
+        completion['label']: (completion, data)
+        for completion, data in zip(ready_completions, completions)
+    }
+
     return ready_completions or None
+
+
+@hookimpl
+def pylsp_completion_item_resolve(completion_item, document):
+    """Resolve formatted completion for given non-resolved completion"""
+    shared_data = document.shared_data['LAST_JEDI_COMPLETIONS'].get(completion_item['label'])
+    if shared_data:
+        completion, data = shared_data
+        return _resolve_completion(completion, data)
+    return completion_item
 
 
 def is_exception_class(name):
@@ -114,22 +157,29 @@ def use_snippets(document, position):
             break
     if '(' in act_lines[-1].strip():
         last_character = ')'
-    code = '\n'.join(act_lines).split(';')[-1].strip() + last_character
+    code = '\n'.join(act_lines).rsplit(';', maxsplit=1)[-1].strip() + last_character
     tokens = parso.parse(code)
     expr_type = tokens.children[0].type
     return (expr_type not in _IMPORTS and
             not (expr_type in _ERRORS and 'import' in code))
 
 
-def _format_completion(d, include_params=True):
+def _resolve_completion(completion, d):
+    completion['detail'] = _detail(d)
+    completion['documentation'] = _utils.format_docstring(d.docstring())
+    return completion
+
+
+def _format_completion(d, include_params=True, resolve=False, resolve_label=False):
     completion = {
-        'label': _label(d),
+        'label': _label(d, resolve_label),
         'kind': _TYPE_MAP.get(d.type),
-        'detail': _detail(d),
-        'documentation': _utils.format_docstring(d.docstring()),
         'sortText': _sort_text(d),
         'insertText': d.name
     }
+
+    if resolve:
+        completion = _resolve_completion(completion, d)
 
     if d.type == 'path':
         path = osp.normpath(d.name)
@@ -137,8 +187,11 @@ def _format_completion(d, include_params=True):
         path = path.replace('/', '\\/')
         completion['insertText'] = path
 
-    sig = d.get_signatures()
-    if (include_params and sig and not is_exception_class(d.name)):
+    if include_params and not is_exception_class(d.name):
+        sig = d.get_signatures()
+        if not sig:
+            return completion
+
         positional_args = [param for param in sig[0].params
                            if '=' not in param.description and
                            param.name not in {'/', '*'}]
@@ -162,12 +215,12 @@ def _format_completion(d, include_params=True):
     return completion
 
 
-def _label(definition):
-    sig = definition.get_signatures()
-    if definition.type in ('function', 'method') and sig:
-        params = ', '.join(param.name for param in sig[0].params)
-        return '{}({})'.format(definition.name, params)
-
+def _label(definition, resolve=False):
+    if not resolve:
+        return definition.name
+    sig = LABEL_RESOLVER.get_or_create(definition)
+    if sig:
+        return sig
     return definition.name
 
 
@@ -186,3 +239,86 @@ def _sort_text(definition):
     # If its 'hidden', put it next last
     prefix = 'z{}' if definition.name.startswith('_') else 'a{}'
     return prefix.format(definition.name)
+
+
+class LabelResolver:
+
+    def __init__(self, format_label_callback, time_to_live=60 * 30):
+        self.format_label = format_label_callback
+        self._cache = {}
+        self._time_to_live = time_to_live
+        self._cache_ttl = defaultdict(set)
+        self._clear_every = 2
+        # see https://github.com/davidhalter/jedi/blob/master/jedi/inference/helpers.py#L194-L202
+        self._cached_modules = {'pandas', 'numpy', 'tensorflow', 'matplotlib'}
+
+    @property
+    def cached_modules(self):
+        return self._cached_modules
+
+    @cached_modules.setter
+    def cached_modules(self, new_value):
+        self._cached_modules = set(new_value)
+
+    def clear_outdated(self):
+        now = self.time_key()
+        to_clear = [
+            timestamp
+            for timestamp in self._cache_ttl
+            if timestamp < now
+        ]
+        for time_key in to_clear:
+            for key in self._cache_ttl[time_key]:
+                del self._cache[key]
+            del self._cache_ttl[time_key]
+
+    def time_key(self):
+        return int(time() / self._time_to_live)
+
+    def get_or_create(self, completion: Completion):
+        if not completion.full_name:
+            use_cache = False
+        else:
+            module_parts = completion.full_name.split('.')
+            use_cache = module_parts and module_parts[0] in self._cached_modules
+
+        if use_cache:
+            key = self._create_completion_id(completion)
+            if key not in self._cache:
+                if self.time_key() % self._clear_every == 0:
+                    self.clear_outdated()
+
+                self._cache[key] = self.resolve_label(completion)
+                self._cache_ttl[self.time_key()].add(key)
+            return self._cache[key]
+
+        return self.resolve_label(completion)
+
+    def _create_completion_id(self, completion: Completion):
+        return (
+            completion.full_name, completion.module_path,
+            completion.line, completion.column,
+            self.time_key()
+        )
+
+    def resolve_label(self, completion):
+        try:
+            sig = completion.get_signatures()
+            return self.format_label(completion, sig)
+        except Exception as e:  # pylint: disable=broad-except
+            log.warning(
+                'Something went wrong when resolving label for {completion}: {e}',
+                completion=completion, e=e
+            )
+            return ''
+
+
+def format_label(completion, sig):
+    if sig and completion.type in ('function', 'method'):
+        params = ', '.join(param.name for param in sig[0].params)
+        label = '{}({})'.format(completion.name, params)
+        return label
+    return completion.name
+
+
+LABEL_RESOLVER = LabelResolver(format_label)

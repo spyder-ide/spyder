@@ -39,7 +39,7 @@ def historylog(qtbot, monkeypatch):
     """
     historylog = history.HistoryLog(None, configuration=CONF)
     historylog.close = lambda: True
-    qtbot.addWidget(historylog)
+    qtbot.addWidget(historylog.get_widget())
     historylog.get_widget().show()
     yield historylog
     historylog.on_close()

@@ -5,7 +5,9 @@
 import logging
 import os.path
 import re
-from subprocess import Popen, PIPE
+from pathlib import PurePath
+from subprocess import PIPE, Popen
+
 from pylsp import hookimpl, lsp
 
 log = logging.getLogger(__name__)
@@ -24,12 +26,21 @@ def pylsp_lint(workspace, document):
     settings = config.plugin_settings('flake8', document_path=document.path)
     log.debug("Got flake8 settings: %s", settings)
 
+    ignores = settings.get("ignore", [])
+    per_file_ignores = settings.get("perFileIgnores")
+
+    if per_file_ignores:
+        for path in per_file_ignores:
+            file_pat, errors = path.split(":")
+            if PurePath(document.path).match(file_pat):
+                ignores.extend(errors.split(","))
+
     opts = {
         'config': settings.get('config'),
         'exclude': settings.get('exclude'),
         'filename': settings.get('filename'),
         'hang-closing': settings.get('hangClosing'),
-        'ignore': settings.get('ignore'),
+        'ignore': ignores or None,
         'max-line-length': settings.get('maxLineLength'),
         'select': settings.get('select'),
     }

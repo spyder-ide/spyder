@@ -75,7 +75,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
-        QDialog.__init__(self, parent=parent)
+        super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # Options
@@ -290,6 +290,8 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
 
         # Save and close buttons
         btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(4, 8, 8, 16)
+        btn_layout.setSpacing(5)
         btn_layout.addStretch()
 
         if not self.readonly:
@@ -303,7 +305,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
-        v_group_layout.addLayout(btn_layout)
+        layout.addLayout(btn_layout)
 
         # Splitter parameters
         self.central_splitter.setCollapsible(0, False)

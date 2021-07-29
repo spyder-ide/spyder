@@ -29,7 +29,7 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 class TextEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, text, title='', font=None, parent=None, readonly=False):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread

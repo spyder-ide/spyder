@@ -173,7 +173,11 @@ class PlotsWidget(PluginMainWidget):
         self._stack.sig_save_dir_changed.connect(
             lambda val: self.set_conf('save_dir', val))
 
-    # --- PluginMainWidget API
+        # Resize to a huge width to get the right size of the thumbnail
+        # scrollbar at startup.
+        self.resize(50000, self.height())
+
+    # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
         return _('Plots')
@@ -359,7 +363,7 @@ class PlotsWidget(PluginMainWidget):
                 widget.setup({option: value})
                 self.update_actions()
 
-    # --- Public API:
+    # ---- Public API:
     # ------------------------------------------------------------------------
     def set_current_widget(self, fig_browser):
         """

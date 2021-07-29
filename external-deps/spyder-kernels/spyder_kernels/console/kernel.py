@@ -107,7 +107,6 @@ class SpyderKernel(IPythonKernel):
         self.namespace_view_settings = {}
         self._pdb_obj = None
         self._pdb_step = None
-        self._do_publish_pdb_state = True
         self._mpl_backend_error = None
         self._running_namespace = None
         self._pdb_input_line = None
@@ -201,7 +200,6 @@ class SpyderKernel(IPythonKernel):
     def get_value(self, name):
         """Get the value of a variable"""
         ns = self._get_current_namespace()
-        self._do_publish_pdb_state = False
         return ns[name]
 
     def set_value(self, name, value):
@@ -286,16 +284,12 @@ class SpyderKernel(IPythonKernel):
         return self._do_complete(code, cursor_pos)
 
     def publish_pdb_state(self):
-        """
-        Publish Variable Explorer state and Pdb step through
-        send_spyder_msg.
-        """
-        if self._pdb_obj and self._do_publish_pdb_state:
+        """Publish Pdb state."""
+        if self._pdb_obj:
             state = dict(namespace_view = self.get_namespace_view(),
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
             self.frontend_call(blocking=False).pdb_state(state)
-        self._do_publish_pdb_state = True
 
     def set_spyder_breakpoints(self, breakpoints):
         """

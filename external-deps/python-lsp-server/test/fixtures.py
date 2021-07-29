@@ -35,6 +35,34 @@ def pylsp(tmpdir):
 
 
 @pytest.fixture
+def pylsp_w_workspace_folders(tmpdir):
+    """ Return an initialized python LS """
+    ls = PythonLSPServer(StringIO, StringIO)
+
+    folder1 = tmpdir.mkdir('folder1')
+    folder2 = tmpdir.mkdir('folder2')
+
+    ls.m_initialize(
+        processId=1,
+        rootUri=uris.from_fs_path(str(folder1)),
+        initializationOptions={},
+        workspaceFolders=[
+            {
+                'uri': uris.from_fs_path(str(folder1)),
+                'name': 'folder1'
+            },
+            {
+                'uri': uris.from_fs_path(str(folder2)),
+                'name': 'folder2'
+            }
+        ]
+    )
+
+    workspace_folders = [folder1, folder2]
+    return (ls, workspace_folders)
+
+
+@pytest.fixture
 def workspace(tmpdir):
     """Return a workspace."""
     ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())

@@ -31,6 +31,7 @@ from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.workers.updates import WorkerUpdates
 
+
 WinUserEnvDialog = None
 if os.name == 'nt':
     from spyder.utils.environ import WinUserEnvDialog

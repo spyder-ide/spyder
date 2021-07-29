@@ -1327,7 +1327,7 @@ class CollectionsEditorWidget(QWidget):
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -1379,6 +1379,7 @@ class CollectionsEditor(BaseDialog):
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(4, 4, 4, 4)
         btn_layout.addStretch()
 
         if not readonly:
