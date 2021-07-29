@@ -23,6 +23,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.plugins.completion.providers.kite.utils.install import (
     ERRORED, INSTALLING, FINISHED, CANCELLED)
+from spyder.utils.stylesheet import DialogStyle
 
 
 KITE_SPYDER_URL = "https://kite.com/integrations/spyder"
@@ -32,11 +33,6 @@ MAC = sys.platform == 'darwin'
 
 class KiteIntegrationInfo(QWidget):
     """Initial Widget with info about the integration with Kite."""
-    ICON_SCALE_FACTOR = 0.5
-    TITLE_FONT_SIZE = '19pt' if MAC else '14pt'
-    CONTENT_FONT_SIZE = '15pt' if MAC else '11pt'
-    BUTTONS_FONT_SIZE = '15pt' if MAC else '13pt'
-    BUTTONS_PADDING = '6px' if MAC else '4px 10px'
     # Signal triggered for the 'Install Kite' button
     sig_install_button_clicked = Signal()
     # Signal triggered for the 'Dismiss' button
@@ -52,8 +48,8 @@ class KiteIntegrationInfo(QWidget):
         image_label = QLabel()
         screen = QApplication.primaryScreen()
         image_label = QLabel()
-        image_height = int(image.height() * self.ICON_SCALE_FACTOR)
-        image_width = int(image.width() * self.ICON_SCALE_FACTOR)
+        image_height = int(image.height() * DialogStyle.IconScaleFactor)
+        image_width = int(image.width() * DialogStyle.IconScaleFactor)
         image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
                              Qt.SmoothTransformation)
         image_label.setPixmap(image)
@@ -69,7 +65,7 @@ class KiteIntegrationInfo(QWidget):
         integration_label_title = QLabel(
            "Get better code completions in Spyder")
         integration_label_title.setStyleSheet(
-           f"font-size: {self.TITLE_FONT_SIZE}")
+           f"font-size: {DialogStyle.TitleFontSize}")
         integration_label_title.setWordWrap(True)
         integration_label = QLabel(
             _("Now Spyder can use Kite to provide better code "
@@ -78,7 +74,8 @@ class KiteIntegrationInfo(QWidget):
               "Spyder. <br><br>Kite is free to use but is not open "
               "source. <a href=\"{kite_url}\">Learn more about Kite </a>")
             .format(kite_url=KITE_SPYDER_URL))
-        integration_label.setStyleSheet(f"font-size: {self.CONTENT_FONT_SIZE}")
+        integration_label.setStyleSheet(
+            f"font-size: {DialogStyle.ContentFontSize}")
         integration_label.setOpenExternalLinks(True)
         integration_label.setWordWrap(True)
         integration_label.setFixedWidth(360)
@@ -110,9 +107,9 @@ class KiteIntegrationInfo(QWidget):
           "background-color: {color_pressed}}}"
         ).format(background_color=install_button_color,
                  border_color=install_button_color,
-                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_size=DialogStyle.ButtonsFontSize,
                  font_color=font_color,
-                 padding=self.BUTTONS_PADDING,
+                 padding=DialogStyle.ButtonsPadding,
                  color_hover=install_button_hover,
                  color_pressed=install_button_pressed))
         dismiss_button = QPushButton(_('Dismiss'))
@@ -130,9 +127,9 @@ class KiteIntegrationInfo(QWidget):
           "background-color: {color_pressed}}}"
         ).format(background_color=dismiss_button_color,
                  border_color=dismiss_button_color,
-                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_size=DialogStyle.ButtonsFontSize,
                  font_color=font_color,
-                 padding=self.BUTTONS_PADDING,
+                 padding=DialogStyle.ButtonsPadding,
                  color_hover=dismiss_button_hover,
                  color_pressed=dismiss_button_pressed))
         buttons_layout.addStretch()
