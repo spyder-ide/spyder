@@ -20,6 +20,8 @@ from spyder.config.gui import OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
 
+MAC = sys.platform == 'darwin'
+
 # =============================================================================
 # ---- Base stylesheet class
 # =============================================================================
@@ -357,3 +359,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
 
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
+
+
+# =============================================================================
+# ---- Style for special dialogs
+# =============================================================================
+class DialogStyle:
+    """Style constants for tour, about and kite dialogs."""
+
+    IconScaleFactor = 0.5
+    TitleFontSize = '19pt' if MAC else '14pt'
+    ContentFontSize = '15pt' if MAC else '12pt'
+    ButtonsFontSize = '15pt' if MAC else '13pt'
+    ButtonsPadding = '6px' if MAC else '4px 10px'
