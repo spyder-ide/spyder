@@ -7,11 +7,6 @@
 """Enum of Spyder internal plugins."""
 
 
-##############################################################################
-#
-# New API: Migrate plugins one by one and test changes on the way.
-#
-##############################################################################
 class Plugins:
     """
     Convenience class for accessing Spyder internal plugins.
