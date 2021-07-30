@@ -18,7 +18,6 @@ import sys
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.utils import IMPORT_EXT
-from spyder.config.snippets import SNIPPETS
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
@@ -31,7 +30,8 @@ from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.py', '.ipynb', '.dat', '.pdf', '.png', '.svg']
+SHOW_EXT = ['.py', '.ipynb', '.dat', '.pdf', '.png', '.svg', '.md', '.yml',
+            '.yaml']
 
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
@@ -293,6 +293,10 @@ DEFAULTS = [
               'visible_if_project_open': True,
               'date_column': False,
               'single_click_to_open': False,
+              'show_hidden': False,
+              'size_column': False,
+              'type_column': False,
+              'date_column': False
               }),
             ('explorer',
              {
@@ -300,7 +304,9 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_hidden': False,
               'single_click_to_open': False,
-              'file_associations': {},
+              'size_column': False,
+              'type_column': False,
+              'date_column': True
               }),
             ('find_in_files',
              {
@@ -628,4 +634,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '69.1.0'
+CONF_VERSION = '70.0.0'
