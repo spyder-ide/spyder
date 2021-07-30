@@ -293,6 +293,10 @@ DEFAULTS = [
               'visible_if_project_open': True,
               'date_column': False,
               'single_click_to_open': False,
+              'show_hidden': False,
+              'size_column': False,
+              'type_column': False,
+              'date_column': False
               }),
             ('explorer',
              {
@@ -300,7 +304,9 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_hidden': False,
               'single_click_to_open': False,
-              'file_associations': {},
+              'size_column': False,
+              'type_column': False,
+              'date_column': True
               }),
             ('find_in_files',
              {
@@ -628,4 +634,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '69.1.0'
+CONF_VERSION = '70.0.0'
