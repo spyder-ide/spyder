@@ -281,9 +281,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def setup(self):
         self.setup_view()
 
-        self.set_name_filters(self.get_conf('name_filters', []))
-        self.set_name_filters(self.get_conf('file_associations', {}))
-
         # New actions
         new_file_action = self.create_action(
             DirViewActions.NewFile,
