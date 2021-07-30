@@ -18,7 +18,6 @@ import sys
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.utils import IMPORT_EXT
-from spyder.config.snippets import SNIPPETS
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
@@ -31,7 +30,8 @@ from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.py', '.ipynb', '.dat', '.pdf', '.png', '.svg']
+SHOW_EXT = ['.py', '.ipynb', '.dat', '.pdf', '.png', '.svg', '.md', '.yml',
+            '.yaml']
 
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
