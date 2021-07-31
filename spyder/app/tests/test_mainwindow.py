@@ -247,25 +247,23 @@ def main_window(request, tmpdir):
 
     if preload_project:
         # Create project
-        project_path = str(tmpdir.mkdir('test_project'))
-        project = EmptyProject(project_path)
+        project = tmpdir.mkdir('test_project')
+        project_path = str(project)
+        spy_project = EmptyProject(project_path)
         CONF.set('project_explorer', 'current_project_path', project_path)
 
         # Add some files to project
-        filenames = [
-            osp.join(project_path, f) for f in
-            ['file1.py', 'file2.py', 'file3.txt']
-        ]
+        abs_filenames = []
+        for filename in ['file1.py', 'file2.py', 'file3.txt']:
+            f = project.join(filename)
+            abs_filenames.append(str(f))
+            if osp.splitext(filename)[1] == '.py':
+                f.write("def f(x):\n"
+                        "    return x\n")
+            else:
+                f.write("Hello world!")
 
-        for filename in filenames:
-            with open(filename, 'w') as f:
-                if osp.splitext(filename)[1] == '.py':
-                    f.write("def f(x):\n"
-                            "    return x\n")
-                else:
-                    f.write("Hello world!")
-
-        project.set_recent_files(filenames)
+        spy_project.set_recent_files(abs_filenames)
     else:
         CONF.set('project_explorer', 'current_project_path', None)
 
