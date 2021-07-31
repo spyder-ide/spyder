@@ -116,7 +116,7 @@ def check_kite_installers_availability():
 
     available = False
     try:
-        req = requests.head(url)
+        req = requests.head(url, timeout=0.2)
         available = req.ok
         if req.ok:
             if req.is_redirect:
