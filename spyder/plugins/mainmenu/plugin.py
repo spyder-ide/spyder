@@ -62,9 +62,17 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.View, _("&View"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
 
-    # --- Private methods
-    # ------------------------------------------------------------------------
+    def on_mainwindow_visible(self):
+        # Pre-render menus so actions with menu roles (like "About Spyder"
+        # and "Preferences") are located in the right place in Mac's menu
+        # bar.
+        # Fixes spyder-ide/spyder#14917
+        if sys.platform == 'darwin':
+            for menu in self._APPLICATION_MENUS.values():
+                menu._render()
 
+    # ---- Private methods
+    # ------------------------------------------------------------------------
     def _show_shortcuts(self, menu):
         """
         Show action shortcuts in menu.
@@ -139,7 +147,7 @@ class MainMenu(SpyderPluginV2):
                         lambda menu=menu: set_menu_icons(menu, False))
                     menu.aboutToShow.connect(self._hide_options_menus)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def create_application_menu(self, menu_id, title, dynamic=True):
         """
