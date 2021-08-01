@@ -22,7 +22,7 @@ import sys
 # Third party imports
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout
+from qtpy.QtWidgets import QAction, QInputDialog, QLineEdit, QVBoxLayout
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -169,7 +169,8 @@ class ConsoleWidget(PluginMainWidget):
             triggered=self.sig_quit_requested,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
-            register_shortcut=True
+            register_shortcut=True,
+            menurole=QAction.QuitRole
         )
         run_action = self.create_action(
             ConsoleWidgetActions.Run,

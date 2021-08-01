@@ -105,11 +105,9 @@ class PreferencesContainer(PluginMainContainer):
             PreferencesActions.Show,
             _("Preferences"),
             icon=self.create_icon('configure'),
-            triggered=self.show_preferences
+            triggered=self.show_preferences,
+            menurole=QAction.PreferencesRole
         )
-
-        if sys.platform == 'darwin':
-            self.show_action.setMenuRole(QAction.PreferencesRole)
 
         self.reset_action = self.create_action(
             PreferencesActions.Reset,

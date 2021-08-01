@@ -1052,8 +1052,7 @@ class MainWindow(QMainWindow):
             _("PYTHONPATH manager"),
             None, icon=ima.icon('pythonpath'),
             triggered=self.show_path_manager,
-            tip=_("PYTHONPATH manager"),
-            menurole=QAction.ApplicationSpecificRole)
+            tip=_("PYTHONPATH manager"))
         from spyder.plugins.application.plugin import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
