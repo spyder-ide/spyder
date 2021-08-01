@@ -489,7 +489,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Update tree with currently stored info or require symbols if
         # necessary.
-        if (editor.get_language() in self._languages and
+        if (editor.get_language().lower() in self._languages and
                 len(self.editor_tree_cache[editor_id]) == 0):
             if editor.info is not None:
                 self.update_editor(editor.info)
