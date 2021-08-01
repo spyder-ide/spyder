@@ -375,13 +375,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def toggle_show_comments(self, state):
         self.show_comments = state
         self.sig_update_configuration.emit()
-        self.update_all_editors(reset_info=True)
+        self.update_editors(language='python')
 
     @on_conf_change(option='group_cells')
     def toggle_group_cells(self, state):
         self.group_cells = state
         self.sig_update_configuration.emit()
-        self.update_all_editors(reset_info=True)
+        self.update_editors(language='python')
 
     @on_conf_change(option='display_variables')
     def toggle_variables(self, state):
@@ -489,7 +489,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Update tree with currently stored info or require symbols if
         # necessary.
-        if (editor.get_language() in self._languages and
+        if (editor.get_language().lower() in self._languages and
                 len(self.editor_tree_cache[editor_id]) == 0):
             if editor.info is not None:
                 self.update_editor(editor.info)
@@ -552,12 +552,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
 
-    def update_all_editors(self, reset_info=False):
-        """Update all editors with LSP support."""
-        for language in self._languages:
-            self.set_editors_to_update(language, reset_info=reset_info)
-            self.update_timers[language].start()
-
     @Slot(list)
     def update_editor(self, items, editor=None):
         """
@@ -567,14 +561,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if items is None:
             return
 
-        plugin_base = self.parent().parent()
         if editor is None:
             editor = self.current_editor
         editor_id = editor.get_id()
         language = editor.get_language()
         update = self.update_tree(items, editor_id, language)
 
-        if getattr(plugin_base, "_isvisible", True) and update:
+        if update:
             self.save_expanded_state()
             self.restore_expanded_state()
             self.do_follow_cursor()
@@ -1027,7 +1020,3 @@ class OutlineExplorerWidget(PluginMainWidget):
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
         self.treewidget.stop_symbol_services(language)
-
-    def update_all_editors(self):
-        """Update all editors with an associated LSP server."""
-        self.treewidget.update_all_editors()

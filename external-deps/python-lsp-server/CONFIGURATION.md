@@ -32,6 +32,7 @@ This server can be configured using `workspace/didChangeConfiguration` method. E
 | `pylsp.plugins.jedi_signature_help.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_symbols.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_symbols.all_scopes` | `boolean` | If True lists the names of all scopes instead of only the module namespace. | `true` |
+| `pylsp.plugins.jedi_symbols.include_import_symbols` | `boolean` | If True includes symbols imported from other libraries. | `true` |
 | `pylsp.plugins.mccabe.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.mccabe.threshold` | `number`  | The minimum threshold that triggers warnings about cyclomatic complexity. | `15` |
 | `pylsp.plugins.preload.enabled` | `boolean` | Enable or disable the plugin. | `true` |

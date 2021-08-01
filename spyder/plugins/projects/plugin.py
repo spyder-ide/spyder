@@ -76,7 +76,7 @@ class Projects(SpyderDockablePlugin):
     CONF_FILE = False
     REQUIRES = []
     OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
-                Plugins.OutlineExplorer, Plugins.MainMenu]
+                Plugins.MainMenu]
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals
@@ -211,7 +211,7 @@ class Projects(SpyderDockablePlugin):
         #     lambda settings, language:
         #         self.start_workspace_services())
         self.completions.sig_stop_completions.connect(
-                self.stop_workspace_services)
+            self.stop_workspace_services)
         self.sig_project_loaded.connect(
             functools.partial(self.completions.project_path_update,
                               update_kind=WorkspaceUpdateKind.ADDITION,
@@ -235,14 +235,6 @@ class Projects(SpyderDockablePlugin):
                 fname, osp.dirname(fname), '', False, False, False, True,
                 False)
         )
-
-    @on_plugin_available(plugin=Plugins.OutlineExplorer)
-    def on_outline_explorer_available(self):
-        outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
-        self.sig_project_loaded.connect(
-            lambda v: outline_explorer.update_all_editors())
-        self.sig_project_closed.connect(
-            lambda v: outline_explorer.update_all_editors())
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
