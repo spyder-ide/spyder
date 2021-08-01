@@ -200,7 +200,7 @@ Here is an example using PySide2
 
     import sys
     import qdarkstyle
-    from PyQt5 import QtWidgets
+    from PySide2 import QtWidgets
 
     # create the application and the main window
     app = QtWidgets.QApplication(sys.argv)
