@@ -118,9 +118,8 @@ class ApplicationContainer(PluginMainContainer):
             ApplicationActions.SpyderAbout,
             _("About %s...") % "Spyder",
             icon=self.create_icon('MessageBoxInformation'),
-            triggered=self.show_about)
-        if sys.platform == 'darwin':
-            self.about_action.setMenuRole(QAction.AboutRole)
+            triggered=self.show_about,
+            menurole=QAction.AboutRole)
 
         # Tools actions
         if WinUserEnvDialog is not None:
