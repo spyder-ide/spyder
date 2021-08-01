@@ -248,17 +248,28 @@ def main_window(request, tmpdir):
     if preload_project:
         # Create project
         project = tmpdir.mkdir('test_project')
-        subdir = project.mkdir('subdir')
+        project_subdir = project.mkdir('subdir')
+
+        # Create directories out of the project
+        out_of_project_1 = tmpdir.mkdir('out_of_project_1')
+        out_of_project_2 = tmpdir.mkdir('out_of_project_2')
+        out_of_project_1_subdir = out_of_project_1.mkdir('subdir')
+        out_of_project_2_subdir = out_of_project_2.mkdir('subdir')
 
         project_path = str(project)
         spy_project = EmptyProject(project_path)
         CONF.set('project_explorer', 'current_project_path', project_path)
 
-        # Add some files to project
+        # Add some files to project. This is necessary to test that we get
+        # symgbols for all these files.
         abs_filenames = []
         filenames_to_create = {
             project: ['file1.py', 'file2.py', 'file3.txt', '__init__.py'],
-            subdir: ['subdir_file1.py', '__init__.py']
+            project_subdir: ['a.py', '__init__.py'],
+            out_of_project_1: ['b.py'],
+            out_of_project_2: ['c.py', '__init__.py'],
+            out_of_project_1_subdir: ['d.py', '__init__.py'],
+            out_of_project_2_subdir: ['e.py']
         }
 
         for path in filenames_to_create.keys():
@@ -3823,7 +3834,8 @@ def test_tour_message(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
 def test_update_outline(main_window, qtbot, tmpdir):
     """
     Test that files in the Outline pane are updated at startup and
@@ -3841,7 +3853,7 @@ def test_update_outline(main_window, qtbot, tmpdir):
     ]
 
     # Wait a bit for trees to be filled
-    qtbot.wait(5000)
+    qtbot.wait(20000)
 
     # Assert all Python editors are filled
     assert all(
