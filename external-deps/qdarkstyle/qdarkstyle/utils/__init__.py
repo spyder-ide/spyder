@@ -40,6 +40,9 @@ def run_process(args, palette):
         main_dir = os.path.join(PACKAGE_PATH, palette.ID)
         os.chdir(main_dir)
 
+    # Shell kwarg to pass to subprocess.
+    shell = True if os.name == 'nt' else False
+
     for qrc_file in glob.glob('*.qrc'):
         # get name without extension
         filename = os.path.splitext(qrc_file)[0]
@@ -64,28 +67,28 @@ def run_process(args, palette):
         if args.create in ['pyqt', 'pyqtgraph', 'all']:
             print("Compiling for PyQt4 ...")
             try:
-                call(['pyrcc4', '-py3', qrc_file, '-o', py_file_pyqt], shell=True)
+                call(['pyrcc4', '-py3', qrc_file, '-o', py_file_pyqt], shell=shell)
             except FileNotFoundError:
                 print("You must install pyrcc4")
 
         if args.create in ['pyqt5', 'qtpy', 'all']:
             print("Compiling for PyQt5 ...")
             try:
-                call(['pyrcc5', qrc_file, '-o', py_file_pyqt5], shell=True)
+                call(['pyrcc5', qrc_file, '-o', py_file_pyqt5], shell=shell)
             except FileNotFoundError:
                 print("You must install pyrcc5")
 
         if args.create in ['pyside', 'all']:
             print("Compiling for PySide ...")
             try:
-                call(['pyside-rcc', '-py3', qrc_file, '-o', py_file_pyside], shell=True)
+                call(['pyside-rcc', '-py3', qrc_file, '-o', py_file_pyside], shell=shell)
             except FileNotFoundError:
                 print("You must install pyside-rcc")
 
         if args.create in ['pyside2', 'all']:
             print("Compiling for PySide 2...")
             try:
-                call(['pyside2-rcc', qrc_file, '-o', py_file_pyside2], shell=True)
+                call(['pyside2-rcc', qrc_file, '-o', py_file_pyside2], shell=shell)
             except FileNotFoundError:
                 print("You must install pyside2-rcc")
 

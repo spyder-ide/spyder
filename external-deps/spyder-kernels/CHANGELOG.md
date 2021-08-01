@@ -1,5 +1,33 @@
 # History of changes
 
+## Version 2.1.0 (2021-07-31)
+
+### New features
+
+* Add support for the Rich and Colorama libraries.
+* Load big modules (e.g. Numpy, Pandas and Scipy) only until it's really
+  necessary.
+
+### Issues Closed
+
+* [Issue 302](https://github.com/spyder-ide/spyder-kernels/issues/302) - Add option to use custom Outstream in kernel app ([PR 305](https://github.com/spyder-ide/spyder-kernels/pull/305) by [@eendebakpt](https://github.com/eendebakpt))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 306](https://github.com/spyder-ide/spyder-kernels/pull/306) - PR: Patch os.get_terminal_size to return a terminal size, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 305](https://github.com/spyder-ide/spyder-kernels/pull/305) - PR: Use an outstream with isatty() equal to True, by [@eendebakpt](https://github.com/eendebakpt) ([302](https://github.com/spyder-ide/spyder-kernels/issues/302))
+* [PR 303](https://github.com/spyder-ide/spyder-kernels/pull/303) - PR: Remove an unnecessary check when getting values in Pdb, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 300](https://github.com/spyder-ide/spyder-kernels/pull/300) - PR: Fix %debug magic, by [@impact27](https://github.com/impact27)
+* [PR 259](https://github.com/spyder-ide/spyder-kernels/pull/259) - PR: Don't import big modules (Numpy, Pandas) until it's really necessary, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 5 pull requests were closed.
+
+
+----
+
+
 ## Version 2.0.5 (2021-07-03)
 
 ### Pull Requests Merged
@@ -73,6 +101,7 @@ In this release 3 pull requests were closed.
 ## Version 2.0.0 (2021-04-01)
 
 ### New features
+
 * Color handling in namespace view was moved to Spyder.
 
 ### Pull Requests Merged
