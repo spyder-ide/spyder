@@ -278,8 +278,17 @@ def main_window(request, tmpdir):
                 f = path.join(filename)
                 abs_filenames.append(str(f))
                 if osp.splitext(filename)[1] == '.py':
-                    f.write("def f(x):\n"
-                            "    return x\n")
+                    code = dedent(
+                        """
+                        from math import cos
+                        from numpy import (
+                           linspace)
+
+                        def f(x):
+                            return x
+                        """
+                    )
+                    f.write(code)
                 else:
                     f.write("Hello world!")
 
@@ -3858,7 +3867,7 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # Assert all Python editors are filled
     assert all(
         [
-            len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+            len(treewidget.editor_tree_cache[editor.get_id()]) == 1
             for editor in editors_py
         ]
     )
