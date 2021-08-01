@@ -363,7 +363,7 @@ class SnippetsExtension(EditorExtension):
             self._remove_selection(start, end)
             line, column = start
         node, snippet, text_node = self._find_node_by_position(line, column)
-        if node is None or text_node is None:
+        if node is None or snippet is None or text_node is None:
             self.reset()
             return
         tokens = tokenize(text)
