@@ -157,6 +157,11 @@
       "default": true,
       "description": "If True lists the names of all scopes instead of only the module namespace."
     },
+    "pylsp.plugins.jedi_symbols.include_import_symbols": {
+      "type": "boolean",
+      "default": true,
+      "description": "If True includes symbols imported from other libraries."
+    },
     "pylsp.plugins.mccabe.enabled": {
       "type": "boolean",
       "default": true,
