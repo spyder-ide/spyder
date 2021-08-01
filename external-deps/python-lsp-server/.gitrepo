@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/python-lsp/python-lsp-server.git
-	branch = fix-symbols
-	commit = c4cfd1643437df77d3a667882bc68ff1b05e0b29
-	parent = 19271485a130e190b6b2af1721045416493e2ffb
+	branch = develop
+	commit = 03ab6efdec1d53b9d2359caa376ef12269b81cb5
+	parent = 1a0510697d444347aa5244bf9bb68531a796470f
 	method = merge
 	cmdver = 0.4.3
