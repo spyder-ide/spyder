@@ -32,7 +32,7 @@ class Tours(SpyderPluginV2):
     """
     NAME = 'tours'
     CONF_SECTION = NAME
-    OPTIONAL = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu, Plugins.Application]
     CONF_FILE = False
     CONTAINER_CLASS = ToursContainer
 
@@ -54,6 +54,7 @@ class Tours(SpyderPluginV2):
             INTRO_TOUR,
         )
 
+    @on_plugin_available(plugin=Plugins.Application)
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
