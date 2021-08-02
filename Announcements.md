@@ -1,21 +1,39 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.0.5 is released!
+**Subject**: [ANN] Spyder 5.1.0 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.0.5** has been released and is available for
+I'm pleased to announce that Spyder **5.1.0** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two weeks after version 5.0.4 and it contains the
-following important fixes:
+This release comes five weeks after version 5.0.5 and it contains the
+following new features and important fixes:
 
-* Catch any error when trying to detect if Kite installers are available.
+- New features
+  * New logo, splash screen and design for the "About Spyder" dialog.
+  * Support Rich and Colorama in the IPython console.
+  * Pasting code in the Editor and IPython console preserves indentation.
 
-In this release we fixed 1 issue and merged 2 pull requests that amount
-to more than 10 commits. For a full list of fixes, please see our
+- New API features
+  * Add a new registration mechanism for plugins that allow bidirectional
+    dependencies among them. See
+    [this page](https://github.com/spyder-ide/spyder/wiki/New-mechanism-to-register-plugins-in-Spyder-5.1.0)
+    for instructions on how to migrate to it.
+
+- Important fixes
+  * Fix several critical bugs in the Outline pane.
+  * Restore ability to ignore linting messages with inline comments in the
+    Editor. Supported comments include `# noqa` and `# analysis:ignore`.
+  * Improve code completion performance in the Editor.
+  * Fix Code analysis pane in the Windows and macOS installers.
+  * Decrease startup time.
+  * Support Jedi 0.18 and Parso 0.8
+
+In this release we fixed 32 issues and merged 57 pull requests that amount
+to more than 410 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
