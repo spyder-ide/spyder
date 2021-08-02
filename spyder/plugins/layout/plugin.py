@@ -134,6 +134,7 @@ class Layout(SpyderPluginV2):
             menu_id=ApplicationMenus.View,
             section=ViewMenuSections.Bottom)
 
+    @on_plugin_available(plugin=Plugins.Preferences)
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         container = self.get_container()
