@@ -19,22 +19,33 @@ import sys
 import warnings
 
 
-# To activate/deactivate certain things for pytest's only
+# ---- To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
 
-# Add external dependencies subrepo paths to sys.path
-# NOTE: Please don't move this from here!
-HERE = osp.dirname(osp.abspath(__file__))
-DEPS_PATH = osp.join(HERE, 'external-deps')
-i = 0
-for path in os.listdir(DEPS_PATH):
-    external_dep_path = osp.join(DEPS_PATH, path)
-    sys.path.insert(i, external_dep_path)
-    i += 1
 
-# Install PyLS locally. This fails on Windows and our CIs
-if os.name != 'nt' or os.name == 'nt' and not bool(os.environ.get('CI')):
+# ---- Detect if we're running in CI
+# Note: Don't import from spyder to keep this file free from local
+# imports.
+running_in_ci = bool(os.environ.get('CI'))
+
+
+# ---- Handle subrepos
+# NOTE: Please don't move this from here!
+# Add subrepo paths to sys.path locally. When running in CI, subrepos
+# are installed to the env.
+if not running_in_ci:
+    HERE = osp.dirname(osp.abspath(__file__))
+    DEPS_PATH = osp.join(HERE, 'external-deps')
+    i = 0
+    for path in os.listdir(DEPS_PATH):
+        external_dep_path = osp.join(DEPS_PATH, path)
+        sys.path.insert(i, external_dep_path)
+        i += 1
+
+
+# ---- Install PyLS locally when not running in CI
+if not running_in_ci:
     # Create an egg-info folder to declare the PyLS subrepo entry points.
     pyls_submodule = osp.join(DEPS_PATH, 'python-lsp-server')
     pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
@@ -59,15 +70,9 @@ if os.name != 'nt' or os.name == 'nt' and not bool(os.environ.get('CI')):
         cwd=pyls_submodule
     )
 
-# Pytest adjustments
+
+# ---- Pytest adjustments
 import pytest
-
-# Remove temp conf_dir before starting the tests
-from spyder.config.base import get_conf_path
-conf_dir = get_conf_path()
-if osp.isdir(conf_dir):
-    shutil.rmtree(conf_dir)
-
 
 def pytest_addoption(parser):
     """Add option to run slow tests."""

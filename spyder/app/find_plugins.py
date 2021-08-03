@@ -19,7 +19,8 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import (
     SpyderDockablePlugin, SpyderPluginWidget, Plugins)
 from spyder.api.utils import get_class_values
-from spyder.config.base import DEV, STDERR, running_under_pytest
+from spyder.config.base import (
+    DEV, STDERR, running_in_ci, running_under_pytest)
 
 
 logger = logging.getLogger(__name__)
@@ -39,8 +40,7 @@ def find_internal_plugins():
     base_path = os.path.dirname(os.path.dirname(HERE))
     setup_path = os.path.join(base_path, "setup.py")
 
-    if (DEV is not None or running_under_pytest()
-            and os.path.isfile(setup_path)):
+    if (DEV or running_under_pytest()) and not running_in_ci():
         if not os.path.isfile(setup_path):
             raise Exception(
                 'No "setup.py" file found and running in DEV mode!')

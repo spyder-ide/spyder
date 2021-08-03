@@ -19,8 +19,9 @@ from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.config.base import (DEV, is_pynsist, running_under_pytest,
-                                get_safe_mode, running_in_mac_app)
+from spyder.config.base import (
+    DEV, get_safe_mode, is_pynsist, running_in_ci, running_in_mac_app,
+    running_under_pytest)
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
@@ -133,7 +134,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         env_vars.pop('VIRTUAL_ENV', None)
 
         # Add spyder-kernels subrepo path to PYTHONPATH
-        if DEV or running_under_pytest():
+        if (DEV or running_under_pytest()) and not running_in_ci():
             repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
             subrepo_path = osp.join(repo_path, 'external-deps',
                                     'spyder-kernels')
