@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import get_home_dir, running_under_pytest
+from spyder.config.base import get_home_dir
 from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.utils import (
     create_script, fixpath, IconProvider, show_in_external_file_explorer)
@@ -1558,10 +1558,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if self.get_conf('name_filters') == ['']:
             self.set_conf('name_filters', [])
         else:
-            if running_under_pytest():
-                self.set_conf('name_filters', name_filters)
-            else:
-                self.set_conf('name_filters', name_filters)
+            self.set_conf('name_filters', name_filters)
 
     def set_show_hidden(self, state):
         """Toggle 'show hidden files' state"""
