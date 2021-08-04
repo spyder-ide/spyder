@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-07-30 19:05-0500\n"
-"PO-Revision-Date: 2021-07-31 00:16\n"
+"PO-Revision-Date: 2021-08-02 14:01\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -424,7 +424,7 @@ msgstr "Formatar automaticamente arquivos Python no Editor com o pacote Preto"
 
 #: spyder/dependencies.py:188
 msgid "Spyder plugin for the Python LSP Server"
-msgstr ""
+msgstr "Plugin Spyder para servidor da Linguagem Python"
 
 #: spyder/dependencies.py:192
 msgid "Parse desktop files on Linux"
@@ -770,7 +770,7 @@ msgstr "<b>Nota importante:</b> Já que você instalou o Spyder com o Anaconda, 
 
 #: spyder/plugins/application/container.py:217
 msgid "Click <a href=\"{}\">this link</a> to download it.<br><br>"
-msgstr ""
+msgstr "Por favor, vá para <a href=\"{}\">esta página</a> para baixá-lo.<br><br>"
 
 #: spyder/plugins/application/container.py:227
 msgid "Spyder is up to date."
@@ -4934,7 +4934,7 @@ msgstr "Projeto vazio"
 
 #: spyder/plugins/projects/plugin.py:144
 msgid "Create Spyder projects and manage their files."
-msgstr ""
+msgstr "Crie projetos Spyder e gerencie seus arquivos."
 
 #: spyder/plugins/projects/plugin.py:278
 msgid "New Project..."
@@ -5430,19 +5430,19 @@ msgstr "Barra principal"
 
 #: spyder/plugins/tours/container.py:52
 msgid "Show tour"
-msgstr ""
+msgstr "Mostrar tour"
 
 #: spyder/plugins/tours/container.py:61 spyder/plugins/tours/plugin.py:42
 msgid "Interactive tours"
-msgstr ""
+msgstr "Tours interativas"
 
 #: spyder/plugins/tours/plugin.py:45
 msgid "Provide interactive tours."
-msgstr ""
+msgstr "Forneça tours interativos."
 
 #: spyder/plugins/tours/plugin.py:53
 msgid "Introduction to Spyder"
-msgstr ""
+msgstr "Introdução ao Spyder"
 
 #: spyder/plugins/tours/tours.py:72
 msgid "Welcome to the introduction tour!"
@@ -5510,7 +5510,7 @@ msgstr "Você alcançou o fim do nosso passeio e está pronto para iniciar o uso
 
 #: spyder/plugins/tours/tours.py:218
 msgid "New features in Spyder 3.0"
-msgstr ""
+msgstr "Novidades do Spyder 3.0"
 
 #: spyder/plugins/tours/tours.py:219
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -5658,11 +5658,11 @@ msgstr "Índice:"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:787
 msgid "<u>Warning</u>: Changes are applied separately"
-msgstr ""
+msgstr "<u>Aviso</u>: mudanças são aplicadas de forma separada"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:789
 msgid "For performance reasons, changes applied to masked arrays won't be reflected in array's data (and vice-versa)."
-msgstr ""
+msgstr "Por motivos de desempenho, as mudanças aplicadas a matrizes mascaradas não serão refletidas nos dados da matriz (e vice-versa)."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:805 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:969
 msgid "Resize"
@@ -6284,19 +6284,19 @@ msgstr "Mágica:"
 
 #: spyder/widgets/about.py:213
 msgid "Copy version info"
-msgstr ""
+msgstr "Copiar informações da versão"
 
 #: spyder/widgets/about.py:247
 msgid "Overview"
-msgstr ""
+msgstr "Visão geral"
 
 #: spyder/widgets/about.py:248
 msgid "Community"
-msgstr ""
+msgstr "Comunidade"
 
 #: spyder/widgets/about.py:249
 msgid "Legal"
-msgstr ""
+msgstr "Legal"
 
 #: spyder/widgets/arraybuilder.py:200
 msgid "\n"
