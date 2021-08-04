@@ -10,12 +10,12 @@
 
 # Third party imports
 import sys
-import os
 import pytest
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QDialogButtonBox
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.ipythonconsole.widgets.kernelconnect import (
     KernelConnectionDialog)
 from spyder.config.manager import CONF
@@ -129,8 +129,7 @@ def test_connection_dialog_remembers_input_with_ssh_passphrase(
     assert new_dlg.un.text() == pytest.un
     assert new_dlg.pn.text() == str(pytest.pn)
     assert new_dlg.kf.text() == pytest.kf
-    if (sys.platform == 'darwin' or
-            not os.environ.get('CI') is not None):
+    if not running_in_ci():
         assert new_dlg.kfp.text() == pytest.kfp
 
 
@@ -157,8 +156,7 @@ def test_connection_dialog_doesnt_remember_input_with_ssh_passphrase(
     assert new_dlg.un.text() == ""
     assert new_dlg.pn.text() == "22"
     assert new_dlg.kf.text() == ""
-    if (sys.platform == 'darwin' or
-            not os.environ.get('CI') is not None):
+    if not running_in_ci():
         assert new_dlg.kfp.text() == ""
 
 
@@ -183,8 +181,7 @@ def test_connection_dialog_remembers_input_with_password(
     assert new_dlg.hn.text() == pytest.hn
     assert new_dlg.un.text() == pytest.un
     assert new_dlg.pn.text() == str(pytest.pn)
-    if (sys.platform == 'darwin' or
-            not os.environ.get('CI') is not None):
+    if not running_in_ci():
         assert new_dlg.pw.text() == pytest.pw
 
 
@@ -210,8 +207,7 @@ def test_connection_dialog_doesnt_remember_input_with_password(
     assert new_dlg.hn.text() == ""
     assert new_dlg.un.text() == ""
     assert new_dlg.pn.text() == "22"
-    if (sys.platform == 'darwin' or
-            not os.environ.get('CI') is not None):
+    if not running_in_ci():
         assert new_dlg.pw.text() == ""
 
 

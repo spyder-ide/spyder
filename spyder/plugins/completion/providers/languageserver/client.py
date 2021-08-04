@@ -28,8 +28,8 @@ import psutil
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.config.base import (DEV, get_conf_path, get_debug_level,
-                                running_under_pytest)
+from spyder.config.base import (
+    DEV, get_conf_path, get_debug_level, running_in_ci, running_under_pytest)
 from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
     TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
@@ -278,11 +278,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         env = self.server.processEnvironment()
 
         # Use local PyLS instead of site-packages one.
-        if DEV or running_under_pytest():
-            running_in_ci = bool(os.environ.get('CI'))
-            if os.name != 'nt' or os.name == 'nt' and not running_in_ci:
-                sys_path = self._clean_sys_path()
-                env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
+        if (DEV or running_under_pytest()) and not running_in_ci():
+            sys_path = self._clean_sys_path()
+            env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
 
         # Adjustments for the Python language server.
         if self.language == 'python':
@@ -342,7 +340,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         # Modifying PYTHONPATH to run transport in development mode or
         # tests
-        if DEV or running_under_pytest():
+        if (DEV or running_under_pytest()) and not running_in_ci():
             sys_path = self._clean_sys_path()
             if running_under_pytest():
                 env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])

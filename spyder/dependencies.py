@@ -12,7 +12,8 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _, DEV, is_pynsist, running_under_pytest
+from spyder.config.base import (
+    _, DEV, is_pynsist, running_in_ci, running_under_pytest)
 from spyder.config.utils import is_anaconda
 from spyder.utils import programs
 
@@ -403,7 +404,7 @@ def missing_dependencies():
     missing_deps = []
     for dependency in DEPENDENCIES:
         # Skip checking dependencies for which we have subrepos
-        if DEV or running_under_pytest():
+        if (DEV or running_under_pytest()) and not running_in_ci():
             repo_path = osp.normpath(osp.join(HERE, '..'))
             subrepos_path = osp.join(repo_path, 'external-deps')
             subrepos = os.listdir(subrepos_path)
