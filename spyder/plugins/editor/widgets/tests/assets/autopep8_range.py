@@ -10,13 +10,11 @@ import os;import sys
 
 # %% functions
 def d():
-    def inner():
-        return 2
-
+    def inner(): return 2
     return inner
-
-
 # ---- func 1 and 2
+
+
 def func1():
     for i in range(3):
         print(i)
@@ -25,9 +23,9 @@ def func1():
 def func2():
     if True:
         pass
-
-
 # ---- other functions
+
+
 def a():
     pass
 
