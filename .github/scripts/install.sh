@@ -63,8 +63,7 @@ done
 
 # Install Spyder to test it as if it was properly installed
 pip uninstall spyder -q -y
-python setup.py bdist_wheel
-pip install --no-deps dist/spyder*.whl
+python setup.py egg_info
 
 # To check our manifest
 pip install check-manifest

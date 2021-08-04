@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 """
-Tests for the finding plugins.
+Tests for finding plugins.
 """
 
 from spyder.api.plugins import Plugins
@@ -25,7 +25,7 @@ def test_find_internal_plugins():
     # Dictionary of internal plugins
     internal_plugins = find_internal_plugins()
 
-    # Lenghts must be the same
+    # Lengths must be the same
     assert len(expected_names) == len(internal_plugins.values())
 
     # Names must be the same
