@@ -62,8 +62,11 @@ do
 done
 
 # Install Spyder to test it as if it was properly installed
+# Note: `python setup.py egg_info` doesn't work here but it
+# does locally.
 pip uninstall spyder -q -y
-python setup.py egg_info
+python setup.py bdist_wheel
+pip install --no-deps dist/spyder*.whl
 
 # To check our manifest
 pip install check-manifest
