@@ -1,5 +1,21 @@
 # History of changes
 
+## Version 1.2.1 (2021-08-04)
+
+### Issues Closed
+
+* [Issue 65](https://github.com/python-lsp/python-lsp-server/issues/65) - Release v1.2.1
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 64](https://github.com/python-lsp/python-lsp-server/pull/64) - Catch errors when getting docstrings on _resolve_completion, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 1.2.0 (2021-08-01)
 
 ### New features
