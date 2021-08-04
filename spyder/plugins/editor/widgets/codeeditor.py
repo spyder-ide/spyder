@@ -889,7 +889,7 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_identation_guides(indent_guides)
         if self.indent_chars == '\t':
             self.indent_guides.set_indentation_width(
-                self.tab_stop_width_spaces)
+                tab_stop_width_spaces)
         else:
             self.indent_guides.set_indentation_width(len(self.indent_chars))
 
