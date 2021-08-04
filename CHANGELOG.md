@@ -1,5 +1,39 @@
 # History of changes
 
+## Version 5.1.1 (2021-08-04)
+
+### Important fixes
+* Fix loading internal plugins, which prevents a crash at startup in Python
+  3.8+ and issues with completion and linting in other versions.
+* Make functionality related to Jedi work in our Windows installer again.
+
+### Issues Closed
+
+* [Issue 16137](https://github.com/spyder-ide/spyder/issues/16137) - Ctrl+V causes a crash ([PR 16146](https://github.com/spyder-ide/spyder/pull/16146) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16136](https://github.com/spyder-ide/spyder/issues/16136) - Editor and IPythonConsole object has no attribute 'get_description'
+ ([PR 16130](https://github.com/spyder-ide/spyder/pull/16130) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16125](https://github.com/spyder-ide/spyder/issues/16125) - Exception while writing pyqt code ([PR 16145](https://github.com/spyder-ide/spyder/pull/16145) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16123](https://github.com/spyder-ide/spyder/issues/16123) - 5.1.0: `black` formatter duplicates part of the last line and breaks any code it formats ([PR 16142](https://github.com/spyder-ide/spyder/pull/16142) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16118](https://github.com/spyder-ide/spyder/issues/16118) - 5.1.0: Outline Pane not loading on Windows installer ([PR 16142](https://github.com/spyder-ide/spyder/pull/16142) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16117](https://github.com/spyder-ide/spyder/issues/16117) - 5.1.0 crashes with KeyError 'preferences' ([PR 16130](https://github.com/spyder-ide/spyder/pull/16130) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 16150](https://github.com/spyder-ide/spyder/pull/16150) - PR: Update dependencies for 5.1.1, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16146](https://github.com/spyder-ide/spyder/pull/16146) - PR: Solve error when using tabs and pasting code (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([16137](https://github.com/spyder-ide/spyder/issues/16137))
+* [PR 16145](https://github.com/spyder-ide/spyder/pull/16145) - PR: Improve how we handle responses of completion item resolution (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([16125](https://github.com/spyder-ide/spyder/issues/16125))
+* [PR 16142](https://github.com/spyder-ide/spyder/pull/16142) - PR: Bump Windows installer assets version, by [@dalthviz](https://github.com/dalthviz) ([16123](https://github.com/spyder-ide/spyder/issues/16123), [16118](https://github.com/spyder-ide/spyder/issues/16118))
+* [PR 16130](https://github.com/spyder-ide/spyder/pull/16130) - PR: Fix loading internal plugins and run tests as if the package were installed in our CIs, by [@ccordoba12](https://github.com/ccordoba12) ([16136](https://github.com/spyder-ide/spyder/issues/16136), [16117](https://github.com/spyder-ide/spyder/issues/16117))
+* [PR 16121](https://github.com/spyder-ide/spyder/pull/16121) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+
+In this release 6 pull requests were closed.
+
+
+---
+
+
 ## Version 5.1.0 (2021-08-02)
 
 ### New features

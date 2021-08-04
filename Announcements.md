@@ -1,39 +1,23 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.1.0 is released!
+**Subject**: [ANN] Spyder 5.1.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.1.0** has been released and is available for
+I'm pleased to announce that Spyder **5.1.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes five weeks after version 5.0.5 and it contains the
-following new features and important fixes:
+This release comes two days after version 5.1.0 and it contains the
+following mportant fixes:
 
-- New features
-  * New logo, splash screen and design for the "About Spyder" dialog.
-  * Support Rich and Colorama in the IPython console.
-  * Pasting code in the Editor and IPython console preserves indentation.
+* Fix loading internal plugins, which prevents a crash at startup in Python
+  3.8+ and issues with completion and linting in other versions.
+* Make functionality related to Jedi work in our Windows installer again.
 
-- New API features
-  * Add a new registration mechanism for plugins that allow bidirectional
-    dependencies among them. See
-    [this page](https://github.com/spyder-ide/spyder/wiki/New-mechanism-to-register-plugins-in-Spyder-5.1.0)
-    for instructions on how to migrate to it.
-
-- Important fixes
-  * Fix several critical bugs in the Outline pane.
-  * Restore ability to ignore linting messages with inline comments in the
-    Editor. Supported comments include `# noqa` and `# analysis:ignore`.
-  * Improve code completion performance in the Editor.
-  * Fix Code analysis pane in the Windows and macOS installers.
-  * Decrease startup time.
-  * Support Jedi 0.18 and Parso 0.8
-
-In this release we fixed 32 issues and merged 57 pull requests that amount
-to more than 410 commits. For a full list of fixes, please see our
+In this release we fixed 6 issues and merged 6 pull requests that amount
+to more than 25 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
