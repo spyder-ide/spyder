@@ -3,9 +3,9 @@
 ## Version 5.1.1 (2021-08-04)
 
 ### Important fixes
-* Fix loading internal plugins, which prevemts a crash at startup in Python
+* Fix loading internal plugins, which prevents a crash at startup in Python
   3.8+ and issues with completion and linting in other versions.
-* Make functionality related to Jedi work in our Windows installer.
+* Make functionality related to Jedi work in our Windows installer again.
 
 ### Issues Closed
 
