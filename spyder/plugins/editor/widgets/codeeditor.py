@@ -1431,7 +1431,20 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
     def handle_completion_item_resolution(self, response):
-        self.completion_widget.augment_completion_info(response['params'])
+        try:
+            response = response['params']
+
+            if not response:
+                return
+
+            self.completion_widget.augment_completion_info(response)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors(
+                "Error when handling completion item resolution")
 
     # ------------- LSP: Signature Hints ------------------------------------
     @request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
