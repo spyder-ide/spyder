@@ -16,12 +16,12 @@ import pytest
 
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.statusbar.widgets.tests.test_status import status_bar
 from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 
 
-@pytest.mark.skipif(not bool(os.environ.get('CI')),
-                    reason="Only meant for CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_status_bar_conda_interpreter_status(status_bar, qtbot):
     """Test status bar message with conda interpreter."""
     # We patch where the method is used not where it is imported from
