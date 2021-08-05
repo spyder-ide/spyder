@@ -15,10 +15,10 @@ import time
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.utils.conda import (
     add_quotes, find_conda, get_conda_activation_script, get_conda_env_path,
-    get_conda_root_prefix, get_list_conda_envs, get_list_conda_envs_cache
-)
+    get_conda_root_prefix, get_list_conda_envs, get_list_conda_envs_cache)
 
 
 if os.name == 'nt':
@@ -61,14 +61,12 @@ def test_get_conda_root_prefix():
     assert 'envs' not in get_conda_root_prefix(sys.executable)
 
 
-@pytest.mark.skipif(not bool(os.environ.get('CI')),
-                    reason="Only meant for CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_find_conda():
     assert find_conda()
 
 
-@pytest.mark.skipif(not bool(os.environ.get('CI')),
-                    reason="Only meant for CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_get_list_conda_envs():
     output = get_list_conda_envs()
     expected_envs = ['base', 'test', 'jedi-test-env', 'spytest-ž']
@@ -77,8 +75,7 @@ def test_get_list_conda_envs():
     assert set(expected_envs) == set(output.keys())
 
 
-@pytest.mark.skipif(not bool(os.environ.get('CI')),
-                    reason="Only meant for CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_get_list_conda_envs_cache():
     time0 = time.time()
     output = get_list_conda_envs_cache()

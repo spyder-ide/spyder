@@ -19,6 +19,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.config.manager import CONF
@@ -73,7 +74,7 @@ def test_default_keybinding_values():
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_start_and_end_of_document_shortcuts(editor_bot):
     """
@@ -96,7 +97,7 @@ def test_start_and_end_of_document_shortcuts(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_del_undo_redo_shortcuts(editor_bot):
     """
@@ -127,7 +128,7 @@ def test_del_undo_redo_shortcuts(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_copy_cut_paste_shortcuts(editor_bot):
     """
@@ -161,7 +162,7 @@ def test_copy_cut_paste_shortcuts(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_select_all_shortcut(editor_bot):
     """
@@ -177,7 +178,7 @@ def test_select_all_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_delete_line_shortcut(editor_bot):
@@ -195,7 +196,7 @@ def test_delete_line_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_go_to_line_shortcut(editor_bot, mocker):
@@ -215,7 +216,7 @@ def test_go_to_line_shortcut(editor_bot, mocker):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_transform_to_lowercase_shortcut(editor_bot):
@@ -233,7 +234,7 @@ def test_transform_to_lowercase_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_transform_to_uppercase_shortcut(editor_bot):
@@ -252,7 +253,7 @@ def test_transform_to_uppercase_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_next_and_previous_word_shortcuts(editor_bot):

@@ -18,8 +18,8 @@ from qtpy.QtWidgets import QMessageBox, QPushButton
 
 # Local imports
 from spyder.py3compat import PY3
-from spyder.widgets import pathmanager as pathmanager_mod
 from spyder.utils.programs import is_module_installed
+from spyder.widgets import pathmanager as pathmanager_mod
 
 
 @pytest.fixture
@@ -224,35 +224,6 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     assert pathmanager.count() == 3
     assert list(pathmanager.get_path_dict().keys())[0] == dir2
     assert all(pathmanager.get_path_dict().values())
-
-
-@pytest.mark.skipif(PY3 or (os.environ.get('CI') is not None and sys.platform.startswith('linux')),
-                    reason=('This tests only applies to Python 2.'
-                            'It is failing on Linux CI. Works locally!'))
-@pytest.mark.parametrize('pathmanager',
-                         [(('/spam', '/bar'), ('/foo', ), ('/bar', ))],
-                         indirect=True)
-def test_add_invalid_path(qtbot, pathmanager):
-    """Checks for unicode on python 2."""
-    pathmanager.show()
-    count = pathmanager.count()
-
-    def interact_message_box():
-        qtbot.wait(500)
-        messagebox = pathmanager.findChild(QMessageBox)
-        button = messagebox.findChild(QPushButton)
-        qtbot.mouseClick(button, Qt.LeftButton)
-
-    timer = QTimer()
-    timer.setSingleShot(True)
-    timer.timeout.connect(interact_message_box)
-    timer.start(500)
-    pathmanager.add_path('/foo/bar/測試')
-    qtbot.wait(500)
-
-    # Back to main thread
-    assert len(pathmanager.get_path_dict()) == 2
-    assert len(pathmanager.get_path_dict(True)) == 3
 
 
 @pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),

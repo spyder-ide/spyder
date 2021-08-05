@@ -49,7 +49,8 @@ from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
-from spyder.config.base import get_home_dir, get_conf_path, get_module_path
+from spyder.config.base import (
+    get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
@@ -371,8 +372,8 @@ def cleanup(request):
 @pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.single_instance
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of CIs")
+@pytest.mark.skipif(
+    not running_in_ci(), reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
@@ -659,8 +660,8 @@ def test_get_help_ipython_console_special_characters(
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
+@pytest.mark.skipif(os.name == 'nt' and running_in_ci(),
+                    reason="Times out on Windows")
 def test_get_help_ipython_console(main_window, qtbot):
     """Test that Help works when called from the IPython console."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1535,10 +1536,9 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None or PYQT5,
-                    reason="It times out sometimes on Windows, it's not "
-                           "meant to be run outside of a CI and it segfaults "
-                           "too frequently in PyQt5")
+@pytest.mark.skipif(os.name == 'nt' or not running_in_ci(),
+                    reason="It times out sometimes on Windows and it's not "
+                           "meant to be run outside of CIs")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -1603,8 +1603,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' or
-                     os.environ.get('CI', None) is not None and PYQT_VERSION >= '5.9'),
+@pytest.mark.skipif(os.name == 'nt' or running_in_ci() and PYQT_VERSION >= '5.9',
                     reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
 def test_issue_4066(main_window, qtbot):
     """
