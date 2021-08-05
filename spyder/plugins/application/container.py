@@ -31,6 +31,7 @@ from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.workers.updates import WorkerUpdates
 
+
 WinUserEnvDialog = None
 if os.name == 'nt':
     from spyder.utils.environ import WinUserEnvDialog
@@ -117,9 +118,8 @@ class ApplicationContainer(PluginMainContainer):
             ApplicationActions.SpyderAbout,
             _("About %s...") % "Spyder",
             icon=self.create_icon('MessageBoxInformation'),
-            triggered=self.show_about)
-        if sys.platform == 'darwin':
-            self.about_action.setMenuRole(QAction.AboutRole)
+            triggered=self.show_about,
+            menurole=QAction.AboutRole)
 
         # Tools actions
         if WinUserEnvDialog is not None:
@@ -165,7 +165,12 @@ class ApplicationContainer(PluginMainContainer):
         error_msg = self.worker_updates.error
 
         # Release url
-        url_r = __project_url__ + '/releases/tag/v{}'.format(latest_release)
+        if sys.platform == 'darwin':
+            url_r = ('https://github.com/spyder-ide/spyder/releases/latest/'
+                     'download/Spyder.dmg')
+        else:
+            url_r = ('https://github.com/spyder-ide/spyder/releases/latest/'
+                     'download/Spyder_64bit_full.exe')
         url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
@@ -209,7 +214,7 @@ class ApplicationContainer(PluginMainContainer):
                     ).format(latest_release)
                 else:
                     content = _(
-                        "Please go to <a href=\"{}\">this page</a> to "
+                        "Click <a href=\"{}\">this link</a> to "
                         "download it.<br><br>"
                     ).format(url_r)
                 msg = header + content + footer

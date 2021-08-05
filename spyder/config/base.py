@@ -55,12 +55,17 @@ def get_safe_mode():
 
 def running_under_pytest():
     """
-    Return True if currently running under py.test.
+    Return True if currently running under pytest.
 
     This function is used to do some adjustment for testing. The environment
     variable SPYDER_PYTEST is defined in conftest.py.
     """
     return bool(os.environ.get('SPYDER_PYTEST'))
+
+
+def running_in_ci():
+    """Return True if currently running under CI."""
+    return bool(os.environ.get('CI'))
 
 
 def is_stable_version(version):

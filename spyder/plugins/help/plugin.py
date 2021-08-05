@@ -32,14 +32,7 @@ _ = get_translation('spyder')
 
 class HelpActions:
     # Documentation related
-    SpyderDocumentationAction = "spyder documentation"
-    SpyderDocumentationVideoAction = "spyder_documentation_video_action"
     ShowSpyderTutorialAction = "spyder_tutorial_action"
-
-    # Support related
-    SpyderTroubleshootingAction = "spyder_troubleshooting_action"
-    SpyderSupportAction = "spyder_support_action"
-
 
 
 class Help(SpyderDockablePlugin):
@@ -97,9 +90,6 @@ class Help(SpyderDockablePlugin):
             register_shortcut=False,
         )
 
-        self.shortcuts_available = False
-        self.main_menu_available = False
-
     @on_plugin_available(plugin=Plugins.Console)
     def on_console_available(self):
         widget = self.get_widget()
@@ -134,21 +124,18 @@ class Help(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
-        self.shortcuts_available = True
 
         # See: spyder-ide/spyder#6992
         shortcuts.sig_shortcuts_updated.connect(
             lambda: self.show_intro_message())
 
-        if self.main_menu_available:
+        if self.is_plugin_available(Plugins.MainMenu):
             self._setup_menus()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        self.main_menu_available = True
-
         if self.is_plugin_enabled(Plugins.Shortcuts):
-            if self.shortcuts_available:
+            if self.is_plugin_available(Plugins.Shortcuts):
                 self._setup_menus()
         else:
             self._setup_menus()

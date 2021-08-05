@@ -180,6 +180,10 @@ class MainWindow(QMainWindow):
         """Determine if a given plugin is going to be loaded."""
         return PLUGIN_REGISTRY.is_plugin_enabled(plugin_name)
 
+    def is_plugin_available(self, plugin_name):
+        """Determine if a given plugin is going to be loaded."""
+        return PLUGIN_REGISTRY.is_plugin_available(plugin_name)
+
     def show_status_message(self, message, timeout):
         """
         Show a status message in Spyder Main Window.
@@ -1042,8 +1046,7 @@ class MainWindow(QMainWindow):
             _("PYTHONPATH manager"),
             None, icon=ima.icon('pythonpath'),
             triggered=self.show_path_manager,
-            tip=_("PYTHONPATH manager"),
-            menurole=QAction.ApplicationSpecificRole)
+            tip=_("PYTHONPATH manager"))
         from spyder.plugins.application.plugin import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None

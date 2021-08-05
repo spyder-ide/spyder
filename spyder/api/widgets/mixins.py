@@ -289,7 +289,7 @@ class SpyderMenuMixin:
         ------
         KeyError
             If either of `name`, `context` or `plugin` keys do not exist in the
-            toolbar registry.
+            menu registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -351,7 +351,7 @@ class SpyderActionMixin:
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
                       register_shortcut=False, section=None, option=None,
                       parent=None, register_action=True, overwrite=False,
-                      context_name=None):
+                      context_name=None, menurole=None):
         """
         name: str
             unique identifiable name for the action
@@ -400,7 +400,9 @@ class SpyderActionMixin:
             Name of the context that holds the action in case of registration.
             The combination of `name` and `context_name` is unique so trying
             to register an action with the same `name` and `context_name` will
-            cause a warning unless `overwrite` is set to `True`
+            cause a warning unless `overwrite` is set to `True`.
+        menurole: QAction.MenuRole, optional
+            Menu role for the action (it only has effect on macOS).
 
         Notes
         -----
@@ -444,7 +446,8 @@ class SpyderActionMixin:
             context_name=(
                 self.CONTEXT_NAME if context_name is None else context_name),
             register_action=register_action,
-            overwrite=overwrite
+            overwrite=overwrite,
+            menurole=menurole
         )
         action.name = name
         if icon_text:
@@ -495,7 +498,7 @@ class SpyderActionMixin:
         ------
         KeyError
             If either of `name`, `context` or `plugin` keys do not exist in the
-            toolbar registry.
+            action registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context

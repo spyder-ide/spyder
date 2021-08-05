@@ -383,7 +383,8 @@ class PythonLSPServer(MethodDispatcher):
         return self.signature_help(textDocument['uri'], position)
 
     def m_workspace__did_change_configuration(self, settings=None):
-        self.config.update((settings or {}).get('pylsp', {}))
+        if self.config is not None:
+            self.config.update((settings or {}).get('pylsp', {}))
         for workspace in self.workspaces.values():
             workspace.update_config(settings)
             for doc_uri in workspace.documents:

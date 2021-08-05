@@ -15,6 +15,7 @@ communicate with a v3.0 Language Server Protocol server.
 import logging
 import os
 import os.path as osp
+import pathlib
 import signal
 import sys
 import time
@@ -26,8 +27,9 @@ import zmq
 import psutil
 
 # Local imports
-from spyder.config.base import (DEV, get_conf_path, get_debug_level,
-                                running_under_pytest)
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.config.base import (
+    DEV, get_conf_path, get_debug_level, running_in_ci, running_under_pytest)
 from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
     TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
@@ -38,14 +40,8 @@ from spyder.plugins.completion.providers.languageserver.transport import (
     MessageKind)
 from spyder.plugins.completion.providers.languageserver.providers import (
     LSPMethodProviderMixIn)
-from spyder.py3compat import PY2
 from spyder.utils.misc import getcwd_or_home, select_port
 
-# Conditional imports
-if PY2:
-    import pathlib2 as pathlib
-else:
-    import pathlib
 
 # Main constants
 LOCATION = osp.realpath(osp.join(os.getcwd(),
@@ -63,7 +59,7 @@ logger = logging.getLogger(__name__)
 
 
 @class_register
-class LSPClient(QObject, LSPMethodProviderMixIn):
+class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     """Language Server Protocol v3.0 client implementation."""
     #: Signal to inform the editor plugin that the client has
     #  started properly and it's ready to be used.
@@ -161,6 +157,26 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             os.makedirs(osp.dirname(location))
 
         return location
+
+    def _clean_sys_path(self):
+        """
+        Remove from sys.path entries that come from our config system.
+
+        They will be passed to the server in the extra_paths option
+        and are not needed for the transport layer.
+        """
+        spyder_pythonpath = self.get_conf(
+            'spyder_pythonpath',
+            section='main',
+            default=[]
+        )
+
+        sys_path = sys.path[:]
+        for path in spyder_pythonpath:
+            if path in sys_path:
+                sys_path.remove(path)
+
+        return sys_path
 
     @property
     def server_log_file(self):
@@ -262,10 +278,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         env = self.server.processEnvironment()
 
         # Use local PyLS instead of site-packages one.
-        if DEV or running_under_pytest():
-            running_in_ci = bool(os.environ.get('CI'))
-            if os.name != 'nt' or os.name == 'nt' and not running_in_ci:
-                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+        if (DEV or running_under_pytest()) and not running_in_ci():
+            sys_path = self._clean_sys_path()
+            env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
 
         # Adjustments for the Python language server.
         if self.language == 'python':
@@ -325,11 +340,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         # Modifying PYTHONPATH to run transport in development mode or
         # tests
-        if DEV or running_under_pytest():
+        if (DEV or running_under_pytest()) and not running_in_ci():
+            sys_path = self._clean_sys_path()
             if running_under_pytest():
-                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+                env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
             else:
-                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[1:])
+                env.insert('PYTHONPATH', os.pathsep.join(sys_path)[1:])
             self.transport.setProcessEnvironment(env)
 
         # Set up transport
@@ -431,6 +447,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def send(self, method, params, kind):
         """Send message to transport."""
         if self.is_down():
+            return
+
+        # Don't send requests to the server before it's been initialized.
+        if not self.initialized and method != 'initialize':
             return
 
         if ClientConstants.CANCEL in params:

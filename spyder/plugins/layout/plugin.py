@@ -126,7 +126,8 @@ class Layout(SpyderPluginV2):
             mainmenu.add_item_to_application_menu(
                 layout_item,
                 menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.Layout)
+                section=ViewMenuSections.Layout,
+                before_section=ViewMenuSections.Bottom)
         # Add fullscreen action to View application menu
         mainmenu.add_item_to_application_menu(
             container._fullscreen_action,

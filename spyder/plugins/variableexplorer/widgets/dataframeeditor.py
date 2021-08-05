@@ -749,7 +749,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
         """Get the information to put in the header."""
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return Qt.AlignCenter | Qt.AlignBottom
+                return Qt.AlignCenter
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
@@ -841,7 +841,7 @@ class DataFrameLevelModel(QAbstractTableModel):
         """
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return Qt.AlignCenter | Qt.AlignBottom
+                return Qt.AlignCenter
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
@@ -889,7 +889,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -909,9 +910,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         self.layout = QGridLayout()
         self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setContentsMargins(20, 20, 20, 0)
         self.setLayout(self.layout)
-        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:
@@ -959,14 +959,16 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(5)
 
-        btn = QPushButton(_("Format"))
+        btn_format = QPushButton(_("Format"))
         # disable format button for int type
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.change_format)
-        btn = QPushButton(_('Resize'))
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.resize_to_contents)
+        btn_layout.addWidget(btn_format)
+        btn_format.clicked.connect(self.change_format)
+
+        btn_resize = QPushButton(_('Resize'))
+        btn_layout.addWidget(btn_resize)
+        btn_resize.clicked.connect(self.resize_to_contents)
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
@@ -994,7 +996,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
-        btn_layout.setContentsMargins(4, 4, 4, 4)
+        btn_layout.setContentsMargins(0, 16, 0, 16)
         self.layout.addLayout(btn_layout, 4, 0, 1, 2)
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()

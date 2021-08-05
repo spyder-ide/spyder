@@ -224,6 +224,13 @@ class CompletionPlugin(SpyderPluginV2):
         # Timeout limit for a response to be received
         self.wait_for_ms = self.get_conf('completions_wait_for_ms')
 
+        # Save application menus to create if/when MainMenu is available.
+        self.application_menus_to_create = []
+
+        # Save items to add to application menus if/when MainMenu is
+        # available.
+        self.items_to_add_to_application_menus = []
+
         # Find and instantiate all completion providers registered via
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
@@ -284,6 +291,18 @@ class CompletionPlugin(SpyderPluginV2):
         self.statusbar = self.get_plugin(Plugins.StatusBar)
         for sb in container.all_statusbar_widgets():
             self.statusbar.add_status_widget(sb)
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_mainmenu_available(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+
+        # Create requested application menus.
+        for args, kwargs in self.application_menus_to_create:
+            main_menu.create_application_menu(*args, **kwargs)
+
+        # Add items to application menus.
+        for args, kwargs in self.items_to_add_to_application_menus:
+            main_menu.add_item_to_application_menu(*args, **kwargs)
 
     def unregister(self):
         """Stop all running completion providers."""
@@ -862,6 +881,8 @@ class CompletionPlugin(SpyderPluginV2):
         return container.create_action(*args, **kwargs)
 
     def get_application_menu(self, *args, **kwargs):
+        # TODO: Check if this method makes sense with the new plugin
+        # registration mechanism.
         main_menu = self.get_plugin(Plugins.MainMenu)
         if main_menu:
             return main_menu.get_application_menu(*args, **kwargs)
@@ -871,18 +892,14 @@ class CompletionPlugin(SpyderPluginV2):
         return container.get_menu(*args, **kwargs)
 
     def create_application_menu(self, *args, **kwargs):
-        main_menu = self.get_plugin(Plugins.MainMenu)
-        if main_menu:
-            return main_menu.create_application_menu(*args, **kwargs)
+        self.application_menus_to_create.append((args, kwargs))
 
     def create_menu(self, *args, **kwargs):
         container = self.get_container()
         return container.create_menu(*args, **kwargs)
 
     def add_item_to_application_menu(self, *args, **kwargs):
-        main_menu = self.get_plugin(Plugins.MainMenu)
-        if main_menu:
-            main_menu.add_item_to_application_menu(*args, **kwargs)
+        self.items_to_add_to_application_menus.append((args, kwargs))
 
     def add_item_to_menu(self, *args, **kwargs):
         container = self.get_container()

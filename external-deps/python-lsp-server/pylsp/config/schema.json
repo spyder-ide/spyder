@@ -14,6 +14,56 @@
       },
       "uniqueItems": true
     },
+    "pylsp.plugins.flake8.config": {
+      "type": "string",
+      "default": null,
+      "description": "Path to the config file that will be the authoritative config source."
+    },
+    "pylsp.plugins.flake8.enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable or disable the plugin."
+    },
+    "pylsp.plugins.flake8.exclude": {
+      "type": "array",
+      "default": null,
+      "description": "List of files or directories to exclude."
+    },
+    "pylsp.plugins.flake8.executable": {
+      "type": "string",
+      "default": "flake8",
+      "description": "Path to the flake8 executable."
+    },
+    "pylsp.plugins.flake8.filename": {
+      "type": "string",
+      "default": null,
+      "description": "Only check for filenames matching the patterns in this list."
+    },
+    "pylsp.plugins.flake8.hangClosing": {
+      "type": "boolean",
+      "default": null,
+      "description": "Hang closing bracket instead of matching indentation of opening bracket's line."
+    },
+    "pylsp.plugins.flake8.ignore": {
+      "type": "array",
+      "default": null,
+      "description": "List of errors and warnings to ignore (or skip)."
+    },
+    "pylsp.plugins.flake8.maxLineLength": {
+      "type": "integer",
+      "default": null,
+      "description": "Maximum allowed line length for the entirety of this run."
+    },
+    "pylsp.plugins.flake8.perFileIgnores": {
+      "type": "array",
+      "default": null,
+      "description": "A pairing of filenames and violation codes that defines which violations to ignore in a particular file, for example: `[\"file_path.py:W305,W304\"]`)."
+    },
+    "pylsp.plugins.flake8.select": {
+      "type": "array",
+      "default": null,
+      "description": "List of errors and warnings to enable."
+    },
     "pylsp.plugins.jedi.extra_paths": {
       "type": "array",
       "default": [],
@@ -106,6 +156,11 @@
       "type": "boolean",
       "default": true,
       "description": "If True lists the names of all scopes instead of only the module namespace."
+    },
+    "pylsp.plugins.jedi_symbols.include_import_symbols": {
+      "type": "boolean",
+      "default": true,
+      "description": "If True includes symbols imported from other libraries."
     },
     "pylsp.plugins.mccabe.enabled": {
       "type": "boolean",

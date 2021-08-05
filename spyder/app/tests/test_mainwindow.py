@@ -247,25 +247,52 @@ def main_window(request, tmpdir):
 
     if preload_project:
         # Create project
-        project_path = str(tmpdir.mkdir('test_project'))
-        project = EmptyProject(project_path)
+        project = tmpdir.mkdir('test_project')
+        project_subdir = project.mkdir('subdir')
+
+        # Create directories out of the project
+        out_of_project_1 = tmpdir.mkdir('out_of_project_1')
+        out_of_project_2 = tmpdir.mkdir('out_of_project_2')
+        out_of_project_1_subdir = out_of_project_1.mkdir('subdir')
+        out_of_project_2_subdir = out_of_project_2.mkdir('subdir')
+
+        project_path = str(project)
+        spy_project = EmptyProject(project_path)
         CONF.set('project_explorer', 'current_project_path', project_path)
 
-        # Add some files to project
-        filenames = [
-            osp.join(project_path, f) for f in
-            ['file1.py', 'file2.py', 'file3.txt']
-        ]
+        # Add some files to project. This is necessary to test that we get
+        # symgbols for all these files.
+        abs_filenames = []
+        filenames_to_create = {
+            project: ['file1.py', 'file2.py', 'file3.txt', '__init__.py'],
+            project_subdir: ['a.py', '__init__.py'],
+            out_of_project_1: ['b.py'],
+            out_of_project_2: ['c.py', '__init__.py'],
+            out_of_project_1_subdir: ['d.py', '__init__.py'],
+            out_of_project_2_subdir: ['e.py']
+        }
 
-        for filename in filenames:
-            with open(filename, 'w') as f:
+        for path in filenames_to_create.keys():
+            filenames = filenames_to_create[path]
+            for filename in filenames:
+                f = path.join(filename)
+                abs_filenames.append(str(f))
                 if osp.splitext(filename)[1] == '.py':
-                    f.write("def f(x):\n"
-                            "    return x\n")
+                    code = dedent(
+                        """
+                        from math import cos
+                        from numpy import (
+                           linspace)
+
+                        def f(x):
+                            return x
+                        """
+                    )
+                    f.write(code)
                 else:
                     f.write("Hello world!")
 
-        project.set_recent_files(filenames)
+        spy_project.set_recent_files(abs_filenames)
     else:
         CONF.set('project_explorer', 'current_project_path', None)
 
@@ -3816,7 +3843,8 @@ def test_tour_message(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
 def test_update_outline(main_window, qtbot, tmpdir):
     """
     Test that files in the Outline pane are updated at startup and
@@ -3834,12 +3862,12 @@ def test_update_outline(main_window, qtbot, tmpdir):
     ]
 
     # Wait a bit for trees to be filled
-    qtbot.wait(5000)
+    qtbot.wait(20000)
 
     # Assert all Python editors are filled
     assert all(
         [
-            len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+            len(treewidget.editor_tree_cache[editor.get_id()]) == 1
             for editor in editors_py
         ]
     )

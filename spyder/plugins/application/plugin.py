@@ -54,21 +54,16 @@ class Application(SpyderPluginV2):
         return _('Provide main application base actions.')
 
     def on_initialize(self):
-        self.console_available = False
-        self.main_menu_available = False
-        self.shortcuts_available = False
+        pass
 
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
-        self.shortcuts_available = True
-        if self.main_menu_available:
+        if self.is_plugin_available(Plugins.MainMenu):
             self._populate_help_menu()
 
     @on_plugin_available(plugin=Plugins.Console)
     def on_console_available(self):
-        self.console_available = True
-
-        if self.main_menu_available:
+        if self.is_plugin_available(Plugins.MainMenu):
             report_action = self.get_action(ConsoleActions.SpyderReportAction)
             report_action.setVisible(True)
 
@@ -81,13 +76,12 @@ class Application(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
-        self.main_menu_available = True
 
         self._populate_file_menu()
         self._populate_tools_menu()
 
         if self.is_plugin_enabled(Plugins.Shortcuts):
-            if self.shortcuts_available:
+            if self.is_plugin_available(Plugins.Shortcuts):
                 self._populate_help_menu()
         else:
             self._populate_help_menu()
@@ -102,7 +96,7 @@ class Application(SpyderPluginV2):
             icon=self.create_icon('bug'),
             triggered=self.report_issue)
 
-        if not self.console_available:
+        if not self.is_plugin_available(Plugins.Console):
             report_action.setVisible(False)
 
         main_menu.add_item_to_application_menu(
@@ -131,66 +125,64 @@ class Application(SpyderPluginV2):
     # ------------------------------------------------------------------------
     def _populate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        if mainmenu:
-            mainmenu.add_item_to_application_menu(
-                self.restart_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Restart)
+        mainmenu.add_item_to_application_menu(
+            self.restart_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Restart)
 
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        if mainmenu:
-            if WinUserEnvDialog is not None:
-                mainmenu.add_item_to_application_menu(
-                    self.winenv_action,
-                    menu_id=ApplicationMenus.Tools,
-                    section=ToolsMenuSections.Tools)
+        if WinUserEnvDialog is not None:
+            mainmenu.add_item_to_application_menu(
+                self.winenv_action,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Tools)
 
     def _populate_help_menu(self):
         """Add base actions and menus to the Help menu."""
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        self._populate_help_menu_documentation_section(mainmenu)
-        self._populate_help_menu_support_section(mainmenu)
-        self._populate_help_menu_about_section(mainmenu)
+        self._populate_help_menu_documentation_section()
+        self._populate_help_menu_support_section()
+        self._populate_help_menu_about_section()
 
-    def _populate_help_menu_documentation_section(self, mainmenu):
+    def _populate_help_menu_documentation_section(self):
         """Add base Spyder documentation actions to the Help main menu."""
-        if mainmenu:
-            shortcuts = self.get_plugin(Plugins.Shortcuts)
-            shortcuts_summary_action = None
-            if shortcuts:
-                from spyder.plugins.shortcuts.plugin import ShortcutActions
-                shortcuts_summary_action = shortcuts.get_action(
-                    ShortcutActions.ShortcutSummaryAction)
-            for documentation_action in [
-                    self.documentation_action, self.video_action]:
-                mainmenu.add_item_to_application_menu(
-                    documentation_action,
-                    menu_id=ApplicationMenus.Help,
-                    section=HelpMenuSections.Documentation,
-                    before=shortcuts_summary_action,
-                    before_section=HelpMenuSections.Support)
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
+        shortcuts_summary_action = None
 
-    def _populate_help_menu_support_section(self, mainmenu):
-        """Add Spyder base support actions to the Help main menu."""
-        if mainmenu:
-            for support_action in [
-                    self.trouble_action, self.dependencies_action,
-                    self.check_updates_action, self.support_group_action]:
-                mainmenu.add_item_to_application_menu(
-                    support_action,
-                    menu_id=ApplicationMenus.Help,
-                    section=HelpMenuSections.Support,
-                    before_section=HelpMenuSections.ExternalDocumentation)
-
-    def _populate_help_menu_about_section(self, mainmenu):
-        """Create Spyder base about actions."""
-        if mainmenu:
+        if shortcuts:
+            from spyder.plugins.shortcuts.plugin import ShortcutActions
+            shortcuts_summary_action = shortcuts.get_action(
+                ShortcutActions.ShortcutSummaryAction)
+        for documentation_action in [
+                self.documentation_action, self.video_action]:
             mainmenu.add_item_to_application_menu(
-                self.about_action,
+                documentation_action,
                 menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.About)
+                section=HelpMenuSections.Documentation,
+                before=shortcuts_summary_action,
+                before_section=HelpMenuSections.Support)
+
+    def _populate_help_menu_support_section(self):
+        """Add Spyder base support actions to the Help main menu."""
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for support_action in [
+                self.trouble_action, self.dependencies_action,
+                self.check_updates_action, self.support_group_action]:
+            mainmenu.add_item_to_application_menu(
+                support_action,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Support,
+                before_section=HelpMenuSections.ExternalDocumentation)
+
+    def _populate_help_menu_about_section(self):
+        """Create Spyder base about actions."""
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.add_item_to_application_menu(
+            self.about_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.About)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -225,7 +217,7 @@ class Application(SpyderPluginV2):
         return menu
 
     def report_issue(self):
-        if self.console_available:
+        if self.is_plugin_available(Plugins.Console):
             console = self.get_plugin(Plugins.Console)
             console.report_issue()
 

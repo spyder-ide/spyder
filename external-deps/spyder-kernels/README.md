@@ -13,10 +13,10 @@ Python session, and allow for interactive or file-based execution of Python
 code inside Spyder.
 
 To learn about creating, connecting to and using these kernels with the Spyder
-console, please read our [documentation](https://docs.spyder-ide.org/ipythonconsole.html).
+console, please read our [documentation](https://docs.spyder-ide.org/current/panes/ipythonconsole.html).
 
-For advice on managing packages and environments with `spyder-kernels`, please visit
-our [wiki](https://github.com/spyder-ide/spyder/wiki/Working-with-packages-and-environments-in-Spyder).
+For advice on managing packages and environments with `spyder-kernels`, please read this
+[FAQ](http://docs.spyder-ide.org/current/faq.html#using-existing-environment) in our docs.
 
 
 ## Installation

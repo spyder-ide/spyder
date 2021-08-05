@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 @hookimpl
 def pylsp_hover(document, position):
     code_position = _utils.position_to_jedi_linecolumn(document, position)
-    definitions = document.jedi_script().infer(**code_position)
+    definitions = document.jedi_script(use_document_path=True).infer(**code_position)
     word = document.word_at_position(position)
 
     # Find first exact matching definition

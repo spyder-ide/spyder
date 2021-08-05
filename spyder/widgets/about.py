@@ -13,7 +13,8 @@ import sys
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QVBoxLayout, QLabel, QPushButton, )
+                            QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
+                            QScrollArea, QTabWidget, QWidget)
 
 # Local imports
 from spyder import (__project_url__, __forum_url__,
@@ -21,6 +22,8 @@ from spyder import (__project_url__, __forum_url__,
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import APP_STYLESHEET, DialogStyle
 
 
 class AboutDialog(QDialog):
@@ -36,33 +39,65 @@ class AboutDialog(QDialog):
         if versions['revision']:
             rev = versions['revision']
             revlink = " (<a href='https://github.com/spyder-ide/spyder/" \
-                      "commit/%s'>Commit: %s</a>)" % (rev, rev)
+                      "commit/%s'>Commit: <br> %s</a>)" % (rev, rev)
 
         # Get current font properties
         font = self.font()
         font_family = font.family()
-        font_size = font.pointSize()
-        if sys.platform == 'darwin':
-            font_size -= 2
-
-        self.label = QLabel((
+        buttons_padding = DialogStyle.ButtonsPadding
+        buttons_font_size = DialogStyle.ButtonsFontSize
+        font_size = DialogStyle.ContentFontSize
+        dialog_background_color = QStylePalette.COLOR_BACKGROUND_2
+        self.label_overview = QLabel((
             """
             <div style='font-family: "{font_family}";
-                        font-size: {font_size}pt;
+                        font-size: {font_size};
                         font-weight: normal;
                         '>
-            <p>
-            <b>Spyder {spyder_ver}</b> {revision}
             <br>
+            <p>
+            <b> Spyder IDE</b>
+            <br> <br>
             The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
             <br>
-            Copyright &copy; 2009-2020 Spyder Project Contributors and
-            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
-            <br>
-            Distributed under the terms of the
-            <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
+            <p>
+            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
+            {qt_api} {qt_api_ver} | {os_name} {os_ver}
             </p>
+            <br> <br>
+            <a href="{github_url}">GitHub </a>| <a href="{twitter_url}">
+            Twitter </a>|
+            <a href="{facebook_url}">Facebook </a>| <a href="{youtube_url}">
+            YouTube </a>|
+            <a href="{instagram_url}">Instagram </a>
+
+            </div>""").format(
+                website_url=__website_url__,
+                github_url=__project_url__,
+                twitter_url="https://twitter.com/Spyder_IDE",
+                facebook_url="https://www.facebook.com/SpyderIDE",
+                youtube_url="https://www.youtube.com/Spyder-IDE",
+                instagram_url="https://www.instagram.com/spyderide/",
+                python_ver=versions['python'],
+                bitness=versions['bitness'],
+                qt_ver=versions['qt'],
+                qt_api=versions['qt_api'],
+                qt_api_ver=versions['qt_api_ver'],
+                os_name=versions['system'],
+                os_ver=versions['release'],
+                font_family=font_family,
+                font_size=font_size,
+            )
+        )
+
+        self.label_community = QLabel((
+            """
+            <div style='font-family: "{font_family}";
+                        font-size: {font_size};
+                        font-weight: normal;
+                        '>
+            <br>
             <p>
             Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
             Developed by the
@@ -85,11 +120,28 @@ class AboutDialog(QDialog):
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
             </p>
+            </div>""").format(
+                github_url=__project_url__,
+                trouble_url=__trouble_url__,
+                forum_url=__forum_url__,
+                font_family=font_family,
+                font_size=font_size,
+            ))
+        self.label_legal = QLabel((
+            """
+            <div style='font-family: "{font_family}";
+                        font-size: {font_size};
+                        font-weight: normal;
+                        '>
+            <br>
             <p>
-            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
-            {qt_api} {qt_api_ver} | {os_name} {os_ver}
+            Copyright &copy; 2009-2020 Spyder Project Contributors and
+            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
+            Distributed under the terms of the
+            <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
             </p>
-            <p><small>Certain source files under other compatible permissive
+            <p>
+            <p>Certain source files under other compatible permissive
             licenses and/or originally by other authors.
             Spyder 3 theme icons derived from
             <a href="https://fontawesome.com/">Font Awesome</a> 4.7
@@ -105,7 +157,15 @@ class AboutDialog(QDialog):
             the <a href="http://www.famfamfam.com/lab/icons/silk/">FamFamFam
             Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
             the <a href="https://www.kde.org/">KDE Oxygen icons</a>
-            (&copy; 2007 KDE Artists; LGPL 3.0+).</small>
+            (&copy; 2007 KDE Artists; LGPL 3.0+).
+            </p>
+            <p>
+            Splash screen photo by
+            <a href="https://unsplash.com/@benchaccounting?utm_source=
+            unsplash&utm_medium=referral&utm_content=creditCopyText">Bench
+            Accounting</a> on <a href="https://unsplash.com/?utm_source=
+            unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash
+            </a>
             </p>
             <p>
             See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
@@ -113,62 +173,115 @@ class AboutDialog(QDialog):
             </p>
             </div>
             """).format(
-                spyder_ver=versions['spyder'],
-                revision=revlink,
-                website_url=__website_url__,
                 github_url=__project_url__,
-                trouble_url=__trouble_url__,
-                forum_url=__forum_url__,
-                python_ver=versions['python'],
-                bitness=versions['bitness'],
-                qt_ver=versions['qt'],
-                qt_api=versions['qt_api'],
-                qt_api_ver=versions['qt_api_ver'],
-                os_name=versions['system'],
-                os_ver=versions['release'],
                 font_family=font_family,
                 font_size=font_size,
             )
         )
-        self.label.setWordWrap(True)
-        self.label.setAlignment(Qt.AlignTop)
-        self.label.setOpenExternalLinks(True)
-        self.label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.label.setFixedWidth(350)
+
+        for label in [self.label_overview, self.label_community,
+                      self.label_legal]:
+            label.setWordWrap(True)
+            label.setAlignment(Qt.AlignTop)
+            label.setOpenExternalLinks(True)
+            label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            label.setContentsMargins(15, 0, 25, 0)
 
         icon_filename = "spyder_about"
         pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
         self.label_pic.setPixmap(
-            pixmap.scaledToWidth(64, Qt.SmoothTransformation))
-        self.label_pic.setAlignment(Qt.AlignTop)
+            pixmap.scaledToWidth(100, Qt.SmoothTransformation))
+        self.label_pic.setAlignment(Qt.AlignBottom)
+        self.info = QLabel((
+            """
+            <div style='font-family: "{font_family}";
+                font-size: {font_size};
+                font-weight: normal;
+                '>
+            <p>
+            <b>Spyder IDE</b>
+            <br>{spyder_ver}
+            <br> {revision}
+            <br> """).format(
+            spyder_ver=versions['spyder'],
+            revision=revlink,
+            font_family=font_family,
+            font_size=font_size))
+        self.info.setAlignment(Qt.AlignHCenter)
 
-        btn = QPushButton(_("Copy to clipboard"), )
+        btn = QPushButton(_("Copy version info"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        bbox.setStyleSheet(
+           f"font-size: {buttons_font_size};"
+           f"padding: {buttons_padding}"
+         )
+        btn.setStyleSheet(
+           f"font-size: {buttons_font_size};"
+           f"padding: {buttons_padding}"
+         )
 
         # Widget setup
         self.setWindowIcon(ima.icon('MessageBoxInformation'))
         self.setModal(False)
 
         # Layout
-        tophlayout = QHBoxLayout()
-        tophlayout.addWidget(self.label_pic)
-        tophlayout.addWidget(self.label)
+        piclayout = QVBoxLayout()
+        piclayout.addWidget(self.label_pic)
+        piclayout.addWidget(self.info)
+        piclayout.setContentsMargins(20, 0, 15, 0)
+
+        scroll_overview = QScrollArea(self)
+        scroll_overview.setWidgetResizable(True)
+        scroll_overview.setWidget(self.label_overview)
+
+        scroll_community = QScrollArea(self)
+        scroll_community.setWidgetResizable(True)
+        scroll_community.setWidget(self.label_community)
+
+        scroll_legal = QScrollArea(self)
+        scroll_legal.setWidgetResizable(True)
+        scroll_legal.setWidget(self.label_legal)
+
+        self.tabs = QTabWidget()
+        self.tabs.addTab(scroll_overview, _('Overview'))
+        self.tabs.addTab(scroll_community, _('Community'))
+        self.tabs.addTab(scroll_legal, _('Legal'))
+        self.tabs.setStyleSheet(
+            f"background-color: {dialog_background_color}")
+        tabslayout = QHBoxLayout()
+        tabslayout.addWidget(self.tabs)
+        tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
+        tabslayout.setContentsMargins(0, 15, 15, 0)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addWidget(btn)
-        btmhlayout.addStretch()
         btmhlayout.addWidget(bbox)
+        btmhlayout.setContentsMargins(100, 20, 0, 20)
+        btmhlayout.addStretch()
 
-        vlayout = QVBoxLayout(self)
-        vlayout.addLayout(tophlayout)
-        vlayout.addSpacing(25)
+        vlayout = QVBoxLayout()
+        vlayout.addLayout(tabslayout)
         vlayout.addLayout(btmhlayout)
         vlayout.setSizeConstraint(vlayout.SetFixedSize)
+
+        mainlayout = QHBoxLayout(self)
+        mainlayout.addLayout(piclayout)
+        mainlayout.addLayout(vlayout)
 
         # Signals
         btn.clicked.connect(self.copy_to_clipboard)
         bbox.accepted.connect(self.accept)
+
+        # Size
+        self.resize(550, 430)
+
+        # Style
+        css = APP_STYLESHEET.get_copy()
+        css = css.get_stylesheet()
+        css.QDialog.setValues(backgroundColor=dialog_background_color)
+        css.QLabel.setValues(backgroundColor=dialog_background_color)
+        self.setStyleSheet(str(css))
 
     def copy_to_clipboard(self):
         versions = get_versions()

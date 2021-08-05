@@ -4,6 +4,16 @@ This server can be configured using `workspace/didChangeConfiguration` method. E
 | **Configuration Key** | **Type** | **Description** | **Default** 
 |----|----|----|----|
 | `pylsp.configurationSources` | `array`  of unique `string` items | List of configuration sources to use. | `["pycodestyle"]` |
+| `pylsp.plugins.flake8.config` | `string` | Path to the config file that will be the authoritative config source. | `null` |
+| `pylsp.plugins.flake8.enabled` | `boolean` | Enable or disable the plugin. | `false` |
+| `pylsp.plugins.flake8.exclude` | `array`  | List of files or directories to exclude. | `null` |
+| `pylsp.plugins.flake8.executable` | `string` | Path to the flake8 executable. | `"flake8"` |
+| `pylsp.plugins.flake8.filename` | `string` | Only check for filenames matching the patterns in this list. | `null` |
+| `pylsp.plugins.flake8.hangClosing` | `boolean` | Hang closing bracket instead of matching indentation of opening bracket's line. | `null` |
+| `pylsp.plugins.flake8.ignore` | `array`  | List of errors and warnings to ignore (or skip). | `null` |
+| `pylsp.plugins.flake8.maxLineLength` | `integer` | Maximum allowed line length for the entirety of this run. | `null` |
+| `pylsp.plugins.flake8.perFileIgnores` | `array`  | A pairing of filenames and violation codes that defines which violations to ignore in a particular file, for example: `["file_path.py:W305,W304"]`). | `null` |
+| `pylsp.plugins.flake8.select` | `array`  | List of errors and warnings to enable. | `null` |
 | `pylsp.plugins.jedi.extra_paths` | `array`  | Define extra paths for jedi.Script. | `[]` |
 | `pylsp.plugins.jedi.env_vars` | `object` | Define environment variables for jedi.Script and Jedi.names. | `null` |
 | `pylsp.plugins.jedi.environment` | `string` | Define environment for jedi.Script and Jedi.names. | `null` |
@@ -22,6 +32,7 @@ This server can be configured using `workspace/didChangeConfiguration` method. E
 | `pylsp.plugins.jedi_signature_help.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_symbols.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_symbols.all_scopes` | `boolean` | If True lists the names of all scopes instead of only the module namespace. | `true` |
+| `pylsp.plugins.jedi_symbols.include_import_symbols` | `boolean` | If True includes symbols imported from other libraries. | `true` |
 | `pylsp.plugins.mccabe.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.mccabe.threshold` | `number`  | The minimum threshold that triggers warnings about cyclomatic complexity. | `15` |
 | `pylsp.plugins.preload.enabled` | `boolean` | Enable or disable the plugin. | `true` |

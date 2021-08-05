@@ -7,6 +7,7 @@ import multiprocessing
 import sys
 from threading import Thread
 
+from flaky import flaky
 from pylsp_jsonrpc.exceptions import JsonRpcMethodNotFound
 import pytest
 
@@ -75,6 +76,8 @@ def client_exited_server():
     assert client_server_pair.process.is_alive() is False
 
 
+@flaky(max_runs=10, min_passes=1)
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Too flaky on Mac')
 def test_initialize(client_server):  # pylint: disable=redefined-outer-name
     response = client_server._endpoint.request('initialize', {
         'rootPath': os.path.dirname(__file__),

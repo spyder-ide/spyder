@@ -19,28 +19,46 @@ def pylsp_document_symbols(config, document):
     symbols_settings = config.plugin_settings('jedi_symbols')
     all_scopes = symbols_settings.get('all_scopes', True)
     add_import_symbols = symbols_settings.get('include_import_symbols', True)
-
-    use_document_path = False
-    document_dir = os.path.normpath(os.path.dirname(document.path))
-    if not os.path.isfile(os.path.join(document_dir, '__init__.py')):
-        use_document_path = True
-
-    definitions = document.jedi_names(use_document_path, all_scopes=all_scopes)
-    module_name = document.dot_path
+    definitions = document.jedi_names(all_scopes=all_scopes)
     symbols = []
     exclude = set({})
     redefinitions = {}
     while definitions != []:
         d = definitions.pop(0)
+
+        # Skip symbols imported from other modules.
         if not add_import_symbols:
+            # Skip if there's an import in the code the symbol is defined.
+            code = d.get_line_code()
+            if ' import ' in code or 'import ' in code:
+                continue
+
+            # Skip comparing module names.
             sym_full_name = d.full_name
+            module_name = document.dot_path
             if sym_full_name is not None:
-                if (not sym_full_name.startswith(module_name) and
-                        not sym_full_name.startswith('__main__')):
-                    continue
+                # module_name returns where the symbol is imported, whereas
+                # full_name says where it really comes from. So if the parent
+                # modules in full_name are not in module_name, it means the
+                # symbol was not defined there.
+                # Note: The last element of sym_full_name is the symbol itself,
+                # so we don't need to use it below.
+                imported_symbol = True
+                for mod in sym_full_name.split('.')[:-1]:
+                    if mod in module_name:
+                        imported_symbol = False
+
+                # When there's no __init__.py next to a file or in one of its
+                # parents, the check above fails. However, Jedi has a nice way
+                # to tell if the symbol was declared in the same file: if
+                # full_name starts by __main__.
+                if imported_symbol:
+                    if not sym_full_name.startswith('__main__'):
+                        continue
+
         try:
             docismodule = os.path.samefile(document.path, d.module_path)
-        except TypeError:
+        except (TypeError, FileNotFoundError):
             # Python 2 on Windows has no .samefile, but then these are
             # strings for sure
             docismodule = document.path == d.module_path

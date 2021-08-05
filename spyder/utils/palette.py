@@ -39,8 +39,8 @@ class SpyderPaletteDark:
 
     # Icon colors
     ICON_1 = Gray.B140
-    ICON_2 = Blue.B70
-    ICON_3 = Green.B60
+    ICON_2 = Blue.B80
+    ICON_3 = Green.B80
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B30
@@ -78,7 +78,6 @@ class SpyderPaletteDark:
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
 
-
 class SpyderPaletteLight:
     """Light palette for Spyder."""
 
@@ -97,8 +96,8 @@ class SpyderPaletteLight:
 
     # Icon colors
     ICON_1 = Gray.B30
-    ICON_2 = Blue.B70
-    ICON_3 = Green.B70
+    ICON_2 = Blue.B50
+    ICON_3 = Green.B30
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B140
@@ -135,7 +134,6 @@ class SpyderPaletteLight:
     SPYDER_LOGO_BACKGROUND = Logos.B30
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
-
 
 # =============================================================================
 # ---- Exported classes
