@@ -35,7 +35,7 @@ from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
@@ -855,8 +855,8 @@ def test_read_stderr(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
-                    reason="It times out on AppVeyor.")
+@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
+                    reason="Times out on Windows")
 @pytest.mark.skipif(PY2, reason="It times out in Python 2.")
 def test_values_dbg(ipyconsole, qtbot):
     """
@@ -1028,8 +1028,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or PYQT5,
-                    reason="It fails frequently in PyQt5 and our CIs")
+@pytest.mark.skipif(running_in_ci(), reason="Fails frequently in CI")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
     Test that Ctrl+C works while debugging

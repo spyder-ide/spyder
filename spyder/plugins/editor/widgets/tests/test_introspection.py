@@ -17,17 +17,12 @@ import sys
 from flaky import flaky
 import pytest
 import pytestqt
-
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
-
-try:
-    from rtree import index
-    rtree_available = True
-except Exception:
-    rtree_available = False
+from rtree import index
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.providers.kite.providers.document import (
@@ -177,7 +172,7 @@ def test_space_completion(completions_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
-@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
+@pytest.mark.skipif(running_in_ci(), reason='Fails on CI!')
 def test_hide_widget_completion(completions_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = completions_codeeditor
@@ -688,10 +683,8 @@ def test_completions(completions_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(not rtree_available or PY2 or os.name == 'nt',
-                    reason='Only works if rtree is installed')
+@pytest.mark.skipif(os.name == 'nt', reason='Fails on Windows')
 def test_code_snippets(completions_codeeditor, qtbot):
-    assert rtree_available
     code_editor, completion_plugin = completions_codeeditor
     completion = code_editor.completion_widget
     snippets = code_editor.editor_extensions.get('SnippetsExtension')
@@ -917,11 +910,9 @@ def test_code_snippets(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif((not rtree_available
-                     or not check_if_kite_installed()
+@pytest.mark.skipif((not check_if_kite_installed()
                      or not check_if_kite_running()),
-                    reason="Only works if rtree is installed."
-                           "It's not meant to be run without kite installed "
+                    reason="It's not meant to be run without kite installed "
                            "and running")
 def test_kite_code_snippets(kite_codeeditor, qtbot):
     """
@@ -929,7 +920,6 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
 
     See spyder-ide/spyder#10971
     """
-    assert rtree_available
     code_editor, kite = kite_codeeditor
     completion = code_editor.completion_widget
     snippets = code_editor.editor_extensions.get('SnippetsExtension')
@@ -1176,8 +1166,7 @@ def spam():
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.environ.get('CI') is None,
-                    reason='Run tests only on CI.')
+@pytest.mark.skipif(not running_in_ci(), reason='Run tests only on CI.')
 @flaky(max_runs=5)
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""

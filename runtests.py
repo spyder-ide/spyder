@@ -25,7 +25,7 @@ import pytest
 
 
 # To run our slow tests only in our CIs
-CI = os.environ.get('CI', None) is not None
+CI = bool(os.environ.get('CI', None))
 RUN_SLOW = os.environ.get('RUN_SLOW', None) == 'true'
 
 
