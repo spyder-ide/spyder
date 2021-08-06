@@ -13,7 +13,6 @@ Holds references for base actions in the Application of Spyder.
 # Standard library imports
 import os
 import sys
-import glob
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
@@ -27,8 +26,7 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.utils import is_anaconda
 from spyder.plugins.console.api import ConsoleActions
-from spyder.config.base import get_conf_path
-from spyder.utils.qthelpers import start_file, DialogManager, add_actions
+from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
@@ -175,20 +173,6 @@ class ApplicationContainer(PluginMainContainer):
         # Debug logs
         self.menu_debug_logs = self.create_menu(
             LogsMenus.DebugLogsMenu, _("Debug logs"))
-        self.menu_debug_logs.aboutToShow.connect(self.update_debug_logs)
-
-    def update_debug_logs(self):
-        """Create an action for each lsp and debug log file."""
-        self.menu_debug_logs.clear()
-        debug_logs = []
-        files = glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
-        files.append(os.environ['SPYDER_DEBUG_FILE'])
-        for f in files:
-            action = self.create_action(
-                f, f, triggered=lambda : None)  # TODO: add triggered
-            action.setData(f)
-            debug_logs.append(action)
-        add_actions(self.menu_debug_logs, debug_logs)
 
     def update_actions(self):
         pass
