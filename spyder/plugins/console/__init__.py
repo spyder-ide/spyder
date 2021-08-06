@@ -13,8 +13,3 @@ spyder.plugins.console
 
 Internal Console Plugin.
 """
-
-from spyder.plugins.console.plugin import Console
-
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [Console]
