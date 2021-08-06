@@ -2740,15 +2740,9 @@ class CodeEditor(TextEditBaseWidget):
             if using_spaces:
                 return ' ' * indent_adjustment + line
             else:
-                # Make sure tab_stop_width_spaces is an int at this point.
-                # Fixes spyder-ide/spyder#16137
-                if not isinstance(self.tab_stop_width_spaces, int):
-                    # Set default value
-                    self.tab_stop_width_spaces = 4
-
                 return (
                     self.indent_chars
-                    * indent_adjustment // self.tab_stop_width_spaces
+                    * (indent_adjustment // self.tab_stop_width_spaces)
                     + line)
 
         max_indent = self.get_line_indentation(line)
