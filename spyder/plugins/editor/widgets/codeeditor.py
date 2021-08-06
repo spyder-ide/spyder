@@ -3655,8 +3655,10 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
-                indent_text = '\t' * (correct_indent // self.tab_stop_width_spaces) \
-                            + ' ' * (correct_indent % self.tab_stop_width_spaces)
+                indent_text = (
+                    '\t' * (correct_indent // self.tab_stop_width_spaces) +
+                    ' ' * (correct_indent % self.tab_stop_width_spaces)
+                )
             else:
                 indent_text = ' '*correct_indent
             cursor.insertText(indent_text)
