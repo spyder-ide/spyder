@@ -22,10 +22,11 @@ from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import DEV, get_module_path, running_under_pytest
+from spyder.config.base import (DEV, get_module_path, get_debug_level,
+                                running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, WinUserEnvDialog)
+    ApplicationActions, ApplicationContainer, WinUserEnvDialog, LogsMenus)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -37,7 +38,8 @@ _ = get_translation('spyder')
 class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts]
+    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
+                Plugins.Editor]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
@@ -127,6 +129,11 @@ class Application(SpyderPluginV2):
                 self.winenv_action,
                 menu_id=ApplicationMenus.Tools,
                 section=ToolsMenuSections.Tools)
+
+        if get_debug_level() >= 2:
+            mainmenu.add_item_to_application_menu(
+                self.debug_logs_menu,
+                menu_id=ApplicationMenus.Tools)
 
     def _populate_help_menu(self):
         """Add base actions and menus to the Help menu."""
@@ -335,3 +342,7 @@ class Application(SpyderPluginV2):
     def report_action(self):
         """Restart Spyder action."""
         return self.get_container().report_action
+
+    @property
+    def debug_logs_menu(self):
+        return self.get_container().get_menu(LogsMenus.DebugLogsMenu)

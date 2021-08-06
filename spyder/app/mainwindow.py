@@ -30,7 +30,6 @@ import os.path as osp
 import shutil
 import signal
 import socket
-import glob
 import sys
 import threading
 import traceback
@@ -69,7 +68,6 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
-from spyder.api.widgets.menus import SpyderMenu
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window,
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
@@ -975,8 +973,7 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('filelist'),
                                     tip=_('Fast switch between files'),
                                     triggered=self.open_switcher,
-                                    context=Qt.ApplicationShortcut,
-                                    id_='file_switcher')
+                                    context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher")
         self.symbol_finder_action = create_action(
@@ -984,8 +981,7 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('symbol_find'),
                                     tip=_('Fast symbol search in file'),
                                     triggered=self.open_symbolfinder,
-                                    context=Qt.ApplicationShortcut,
-                                    id_='symbol_finder')
+                                    context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
 
@@ -1048,28 +1044,19 @@ class MainWindow(QMainWindow):
             _("PYTHONPATH manager"),
             None, icon=ima.icon('pythonpath'),
             triggered=self.show_path_manager,
-            tip=_("PYTHONPATH manager"),
-            id_='spyder_path_action')
+            tip=_("PYTHONPATH manager"))
         from spyder.plugins.application.plugin import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
-            winenv_action = ApplicationActions.SpyderWindowsEnvVariables
+            winenv_action = self.application.get_action(
+                ApplicationActions.SpyderWindowsEnvVariables)
         mainmenu.add_item_to_application_menu(
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
             section=ToolsMenuSections.Tools,
             before=winenv_action
         )
-
-        # Debug logs
-        if get_debug_level() >= 2:
-            self.menu_debug_logs = SpyderMenu(
-                title=_("Debug logs"), menu_id='debug_logs_menu')
-            self.menu_debug_logs.aboutToShow.connect(self.update_debug_logs)
-            mainmenu.add_item_to_application_menu(
-                self.menu_debug_logs,
-                menu_id=ApplicationMenus.Tools)
 
         # Main toolbar
         from spyder.plugins.toolbar.api import (
@@ -1111,18 +1098,6 @@ class MainWindow(QMainWindow):
         except SpyderAPIError:
             pass
         return super().__getattr__(attr)
-
-    def update_debug_logs(self):
-        """Create an action for each lsp and debug log file."""
-        self.menu_debug_logs.clear()
-        debug_logs = []
-        files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
-        files.append(os.environ['SPYDER_DEBUG_FILE'])
-        for f in files:
-            action = create_action(self, f, triggered=self.editor.load)
-            action.setData(f)
-            debug_logs.append(action)
-        add_actions(self.menu_debug_logs, debug_logs)
 
     def pre_visible_setup(self):
         """
