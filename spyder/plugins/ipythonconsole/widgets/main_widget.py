@@ -91,8 +91,8 @@ class IPythonConsoleWidgetActions:
 
     # Variables display
     # TODO: Missing actions to be trigger with shortcut
-    ArrayInline = 'array_iniline_action'
-    ArrayTable = 'array_table_action'
+    ArrayInline = 'enter array inline'
+    ArrayTable = 'enter array table'
 
 
 class IPythonConsoleWidgetOptionsMenus:
@@ -371,6 +371,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             text=_("New console (default settings)"),
             icon=self.create_icon('ipython_console'),
             triggered=self.create_new_client,
+            register_shortcut=True
         )
         self.restart_action = self.create_action(
             IPythonConsoleWidgetActions.Restart,
@@ -433,11 +434,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         )
 
         # Context menu actions
+        # TODO: Check shortcut not working
         self.inspect_action = self.create_action(
             ClientWidgetContextMenuActions.InspectCurrentObject,
             text=_("Inspect current object"),
             icon=self.create_icon('MessageBoxInformation'),
             triggered=self.current_client_inspect_object,
+            parent=self.tabwidget,
             register_shortcut=True)
 
         self.clear_line_action = self.create_action(
@@ -475,6 +478,22 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.clear_console_action, self.reset_action,
             None,
             self.quit_action)
+
+        # Other actions with shortcuts
+        # TODO: Check if enum values should be in the client or in the main widget
+        array_table_action = self.create_action(
+            IPythonConsoleWidgetActions.ArrayTable,
+            text=IPythonConsoleWidgetActions.ArrayTable,
+            shortcut_context='array_builder',
+            triggered=self.current_client_enter_array_table,
+            register_shortcut=True)
+
+        array_inline_action = self.create_action(
+            IPythonConsoleWidgetActions.ArrayInline,
+            text=IPythonConsoleWidgetActions.ArrayInline,
+            triggered=self.current_client_enter_array_inline,
+            shortcut_context='array_builder',
+            register_shortcut=True)
 
         options_menu = self.get_options_menu()
         self.special_console_menu = self.create_menu(
@@ -1818,6 +1837,16 @@ class IPythonConsoleWidget(PluginMainWidget):
         client = self.get_current_client()
         if client:
             client.exit_callback()
+
+    def current_client_enter_array_inline(self):
+        client = self.get_current_client()
+        if client:
+            client.enter_array_inline()
+
+    def current_client_enter_array_table(self):
+        client = self.get_current_client()
+        if client:
+            client.enter_array_table()
 
     # ---- For kernels
     # -------------------------------------------------------------------------

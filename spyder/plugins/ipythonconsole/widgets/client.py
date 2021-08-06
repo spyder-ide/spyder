@@ -697,6 +697,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                                           before_prompt=False)
 
     @Slot()
+    def enter_array_inline(self):
+        """Enter and show the array builder on inline mode."""
+        self.shellwidget._control.enter_array_inline()
+
+    @Slot()
+    def enter_array_table(self):
+        """Enter and show the array builder on table."""
+        self.shellwidget._control.enter_array_table()
+
+    @Slot()
     def inspect_object(self):
         """Show how to inspect an object with our Help plugin"""
         self.shellwidget._control.inspect_current_object()
