@@ -153,7 +153,8 @@ class Application(SpyderPluginV2):
         if get_debug_level() >= 2:
             mainmenu.add_item_to_application_menu(
                 self.debug_logs_menu,
-                menu_id=ApplicationMenus.Tools)
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Extras)
             self.debug_logs_menu.aboutToShow.connect(self.update_debug_logs)
 
     def _populate_help_menu(self):

@@ -1055,7 +1055,8 @@ class MainWindow(QMainWindow):
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
             section=ToolsMenuSections.Tools,
-            before=winenv_action
+            before=winenv_action,
+            before_section=ToolsMenuSections.External
         )
 
         # Main toolbar
