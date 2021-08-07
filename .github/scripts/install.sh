@@ -61,6 +61,11 @@ do
     popd
 done
 
+# Install boilerplate plugin
+pushd spyder/app/tests/spyder-boilerplate
+pip install --no-deps -q -e .
+popd
+
 # Install Spyder to test it as if it was properly installed
 # Note: `python setup.py egg_info` doesn't work here but it
 # does locally.
