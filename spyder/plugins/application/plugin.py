@@ -26,7 +26,6 @@ from spyder.config.base import DEV, get_module_path, running_under_pytest
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
     ApplicationActions, ApplicationContainer, WinUserEnvDialog)
-from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -54,7 +53,8 @@ class Application(SpyderPluginV2):
         return _('Provide main application base actions.')
 
     def on_initialize(self):
-        pass
+        container = self.get_container()
+        container.sig_report_issue_requested.connect(self.report_issue)
 
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
@@ -64,8 +64,7 @@ class Application(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Console)
     def on_console_available(self):
         if self.is_plugin_available(Plugins.MainMenu):
-            report_action = self.get_action(ConsoleActions.SpyderReportAction)
-            report_action.setVisible(True)
+            self.report_action.setVisible(True)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -86,24 +85,8 @@ class Application(SpyderPluginV2):
         else:
             self._populate_help_menu()
 
-        dependencies_action = self.get_action(
-            ApplicationActions.SpyderDependenciesAction)
-
-        # Actions
-        report_action = self.create_action(
-            ConsoleActions.SpyderReportAction,
-            _("Report issue..."),
-            icon=self.create_icon('bug'),
-            triggered=self.report_issue)
-
         if not self.is_plugin_available(Plugins.Console):
-            report_action.setVisible(False)
-
-        main_menu.add_item_to_application_menu(
-            report_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.Support,
-            before=dependencies_action)
+            self.report_action.setVisible(False)
 
     def on_close(self):
         self.get_container().on_close()
@@ -168,8 +151,9 @@ class Application(SpyderPluginV2):
         """Add Spyder base support actions to the Help main menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for support_action in [
-                self.trouble_action, self.dependencies_action,
-                self.check_updates_action, self.support_group_action]:
+                self.trouble_action, self.report_action,
+                self.dependencies_action, self.check_updates_action,
+                self.support_group_action]:
             mainmenu.add_item_to_application_menu(
                 support_action,
                 menu_id=ApplicationMenus.Help,
@@ -337,3 +321,8 @@ class Application(SpyderPluginV2):
     def restart_action(self):
         """Restart Spyder action."""
         return self.get_container().restart_action
+
+    @property
+    def report_action(self):
+        """Restart Spyder action."""
+        return self.get_container().report_action
