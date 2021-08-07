@@ -141,7 +141,6 @@ def register_fake_entrypoints():
     """
     Create entry points distribution to register elements:
      * Completion providers (Fallback, Shippets, LSP)
-     * Puglins (SpyderBoilerplate plugin)
     """
     # Completion providers
     fallback = pkg_resources.EntryPoint.parse(
@@ -157,26 +156,18 @@ def register_fake_entrypoints():
         'LanguageServerProvider'
     )
 
-    # Extra plugins
-    spyder_boilerplate = pkg_resources.EntryPoint.parse(
-        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
-        'plugin:SpyderBoilerplate'
-    )
-
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
 
-    # Add the providers and plugins to the fake EntryPoints
+    # Add the providers to the fake EntryPoints
     d._ep_map = {
         'spyder.completions': {
             'fallback': fallback,
             'snippets': snippets,
             'lsp': lsp
-        },
-        'spyder.plugins': {
-            'spyder_boilerplate': spyder_boilerplate
         }
     }
+
     # Add the fake distribution to the global working_set
     pkg_resources.working_set.add(d, 'spyder')
 
@@ -199,7 +190,8 @@ def remove_fake_entrypoints():
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
-    register_fake_entrypoints()
+    if not running_in_ci():
+        register_fake_entrypoints()
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -343,15 +335,18 @@ def main_window(request, tmpdir):
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request):
     """Cleanup a testing directory once we are finished."""
-    def remove_test_dir():
+    def close_window():
         if hasattr(main_window, 'window'):
             try:
                 main_window.window.close()
             except AttributeError:
                 pass
-        remove_fake_entrypoints()
 
-    request.addfinalizer(remove_test_dir)
+        # Also clean entry points if running locally.
+        if not running_in_ci():
+            remove_fake_entrypoints()
+
+    request.addfinalizer(close_window)
 
 
 # =============================================================================
@@ -2321,6 +2316,7 @@ def test_custom_layouts(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(not running_in_ci(), reason="Only runs in CIs")
 def test_programmatic_custom_layouts(main_window, qtbot):
     """
     Test that a custom layout gets registered and it is recognized."""
