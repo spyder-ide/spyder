@@ -52,6 +52,7 @@ from spyder.app.mainwindow import MainWindow
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
+from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -4159,6 +4160,19 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "                print()\n"
         )
     assert expected in code_editor.toPlainText()
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
+def test_add_external_plugins_to_dependencies(main_window):
+    """Test that we register external plugins in the main window."""
+    external_names = []
+    for dep in DEPENDENCIES:
+        name = getattr(dep, 'package_name', None)
+        if name:
+            external_names.append(name)
+
+    assert 'spyder-boilerplate' in external_names
 
 
 if __name__ == "__main__":
