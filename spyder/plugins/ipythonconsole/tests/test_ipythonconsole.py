@@ -292,7 +292,6 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend is working correctly."""
     # Wait until the window is fully up
@@ -300,14 +299,15 @@ def test_auto_backend(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # This is here to generate further errors
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%matplotlib qt5")
+        shell.execute("import matplotlib; matplotlib.get_backend()")
 
-    # Assert there are no errors in the console
+    # Assert there are no errors in the console and we set the right
+    # backend.
     control = ipyconsole.get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
+    assert 'Qt5Agg' in control.toPlainText()
 
 
 @flaky(max_runs=3)

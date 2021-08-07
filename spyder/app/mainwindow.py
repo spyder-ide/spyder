@@ -223,11 +223,6 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading {}...").format(plugin.get_name()))
         logger.info("Loading {}...".format(plugin.NAME))
 
-        if plugin_name in [Plugins.Breakpoints,
-                           Plugins.Profiler,
-                           Plugins.Pylint]:
-            self.thirdparty_plugins.append(plugin)
-
         # Check plugin compatibility
         is_compatible, message = plugin.check_compatibility()
         plugin.is_compatible = is_compatible
