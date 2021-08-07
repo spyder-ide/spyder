@@ -2842,9 +2842,8 @@ class CodeEditor(TextEditBaseWidget):
             remaining_lines = [
                 self.adjust_indentation(line, lines_adjustment)
                 for line in remaining_lines]
-            text = eol_chars.join([first_line, *remaining_lines])
-        else:
-            text = first_line
+
+        text = eol_chars.join([first_line, *remaining_lines])
 
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(text)
