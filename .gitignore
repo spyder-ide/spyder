@@ -15,7 +15,7 @@ installers/Windows/assets/
 build/
 dist/
 bin/
-spyder.egg-info/
+*.egg-info/
 Thumbs.db
 desktop.ini
 .DS_Store/
@@ -42,5 +42,4 @@ result.xml
 .pylint.d/
 
 # Ignore setuptools development files in the PyLS subrepo
-external-deps/python-lsp-server/python_lsp_server.egg-info/
 external-deps/python-lsp-server/.installation-dir/
