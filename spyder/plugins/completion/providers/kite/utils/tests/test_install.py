@@ -26,7 +26,6 @@ from spyder.plugins.completion.providers.kite.utils.status import (
 INSTALL_TIMEOUT = 360000
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skip(reason="Fail on CIs and it's too heavy to run locally")
 def test_kite_install(qtbot):

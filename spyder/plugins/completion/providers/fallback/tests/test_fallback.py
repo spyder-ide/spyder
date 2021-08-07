@@ -62,7 +62,6 @@ def fallback_fixture(fallback_completions, qtbot_module, request):
     return fallback, completions, diff_match
 
 
-@pytest.mark.slow
 def test_file_open_close(qtbot_module, fallback_fixture):
     fallback, completions, diff_match = fallback_fixture
 
@@ -91,7 +90,6 @@ def test_get_words():
     assert set(tokens) == {'foo', 'baz', 'car456'}
 
 
-@pytest.mark.slow
 @pytest.mark.parametrize('file_fixture', language_list, indirect=True)
 def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     filename, expected_tokens, contents = file_fixture
@@ -124,7 +122,6 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     assert len(expected_tokens - tokens) == 0
 
 
-@pytest.mark.slow
 def test_token_update(qtbot_module, fallback_fixture):
     fallback, completions, diff_match = fallback_fixture
 
