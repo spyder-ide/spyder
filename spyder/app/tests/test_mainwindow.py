@@ -51,6 +51,7 @@ from spyder.app import start
 from spyder.app.mainwindow import MainWindow
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
+from spyder.config.gui import OLD_PYQT
 from spyder.config.manager import CONF
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
@@ -96,19 +97,6 @@ def open_file_in_editor(main_window, fname, directory=None):
             input_field = w.findChildren(QLineEdit)[0]
             input_field.setText(fname)
             QTest.keyClick(w, Qt.Key_Enter)
-
-
-def get_thirdparty_plugin(main_window, plugin_title):
-    """Get a reference to the thirdparty plugin with the title given."""
-    for plugin in main_window.thirdparty_plugins:
-        try:
-            # New API
-            if plugin.get_name() == plugin_title:
-                return plugin
-        except AttributeError:
-            # Old API
-            if plugin.get_plugin_title() == plugin_title:
-                return plugin
 
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
@@ -1536,9 +1524,11 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or not running_in_ci(),
-                    reason="It times out sometimes on Windows and it's not "
-                           "meant to be run outside of CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Only runs in CIs")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux') or OLD_PYQT,
+    reason="Only works on Linux with new PyQt versions"
+)
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -2183,7 +2173,7 @@ def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     from spyder.plugins.pylint.main_widget import PylintWidgetActions
     # Select the third-party plugin
-    pylint_plugin = get_thirdparty_plugin(main_window, "Code Analysis")
+    pylint_plugin = main_window.get_plugin(Plugins.Pylint)
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
@@ -2393,10 +2383,7 @@ def test_save_on_runfile(main_window, qtbot):
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
-    for plugin in main_window.thirdparty_plugins:
-        if plugin.CONF_SECTION == 'pylint':
-            pylint_plugin = plugin
-            break
+    pylint_plugin = main_window.get_plugin(Plugins.Pylint)
 
     # Show pylint plugin
     pylint_plugin.dockwidget.show()

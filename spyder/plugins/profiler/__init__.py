@@ -6,7 +6,9 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-from spyder.plugins.profiler.plugin import Profiler
+"""
+spyder.plugins.profiler
+=======================
 
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [Profiler]
+Profiler Plugin.
+"""
