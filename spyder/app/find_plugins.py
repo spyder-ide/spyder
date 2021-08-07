@@ -120,12 +120,10 @@ def find_external_plugins():
                 plugin_class = getattr(mod, class_name, None)
 
                 # To display in dependencies dialog.
-                # Skipped if running under test (to load boilerplate plugin)
-                if not running_under_pytest():
-                    plugin_class._spyder_module_name = entry_point.module_name
-                    plugin_class._spyder_package_name = (
-                        entry_point.dist.project_name)
-                    plugin_class._spyder_version = entry_point.dist.version
+                plugin_class._spyder_module_name = entry_point.module_name
+                plugin_class._spyder_package_name = (
+                    entry_point.dist.project_name)
+                plugin_class._spyder_version = entry_point.dist.version
 
                 external_plugins[name] = plugin_class
                 if name != plugin_class.NAME:
