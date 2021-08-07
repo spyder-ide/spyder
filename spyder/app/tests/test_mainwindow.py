@@ -51,7 +51,6 @@ from spyder.app import start
 from spyder.app.mainwindow import MainWindow
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
-from spyder.config.gui import OLD_PYQT
 from spyder.config.manager import CONF
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
@@ -729,9 +728,9 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
-@pytest.mark.parametrize(
-    "debugcell", [True, False])
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Fails sometimes on Windows and Mac")
+@pytest.mark.parametrize("debugcell", [True, False])
 def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
@@ -930,6 +929,8 @@ def test_dedicated_consoles(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Fails frequently on Linux")
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -1519,11 +1520,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not running_in_ci(), reason="Only runs in CIs")
-@pytest.mark.skipif(
-    not sys.platform.startswith('linux') or OLD_PYQT,
-    reason="Only works on Linux with new PyQt versions"
-)
+@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -3162,9 +3159,8 @@ def test_runcell_cache(main_window, qtbot, debug):
     qtbot.waitUntil(lambda: "Done" in shell._control.toPlainText())
 
 
-# --- Path manager
-# ----------------------------------------------------------------------------
 @pytest.mark.slow
+@flaky(max_runs=3)
 def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     """Check that on path manager updates, consoles correctly update."""
     main_window.show_path_manager()
