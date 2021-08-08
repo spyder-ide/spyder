@@ -67,11 +67,14 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Setup the widget."""
         menu = self.get_options_menu()
 
+        hidden_action = self.get_action(DirViewActions.ToggleHiddenFiles)
         single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
-        self.add_item_to_menu(
-            single_click_action,
-            menu=menu,
-            section=ProjectExplorerOptionsMenuSections.Main)
+
+        for action in [hidden_action, single_click_action]:
+            self.add_item_to_menu(
+                action,
+                menu=menu,
+                section=ProjectExplorerOptionsMenuSections.Main)
 
     def update_actions(self):
         pass
