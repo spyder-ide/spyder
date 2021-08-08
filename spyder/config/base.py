@@ -204,12 +204,31 @@ def get_clean_conf_dir():
     return conf_dir
 
 
+def get_custom_conf_dir():
+    """
+    Use a custom configuration directory, passed through our command
+    line options or by setting the env var below.
+    """
+    custom_dir = os.environ.get('SPYDER_CONFDIR')
+    if custom_dir:
+        custom_dir = osp.abspath(custom_dir)
+
+        # Set env var to not lose its value in future calls when the cwd
+        # is changed by Spyder.
+        os.environ['SPYDER_CONFDIR'] = custom_dir
+        return custom_dir
+
+
 def get_conf_path(filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
     if running_under_pytest() or get_safe_mode():
         # Use clean config dir if running tests or the user requests it.
         conf_dir = get_clean_conf_dir()
+    elif get_custom_conf_dir():
+        # Use a custom directory if the user decided to do it through
+        # our command line options.
+        conf_dir = get_custom_conf_dir()
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
         # on Linux, as it was requested on spyder-ide/spyder#2629.
@@ -226,7 +245,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest() or get_safe_mode():
+        if running_under_pytest() or get_safe_mode() or get_custom_conf_dir():
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
