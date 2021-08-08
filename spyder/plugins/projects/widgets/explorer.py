@@ -16,8 +16,7 @@ import shutil
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
-                            QLabel, QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -111,7 +110,7 @@ class FilteredDirView(DirView):
         self.filter_directories()
 
 
-class ExplorerTreeWidget(FilteredDirView):
+class ProjectExplorerTreeWidget(FilteredDirView):
     """Explorer tree widget"""
 
     sig_delete_project = Signal()

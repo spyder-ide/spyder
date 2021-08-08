@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import get_translation
 from spyder.plugins.explorer.widgets.explorer import DirViewActions
-from spyder.plugins.projects.widgets.explorer import ExplorerTreeWidget
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerTreeWidget
 
 _ = get_translation('spyder')
 
@@ -48,14 +48,14 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.name_filters = self.get_conf('name_filters')
         self.show_hscrollbar = self.get_conf('show_hscrollbar')
 
-        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
+        self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
         self.treewidget.setup()
         self.treewidget.setup_view()
         self.treewidget.hide()
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        self.emptywidget = ExplorerTreeWidget(self)
+        self.emptywidget = ProjectExplorerTreeWidget(self)
 
         layout = QVBoxLayout()
         layout.addWidget(self.emptywidget)
