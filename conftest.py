@@ -11,6 +11,7 @@ NOTE: DO NOT add fixtures here. It could generate problems with
       QtAwesome being called before a QApplication is created.
 """
 
+import math
 import os
 import os.path as osp
 import shutil
@@ -71,13 +72,34 @@ if not running_in_ci:
     )
 
 
+# ---- Auxiliary functions
+def get_group_size(total_items, total_groups):
+    """Return the group size."""
+    return int(math.ceil(float(total_items) / total_groups))
+
+
+def get_group(items, group_size, group_id):
+    """Get the items from the passed in group based on group size."""
+    start = group_size * (group_id - 1)
+    end = start + group_size
+
+    if start >= len(items) or start < 0:
+        raise ValueError("Invalid group argument")
+
+    return items[start:end]
+
+
 # ---- Pytest adjustments
 import pytest
 
 def pytest_addoption(parser):
     """Add option to run slow tests."""
-    parser.addoption("--run-slow", action="store_true",
-                     default=False, help="Run slow tests")
+    parser.addoption("--run-slow", action="store_true", default=False,
+                     dest="run-slow", help="Run slow tests")
+    parser.addoption('--group-count', dest='group-count', type=int,
+                    help='The number of groups to split the tests into')
+    parser.addoption("--group", type=int, dest="group",
+                     help="The group of tests that should be executed'")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -85,17 +107,24 @@ def pytest_collection_modifyitems(config, items):
     Decide what tests to run (slow or fast) according to the --run-slow
     option.
     """
-    slow_option = config.getoption("--run-slow")
-    skip_slow = pytest.mark.skip(reason="Need --run-slow option to run")
-    skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
+    slow_option = config.getoption("run-slow")
+    group_count_option = config.getoption("group-count")
+    group_option = config.getoption("group")
 
+    tests_to_run = []
     for item in items:
         if slow_option:
-            if "slow" not in item.keywords:
-                item.add_marker(skip_fast)
-        else:
             if "slow" in item.keywords:
-                item.add_marker(skip_slow)
+                tests_to_run.append(item)
+        else:
+            if "slow" not in item.keywords:
+                tests_to_run.append(item)
+
+    if group_count_option and group_option:
+        group_size = get_group_size(len(tests_to_run), group_count_option)
+        tests_to_run = get_group(tests_to_run, group_size, group_option)
+
+    items[:] = tests_to_run
 
 
 @pytest.fixture(autouse=True)

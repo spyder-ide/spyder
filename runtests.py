@@ -11,6 +11,7 @@ Script for running Spyder tests programmatically.
 # Standard library imports
 import argparse
 import os
+import sys
 
 # To activate/deactivate certain things for pytests only
 # NOTE: Please leave this before any other import here!!
@@ -25,7 +26,7 @@ import pytest
 
 
 # To run our slow tests only in our CIs
-CI = bool(os.environ.get('CI', None))
+running_in_ci = bool(os.environ.get('CI', None))
 RUN_SLOW = os.environ.get('RUN_SLOW', None) == 'true'
 
 
@@ -35,13 +36,14 @@ def run_pytest(run_slow=False, extra_args=None):
     pytest_args = ['-vv', '-rw', '--durations=10', '--ignore=./external-deps',
                    '-W ignore::UserWarning']
 
-    if CI:
+    if running_in_ci:
         # Exit on first failure and show coverage
         pytest_args += ['-x', '--cov=spyder', '--no-cov-on-fail']
 
-        # To display nice tests resume in Azure's web page
-        if os.environ.get('AZURE', None) is not None:
-            pytest_args += ['--cache-clear', '--junitxml=result.xml']
+        # Break tests into groups
+        if sys.platform.startswith('linux'):
+            group = os.environ['TEST_GROUP']
+            pytest_args += ['--group-count=6', f'--group={group}']
     if run_slow or RUN_SLOW:
         pytest_args += ['--run-slow']
     # Allow user to pass a custom test path to pytest to e.g. run just one test
