@@ -20,8 +20,10 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 # Local imports
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import get_translation
-from spyder.plugins.explorer.widgets.explorer import DirViewActions
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerTreeWidget
+from spyder.plugins.explorer.api import DirViewActions
+from spyder.plugins.projects.widgets.projectexplorer import (
+    ProjectExplorerTreeWidget)
+
 
 _ = get_translation('spyder')
 
