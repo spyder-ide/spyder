@@ -33,7 +33,6 @@ def lsp_client_and_completion(request):
     return client, completion
 
 
-@pytest.mark.slow
 @pytest.mark.order(3)
 def test_didOpen(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
@@ -59,7 +58,6 @@ def test_didOpen(lsp_client_and_completion, qtbot):
     assert response == 'textDocument/publishDiagnostics'
 
 
-@pytest.mark.slow
 @pytest.mark.order(3)
 def test_get_signature(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
@@ -98,7 +96,6 @@ def test_get_signature(lsp_client_and_completion, qtbot):
     assert response['params']['signatures']['label'].startswith('walk')
 
 
-@pytest.mark.slow
 @pytest.mark.order(3)
 def test_get_completions(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
@@ -138,7 +135,6 @@ def test_get_completions(lsp_client_and_completion, qtbot):
     assert 'os' in [x['label'] for x in completions]
 
 
-@pytest.mark.slow
 @pytest.mark.order(3)
 def test_go_to_definition(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
@@ -178,7 +174,6 @@ def test_go_to_definition(lsp_client_and_completion, qtbot):
     assert 'os.py' in definition['file']
 
 
-@pytest.mark.slow
 @pytest.mark.order(3)
 def test_local_signature(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
@@ -223,7 +218,6 @@ def test_local_signature(lsp_client_and_completion, qtbot):
     assert 'Test docstring' in definition
 
 
-@pytest.mark.slow
 @pytest.mark.order(3)
 def test_send_workspace_folders_change(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion

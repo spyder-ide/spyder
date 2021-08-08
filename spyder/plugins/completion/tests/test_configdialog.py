@@ -38,7 +38,6 @@ if not running_in_ci():
         'LanguageServerProvider'
     )
 
-
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
 
