@@ -239,7 +239,6 @@ def test_arrayeditor_edit_2d_array(qtbot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux'),
     reason="Sometimes fails on Linux ")
-@pytest.mark.slow
 def test_arrayeditor_edit_complex_array(qtbot):
     """See: spyder-ide/spyder#7848"""
     cnum = -1+0.5j

@@ -1724,7 +1724,6 @@ def test_stderr_poll(ipyconsole, qtbot):
     assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
 
 
-@pytest.mark.slow
 @pytest.mark.use_startup_wdir
 def test_startup_code_pdb(ipyconsole, qtbot):
     """Test that startup code for pdb works."""

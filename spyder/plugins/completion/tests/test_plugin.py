@@ -164,8 +164,7 @@ def test_provider_detection(completion_plugin_all):
     assert len(completion_plugin_all.providers) == 3
 
 
-@pytest.mark.slow
-# @pytest.mark.order(3)
+@pytest.mark.order(1)
 def test_plugin_completion_gather(qtbot_module, completion_receiver):
     completion, receiver = completion_receiver
 
@@ -214,7 +213,6 @@ def test_plugin_completion_gather(qtbot_module, completion_receiver):
     provider_set == {'LSP', 'Fallback', 'Snippets'}
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 def test_plugin_first_response_request(qtbot_module, completion_receiver):
     completion, receiver = completion_receiver
