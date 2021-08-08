@@ -19,8 +19,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.explorer.widgets.explorer import (
-    DirViewActions, ExplorerTreeWidget, ExplorerTreeWidgetActions,
-    FilteredDirView)
+    DirViewActions, ExplorerTreeWidget, ExplorerTreeWidgetActions)
 from spyder.utils.misc import getcwd_or_home
 
 
@@ -361,32 +360,14 @@ class FileExplorerTest(QWidget):
         self.explorer.sig_open_file_requested.connect(self.label1.setText)
 
 
-class ProjectExplorerTest(QWidget):
-    def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
-        self.CONF_SECTION = 'explorer'
-        vlayout = QVBoxLayout()
-        self.setLayout(vlayout)
-        self.treewidget = FilteredDirView(self)
-        self.treewidget.setup_view()
-        self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
-        self.treewidget.set_folder_names(['variableexplorer'])
-        self.treewidget.setup_project_view()
-        vlayout.addWidget(self.treewidget)
-
-
-def test(file_explorer):
+def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    if file_explorer:
-        test = FileExplorerTest()
-    else:
-        test = ProjectExplorerTest()
+    test = FileExplorerTest()
     test.resize(640, 480)
     test.show()
     app.exec_()
 
 
 if __name__ == "__main__":
-    test(file_explorer=True)
-    test(file_explorer=False)
+    test()
