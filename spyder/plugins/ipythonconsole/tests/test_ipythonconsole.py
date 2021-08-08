@@ -218,6 +218,7 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 # Tests
 # =============================================================================
+@flaky(max_runs=3)
 @pytest.mark.external_interpreter
 def test_banners(ipyconsole, qtbot):
     """Test that console banners are generated correctly."""
@@ -1325,6 +1326,7 @@ def test_kernel_crash(ipyconsole, qtbot):
     os.remove(ipy_kernel_cfg)
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
 def test_remove_old_stderr_files(ipyconsole, qtbot):
     """Test that we are removing old stderr files."""
@@ -1486,6 +1488,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
+@flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
 def test_pdb_multiline(ipyconsole, qtbot):
     """Test entering a multiline statment into pdb"""
@@ -1724,6 +1727,7 @@ def test_stderr_poll(ipyconsole, qtbot):
     assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
 
 
+@flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
 def test_startup_code_pdb(ipyconsole, qtbot):
     """Test that startup code for pdb works."""
