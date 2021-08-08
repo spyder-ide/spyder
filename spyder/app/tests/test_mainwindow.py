@@ -3994,6 +3994,8 @@ def test_outline_no_init(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Flaky on Linux")
 def test_pdb_without_comm(main_window, qtbot):
     """Check if pdb works without comm."""
     ipyconsole = main_window.ipyconsole
