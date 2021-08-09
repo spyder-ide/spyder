@@ -32,6 +32,13 @@ def project_explorer(qtbot, request, tmpdir):
     return project_explorer
 
 
+def test_project_explorer(project_explorer):
+    """Run ProjectExplorerTest."""
+    project_explorer.resize(640, 480)
+    project_explorer.show()
+    assert project_explorer
+
+
 @pytest.mark.change_directory
 def test_change_directory_in_project_explorer(project_explorer, qtbot):
     """Test changing a file from directory in the Project explorer."""
