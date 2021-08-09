@@ -59,6 +59,9 @@ else:
 if CLI_OPTIONS.safe_mode:
     os.environ['SPYDER_SAFE_MODE'] = 'True'
 
+if CLI_OPTIONS.conf_dir:
+    os.environ['SPYDER_CONFDIR'] = CLI_OPTIONS.conf_dir
+
 
 def send_args_to_spyder(args):
     """
