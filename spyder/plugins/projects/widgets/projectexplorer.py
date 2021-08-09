@@ -221,10 +221,7 @@ class ProjectExplorerTreeWidget(FilteredDirView):
         self.show_hscrollbar = checked
         self.header().setStretchLastSection(not checked)
         self.header().setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        try:
-            self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
-        except:  # support for qtpy<1.2.0
-            self.header().setResizeMode(QHeaderView.ResizeToContents)
+        self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
 
     # ---- Internal drag & drop
     def dragMoveEvent(self, event):
