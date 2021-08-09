@@ -22,8 +22,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import (QDir, QMimeData, QSortFilterProxyModel, Qt, QTimer,
-                         QUrl, Signal, Slot)
+from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QFileSystemModel, QInputDialog, QLabel, QLineEdit,
@@ -261,6 +260,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.__expanded_state = None
         self.common_actions = None
         self.filter_on = False
+        self.expanded_or_colapsed_by_mouse = False
 
         # Widgets
         self.fsmodel = None
@@ -747,15 +747,32 @@ class DirView(QTreeView, SpyderWidgetMixin):
             QTreeView.keyPressEvent(self, event)
 
     def mouseDoubleClickEvent(self, event):
-        """Reimplement Qt method"""
+        """Handle single clicks."""
         super().mouseDoubleClickEvent(event)
-        self.clicked()
+        self.clicked(index=self.indexAt(event.pos()))
+
+    def mousePressEvent(self, event):
+        """
+        Detect when a directory was expanded or collapsed by clicking
+        on its arrow.
+
+        Taken from https://stackoverflow.com/a/13142586/438386
+        """
+        clicked_index = self.indexAt(event.pos())
+        if clicked_index.isValid():
+            vrect = self.visualRect(clicked_index)
+            item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
+            if event.pos().x() < item_identation:
+                self.expanded_or_colapsed_by_mouse = True
+            else:
+                self.expanded_or_colapsed_by_mouse = False
+        super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """Reimplement Qt method."""
+        """Handle single clicks."""
         super().mouseReleaseEvent(event)
         if self.get_conf('single_click_to_open'):
-            self.clicked()
+            self.clicked(index=self.indexAt(event.pos()))
 
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
@@ -798,8 +815,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.sortByColumn(0, Qt.AscendingOrder)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
-        # Disable the view of .spyproject.
-        self.filter_directories()
 
     # ---- File/Dir Helpers
     # ------------------------------------------------------------------------
@@ -839,15 +854,26 @@ class DirView(QTreeView, SpyderWidgetMixin):
         """Display header menu."""
         self.header_menu.popup(self.mapToGlobal(pos))
 
-    @Slot()
-    def clicked(self):
+    def clicked(self, index=None):
         """
         Selected item was single/double-clicked or enter/return was pressed.
         """
         fnames = self.get_selected_filenames()
+
+        # Don't do anything when clicking on the arrow next to a directory
+        # to expand/collapse it. If clicking on its name, use it as `fnames`.
+        if index and index.isValid():
+            fname = self.get_filename(index)
+            if osp.isdir(fname):
+                if self.expanded_or_colapsed_by_mouse:
+                    return
+                else:
+                    fnames = [fname]
+
+        # Open files or directories
         for fname in fnames:
             if osp.isdir(fname):
-                self.directory_clicked(fname)
+                self.directory_clicked(fname, index)
             else:
                 if len(fnames) == 1:
                     assoc = self.get_file_associations(fnames[0])
@@ -859,9 +885,18 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 else:
                     self.open([fname])
 
-    def directory_clicked(self, dirname):
-        """Directory was just clicked"""
-        pass
+    def directory_clicked(self, dirname, index):
+        """
+        Handle directories being clicked.
+
+        Parameters
+        ----------
+        dirname: str
+            Path to the clicked directory.
+        index: QModelIndex
+            Index of the directory.
+        """
+        raise NotImplementedError('To be implemented by subclasses')
 
     @Slot()
     def edit_filter(self):
@@ -1356,12 +1391,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
             else:
                 pass
 
-    def filter_directories(self):
-        """Filter the directories to show"""
-        index = self.get_index('.spyproject')
-        if index is not None:
-            self.setRowHidden(index.row(), index.parent(), True)
-
     def open_interpreter(self, fnames=None):
         """Open interpreter"""
         if fnames is None:
@@ -1622,155 +1651,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         pass
 
 
-class ProxyModel(QSortFilterProxyModel):
-    """Proxy model: filters tree view."""
-    def __init__(self, parent):
-        """Initialize the proxy model."""
-        super(ProxyModel, self).__init__(parent)
-        self.root_path = None
-        self.path_list = []
-        self.setDynamicSortFilter(True)
-
-    def setup_filter(self, root_path, path_list):
-        """
-        Setup proxy model filter parameters.
-
-        Parameters
-        ----------
-        root_path: str
-            Root path of the proxy model.
-        path_list: list
-            List with all the paths.
-        """
-        self.root_path = osp.normpath(str(root_path))
-        self.path_list = [osp.normpath(str(p)) for p in path_list]
-        self.invalidateFilter()
-
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Reimplement Qt method."""
-        self.sourceModel().sort(column, order)
-
-    def filterAcceptsRow(self, row, parent_index):
-        """Reimplement Qt method."""
-        if self.root_path is None:
-            return True
-        index = self.sourceModel().index(row, 0, parent_index)
-        path = osp.normcase(osp.normpath(
-            str(self.sourceModel().filePath(index))))
-        if osp.normcase(self.root_path).startswith(path):
-            # This is necessary because parent folders need to be scanned
-            return True
-        else:
-            for p in [osp.normcase(p) for p in self.path_list]:
-                if path == p or path.startswith(p+os.sep):
-                    return True
-            else:
-                return False
-
-    def data(self, index, role):
-        """Show tooltip with full path only for the root directory."""
-        if role == Qt.ToolTipRole:
-            root_dir = self.path_list[0].split(osp.sep)[-1]
-            if index.data() == root_dir:
-                return osp.join(self.root_path, root_dir)
-        return QSortFilterProxyModel.data(self, index, role)
-
-    def type(self, index):
-        """
-        Returns the type of file for the given index.
-
-        Parameters
-        ----------
-        index: int
-            Given index to search its type.
-        """
-        return self.sourceModel().type(self.mapToSource(index))
-
-
-class FilteredDirView(DirView):
-    """Filtered file/directory tree view."""
-    def __init__(self, parent=None):
-        """Initialize the filtered dir view."""
-        super().__init__(parent)
-        self.proxymodel = None
-        self.setup_proxy_model()
-        self.root_path = None
-
-    # ---- Model
-    def setup_proxy_model(self):
-        """Setup proxy model."""
-        self.proxymodel = ProxyModel(self)
-        self.proxymodel.setSourceModel(self.fsmodel)
-
-    def install_model(self):
-        """Install proxy model."""
-        if self.root_path is not None:
-            self.setModel(self.proxymodel)
-
-    def set_root_path(self, root_path):
-        """
-        Set root path.
-
-        Parameters
-        ----------
-        root_path: str
-            New path directory.
-        """
-        self.root_path = root_path
-        self.install_model()
-        index = self.fsmodel.setRootPath(root_path)
-        self.proxymodel.setup_filter(self.root_path, [])
-        self.setRootIndex(self.proxymodel.mapFromSource(index))
-
-    def get_index(self, filename):
-        """
-        Return index associated with filename.
-
-        Parameters
-        ----------
-        filename: str
-            String with the filename.
-        """
-        index = self.fsmodel.index(filename)
-        if index.isValid() and index.model() is self.fsmodel:
-            return self.proxymodel.mapFromSource(index)
-
-    def set_folder_names(self, folder_names):
-        """
-        Set folder names
-
-        Parameters
-        ----------
-        folder_names: list
-            List with the folder names.
-        """
-        assert self.root_path is not None
-        path_list = [osp.join(self.root_path, dirname)
-                     for dirname in folder_names]
-        self.proxymodel.setup_filter(self.root_path, path_list)
-
-    def get_filename(self, index):
-        """
-        Return filename from index
-
-        Parameters
-        ----------
-        index: int
-            Index of the list of filenames
-        """
-        if index:
-            path = self.fsmodel.filePath(self.proxymodel.mapToSource(index))
-            return osp.normpath(str(path))
-
-    def setup_project_view(self):
-        """Setup view for projects."""
-        for i in [1, 2, 3]:
-            self.hideColumn(i)
-        self.setHeaderHidden(True)
-        # Disable the view of .spyproject.
-        self.filter_directories()
-
-
 class ExplorerTreeWidget(DirView):
     """
     File/directory explorer tree widget.
@@ -1905,20 +1785,10 @@ class ExplorerTreeWidget(DirView):
             self.previous_action.setEnabled(self.histindex > 0)
             self.next_action.setEnabled(self.histindex < len(self.history) - 1)
 
-        # Disable the view of .spyproject.
-        self.filter_directories()
-
     # ---- Events
-    def directory_clicked(self, dirname):
-        """
-        Directory was just clicked.
-
-        Parameters
-        ----------
-        dirname: str
-            Path to the clicked directory.
-        """
-        self.chdir(directory=dirname)
+    def directory_clicked(self, dirname, index):
+        if dirname:
+            self.chdir(directory=dirname)
 
     # ---- Files/Directories Actions
     @Slot()
