@@ -29,7 +29,17 @@ _ = get_translation('spyder')
 
 
 class ProxyModel(QSortFilterProxyModel):
-    """Proxy model: filters tree view."""
+    """Proxy model to filter tree view."""
+
+    DEFAULTS_PATHS_TO_HIDE = [
+        '.spyproject',
+        '__pycache__',
+        '.ipynb_checkpoints',
+        '.DS_Store',
+        'Thumbs.db',
+        '.directory'
+    ]
+
     def __init__(self, parent):
         """Initialize the proxy model."""
         super(ProxyModel, self).__init__(parent)
@@ -63,13 +73,17 @@ class ProxyModel(QSortFilterProxyModel):
         index = self.sourceModel().index(row, 0, parent_index)
         path = osp.normcase(osp.normpath(
             str(self.sourceModel().filePath(index))))
+
         if osp.normcase(self.root_path).startswith(path):
             # This is necessary because parent folders need to be scanned
             return True
         else:
             for p in [osp.normcase(p) for p in self.path_list]:
                 if path == p or path.startswith(p + os.sep):
-                    return True
+                    if any([d in path for d in self.DEFAULTS_PATHS_TO_HIDE]):
+                        return False
+                    else:
+                        return True
             else:
                 return False
 
