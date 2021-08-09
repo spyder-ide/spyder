@@ -142,6 +142,13 @@ def get_options(argv=None):
         default=False,
         help="Report segmentation fault to Github."
     )
+    parser.add_argument(
+        '--conf-dir',
+        type=str,
+        dest="conf_dir",
+        default=None,
+        help="Choose a configuration directory to use for Spyder."
+    )
 
     parser.add_argument('files', nargs='*')
     options = parser.parse_args(argv)
