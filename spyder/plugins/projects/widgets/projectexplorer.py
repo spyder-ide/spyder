@@ -173,7 +173,6 @@ class FilteredDirView(DirView):
         for i in [1, 2, 3]:
             self.hideColumn(i)
         self.setHeaderHidden(True)
-        self.filter_directories()
 
     # ---- Events
     def directory_clicked(self, dirname, index):

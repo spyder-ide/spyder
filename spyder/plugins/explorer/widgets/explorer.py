@@ -815,8 +815,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.sortByColumn(0, Qt.AscendingOrder)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
-        # Disable the view of .spyproject.
-        self.filter_directories()
 
     # ---- File/Dir Helpers
     # ------------------------------------------------------------------------
@@ -1393,12 +1391,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
             else:
                 pass
 
-    def filter_directories(self):
-        """Filter the directories to show"""
-        index = self.get_index('.spyproject')
-        if index is not None:
-            self.setRowHidden(index.row(), index.parent(), True)
-
     def open_interpreter(self, fnames=None):
         """Open interpreter"""
         if fnames is None:
@@ -1792,9 +1784,6 @@ class ExplorerTreeWidget(DirView):
         if self.histindex is not None:
             self.previous_action.setEnabled(self.histindex > 0)
             self.next_action.setEnabled(self.histindex < len(self.history) - 1)
-
-        # Disable the view of .spyproject.
-        self.filter_directories()
 
     # ---- Events
     def directory_clicked(self, dirname, index):
