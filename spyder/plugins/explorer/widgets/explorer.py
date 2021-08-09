@@ -22,8 +22,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import (QDir, QMimeData, QSortFilterProxyModel, Qt, QTimer,
-                         QUrl, Signal, Slot)
+from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QFileSystemModel, QInputDialog, QLabel, QLineEdit,
@@ -1658,71 +1657,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def go_to_parent_directory(self):
         pass
-
-
-class ProxyModel(QSortFilterProxyModel):
-    """Proxy model: filters tree view."""
-    def __init__(self, parent):
-        """Initialize the proxy model."""
-        super(ProxyModel, self).__init__(parent)
-        self.root_path = None
-        self.path_list = []
-        self.setDynamicSortFilter(True)
-
-    def setup_filter(self, root_path, path_list):
-        """
-        Setup proxy model filter parameters.
-
-        Parameters
-        ----------
-        root_path: str
-            Root path of the proxy model.
-        path_list: list
-            List with all the paths.
-        """
-        self.root_path = osp.normpath(str(root_path))
-        self.path_list = [osp.normpath(str(p)) for p in path_list]
-        self.invalidateFilter()
-
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Reimplement Qt method."""
-        self.sourceModel().sort(column, order)
-
-    def filterAcceptsRow(self, row, parent_index):
-        """Reimplement Qt method."""
-        if self.root_path is None:
-            return True
-        index = self.sourceModel().index(row, 0, parent_index)
-        path = osp.normcase(osp.normpath(
-            str(self.sourceModel().filePath(index))))
-        if osp.normcase(self.root_path).startswith(path):
-            # This is necessary because parent folders need to be scanned
-            return True
-        else:
-            for p in [osp.normcase(p) for p in self.path_list]:
-                if path == p or path.startswith(p+os.sep):
-                    return True
-            else:
-                return False
-
-    def data(self, index, role):
-        """Show tooltip with full path only for the root directory."""
-        if role == Qt.ToolTipRole:
-            root_dir = self.path_list[0].split(osp.sep)[-1]
-            if index.data() == root_dir:
-                return osp.join(self.root_path, root_dir)
-        return QSortFilterProxyModel.data(self, index, role)
-
-    def type(self, index):
-        """
-        Returns the type of file for the given index.
-
-        Parameters
-        ----------
-        index: int
-            Given index to search its type.
-        """
-        return self.sourceModel().type(self.mapToSource(index))
 
 
 class ExplorerTreeWidget(DirView):
