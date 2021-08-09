@@ -31,13 +31,24 @@ _ = get_translation('spyder')
 class ProxyModel(QSortFilterProxyModel):
     """Proxy model to filter tree view."""
 
-    DEFAULTS_PATHS_TO_HIDE = [
+    PATHS_TO_HIDE = [
+        # Useful paths
         '.spyproject',
         '__pycache__',
         '.ipynb_checkpoints',
+        # VCS paths
+        '.git',
+        '.hg',
+        '.svn',
+        # Others
+        '.pytest_cache',
         '.DS_Store',
         'Thumbs.db',
         '.directory'
+    ]
+
+    PATHS_TO_SHOW = [
+        '.github'
     ]
 
     def __init__(self, parent):
@@ -80,8 +91,11 @@ class ProxyModel(QSortFilterProxyModel):
         else:
             for p in [osp.normcase(p) for p in self.path_list]:
                 if path == p or path.startswith(p + os.sep):
-                    if any([d in path for d in self.DEFAULTS_PATHS_TO_HIDE]):
-                        return False
+                    if not any([d in path for d in self.PATHS_TO_SHOW]):
+                        if any([d in path for d in self.PATHS_TO_HIDE]):
+                            return False
+                        else:
+                            return True
                     else:
                         return True
             else:
