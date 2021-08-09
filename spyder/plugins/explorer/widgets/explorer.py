@@ -747,9 +747,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
             QTreeView.keyPressEvent(self, event)
 
     def mouseDoubleClickEvent(self, event):
-        """Handle single clicks."""
+        """Handle double clicks."""
         super().mouseDoubleClickEvent(event)
-        self.clicked(index=self.indexAt(event.pos()))
+        if not self.get_conf('single_click_to_open'):
+            self.clicked(index=self.indexAt(event.pos()))
 
     def mousePressEvent(self, event):
         """
