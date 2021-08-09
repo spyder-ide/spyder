@@ -103,6 +103,16 @@ def truncate_path(text):
 
 class SearchThread(QThread):
     """Find in files search thread."""
+    PYTHON_EXTENSIONS = ['.py', '.pyw', '.pyx', '.ipy', '.pyi', '.pyt']
+
+    USEFUL_EXTENSIONS = [
+        '.ipynb', '.md',  '.c', '.cpp', '.h', '.cxx', '.f', '.f03', '.f90',
+        '.json', '.dat', '.csv', '.tsv', '.txt', '.md', '.rst', '.yml',
+        '.yaml', '.ini', '.bat', '.sh', '.ui'
+    ]
+
+    SKIPPED_EXTENSIONS = ['.svg']
+
     sig_finished = Signal(bool)
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
@@ -178,24 +188,45 @@ class SearchThread(QThread):
                 if self.stopped:
                     return False
             try:
+                # For directories
                 for d in dirs[:]:
                     with QMutexLocker(self.mutex):
                         if self.stopped:
                             return False
+
                     dirname = os.path.join(path, d)
+
                     if (self.exclude and
                             re.search(self.exclude, dirname + os.sep)):
+                        # Exclude patterns defined by the user
                         dirs.remove(d)
-                    elif d == '.git' or d == '.hg':
+                    elif d.startswith('.'):
+                        # Exclude all dot dirs.
                         dirs.remove(d)
+
+                # For files
                 for f in files:
                     with QMutexLocker(self.mutex):
                         if self.stopped:
                             return False
+
                     filename = os.path.join(path, f)
+                    ext = osp.splitext(filename)[1]
+
+                    # Exclude patterns defined by the user
                     if self.exclude and re.search(self.exclude, filename):
                         continue
-                    if is_text_file(filename):
+
+                    # Don't search in plain text files with skipped extensions
+                    # (e.g .svg)
+                    if ext in self.SKIPPED_EXTENSIONS:
+                        continue
+
+                    # It's much faster to check for extension first before
+                    # validating if the file is plain text.
+                    if (ext in self.PYTHON_EXTENSIONS or
+                            ext in self.USEFUL_EXTENSIONS or
+                            is_text_file(filename)):
                         self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")
