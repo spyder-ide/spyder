@@ -109,6 +109,15 @@ class FilteredDirView(DirView):
         self.setHeaderHidden(True)
         self.filter_directories()
 
+    # ---- Events
+    def directory_clicked(self, dirname, index):
+        if index and index.isValid():
+            if self.get_conf('single_click_to_open'):
+                state = not self.isExpanded(index)
+            else:
+                state = self.isExpanded(index)
+            self.setExpanded(index, state)
+
 
 class ProjectExplorerTreeWidget(FilteredDirView):
     """Explorer tree widget"""

@@ -261,6 +261,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.__expanded_state = None
         self.common_actions = None
         self.filter_on = False
+        self.expanded_or_colapsed_by_mouse = False
 
         # Widgets
         self.fsmodel = None
@@ -747,15 +748,32 @@ class DirView(QTreeView, SpyderWidgetMixin):
             QTreeView.keyPressEvent(self, event)
 
     def mouseDoubleClickEvent(self, event):
-        """Reimplement Qt method"""
+        """Handle single clicks."""
         super().mouseDoubleClickEvent(event)
-        self.clicked()
+        self.clicked(index=self.indexAt(event.pos()))
+
+    def mousePressEvent(self, event):
+        """
+        Detect when a directory was expanded or collapsed by clicking
+        on its arrow.
+
+        Taken from https://stackoverflow.com/a/13142586/438386
+        """
+        clicked_index = self.indexAt(event.pos())
+        if clicked_index.isValid():
+            vrect = self.visualRect(clicked_index)
+            item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
+            if event.pos().x() < item_identation:
+                self.expanded_or_colapsed_by_mouse = True
+            else:
+                self.expanded_or_colapsed_by_mouse = False
+        super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """Reimplement Qt method."""
+        """Handle single clicks."""
         super().mouseReleaseEvent(event)
         if self.get_conf('single_click_to_open'):
-            self.clicked()
+            self.clicked(index=self.indexAt(event.pos()))
 
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
@@ -839,15 +857,26 @@ class DirView(QTreeView, SpyderWidgetMixin):
         """Display header menu."""
         self.header_menu.popup(self.mapToGlobal(pos))
 
-    @Slot()
-    def clicked(self):
+    def clicked(self, index=None):
         """
         Selected item was single/double-clicked or enter/return was pressed.
         """
         fnames = self.get_selected_filenames()
+
+        # Don't do anything when clicking on the arrow next to a directory
+        # to expand/collapse it. If clicking on its name, use it as `fnames`.
+        if index and index.isValid():
+            fname = self.get_filename(index)
+            if osp.isdir(fname):
+                if self.expanded_or_colapsed_by_mouse:
+                    return
+                else:
+                    fnames = [fname]
+
+        # Open files or directories
         for fname in fnames:
             if osp.isdir(fname):
-                self.directory_clicked(fname)
+                self.directory_clicked(fname, index)
             else:
                 if len(fnames) == 1:
                     assoc = self.get_file_associations(fnames[0])
@@ -859,9 +888,18 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 else:
                     self.open([fname])
 
-    def directory_clicked(self, dirname):
-        """Directory was just clicked"""
-        pass
+    def directory_clicked(self, dirname, index):
+        """
+        Handle directories being clicked.
+
+        Parameters
+        ----------
+        dirname: str
+            Path to the clicked directory.
+        index: QModelIndex
+            Index of the directory.
+        """
+        raise NotImplementedError('To be implemented by subclasses')
 
     @Slot()
     def edit_filter(self):
@@ -1825,16 +1863,9 @@ class ExplorerTreeWidget(DirView):
         self.filter_directories()
 
     # ---- Events
-    def directory_clicked(self, dirname):
-        """
-        Directory was just clicked.
-
-        Parameters
-        ----------
-        dirname: str
-            Path to the clicked directory.
-        """
-        self.chdir(directory=dirname)
+    def directory_clicked(self, dirname, index):
+        if dirname:
+            self.chdir(directory=dirname)
 
     # ---- Files/Directories Actions
     @Slot()
