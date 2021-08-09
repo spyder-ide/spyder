@@ -251,10 +251,11 @@ class ProjectExplorerTreeWidget(FilteredDirView):
         src_list = [to_text_string(url.toString())
                     for url in event.mimeData().urls()]
         if len(src_list) > 1:
-            buttons = QMessageBox.Yes|QMessageBox.YesToAll| \
-                      QMessageBox.No|QMessageBox.NoToAll|QMessageBox.Cancel
+            buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
+                       QMessageBox.No | QMessageBox.NoToAll |
+                       QMessageBox.Cancel)
         else:
-            buttons = QMessageBox.Yes|QMessageBox.No
+            buttons = QMessageBox.Yes | QMessageBox.No
         for src in src_list:
             if src == dst:
                 continue
@@ -264,10 +265,14 @@ class ProjectExplorerTreeWidget(FilteredDirView):
                     if no_to_all:
                         continue
                 elif osp.isfile(dst_fname):
-                    answer = QMessageBox.warning(self, _('Project explorer'),
-                              _('File <b>%s</b> already exists.<br>'
-                                'Do you want to overwrite it?') % dst_fname,
-                              buttons)
+                    answer = QMessageBox.warning(
+                        self,
+                        _('Project explorer'),
+                        _('File <b>%s</b> already exists.<br>'
+                          'Do you want to overwrite it?') % dst_fname,
+                        buttons
+                    )
+
                     if answer == QMessageBox.No:
                         continue
                     elif answer == QMessageBox.Cancel:
@@ -278,9 +283,12 @@ class ProjectExplorerTreeWidget(FilteredDirView):
                         no_to_all = True
                         continue
                 else:
-                    QMessageBox.critical(self, _('Project explorer'),
-                                         _('Folder <b>%s</b> already exists.'
-                                           ) % dst_fname, QMessageBox.Ok)
+                    QMessageBox.critical(
+                        self,
+                        _('Project explorer'),
+                        _('Folder <b>%s</b> already exists.') % dst_fname,
+                        QMessageBox.Ok
+                    )
                     event.setDropAction(Qt.CopyAction)
                     return
             try:
@@ -300,11 +308,13 @@ class ProjectExplorerTreeWidget(FilteredDirView):
                     action_str = _('copy')
                 else:
                     action_str = _('move')
-                QMessageBox.critical(self, _("Project Explorer"),
-                                     _("<b>Unable to %s <i>%s</i></b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % (action_str, src,
-                                            to_text_string(error)))
+                QMessageBox.critical(
+                    self,
+                    _("Project Explorer"),
+                    _("<b>Unable to %s <i>%s</i></b>"
+                      "<br><br>Error message:<br>%s") % (action_str, src,
+                                                         str(error))
+                )
 
     @Slot()
     def delete(self, fnames=None):
