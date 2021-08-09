@@ -14,6 +14,7 @@ import math
 import os
 import os.path as osp
 import re
+import stat
 import traceback
 
 # Third party imports
@@ -196,6 +197,11 @@ class SearchThread(QThread):
 
                     dirname = os.path.join(path, d)
 
+                    # Only search in regular directories
+                    st_dir_mode = os.stat(dirname).st_mode
+                    if not stat.S_ISDIR(st_dir_mode):
+                        dirs.remove(d)
+
                     if (self.exclude and
                             re.search(self.exclude, dirname + os.sep)):
                         # Exclude patterns defined by the user
@@ -212,6 +218,11 @@ class SearchThread(QThread):
 
                     filename = os.path.join(path, f)
                     ext = osp.splitext(filename)[1]
+
+                    # Only search in regular files (i.e. not pipes)
+                    st_file_mode = os.stat(filename).st_mode
+                    if not stat.S_ISREG(st_file_mode):
+                        continue
 
                     # Exclude patterns defined by the user
                     if self.exclude and re.search(self.exclude, filename):
