@@ -441,14 +441,19 @@ class SearchThread(QThread):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = ('<span style="color:{0}">{{0}}'
-                             '<b>{{1}}</b>{{2}}</span>')
-        line_match_format = line_match_format.format(self.text_color)
-
         left = html_escape(left)
         right = html_escape(right)
         match = html_escape(match)
-        trunc_line = line_match_format.format(left, match, right)
+
+        match_color = SpyderPalette.COLOR_OCCURRENCE_4
+        trunc_line = (
+            f'<span style="color:{self.text_color}">'
+            f'{left}'
+            f'<span style="background-color:{match_color}">{match}</span>'
+            f'{right}'
+            f'</span>'
+        )
+
         return trunc_line
 
     def get_results(self):
