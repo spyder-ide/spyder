@@ -1235,6 +1235,12 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
 
+    def errors_present(self):
+        """
+        Return True if there are errors or warnings present in the file.
+        """
+        return bool(len(self._diagnostics))
+
     def _process_code_analysis(self, underline):
         """
         Process all code analysis results.
