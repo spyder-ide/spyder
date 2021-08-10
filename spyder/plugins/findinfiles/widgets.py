@@ -649,12 +649,14 @@ class LineMatchItem(QTreeWidgetItem):
 
     def __repr__(self):
         match = str(self.match).rstrip()
-        _str = ("<!-- LineMatchItem -->"
-                "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
-                "<span style='font-family:{0};"
-                "font-size:75%;'>{3}</span></p>")
-        return _str.format(self.font.family(), self.lineno, self.colno, match,
-                           self.text_color)
+        _str = (
+            f"<!-- LineMatchItem -->"
+            f"<p style=\"color:'{self.text_color}';\">"
+            f"<b>{self.lineno}</b> ({self.colno}): "
+            f"<span style='font-family:{self.font.family()};"
+            f"font-size:{self.font.pointSize()}pt;'>{match}</span></p>"
+        )
+        return _str
 
     def __unicode__(self):
         return self.__repr__()
@@ -676,14 +678,14 @@ class FileMatchItem(QTreeWidgetItem):
         self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title_format = ('<!-- FileMatchItem -->'
-                        '<b style="color:{2}">{0}</b>'
-                        '&nbsp;&nbsp;&nbsp;'
-                        '<small style="color:{2}"><em>{1}</em>'
-                        '</small>')
-        title = (title_format.format(osp.basename(filename),
-                                     osp.dirname(filename),
-                                     text_color))
+        title = (
+            f'<!-- FileMatchItem -->'
+            f'<b style="color:{text_color}">{osp.basename(filename)}</b>'
+            f'&nbsp;&nbsp;&nbsp;'
+            f'<span style="color:{text_color}"><em>{osp.dirname(filename)}</em>'
+            f'</span>'
+        )
+
         super().__init__(parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
