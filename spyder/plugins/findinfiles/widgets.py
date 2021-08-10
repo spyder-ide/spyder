@@ -920,9 +920,10 @@ class FindInFilesWidget(PluginMainWidget):
         # Widgets
         self.search_text_edit = PatternComboBox(
             self,
-            search_text,
-            _("Search pattern"),
+            search_text
         )
+        self.search_text_edit.lineEdit().setPlaceholderText(
+            _('Write text to search'))
         self.search_in_label = QLabel(_('Search in:'))
         self.exclude_label = QLabel(_('Exclude:'))
         self.path_selection_combo = SearchInComboBox(path_history, self)
