@@ -978,7 +978,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.search_regexp_action = self.create_action(
             FindInFilesWidgetActions.ToggleSearchRegex,
             text=_('Regular expression'),
-            tip=_('Regular expression'),
+            tip=_('Use regular expressions'),
             icon=self.create_icon('regex'),
             toggled=True,
             initial=self.get_conf('search_text_regexp'),
@@ -987,7 +987,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.case_action = self.create_action(
             FindInFilesWidgetActions.ToggleExcludeCase,
             text=_("Case sensitive"),
-            tip=_("Case sensitive"),
+            tip=_("Case sensitive search"),
             icon=self.create_icon("format_letter_case"),
             toggled=True,
             initial=self.get_conf('case_sensitive'),
@@ -996,7 +996,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.find_action = self.create_action(
             FindInFilesWidgetActions.Find,
             text=_("&Find in files"),
-            tip=_("Search text in multiple files"),
+            tip=_("Search text"),
             icon=self.create_icon('find'),
             triggered=self.find,
             register_shortcut=False,
@@ -1004,7 +1004,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.exclude_regexp_action = self.create_action(
             FindInFilesWidgetActions.ToggleExcludeRegex,
             text=_('Regular expression'),
-            tip=_('Regular expression'),
+            tip=_('Use regular expressions'),
             icon=self.create_icon('regex'),
             toggled=True,
             initial=self.get_conf('exclude_regexp'),
