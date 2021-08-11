@@ -677,16 +677,26 @@ class LineMatchItem(QTreeWidgetItem):
 
 class FileMatchItem(QTreeWidgetItem):
 
-    def __init__(self, parent, filename, sorting, text_color):
+    def __init__(self, parent, path, filename, sorting, text_color):
 
         self.sorting = sorting
         self.filename = osp.basename(filename)
+
+        # Get relative dirname according to the path we're searching in.
+        dirname = osp.dirname(filename)
+        rel_dirname = dirname.split(path)[1]
+        if rel_dirname.startswith(osp.sep):
+            rel_dirname = rel_dirname[1:]
+
+        # Use a dimmer color for directories
+        dir_color_name = QStylePalette.COLOR_TEXT_2
 
         title = (
             f'<!-- FileMatchItem -->'
             f'<b style="color:{text_color}">{osp.basename(filename)}</b>'
             f'&nbsp;&nbsp;&nbsp;'
-            f'<span style="color:{text_color}"><em>{osp.dirname(filename)}</em>'
+            f'<span style="color:{dir_color_name}">'
+            f'<em>{rel_dirname}</em>'
             f'</span>'
         )
 
@@ -769,6 +779,7 @@ class ResultsBrowser(OneColumnTree):
         self.files = None
         self.root_items = None
         self.text_color = text_color
+        self.path = None
 
         # Setup
         self.set_title('')
@@ -823,8 +834,8 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            self.files[filename] = FileMatchItem(
-                self, filename, self.sorting, self.text_color)
+            self.files[filename] = FileMatchItem(self, self.path, filename,
+                                                 self.sorting, self.text_color)
             self.files[filename].setExpanded(True)
             self.num_files += 1
 
@@ -855,6 +866,10 @@ class ResultsBrowser(OneColumnTree):
     def set_max_results(self, value):
         """Set maximum amount of results to add."""
         self.max_results = value
+
+    def set_path(self, path):
+        """Set path where the search is performed."""
+        self.path = path
 
 
 class FindInFilesWidget(PluginMainWidget):
@@ -1342,6 +1357,9 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Update and set options
         self._update_options()
+
+        # Set path in result_browser
+        self.result_browser.set_path(options[0])
 
         # Start
         self.running = True
