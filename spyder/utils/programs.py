@@ -800,7 +800,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         os.chmod(f.name, 0o777)
 
         def run_terminal_thread():
-            proc = run_shell_command('open -a Terminal.app ' + f.name)
+            proc = run_shell_command('open -a Terminal.app ' + f.name, env={})
             # Prevent race condition
             time.sleep(3)
             proc.wait()
