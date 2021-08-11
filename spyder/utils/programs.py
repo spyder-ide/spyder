@@ -793,7 +793,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                         delete=False)
         if wdir:
             f.write('cd {}\n'.format(wdir))
-        if running_in_mac_app() and executable == get_python_executable():
+        if running_in_mac_app(executable):
             f.write(f'export PYTHONHOME={os.environ["PYTHONPATH"]}\n')
         f.write(' '.join(p_args))
         f.close()
