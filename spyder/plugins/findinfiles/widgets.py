@@ -1384,7 +1384,7 @@ class FindInFilesWidget(PluginMainWidget):
 
             # Set dialog properties
             dialog.setModal(False)
-            dialog.setWindowTitle(self.get_name())
+            dialog.setWindowTitle(_('Max results'))
             dialog.setLabelText(_('Set maximum number of results: '))
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(1, 10000)
