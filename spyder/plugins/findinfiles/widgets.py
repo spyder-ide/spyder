@@ -125,7 +125,7 @@ class SearchThread(QThread):
     power = 0       # 0**1 = 1
     max_power = 9   # 2**9 = 512
 
-    def __init__(self, parent, search_text, text_color=None):
+    def __init__(self, parent, search_text, text_color):
         super().__init__(parent)
         self.mutex = QMutex()
         self.stopped = None
@@ -643,8 +643,7 @@ class SearchInComboBox(QComboBox):
 
 class LineMatchItem(QTreeWidgetItem):
 
-    def __init__(self, parent, lineno, colno, match, font,
-                 text_color=None):
+    def __init__(self, parent, lineno, colno, match, font, text_color):
         self.lineno = lineno
         self.colno = colno
         self.match = match
@@ -678,7 +677,7 @@ class LineMatchItem(QTreeWidgetItem):
 
 class FileMatchItem(QTreeWidgetItem):
 
-    def __init__(self, parent, filename, sorting, text_color=None):
+    def __init__(self, parent, filename, sorting, text_color):
 
         self.sorting = sorting
         self.filename = osp.basename(filename)
@@ -756,7 +755,7 @@ class ResultsBrowser(OneColumnTree):
     sig_edit_goto_requested = Signal(str, int, str, int, int)
     sig_max_results_reached = Signal()
 
-    def __init__(self, parent, text_color=None, max_results=1000):
+    def __init__(self, parent, text_color, max_results=1000):
         super().__init__(parent)
         self.search_text = None
         self.results = None
