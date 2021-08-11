@@ -19,8 +19,8 @@ import traceback
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QSize, Qt, QThread,
-                         Signal, Slot)
+from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QPoint, QSize, Qt,
+                         QThread, Signal, Slot)
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
                             QInputDialog, QLabel, QMessageBox, QSizePolicy,
@@ -32,6 +32,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.gui import get_font
+from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import SpyderPalette, QStylePalette
@@ -702,6 +703,7 @@ class FileMatchItem(QTreeWidgetItem):
 
         super().__init__(parent, [title], QTreeWidgetItem.Type)
 
+        self.setIcon(0, ima.get_icon_by_extension_or_type(filename, 1.0))
         self.setToolTip(0, filename)
 
     def __lt__(self, x):
@@ -746,8 +748,7 @@ class ItemDelegate(QStyledItemDelegate):
                                         options, None)
         painter.save()
 
-        painter.translate(textRect.topLeft())
-        painter.setClipRect(textRect.translated(-textRect.topLeft()))
+        painter.translate(textRect.topLeft() + QPoint(0, 4))
         doc.documentLayout().draw(painter, ctx)
         painter.restore()
 
