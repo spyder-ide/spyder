@@ -31,12 +31,11 @@ import psutil
 
 # Local imports
 from spyder.config.base import (is_stable_version, running_under_pytest,
-                                get_home_dir)
+                                get_home_dir, running_in_mac_app)
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
-
 
 HERE = osp.abspath(osp.dirname(__file__))
 
@@ -794,6 +793,8 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                         delete=False)
         if wdir:
             f.write('cd {}\n'.format(wdir))
+        if running_in_mac_app() and executable == get_python_executable():
+            f.write(f'export PYTHONHOME={os.environ["PYTHONPATH"]}\n')
         f.write(' '.join(p_args))
         f.close()
         os.chmod(f.name, 0o777)
