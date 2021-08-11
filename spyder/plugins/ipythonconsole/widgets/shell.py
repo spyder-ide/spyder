@@ -133,6 +133,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
         self.show_modules_message = is_pynsist() or running_in_mac_app()
+        print(self._control.parent())
+        self._control.setParent(self)
+        print(self._control.parent())
 
     def __del__(self):
         """Avoid destroying shutdown_thread."""

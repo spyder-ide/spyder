@@ -71,20 +71,6 @@ except AttributeError:
     time.monotonic = time.time
 
 
-class ClientWidgetActions:
-    ShowEnvironmentVariables = 'show_environment_variables_action'
-    ShowSystemPath = 'show_system_path_action'
-    ToggleElapsedTime = 'toggle_elapsed_time_action'
-
-
-class ClientWidgetContextMenuActions:
-    InspectCurrentObject = 'inspect current object'
-    ClearLine = 'clear line'
-    ResetNamespace = 'reset namespace'
-    ClearConsole = 'clear shell'
-    Quit = 'exit'
-
-
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
@@ -102,7 +88,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
-                   '# *** Spyder Python Console History Log ***',]
+                   '# *** Spyder Python Console History Log ***', ]
 
     def __init__(self, parent, id_,
                  history_filename, config_options,
@@ -161,8 +147,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                                        additional_options=additional_options,
                                        interpreter_versions=interpreter_versions,
                                        external_kernel=external_kernel,
-                                       local_kernel=True)
-
+                                       local_kernel=True,
+                                       parentWidget=self)
+        # print(self.shellwidget.parent())
+        self.shellwidget.setParent(self)
+        # print(self.shellwidget.parent())
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()

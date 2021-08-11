@@ -39,8 +39,6 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.plugins.ipythonconsole.widgets.client import (
-    ClientWidgetActions, ClientWidgetContextMenuActions)
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
     PageControlWidget)
@@ -64,25 +62,23 @@ MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
 
 class IPythonConsoleWidgetActions:
     # Clients creation
-    CreateNewClient = 'create_new_client_action'
+    CreateNewClient = 'new tab'
     CreateCythonClient = 'create_cython_client_action'
     CreateSymPyClient = 'create_sympy_client_action'
     CreatePyLabClient = 'create_pylab_client_action'
 
     # Current console actions
-    ClearConsole = 'clear_console_action'
-    ClearLine = 'clear_line'
+    ClearConsole = 'Clear shell'
+    ClearLine = 'clear line'
     ConnectToKernel = 'connect_to_kernel_action'
     Interrupt = 'interrupt_action'
-    InspectObject = 'inspect_object_action'
-    Restart = 'restart_action'
-    RemoveAllVariables = 'remove_all_variables_action'
-    ResetNamespace = 'reset_namespace_action'
-
-    # Documentation and help
-    IPythonDocumentation = 'ipython_documentation'
-    ConsoleHelp = 'console_help'
-    QuickReference = 'quick_reference'
+    InspectObject = 'Inspect current object'
+    Restart = 'Restart kernel'
+    ResetNamespace = 'reset namespace'
+    ShowEnvironmentVariables = 'show_environment_variables_action'
+    ShowSystemPath = 'show_system_path_action'
+    ToggleElapsedTime = 'toggle_elapsed_time_action'
+    Quit = 'exit'
 
     # Tabs
     RenameTab = 'rename_tab_action'
@@ -93,6 +89,11 @@ class IPythonConsoleWidgetActions:
     # TODO: Missing actions to be trigger with shortcut
     ArrayInline = 'enter array inline'
     ArrayTable = 'enter array table'
+
+    # Documentation and help
+    IPythonDocumentation = 'ipython_documentation'
+    ConsoleHelp = 'console_help'
+    QuickReference = 'quick_reference'
 
 
 class IPythonConsoleWidgetOptionsMenus:
@@ -381,7 +382,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             register_shortcut=True
         )
         self.reset_action = self.create_action(
-            IPythonConsoleWidgetActions.RemoveAllVariables,
+            IPythonConsoleWidgetActions.ResetNamespace,
             text=_("Remove all variables"),
             icon=self.create_icon('editdelete'),
             triggered=self.reset_namespace,
@@ -400,7 +401,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                   "kernel"),
             triggered=self.create_client_for_kernel,
         )
-        rename_tab_action = self.create_action(
+        self.rename_tab_action = self.create_action(
             IPythonConsoleWidgetActions.RenameTab,
             text=_("Rename tab"),
             icon=self.create_icon('rename'),
@@ -408,8 +409,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         )
 
         # From client:
-        env_action = self.create_action(
-            ClientWidgetActions.ShowEnvironmentVariables,
+        self.env_action = self.create_action(
+            IPythonConsoleWidgetActions.ShowEnvironmentVariables,
             text=_("Show environment variables"),
             icon=self.create_icon('environ'),
             triggered=lambda:
@@ -417,8 +418,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 if self.get_current_shellwidget() else None,
         )
 
-        syspath_action = self.create_action(
-            ClientWidgetActions.ShowSystemPath,
+        self.syspath_action = self.create_action(
+            IPythonConsoleWidgetActions.ShowSystemPath,
             text=_("Show sys.path contents"),
             icon=self.create_icon('syspath'),
             triggered=lambda:
@@ -427,7 +428,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         )
 
         self.show_time_action = self.create_action(
-            ClientWidgetActions.ToggleElapsedTime,
+            IPythonConsoleWidgetActions.ToggleElapsedTime,
             text=_("Show elapsed time"),
             toggled=self.set_show_elapsed_time_current_client,
             initial=self.get_conf('show_elapsed_time')
@@ -436,15 +437,15 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Context menu actions
         # TODO: Check shortcut not working
         self.inspect_action = self.create_action(
-            ClientWidgetContextMenuActions.InspectCurrentObject,
+            IPythonConsoleWidgetActions.InspectObject,
             text=_("Inspect current object"),
             icon=self.create_icon('MessageBoxInformation'),
-            triggered=self.current_client_inspect_object,
-            parent=self.tabwidget,
+            context=Qt.WindowShortcut,
+            triggered=lambda: print('test'), #self.current_client_inspect_object,
             register_shortcut=True)
 
         self.clear_line_action = self.create_action(
-            ClientWidgetContextMenuActions.ClearLine,
+            IPythonConsoleWidgetActions.ClearLine,
             text=_("Clear line or block"),
             triggered=self.current_client_clear_line,
             register_shortcut=True)
@@ -461,13 +462,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         #     parent=self.shellwidget)
 
         self.clear_console_action = self.create_action(
-            ClientWidgetContextMenuActions.ClearConsole,
+            IPythonConsoleWidgetActions.ClearConsole,
             text=_("Clear console"),
             triggered=self.current_client_clear_console,
             register_shortcut=True)
 
         self.quit_action = self.create_action(
-            ClientWidgetContextMenuActions.Quit,
+            IPythonConsoleWidgetActions.Quit,
             _("&Quit"),
             icon=self.create_icon('exit'),
             triggered=self.current_client_quit)
@@ -480,19 +481,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.quit_action)
 
         # Other actions with shortcuts
-        # TODO: Check if enum values should be in the client or in the main widget
-        array_table_action = self.create_action(
+        self.array_table_action = self.create_action(
             IPythonConsoleWidgetActions.ArrayTable,
-            text=IPythonConsoleWidgetActions.ArrayTable,
-            shortcut_context='array_builder',
+            text=_("Enter array table"),
             triggered=self.current_client_enter_array_table,
             register_shortcut=True)
 
-        array_inline_action = self.create_action(
+        self.array_inline_action = self.create_action(
             IPythonConsoleWidgetActions.ArrayInline,
-            text=IPythonConsoleWidgetActions.ArrayInline,
+            text=_("Enter array inline"),
             triggered=self.current_client_enter_array_inline,
-            shortcut_context='array_builder',
             register_shortcut=True)
 
         options_menu = self.get_options_menu()
@@ -514,7 +512,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.interrupt_action,
                 self.restart_action,
                 self.reset_action,
-                rename_tab_action]:
+                self.rename_tab_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -522,8 +520,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
         for item in [
-                env_action,
-                syspath_action,
+                self.env_action,
+                self.syspath_action,
                 self.show_time_action]:
             self.add_item_to_menu(
                 item,
