@@ -10,17 +10,22 @@ Spyder API menu widgets.
 
 # Standard library imports
 import sys
+from typing import Optional, Union, TypeVar
 
 # Third party imports
 from qtpy.QtWidgets import QAction, QMenu
 
 # Local imports
-from spyder.utils.qthelpers import add_actions
+from spyder.utils.qthelpers import add_actions, SpyderAction
 
 
 # --- Constants
 # ----------------------------------------------------------------------------
 MENU_SEPARATOR = None
+
+
+# Generic type annotations
+T = TypeVar('T', bound='SpyderMenu')
 
 
 class OptionsMenuSections:
@@ -46,6 +51,7 @@ class SpyderMenu(QMenu):
         self._title = title
         self._sections = []
         self._actions = []
+        self._actions_map = {}
         self.unintroduced_actions = {}
         self.unintroduced_sections = []
         self._dirty = False
@@ -74,11 +80,15 @@ class SpyderMenu(QMenu):
         self.clear()
         self._sections = []
         self._actions = []
+        self._actions_map = {}
         self.unintroduced_actions = {}
         self.unintroduced_sections = []
 
-    def add_action(self, action, section=None, before=None,
-                   before_section=None, check_before=True):
+    def add_action(self: T, action: Union[SpyderAction, T],
+                   action_id: str, section: Optional[str] = None,
+                   before: Optional[str] = None,
+                   before_section: Optional[str] = None,
+                   check_before: bool = True):
         """
         Add action to a given menu section.
 
@@ -86,11 +96,13 @@ class SpyderMenu(QMenu):
         ----------
         action: SpyderAction
             The action to add.
+        action_id: str
+            An unique identifier to store the action under the current menu.
         section: str or None
             The section id in which to insert the `action`.
-        before: SpyderAction or None
-            Make the action appear before another given action.
-        before_section: Section or None
+        before: str
+            Make the action appear before the given action identifier.
+        before_section: str or None
             Make the item section (if provided) appear before another
             given section.
         check_before: bool
@@ -103,8 +115,10 @@ class SpyderMenu(QMenu):
         else:
             new_actions = []
             added = False
+            before_item = self._actions_map.get(before, None)
+
             for sec, act in self._actions:
-                if act == before:
+                if before_item is not None and act == before_item:
                     added = True
                     new_actions.append((section, action))
 
@@ -116,7 +130,7 @@ class SpyderMenu(QMenu):
             # the menu is rendered.
             if not added and check_before:
                 before_actions = self.unintroduced_actions.get(before, [])
-                before_actions.append((section, action))
+                before_actions.append((section, action, action_id))
                 self.unintroduced_actions[before] = before_actions
 
             self._actions = new_actions
@@ -136,6 +150,7 @@ class SpyderMenu(QMenu):
 
         # Track state of menu to avoid re-rendering if menu has not changed
         self._dirty = True
+        self._actions_map[action_id] = action
 
     def get_title(self):
         """
@@ -190,9 +205,9 @@ class SpyderMenu(QMenu):
             # Update actions with those that were not introduced because
             # a `before` action they required was not part of the menu yet.
             for before, actions in self.unintroduced_actions.items():
-                for section, action in actions:
-                    self.add_action(action, section=section, before=before,
-                                    check_before=False)
+                for section, action, action_id in actions:
+                    self.add_action(action, action_id, section=section,
+                                    before=before, check_before=False)
 
             actions = self.get_actions()
             add_actions(self, actions)
