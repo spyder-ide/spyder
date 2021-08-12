@@ -17,7 +17,6 @@ from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.plugins.findinfiles.widgets import FindInFilesWidget
 from spyder.plugins.mainmenu.api import ApplicationMenus
-from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.misc import getcwd_or_home
 
 # Localization
