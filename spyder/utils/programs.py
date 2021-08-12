@@ -731,11 +731,16 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     if executable is None:
         executable = get_python_executable()
 
-    # If fname or python_exe contains spaces, it can't be ran on Windows, so we
+    # If fname or wdir has spaces, must be enclosed in quotes (all platforms)
+    if ' ' in fname:
+        fname = '"' + fname + '"'
+    if ' ' in wdir:
+        wdir = '"' + wdir + '"'
+
+    # If python_exe contains spaces, it can't be ran on Windows, so we
     # have to enclose them in quotes. Also wdir can come with / as os.sep, so
     # we need to take care of it.
     if os.name == 'nt':
-        fname = '"' + fname + '"'
         wdir = wdir.replace('/', '\\')
         executable = '"' + executable + '"'
 
