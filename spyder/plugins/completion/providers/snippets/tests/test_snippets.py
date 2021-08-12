@@ -20,7 +20,7 @@ from spyder.plugins.completion.api import (
 PY_SNIPPETS = SNIPPETS['python']
 
 
-@pytest.mark.slow
+@pytest.mark.order(3)
 @pytest.mark.parametrize('trigger', list(PY_SNIPPETS.keys()))
 def test_snippet_completions(qtbot_module, snippets_completions, trigger):
     snippets, completions = snippets_completions

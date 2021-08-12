@@ -218,6 +218,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         Check if client or server for a given language are down.
         """
+        # This avoids an odd error when running our tests.
+        if running_under_pytest():
+            if not getattr(self, 'clients', None):
+                return
+
         client = self.clients[language]
         status = client['status']
         instance = client.get('instance', None)

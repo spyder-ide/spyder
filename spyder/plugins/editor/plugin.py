@@ -1821,16 +1821,15 @@ class Editor(SpyderPluginWidget):
     def update_code_analysis_actions(self):
         """Update actions in the warnings menu."""
         editor = self.get_current_editor()
+
         # To fix an error at startup
         if editor is None:
             return
-        results = editor.get_current_warnings()
-        # Update code analysis actions
-        state = results is not None and len(results)
+
+        # Update actions state if there are errors present
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
-            if state is not None:
-                action.setEnabled(state)
+            action.setEnabled(editor.errors_present())
 
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()

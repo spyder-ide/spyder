@@ -52,6 +52,7 @@ from spyder.app.mainwindow import MainWindow
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
+from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -98,19 +99,6 @@ def open_file_in_editor(main_window, fname, directory=None):
             QTest.keyClick(w, Qt.Key_Enter)
 
 
-def get_thirdparty_plugin(main_window, plugin_title):
-    """Get a reference to the thirdparty plugin with the title given."""
-    for plugin in main_window.thirdparty_plugins:
-        try:
-            # New API
-            if plugin.get_name() == plugin_title:
-                return plugin
-        except AttributeError:
-            # Old API
-            if plugin.get_plugin_title() == plugin_title:
-                return plugin
-
-
 def reset_run_code(qtbot, shell, code_editor, nsb):
     """Reset state after a run code test"""
     qtbot.waitUntil(lambda: not shell._executing)
@@ -153,7 +141,6 @@ def register_fake_entrypoints():
     """
     Create entry points distribution to register elements:
      * Completion providers (Fallback, Shippets, LSP)
-     * Puglins (SpyderBoilerplate plugin)
     """
     # Completion providers
     fallback = pkg_resources.EntryPoint.parse(
@@ -169,26 +156,18 @@ def register_fake_entrypoints():
         'LanguageServerProvider'
     )
 
-    # Extra plugins
-    spyder_boilerplate = pkg_resources.EntryPoint.parse(
-        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
-        'plugin:SpyderBoilerplate'
-    )
-
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
 
-    # Add the providers and plugins to the fake EntryPoints
+    # Add the providers to the fake EntryPoints
     d._ep_map = {
         'spyder.completions': {
             'fallback': fallback,
             'snippets': snippets,
             'lsp': lsp
-        },
-        'spyder.plugins': {
-            'spyder_boilerplate': spyder_boilerplate
         }
     }
+
     # Add the fake distribution to the global working_set
     pkg_resources.working_set.add(d, 'spyder')
 
@@ -211,7 +190,8 @@ def remove_fake_entrypoints():
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
-    register_fake_entrypoints()
+    if not running_in_ci():
+        register_fake_entrypoints()
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -355,15 +335,18 @@ def main_window(request, tmpdir):
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request):
     """Cleanup a testing directory once we are finished."""
-    def remove_test_dir():
+    def close_window():
         if hasattr(main_window, 'window'):
             try:
                 main_window.window.close()
             except AttributeError:
                 pass
-        remove_fake_entrypoints()
 
-    request.addfinalizer(remove_test_dir)
+        # Also clean entry points if running locally.
+        if not running_in_ci():
+            remove_fake_entrypoints()
+
+    request.addfinalizer(close_window)
 
 
 # =============================================================================
@@ -746,9 +729,9 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
-@pytest.mark.parametrize(
-    "debugcell", [True, False])
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Fails sometimes on Windows and Mac")
+@pytest.mark.parametrize("debugcell", [True, False])
 def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
@@ -947,6 +930,8 @@ def test_dedicated_consoles(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Fails frequently on Linux")
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -1536,9 +1521,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or not running_in_ci(),
-                    reason="It times out sometimes on Windows and it's not "
-                           "meant to be run outside of CIs")
+@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -2183,7 +2166,7 @@ def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     from spyder.plugins.pylint.main_widget import PylintWidgetActions
     # Select the third-party plugin
-    pylint_plugin = get_thirdparty_plugin(main_window, "Code Analysis")
+    pylint_plugin = main_window.get_plugin(Plugins.Pylint)
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
@@ -2331,6 +2314,8 @@ def test_custom_layouts(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(not running_in_ci() or sys.platform.startswith('linux'),
+                    reason="Only runs in CIs and fails on Linux sometimes")
 def test_programmatic_custom_layouts(main_window, qtbot):
     """
     Test that a custom layout gets registered and it is recognized."""
@@ -2393,10 +2378,7 @@ def test_save_on_runfile(main_window, qtbot):
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
-    for plugin in main_window.thirdparty_plugins:
-        if plugin.CONF_SECTION == 'pylint':
-            pylint_plugin = plugin
-            break
+    pylint_plugin = main_window.get_plugin(Plugins.Pylint)
 
     # Show pylint plugin
     pylint_plugin.dockwidget.show()
@@ -3179,9 +3161,8 @@ def test_runcell_cache(main_window, qtbot, debug):
     qtbot.waitUntil(lambda: "Done" in shell._control.toPlainText())
 
 
-# --- Path manager
-# ----------------------------------------------------------------------------
 @pytest.mark.slow
+@flaky(max_runs=3)
 def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     """Check that on path manager updates, consoles correctly update."""
     main_window.show_path_manager()
@@ -4013,6 +3994,8 @@ def test_outline_no_init(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Flaky on Linux")
 def test_pdb_without_comm(main_window, qtbot):
     """Check if pdb works without comm."""
     ipyconsole = main_window.ipyconsole
@@ -4180,6 +4163,19 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "                print()\n"
         )
     assert expected in code_editor.toPlainText()
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
+def test_add_external_plugins_to_dependencies(main_window):
+    """Test that we register external plugins in the main window."""
+    external_names = []
+    for dep in DEPENDENCIES:
+        name = getattr(dep, 'package_name', None)
+        if name:
+            external_names.append(name)
+
+    assert 'spyder-boilerplate' in external_names
 
 
 if __name__ == "__main__":

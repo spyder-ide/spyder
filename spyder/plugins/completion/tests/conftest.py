@@ -15,6 +15,7 @@ from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.completion.plugin import CompletionPlugin
 from spyder.plugins.completion.providers.kite.utils.status import (
@@ -86,6 +87,10 @@ class MainWindowMock(QMainWindow):
 
 def register_all_providers():
     """Create a entry points distribution to register all the providers."""
+    # This is not necessary in CIs
+    if running_in_ci():
+        return
+
     fallback = pkg_resources.EntryPoint.parse(
         'fallback = spyder.plugins.completion.providers.fallback.provider:'
         'FallbackProvider'
@@ -116,6 +121,10 @@ def register_all_providers():
 
 def remove_fake_distribution():
     """Remove fake entry points from pkg_resources"""
+    # This is not necessary in CIs
+    if running_in_ci():
+        return
+
     pkg_resources.working_set.by_key.pop('unknown')
     pkg_resources.working_set.entry_keys.pop('spyder')
     pkg_resources.working_set.entry_keys.pop(__file__)

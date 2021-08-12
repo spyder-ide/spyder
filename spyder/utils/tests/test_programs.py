@@ -195,7 +195,7 @@ def test_is_module_installed_with_custom_interpreter():
     current = sys.executable
     assert is_module_installed('qtconsole', '>=4.5', interpreter=current)
     assert not is_module_installed('IPython', '>=1.0;<3.0', interpreter=current)
-    assert is_module_installed('jedi', '>=0.7.0', interpreter=current)
+    assert is_module_installed('cloudpickle', '>=0.5.0', interpreter=current)
 
 
 def test_get_temp_dir_ensure_dir_exists():

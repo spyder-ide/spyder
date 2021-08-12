@@ -22,8 +22,6 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyder.plugins.explorer.widgets.main_widget import FileExplorerTest
 from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
-from spyder.plugins.projects.widgets.main_widget import (
-    ProjectExplorerTest as ProjectExplorerTest2)
 
 
 HERE = osp.abspath(osp.dirname(__file__))
@@ -62,14 +60,6 @@ def file_explorer_associations(qtbot):
     return widget
 
 
-@pytest.fixture
-def project_explorer(qtbot):
-    """Set up FileExplorerTest."""
-    widget = ProjectExplorerTest()
-    qtbot.addWidget(widget)
-    return widget
-
-
 def create_timer(func, interval=500):
     """Helper function to help interact with modal dialogs."""
     timer = QTimer()
@@ -80,7 +70,7 @@ def create_timer(func, interval=500):
     return timer
 
 
-@pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
+@pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest])
 def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
     cb = QApplication.clipboard()
@@ -97,13 +87,6 @@ def test_file_explorer(file_explorer):
     file_explorer.resize(640, 480)
     file_explorer.show()
     assert file_explorer
-
-
-def test_project_explorer(project_explorer):
-    """Run ProjectExplorerTest."""
-    project_explorer.resize(640, 480)
-    project_explorer.show()
-    assert project_explorer
 
 
 @pytest.mark.parametrize('path_method', ['absolute', 'relative'])

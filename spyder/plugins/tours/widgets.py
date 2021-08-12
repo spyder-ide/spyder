@@ -741,12 +741,7 @@ class AnimatedTour(QWidget):
                 try:
                     temp = getattr(spy_window, name)
                 except AttributeError:
-                    for item in spy_window.thirdparty_plugins:
-                        if type(item).__name__ == name:
-                            temp = item
-                            break
-                    else:
-                        temp = None
+                    temp = None
                     # Check if it is the current editor
                     if 'get_current_editor()' in name:
                         temp = temp.get_current_editor()

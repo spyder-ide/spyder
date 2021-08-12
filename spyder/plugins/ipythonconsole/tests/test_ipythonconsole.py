@@ -218,6 +218,7 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 # Tests
 # =============================================================================
+@flaky(max_runs=3)
 @pytest.mark.external_interpreter
 def test_banners(ipyconsole, qtbot):
     """Test that console banners are generated correctly."""
@@ -292,7 +293,6 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend is working correctly."""
     # Wait until the window is fully up
@@ -300,14 +300,15 @@ def test_auto_backend(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # This is here to generate further errors
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%matplotlib qt5")
+        shell.execute("import matplotlib; matplotlib.get_backend()")
 
-    # Assert there are no errors in the console
+    # Assert there are no errors in the console and we set the right
+    # backend.
     control = ipyconsole.get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
+    assert 'Qt5Agg' in control.toPlainText()
 
 
 @flaky(max_runs=3)
@@ -1325,6 +1326,7 @@ def test_kernel_crash(ipyconsole, qtbot):
     os.remove(ipy_kernel_cfg)
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
 def test_remove_old_stderr_files(ipyconsole, qtbot):
     """Test that we are removing old stderr files."""
@@ -1486,6 +1488,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
+@flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
 def test_pdb_multiline(ipyconsole, qtbot):
     """Test entering a multiline statment into pdb"""
@@ -1724,7 +1727,7 @@ def test_stderr_poll(ipyconsole, qtbot):
     assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
 
 
-@pytest.mark.slow
+@flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
 def test_startup_code_pdb(ipyconsole, qtbot):
     """Test that startup code for pdb works."""

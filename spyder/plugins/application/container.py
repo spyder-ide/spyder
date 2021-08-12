@@ -15,7 +15,7 @@ import os
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QThread, QTimer, Slot
+from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtWidgets import QAction, QMessageBox
 
 # Local imports
@@ -25,6 +25,7 @@ from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.utils import is_anaconda
+from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
@@ -65,6 +66,11 @@ class ApplicationActions:
 
 class ApplicationContainer(PluginMainContainer):
 
+    sig_report_issue_requested = Signal()
+    """
+    Signal to request reporting an issue to Github.
+    """
+
     def setup(self):
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread()
@@ -99,6 +105,11 @@ class ApplicationContainer(PluginMainContainer):
             ApplicationActions.SpyderTroubleshootingAction,
             _("Troubleshooting..."),
             triggered=lambda: start_file(__trouble_url__))
+        self.report_action = self.create_action(
+            ConsoleActions.SpyderReportAction,
+            _("Report issue..."),
+            icon=self.create_icon('bug'),
+            triggered=self.sig_report_issue_requested)
         self.dependencies_action = self.create_action(
             ApplicationActions.SpyderDependenciesAction,
             _("Dependencies..."),

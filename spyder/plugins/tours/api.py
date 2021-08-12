@@ -29,8 +29,8 @@ class SpyderWidgets:
     history_log = "historylog"
     plots_plugin = "plots"
     find_plugin = "findinfiles"
-    profiler = "Profiler"
-    code_analysis = "Pylint"
+    profiler = "profiler"
+    code_analysis = "pylint"
 
     # Toolbars
     toolbars = ''

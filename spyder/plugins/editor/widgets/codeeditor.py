@@ -1235,6 +1235,12 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
 
+    def errors_present(self):
+        """
+        Return True if there are errors or warnings present in the file.
+        """
+        return bool(len(self._diagnostics))
+
     def _process_code_analysis(self, underline):
         """
         Process all code analysis results.
@@ -2740,15 +2746,9 @@ class CodeEditor(TextEditBaseWidget):
             if using_spaces:
                 return ' ' * indent_adjustment + line
             else:
-                # Make sure tab_stop_width_spaces is an int at this point.
-                # Fixes spyder-ide/spyder#16137
-                if not isinstance(self.tab_stop_width_spaces, int):
-                    # Set default value
-                    self.tab_stop_width_spaces = 4
-
                 return (
                     self.indent_chars
-                    * indent_adjustment // self.tab_stop_width_spaces
+                    * (indent_adjustment // self.tab_stop_width_spaces)
                     + line)
 
         max_indent = self.get_line_indentation(line)
@@ -3674,8 +3674,10 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
-                indent_text = '\t' * (correct_indent // self.tab_stop_width_spaces) \
-                            + ' ' * (correct_indent % self.tab_stop_width_spaces)
+                indent_text = (
+                    '\t' * (correct_indent // self.tab_stop_width_spaces) +
+                    ' ' * (correct_indent % self.tab_stop_width_spaces)
+                )
             else:
                 indent_text = ' '*correct_indent
             cursor.insertText(indent_text)
