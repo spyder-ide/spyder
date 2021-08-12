@@ -85,6 +85,7 @@ class Restarter(QWidget):
     """Widget in charge of displaying the splash information screen and the
        error messages.
     """
+
     def __init__(self):
         super(Restarter, self).__init__()
         self.ellipsis = ['', '.', '..', '...', '..', '.']
@@ -114,7 +115,7 @@ class Restarter(QWidget):
     def animate_ellipsis(self):
         """Animate dots at the end of the splash screen message."""
         ellipsis = self.ellipsis.pop(0)
-        text = ' '*len(ellipsis) + self.splash_text + ellipsis
+        text = ' ' * len(ellipsis) + self.splash_text + ellipsis
         self.ellipsis.append(ellipsis)
         self._show_message(text)
 
@@ -183,7 +184,6 @@ def main():
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables
-    # Note: Variables defined in app/mainwindow.py 'restart()' method
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
@@ -203,6 +203,14 @@ def main():
     pid = ast.literal_eval(pid)
     args = ast.literal_eval(spyder_args)
     reset = ast.literal_eval(reset)
+
+    # SPYDER_DEBUG takes presedence over SPYDER_ARGS
+    if '--debug' in args:
+        args.remove('--debug')
+    for level in ['minimal', 'verbose']:
+        arg = f'--debug-info={level}'
+        if arg in args:
+            args.remove(arg)
 
     # Enforce the --new-instance flag when running spyder
     if '--new-instance' not in args:
@@ -240,7 +248,7 @@ def main():
     # previous one has closed. We wait for a fixed and "reasonable" amount of
     # time and check, otherwise an error is launched
     wait_time = 90 if IS_WINDOWS else 30  # Seconds
-    for counter in range(int(wait_time/SLEEP_TIME)):
+    for counter in range(int(wait_time / SLEEP_TIME)):
         if not is_pid_running(pid):
             break
         time.sleep(SLEEP_TIME)  # Throttling control
@@ -269,7 +277,7 @@ def main():
         # reset subprocess has closed. We wait for a fixed and "reasonable"
         # amount of time and check, otherwise an error is launched.
         wait_time = 20  # Seconds
-        for counter in range(int(wait_time/SLEEP_TIME)):
+        for counter in range(int(wait_time / SLEEP_TIME)):
             if not is_pid_running(pid_reset):
                 break
             time.sleep(SLEEP_TIME)  # Throttling control
