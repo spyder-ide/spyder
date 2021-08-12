@@ -363,7 +363,7 @@ class ApplicationContainer(PluginMainContainer):
 
     @Slot()
     def restart_normal(self):
-        # always restart in standard mode
+        """Restart in standard mode."""
         os.environ['SPYDER_DEBUG'] = ''
         self.sig_restart_requested.emit()
 
