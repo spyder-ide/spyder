@@ -555,7 +555,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 'Menu name "{}" already in use!'.format(menu_id)
             )
 
-        menu = MainWidgetMenu(parent=self, title=title)
+        menu = MainWidgetMenu(parent=self, title=title, menu_id=menu_id)
         menu.ID = menu_id
 
         MENU_REGISTRY.register_reference(

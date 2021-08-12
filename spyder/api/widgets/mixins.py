@@ -254,7 +254,7 @@ class SpyderMenuMixin:
         """
         from spyder.api.widgets.menus import SpyderMenu
 
-        menu = SpyderMenu(parent=self, title=text)
+        menu = SpyderMenu(parent=self, title=text, menu_id=name)
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)
             menu.setIcon(icon)

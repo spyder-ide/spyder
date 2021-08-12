@@ -9,6 +9,7 @@ Spyder API menu widgets.
 """
 
 # Standard library imports
+from spyder.api.exceptions import SpyderAPIError
 import sys
 from typing import Optional, Union, TypeVar
 
@@ -46,7 +47,8 @@ class SpyderMenu(QMenu):
     """
     MENUS = []
 
-    def __init__(self, parent=None, title=None, dynamic=True):
+    def __init__(self, parent=None, title=None, dynamic=True,
+                 menu_id=None):
         self._parent = parent
         self._title = title
         self._sections = []
@@ -55,6 +57,7 @@ class SpyderMenu(QMenu):
         self.unintroduced_actions = {}
         self.unintroduced_sections = []
         self._dirty = False
+        self.menu_id = menu_id
 
         if title is None:
             super().__init__(parent)
@@ -85,7 +88,7 @@ class SpyderMenu(QMenu):
         self.unintroduced_sections = []
 
     def add_action(self: T, action: Union[SpyderAction, T],
-                   action_id: str, section: Optional[str] = None,
+                   section: Optional[str] = None,
                    before: Optional[str] = None,
                    before_section: Optional[str] = None,
                    check_before: bool = True):
@@ -96,8 +99,6 @@ class SpyderMenu(QMenu):
         ----------
         action: SpyderAction
             The action to add.
-        action_id: str
-            An unique identifier to store the action under the current menu.
         section: str or None
             The section id in which to insert the `action`.
         before: str
@@ -110,6 +111,14 @@ class SpyderMenu(QMenu):
             necessary to avoid an infinite recursion when adding
             unintroduced actions with this method again.
         """
+        item_id = None
+        if isinstance(action, SpyderAction):
+            item_id = action.action_id
+        elif isinstance(action, SpyderMenu):
+            item_id = action.menu_id
+
+        assert item_id is not None
+
         if before is None:
             self._actions.append((section, action))
         else:
@@ -130,7 +139,7 @@ class SpyderMenu(QMenu):
             # the menu is rendered.
             if not added and check_before:
                 before_actions = self.unintroduced_actions.get(before, [])
-                before_actions.append((section, action, action_id))
+                before_actions.append((section, action, item_id))
                 self.unintroduced_actions[before] = before_actions
 
             self._actions = new_actions
@@ -150,7 +159,7 @@ class SpyderMenu(QMenu):
 
         # Track state of menu to avoid re-rendering if menu has not changed
         self._dirty = True
-        self._actions_map[action_id] = action
+        self._actions_map[item_id] = action
 
     def get_title(self):
         """

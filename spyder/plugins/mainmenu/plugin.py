@@ -32,7 +32,7 @@ _ = get_translation('spyder')
 # Extended typing definitions
 ItemType = Union[SpyderAction, SpyderMenu]
 ItemSectionBefore = Tuple[
-    ItemType, str, Optional[str], Optional[str], Optional[str]]
+    ItemType, Optional[str], Optional[str], Optional[str]]
 ItemQueue = Dict[str, List[ItemSectionBefore]]
 
 
@@ -196,15 +196,15 @@ class MainMenu(SpyderPluginV2):
         if menu_id in self._ITEM_QUEUE:
             pending_items = self._ITEM_QUEUE.pop(menu_id)
             for pending in pending_items:
-                (item, item_id, section,
+                (item, section,
                  before_item, before_section) = pending
                 self.add_item_to_application_menu(
-                    item, item_id, menu_id=menu_id, section=section,
+                    item, menu_id=menu_id, section=section,
                     before=before_item, before_section=before_section)
 
         return menu
 
-    def add_item_to_application_menu(self, item: ItemType, item_id: str,
+    def add_item_to_application_menu(self, item: ItemType,
                                      menu_id: Optional[str] = None,
                                      section: Optional[str] = None,
                                      before: Optional[str] = None,
@@ -216,8 +216,6 @@ class MainMenu(SpyderPluginV2):
         ----------
         item: SpyderAction or SpyderMenu
             The item to add to the `menu`.
-        item_id: str
-            The identifier under which the item will be stored.
         menu_id: str or None
             The application menu unique string identifier.
         section: str or None
@@ -232,6 +230,10 @@ class MainMenu(SpyderPluginV2):
         -----
         Must provide a `menu` or a `menu_id`.
         """
+        if not isinstance(item, (SpyderAction, SpyderMenu)):
+            raise SpyderAPIError('A menu only accepts items objects of type '
+                                 'SpyderAction or SpyderMenu')
+
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
         app_menu_actions = {
@@ -249,12 +251,12 @@ class MainMenu(SpyderPluginV2):
         else:
             if menu_id not in self._APPLICATION_MENUS:
                 pending_menu_items = self._ITEM_QUEUE.get(menu_id, [])
-                pending_menu_items.append((item, item_id, section, before,
+                pending_menu_items.append((item, section, before,
                                            before_section))
                 self._ITEM_QUEUE[menu_id] = pending_menu_items
             else:
                 menu = self.get_application_menu(menu_id)
-                menu.add_action(item, item_id, section=section, before=before,
+                menu.add_action(item, section=section, before=before,
                                 before_section=before_section)
 
     def get_application_menu(self, menu_id: str) -> SpyderMenu:
