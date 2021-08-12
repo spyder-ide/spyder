@@ -28,6 +28,8 @@ from spyder.utils.qthelpers import create_toolbutton
 # Localization
 _ = get_translation("spyder")
 
+RUN_DEFAULT_CONFIG = _("Run file with default configuration")
+RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
 SYSTERM_INTERPRETER = _("Execute in an external system terminal")
@@ -58,6 +60,7 @@ class RunConfiguration(object):
     """Run configuration"""
 
     def __init__(self, fname=None):
+        self.default = None
         self.args = None
         self.args_enabled = None
         self.wdir = None
@@ -78,6 +81,7 @@ class RunConfiguration(object):
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
 
     def set(self, options):
+        self.default = options.get('default', True)
         self.args = options.get('args', '')
         self.args_enabled = options.get('args/enabled', False)
         self.current = options.get('current',
@@ -104,6 +108,7 @@ class RunConfiguration(object):
 
     def get(self):
         return {
+                'default': self.default,
                 'args/enabled': self.args_enabled,
                 'args': self.args,
                 'workdir/enabled': self.wdir_enabled,
@@ -173,8 +178,22 @@ class RunConfigOptions(QWidget):
         self.runconf = RunConfiguration()
         firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
+        # --- Run settings ---
+        run_group = QGroupBox(_("Run settings"))
+        run_layout = QVBoxLayout(run_group)
+
+        self.run_default_config_radio = QRadioButton(RUN_DEFAULT_CONFIG)
+        run_layout.addWidget(self.run_default_config_radio)
+
+        self.run_custom_config_radio = QRadioButton(RUN_CUSTOM_CONFIG)
+        run_layout.addWidget(self.run_custom_config_radio)
+
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
+        interpreter_group.setDisabled(True)
+
+        self.run_custom_config_radio.toggled.connect(interpreter_group.setEnabled)
+
         interpreter_layout = QVBoxLayout(interpreter_group)
 
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
@@ -188,6 +207,10 @@ class RunConfigOptions(QWidget):
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
+        common_group.setDisabled(True)
+
+        self.run_custom_config_radio.toggled.connect(common_group.setEnabled)
+
         common_layout = QGridLayout(common_group)
 
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
@@ -208,6 +231,10 @@ class RunConfigOptions(QWidget):
 
         # --- Working directory ---
         wdir_group = QGroupBox(_("Working directory settings"))
+        wdir_group.setDisabled(True)
+
+        self.run_custom_config_radio.toggled.connect(wdir_group.setEnabled)
+
         wdir_layout = QVBoxLayout(wdir_group)
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
@@ -236,6 +263,8 @@ class RunConfigOptions(QWidget):
         external_group = QGroupBox(_("External system terminal"))
         external_group.setDisabled(True)
 
+        self.run_custom_config_radio.toggled.connect(lambda x:
+            external_group.setEnabled(x and self.systerm_radio.isChecked()))
         self.systerm_radio.toggled.connect(external_group.setEnabled)
 
         external_layout = QGridLayout()
@@ -259,6 +288,7 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb.setChecked(firstrun_o)
 
         layout = QVBoxLayout(self)
+        layout.addWidget(run_group)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
@@ -278,6 +308,10 @@ class RunConfigOptions(QWidget):
 
     def set(self, options):
         self.runconf.set(options)
+        if self.runconf.default:
+            self.run_default_config_radio.setChecked(True)
+        else:
+            self.run_custom_config_radio.setChecked(True)
         self.clo_cb.setChecked(self.runconf.args_enabled)
         self.clo_edit.setText(self.runconf.args)
         if self.runconf.current:
@@ -299,6 +333,7 @@ class RunConfigOptions(QWidget):
         self.wd_edit.setText(self.dir)
 
     def get(self):
+        self.runconf.default = self.run_default_config_radio.isChecked()
         self.runconf.args_enabled = self.clo_cb.isChecked()
         self.runconf.args = str(self.clo_edit.text())
         self.runconf.current = self.current_radio.isChecked()
