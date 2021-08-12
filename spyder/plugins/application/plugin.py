@@ -12,7 +12,6 @@ import os
 import os.path as osp
 import subprocess
 import sys
-import glob
 
 # Third party imports
 from qtpy.QtCore import Slot
@@ -23,8 +22,8 @@ from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import (DEV, get_module_path, get_conf_path,
-                                get_debug_level, running_under_pytest)
+from spyder.config.base import (DEV, get_module_path, get_debug_level,
+                                running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
     ApplicationActions, ApplicationContainer, WinUserEnvDialog, LogsMenus)
@@ -109,25 +108,6 @@ class Application(SpyderPluginV2):
             container.give_updates_feedback = False
             container.check_updates(startup=True)
 
-    def update_debug_logs(self):
-        """Create an action for each lsp and debug log file."""
-        self.debug_logs_menu.clear()
-        if self.is_plugin_available(Plugins.Editor):
-            load = self.get_plugin(Plugins.Editor).load
-        else:
-            def load():
-                pass
-
-        debug_logs = []
-        files = glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
-        files.append(os.environ['SPYDER_DEBUG_FILE'])
-        for f in files:
-            action = self.create_action(
-                f, f, triggered=load)  # TODO: add triggered
-            action.setData(f)
-            debug_logs.append(action)
-        add_actions(self.debug_logs_menu, debug_logs)
-
     # ---- Private methods
     # ------------------------------------------------------------------------
     def _populate_file_menu(self):
@@ -155,7 +135,6 @@ class Application(SpyderPluginV2):
                 self.debug_logs_menu,
                 menu_id=ApplicationMenus.Tools,
                 section=ToolsMenuSections.Extras)
-            self.debug_logs_menu.aboutToShow.connect(self.update_debug_logs)
 
     def _populate_help_menu(self):
         """Add base actions and menus to the Help menu."""
