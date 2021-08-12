@@ -1060,9 +1060,9 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.search_text_edit, self.search_regexp_action,
-                     self.case_action, self.more_options_action,
-                     self.find_action]:
+        for item in [self.search_text_edit, self.find_action,
+                     self.search_regexp_action,self.case_action,
+                     self.more_options_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
