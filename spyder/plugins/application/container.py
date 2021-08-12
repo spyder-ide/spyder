@@ -20,8 +20,7 @@ from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtWidgets import QAction, QMessageBox
 
 # Local imports
-from spyder import (
-    __docs_url__, __forum_url__, __project_url__, __trouble_url__)
+from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
