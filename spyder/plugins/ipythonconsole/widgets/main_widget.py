@@ -82,11 +82,8 @@ class IPythonConsoleWidgetActions:
 
     # Tabs
     RenameTab = 'rename_tab_action'
-    # TODO: Missing actions to be trigger with shortcut
-    NewTab = 'new_tab_action'
 
     # Variables display
-    # TODO: Missing actions to be trigger with shortcut
     ArrayInline = 'enter array inline'
     ArrayTable = 'enter array table'
 
@@ -436,62 +433,63 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Context menu actions
         # TODO: Check shortcut not working
-        self.inspect_action = self.create_action(
-            IPythonConsoleWidgetActions.InspectObject,
-            text=_("Inspect current object"),
-            icon=self.create_icon('MessageBoxInformation'),
-            context=Qt.WindowShortcut,
-            triggered=lambda: print('test'), #self.current_client_inspect_object,
-            register_shortcut=True)
+        # self.inspect_action = self.create_action(
+        #     IPythonConsoleWidgetActions.InspectObject,
+        #     text=_("Inspect current object"),
+        #     icon=self.create_icon('MessageBoxInformation'),
+        #     context=Qt.WindowShortcut,
+        #     triggered=self.current_client_inspect_object,
+        #     register_shortcut=True)
 
-        self.clear_line_action = self.create_action(
-            IPythonConsoleWidgetActions.ClearLine,
-            text=_("Clear line or block"),
-            triggered=self.current_client_clear_line,
-            register_shortcut=True)
+        # self.clear_line_action = self.create_action(
+        #     IPythonConsoleWidgetActions.ClearLine,
+        #     text=_("Clear line or block"),
+        #     triggered=self.current_client_clear_line,
+        #     register_shortcut=True)
 
-        # self.reset_namespace_action = self.create_action(
-        #     ClientWidgetContextMenuActions.ResetNamespace,
-        #     text=_("Remove all variables"),
-        #     icon=self.create_icon('editdelete'),
-        #     triggered=self.reset_namespace,
-        #     overwrite=True,
-        #     shortcut_context='ipython_console',
-        #     context_name='ipython_console',
-        #     register_shortcut=True,
-        #     parent=self.shellwidget)
+        # # self.reset_namespace_action = self.create_action(
+        # #     ClientWidgetContextMenuActions.ResetNamespace,
+        # #     text=_("Remove all variables"),
+        # #     icon=self.create_icon('editdelete'),
+        # #     triggered=self.reset_namespace,
+        # #     overwrite=True,
+        # #     shortcut_context='ipython_console',
+        # #     context_name='ipython_console',
+        # #     register_shortcut=True,
+        # #     parent=self.shellwidget)
 
-        self.clear_console_action = self.create_action(
-            IPythonConsoleWidgetActions.ClearConsole,
-            text=_("Clear console"),
-            triggered=self.current_client_clear_console,
-            register_shortcut=True)
+        # self.clear_console_action = self.create_action(
+        #     IPythonConsoleWidgetActions.ClearConsole,
+        #     text=_("Clear console"),
+        #     triggered=self.current_client_clear_console,
+        #     register_shortcut=True)
 
-        self.quit_action = self.create_action(
-            IPythonConsoleWidgetActions.Quit,
-            _("&Quit"),
-            icon=self.create_icon('exit'),
-            triggered=self.current_client_quit)
+        # self.quit_action = self.create_action(
+        #     IPythonConsoleWidgetActions.Quit,
+        #     _("&Quit"),
+        #     icon=self.create_icon('exit'),
+        #     triggered=self.current_client_quit)
 
         self.context_menu_actions = (
-            None,
-            self.inspect_action, self.clear_line_action,
-            self.clear_console_action, self.reset_action,
-            None,
-            self.quit_action)
+            # None,
+            # self.inspect_action, self.clear_line_action,
+            # self.clear_console_action, self.reset_action,
+            # None,
+            # self.quit_action
+            )
 
         # Other actions with shortcuts
-        self.array_table_action = self.create_action(
-            IPythonConsoleWidgetActions.ArrayTable,
-            text=_("Enter array table"),
-            triggered=self.current_client_enter_array_table,
-            register_shortcut=True)
+        # self.array_table_action = self.create_action(
+        #     IPythonConsoleWidgetActions.ArrayTable,
+        #     text=_("Enter array table"),
+        #     triggered=self.current_client_enter_array_table,
+        #     register_shortcut=True)
 
-        self.array_inline_action = self.create_action(
-            IPythonConsoleWidgetActions.ArrayInline,
-            text=_("Enter array inline"),
-            triggered=self.current_client_enter_array_inline,
-            register_shortcut=True)
+        # self.array_inline_action = self.create_action(
+        #     IPythonConsoleWidgetActions.ArrayInline,
+        #     text=_("Enter array inline"),
+        #     triggered=self.current_client_enter_array_inline,
+        #     register_shortcut=True)
 
         options_menu = self.get_options_menu()
         self.special_console_menu = self.create_menu(
@@ -1205,6 +1203,76 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
+            # TODO: Create actions attached to the shellwidget to see if that
+            # helps with the shortcuts
+            # self.shellwidget.create_shortcuts()
+            # self.inspect_action = self.create_action(
+            #     IPythonConsoleWidgetActions.InspectObject,
+            #     text=_("Inspect current object"),
+            #     icon=self.create_icon('MessageBoxInformation'),
+            #     triggered=self.current_client_inspect_object,
+            #     register_shortcut=True,
+            #     overwrite=True,
+            #     parent=sw._control)
+
+            # self.clear_line_action = self.create_action(
+            #     IPythonConsoleWidgetActions.ClearLine,
+            #     text=_("Clear line or block"),
+            #     triggered=self.current_client_clear_line,
+            #     register_shortcut=True,
+            #     overwrite=True,
+            #     parent=sw._control)
+
+            # # self.reset_namespace_action = self.create_action(
+            # #     ClientWidgetContextMenuActions.ResetNamespace,
+            # #     text=_("Remove all variables"),
+            # #     icon=self.create_icon('editdelete'),
+            # #     triggered=self.reset_namespace,
+            # #     overwrite=True,
+            # #     shortcut_context='ipython_console',
+            # #     context_name='ipython_console',
+            # #     register_shortcut=True,
+            # #     parent=self.shellwidget)
+
+            # self.clear_console_action = self.create_action(
+            #     IPythonConsoleWidgetActions.ClearConsole,
+            #     text=_("Clear console"),
+            #     triggered=self.current_client_clear_console,
+            #     register_shortcut=True,
+            #     overwrite=True,
+            #     parent=sw._control)
+
+            # self.quit_action = self.create_action(
+            #     IPythonConsoleWidgetActions.Quit,
+            #     _("&Quit"),
+            #     icon=self.create_icon('exit'),
+            #     triggered=self.current_client_quit,
+            #     overwrite=True,
+            #     parent=sw._control)
+
+            # self.context_menu_actions = (
+            #     None,
+            #     self.inspect_action, self.clear_line_action,
+            #     self.clear_console_action, self.reset_action,
+            #     None,
+            #     self.quit_action)
+
+            # # Other actions with shortcuts
+            # self.array_table_action = self.create_action(
+            #     IPythonConsoleWidgetActions.ArrayTable,
+            #     text=_("Enter array table"),
+            #     triggered=self.current_client_enter_array_table,
+            #     register_shortcut=True,
+            #     overwrite=True,
+            #     parent=sw._control)
+
+            # self.array_inline_action = self.create_action(
+            #     IPythonConsoleWidgetActions.ArrayInline,
+            #     text=_("Enter array inline"),
+            #     triggered=self.current_client_enter_array_inline,
+            #     register_shortcut=True,
+            #     overwrite=True,
+            #     parent=sw._control)
 
         self.update_tabs_text()
         self.update_execution_state_kernel()

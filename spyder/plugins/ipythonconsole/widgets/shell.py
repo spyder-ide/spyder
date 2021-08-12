@@ -95,7 +95,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Keyboard shortcuts
         # TODO: Define shortcuts for the actions in the client
-        # self.shortcuts = self.create_shortcuts()
+        self.shortcuts = self.create_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
@@ -133,9 +133,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
         self.show_modules_message = is_pynsist() or running_in_mac_app()
-        print(self._control.parent())
-        self._control.setParent(self)
-        print(self._control.parent())
 
     def __del__(self):
         """Avoid destroying shutdown_thread."""
@@ -573,13 +570,13 @@ the sympy module (e.g. plot)
         """Create shortcuts for ipyconsole."""
         inspect = self.config_shortcut(
             self._control.inspect_current_object,
-            context='Console',
+            context='ipython_console',
             name='Inspect current object',
             parent=self)
 
         clear_console = self.config_shortcut(
             self.clear_console,
-            context='Console',
+            context='ipython_console',
             name='Clear shell',
             parent=self)
 
@@ -603,19 +600,19 @@ the sympy module (e.g. plot)
 
         array_inline = self.config_shortcut(
             self._control.enter_array_inline,
-            context='array_builder',
+            context='ipython_console',
             name='enter array inline',
             parent=self)
 
         array_table = self.config_shortcut(
             self._control.enter_array_table,
-            context='array_builder',
+            context='ipython_console',
             name='enter array table',
             parent=self)
 
         clear_line = self.config_shortcut(
             self.ipyclient.clear_line,
-            context='console',
+            context='ipython_console',
             name='clear line',
             parent=self)
 

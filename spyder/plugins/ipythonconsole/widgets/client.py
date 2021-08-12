@@ -147,10 +147,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                                        additional_options=additional_options,
                                        interpreter_versions=interpreter_versions,
                                        external_kernel=external_kernel,
-                                       local_kernel=True,
-                                       parentWidget=self)
+                                       local_kernel=True)
         # print(self.shellwidget.parent())
-        self.shellwidget.setParent(self)
+        # self.shellwidget.setParent(self)
         # print(self.shellwidget.parent())
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
