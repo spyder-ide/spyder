@@ -7,7 +7,6 @@
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
-from spyder.api.plugins import Plugins
 
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
@@ -22,6 +21,7 @@ class ConfigDialog(QDialog):
     # Signals
     check_settings = Signal()
     size_change = Signal(QSize)
+    sig_reset_preferences_requested = Signal()
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -72,9 +72,7 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         # Signals and slots
-        container = self.main.get_plugin(Plugins.Preferences).get_container()
-        self.button_reset.clicked.connect(
-            container.sig_reset_preferences_requested)
+        self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
                                              self.pages_widget.setCurrentIndex)

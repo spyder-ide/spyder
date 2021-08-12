@@ -79,6 +79,8 @@ class PreferencesContainer(PluginMainContainer):
             dlg.pages_widget.currentChanged.connect(
                 self.__preference_page_changed)
             dlg.size_change.connect(main_window.set_prefs_size)
+            dlg.sig_reset_preferences_requested.connect(
+                self.sig_reset_preferences_requested)
         else:
             self.dialog.show()
             self.dialog.activateWindow()
