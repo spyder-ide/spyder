@@ -87,10 +87,9 @@ class FindInFiles(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         findinfiles_action = self.get_action(FindInFilesActions.FindInFiles)
 
-        menu = mainmenu.get_application_menu(ApplicationMenus.Search)
         mainmenu.add_item_to_application_menu(
             findinfiles_action,
-            menu=menu,
+            menu_id=ApplicationMenus.Search,
         )
 
     def on_close(self, cancelable=False):

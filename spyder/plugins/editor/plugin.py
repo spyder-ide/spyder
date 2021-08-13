@@ -985,7 +985,8 @@ class Editor(SpyderPluginWidget):
             self.new_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.New,
-            before_section=FileMenuSections.Restart)
+            before_section=FileMenuSections.Restart,
+            omit_id=True)
         # Open section
         open_actions = [
             self.open_action,
@@ -997,7 +998,8 @@ class Editor(SpyderPluginWidget):
                 open_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Open,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Save section
         save_actions = [
             self.save_action,
@@ -1011,7 +1013,8 @@ class Editor(SpyderPluginWidget):
                 save_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Print
         print_actions = [
             print_preview_action,
@@ -1022,7 +1025,8 @@ class Editor(SpyderPluginWidget):
                 print_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Print,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Close
         close_actions = [
             self.close_action,
@@ -1033,14 +1037,16 @@ class Editor(SpyderPluginWidget):
                 close_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Navigation
         if sys.platform == 'darwin':
             self.main.mainmenu.add_item_to_application_menu(
                 self.tab_navigation_actions,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Navigation,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
 
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +

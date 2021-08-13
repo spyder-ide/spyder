@@ -248,19 +248,19 @@ class Projects(SpyderDockablePlugin):
 
         main_menu.add_item_to_application_menu(
             new_project_action,
-            menu=projects_menu,
+            menu_id=ApplicationMenus.Projects,
             section=ProjectsMenuSections.New)
 
         for item in [open_project_action, self.close_project_action,
                      self.delete_project_action]:
             main_menu.add_item_to_application_menu(
                 item,
-                menu=projects_menu,
+                menu_id=ApplicationMenus.Projects,
                 section=ProjectsMenuSections.Open)
 
         main_menu.add_item_to_application_menu(
             self.recent_project_menu,
-            menu=projects_menu,
+            menu_id=ApplicationMenus.Projects,
             section=ProjectsMenuSections.Extras)
 
     def setup(self):

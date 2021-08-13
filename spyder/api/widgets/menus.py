@@ -91,7 +91,8 @@ class SpyderMenu(QMenu):
                    section: Optional[str] = None,
                    before: Optional[str] = None,
                    before_section: Optional[str] = None,
-                   check_before: bool = True):
+                   check_before: bool = True,
+                   omit_id: bool = False):
         """
         Add action to a given menu section.
 
@@ -110,14 +111,19 @@ class SpyderMenu(QMenu):
             Check if the `before` action is part of the menu. This is
             necessary to avoid an infinite recursion when adding
             unintroduced actions with this method again.
+        omit_id: bool
+            If True, then the menu will check if the item to add declares an
+            id, False otherwise. This flag exists only for items added on
+            Spyder 4 plugins. Default: False
         """
         item_id = None
-        if isinstance(action, SpyderAction):
+        if isinstance(action, SpyderAction) or hasattr(action, 'action_id'):
             item_id = action.action_id
-        elif isinstance(action, SpyderMenu):
+        elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
             item_id = action.menu_id
 
-        assert item_id is not None
+        if not omit_id and item_id is None and action is not None:
+            raise AttributeError(f'Item {action} must declare an id.')
 
         if before is None:
             self._actions.append((section, action))
@@ -139,7 +145,7 @@ class SpyderMenu(QMenu):
             # the menu is rendered.
             if not added and check_before:
                 before_actions = self.unintroduced_actions.get(before, [])
-                before_actions.append((section, action, item_id))
+                before_actions.append((section, action))
                 self.unintroduced_actions[before] = before_actions
 
             self._actions = new_actions
@@ -214,8 +220,8 @@ class SpyderMenu(QMenu):
             # Update actions with those that were not introduced because
             # a `before` action they required was not part of the menu yet.
             for before, actions in self.unintroduced_actions.items():
-                for section, action, action_id in actions:
-                    self.add_action(action, action_id, section=section,
+                for section, action in actions:
+                    self.add_action(action, section=section,
                                     before=before, check_before=False)
 
             actions = self.get_actions()
