@@ -189,10 +189,13 @@ class ApplicationContainer(PluginMainContainer):
         files.append(os.environ['SPYDER_DEBUG_FILE'])
         for f in files:
             action = self.create_action(
-                f, f, triggered=lambda: self.load_log_file(f))
+                f, os.path.basename(f), tip=f,
+                triggered=lambda: self.load_log_file(f), overwrite=True)
             action.setData(f)
             debug_logs.append(action)
         add_actions(self.menu_debug_logs, debug_logs)
+        # for action in debug_logs:
+        #     self.add_item_to_menu(action, self.menu_debug_logs)
 
     def update_actions(self):
         pass
