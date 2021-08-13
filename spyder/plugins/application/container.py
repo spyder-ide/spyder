@@ -384,10 +384,21 @@ class ApplicationContainer(PluginMainContainer):
 
     @Slot()
     def restart_debug(self):
-        answer = QMessageBox.warning(self, _("Warning"),
-            _("Spyder will restart in debug mode: <br><br>"
-              "Do you want to continue?"),
-            QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
+        box = QMessageBox(QMessageBox.Question, _("Question"),
+            _("Which debug mode do you want Spyder to restart in?"),
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+            parent=self)
+        verbose = box.button(QMessageBox.Yes)
+        minimal = box.button(QMessageBox.No)
+        verbose.setText(_("Verbose"))
+        minimal.setText(_("Minimal"))
+        box.exec_()
+
+        if box.clickedButton() == minimal:
+            os.environ['SPYDER_DEBUG'] = '2'
+        elif box.clickedButton() == verbose:
             os.environ['SPYDER_DEBUG'] = '3'
-            self.sig_restart_requested.emit()
+        else:
+            return
+
+        self.sig_restart_requested.emit()
