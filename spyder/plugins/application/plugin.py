@@ -78,8 +78,6 @@ class Application(SpyderPluginV2):
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        main_menu = self.get_plugin(Plugins.MainMenu)
-
         self._populate_file_menu()
         self._populate_tools_menu()
 
@@ -91,6 +89,11 @@ class Application(SpyderPluginV2):
 
         if not self.is_plugin_available(Plugins.Console):
             self.report_action.setVisible(False)
+
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        editor = self.get_plugin(Plugins.Editor)
+        self.get_container().sig_load_log_file.connect(editor.load)
 
     def on_close(self):
         self.get_container().on_close()

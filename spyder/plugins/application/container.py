@@ -77,6 +77,11 @@ class ApplicationContainer(PluginMainContainer):
     Signal to request reporting an issue to Github.
     """
 
+    sig_load_log_file = Signal(str)
+    """
+    Signal to load a log file
+    """
+
     def setup(self):
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread()
@@ -184,7 +189,7 @@ class ApplicationContainer(PluginMainContainer):
         files.append(os.environ['SPYDER_DEBUG_FILE'])
         for f in files:
             action = self.create_action(
-                f, f, triggered=lambda : None)  # TODO: add triggered
+                f, f, triggered=lambda: self.load_log_file(f))
             action.setData(f)
             debug_logs.append(action)
         add_actions(self.menu_debug_logs, debug_logs)
@@ -384,6 +389,7 @@ class ApplicationContainer(PluginMainContainer):
 
     @Slot()
     def restart_debug(self):
+        """Restart in debug mode."""
         box = QMessageBox(QMessageBox.Question, _("Question"),
             _("Which debug mode do you want Spyder to restart in?"),
             QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
@@ -402,3 +408,8 @@ class ApplicationContainer(PluginMainContainer):
             return
 
         self.sig_restart_requested.emit()
+
+    @Slot()
+    def load_log_file(self, f):
+        """Load log file in editor"""
+        self.sig_load_log_file.emit(f)
