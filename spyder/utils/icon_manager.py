@@ -274,7 +274,7 @@ class IconManager():
             'constant':                [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'unit':                    [('mdi.alpha-u-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'text':                    [('mdi.alpha-t-box',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.BIG_ATTR_FACTOR}],
-            'file':                    [('mdi.alpha-f-box',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.BIG_ATTR_FACTOR}],
+            'file':                    [('mdi.file',), {'color': self.MAIN_FG_COLOR, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'snippet':                 [('mdi.alpha-s-box',), {'color': SpyderPalette.GROUP_11, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'attribute':               [('mdi.alpha-a-box',), {'color': SpyderPalette.GROUP_12, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'reference':               [('mdi.alpha-r-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
