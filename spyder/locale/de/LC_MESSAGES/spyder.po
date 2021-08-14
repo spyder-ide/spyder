@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-07-30 19:05-0500\n"
-"PO-Revision-Date: 2021-07-31 12:50\n"
+"PO-Revision-Date: 2021-08-29 18:25\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -19,11 +19,11 @@ msgstr ""
 
 #: spyder/api/widgets/main_widget.py:234
 msgid "Main widget toolbar"
-msgstr ""
+msgstr "Hauptwidget-Symbolleiste"
 
 #: spyder/api/widgets/main_widget.py:244
 msgid "Main widget corner toolbar"
-msgstr ""
+msgstr "Hauptwidget-Eck-Symbolleiste"
 
 #: spyder/api/widgets/main_widget.py:256
 msgid "Options menu"
@@ -426,7 +426,7 @@ msgstr "Python-Dateien im Editor mit dem Paket Black automatisch formatieren"
 
 #: spyder/dependencies.py:188
 msgid "Spyder plugin for the Python LSP Server"
-msgstr ""
+msgstr "Spyder-Plugin für den Python LSP Server"
 
 #: spyder/dependencies.py:192
 msgid "Parse desktop files on Linux"
@@ -772,7 +772,7 @@ msgstr "<b>Wichtiger Hinweis:</b> Da Sie Spyder mit Anaconda installiert haben, 
 
 #: spyder/plugins/application/container.py:217
 msgid "Click <a href=\"{}\">this link</a> to download it.<br><br>"
-msgstr ""
+msgstr "Klicken Sie auf <a href=\"{}\">diesen Link</a> um es herunterzuladen.<br><br>"
 
 #: spyder/plugins/application/container.py:227
 msgid "Spyder is up to date."
@@ -3976,7 +3976,7 @@ msgstr "Derzeit ist keine IPython-Konsole zum Ausführen von <b>{}</b> verfügba
 
 #: spyder/plugins/ipythonconsole/plugin.py:1059
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 2.0.1 and < 2.1.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels=2.0</tt><br><br>or<br><br><tt>pip install spyder-kernels==2.0.*</tt>"
-msgstr ""
+msgstr "In Ihrer Python-Umgebung oder -Installation ist das Modul <tt>spyder-kernels</tt> nicht oder nicht in der richtigen Version (>= 2.0.1 und < 2.1.0) installiert. Ohne dieses Modul kann Spyder keine Konsole für Sie erstellen.<br><br>Sie können es installieren, indem Sie folgende Befehle in einem Systemterminal ausführen: <br><br><tt>conda install spyder-kernels=2.0</tt><br><br> oder <br><br><tt>pip install spyder-kernels==2.0.*</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1352
 msgid "Do you want to close this console?"
@@ -4092,7 +4092,7 @@ msgstr "In Ihrer Python-Umgebung oder Installation ist das Modul <tt>{missing_de
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:64
 msgid "Figures now render in the Plots pane by default. To make them also appear inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane options menu."
-msgstr ""
+msgstr "Abbildungen werden jetzt standardmäßig im Diagrammfenster gerendert. Deaktivieren Sie im Optionsmenü des Diagrammfensters die Option \"Inline-Plotten abschalten\", damit sie auch in der Konsole inline angezeigt werden."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/ipythonconsole.html#connect-to-an-external-kernel\">our documentation</a>.</p>"
@@ -4236,7 +4236,7 @@ msgstr "Ändern des Backends auf Qt für Mayavi"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:980
 msgid "Kernel died, restarting"
-msgstr "Kernel gestorben, wie neu gestartet"
+msgstr "Kernel gestorben, wird neu gestartet"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:980
 msgid "Kernel restarting"
@@ -4244,7 +4244,7 @@ msgstr "Kernel startet neu"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1020
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
-msgstr ""
+msgstr "Es scheint, dass Sie versuchen, ein Modul zu verwenden, das nicht mit unserem Installer mitgeliefert wird. Schauen Sie <a href='{}'>in dieser FAQ</a> unserer Dokumentation, um zu erfahren, wie Sie dies tun."
 
 #: spyder/plugins/layout/container.py:77
 msgid "Close current pane"
@@ -4288,11 +4288,11 @@ msgstr "Fensterlayouts"
 
 #: spyder/plugins/layout/container.py:296
 msgid "Layout <b>{0}</b> was defined programatically. It is not possible to overwrite programatically registered layouts."
-msgstr ""
+msgstr "Layout <b>{0}</b> wurde durch einen Algorithmus definiert. Es ist nicht möglich, algorithmisch registrierte Layouts zu überschreiben."
 
 #: spyder/plugins/layout/container.py:305
 msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
-msgstr ""
+msgstr "Layout <b>{0}</b> wird überschrieben. Möchten Sie fortfahren?"
 
 #: spyder/plugins/layout/container.py:363
 msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
@@ -4314,11 +4314,11 @@ msgstr "Vertikale Teilung"
 
 #: spyder/plugins/layout/layouts.py:170
 msgid "Rstudio layout"
-msgstr ""
+msgstr "Rstudio-Layout"
 
 #: spyder/plugins/layout/layouts.py:223
 msgid "Matlab layout"
-msgstr ""
+msgstr "Matlab-Layout"
 
 #: spyder/plugins/layout/layouts.py:250
 msgid "testing layout"
@@ -4504,11 +4504,11 @@ msgstr "Unbenannte Zelle"
 
 #: spyder/plugins/outlineexplorer/plugin.py:38
 msgid "Outline Explorer"
-msgstr ""
+msgstr "Gliederungs-Explorer"
 
 #: spyder/plugins/outlineexplorer/plugin.py:42
 msgid "Explore a file's functions, classes and methods"
-msgstr ""
+msgstr "Funktionen, Klassen und Methoden einer Datei erkunden"
 
 #: spyder/plugins/outlineexplorer/widgets.py:34 spyder/widgets/dependencies.py:31
 msgid "Module"
@@ -4938,7 +4938,7 @@ msgstr "Leeres Projekt"
 
 #: spyder/plugins/projects/plugin.py:144
 msgid "Create Spyder projects and manage their files."
-msgstr ""
+msgstr "Spyder-Projekte erstellen und ihre Dateien verwalten."
 
 #: spyder/plugins/projects/plugin.py:278
 msgid "New Project..."
@@ -5442,7 +5442,7 @@ msgstr "Interaktive Touren"
 
 #: spyder/plugins/tours/plugin.py:45
 msgid "Provide interactive tours."
-msgstr ""
+msgstr "Interaktive Touren anbieten."
 
 #: spyder/plugins/tours/plugin.py:53
 msgid "Introduction to Spyder"
@@ -5666,7 +5666,7 @@ msgstr "<u>Warnung</u>: Änderungen werden separat angewendet"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:789
 msgid "For performance reasons, changes applied to masked arrays won't be reflected in array's data (and vice-versa)."
-msgstr ""
+msgstr "Aus Performance-Gründen werden Änderungen auf maskierte Arrays nicht in Arraydaten berücksichtigt (und umgekehrt)."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:805 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:969
 msgid "Resize"
@@ -6354,7 +6354,7 @@ msgstr "Array-Dimensionen nicht gültig"
 
 #: spyder/widgets/browser.py:133
 msgid "Forward"
-msgstr ""
+msgstr "Vorwärts"
 
 #: spyder/widgets/browser.py:142
 msgid "Select all"
