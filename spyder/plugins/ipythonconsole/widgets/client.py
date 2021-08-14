@@ -94,7 +94,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
-                 context_menu_actions=None,
+                 context_menu_actions=(),
                  menu_actions=None, slave=False,
                  external_kernel=False, given_name=None,
                  options_button=None,

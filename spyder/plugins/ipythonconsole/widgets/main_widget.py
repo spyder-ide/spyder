@@ -1058,7 +1058,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=connection_file,
                               # menu_actions=self.menu_actions,
-                              context_menu_actions=self.context_menu_actions,
                               time_label=self.time_label,
                               hostname=hostname,
                               external_kernel=external_kernel,
@@ -1546,7 +1545,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               # menu_actions=self.menu_actions,
                               # Check action to options button addition
                               # options_button=self.get_options_menu_button(),
-                              context_menu_actions=self.context_menu_actions,
                               time_label=self.time_label,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
@@ -1757,6 +1755,67 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         client.sig_execution_state_changed.connect(
             self.update_execution_state_kernel)
+
+        inspect_action = self.create_action(
+            IPythonConsoleWidgetActions.InspectObject,
+            text=_("Inspect current object"),
+            icon=self.create_icon('MessageBoxInformation'),
+            triggered=self.current_client_inspect_object,
+            register_shortcut=True,
+            parent=client.shellwidget)
+
+        clear_line_action = self.create_action(
+            IPythonConsoleWidgetActions.ClearLine,
+            text=_("Clear line or block"),
+            triggered=self.current_client_clear_line,
+            register_shortcut=True,
+            parent=client.shellwidget)
+
+        # self.reset_namespace_action = self.create_action(
+        #     ClientWidgetContextMenuActions.ResetNamespace,
+        #     text=_("Remove all variables"),
+        #     icon=self.create_icon('editdelete'),
+        #     triggered=self.reset_namespace,
+        #     overwrite=True,
+        #     shortcut_context='ipython_console',
+        #     context_name='ipython_console',
+        #     register_shortcut=True,
+        #     parent=self.shellwidget)
+
+        clear_console_action = self.create_action(
+            IPythonConsoleWidgetActions.ClearConsole,
+            text=_("Clear console"),
+            triggered=self.current_client_clear_console,
+            register_shortcut=True,
+            parent=client.shellwidget)
+
+        quit_action = self.create_action(
+            IPythonConsoleWidgetActions.Quit,
+            _("&Quit"),
+            icon=self.create_icon('exit'),
+            triggered=self.current_client_quit,
+            parent=client.shellwidget)
+
+        client.context_menu_actions = (
+            None,
+            inspect_action, clear_line_action,
+            clear_console_action, self.reset_action,
+            None,
+            quit_action
+            )
+
+        # Other actions with shortcuts
+        self.array_table_action = self.create_action(
+            IPythonConsoleWidgetActions.ArrayTable,
+            text=_("Enter array table"),
+            triggered=self.current_client_enter_array_table,
+            register_shortcut=True)
+
+        self.array_inline_action = self.create_action(
+            IPythonConsoleWidgetActions.ArrayInline,
+            text=_("Enter array inline"),
+            triggered=self.current_client_enter_array_inline,
+            register_shortcut=True)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
