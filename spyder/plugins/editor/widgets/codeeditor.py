@@ -2833,10 +2833,12 @@ class CodeEditor(TextEditBaseWidget):
                 preceding_text)
 
             # Make sure the code is not flattened
-            max_dedent = min(
-                [self.get_line_indentation(line)
-                 for line in remaining_lines if line.strip() != ""])
-            lines_adjustment = max(lines_adjustment, -max_dedent)
+            indentations = [
+                self.get_line_indentation(line)
+                for line in remaining_lines if line.strip() != ""]
+            if indentations:
+                max_dedent = min(indentations)
+                lines_adjustment = max(lines_adjustment, -max_dedent)
     
             # Get new text
             remaining_lines = [
