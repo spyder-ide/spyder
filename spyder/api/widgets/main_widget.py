@@ -13,6 +13,7 @@ subclass of PluginMainWidget.
 
 # Standard library imports
 from collections import OrderedDict
+import logging
 import sys
 from typing import Optional
 
@@ -44,6 +45,9 @@ from spyder.widgets.tabs import Tabs
 
 # Localization
 _ = get_translation('spyder')
+
+# Logging
+logger = logging.getLogger(__name__)
 
 
 class PluginMainWidgetWidgets:
@@ -703,6 +707,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         Create a QMainWindow instance containing this widget.
         """
+        logger.debug("Undocking plugin")
+
         # Widgets
         self.windowwidget = window = SpyderWindowWidget(self)
 
@@ -740,6 +746,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         Close QMainWindow instance that contains this widget.
         """
+        logger.debug("Docking plugin back to the main window")
+
         if self.windowwidget is not None:
             # Save window geometry to restore it when undocking the plugin
             # again.
