@@ -17,7 +17,7 @@ import glob
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
-from qtpy.QtWidgets import QAction, QMessageBox
+from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
@@ -393,19 +393,23 @@ class ApplicationContainer(PluginMainContainer):
     @Slot()
     def restart_debug(self):
         """Restart in debug mode."""
-        box = QMessageBox(QMessageBox.Question, _("Question"),
-            _("Which debug mode do you want Spyder to restart in?"),
-            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
-            parent=self)
-        verbose = box.button(QMessageBox.Yes)
-        minimal = box.button(QMessageBox.No)
-        verbose.setText(_("Verbose"))
-        minimal.setText(_("Minimal"))
+        box = QMessageBox(self)
+        box.setWindowTitle(_("Question"))
+        box.setIcon(QMessageBox.Question)
+        box.setText(
+            _("Which debug mode do you want Spyder to restart in?")
+        )
+
+        button_verbose = QPushButton(_('Verbose'))
+        button_minimal = QPushButton(_('Minimal'))
+        box.addButton(button_verbose, QMessageBox.AcceptRole)
+        box.addButton(button_minimal, QMessageBox.AcceptRole)
+        box.setStandardButtons(QMessageBox.Cancel)
         box.exec_()
 
-        if box.clickedButton() == minimal:
+        if box.clickedButton() == button_minimal:
             os.environ['SPYDER_DEBUG'] = '2'
-        elif box.clickedButton() == verbose:
+        elif box.clickedButton() == button_verbose:
             os.environ['SPYDER_DEBUG'] = '3'
         else:
             return
