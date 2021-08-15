@@ -190,9 +190,10 @@ class ApplicationContainer(PluginMainContainer):
 
             # The menu can't be built at startup because Completions can
             # start after Application.
-            self.menu_debug_logs.aboutToShow.connect(self.update_debug_logs)
+            self.menu_debug_logs.aboutToShow.connect(
+                self.create_debug_log_actions)
 
-    def update_debug_logs(self):
+    def create_debug_log_actions(self):
         """Create an action for each lsp and debug log file."""
         self.menu_debug_logs.clear_actions()
 
