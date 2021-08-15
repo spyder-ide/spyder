@@ -26,8 +26,7 @@ from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, ApplicationPluginMenus,
-    WinUserEnvDialog)
+    ApplicationContainer, ApplicationPluginMenus, WinUserEnvDialog)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions

@@ -1048,7 +1048,7 @@ class MainWindow(QMainWindow):
             triggered=self.show_path_manager,
             tip=_("PYTHONPATH manager"),
             id_='spyder_path_action')
-        from spyder.plugins.application.plugin import (
+        from spyder.plugins.application.container import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
