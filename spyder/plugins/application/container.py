@@ -25,8 +25,8 @@ from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.utils import is_anaconda
+from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.console.api import ConsoleActions
-from spyder.config.base import get_conf_path
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
@@ -177,9 +177,13 @@ class ApplicationContainer(PluginMainContainer):
             register_shortcut=True)
 
         # Debug logs
-        self.menu_debug_logs = self.create_menu(
-            LogsMenus.DebugLogsMenu, _("Debug logs"))
-        self.menu_debug_logs.aboutToShow.connect(self.update_debug_logs)
+        if get_debug_level() >= 2:
+            self.menu_debug_logs = self.create_menu(
+                LogsMenus.DebugLogsMenu, _("Debug logs"))
+
+            # The menu can't be built at startup because Completions can
+            # start after Application.
+            self.menu_debug_logs.aboutToShow.connect(self.update_debug_logs)
 
     def update_debug_logs(self):
         """Create an action for each lsp and debug log file."""
