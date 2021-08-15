@@ -18,7 +18,7 @@ import shutil
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 import uuid
 
 # Third party imports
@@ -34,8 +34,8 @@ import pkg_resources
 from pkg_resources import parse_version
 import pylint
 import pytest
-from qtpy import PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QUrl
+from qtpy import PYQT_VERSION
+from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
@@ -43,17 +43,15 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
 from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
-from spyder import __trouble_url__, __project_url__
+from spyder import __trouble_url__
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app import start
-from spyder.app.mainwindow import MainWindow
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
-from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
