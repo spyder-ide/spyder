@@ -57,7 +57,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
@@ -448,7 +448,8 @@ def test_lock_action(main_window):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason="Fails on win and py2")
+@pytest.mark.skipif(sys.platform.startswith('linux') and not running_in_ci(),
+                    reason='Fails on Linux when run locally')
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Use a particular plugin
@@ -458,6 +459,7 @@ def test_default_plugin_actions(main_window, qtbot):
     # Undock action
     main_widget.undock_action.triggered.emit(True)
     qtbot.wait(500)
+    main_widget.windowwidget.move(200, 200)
     assert not file_explorer.dockwidget.isVisible()
     assert main_widget.undock_action is not None
     assert isinstance(main_widget.windowwidget, SpyderWindowWidget)
@@ -468,6 +470,19 @@ def test_default_plugin_actions(main_window, qtbot):
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
     assert main_widget.windowwidget is None
+
+    # Test geometry was saved on close
+    geometry = file_explorer.get_conf('window_geometry')
+    assert geometry != ''
+
+    # Test restoring undocked plugin with the right geometry
+    file_explorer.set_conf('undocked_on_window_close', True)
+    main_window.restore_undocked_plugins()
+    assert main_widget.windowwidget is not None
+    assert (
+        geometry == qbytearray_to_str(main_widget.windowwidget.saveGeometry())
+    )
+    main_widget.windowwidget.close()
 
     # Close action
     main_widget.close_action.triggered.emit(True)
