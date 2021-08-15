@@ -187,12 +187,17 @@ class ApplicationContainer(PluginMainContainer):
         debug_logs = []
         files = glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
         files.append(os.environ['SPYDER_DEBUG_FILE'])
-        for f in files:
+        for file in files:
             action = self.create_action(
-                f, os.path.basename(f), tip=f,
-                triggered=lambda: self.load_log_file(f), overwrite=True)
-            action.setData(f)
+                file,
+                os.path.basename(file),
+                tip=file,
+                triggered=lambda _, file=file: self.load_log_file(file),
+                overwrite=True,
+                register_action=False
+            )
             debug_logs.append(action)
+
         add_actions(self.menu_debug_logs, debug_logs)
         # for action in debug_logs:
         #     self.add_item_to_menu(action, self.menu_debug_logs)
@@ -416,7 +421,6 @@ class ApplicationContainer(PluginMainContainer):
 
         self.sig_restart_requested.emit()
 
-    @Slot()
-    def load_log_file(self, f):
+    def load_log_file(self, file):
         """Load log file in editor"""
-        self.sig_load_log_file.emit(f)
+        self.sig_load_log_file.emit(file)
