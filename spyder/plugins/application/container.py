@@ -42,8 +42,13 @@ if os.name == 'nt':
 _ = get_translation('spyder')
 
 
-class LogsMenus:
+class ApplicationPluginMenus:
     DebugLogsMenu = "debug_logs_menu"
+
+
+class LogsMenuSections:
+    SpyderLogSection = "spyder_log_section"
+    LSPLogsSection = "lsp_logs_section"
 
 
 # Actions
@@ -179,7 +184,9 @@ class ApplicationContainer(PluginMainContainer):
         # Debug logs
         if get_debug_level() >= 2:
             self.menu_debug_logs = self.create_menu(
-                LogsMenus.DebugLogsMenu, _("Debug logs"))
+                ApplicationPluginMenus.DebugLogsMenu,
+                _("Debug logs")
+            )
 
             # The menu can't be built at startup because Completions can
             # start after Application.
@@ -188,9 +195,11 @@ class ApplicationContainer(PluginMainContainer):
     def update_debug_logs(self):
         """Create an action for each lsp and debug log file."""
         self.menu_debug_logs.clear_actions()
-        debug_logs = []
-        files = glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
-        files.append(os.environ['SPYDER_DEBUG_FILE'])
+
+        files = [os.environ['SPYDER_DEBUG_FILE']]
+        files += glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
+
+        debug_logs_actions = []
         for file in files:
             action = self.create_action(
                 file,
@@ -200,10 +209,24 @@ class ApplicationContainer(PluginMainContainer):
                 overwrite=True,
                 register_action=False
             )
-            debug_logs.append(action)
+            debug_logs_actions.append(action)
 
-        for action in debug_logs:
-            self.add_item_to_menu(action, self.menu_debug_logs)
+        # Add Spyder log on its own section
+        self.add_item_to_menu(
+            debug_logs_actions[0],
+            self.menu_debug_logs,
+            section=LogsMenuSections.SpyderLogSection
+        )
+
+        # Add LSP logs
+        for action in debug_logs_actions[1:]:
+            self.add_item_to_menu(
+                action,
+                self.menu_debug_logs,
+                section=LogsMenuSections.LSPLogsSection
+            )
+
+        # Render menu
         self.menu_debug_logs._render()
 
     def update_actions(self):

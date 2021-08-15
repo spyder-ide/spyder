@@ -26,7 +26,8 @@ from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, WinUserEnvDialog, LogsMenus)
+    ApplicationActions, ApplicationContainer, ApplicationPluginMenus,
+    WinUserEnvDialog)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -349,4 +350,5 @@ class Application(SpyderPluginV2):
 
     @property
     def debug_logs_menu(self):
-        return self.get_container().get_menu(LogsMenus.DebugLogsMenu)
+        return self.get_container().get_menu(
+            ApplicationPluginMenus.DebugLogsMenu)
