@@ -18,7 +18,7 @@ from typing import Optional
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
                             QWidget)
@@ -33,6 +33,7 @@ from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.config.manager import CONF
+from spyder.py3compat import qbytearray_to_str
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
@@ -700,7 +701,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     @Slot()
     def create_window(self):
         """
-        Create a QMainWindow instance containing this SpyderWidget.
+        Create a QMainWindow instance containing this widget.
         """
         # Widgets
         self.windowwidget = window = SpyderWindowWidget(self)
@@ -715,6 +716,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         window.setWindowTitle(self.get_title())
         window.resize(self.size())
 
+        # Restore window geometry
+        geometry = self.get_conf('window_geometry', default='')
+        if geometry:
+            try:
+                window.restoreGeometry(
+                    QByteArray().fromHex(str(geometry).encode('utf-8'))
+                )
+            except Exception:
+                pass
+
+        # Dock widget setup
         if self.dockwidget:
             self.dockwidget.setFloating(False)
             self.dockwidget.setVisible(False)
@@ -726,9 +738,14 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     @Slot()
     def close_window(self):
         """
-        Close QMainWindow instance that contains this SpyderWidget.
+        Close QMainWindow instance that contains this widget.
         """
         if self.windowwidget is not None:
+            # Save window geometry to restore it when undocking the plugin
+            # again.
+            geometry = self.windowwidget.saveGeometry()
+            self.set_conf('window_geometry', qbytearray_to_str(geometry))
+
             # Fixes spyder-ide/spyder#10704
             self.__unsafe_window = self.windowwidget
             self.__unsafe_window.deleteLater()
