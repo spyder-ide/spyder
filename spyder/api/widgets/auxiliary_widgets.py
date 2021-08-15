@@ -18,15 +18,9 @@ from spyder.utils.stylesheet import APP_STYLESHEET
 
 
 class SpyderWindowWidget(QMainWindow):
-    """
-    MainWindow subclass that contains a Spyder Plugin.
-    """
-    sig_closed = Signal()
-    """
-    This signal is emitted when this widget is closed.
-    """
+    """MainWindow subclass that contains a Spyder Plugin."""
 
-    # --- Signals
+    # ---- Signals
     # ------------------------------------------------------------------------
     sig_closed = Signal()
     """This signal is emitted when the close event is fired."""
@@ -81,8 +75,6 @@ class MainCornerWidget(QToolBar):
         self._actions.append(self.addWidget(widget))
 
     def get_widget(self, widget_id):
-        """
-        Return a widget by unique id..
-        """
+        """Return a widget by unique id."""
         if widget_id in self._widgets:
             return self._widgets[widget_id]

@@ -721,7 +721,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         self.set_ancestor(window)
         self._update_actions()
-        window.sig_closed.connect(self.close_window)
         window.show()
 
     @Slot()
