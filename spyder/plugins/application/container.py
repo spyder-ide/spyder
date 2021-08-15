@@ -27,7 +27,7 @@ from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.utils import is_anaconda
 from spyder.plugins.console.api import ConsoleActions
 from spyder.config.base import get_conf_path
-from spyder.utils.qthelpers import start_file, DialogManager, add_actions
+from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
@@ -183,7 +183,7 @@ class ApplicationContainer(PluginMainContainer):
 
     def update_debug_logs(self):
         """Create an action for each lsp and debug log file."""
-        self.menu_debug_logs.clear()
+        self.menu_debug_logs.clear_actions()
         debug_logs = []
         files = glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
         files.append(os.environ['SPYDER_DEBUG_FILE'])
@@ -198,9 +198,9 @@ class ApplicationContainer(PluginMainContainer):
             )
             debug_logs.append(action)
 
-        add_actions(self.menu_debug_logs, debug_logs)
-        # for action in debug_logs:
-        #     self.add_item_to_menu(action, self.menu_debug_logs)
+        for action in debug_logs:
+            self.add_item_to_menu(action, self.menu_debug_logs)
+        self.menu_debug_logs._render()
 
     def update_actions(self):
         pass
