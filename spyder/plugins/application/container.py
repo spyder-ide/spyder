@@ -87,6 +87,8 @@ class ApplicationContainer(PluginMainContainer):
     Signal to load a log file
     """
 
+    # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
     def setup(self):
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread()
@@ -193,49 +195,28 @@ class ApplicationContainer(PluginMainContainer):
             self.menu_debug_logs.aboutToShow.connect(
                 self.create_debug_log_actions)
 
-    def create_debug_log_actions(self):
-        """Create an action for each lsp and debug log file."""
-        self.menu_debug_logs.clear_actions()
-
-        files = [os.environ['SPYDER_DEBUG_FILE']]
-        files += glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
-
-        debug_logs_actions = []
-        for file in files:
-            action = self.create_action(
-                file,
-                os.path.basename(file),
-                tip=file,
-                triggered=lambda _, file=file: self.load_log_file(file),
-                overwrite=True,
-                register_action=False
-            )
-            debug_logs_actions.append(action)
-
-        # Add Spyder log on its own section
-        self.add_item_to_menu(
-            debug_logs_actions[0],
-            self.menu_debug_logs,
-            section=LogsMenuSections.SpyderLogSection
-        )
-
-        # Add LSP logs
-        for action in debug_logs_actions[1:]:
-            self.add_item_to_menu(
-                action,
-                self.menu_debug_logs,
-                section=LogsMenuSections.LSPLogsSection
-            )
-
-        # Render menu
-        self.menu_debug_logs._render()
-
     def update_actions(self):
         pass
 
+    # ---- Other functionality
+    # -------------------------------------------------------------------------
     def on_close(self):
+        """To call from Spyder when the plugin is closed."""
         self.dialog_manager.close_all()
 
+    @Slot()
+    def show_about(self):
+        """Show Spyder About dialog."""
+        abt = AboutDialog(self)
+        abt.show()
+
+    @Slot()
+    def show_windows_env_variables(self):
+        """Show Windows current user environment variables."""
+        self.dialog_manager.show(WinUserEnvDialog(self))
+
+    # ---- Updates
+    # -------------------------------------------------------------------------
     def _check_updates_ready(self):
         """Show results of the Spyder update checking process."""
 
@@ -348,23 +329,14 @@ class ApplicationContainer(PluginMainContainer):
         updates_timer.timeout.connect(self.thread_updates.start)
         updates_timer.start()
 
+    # ---- Dependencies
+    # -------------------------------------------------------------------------
     @Slot()
     def show_dependencies(self):
         """Show Spyder Dependencies dialog."""
         dlg = DependenciesDialog(self)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.show()
-
-    @Slot()
-    def show_about(self):
-        """Show Spyder About dialog."""
-        abt = AboutDialog(self)
-        abt.show()
-
-    @Slot()
-    def show_windows_env_variables(self):
-        """Show Windows current user environment variables."""
-        self.dialog_manager.show(WinUserEnvDialog(self))
 
     def compute_dependencies(self):
         """Compute dependencies"""
@@ -417,6 +389,8 @@ class ApplicationContainer(PluginMainContainer):
             message_box.setText(message)
             message_box.show()
 
+    # ---- Restart
+    # -------------------------------------------------------------------------
     @Slot()
     def restart_normal(self):
         """Restart in standard mode."""
@@ -448,6 +422,45 @@ class ApplicationContainer(PluginMainContainer):
             return
 
         self.sig_restart_requested.emit()
+
+    # ---- Log files
+    # -------------------------------------------------------------------------
+    def create_debug_log_actions(self):
+        """Create an action for each lsp and debug log file."""
+        self.menu_debug_logs.clear_actions()
+
+        files = [os.environ['SPYDER_DEBUG_FILE']]
+        files += glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
+
+        debug_logs_actions = []
+        for file in files:
+            action = self.create_action(
+                file,
+                os.path.basename(file),
+                tip=file,
+                triggered=lambda _, file=file: self.load_log_file(file),
+                overwrite=True,
+                register_action=False
+            )
+            debug_logs_actions.append(action)
+
+        # Add Spyder log on its own section
+        self.add_item_to_menu(
+            debug_logs_actions[0],
+            self.menu_debug_logs,
+            section=LogsMenuSections.SpyderLogSection
+        )
+
+        # Add LSP logs
+        for action in debug_logs_actions[1:]:
+            self.add_item_to_menu(
+                action,
+                self.menu_debug_logs,
+                section=LogsMenuSections.LSPLogsSection
+            )
+
+        # Render menu
+        self.menu_debug_logs._render()
 
     def load_log_file(self, file):
         """Load log file in editor"""
