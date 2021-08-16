@@ -1055,8 +1055,7 @@ class MainWindow(QMainWindow):
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
-            winenv_action = self.application.get_action(
-                ApplicationActions.SpyderWindowsEnvVariables)
+            winenv_action = ApplicationActions.SpyderWindowsEnvVariables
         mainmenu.add_item_to_application_menu(
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
