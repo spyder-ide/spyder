@@ -1747,7 +1747,11 @@ class CodeEditor(TextEditBaseWidget):
         if edits is None:
             return
 
-        text = self.get_text_with_eol()
+        # We need to use here toPlainText and not get_text_with_eol to
+        # to not mess up the code when applying formatting.
+        # See spyder-ide/spyder#16180
+        text = self.toPlainText()
+
         text_tokens = list(text)
         merged_text = None
         for edit in edits:
