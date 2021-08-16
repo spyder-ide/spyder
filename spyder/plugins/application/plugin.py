@@ -136,8 +136,7 @@ class Application(SpyderPluginV2):
 
         if shortcuts:
             from spyder.plugins.shortcuts.plugin import ShortcutActions
-            shortcuts_summary_action = shortcuts.get_action(
-                ShortcutActions.ShortcutSummaryAction)
+            shortcuts_summary_action = ShortcutActions.ShortcutSummaryAction
         for documentation_action in [
                 self.documentation_action, self.video_action]:
             mainmenu.add_item_to_application_menu(

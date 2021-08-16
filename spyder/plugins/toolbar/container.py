@@ -43,6 +43,7 @@ class ToolbarActions:
 
 
 class QActionID(QAction):
+    """Wrapper class around QAction that allows to set/get an identifier."""
     @property
     def action_id(self):
         return self._action_id
@@ -50,6 +51,7 @@ class QActionID(QAction):
     @action_id.setter
     def action_id(self, act):
         self._action_id = act
+
 
 class ToolbarContainer(PluginMainContainer):
     def __init__(self, name, plugin, parent=None):

@@ -31,7 +31,6 @@ import shutil
 import signal
 import socket
 import glob
-from spyder.api.widgets.menus import SpyderMenu
 import sys
 import threading
 import traceback
@@ -70,6 +69,7 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window,
     delete_lsp_log_files, qt_message_handler, set_links_color, setup_logging,

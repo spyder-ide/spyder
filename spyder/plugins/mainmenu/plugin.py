@@ -10,7 +10,6 @@ Main menu Plugin.
 
 # Standard library imports
 from collections import OrderedDict
-from email.mime.nonmultipart import MIMENonMultipart
 import sys
 from typing import Dict, List, Tuple, Optional, Union
 
@@ -222,8 +221,8 @@ class MainMenu(SpyderPluginV2):
             The application menu unique string identifier.
         section: str or None
             The section id in which to insert the `item` on the `menu`.
-        before: SpyderAction/SpyderMenu or None
-            Make the item appear before another given item.
+        before: str
+            Make the item appear before the given object identifier.
         before_section: Section or None
             Make the item section (if provided) appear before another
             given section.

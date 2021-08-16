@@ -9,7 +9,6 @@ Spyder API menu widgets.
 """
 
 # Standard library imports
-from spyder.api.exceptions import SpyderAPIError
 import sys
 from typing import Optional, Union, TypeVar
 
