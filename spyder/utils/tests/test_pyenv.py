@@ -11,13 +11,12 @@ import time
 
 import pytest
 
+from spyder.config.base import running_in_ci
 from spyder.utils.pyenv import (
-    get_list_pyenv_envs, get_list_pyenv_envs_cache
-)
+    get_list_pyenv_envs, get_list_pyenv_envs_cache)
 
 
-@pytest.mark.skipif(not bool(os.environ.get('CI')),
-                    reason="Only meant for CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_get_list_pyenv_envs():
     output = get_list_pyenv_envs()
@@ -25,8 +24,7 @@ def test_get_list_pyenv_envs():
     assert set(expected_envs) == set(output.keys())
 
 
-@pytest.mark.skipif(not bool(os.environ.get('CI')),
-                    reason="Only meant for CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_get_list_pyenv_envs_cache():
     time0 = time.time()

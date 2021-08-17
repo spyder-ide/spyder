@@ -46,9 +46,9 @@ class CompletionWidget(QListWidget):
         CompletionItemKind.KEYWORD: 'keyword',
         CompletionItemKind.SNIPPET: 'snippet',
         CompletionItemKind.COLOR: 'color',
-        CompletionItemKind.FILE: 'filenew',
+        CompletionItemKind.FILE: 'file',
         CompletionItemKind.REFERENCE: 'reference',
-        }
+    }
     ICON_MAP = {}
 
     sig_show_completions = Signal(object)

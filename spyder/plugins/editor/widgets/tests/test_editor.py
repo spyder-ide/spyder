@@ -21,7 +21,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.config.base import get_conf_path
+from spyder.config.base import get_conf_path, running_in_ci
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
@@ -642,8 +642,7 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="It fails on CIs")
+@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     """Check that text in the find box is copied to the replace box on tab
     keypress. Regression test spyder-ide/spyder#4482."""

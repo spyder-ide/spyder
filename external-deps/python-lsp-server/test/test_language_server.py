@@ -14,8 +14,7 @@ import pytest
 from pylsp.python_lsp import start_io_lang_server, PythonLSPServer
 
 CALL_TIMEOUT = 10
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
+RUNNING_IN_CI = bool(os.environ.get('CI'))
 
 
 def start_client(client):
@@ -86,8 +85,8 @@ def test_initialize(client_server):  # pylint: disable=redefined-outer-name
     assert 'capabilities' in response
 
 
-@pytest.mark.skipif(os.name == 'nt' or (sys.platform.startswith('linux') and PY3),
-                    reason='Skipped on win and fails on linux >=3.6')
+@flaky(max_runs=10, min_passes=1)
+@pytest.mark.skipif(not sys.platform.startswith('Linux'), reason='Skipped on win and flaky on mac')
 def test_exit_with_parent_process_died(client_exited_server):  # pylint: disable=redefined-outer-name
     # language server should have already exited before responding
     lsp_server, mock_process = client_exited_server.client, client_exited_server.process
@@ -103,8 +102,7 @@ def test_exit_with_parent_process_died(client_exited_server):  # pylint: disable
     assert not client_exited_server.client_thread.is_alive()
 
 
-@pytest.mark.skipif(sys.platform.startswith('linux') and PY3,
-                    reason='Fails on linux and py3')
+@pytest.mark.skipif(sys.platform.startswith('linux'), reason='Fails on linux')
 def test_not_exit_without_check_parent_process_flag(client_server):  # pylint: disable=redefined-outer-name
     response = client_server._endpoint.request('initialize', {
         'processId': 1234,
@@ -114,7 +112,7 @@ def test_not_exit_without_check_parent_process_flag(client_server):  # pylint: d
     assert 'capabilities' in response
 
 
-@pytest.mark.skipif(bool(os.environ.get('CI')), reason='This test is hanging on CI')
+@pytest.mark.skipif(RUNNING_IN_CI, reason='This test is hanging on CI')
 def test_missing_message(client_server):  # pylint: disable=redefined-outer-name
     with pytest.raises(JsonRpcMethodNotFound):
         client_server._endpoint.request('unknown_method').result(timeout=CALL_TIMEOUT)

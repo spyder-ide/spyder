@@ -16,38 +16,39 @@ from qtpy.QtWidgets import QMainWindow
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.completion.plugin import CompletionPlugin
 from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
-fallback = pkg_resources.EntryPoint.parse(
-    'fallback = spyder.plugins.completion.providers.fallback.provider:'
-    'FallbackProvider'
-)
+if not running_in_ci():
+    fallback = pkg_resources.EntryPoint.parse(
+        'fallback = spyder.plugins.completion.providers.fallback.provider:'
+        'FallbackProvider'
+    )
 
-snippets = pkg_resources.EntryPoint.parse(
-    'snippets = spyder.plugins.completion.providers.snippets.provider:'
-    'SnippetsProvider'
-)
+    snippets = pkg_resources.EntryPoint.parse(
+        'snippets = spyder.plugins.completion.providers.snippets.provider:'
+        'SnippetsProvider'
+    )
 
-lsp = pkg_resources.EntryPoint.parse(
-    'lsp = spyder.plugins.completion.providers.languageserver.provider:'
-    'LanguageServerProvider'
-)
+    lsp = pkg_resources.EntryPoint.parse(
+        'lsp = spyder.plugins.completion.providers.languageserver.provider:'
+        'LanguageServerProvider'
+    )
 
+    # Create a fake Spyder distribution
+    d = pkg_resources.Distribution(__file__)
 
-# Create a fake Spyder distribution
-d = pkg_resources.Distribution(__file__)
-
-# Add the providers to the fake EntryPoint
-d._ep_map = {
-    'spyder.completions': {
-        'fallback': fallback,
-        'snippets': snippets,
-        'lsp': lsp
+    # Add the providers to the fake EntryPoint
+    d._ep_map = {
+        'spyder.completions': {
+            'fallback': fallback,
+            'snippets': snippets,
+            'lsp': lsp
+        }
     }
-}
 
 
 class MainWindowMock(QMainWindow):
@@ -63,7 +64,8 @@ class MainWindowMock(QMainWindow):
 
 def WrappedCompletionPlugin():
     # Add the fake distribution to the global working_set
-    pkg_resources.working_set.add(d, 'spyder')
+    if not running_in_ci():
+        pkg_resources.working_set.add(d, 'spyder')
     return CompletionPlugin
 
 
@@ -78,10 +80,11 @@ def test_config_dialog(request, config_dialog):
 
     def teardown():
         # Remove fake entry points from pkg_resources
-        pkg_resources.working_set.by_key.pop('unknown')
-        pkg_resources.working_set.entry_keys.pop('spyder')
-        pkg_resources.working_set.entry_keys.pop(__file__)
-        pkg_resources.working_set.entries.remove('spyder')
+        if not running_in_ci():
+            pkg_resources.working_set.by_key.pop('unknown')
+            pkg_resources.working_set.entry_keys.pop('spyder')
+            pkg_resources.working_set.entry_keys.pop(__file__)
+            pkg_resources.working_set.entries.remove('spyder')
 
     request.addfinalizer(teardown)
 

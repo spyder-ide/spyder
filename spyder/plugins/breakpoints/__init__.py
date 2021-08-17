@@ -6,7 +6,9 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-from spyder.plugins.breakpoints.plugin import Breakpoints
+"""
+spyder.plugins.breakpoints
+==========================
 
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [Breakpoints]
+Breakpoints Plugin.
+"""

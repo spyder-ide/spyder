@@ -889,7 +889,7 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_identation_guides(indent_guides)
         if self.indent_chars == '\t':
             self.indent_guides.set_indentation_width(
-                self.tab_stop_width_spaces)
+                tab_stop_width_spaces)
         else:
             self.indent_guides.set_indentation_width(len(self.indent_chars))
 
@@ -1235,6 +1235,12 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
 
+    def errors_present(self):
+        """
+        Return True if there are errors or warnings present in the file.
+        """
+        return bool(len(self._diagnostics))
+
     def _process_code_analysis(self, underline):
         """
         Process all code analysis results.
@@ -1431,7 +1437,20 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
     def handle_completion_item_resolution(self, response):
-        self.completion_widget.augment_completion_info(response['params'])
+        try:
+            response = response['params']
+
+            if not response:
+                return
+
+            self.completion_widget.augment_completion_info(response)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors(
+                "Error when handling completion item resolution")
 
     # ------------- LSP: Signature Hints ------------------------------------
     @request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
@@ -1728,7 +1747,11 @@ class CodeEditor(TextEditBaseWidget):
         if edits is None:
             return
 
-        text = self.get_text_with_eol()
+        # We need to use here toPlainText and not get_text_with_eol to
+        # to not mess up the code when applying formatting.
+        # See spyder-ide/spyder#16180
+        text = self.toPlainText()
+
         text_tokens = list(text)
         merged_text = None
         for edit in edits:
@@ -2729,7 +2752,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 return (
                     self.indent_chars
-                    * indent_adjustment // self.tab_stop_width_spaces
+                    * (indent_adjustment // self.tab_stop_width_spaces)
                     + line)
 
         max_indent = self.get_line_indentation(line)
@@ -2784,33 +2807,48 @@ class CodeEditor(TextEditBaseWidget):
         first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
         first_line = preceding_text + first_line_selected
 
-        lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
-            preceding_text)
+        first_line_adjustment = 0
 
-        if preceding_text.strip() == "" and first_line.strip != "":
-            # The indent is controlled by preceding_text. Remove extra indent
-            extra_indent = self.get_line_indentation(first_line_selected)
-            lines_adjustment -= extra_indent
-            first_line = self.adjust_indentation(
-                first_line, -extra_indent)
-
-        # Fix indentation of multiline text
-        if self.is_python_like() and len(preceding_text.strip()) == 0:
+        # Dedent if automatic indentation makes code invalid
+        # Minimum indentation = max of current and paster indentation
+        if (self.is_python_like() and len(preceding_text.strip()) == 0
+                and len(first_line.strip()) > 0):
             # Correct indentation
             desired_indent = self.find_indentation()
             if desired_indent:
+                # minimum indentation is either the current indentation
+                # or the indentation of the paster text
+                desired_indent = max(
+                    desired_indent,
+                    self.get_line_indentation(first_line_selected),
+                    self.get_line_indentation(preceding_text))
                 first_line_adjustment = (
                     desired_indent - self.get_line_indentation(first_line))
-                if first_line_adjustment < 0:
-                    # Only dedent, don't indent
-                    lines_adjustment += first_line_adjustment
-                    first_line = self.adjust_indentation(
-                        first_line, first_line_adjustment)
+                # Only dedent, don't indent
+                first_line_adjustment = min(first_line_adjustment, 0)
+                # Only dedent, don't indent
+                first_line = self.adjust_indentation(
+                    first_line, first_line_adjustment)
 
-        # Get new text
-        remaining_lines = [
-            self.adjust_indentation(line, lines_adjustment)
-            for line in remaining_lines]
+        # Fix indentation of multiline text based on first line
+        if len(remaining_lines) > 0 and len(first_line.strip()) > 0:
+            lines_adjustment = first_line_adjustment
+            lines_adjustment += CLIPBOARD_HELPER.remaining_lines_adjustment(
+                preceding_text)
+
+            # Make sure the code is not flattened
+            indentations = [
+                self.get_line_indentation(line)
+                for line in remaining_lines if line.strip() != ""]
+            if indentations:
+                max_dedent = min(indentations)
+                lines_adjustment = max(lines_adjustment, -max_dedent)
+    
+            # Get new text
+            remaining_lines = [
+                self.adjust_indentation(line, lines_adjustment)
+                for line in remaining_lines]
+
         text = eol_chars.join([first_line, *remaining_lines])
 
         self.skip_rstrip = True
@@ -3642,8 +3680,10 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
-                indent_text = '\t' * (correct_indent // self.tab_stop_width_spaces) \
-                            + ' ' * (correct_indent % self.tab_stop_width_spaces)
+                indent_text = (
+                    '\t' * (correct_indent // self.tab_stop_width_spaces) +
+                    ' ' * (correct_indent % self.tab_stop_width_spaces)
+                )
             else:
                 indent_text = ' '*correct_indent
             cursor.insertText(indent_text)
