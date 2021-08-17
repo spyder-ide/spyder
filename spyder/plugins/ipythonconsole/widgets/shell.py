@@ -401,7 +401,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         banner_parts = [
             'Python %s\n' % py_ver,
-            'Type "copyright", "credits" or "license" for more information.\n\n',
+            'Type "copyright", "credits" or "license" for more information.',
+            '\n\n',
             'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
         ]
         banner = ''.join(banner_parts)
@@ -702,9 +703,9 @@ the sympy module (e.g. plot)
         """
         calling_mayavi = False
         lines = command.splitlines()
-        for l in lines:
-            if not l.startswith('#'):
-                if 'import mayavi' in l or 'from mayavi' in l:
+        for line in lines:
+            if not line.startswith('#'):
+                if 'import mayavi' in line or 'from mayavi' in line:
                     calling_mayavi = True
                     break
         if calling_mayavi:
@@ -722,7 +723,7 @@ the sympy module (e.g. plot)
         """
         if (command.startswith('%matplotlib') and
                 len(command.splitlines()) == 1):
-            if not 'inline' in command:
+            if 'inline' not in command:
                 self.silent_execute(command)
 
     def append_html_message(self, html, before_prompt=False,
@@ -1028,7 +1029,7 @@ the sympy module (e.g. plot)
                 )
             self.show_modules_message = False
 
-    #---- Qt methods ----------------------------------------------------------
+    # --- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()

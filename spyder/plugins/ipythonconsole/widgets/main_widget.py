@@ -750,8 +750,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         'pylab', 'pylab/backend', 'symbolic_math', 'hide_cmd_windows'])
     def change_possible_restart_conf(self, option, value):
         """Apply configuration file's plugin settings."""
-        # TODO: Simplify settings handling when possible by using preferences
-        # subscription
         if not self.get_current_client():
             return
 
@@ -968,7 +966,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         # TODO: This will change after
         # https://github.com/spyder-ide/spyder/pull/15922 gets merged
         if self._plugin.main.variableexplorer is not None:
-            self._plugin.main.variableexplorer.add_shellwidget(client.shellwidget)
+            self._plugin.main.variableexplorer.add_shellwidget(
+                client.shellwidget)
 
         self.sig_shellwidget_created.emit(client.shellwidget)
 
@@ -976,7 +975,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         # TODO: This will change after
         # https://github.com/spyder-ide/spyder/pull/15922 gets merged
         if self._plugin.main.variableexplorer is not None:
-            self._plugin.main.variableexplorer.remove_shellwidget(client.shellwidget)
+            self._plugin.main.variableexplorer.remove_shellwidget(
+                client.shellwidget)
 
         self.sig_shellwidget_deleted.emit(client.shellwidget)
 
@@ -1163,18 +1163,13 @@ class IPythonConsoleWidget(PluginMainWidget):
             else:
                 self.pager_label.hide()
 
-            # Create corner widgets
-            # buttons = [[b, -7] for b in client.get_toolbar_buttons()]
-            # buttons = sum(buttons, [])[:-1]
-            # widgets = [client.create_time_label()] + buttons
+            # Setup elapsed time
             show_elapsed_time = client.show_elapsed_time
             self.show_time_action.setChecked(show_elapsed_time)
             client.timer.timeout.connect(client.show_time)
         else:
             control = None
-            # widgets = []
         self.find_widget.set_editor(control)
-        # self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
 
         if client:
             sw = client.shellwidget
@@ -1187,7 +1182,6 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         self.update_tabs_text()
         self.update_execution_state_kernel()
-        # self.sig_update_plugin_title.emit()
 
     # ---- For tabs
     # -------------------------------------------------------------------------
@@ -1648,7 +1642,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                 shellwidget.update_cwd()
 
         # Connect client to history log
-        # TODO: Review signal
         self.sig_history_requested.emit(client.history_filename)
         client.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)

@@ -26,9 +26,7 @@ import time
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot, QThread
-from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -41,25 +39,23 @@ from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, DialogManager,
-                                    MENU_SEPARATOR)
+from spyder.utils.qthelpers import add_actions, DialogManager
 from spyder.py3compat import to_text_string
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Templates
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Using the same css file from the Help plugin for now. Maybe
 # later it'll be a good idea to create a new one.
 PLUGINS_PATH = get_module_source_path('spyder', 'plugins')
 
 CSS_PATH = osp.join(PLUGINS_PATH, 'help', 'utils', 'static', 'css')
-TEMPLATES_PATH = osp.join(PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
+TEMPLATES_PATH = osp.join(
+    PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
@@ -125,10 +121,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.context_menu_actions = context_menu_actions
         self.time_label = time_label
         self.options_button = options_button
-        # TODO: Buttons need to be handle different (all the toolbar)
-        self.stop_button = None
-        # self.reset_button = None
-        # self.stop_icon = ima.icon('stop')
         self.history = []
         self.allow_rename = True
         self.stderr_dir = None
@@ -174,9 +166,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-        # Show timer
-        # self.update_time_label_visibility()
-
         # Poll for stderr changes
         self.stderr_mtime = 0
         self.stderr_timer = QTimer(self)
@@ -190,7 +179,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 and self.restart_thread.isRunning()):
             self.restart_thread.wait()
 
-    #------ Public API --------------------------------------------------------
+    # ----- Public API --------------------------------------------------------
     @property
     def kernel_id(self):
         """Get kernel id"""
@@ -288,7 +277,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.refresh_namespacebrowser)
 
         # To enable the stop button when executing a process
-        # TODO: Check handling of interrupt button update
         self.shellwidget.executing.connect(
             self.sig_execution_state_changed)
 
@@ -354,21 +342,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if self.give_focus:
             self.shellwidget._control.setFocus()
 
-    # def enable_stop_button(self):
-    #     self.stop_button.setEnabled(True)
-
-    # def disable_stop_button(self):
-    #     # This avoids disabling automatically the button when
-    #     # re-running files on dedicated consoles.
-    #     # See spyder-ide/spyder#5958.
-    #     if not self.shellwidget._executing:
-    #         # This avoids disabling the button while debugging
-    #         # see spyder-ide/spyder#13283
-    #         if not self.shellwidget.is_waiting_pdb_input():
-    #             self.stop_button.setDisabled(True)
-    #         else:
-    #             self.stop_button.setEnabled(True)
-
     def is_client_executing(self):
         return (self.shellwidget._executing or
                 self.shellwidget.is_waiting_pdb_input())
@@ -376,7 +349,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     @Slot()
     def stop_button_click_handler(self):
         """Method to handle what to do when the stop button is pressed"""
-        # self.stop_button.setDisabled(True)
         # Interrupt computations or stop debugging
         if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
@@ -440,78 +412,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def get_kernel(self):
         """Get kernel associated with this client"""
         return self.shellwidget.kernel_manager
-
-    # def get_options_menu(self):
-    #     """Return options menu"""
-    #     env_action = create_action(
-    #                     self,
-    #                     _("Show environment variables"),
-    #                     icon=ima.icon('environ'),
-    #                     triggered=self.shellwidget.request_env
-    #                  )
-
-    #     syspath_action = create_action(
-    #                         self,
-    #                         _("Show sys.path contents"),
-    #                         icon=ima.icon('syspath'),
-    #                         triggered=self.shellwidget.request_syspath
-    #                      )
-
-    #     self.show_time_action.setChecked(self.show_elapsed_time)
-    #     additional_actions = [MENU_SEPARATOR,
-    #                           env_action,
-    #                           syspath_action,
-    #                           self.show_time_action]
-
-    #     if self.menu_actions is not None:
-    #         console_menu = self.menu_actions + additional_actions
-    #         return console_menu
-
-    #     else:
-    #         return additional_actions
-
-    # def get_toolbar_buttons(self):
-    #     """Return toolbar buttons list."""
-    #     buttons = []
-
-    #     # Code to add the stop button
-    #     if self.stop_button is None:
-    #         self.stop_button = create_toolbutton(
-    #                                self,
-    #                                text=_("Stop"),
-    #                                icon=self.stop_icon,
-    #                                tip=_("Stop the current command"))
-    #         self.disable_stop_button()
-    #         # set click event handler
-    #         self.stop_button.clicked.connect(self.stop_button_click_handler)
-    #     if self.stop_button is not None:
-    #         buttons.append(self.stop_button)
-    #     self.stop_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
-
-    #     # Reset namespace button
-    #     if self.reset_button is None:
-    #         self.reset_button = create_toolbutton(
-    #                                 self,
-    #                                 text=_("Remove"),
-    #                                 icon=ima.icon('editdelete'),
-    #                                 tip=_("Remove all variables"),
-    #                                 triggered=self.reset_namespace)
-    #     if self.reset_button is not None:
-    #         buttons.append(self.reset_button)
-    #     self.reset_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
-    #     if self.options_button is None:
-    #         options = self.get_options_menu()
-    #         if options:
-    #             self.options_button = create_toolbutton(self,
-    #                     text=_('Options'), icon=ima.icon('tooloptions'))
-    #             self.options_button.setPopupMode(QToolButton.InstantPopup)
-    #             menu = QMenu(self)
-    #             add_actions(menu, options)
-    #             self.options_button.setMenu(menu)
-    #     if self.options_button is not None:
-    #         buttons.append(self.options_button)
-
-    #     return buttons
 
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
@@ -651,7 +551,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw.insert_horizontal_ruler()
 
         self._hide_loading_page()
-        # self.stop_button.setDisabled(True)
         self.restart_thread = None
         self.sig_execution_state_changed.emit()
 
@@ -722,12 +621,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Show environment variables."""
         self.dialog_manager.show(RemoteEnvDialog(env, parent=self))
 
-    # def create_time_label(self):
-    #     """Create elapsed time label widget (if necessary) and return it"""
-    #     if self.time_label is None:
-    #         self.time_label = QLabel()
-    #     return self.time_label
-
     def show_time(self, end=False):
         """Text to show in time_label."""
         if self.time_label is None:
@@ -754,14 +647,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         else:
             self.time_label.setText("")
 
-    # def update_time_label_visibility(self):
-    #     """Update elapsed time visibility."""
-    #     self.time_label.setVisible(self.show_elapsed_time)
-
-    # def set_show_elapsed_time_state(self, state):
-    #     # self.show_time_action.setChecked(state)
-    #     self.set_elapsed_time_visible(state)
-
     @Slot(bool)
     def set_show_elapsed_time(self, state):
         """Slot to show/hide elapsed time label."""
@@ -777,7 +662,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 QUrl.fromLocalFile(self.css_path)
             )
 
-    #------ Private API -------------------------------------------------------
+    # ----- Private API -------------------------------------------------------
     def _create_loading_page(self):
         """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
@@ -880,7 +765,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             lambda: self.container.sig_focus_changed.emit())
         page_control.sig_focus_changed.connect(
             lambda: self.container.sig_focus_changed.emit())
-        control.sig_visibility_changed.connect(self.container.refresh_container)
-        page_control.sig_visibility_changed.connect(self.container.refresh_container)
+        control.sig_visibility_changed.connect(
+            self.container.refresh_container)
+        page_control.sig_visibility_changed.connect(
+            self.container.refresh_container)
         page_control.sig_show_find_widget_requested.connect(
             self.container.find_widget.show)
