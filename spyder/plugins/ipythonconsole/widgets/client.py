@@ -142,15 +142,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.css_path = css_path
 
         # --- Widgets
-        self.shellwidget = ShellWidget(config=config_options,
-                                       ipyclient=self,
-                                       additional_options=additional_options,
-                                       interpreter_versions=interpreter_versions,
-                                       external_kernel=external_kernel,
-                                       local_kernel=True)
-        # print(self.shellwidget.parent())
-        # self.shellwidget.setParent(self)
-        # print(self.shellwidget.parent())
+        self.shellwidget = ShellWidget(
+            config=config_options,
+            ipyclient=self,
+            additional_options=additional_options,
+            interpreter_versions=interpreter_versions,
+            external_kernel=external_kernel,
+            local_kernel=True)
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
@@ -160,21 +158,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._before_prompt_is_ready()
 
         # Elapsed time
-        # self.time_label = None
         self.t0 = time.monotonic()
         self.timer = QTimer(self)
 
         # --- Layout
         self.layout = QVBoxLayout()
-        # toolbar_buttons = self.get_toolbar_buttons()
-
-        # hlayout = QHBoxLayout()
-        # hlayout.addWidget(self.create_time_label())
-        # hlayout.addStretch(0)
-        # for button in toolbar_buttons:
-        #     hlayout.addWidget(button)
-
-        # self.layout.addLayout(hlayout)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.shellwidget)
         self.layout.addWidget(self.infowidget)

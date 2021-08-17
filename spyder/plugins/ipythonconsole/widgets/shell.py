@@ -94,7 +94,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._cwd = ''
 
         # Keyboard shortcuts
-        # TODO: Define shortcuts for the actions in the client
+        # Registered here to use shellwidget as the parent
         self.shortcuts = self.create_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
@@ -661,11 +661,13 @@ the sympy module (e.g. plot)
         if self.kernel_client is None:
             return
 
-        msg_id = self.kernel_client.execute('', silent=True,
-                                            user_expressions={ local_uuid:code })
+        msg_id = self.kernel_client.execute(
+            '', silent=True,
+            user_expressions={local_uuid: code})
         self._kernel_methods[local_uuid] = code
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
-                                                          'silent_exec_method')
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(
+            msg_id,
+            'silent_exec_method')
 
     def handle_exec_method(self, msg):
         """
