@@ -125,14 +125,14 @@ def ipyconsole(qtbot, request):
     if non_ascii_dir:
         test_dir = NON_ASCII_DIR
     else:
-        test_dir = None
+        test_dir = ''
 
     # Instruct the console to not use a stderr file
     no_stderr_file = request.node.get_closest_marker('no_stderr_file')
     if no_stderr_file:
-        test_no_stderr = True
+        test_no_stderr = 'True'
     else:
-        test_no_stderr = False
+        test_no_stderr = ''
 
     # Use the automatic backend if requested
     auto_backend = request.node.get_closest_marker('auto_backend')
