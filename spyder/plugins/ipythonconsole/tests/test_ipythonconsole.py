@@ -175,7 +175,7 @@ def ipyconsole(qtbot, request):
     CONF.set('appearance', 'css_path', CSS_PATH)
 
     # Create the console and a new client and set environment
-    os.environ['testing'] = True
+    os.environ['testing'] = 'True'
     os.environ['test_dir'] = test_dir
     os.environ['test_no_stderr'] = test_no_stderr
     window = MainWindowMock()
