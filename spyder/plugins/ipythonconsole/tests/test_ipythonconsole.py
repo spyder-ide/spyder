@@ -182,7 +182,7 @@ def ipyconsole(qtbot, request, tmpdir):
     os.environ['test_dir'] = test_dir
     os.environ['test_no_stderr'] = test_no_stderr
     window = MainWindowMock()
-    console = IPythonConsole(parent=window)
+    console = IPythonConsole(parent=window, configuration=configuration)
     console._register()
     console.create_new_client(is_pylab=is_pylab,
                               is_sympy=is_sympy,
