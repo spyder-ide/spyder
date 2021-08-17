@@ -165,11 +165,6 @@ class Help(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         editor.apply_plugin_settings({'connect_to_oi'})
 
-        # TODO: Remove since
-        # ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        # if ipyconsole:
-        #     ipyconsole.apply_plugin_settings({'connect_to_oi'})
-
     # --- Private API
     # ------------------------------------------------------------------------
     def _setup_menus(self):

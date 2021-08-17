@@ -188,11 +188,6 @@ class AppearanceConfigPage(PluginConfigPage):
 
             if 'ui_theme' not in self.changed_options:
                 self.main.editor.apply_plugin_settings(['color_scheme_name'])
-                # TODO: Remove this since the console will be suscribed to
-                # the preference
-                # if self.main.ipyconsole is not None:
-                #     self.main.ipyconsole.apply_plugin_settings(
-                #         ['color_scheme_name'])
 
                 for plugin in self.main.thirdparty_plugins:
                     try:
@@ -212,11 +207,6 @@ class AppearanceConfigPage(PluginConfigPage):
 
             if 'ui_theme' not in self.changed_options:
                 self.main.editor.apply_plugin_settings(['color_scheme_name'])
-                # TODO: Remove this since the console will be suscribed to
-                # the preference
-                # if self.main.ipyconsole is not None:
-                #     self.main.ipyconsole.apply_plugin_settings(
-                #         ['color_scheme_name'])
 
                 for plugin in self.main.thirdparty_plugins:
                     try:
