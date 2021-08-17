@@ -39,11 +39,12 @@ class ConfigurationManager(object):
     Configuration manager to provide access to user/site/project config.
     """
 
-    def __init__(self, parent=None, active_project_callback=None):
+    def __init__(self, parent=None, active_project_callback=None,
+                 conf_path=None):
         """
         Configuration manager to provide access to user/site/project config.
         """
-        path = self.get_user_config_path()
+        path = conf_path if conf_path else self.get_user_config_path()
         if not osp.isdir(path):
             os.makedirs(path)
 
