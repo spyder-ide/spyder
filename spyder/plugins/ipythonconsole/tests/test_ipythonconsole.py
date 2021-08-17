@@ -174,12 +174,12 @@ def ipyconsole(qtbot, request):
     # Conf css_path in the Appeareance plugin
     CONF.set('appearance', 'css_path', CSS_PATH)
 
-    # Create the console and a new client
+    # Create the console and a new client and set environment
+    os.environ['testing'] = True
+    os.environ['test_dir'] = test_dir
+    os.environ['test_no_stderr'] = test_no_stderr
     window = MainWindowMock()
-    console = IPythonConsole(parent=window,
-                             testing=True,
-                             test_dir=test_dir,
-                             test_no_stderr=test_no_stderr)
+    console = IPythonConsole(parent=window)
     console.dockwidget = Mock()
     console._toggle_view_action = Mock()
     console.create_new_client(is_pylab=is_pylab,
@@ -213,6 +213,9 @@ def ipyconsole(qtbot, request):
     console.closing_plugin()
     console.close()
     window.close()
+    os.environ.pop('testing')
+    os.environ.pop('test_dir')
+    os.environ.pop('test_no_stderr')
 
 
 # =============================================================================

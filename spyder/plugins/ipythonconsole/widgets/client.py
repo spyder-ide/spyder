@@ -29,9 +29,9 @@ from qtpy.QtCore import QUrl, QTimer, Signal, Slot, QThread
 from qtpy.QtWidgets import (QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.translations import get_translation
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import (_, get_module_source_path,
-                                running_under_pytest)
+from spyder.config.base import get_module_source_path, running_under_pytest
 from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
@@ -45,6 +45,9 @@ from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
+
+# Localization
+_ = get_translation('spyder')
 
 # -----------------------------------------------------------------------------
 # Templates

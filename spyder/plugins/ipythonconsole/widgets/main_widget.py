@@ -261,9 +261,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.initial_conf_options = self.get_conf_options()
 
         # Attrs for testing
-        self._testing = self.get_conf('testing')
-        self._test_dir = self.get_conf('test_dir')
-        self._test_no_stderr = self.get_conf('test_no_stderr')
+        self._testing = bool(os.environ.get('testing'))
+        self._test_dir = os.environ.get('test_dir')
+        self._test_no_stderr = os.environ.get('test_no_stderr')
 
         # Create temp dir on testing to save kernel errors
         if self._test_dir is not None:
