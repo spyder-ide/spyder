@@ -102,8 +102,8 @@ class Profiler(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         run_action = self.get_action(ProfilerActions.ProfileCurrentFile)
 
-        run_menu = mainmenu.get_application_menu(ApplicationMenus.Run)
-        mainmenu.add_item_to_application_menu(run_action, menu=run_menu)
+        mainmenu.add_item_to_application_menu(
+            run_action, menu_id=ApplicationMenus.Run)
 
     # --- Public API
     # ------------------------------------------------------------------------

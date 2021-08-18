@@ -735,6 +735,7 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 action = plugin._toggle_view_action
+                action.action_id = f'switch to {plugin.CONF_SECTION}'
 
             if action:
                 action.setChecked(plugin.dockwidget.isVisible())
