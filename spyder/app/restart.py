@@ -120,6 +120,12 @@ class Restarter(QWidget):
         self._show_message(text)
         self.timer_ellipsis.start(500)
 
+        # Wait 1.2 seconds so we can give feedback to users that a
+        # restart is happening.
+        for __ in range(40):
+            time.sleep(0.03)
+            QApplication.processEvents()
+
     def launch_error_message(self, error_type, error=None):
         """Launch a message box with a predefined error message.
 
