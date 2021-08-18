@@ -13,6 +13,7 @@ from collections import OrderedDict
 
 # Third party imports
 from qtpy.QtCore import QSize, Slot
+from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -39,6 +40,17 @@ class ToolbarsMenuSections:
 
 class ToolbarActions:
     ShowToolbars = "show toolbars"
+
+
+class QActionID(QAction):
+    """Wrapper class around QAction that allows to set/get an identifier."""
+    @property
+    def action_id(self):
+        return self._action_id
+
+    @action_id.setter
+    def action_id(self, act):
+        self._action_id = act
 
 
 class ToolbarContainer(PluginMainContainer):
@@ -296,6 +308,8 @@ class ToolbarContainer(PluginMainContainer):
         for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
             if toolbar:
                 action = toolbar.toggleViewAction()
+                action.__class__ = QActionID
+                action.action_id = f'toolbar_{toolbar_id}'
                 section = (
                     main_section
                     if toolbar_id in default_toolbars

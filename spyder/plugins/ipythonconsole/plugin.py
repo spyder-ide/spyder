@@ -673,12 +673,14 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.mainmenu.add_item_to_application_menu(
                 console_new_action,
                 menu_id=ApplicationMenus.Consoles,
-                section=ConsolesMenuSections.New)
+                section=ConsolesMenuSections.New,
+                omit_id=True)
         for console_restart_connect_action in restart_connect_consoles_actions:
             self.main.mainmenu.add_item_to_application_menu(
                 console_restart_connect_action,
                 menu_id=ApplicationMenus.Consoles,
-                section=ConsolesMenuSections.Restart)
+                section=ConsolesMenuSections.Restart,
+                omit_id=True)
 
         # IPython documentation
         self.ipython_menu = SpyderMenu(
@@ -703,7 +705,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.ipython_menu,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.ExternalDocumentation,
-            before_section=HelpMenuSections.About)
+            before_section=HelpMenuSections.About,
+            omit_id=True)
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,

@@ -137,8 +137,8 @@ class Breakpoints(SpyderDockablePlugin):
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         list_action = self.get_action(BreakpointsActions.ListBreakpoints)
-        debug_menu = mainmenu.get_application_menu(ApplicationMenus.Debug)
-        mainmenu.add_item_to_application_menu(list_action, debug_menu)
+        mainmenu.add_item_to_application_menu(
+            list_action, menu_id=ApplicationMenus.Debug)
 
     # --- Private API
     # ------------------------------------------------------------------------

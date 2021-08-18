@@ -69,6 +69,7 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window,
     delete_lsp_log_files, qt_message_handler, set_links_color, setup_logging,
@@ -975,7 +976,8 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('filelist'),
                                     tip=_('Fast switch between files'),
                                     triggered=self.open_switcher,
-                                    context=Qt.ApplicationShortcut)
+                                    context=Qt.ApplicationShortcut,
+                                    id_='file_switcher')
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher")
         self.symbol_finder_action = create_action(
@@ -983,7 +985,8 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('symbol_find'),
                                     tip=_('Fast symbol search in file'),
                                     triggered=self.open_symbolfinder,
-                                    context=Qt.ApplicationShortcut)
+                                    context=Qt.ApplicationShortcut,
+                                    id_='symbol_finder')
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
 
@@ -1046,13 +1049,13 @@ class MainWindow(QMainWindow):
             _("PYTHONPATH manager"),
             None, icon=ima.icon('pythonpath'),
             triggered=self.show_path_manager,
-            tip=_("PYTHONPATH manager"))
+            tip=_("PYTHONPATH manager"),
+            id_='spyder_path_action')
         from spyder.plugins.application.plugin import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
-            winenv_action = self.application.get_action(
-                ApplicationActions.SpyderWindowsEnvVariables)
+            winenv_action = ApplicationActions.SpyderWindowsEnvVariables
         mainmenu.add_item_to_application_menu(
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
@@ -1060,7 +1063,8 @@ class MainWindow(QMainWindow):
             before=winenv_action
         )
         if get_debug_level() >= 3:
-            self.menu_lsp_logs = QMenu(_("LSP logs"))
+            self.menu_lsp_logs = SpyderMenu(
+                title=_("LSP logs"), menu_id='lsp_logs_menu')
             self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
             mainmenu.add_item_to_application_menu(
                 self.menu_lsp_logs,

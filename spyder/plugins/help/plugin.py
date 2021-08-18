@@ -177,8 +177,7 @@ class Help(SpyderDockablePlugin):
         shortcuts_summary_action = None
         if shortcuts:
             from spyder.plugins.shortcuts.plugin import ShortcutActions
-            shortcuts_summary_action = shortcuts.get_action(
-                ShortcutActions.ShortcutSummaryAction)
+            shortcuts_summary_action = ShortcutActions.ShortcutSummaryAction
         if mainmenu:
             from spyder.plugins.mainmenu.api import (
                 ApplicationMenus, HelpMenuSections)
