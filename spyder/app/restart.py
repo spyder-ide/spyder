@@ -21,12 +21,12 @@ import sys
 import time
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtGui import QColor, QPixmap, QIcon
-from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
+from qtpy.QtGui import QColor, QIcon
+from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
+from spyder.app.utils import create_splash_screen
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import to_unicode
@@ -92,15 +92,10 @@ class Restarter(QWidget):
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = QSplashScreen(QPixmap(get_image_path('splash'),
-                                    'svg'))
+        self.splash = create_splash_screen()
 
         # Widget setup
         self.setVisible(False)
-
-        font = self.splash.font()
-        font.setPixelSize(10)
-        self.splash.setFont(font)
         self.splash.show()
 
         self.timer_ellipsis.timeout.connect(self.animate_ellipsis)
