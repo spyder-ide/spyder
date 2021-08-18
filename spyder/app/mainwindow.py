@@ -973,7 +973,8 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('filelist'),
                                     tip=_('Fast switch between files'),
                                     triggered=self.open_switcher,
-                                    context=Qt.ApplicationShortcut)
+                                    context=Qt.ApplicationShortcut,
+                                    id_='file_switcher')
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher")
         self.symbol_finder_action = create_action(
@@ -981,7 +982,8 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('symbol_find'),
                                     tip=_('Fast symbol search in file'),
                                     triggered=self.open_symbolfinder,
-                                    context=Qt.ApplicationShortcut)
+                                    context=Qt.ApplicationShortcut,
+                                    id_='symbol_finder')
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
 
@@ -1044,13 +1046,13 @@ class MainWindow(QMainWindow):
             _("PYTHONPATH manager"),
             None, icon=ima.icon('pythonpath'),
             triggered=self.show_path_manager,
-            tip=_("PYTHONPATH manager"))
+            tip=_("PYTHONPATH manager"),
+            id_='spyder_path_action')
         from spyder.plugins.application.plugin import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
-            winenv_action = self.application.get_action(
-                ApplicationActions.SpyderWindowsEnvVariables)
+            winenv_action = ApplicationActions.SpyderWindowsEnvVariables
         mainmenu.add_item_to_application_menu(
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
