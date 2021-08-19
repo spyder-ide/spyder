@@ -392,8 +392,10 @@ class PythonModulesComboBox(PathComboBox):
     QComboBox handling Python modules or packages path
     (i.e. .py, .pyw files *and* directories containing __init__.py)
     """
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
+        if id_ is not None:
+            self.ID = id_
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
