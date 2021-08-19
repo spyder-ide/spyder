@@ -9,6 +9,7 @@ PyDoc widget.
 """
 
 # Standard library imports
+from importlib.resources import Package
 import os.path as osp
 import pydoc
 import sys
@@ -45,6 +46,11 @@ class PydocBrowserActions:
 
 class PydocBrowserMainToolbarSections:
     Main = 'main_section'
+
+
+class PydocBrowserToolbarItems:
+    PackageLabel = 'package_label'
+    UrlCombo = 'url_combo'
 
 
 # =============================================================================
@@ -141,7 +147,11 @@ class PydocBrowser(PluginMainWidget):
 
         # Widgets
         self.label = QLabel(_("Package:"))
-        self.url_combo = UrlComboBox(self)
+        self.label.ID = PydocBrowserToolbarItems.PackageLabel
+
+        self.url_combo = UrlComboBox(
+            self, id_=PydocBrowserToolbarItems.UrlCombo)
+
         self.webview = FrameWebView(
             self,
             handle_links=self.get_conf('handle_links')

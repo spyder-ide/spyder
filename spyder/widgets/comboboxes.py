@@ -308,11 +308,14 @@ class UrlComboBox(PathComboBox):
     """
     QComboBox handling urls
     """
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
         line_edit = QLineEdit(self)
         self.setLineEdit(line_edit)
         self.editTextChanged.disconnect(self.validate)
+
+        if id_ is not None:
+            self.ID = id_
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
