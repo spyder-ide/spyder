@@ -9,7 +9,6 @@ PyDoc widget.
 """
 
 # Standard library imports
-from importlib.resources import Package
 import os.path as osp
 import pydoc
 import sys
