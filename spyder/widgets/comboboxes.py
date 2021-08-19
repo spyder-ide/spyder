@@ -144,7 +144,7 @@ class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
 
     def __init__(self, parent, items=None, tip=None,
-                 adjust_to_minimum=True):
+                 adjust_to_minimum=True, id_=None):
         BaseComboBox.__init__(self, parent)
         if hasattr(self.lineEdit(), 'setClearButtonEnabled'):  # only Qt >= 5.2
             self.lineEdit().setClearButtonEnabled(True)
@@ -155,6 +155,8 @@ class PatternComboBox(BaseComboBox):
             self.addItems(items)
         if tip is not None:
             self.setToolTip(tip)
+        if id_ is not None:
+            self.ID = id_
 
 
 class EditableComboBox(BaseComboBox):
