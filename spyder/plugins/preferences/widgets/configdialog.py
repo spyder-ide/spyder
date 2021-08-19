@@ -21,6 +21,7 @@ class ConfigDialog(QDialog):
     # Signals
     check_settings = Signal()
     size_change = Signal(QSize)
+    sig_reset_preferences_requested = Signal()
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -71,8 +72,7 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         # Signals and slots
-        if self.main:
-            self.button_reset.clicked.connect(self.main.reset_spyder)
+        self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
                                              self.pages_widget.setCurrentIndex)
