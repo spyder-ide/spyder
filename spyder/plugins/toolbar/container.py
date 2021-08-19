@@ -132,7 +132,8 @@ class ToolbarContainer(PluginMainContainer):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    def create_application_toolbar(self, toolbar_id: str, title: str) -> ApplicationToolbar:
+    def create_application_toolbar(
+            self, toolbar_id: str, title: str) -> ApplicationToolbar:
         """
         Create an application toolbar and add it to the main window.
 

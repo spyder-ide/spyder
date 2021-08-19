@@ -139,7 +139,7 @@ class SpyderToolbar(QToolBar):
                 item_pending = self._pending_items.pop(item_id)
                 for item, section, before, before_section in item_pending:
                     self.add_item(item, section=section, before=before,
-                                before_section=before_section)
+                                  before_section=before_section)
 
     def _render(self):
         """
