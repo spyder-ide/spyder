@@ -174,7 +174,6 @@ class Toolbar(SpyderPluginV2):
 
         return self.get_container().add_item_to_application_toolbar(
                 item,
-                toolbar=toolbar,
                 toolbar_id=toolbar_id,
                 section=section,
                 before=before,
