@@ -93,6 +93,7 @@ class Toolbar(SpyderPluginV2):
                         item,
                         toolbar_id=toolbar_id,
                         section=str(section),
+                        omit_id=True
                     )
 
             toolbar._render()
@@ -148,7 +149,8 @@ class Toolbar(SpyderPluginV2):
                                         toolbar_id: Optional[str] = None,
                                         section: Optional[str] = None,
                                         before: Optional[str] = None,
-                                        before_section: Optional[str] = None):
+                                        before_section: Optional[str] = None,
+                                        omit_id: bool = False):
         """
         Add action or widget `item` to given application menu `section`.
 
@@ -167,17 +169,26 @@ class Toolbar(SpyderPluginV2):
         before_section: str or None
             Make the item defined section appear before another given section
             (must be already defined).
+        omit_id: bool
+            If True, then the toolbar will check if the item to add declares an
+            id, False otherwise. This flag exists only for items added on
+            Spyder 4 plugins. Default: False
         """
         if toolbar is not None:
             raise ValueError('add_item_to_application_toolbar does accept a '
                              'toolbar object')
+
+        if before is not None:
+            if not isinstance(before, str):
+                raise ValueError('before must be a str')
 
         return self.get_container().add_item_to_application_toolbar(
                 item,
                 toolbar_id=toolbar_id,
                 section=section,
                 before=before,
-                before_section=before_section
+                before_section=before_section,
+                omit_id=omit_id
             )
 
     def get_application_toolbar(self, toolbar_id):

@@ -88,14 +88,15 @@ class SpyderToolbar(QToolBar):
             raise AttributeError(
                 f'Item {action_or_widget} must declare an ID attribute.')
 
-        if before not in self._item_map:
-            before_pending_items = self._pending_items.get(before, [])
-            before_pending_items.append(
-                (action_or_widget, section, before, before_section))
-            self._pending_items[before] = before_pending_items
-            return
-        else:
-            before = self._item_map[before]
+        if before is not None:
+            if before not in self._item_map:
+                before_pending_items = self._pending_items.get(before, [])
+                before_pending_items.append(
+                    (action_or_widget, section, before, before_section))
+                self._pending_items[before] = before_pending_items
+                return
+            else:
+                before = self._item_map[before]
 
         if section is None:
             section = self._default_section
@@ -132,12 +133,13 @@ class SpyderToolbar(QToolBar):
                 (section_key, self._section_items[section_key])
                 for section_key in new_sections_keys)
 
-        self._item_map[item_id] = action_or_widget
-        if item_id in self._pending_items:
-            item_pending = self._pending_items[item_id]
-            for item, section, before, before_section in item_pending:
-                self.add_item(item, section=section, before=before,
-                              before_section=before_section)
+        if item_id is not None:
+            self._item_map[item_id] = action_or_widget
+            if item_id in self._pending_items:
+                item_pending = self._pending_items.pop(item_id)
+                for item, section, before, before_section in item_pending:
+                    self.add_item(item, section=section, before=before,
+                                before_section=before_section)
 
     def _render(self):
         """
