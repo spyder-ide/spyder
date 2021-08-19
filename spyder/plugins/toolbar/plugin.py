@@ -145,7 +145,6 @@ class Toolbar(SpyderPluginV2):
 
     def add_item_to_application_toolbar(self,
                                         item: Union[SpyderAction, QWidget],
-                                        toolbar=None,
                                         toolbar_id: Optional[str] = None,
                                         section: Optional[str] = None,
                                         before: Optional[str] = None,
@@ -174,13 +173,9 @@ class Toolbar(SpyderPluginV2):
             id, False otherwise. This flag exists only for items added on
             Spyder 4 plugins. Default: False
         """
-        if toolbar is not None:
-            raise ValueError('add_item_to_application_toolbar does accept a '
-                             'toolbar object')
-
         if before is not None:
             if not isinstance(before, str):
-                raise ValueError('before must be a str')
+                raise ValueError('before argument must be a str')
 
         return self.get_container().add_item_to_application_toolbar(
                 item,
