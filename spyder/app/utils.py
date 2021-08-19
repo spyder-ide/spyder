@@ -25,10 +25,10 @@ from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_in_mac_app,
     running_under_pytest)
 from spyder.config.manager import CONF
-from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.qthelpers import file_uri, qapplication
 from spyder.utils.external.dafsa.dafsa import DAFSA
-from spyder.utils.stylesheet import QStylePalette
+from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.palette import QStylePalette
+from spyder.utils.qthelpers import file_uri, qapplication
 
 # For spyder-ide/spyder#7447.
 try:
