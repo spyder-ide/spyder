@@ -206,7 +206,7 @@ class PathComboBox(EditableComboBox):
     """
     open_dir = Signal(str)
 
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         EditableComboBox.__init__(self, parent)
 
         # Replace the default lineedit by a custom one with icon display
@@ -226,6 +226,9 @@ class PathComboBox(EditableComboBox):
         self.highlighted.connect(self.add_tooltip_to_highlighted_item)
         self.sig_tab_pressed.connect(self.tab_complete)
         self.valid.connect(lineedit.update_status)
+
+        if id_ is not None:
+            self.ID = id_
 
     # --- Qt overrides
     def focusInEvent(self, event):
