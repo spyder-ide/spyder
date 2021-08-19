@@ -72,6 +72,14 @@ class HelpWidgetMainToolbarSections:
     Main = 'main_section'
 
 
+class HelpWidgetToolbarItems:
+    SourceLabel = 'source_label'
+    SourceCombo = 'source_combo'
+    ObjectLabel = 'object_label'
+    ObjectCombo = 'object_combo'
+    ObjectEdit = 'object_edit'
+
+
 # --- Widgets
 # ----------------------------------------------------------------------------
 class ObjectComboBox(EditableComboBox):
@@ -81,11 +89,14 @@ class ObjectComboBox(EditableComboBox):
     # Signals
     valid = Signal(bool, bool)
 
-    def __init__(self, parent):
+    def __init__(self, parent, id_=None):
         EditableComboBox.__init__(self, parent)
         self.help = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: '', False: ''}
+
+        if id_ is not None:
+            self.ID = id_
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
@@ -298,11 +309,21 @@ class HelpWidget(PluginMainWidget):
         self.internal_shell = None
         self.plain_text = PlainText(self)
         self.rich_text = RichText(self)
+
         self.source_label = QLabel(_("Source"))
+        self.source_label.ID = HelpWidgetToolbarItems.SourceLabel
+
         self.source_combo = QComboBox(self)
+        self.source_combo.ID = HelpWidgetToolbarItems.SourceCombo
+
         self.object_label = QLabel(_("Object"))
-        self.object_combo = ObjectComboBox(self)
+        self.object_label.ID = HelpWidgetToolbarItems.ObjectLabel
+
+        self.object_combo = ObjectComboBox(
+            self, HelpWidgetToolbarItems.ObjectCombo)
+
         self.object_edit = QLineEdit(self)
+        self.object_edit.ID = HelpWidgetToolbarItems.ObjectEdit
 
         # Setup
         self.object_edit.setReadOnly(True)
