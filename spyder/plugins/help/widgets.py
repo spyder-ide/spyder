@@ -274,8 +274,9 @@ class HelpWidget(PluginMainWidget):
     sig_render_finished = Signal()
     """This signal is emitted to inform a help text rendering has finished."""
 
-    def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent)
+    def __init__(self, name=None, plugin=None, parent=None,
+                 configuration=None):
+        super().__init__(name, plugin, parent, configuration=configuration)
 
         # Attributes
         self._starting_up = True

@@ -425,11 +425,11 @@ def test_tab_rename_for_slaves(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     cf = ipyconsole.get_current_client().connection_file
-    ipyconsole._create_client_for_kernel(cf, None, None, None)
+    ipyconsole.get_widget()._create_client_for_kernel(cf, None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     # Rename slave
-    ipyconsole.rename_tabs_after_change('foo')
+    ipyconsole.get_widget().rename_tabs_after_change('foo')
 
     # Assert both clients have the same name
     assert 'foo' in ipyconsole.get_clients()[0].get_name()
@@ -443,11 +443,11 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Rename first client
-    ipyconsole.rename_tabs_after_change('foo')
+    ipyconsole.get_widget().rename_tabs_after_change('foo')
 
     # Create a new client and try to rename it
     ipyconsole.create_new_client()
-    ipyconsole.rename_tabs_after_change('foo')
+    ipyconsole.get_widget().rename_tabs_after_change('foo')
 
     # Assert the rename didn't take place
     client_name = ipyconsole.get_current_client().get_name()
@@ -464,7 +464,7 @@ def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     ipyconsole.create_new_client()
 
     # Move tabs
-    ipyconsole.tabwidget.tabBar().moveTab(0, 1)
+    ipyconsole.get_widget().tabwidget.tabBar().moveTab(0, 1)
 
     # Assert the second client is in the first position
     client_name = ipyconsole.get_clients()[0].get_name()
@@ -583,7 +583,7 @@ def test_console_coloring(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    config_options = ipyconsole.config_options()
+    config_options = ipyconsole.get_widget().config_options()
 
     syntax_style = config_options.JupyterWidget.syntax_style
     style_sheet = config_options.JupyterWidget.style_sheet
@@ -1130,7 +1130,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     connection_file = osp.basename(client.connection_file)
     id_ = connection_file.split('kernel-')[-1].split('.json')[0]
 
-    ipyconsole._create_client_for_kernel(id_, None, None, None)
+    ipyconsole.get_widget()._create_client_for_kernel(id_, None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     new_client = ipyconsole.get_clients()[1]
@@ -1151,7 +1151,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     connection_file = to_text_string(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
-    ipyconsole._create_client_for_kernel(connection_file, None, None, None)
+    ipyconsole.get_widget()._create_client_for_kernel(connection_file, None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     assert len(ipyconsole.get_clients()) == 2
@@ -1168,8 +1168,8 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    ipyconsole._create_client_for_kernel(client.connection_file,
-                                         None, None, None)
+    ipyconsole.get_widget()._create_client_for_kernel(
+        client.connection_file, None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     new_client = ipyconsole.get_clients()[1]
@@ -1258,8 +1258,8 @@ def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
                     timeout=SHELL_TIMEOUT)
 
     # New client with the same kernel
-    ipyconsole._create_client_for_kernel(client.connection_file, None, None,
-                                         None)
+    ipyconsole.get_widget()._create_client_for_kernel(
+        client.connection_file, None, None, None)
 
     assert len(ipyconsole.get_related_clients(client)) == 1
     other_client = ipyconsole.get_related_clients(client)[0]
@@ -1285,7 +1285,7 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
                     timeout=SHELL_TIMEOUT)
 
     # New client with the same kernel
-    ipyconsole._create_client_for_kernel(client.connection_file, None, None,
+    ipyconsole.get_widget()._create_client_for_kernel(client.connection_file, None, None,
                                          None)
 
     assert len(ipyconsole.get_related_clients(client)) == 1
@@ -1342,7 +1342,7 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     open(osp.join(tmpdir, 'foo.stderr'), 'a').close()
 
     # Assert that only that file is removed
-    ipyconsole._remove_old_stderr_files()
+    ipyconsole.get_widget()._remove_old_stderr_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
 
 

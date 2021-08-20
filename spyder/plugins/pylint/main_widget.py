@@ -234,8 +234,9 @@ class PylintWidget(PluginMainWidget):
     level.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent)
+    def __init__(self, name=None, plugin=None, parent=None,
+                 configuration=None):
+        super().__init__(name, plugin, parent, configuration=configuration)
 
         # Attributes
         self._process = None

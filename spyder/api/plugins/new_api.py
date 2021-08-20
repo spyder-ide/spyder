@@ -291,11 +291,19 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self.PLUGIN_NAME = self.NAME
 
         if self.CONTAINER_CLASS is not None:
-            self._container = container = self.CONTAINER_CLASS(
-                name=self.NAME,
-                plugin=self,
-                parent=parent
-            )
+            if issubclass(self.CONTAINER_CLASS, PluginMainWidget):
+                self._container = container = self.CONTAINER_CLASS(
+                    name=self.NAME,
+                    plugin=self,
+                    parent=parent,
+                    configuration=configuration
+                )
+            else:
+                self._container = container = self.CONTAINER_CLASS(
+                    name=self.NAME,
+                    plugin=self,
+                    parent=parent
+                )
 
             if isinstance(container, SpyderWidgetMixin):
                 container.setup()

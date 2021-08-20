@@ -349,8 +349,9 @@ class BreakpointWidget(PluginMainWidget):
     Send a request to set/edit a condition on a single selected breakpoint.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent=parent)
+    def __init__(self, name=None, plugin=None, parent=None,
+                 configuration=None):
+        super().__init__(name, plugin, parent, configuration=configuration)
 
         # Widgets
         self.breakpoints_table = BreakpointTableView(self, {})

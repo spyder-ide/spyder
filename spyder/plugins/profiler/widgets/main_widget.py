@@ -155,8 +155,9 @@ class ProfilerWidget(PluginMainWidget):
     sig_finished = Signal()
     """This signal is emitted to inform the profile profiling has finished."""
 
-    def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent)
+    def __init__(self, name=None, plugin=None, parent=None,
+                 configuration=None):
+        super().__init__(name, plugin, parent, configuration=configuration)
         self.set_conf('text_color', MAIN_TEXT_COLOR)
 
         # Attributes

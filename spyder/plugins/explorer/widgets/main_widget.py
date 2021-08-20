@@ -146,7 +146,8 @@ class ExplorerWidget(PluginMainWidget):
         Path to use as working directory of interpreter.
     """
 
-    def __init__(self, name, plugin, parent=None):
+    def __init__(self, name=None, plugin=None, parent=None,
+                 configuration=None):
         """
         Initialize the widget.
 
@@ -159,7 +160,7 @@ class ExplorerWidget(PluginMainWidget):
         parent: QWidget
             Parent of this widget
         """
-        super().__init__(name, plugin=plugin, parent=parent)
+        super().__init__(name, plugin, parent, configuration=configuration)
 
         # Widgets
         self.treewidget = ExplorerTreeWidget(parent=self)

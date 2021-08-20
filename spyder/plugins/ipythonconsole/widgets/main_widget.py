@@ -245,8 +245,9 @@ class IPythonConsoleWidget(PluginMainWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent)
+    def __init__(self, name=None, plugin=None, parent=None,
+                 configuration=None):
+        super().__init__(name, plugin, parent, configuration=configuration)
 
         self.tabwidget = None
         self.menu_actions = None
@@ -266,7 +267,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self._test_no_stderr = os.environ.get('test_no_stderr')
 
         # Create temp dir on testing to save kernel errors
-        if self._test_dir is not None:
+        if self._test_dir:
             if not osp.isdir(osp.join(self._test_dir)):
                 os.makedirs(osp.join(self._test_dir))
 
@@ -1458,7 +1459,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               css_path=self.css_path)
 
         # Change stderr_dir if requested
-        if self._test_dir is not None:
+        if self._test_dir:
             client.stderr_dir = self._test_dir
 
         self.add_tab(

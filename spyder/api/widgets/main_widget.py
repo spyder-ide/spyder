@@ -187,8 +187,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     needs its ancestor to be updated.
     """
 
-    def __init__(self, name, plugin, parent=None):
-        super().__init__(parent=parent, class_parent=plugin)
+    def __init__(self, name, plugin, parent=None, configuration=None):
+        super().__init__(parent=parent, class_parent=plugin,
+                         configuration=configuration)
 
         # Attributes
         # --------------------------------------------------------------------

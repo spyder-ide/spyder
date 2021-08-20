@@ -884,11 +884,12 @@ class OutlineExplorerWidget(PluginMainWidget):
     ENABLE_SPINNER = True
     CONF_SECTION = 'outline_explorer'
 
-    def __init__(self, name, plugin, parent=None, context=None):
+    def __init__(self, name=None, plugin=None, parent=None, context=None,
+                 configuration=None):
         if context is not None:
             self.CONTEXT_NAME = context
 
-        super().__init__(name, plugin, parent)
+        super().__init__(name, plugin, parent, configuration=configuration)
 
         self.treewidget = OutlineExplorerTreeWidget(self)
         self.treewidget.sig_display_spinner.connect(self.start_spinner)
