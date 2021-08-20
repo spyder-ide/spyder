@@ -108,9 +108,8 @@ class ConsoleWidget(PluginMainWidget):
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(name, plugin, parent)
 
         logger.info("Initializing...")
 

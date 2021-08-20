@@ -132,9 +132,8 @@ class PydocBrowser(PluginMainWidget):
     This signal is emitted to indicate the help page has finished loading.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent=parent)
 
         self._is_running = False
         self.home_url = None

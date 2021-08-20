@@ -33,6 +33,7 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.gui import get_color_scheme, get_font
+from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
@@ -268,7 +269,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     _CONF_NAME_MAP = None
 
     def __init__(self, parent, configuration=None):
-        super().__init__(parent)
+        super().__init__(parent, configuration=configuration)
 
         # This is required since the MRO of this class does not go up until to
         # SpyderPluginObserver when using super(), see
@@ -291,7 +292,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self.PLUGIN_NAME = self.NAME
 
         if self.CONTAINER_CLASS is not None:
-            if issubclass(self.CONTAINER_CLASS, PluginMainWidget):
+            if (issubclass(self.CONTAINER_CLASS, PluginMainWidget)
+                    and configuration is not CONF
+                    and configuration is not None):
                 self._container = container = self.CONTAINER_CLASS(
                     name=self.NAME,
                     plugin=self,

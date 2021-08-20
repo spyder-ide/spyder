@@ -139,9 +139,8 @@ class PlotsWidget(PluginMainWidget):
         Start redirect (True) or stop redirect (False).
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
 
         # Widgets
         self._stack = PlotsStackedWidget(parent=self)

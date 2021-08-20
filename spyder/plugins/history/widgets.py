@@ -63,9 +63,8 @@ class HistoryWidget(PluginMainWidget):
     changes.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name, plugin, parent):
+        super().__init__(name, plugin, parent)
 
         # Attributes
         self.editors = []

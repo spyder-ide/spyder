@@ -45,9 +45,8 @@ class ProjectExplorerWidget(PluginMainWidget):
         The path to the requested file.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(name, plugin=plugin, parent=parent)
         self.name_filters = self.get_conf('name_filters')
         self.show_hscrollbar = self.get_conf('show_hscrollbar')
 

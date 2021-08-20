@@ -849,9 +849,8 @@ class FindInFilesWidget(PluginMainWidget):
     to reaching the maximum number of results.
     """
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent=parent)
         self.set_conf('text_color', MAIN_TEXT_COLOR)
         self.set_conf('hist_limit', MAX_PATH_HISTORY)
 

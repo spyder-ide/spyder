@@ -245,8 +245,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
+    def __init__(
+            self, name=None, plugin=None, parent=None, configuration=None):
         super().__init__(name, plugin, parent, configuration=configuration)
 
         self.tabwidget = None
@@ -1737,29 +1737,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Create a new client if the console is about to become empty
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-
-    def close_clients(self, cancelable=False):
-        """
-        Close all the running clients
-
-        Parameters
-        ----------
-        cancelable : bool, optional
-            If the closing action could be interrupted. Unused for the moment.
-            The default is False.
-
-        Returns
-        -------
-        bool
-            If the closing process was succesfull.
-
-        """
-        for client in self.get_clients():
-            client.shutdown()
-            client.remove_stderr_file()
-            client.dialog_manager.close_all()
-            client.close()
-        return True
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
