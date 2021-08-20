@@ -290,7 +290,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.mainwindow_close = True
-        for client in self.clients:
+        for client in self.get_clients():
             client.shutdown()
             client.remove_stderr_file()
             client.dialog_manager.close_all()
