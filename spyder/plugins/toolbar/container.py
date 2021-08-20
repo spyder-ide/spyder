@@ -104,6 +104,13 @@ class ToolbarContainer(PluginMainContainer):
 
         self.update_actions()
 
+    def _add_missing_toolbar_elements(self, toolbar, toolbar_id):
+        if toolbar_id in self._ITEMS_QUEUE:
+            pending_items = self._ITEMS_QUEUE.pop(toolbar_id)
+            for item, section, before, before_section in pending_items:
+                toolbar.add_item(item, section=section, before=before,
+                                 before_section=before_section)
+
     # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
@@ -161,12 +168,7 @@ class ToolbarContainer(PluginMainContainer):
             toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
-        if toolbar_id in self._ITEMS_QUEUE:
-            pending_items = self._ITEMS_QUEUE.pop(toolbar_id)
-            for item, section, before, before_section in pending_items:
-                toolbar.add_item(item, section=section, before=before,
-                                 before_section=before_section)
-
+        self._add_missing_toolbar_elements(toolbar, toolbar_id)
         return toolbar
 
     def add_application_toolbar(self, toolbar, mainwindow=None):
@@ -208,11 +210,8 @@ class ToolbarContainer(PluginMainContainer):
         if mainwindow:
             mainwindow.addToolBar(toolbar)
 
-        if toolbar_id in self._ITEMS_QUEUE:
-            pending_items = self._ITEMS_QUEUE.pop(toolbar_id)
-            for item, section, before, before_section in pending_items:
-                toolbar.add_item(item, section=section, before=before,
-                                 before_section=before_section)
+        self._add_missing_toolbar_elements(toolbar, toolbar_id)
+
 
     def add_item_to_application_toolbar(self,
                                         item: ToolbarItem,

@@ -157,8 +157,6 @@ class Toolbar(SpyderPluginV2):
         ----------
         item: SpyderAction or QWidget
             The item to add to the `toolbar`.
-        toolbar: ApplicationToolbar or None
-            Instance of a Spyder application toolbar.
         toolbar_id: str or None
             The application toolbar unique string identifier.
         section: str or None

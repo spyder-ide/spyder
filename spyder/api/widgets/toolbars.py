@@ -18,6 +18,7 @@ from qtpy.QtCore import QEvent, QObject, QSize, Qt
 from qtpy.QtWidgets import QAction, QToolBar, QToolButton, QWidget
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
     APP_TOOLBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
@@ -76,6 +77,24 @@ class SpyderToolbar(QToolBar):
                  before_section: Optional[str] = None, omit_id: bool = False):
         """
         Add action or widget item to given toolbar `section`.
+
+        Parameters
+        ----------
+        item: SpyderAction or QWidget
+            The item to add to the `toolbar`.
+        toolbar_id: str or None
+            The application toolbar unique string identifier.
+        section: str or None
+            The section id in which to insert the `item` on the `toolbar`.
+        before: str or None
+            Make the item appear before another given item.
+        before_section: str or None
+            Make the item defined section appear before another given section
+            (must be already defined).
+        omit_id: bool
+            If True, then the toolbar will check if the item to add declares an
+            id, False otherwise. This flag exists only for items added on
+            Spyder 4 plugins. Default: False
         """
         item_id = None
         if (isinstance(action_or_widget, SpyderAction) or
@@ -85,7 +104,7 @@ class SpyderToolbar(QToolBar):
             item_id = action_or_widget.ID
 
         if not omit_id and item_id is None and action_or_widget is not None:
-            raise AttributeError(
+            raise SpyderAPIError(
                 f'Item {action_or_widget} must declare an ID attribute.')
 
         if before is not None:
