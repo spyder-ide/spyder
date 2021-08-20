@@ -1738,7 +1738,28 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
 
-        # self.sig_update_plugin_title.emit()
+    def close_clients(self, cancelable=False):
+        """
+        Close all the running clients
+
+        Parameters
+        ----------
+        cancelable : bool, optional
+            If the closing action could be interrupted. Unused for the moment.
+            The default is False.
+
+        Returns
+        -------
+        bool
+            If the closing process was succesfull.
+
+        """
+        for client in self.get_clients():
+            client.shutdown()
+            client.remove_stderr_file()
+            client.dialog_manager.close_all()
+            client.close()
+        return True
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""

@@ -212,7 +212,6 @@ def ipyconsole(qtbot, request, tmpdir):
                 print(client.info_page)
 
     # Close
-    console.closing_plugin()
     console.on_close()
     window.close()
     os.environ.pop('testing')
