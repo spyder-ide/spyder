@@ -60,6 +60,7 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, to_text_string
+from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
@@ -183,10 +184,14 @@ def remove_fake_entrypoints():
         pass
 
 
+def read_asset_file(filename):
+    """Read contents of an asset file."""
+    return encoding.read(osp.join(LOCATION, filename))[0]
+
+
 # =============================================================================
 # ---- Fixtures
 # =============================================================================
-
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
@@ -230,6 +235,7 @@ def main_window(request, tmpdir):
         # Create project
         project = tmpdir.mkdir('test_project')
         project_subdir = project.mkdir('subdir')
+        project_sub_subdir = project_subdir.mkdir('sub_subdir')
 
         # Create directories out of the project
         out_of_project_1 = tmpdir.mkdir('out_of_project_1')
@@ -242,36 +248,33 @@ def main_window(request, tmpdir):
         CONF.set('project_explorer', 'current_project_path', project_path)
 
         # Add some files to project. This is necessary to test that we get
-        # symgbols for all these files.
+        # symbols for all these files.
         abs_filenames = []
         filenames_to_create = {
             project: ['file1.py', 'file2.py', 'file3.txt', '__init__.py'],
             project_subdir: ['a.py', '__init__.py'],
-            out_of_project_1: ['b.py'],
-            out_of_project_2: ['c.py', '__init__.py'],
-            out_of_project_1_subdir: ['d.py', '__init__.py'],
-            out_of_project_2_subdir: ['e.py']
+            project_sub_subdir: ['b.py', '__init__.py'],
+            out_of_project_1: ['c.py'],
+            out_of_project_2: ['d.py', '__init__.py'],
+            out_of_project_1_subdir: ['e.py', '__init__.py'],
+            out_of_project_2_subdir: ['f.py']
         }
 
         for path in filenames_to_create.keys():
             filenames = filenames_to_create[path]
             for filename in filenames:
-                f = path.join(filename)
-                abs_filenames.append(str(f))
+                file = path.join(filename)
+                abs_filenames.append(str(file))
                 if osp.splitext(filename)[1] == '.py':
-                    code = dedent(
-                        """
-                        from math import cos
-                        from numpy import (
-                           linspace)
-
-                        def f(x):
-                            return x
-                        """
-                    )
-                    f.write(code)
+                    if path == project_subdir:
+                        code = read_asset_file('script_outline_2.py')
+                    elif path == project_sub_subdir:
+                        code = read_asset_file('script_outline_3.py')
+                    else:
+                        code = read_asset_file('script_outline_1.py')
+                    file.write(code)
                 else:
-                    f.write("Hello world!")
+                    file.write("Hello world!")
 
         spy_project.set_recent_files(abs_filenames)
     else:
@@ -3842,12 +3845,12 @@ def test_update_outline(main_window, qtbot, tmpdir):
     ]
 
     # Wait a bit for trees to be filled
-    qtbot.wait(20000)
+    qtbot.wait(25000)
 
     # Assert all Python editors are filled
     assert all(
         [
-            len(treewidget.editor_tree_cache[editor.get_id()]) == 1
+            len(treewidget.editor_tree_cache[editor.get_id()]) == 4
             for editor in editors_py
         ]
     )
@@ -3872,21 +3875,29 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # Assert spinner is not shown
     assert not outline_explorer.get_widget()._spinner.isSpinning()
 
-    # Set one file as session without projects
-    prev_file = tmpdir.join("foo.py")
-    prev_file.write("def zz(x):\n"
-                    "    return x**2\n")
-    CONF.set('editor', 'filenames', [str(prev_file)])
+    # Set some files as session without projects
+    prev_filenames = ["prev_file_1.py", "prev_file_2.py"]
+    prev_paths = []
+    for fname in prev_filenames:
+        file = tmpdir.join(fname)
+        file.write(read_asset_file("script_outline_1.py"))
+        prev_paths.append(str(file))
+
+    CONF.set('editor', 'filenames', prev_paths)
 
     # Close project to open that file automatically
     main_window.projects.close_project()
 
     # Wait a bit for its tree to be filled
-    qtbot.wait(1000)
+    qtbot.wait(3000)
 
-    # Assert the editor was filled
-    editor = list(treewidget.editor_ids.keys())[0]
-    assert len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+    # Assert the editors were filled
+    assert all(
+        [
+            len(treewidget.editor_tree_cache[editor.get_id()]) == 4
+            for editor in treewidget.editor_ids.keys()
+        ]
+    )
 
     # Remove test file from session
     CONF.set('editor', 'filenames', [])
