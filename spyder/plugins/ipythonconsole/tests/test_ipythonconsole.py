@@ -571,7 +571,7 @@ def test_console_disambiguation(ipyconsole, qtbot):
     ipyconsole.create_client_for_file(filename_d)
     client = ipyconsole.get_current_client()
     assert client.get_name() == 'c.py - d/A'
-    ipyconsole.tabwidget.setCurrentIndex(1)
+    ipyconsole.get_widget().tabwidget.setCurrentIndex(1)
     client = ipyconsole.get_current_client()
     assert client.get_name() == 'c.py - b/A'
 

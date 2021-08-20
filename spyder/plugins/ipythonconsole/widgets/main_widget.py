@@ -1051,8 +1051,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               css_path=self.css_path)
 
         # Change stderr_dir if requested
-        if self.test_dir is not None:
-            client.stderr_dir = self.test_dir
+        if self._test_dir:
+            client.stderr_dir = self._test_dir
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
