@@ -102,6 +102,7 @@ def test_exit_with_parent_process_died(client_exited_server):  # pylint: disable
     assert not client_exited_server.client_thread.is_alive()
 
 
+@flaky(max_runs=10, min_passes=1)
 @pytest.mark.skipif(sys.platform.startswith('linux'), reason='Fails on linux')
 def test_not_exit_without_check_parent_process_flag(client_server):  # pylint: disable=redefined-outer-name
     response = client_server._endpoint.request('initialize', {
@@ -112,6 +113,7 @@ def test_not_exit_without_check_parent_process_flag(client_server):  # pylint: d
     assert 'capabilities' in response
 
 
+@flaky(max_runs=10, min_passes=1)
 @pytest.mark.skipif(RUNNING_IN_CI, reason='This test is hanging on CI')
 def test_missing_message(client_server):  # pylint: disable=redefined-outer-name
     with pytest.raises(JsonRpcMethodNotFound):
