@@ -552,6 +552,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
 
+    def update_all_editors(self, reset_info=False):
+        """Update all editors with LSP support."""
+        for language in self._languages:
+            self.set_editors_to_update(language, reset_info=reset_info)
+            self.update_timers[language].start()
+
     @Slot(list)
     def update_editor(self, items, editor=None):
         """
@@ -998,6 +1004,8 @@ class OutlineExplorerWidget(PluginMainWidget):
     def update_actions(self):
         pass
 
+    # ---- Public API
+    # ------------------------------------------------------------------------
     def set_current_editor(self, editor, update, clear):
         if clear:
             self.remove_editor(editor)
@@ -1020,3 +1028,7 @@ class OutlineExplorerWidget(PluginMainWidget):
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
         self.treewidget.stop_symbol_services(language)
+
+    def update_all_editors(self):
+        """Update all editors with an associated LSP server."""
+        self.treewidget.update_all_editors()

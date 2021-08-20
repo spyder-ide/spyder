@@ -149,6 +149,11 @@ class Editor(SpyderPluginWidget):
     :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
     """
 
+    sig_open_files_finished = Signal()
+    """
+    This signal is emitted when the editor finished to open files.
+    """
+
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
 
@@ -3175,6 +3180,7 @@ class Editor(SpyderPluginWidget):
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
+        self.sig_open_files_finished.emit()
 
     def save_open_files(self):
         """Save the list of open files"""
