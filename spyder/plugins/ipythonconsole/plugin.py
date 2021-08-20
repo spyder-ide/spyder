@@ -487,6 +487,17 @@ class IPythonConsole(SpyderDockablePlugin):
         """
         self.get_widget().restart()
 
+    def restart_kernel(self):
+        """
+        Restart the current client kernel
+
+        Returns
+        -------
+        None.
+
+        """
+        self.get_widget().restart_kernel()
+
     # ---- For documentation and help -----------------------------------------
     def show_intro(self):
         """Show intro to IPython help."""

@@ -1341,7 +1341,7 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     open(osp.join(tmpdir, 'foo.stderr'), 'a').close()
 
     # Assert that only that file is removed
-    ipyconsole.get_widget()._remove_old_stderr_files()
+    ipyconsole._remove_old_stderr_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
 
 
