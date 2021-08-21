@@ -1300,6 +1300,9 @@ class CodeEditor(TextEditBaseWidget):
                     data.selection_start = start
                     data.selection_end = end
 
+                    # Don't call highlight_selection with `update=True` so that
+                    # all underline selections are updated in bulk in
+                    # finish_code_analysis or update_decorations.
                     self.highlight_selection('code_analysis_underline',
                                              data._selection(),
                                              underline_color=block.color)
@@ -2993,8 +2996,11 @@ class CodeEditor(TextEditBaseWidget):
 
             self.underline_errors()
             self.update_extra_selections()
-        else:
-            self.decorations.update()
+
+        # This is required to update decorations whether there are or not
+        # underline errors in the visible portion of the screen.
+        # See spyder-ide/spyder#14268.
+        self.decorations.update()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
