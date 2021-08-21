@@ -51,6 +51,9 @@ else
     pip uninstall spyder-kernels -q -y
     pip uninstall python-lsp-server -q -y
     pip uninstall qdarkstyle -q -y
+
+    # Install jupyter-client 6 until we release spyder-kernels 2.1.1
+    pip install jupyter-client==6.1.12
 fi
 
 # Install subrepos in development mode
