@@ -139,16 +139,11 @@ class Layout(SpyderPluginV2):
         container = self.get_container()
         toolbars = self.get_plugin(Plugins.Toolbar)
         # Add actions to Main application toolbar
-        before_action = self.get_action(
-            PreferencesActions.Show,
-            plugin=Plugins.Preferences
-        )
-
         toolbars.add_item_to_application_toolbar(
             container._maximize_dockwidget_action,
             toolbar_id=ApplicationToolbars.Main,
             section=MainToolbarSections.ApplicationSection,
-            before=before_action
+            before=PreferencesActions.Show
         )
 
     def before_mainwindow_visible(self):

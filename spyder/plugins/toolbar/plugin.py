@@ -8,6 +8,10 @@
 Toolbar Plugin.
 """
 
+# Standard library imports
+from spyder.utils.qthelpers import SpyderAction
+from typing import Union, Optional
+
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2, Plugins
@@ -16,6 +20,9 @@ from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.toolbar.container import ToolbarContainer
+
+# Third-party imports
+from qtpy.QtWidgets import QWidget
 
 # Localization
 _ = get_translation('spyder')
@@ -86,6 +93,7 @@ class Toolbar(SpyderPluginV2):
                         item,
                         toolbar_id=toolbar_id,
                         section=str(section),
+                        omit_id=True
                     )
 
             toolbar._render()
@@ -135,9 +143,13 @@ class Toolbar(SpyderPluginV2):
         """
         self.get_container().add_application_toolbar(toolbar, self._main)
 
-    def add_item_to_application_toolbar(self, item, toolbar=None,
-                                        toolbar_id=None, section=None,
-                                        before=None, before_section=None):
+    def add_item_to_application_toolbar(self,
+                                        item: Union[SpyderAction, QWidget],
+                                        toolbar_id: Optional[str] = None,
+                                        section: Optional[str] = None,
+                                        before: Optional[str] = None,
+                                        before_section: Optional[str] = None,
+                                        omit_id: bool = False):
         """
         Add action or widget `item` to given application menu `section`.
 
@@ -145,8 +157,6 @@ class Toolbar(SpyderPluginV2):
         ----------
         item: SpyderAction or QWidget
             The item to add to the `toolbar`.
-        toolbar: ApplicationToolbar or None
-            Instance of a Spyder application toolbar.
         toolbar_id: str or None
             The application toolbar unique string identifier.
         section: str or None
@@ -156,18 +166,22 @@ class Toolbar(SpyderPluginV2):
         before_section: str or None
             Make the item defined section appear before another given section
             (must be already defined).
-
-        Notes
-        -----
-        Must provide a `toolbar` or a `toolbar_id`.
+        omit_id: bool
+            If True, then the toolbar will check if the item to add declares an
+            id, False otherwise. This flag exists only for items added on
+            Spyder 4 plugins. Default: False
         """
+        if before is not None:
+            if not isinstance(before, str):
+                raise ValueError('before argument must be a str')
+
         return self.get_container().add_item_to_application_toolbar(
                 item,
-                toolbar=toolbar,
                 toolbar_id=toolbar_id,
                 section=section,
                 before=before,
-                before_section=before_section
+                before_section=before_section,
+                omit_id=omit_id
             )
 
     def get_application_toolbar(self, toolbar_id):
