@@ -2985,6 +2985,12 @@ class CodeEditor(TextEditBaseWidget):
     def update_decorations(self):
         """Update decorations on the visible portion of the screen."""
         if self.underline_errors_enabled:
+            # Clear current selections before painting the new ones.
+            # This prevents accumulating them when moving around in the file,
+            # which generated a memory leak and sluggishness in the editor
+            # after some time.
+            self.clear_extra_selections('code_analysis_underline')
+
             self.underline_errors()
             self.update_extra_selections()
         else:
