@@ -228,10 +228,30 @@ def main_window(request, tmpdir):
     else:
         CONF.set('main', 'single_instance', False)
 
-    # Check if we need to preload a project in a give test
+    # Check if we need to load a simple project to the interface
     preload_project = request.node.get_closest_marker('preload_project')
 
     if preload_project:
+        # Create project directory
+        project = tmpdir.mkdir('test_project')
+        project_path = str(project)
+
+        # Create Spyder project
+        spy_project = EmptyProject(project_path)
+        CONF.set('project_explorer', 'current_project_path', project_path)
+
+        # Add a file to the project
+        file = project.join('file.py')
+        file.write(read_asset_file('script_outline_1.py'))
+        spy_project.set_recent_files([str(file)])
+    else:
+        CONF.set('project_explorer', 'current_project_path', None)
+
+    # Check if we need to preload a complex project in a give test
+    preload_complex_project = request.node.get_closest_marker(
+        'preload_complex_project')
+
+    if preload_complex_project:
         # Create project
         project = tmpdir.mkdir('test_project')
         project_subdir = project.mkdir('subdir')
@@ -278,7 +298,8 @@ def main_window(request, tmpdir):
 
         spy_project.set_recent_files(abs_filenames)
     else:
-        CONF.set('project_explorer', 'current_project_path', None)
+        if not preload_project:
+            CONF.set('project_explorer', 'current_project_path', None)
 
     # Get config values passed in parametrize and apply them
     try:
@@ -3825,7 +3846,7 @@ def test_tour_message(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
-@pytest.mark.preload_project
+@pytest.mark.preload_complex_project
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Only works on Linux")
 def test_update_outline(main_window, qtbot, tmpdir):
