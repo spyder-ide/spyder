@@ -3742,6 +3742,7 @@ hello()
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
+@pytest.mark.skipif(os.name == 'nt', reason='Times out on Windows')
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a
