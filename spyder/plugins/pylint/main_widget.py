@@ -79,6 +79,14 @@ class PylintWidgetMainToolbarSections:
     Main = "main_section"
 
 
+class PylintWidgetToolbarItems:
+    FileComboBox = 'file_combo'
+    RateLabel = 'rate_label'
+    DateLabel = 'date_label'
+    Stretcher1 = 'stretcher_1'
+    Stretcher2 = 'stretcher_2'
+
+
 # --- Widgets
 # ----------------------------------------------------------------------------
 # TODO: display results on 3 columns instead of 1: msg_id, lineno, message
@@ -248,9 +256,15 @@ class PylintWidget(PluginMainWidget):
         self.browse_action = None
 
         # Widgets
-        self.filecombo = PythonModulesComboBox(self)
+        self.filecombo = PythonModulesComboBox(
+            self, id_=PylintWidgetToolbarItems.FileComboBox)
+
         self.ratelabel = QLabel(self)
+        self.ratelabel.ID = PylintWidgetToolbarItems.RateLabel
+
         self.datelabel = QLabel(self)
+        self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
+
         self.treewidget = ResultsTree(self)
 
         if osp.isfile(self.DATAPATH):
@@ -494,8 +508,13 @@ class PylintWidget(PluginMainWidget):
             )
 
         secondary_toolbar = self.create_toolbar("secondary")
-        for item in [self.ratelabel, self.create_stretcher(), self.datelabel,
-                     self.create_stretcher(), self.log_action]:
+        for item in [self.ratelabel,
+                     self.create_stretcher(
+                         id_=PylintWidgetToolbarItems.Stretcher1),
+                     self.datelabel,
+                     self.create_stretcher(
+                         id_=PylintWidgetToolbarItems.Stretcher2),
+                     self.log_action]:
             self.add_item_to_toolbar(
                 item,
                 secondary_toolbar,

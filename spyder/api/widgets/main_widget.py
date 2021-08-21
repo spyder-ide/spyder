@@ -228,6 +228,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
         )
+        self._corner_widget.ID = 'main_corner'
 
         self._main_toolbar = MainWidgetToolbar(
             parent=self,

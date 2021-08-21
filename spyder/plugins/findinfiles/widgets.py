@@ -91,6 +91,15 @@ class FindInFilesWidgetLocationToolbarSections:
     Main = 'main_section'
 
 
+class FindInFilesWidgetToolbarItems:
+    SearchPatternCombo = 'pattern_combo'
+    SearchInLabel = 'search_in_label'
+    ExcludeLabel = 'exclude_label'
+    ExcludePatternCombo = 'exclude_pattern_combo'
+    Stretcher1 = 'stretcher_1'
+    SearchInCombo = 'search_in_combo'
+
+
 # --- Utils
 # ----------------------------------------------------------------------------
 def truncate_path(text):
@@ -424,7 +433,7 @@ class SearchInComboBox(QComboBox):
     # Signals
     sig_redirect_stdio_requested = Signal(bool)
 
-    def __init__(self, external_path_history=[], parent=None):
+    def __init__(self, external_path_history=[], parent=None, id_=None):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setToolTip(_('Search directory'))
@@ -434,6 +443,9 @@ class SearchInComboBox(QComboBox):
         self.project_path = None
         self.file_path = None
         self.external_path = None
+
+        if id_ is not None:
+            self.ID = id_
 
         self.addItem(_("Current working directory"))
         ttip = ("Search in all files and directories present on the current"
@@ -880,15 +892,26 @@ class FindInFilesWidget(PluginMainWidget):
             self,
             search_text,
             _("Search pattern"),
+            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
         )
+
         self.search_in_label = QLabel(_('Search in:'))
+        self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
+
         self.exclude_label = QLabel(_('Exclude:'))
-        self.path_selection_combo = SearchInComboBox(path_history, self)
+        self.exclude_label.ID = FindInFilesWidgetToolbarItems.ExcludeLabel
+
+        self.path_selection_combo = SearchInComboBox(
+            path_history, self,
+            id_=FindInFilesWidgetToolbarItems.SearchInCombo)
+
         self.exclude_pattern_edit = PatternComboBox(
             self,
             exclude,
             _("Exclude pattern"),
+            id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo
         )
+
         self.result_browser = ResultsBrowser(
             self,
             text_color=self.text_color,
@@ -1007,8 +1030,11 @@ class FindInFilesWidget(PluginMainWidget):
         # Exclude Toolbar
         self.extras_toolbar = self.create_toolbar(
             FindInFilesWidgetToolbars.Exclude)
+
+        stretcher = self.create_stretcher()
+        stretcher.ID = FindInFilesWidgetToolbarItems.Stretcher1
         for item in [self.exclude_label, self.exclude_pattern_edit,
-                     self.exclude_regexp_action, self.create_stretcher()]:
+                     self.exclude_regexp_action, stretcher]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=self.extras_toolbar,
