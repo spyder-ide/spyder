@@ -19,9 +19,10 @@ from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
+from spyder.plugins.outlineexplorer.main_widget import (
+    OutlineExplorerWidget, OutlineExplorerToolbuttons)
 from spyder.plugins.outlineexplorer.widgets import (
-    OutlineExplorerWidget, FileRootItem, SymbolStatus, TreeItem,
-    OutlineExplorerToolbuttons)
+    FileRootItem, SymbolStatus, TreeItem)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 HERE = osp.abspath(osp.dirname(__file__))
