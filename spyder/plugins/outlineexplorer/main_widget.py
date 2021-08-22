@@ -69,7 +69,7 @@ class OutlineExplorerWidget(PluginMainWidget):
         self.setLayout(layout)
 
     # ---- PluginMainWidget API
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def get_focus_widget(self):
         """Define the widget to focus."""
         return self.treewidget
@@ -164,8 +164,15 @@ class OutlineExplorerWidget(PluginMainWidget):
     def update_actions(self):
         pass
 
+    def change_visibility(self, enable, force_focus=None):
+        """
+        Reimplemented to tell treewidget what the visibility state is.
+        """
+        super().change_visibility(enable, force_focus)
+        self._change_treewidget_visibility(self.is_visible)
+
     # ---- Public API
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def set_current_editor(self, editor, update, clear):
         if clear:
             self.remove_editor(editor)
@@ -192,3 +199,11 @@ class OutlineExplorerWidget(PluginMainWidget):
     def update_all_editors(self):
         """Update all editors with an associated LSP server."""
         self.treewidget.update_all_editors()
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _change_treewidget_visibility(self, is_visible):
+        """Set visibility state in treewidget."""
+        self.treewidget.is_visible = is_visible
+        if is_visible:
+            self.treewidget.update_all_editors()
