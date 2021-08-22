@@ -1231,9 +1231,15 @@ class BaseEditMixin(object):
 
     def find_text(self, text, changed=True, forward=True, case=False,
                   word=False, regexp=False):
-        """Find text"""
+        """Find text."""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
+
+        # Get visible region to center cursor in case it's necessary.
+        if getattr(self, 'get_visible_block_numbers', False):
+            current_visible_region = self.get_visible_block_numbers()
+        else:
+            current_visible_region = None
 
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
@@ -1262,8 +1268,7 @@ class BaseEditMixin(object):
         pattern = QRegularExpression(u"\\b{}\\b".format(text) if word else
                                      text)
         if case:
-            pattern.setPatternOptions(
-                QRegularExpression.CaseInsensitiveOption)
+            pattern.setPatternOptions(QRegularExpression.CaseInsensitiveOption)
 
         for move in moves:
             cursor.movePosition(move)
@@ -1277,6 +1282,14 @@ class BaseEditMixin(object):
                 found_cursor = self.document().find(pattern, cursor, findflag)
             if found_cursor is not None and not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
+
+                # Center cursor if we move out of the visible region.
+                if current_visible_region is not None:
+                    found_visible_region = self.get_visible_block_numbers()
+                    if current_visible_region != found_visible_region:
+                        current_visible_region = found_visible_region
+                        self.centerCursor()
+
                 return True
 
         return False
