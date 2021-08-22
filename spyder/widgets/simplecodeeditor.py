@@ -13,13 +13,10 @@ Adapted from:
 https://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
 """
 
-# Standard library imports
-import re
-
 # Third party imports
-from qtpy.QtCore import QRect, QSize, Qt, Signal
+from qtpy.QtCore import QPoint, QRect, QSize, Qt, Signal
 from qtpy.QtGui import QColor, QPainter, QTextCursor, QTextFormat, QTextOption
-from qtpy.QtWidgets import QApplication, QPlainTextEdit, QTextEdit, QWidget
+from qtpy.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 # Local imports
 import spyder.utils.syntaxhighlighters as sh
@@ -551,6 +548,14 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
+
+    def get_visible_block_numbers(self):
+        """Get the first and last visible block numbers."""
+        first = self.firstVisibleBlock().blockNumber()
+        bottom_right = QPoint(self.viewport().width() - 1,
+                              self.viewport().height() - 1)
+        last = self.cursorForPosition(bottom_right).blockNumber()
+        return (first, last)
 
     # --- Syntax highlighter
     # ------------------------------------------------------------------------
