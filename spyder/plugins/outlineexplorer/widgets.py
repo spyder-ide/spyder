@@ -27,6 +27,8 @@ from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
+# ---- Constants
+# -----------------------------------------------------------------------------
 SYMBOL_NAME_MAP = {
     SymbolKind.FILE: _('File'),
     SymbolKind.MODULE: _('Module'),
@@ -58,13 +60,9 @@ SYMBOL_NAME_MAP = {
     SymbolKind.BLOCK_COMMENT: _('Block comment')
 }
 
-ICON_CACHE = {}
 
-
-def line_span(position):
-    return position[1] - position[0] + 1
-
-
+# ---- Symbol status
+# -----------------------------------------------------------------------------
 class SymbolStatus:
     def __init__(self, name, kind, position, path, node=None):
         self.name = name
@@ -158,6 +156,8 @@ class SymbolStatus:
             self.position, self.name, self.id, self.status)
 
 
+# ---- Items
+# -----------------------------------------------------------------------------
 class BaseTreeItem(QTreeWidgetItem):
     def clear(self):
         self.takeChildren()
@@ -265,6 +265,8 @@ class TreeItem(QTreeWidgetItem):
         self.setup()
 
 
+# ---- Treewidget
+# -----------------------------------------------------------------------------
 class OutlineExplorerTreeWidget(OneColumnTree):
     # Used only for debug purposes
     sig_tree_updated = Signal()
@@ -621,8 +623,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             changed_entry_i = changed_entry.data
 
             if deleted_entry_i.name == changed_entry_i.name:
-                deleted_span = line_span(deleted_entry_i.position)
-                changed_span = line_span(changed_entry_i.position)
                 # Copy symbol status
                 changed_entry_i.clone_node(deleted_entry_i)
                 deleted_entry = next(deleted_iter, None)
