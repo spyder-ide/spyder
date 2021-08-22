@@ -37,7 +37,7 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
-                            QToolTip, QScrollBar)
+                            QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
 from three_merge import merge
 
@@ -133,9 +133,15 @@ class CodeEditor(TextEditBaseWidget):
     # the up/down arrow keys.
     UPDATE_DECORATIONS_TIMEOUT = 500  # milliseconds
 
-    # Timeout to sychronize symbols and folding after linting results
-    # arrive
-    SYNC_SYMBOLS_AND_FOLDING_TIMEOUT = 500  # milliseconds
+    # Timeouts (in milliseconds) to sychronize symbols and folding after
+    # linting results arrive, according to the number of lines in the file.
+    SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS = {
+        # Lines: Timeout
+        500: 500,
+        1500: 1200,
+        2500: 3200,
+        6500: 4500
+    }
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -304,10 +310,10 @@ class CodeEditor(TextEditBaseWidget):
         # See: process_diagnostics
         self._timer_sync_symbols_and_folding = QTimer(self)
         self._timer_sync_symbols_and_folding.setSingleShot(True)
-        self._timer_sync_symbols_and_folding.setInterval(
-            self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUT)
         self._timer_sync_symbols_and_folding.timeout.connect(
             self.sync_symbols_and_folding)
+        self.blockCountChanged.connect(
+            self.set_sync_symbols_and_folding_timeout)
 
         # Goto uri
         self._last_hover_pattern_key = None
@@ -1171,6 +1177,25 @@ class CodeEditor(TextEditBaseWidget):
 
         # Process results (runs in a thread)
         self.process_code_analysis(params['params'])
+
+    def set_sync_symbols_and_folding_timeout(self):
+        """
+        Set timeout to sync symbols and folding according to the file
+        size.
+        """
+        current_lines = self.get_line_count()
+        timeout = None
+
+        for lines in self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS.keys():
+            if (current_lines // lines) == 0:
+                timeout = self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS[lines]
+                break
+
+        if not timeout:
+            timeouts = self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS.values()
+            timeout = list(timeouts)[-1]
+
+        self._timer_sync_symbols_and_folding.setInterval(timeout)
 
     def sync_symbols_and_folding(self):
         """
