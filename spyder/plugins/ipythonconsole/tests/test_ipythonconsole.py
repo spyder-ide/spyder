@@ -372,7 +372,7 @@ def test_sympy_client(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("x")
 
-    # Assert there are no errors after restting the console
+    # Assert there are no errors after resetting the console
     control = ipyconsole.get_widget().get_focus_widget()
     assert 'NameError' not in control.toPlainText()
 

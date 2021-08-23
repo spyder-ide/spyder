@@ -1048,7 +1048,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               ask_before_restart=ask_before_restart,
-                              css_path=self.css_path)
+                              css_path=self.css_path,
+                              configuration=self.CONFIGURATION)
 
         # Change stderr_dir if requested
         if self._test_dir:
@@ -1456,7 +1457,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               given_name=given_name,
                               ask_before_restart=ask_before_restart,
                               ask_before_closing=ask_before_closing,
-                              css_path=self.css_path)
+                              css_path=self.css_path,
+                              configuration=self.CONFIGURATION)
 
         # Change stderr_dir if requested
         if self._test_dir:
