@@ -1738,6 +1738,23 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
 
+    def close_clients(self):
+        """
+        Do close actions for each running client
+
+        Returns
+        -------
+        bool
+            If the closing action was succesful.
+
+        """
+        for client in self.get_clients():
+            client.shutdown()
+            client.remove_stderr_file()
+            client.dialog_manager.close_all()
+            client.close()
+        return True
+
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
         for index, client in enumerate(self.clients):

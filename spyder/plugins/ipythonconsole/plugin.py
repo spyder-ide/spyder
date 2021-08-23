@@ -280,22 +280,12 @@ class IPythonConsole(SpyderDockablePlugin):
         self.get_widget().update_font(font, rich_font)
 
     def on_close(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
         self.get_widget().mainwindow_close = True
-        self.get_widget().close_clients()
-        return True
+        return self.get_widget().close_clients()
 
     def on_mainwindow_visible(self):
         self.get_widget().create_new_client(give_focus=False)
-
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        self.mainwindow_close = True
-        for client in self.get_clients():
-            client.shutdown()
-            client.remove_stderr_file()
-            client.dialog_manager.close_all()
-            client.close()
-        return True
 
     # --- Private methods
     # ------------------------------------------------------------------------
