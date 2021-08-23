@@ -269,12 +269,14 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     _CONF_NAME_MAP = None
 
     def __init__(self, parent, configuration=None):
-        super().__init__(parent, configuration=configuration)
+        super().__init__(parent)
 
         # This is required since the MRO of this class does not go up until to
-        # SpyderPluginObserver when using super(), see
-        # https://fuhm.net/super-harmful/
+        # SpyderPluginObserver and SpyderConfigurationObserver when using
+        # super(), see https://fuhm.net/super-harmful/
         SpyderPluginObserver.__init__(self)
+        SpyderConfigurationObserver.__init__(
+            self, configuration=configuration)
 
         self._main = parent
         self._widget = None
