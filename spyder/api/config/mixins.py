@@ -257,9 +257,10 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     the corresponding registered method is called with the new value.
     """
 
-    def __init__(self, configuration=CONF):
+    def __init__(self, configuration=None):
         super().__init__()
-        self.CONFIGURATION = configuration
+        if configuration is not None:
+            self.CONFIGURATION = configuration
         if self.CONF_SECTION is None:
             warnings.warn(
                 'A SpyderConfigurationObserver must define a `CONF_SECTION` '

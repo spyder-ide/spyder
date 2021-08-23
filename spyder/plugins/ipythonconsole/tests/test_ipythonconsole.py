@@ -1197,7 +1197,6 @@ def test_sys_argv_clear(ipyconsole, qtbot):
 
 
 @flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_set_elapsed_time(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1205,10 +1204,13 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
+    # Show time label.
+    ipyconsole.get_widget().set_show_elapsed_time_current_client(True)
+
     # Set time to 2 minutes ago.
     client.t0 -= 120
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
-        ipyconsole.set_elapsed_time(client)
+        ipyconsole.get_widget().set_client_elapsed_time(client)
     assert ('00:02:00' in client.time_label.text() or
             '00:02:01' in client.time_label.text())
 
@@ -1259,9 +1261,8 @@ def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
     # New client with the same kernel
     ipyconsole.get_widget()._create_client_for_kernel(
         client.connection_file, None, None, None)
-
-    assert len(ipyconsole.get_related_clients(client)) == 1
-    other_client = ipyconsole.get_related_clients(client)[0]
+    assert len(ipyconsole.get_widget().get_related_clients(client)) == 1
+    other_client = ipyconsole.get_widget().get_related_clients(client)[0]
     assert client.stderr_file == other_client.stderr_file
 
     # In a normal situation file should exist
@@ -1287,8 +1288,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     ipyconsole.get_widget()._create_client_for_kernel(client.connection_file, None, None,
                                          None)
 
-    assert len(ipyconsole.get_related_clients(client)) == 1
-    other_client = ipyconsole.get_related_clients(client)[0]
+    assert len(ipyconsole.get_widget().get_related_clients(client)) == 1
+    other_client = ipyconsole.get_widget().get_related_clients(client)[0]
     assert client.stderr_file == other_client.stderr_file
 
     # In a normal situation file should exist
@@ -1845,7 +1846,7 @@ def test_stop_pdb(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
-    stop_button = ipyconsole.get_current_client().stop_button
+    stop_button = ipyconsole.get_widget().stop_button
     # Enter pdb
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug print()")

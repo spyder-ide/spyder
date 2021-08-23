@@ -584,8 +584,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             client = self.get_current_client()
             client.set_show_elapsed_time(state)
             self.refresh_container()
-            # client.timer.timeout.connect(client.show_time)
-            # client.timer.start(1000)
 
     def update_style(self):
         rich_font = self._plugin.get_font(option='rich_font')
@@ -754,16 +752,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not self.get_current_client():
             return
 
-        # Review that we are not triggering validations in the initial
-        # notification sent when Spyder is starting or when another option
-        # already required a restart and the restart dialog was shown
-        if option in self.initial_conf_options:
-            self.initial_conf_options.remove(option)
-            return
-
         restart_needed = False
         restart_options = []
-
         # Startup options (needs a restart)
         run_lines_n = 'startup/run_lines'
         use_run_file_n = 'startup/use_run_file'
@@ -796,7 +786,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                 any(client_backend_not_inline) and
                 pylab_backend_o != inline_backend)
 
-        restart_needed = option in restart_options
+        # Review that we are not triggering validations in the initial
+        # notification sent when Spyder is starting or when another option
+        # already required a restart and the restart dialog was shown
+        if option in self.initial_conf_options:
+            self.initial_conf_options.remove(option)
+            restart_needed = False
+        else:
+            restart_needed = option in restart_options
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
             self.initial_conf_options = self.get_conf_options()
@@ -1396,7 +1393,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         related_clients = self.get_related_clients(client)
         for cl in related_clients:
             if cl.timer is not None:
-                # client.create_time_label()
                 client.t0 = cl.t0
                 client.timer.timeout.connect(client.show_time)
                 client.timer.start(1000)
@@ -1699,14 +1695,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             close_all = True
             if client.ask_before_closing:
                 close = QMessageBox.question(
-                    self, self._plugin.get_plugin_title(),
+                    self, self._plugin.get_name(),
                     _("Do you want to close this console?"),
                     QMessageBox.Yes | QMessageBox.No)
                 if close == QMessageBox.No:
                     return
             if len(self.get_related_clients(client)) > 0:
                 close_all = QMessageBox.question(
-                    self, self._plugin.get_plugin_title(),
+                    self, self._plugin.get_name(),
                     _("Do you want to close all other consoles connected "
                       "to the same kernel as this one?"),
                     QMessageBox.Yes | QMessageBox.No)
@@ -1869,7 +1865,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             section='main')
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
-                                is_sympy=is_sympy)
+                                is_sympy=is_sympy,
+                                configuration=self.CONFIGURATION)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_handle,
