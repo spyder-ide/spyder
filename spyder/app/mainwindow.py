@@ -49,7 +49,7 @@ requirements.check_spyder_kernels()
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtGui import QColor, QKeySequence, QIcon
 from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QMenu,
                             QMessageBox, QShortcut, QStyleFactory, QCheckBox)
 
@@ -542,6 +542,10 @@ class MainWindow(QMainWindow):
 
         # Enabling scaling for high dpi
         qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+        # Set Windows app icon to use .ico file
+        if os.name == "nt":
+            qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
 
         self.default_style = str(qapp.style().objectName())
 
