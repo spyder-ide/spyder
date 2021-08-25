@@ -3897,6 +3897,20 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # Assert spinner is not shown
     assert not outline_explorer.get_widget()._spinner.isSpinning()
 
+    # Hide outline from view
+    outline_explorer.toggle_view_action.setChecked(False)
+
+    # Remove content from first file
+    editorstack.set_stack_index(0)
+    editor = editorstack.get_current_editor()
+    editor.selectAll()
+    editor.cut()
+    editorstack.save(index=0)
+
+    # Assert outline was not updated
+    qtbot.wait(1000)
+    len(treewidget.editor_tree_cache[treewidget.current_editor.get_id()]) == 4
+
     # Set some files as session without projects
     prev_filenames = ["prev_file_1.py", "prev_file_2.py"]
     prev_paths = []
@@ -3909,6 +3923,9 @@ def test_update_outline(main_window, qtbot, tmpdir):
 
     # Close project to open that file automatically
     main_window.projects.close_project()
+
+    # Show outline again
+    outline_explorer.toggle_view_action.setChecked(True)
 
     # Wait a bit for its tree to be filled
     qtbot.wait(3000)
