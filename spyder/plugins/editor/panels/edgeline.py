@@ -36,7 +36,8 @@ class EdgeLine(Panel):
         painter.setPen(color)
 
         for column in self.columns:
-            x = self.editor.fontMetrics().width(column * '9')
+            # draw edge line at column n + 3 to account for line number margin
+            x = self.editor.fontMetrics().width(column * '9') + 3
             painter.drawLine(x, 0, x, size.height())
 
     def sizeHint(self):
