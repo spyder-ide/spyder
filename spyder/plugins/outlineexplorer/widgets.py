@@ -300,6 +300,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.ordered_editor_ids = []
         self._current_editor = None
         self._languages = []
+        self.is_visible = True
 
         self.currentItemChanged.connect(self.selection_switched)
         self.itemExpanded.connect(self.tree_item_expanded)
@@ -547,10 +548,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if items is None:
             return
 
+        # Only perform an update if the widget is visible.
+        if not self.is_visible:
+            self.sig_hide_spinner.emit()
+            return
+
         if editor is None:
             editor = self.current_editor
         editor_id = editor.get_id()
         language = editor.get_language()
+
         update = self.update_tree(items, editor_id, language)
 
         if update:
@@ -580,6 +587,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         return node
 
     def update_tree(self, items, editor_id, language):
+        """Update tree with new items that come from the LSP."""
         current_tree = self.editor_tree_cache[editor_id]
         tree_info = []
         for symbol in items:
