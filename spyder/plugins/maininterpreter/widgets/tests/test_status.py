@@ -24,7 +24,7 @@ from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 
 @pytest.mark.skipif(not is_anaconda(), reason="Requires conda to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
-def test_status_bar_conda_interpreter_status(status_bar, qtbot):
+def test_conda_interpreter_status(status_bar, qtbot):
     """Test status bar message with conda interpreter."""
     # We patch where the method is used not where it is imported from
     plugin, window = status_bar
@@ -51,7 +51,7 @@ def test_status_bar_conda_interpreter_status(status_bar, qtbot):
     assert expected == w._get_env_info(path_foo)
 
 
-def test_status_bar_pyenv_interpreter_status(status_bar, qtbot):
+def test_pyenv_interpreter_status(status_bar, qtbot):
     """Test status var message with pyenv interpreter."""
     plugin, window = status_bar
     w = InterpreterStatus(window)
@@ -67,7 +67,7 @@ def test_status_bar_pyenv_interpreter_status(status_bar, qtbot):
 
 
 @pytest.mark.skipif(sys.platform != 'darwin', reason="Only valid on Mac")
-def test_status_bar_internal_interpreter_status(status_bar, qtbot, mocker):
+def test_internal_interpreter_status(status_bar, qtbot, mocker):
     """Test status bar message with internal interpreter."""
     plugin, window = status_bar
     w = InterpreterStatus(window)
