@@ -42,14 +42,12 @@ def test_status_bar_conda_interpreter_status(status_bar, qtbot):
     path_base, version = w.envs[name_base]
     w.update_interpreter(path_base)
     expected = 'conda: base ({})'.format(version)
-    assert w.get_tooltip() == path_base
     assert expected == w._get_env_info(path_base)
 
     # Update to the foo conda environment
     path_foo, version = w.envs[name_test]
     w.update_interpreter(path_foo)
     expected = 'conda: test ({})'.format(version)
-    assert w.get_tooltip() == path_foo
     assert expected == w._get_env_info(path_foo)
 
 
@@ -65,7 +63,6 @@ def test_status_bar_pyenv_interpreter_status(status_bar, qtbot):
     w.envs = {name: (interpreter, version)}
     w.path_to_env = {interpreter: name}
     w.update_interpreter(interpreter)
-    assert w.get_tooltip() == interpreter
     assert 'pyenv: test (Python 3.6.6)' == w._get_env_info(interpreter)
 
 
@@ -82,5 +79,4 @@ def test_status_bar_internal_interpreter_status(status_bar, qtbot, mocker):
     w.envs = {name: (interpreter, version)}
     w.path_to_env = {interpreter: name}
     w.update_interpreter(interpreter)
-    assert w.get_tooltip() == interpreter
     assert 'system: (Python 3.6.6)' == w._get_env_info(interpreter)
