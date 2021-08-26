@@ -509,6 +509,7 @@ class CompletionPlugin(SpyderPluginV2):
         mi_status = maininterpreter.get_container().interpreter_status
 
         value = mi_status.value
+        tool_tip = mi_status._interpreter
 
         if '(' in value:
             value, _ = value.split('(')
@@ -524,7 +525,7 @@ class CompletionPlugin(SpyderPluginV2):
         if name:
             new_value += f'({name})'
 
-        self.completion_status.update_status(new_value)
+        self.completion_status.update_status(new_value, tool_tip)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):

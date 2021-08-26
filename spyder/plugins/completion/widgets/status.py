@@ -35,6 +35,7 @@ class CompletionStatus(StatusBarWidget):
 
     def __init__(self, parent, icon=None):
         """Status bar widget for displaying the current completions status."""
+        self._tool_tip = ''
         super().__init__(parent)
         self.main = parent
         self.value = ''
@@ -42,10 +43,15 @@ class CompletionStatus(StatusBarWidget):
         self.menu = QMenu(self)
         self.sig_clicked.connect(self.show_menu)
 
-    def update_status(self, value):
+    def update_status(self, value, tool_tip):
         """Update status bar text"""
         super().set_value(value)
+        self._tool_tip = tool_tip
         self.update_tooltip()
+
+    def get_tooltip(self):
+        """Override api method."""
+        return self._tool_tip if self._tool_tip else ''
 
     def show_menu(self):
         """Display a menu when clicking on the widget."""
