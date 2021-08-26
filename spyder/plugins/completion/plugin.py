@@ -69,7 +69,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
-    REQUIRES = [Plugins.Preferences]
+    REQUIRES = [Plugins.Preferences, Plugins.MainInterpreter]
     OPTIONAL = [Plugins.Application, Plugins.StatusBar, Plugins.MainMenu]
 
     CONF_FILE = False
@@ -123,7 +123,7 @@ class CompletionPlugin(SpyderPluginV2):
         New PythonPath settings.
     """
 
-    sig_main_interpreter_changed = Signal()
+    sig_main_interpreter_changed = Signal(str)
     """
     This signal is used to report changes on the main Python interpreter.
     """
@@ -285,12 +285,25 @@ class CompletionPlugin(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
+    @on_plugin_available(plugin=Plugins.MainInterpreter)
+    def on_maininterpreter_available(self):
+        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
+        mi_container = maininterpreter.get_container()
+
+        # connect signals
+        self.completion_status.sig_open_preferences_requested.connect(
+            mi_container.sig_open_preferences_requested)
+
+        mi_container.sig_interpreter_changed.connect(
+            self.update_completion_status)
+
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
         container = self.get_container()
         self.statusbar = self.get_plugin(Plugins.StatusBar)
         for sb in container.all_statusbar_widgets():
             self.statusbar.add_status_widget(sb)
+        self.statusbar.add_status_widget(self.completion_status)
 
     @on_plugin_available(plugin=Plugins.Application)
     def on_application_available(self):
@@ -314,6 +327,14 @@ class CompletionPlugin(SpyderPluginV2):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.MainInterpreter)
+    def on_maininterpreter_teardown(self):
+        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
+        mi_container = maininterpreter.get_container()
+
+        mi_container.sig_interpreter_changed.disconnect(
+            self.sig_interpreter_changed)
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
@@ -477,6 +498,33 @@ class CompletionPlugin(SpyderPluginV2):
             if id_ in container.statusbar_widgets[id_]:
                 self.get_container().remove_statusbar_widget(id_)
                 self.statusbar.remove_status_widget(id_)
+
+    @property
+    def completion_status(self):
+        return self.get_container().completion_status
+
+    @Slot()
+    def update_completion_status(self):
+        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
+        mi_status = maininterpreter.get_container().interpreter_status
+
+        value = mi_status.value
+
+        if '(' in value:
+            value, _ = value.split('(')
+
+        if ':' in value:
+            kind, name = value.split(':')
+        else:
+            kind, name = value, ''
+        kind = kind.strip()
+        name = name.strip()
+
+        new_value = f'Completions: {kind}'
+        if name:
+            new_value += f'({name})'
+
+        self.completion_status.update_status(new_value)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):
