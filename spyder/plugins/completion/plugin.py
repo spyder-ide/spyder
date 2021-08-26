@@ -265,6 +265,8 @@ class CompletionPlugin(SpyderPluginV2):
         return self.create_icon('lspserver')
 
     def on_initialize(self):
+        self.sig_interpreter_changed.connect(self.update_completion_status)
+
         if self.main:
             self.main.sig_pythonpath_changed.connect(
                 self.sig_pythonpath_changed)
@@ -295,7 +297,7 @@ class CompletionPlugin(SpyderPluginV2):
             mi_container.sig_open_preferences_requested)
 
         mi_container.sig_interpreter_changed.connect(
-            self.update_completion_status)
+            self.sig_interpreter_changed)
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
