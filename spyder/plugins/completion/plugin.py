@@ -123,7 +123,7 @@ class CompletionPlugin(SpyderPluginV2):
         New PythonPath settings.
     """
 
-    sig_main_interpreter_changed = Signal(str)
+    sig_interpreter_changed = Signal()
     """
     This signal is used to report changes on the main Python interpreter.
     """
@@ -817,7 +817,7 @@ class CompletionPlugin(SpyderPluginV2):
 
         self.sig_pythonpath_changed.connect(
             provider_instance.python_path_update)
-        self.sig_main_interpreter_changed.connect(
+        self.sig_interpreter_changed.connect(
             provider_instance.main_interpreter_changed)
 
     def _instantiate_and_register_provider(

@@ -61,11 +61,6 @@ class MainInterpreter(SpyderPluginV2):
             self._open_interpreter_preferences
         )
 
-        # Report that the interpreter has changed
-        container.sig_interpreter_changed.connect(
-            self._main.sig_main_interpreter_changed
-        )
-
         # Add custom interpreter to list of saved ones
         container.sig_add_to_custom_interpreters_requested.connect(
             self._add_to_custom_interpreters
