@@ -231,7 +231,7 @@ class IPythonConsole(SpyderDockablePlugin):
             widget.reset_action]
         for console_new_action in new_consoles_actions:
             mainmenu.add_item_to_application_menu(
-                self.ipython_menu,
+                self.get_widget().ipython_menu,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.ExternalDocumentation,
                 before_section=HelpMenuSections.About,
