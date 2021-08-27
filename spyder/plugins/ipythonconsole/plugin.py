@@ -23,8 +23,7 @@ from spyder.config.base import get_conf_path
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget)
-from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.utils.programs import get_temp_dir
 
 # Localization
@@ -219,7 +218,8 @@ class IPythonConsole(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         widget = self.get_widget()
-        console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        console_menu = mainmenu.get_application_menu("consoles_menu")
         console_menu.aboutToShow.connect(
             widget.update_execution_state_kernel)
         new_consoles_actions = [
@@ -230,7 +230,7 @@ class IPythonConsole(SpyderDockablePlugin):
             widget.restart_action,
             widget.reset_action]
         for console_new_action in new_consoles_actions:
-            self.main.mainmenu.add_item_to_application_menu(
+            mainmenu.add_item_to_application_menu(
                 self.ipython_menu,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.ExternalDocumentation,
@@ -238,7 +238,7 @@ class IPythonConsole(SpyderDockablePlugin):
                 omit_id=True)
 
         # IPython documentation
-        self.main.mainmenu.add_item_to_application_menu(
+        mainmenu.add_item_to_application_menu(
             self.get_widget().ipython_menu,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.ExternalDocumentation,
