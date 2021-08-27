@@ -231,15 +231,10 @@ class IPythonConsole(SpyderDockablePlugin):
             widget.reset_action]
         for console_new_action in new_consoles_actions:
             self.main.mainmenu.add_item_to_application_menu(
-                console_new_action,
-                menu_id=ApplicationMenus.Consoles,
-                section=ConsolesMenuSections.New,
-                omit_id=True)
-        for console_restart_connect_action in restart_connect_consoles_actions:
-            self.main.mainmenu.add_item_to_application_menu(
-                console_restart_connect_action,
-                menu_id=ApplicationMenus.Consoles,
-                section=ConsolesMenuSections.Restart,
+                self.ipython_menu,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.ExternalDocumentation,
+                before_section=HelpMenuSections.About,
                 omit_id=True)
 
         # IPython documentation
