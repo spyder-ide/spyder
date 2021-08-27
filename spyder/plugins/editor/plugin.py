@@ -58,8 +58,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                        get_run_configuration, RunConfigDialog,
-                                        RunConfiguration, RunConfigOneDialog)
+                                        get_run_configuration,
+                                        RunConfigDialog, RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 
 
@@ -2928,10 +2928,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if show_dlg and not dialog.exec_():
                 return
             runconf = dialog.get_configuration()
-
-        if runconf.default:
-            # use global run preferences settings
-            runconf = RunConfiguration()
 
         args = runconf.get_arguments()
         python_args = runconf.get_python_arguments()
