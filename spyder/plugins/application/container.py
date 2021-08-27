@@ -13,18 +13,19 @@ Holds references for base actions in the Application of Spyder.
 # Standard library imports
 import os
 import sys
+import glob
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
-from qtpy.QtWidgets import QAction, QMessageBox
+from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
-from spyder import (
-    __docs_url__, __forum_url__, __project_url__, __trouble_url__)
+from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.utils import is_anaconda
+from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
@@ -39,6 +40,15 @@ if os.name == 'nt':
 
 # Localization
 _ = get_translation('spyder')
+
+
+class ApplicationPluginMenus:
+    DebugLogsMenu = "debug_logs_menu"
+
+
+class LogsMenuSections:
+    SpyderLogSection = "spyder_log_section"
+    LSPLogsSection = "lsp_logs_section"
 
 
 # Actions
@@ -62,6 +72,7 @@ class ApplicationActions:
     # The name of the action needs to match the name of the shortcut
     # so 'Restart' is used instead of something like 'restart_action'
     SpyderRestart = "Restart"
+    SpyderRestartDebug = "Restart in debug mode"
 
 
 class ApplicationContainer(PluginMainContainer):
@@ -69,6 +80,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_report_issue_requested = Signal()
     """
     Signal to request reporting an issue to Github.
+    """
+
+    sig_load_log_file = Signal(str)
+    """
+    Signal to load a log file
     """
 
     def setup(self):
@@ -151,10 +167,68 @@ class ApplicationContainer(PluginMainContainer):
             _("&Restart"),
             icon=self.create_icon('restart'),
             tip=_("Restart"),
-            triggered=self.sig_restart_requested,
+            triggered=self.restart_normal,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True)
+
+        self.restart_debug_action = self.create_action(
+            ApplicationActions.SpyderRestartDebug,
+            _("&Restart in debug mode"),
+            tip=_("Restart in debug mode"),
+            triggered=self.restart_debug,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_",
+            register_shortcut=True)
+
+        # Debug logs
+        if get_debug_level() >= 2:
+            self.menu_debug_logs = self.create_menu(
+                ApplicationPluginMenus.DebugLogsMenu,
+                _("Debug logs")
+            )
+
+            # The menu can't be built at startup because Completions can
+            # start after Application.
+            self.menu_debug_logs.aboutToShow.connect(
+                self.create_debug_log_actions)
+
+    def create_debug_log_actions(self):
+        """Create an action for each lsp and debug log file."""
+        self.menu_debug_logs.clear_actions()
+
+        files = [os.environ['SPYDER_DEBUG_FILE']]
+        files += glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
+
+        debug_logs_actions = []
+        for file in files:
+            action = self.create_action(
+                file,
+                os.path.basename(file),
+                tip=file,
+                triggered=lambda _, file=file: self.load_log_file(file),
+                overwrite=True,
+                register_action=False
+            )
+            debug_logs_actions.append(action)
+
+        # Add Spyder log on its own section
+        self.add_item_to_menu(
+            debug_logs_actions[0],
+            self.menu_debug_logs,
+            section=LogsMenuSections.SpyderLogSection
+        )
+
+        # Add LSP logs
+        for action in debug_logs_actions[1:]:
+            self.add_item_to_menu(
+                action,
+                self.menu_debug_logs,
+                section=LogsMenuSections.LSPLogsSection
+            )
+
+        # Render menu
+        self.menu_debug_logs._render()
 
     def update_actions(self):
         pass
@@ -342,3 +416,39 @@ class ApplicationContainer(PluginMainContainer):
             message_box.setWindowTitle(_('Error'))
             message_box.setText(message)
             message_box.show()
+
+    @Slot()
+    def restart_normal(self):
+        """Restart in standard mode."""
+        os.environ['SPYDER_DEBUG'] = ''
+        self.sig_restart_requested.emit()
+
+    @Slot()
+    def restart_debug(self):
+        """Restart in debug mode."""
+        box = QMessageBox(self)
+        box.setWindowTitle(_("Question"))
+        box.setIcon(QMessageBox.Question)
+        box.setText(
+            _("Which debug mode do you want Spyder to restart in?")
+        )
+
+        button_verbose = QPushButton(_('Verbose'))
+        button_minimal = QPushButton(_('Minimal'))
+        box.addButton(button_verbose, QMessageBox.AcceptRole)
+        box.addButton(button_minimal, QMessageBox.AcceptRole)
+        box.setStandardButtons(QMessageBox.Cancel)
+        box.exec_()
+
+        if box.clickedButton() == button_minimal:
+            os.environ['SPYDER_DEBUG'] = '2'
+        elif box.clickedButton() == button_verbose:
+            os.environ['SPYDER_DEBUG'] = '3'
+        else:
+            return
+
+        self.sig_restart_requested.emit()
+
+    def load_log_file(self, file):
+        """Load log file in editor"""
+        self.sig_load_log_file.emit(file)

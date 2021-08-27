@@ -280,6 +280,7 @@ def _parse_pylint_stdio_result(document, stdout):
             'C': lsp.DiagnosticSeverity.Information,
             'E': lsp.DiagnosticSeverity.Error,
             'F': lsp.DiagnosticSeverity.Error,
+            'I': lsp.DiagnosticSeverity.Information,
             'R': lsp.DiagnosticSeverity.Hint,
             'W': lsp.DiagnosticSeverity.Warning,
         }

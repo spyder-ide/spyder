@@ -47,7 +47,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.py3compat import qbytearray_to_str, to_text_string
@@ -2632,6 +2632,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
         self.analyze_script(index)
+        finfo.editor.set_sync_symbols_and_folding_timeout()
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):

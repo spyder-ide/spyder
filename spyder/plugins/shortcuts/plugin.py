@@ -91,10 +91,9 @@ class Shortcuts(SpyderPluginV2):
             ShortcutActions.ShortcutSummaryAction)
 
         # Add to Help menu.
-        help_menu = mainmenu.get_application_menu(ApplicationMenus.Help)
         mainmenu.add_item_to_application_menu(
             shortcuts_action,
-            help_menu,
+            menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.Documentation,
         )
 

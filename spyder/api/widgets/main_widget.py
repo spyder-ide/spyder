@@ -231,6 +231,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
         )
+        self._corner_widget.ID = 'main_corner'
 
         self._main_toolbar = MainWidgetToolbar(
             parent=self,
@@ -558,11 +559,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 'Menu name "{}" already in use!'.format(menu_id)
             )
 
-        menu = MainWidgetMenu(parent=self, title=title)
-        menu.ID = menu_id
+        menu = MainWidgetMenu(parent=self, title=title, menu_id=menu_id)
 
         MENU_REGISTRY.register_reference(
-            menu, menu.ID, self.PLUGIN_NAME, self.CONTEXT_NAME)
+            menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
 
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)

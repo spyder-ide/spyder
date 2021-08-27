@@ -47,6 +47,11 @@ class PydocBrowserMainToolbarSections:
     Main = 'main_section'
 
 
+class PydocBrowserToolbarItems:
+    PackageLabel = 'package_label'
+    UrlCombo = 'url_combo'
+
+
 # =============================================================================
 # Pydoc adjustments
 # =============================================================================
@@ -141,7 +146,11 @@ class PydocBrowser(PluginMainWidget):
 
         # Widgets
         self.label = QLabel(_("Package:"))
-        self.url_combo = UrlComboBox(self)
+        self.label.ID = PydocBrowserToolbarItems.PackageLabel
+
+        self.url_combo = UrlComboBox(
+            self, id_=PydocBrowserToolbarItems.UrlCombo)
+
         self.webview = FrameWebView(
             self,
             handle_links=self.get_conf('handle_links')

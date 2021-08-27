@@ -1332,7 +1332,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         self.main.add_item_to_menu(
             action_or_menu, menu, section=section, before=before)
 
-    def add_item_to_application_menu(self, item, menu=None, menu_id=None,
+    def add_item_to_application_menu(self, item, menu_id=None,
                                      section=None, before=None,
                                      before_section=None):
         """
@@ -1348,7 +1348,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
             The application menu unique string identifier.
         section: str or None
             The section id in which to insert the `item` on the `menu`.
-        before: SpyderAction/SpyderMenu or None
+        before: str or None
             Make the item appear before another given item.
         before_section: Section or None
             Make the item section (if provided) appear before another
@@ -1359,5 +1359,5 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         Must provide a `menu` or a `menu_id`.
         """
         self.main.add_item_to_application_menu(
-            item, menu=menu, menu_id=menu_id, section=section,
+            item, menu_id=menu_id, section=section,
             before=before, before_section=before_section)

@@ -77,6 +77,15 @@ class ProfilerWidgetInformationToolbarSections:
     Main = 'main_section'
 
 
+class ProfilerWidgetMainToolbarItems:
+    FileCombo = 'file_combo'
+
+
+class ProfilerWidgetInformationToolbarItems:
+    Stretcher1 = 'stretcher_1'
+    Stretcher2 = 'stretcher_2'
+    DateLabel = 'date_label'
+
 # --- Utils
 # ----------------------------------------------------------------------------
 def is_profiler_installed():
@@ -170,9 +179,11 @@ class ProfilerWidget(PluginMainWidget):
 
         # Widgets
         self.process = None
-        self.filecombo = PythonModulesComboBox(self)
+        self.filecombo = PythonModulesComboBox(
+            self, id_=ProfilerWidgetMainToolbarItems.FileCombo)
         self.datatree = ProfilerDataTree(self)
         self.datelabel = QLabel()
+        self.datelabel.ID = ProfilerWidgetInformationToolbarItems.DateLabel
 
         # Layout
         layout = QVBoxLayout()
@@ -263,8 +274,12 @@ class ProfilerWidget(PluginMainWidget):
         secondary_toolbar = self.create_toolbar(
             ProfilerWidgetToolbars.Information)
         for item in [self.collapse_action, self.expand_action,
-                     self.create_stretcher(), self.datelabel,
-                     self.create_stretcher(), self.log_action,
+                     self.create_stretcher(
+                         id_=ProfilerWidgetInformationToolbarItems.Stretcher1),
+                     self.datelabel,
+                     self.create_stretcher(
+                         id_=ProfilerWidgetInformationToolbarItems.Stretcher2),
+                     self.log_action,
                      self.save_action, self.load_action, self.clear_action]:
             self.add_item_to_toolbar(
                 item,

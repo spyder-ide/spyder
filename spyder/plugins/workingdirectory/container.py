@@ -43,6 +43,9 @@ class WorkingDirectoryToolbarSections:
     Main = "main_section"
 
 
+class WorkingDirectoryToolbarItems:
+    PathComboBox = 'path_combo'
+
 # --- Widgets
 # ----------------------------------------------------------------------------
 class WorkingDirectoryToolbar(ApplicationToolbar):
@@ -79,6 +82,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit = PathComboBox(
             self,
             adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
+            id_=WorkingDirectoryToolbarItems.PathComboBox
         )
 
         # Widget Setup

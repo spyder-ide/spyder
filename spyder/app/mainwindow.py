@@ -30,7 +30,6 @@ import os.path as osp
 import shutil
 import signal
 import socket
-import glob
 import sys
 import threading
 import traceback
@@ -71,7 +70,7 @@ from spyder import __version__
 from spyder import dependencies
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window,
-    delete_lsp_log_files, qt_message_handler, set_links_color, setup_logging,
+    delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
@@ -236,7 +235,6 @@ class MainWindow(QMainWindow):
         plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
-        plugin.sig_restart_requested.connect(self.restart)
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
@@ -969,7 +967,8 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('filelist'),
                                     tip=_('Fast switch between files'),
                                     triggered=self.open_switcher,
-                                    context=Qt.ApplicationShortcut)
+                                    context=Qt.ApplicationShortcut,
+                                    id_='file_switcher')
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher")
         self.symbol_finder_action = create_action(
@@ -977,7 +976,8 @@ class MainWindow(QMainWindow):
                                     icon=ima.icon('symbol_find'),
                                     tip=_('Fast symbol search in file'),
                                     triggered=self.open_symbolfinder,
-                                    context=Qt.ApplicationShortcut)
+                                    context=Qt.ApplicationShortcut,
+                                    id_='symbol_finder')
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
 
@@ -1040,25 +1040,20 @@ class MainWindow(QMainWindow):
             _("PYTHONPATH manager"),
             None, icon=ima.icon('pythonpath'),
             triggered=self.show_path_manager,
-            tip=_("PYTHONPATH manager"))
+            tip=_("PYTHONPATH manager"),
+            id_='spyder_path_action')
         from spyder.plugins.application.plugin import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
-            winenv_action = self.application.get_action(
-                ApplicationActions.SpyderWindowsEnvVariables)
+            winenv_action = ApplicationActions.SpyderWindowsEnvVariables
         mainmenu.add_item_to_application_menu(
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
             section=ToolsMenuSections.Tools,
-            before=winenv_action
+            before=winenv_action,
+            before_section=ToolsMenuSections.External
         )
-        if get_debug_level() >= 3:
-            self.menu_lsp_logs = QMenu(_("LSP logs"))
-            self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
-            mainmenu.add_item_to_application_menu(
-                self.menu_lsp_logs,
-                menu_id=ApplicationMenus.Tools)
 
         # Main toolbar
         from spyder.plugins.toolbar.api import (
@@ -1100,17 +1095,6 @@ class MainWindow(QMainWindow):
         except SpyderAPIError:
             pass
         return super().__getattr__(attr)
-
-    def update_lsp_logs(self):
-        """Create an action for each lsp log file."""
-        self.menu_lsp_logs.clear()
-        lsp_logs = []
-        files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
-        for f in files:
-            action = create_action(self, f, triggered=self.editor.load)
-            action.setData(f)
-            lsp_logs.append(action)
-        add_actions(self.menu_lsp_logs, lsp_logs)
 
     def pre_visible_setup(self):
         """
@@ -1185,9 +1169,6 @@ class MainWindow(QMainWindow):
                 pass
 
         self.restore_scrollbar_position.emit()
-
-        logger.info('Deleting previous Spyder instance LSP logs...')
-        delete_lsp_log_files()
 
         # Workaround for spyder-ide/spyder#880.
         # QDockWidget objects are not painted if restored as floating
@@ -1290,7 +1271,7 @@ class MainWindow(QMainWindow):
             CONF.set('main', 'normal_screen_resolution', False)
             CONF.set('main', 'high_dpi_scaling', True)
             CONF.set('main', 'high_dpi_custom_scale_factor', False)
-            self.restart()
+            self.application.sig_restart_requested.emit()
         else:
             # Update current dpi for future checks
             self.current_dpi = dpi
@@ -1932,24 +1913,6 @@ class MainWindow(QMainWindow):
             self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
 
-    # ---- Quit and restart, and reset spyder defaults
-    @Slot()
-    def reset_spyder(self):
-        """
-        Quit and reset Spyder and then Restart application.
-        """
-        answer = QMessageBox.warning(self, _("Warning"),
-             _("Spyder will restart and reset to default settings: <br><br>"
-               "Do you want to continue?"),
-             QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            self.restart(reset=True)
-
-    @Slot()
-    def restart(self, reset=False):
-        """Wrapper to handle plugins request to restart Spyder."""
-        self.application.restart(reset=reset)
-
     # ---- Global Switcher
     def open_switcher(self, symbol=False):
         """Open switcher dialog box."""
@@ -2043,6 +2006,8 @@ def main(options, args):
                                       CONF.get('main', 'high_dpi_scaling'))
 
     # **** Set debugging info ****
+    if get_debug_level() > 0:
+        delete_debug_log_files()
     setup_logging(options)
 
     # **** Create the application ****
