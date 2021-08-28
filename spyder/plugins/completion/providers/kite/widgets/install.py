@@ -10,8 +10,8 @@
 import sys
 
 # Third-party imports
-from qtpy.QtCore import QEvent, QObject, QSize, Qt, QUrl, Signal
-from qtpy.QtGui import QDesktopServices, QMovie, QPixmap
+from qtpy.QtCore import QEvent, QObject, Qt, Signal
+from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
                             QWidget)
@@ -46,7 +46,6 @@ class KiteIntegrationInfo(QWidget):
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
-        screen = QApplication.primaryScreen()
         image_label = QLabel()
         image_height = int(image.height() * DialogStyle.IconScaleFactor)
         image_width = int(image.width() * DialogStyle.IconScaleFactor)
