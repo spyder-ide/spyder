@@ -4236,7 +4236,7 @@ msgstr "Ändern des Backends auf Qt für Mayavi"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:980
 msgid "Kernel died, restarting"
-msgstr "Kernel gestorben, wie neu gestartet"
+msgstr "Kernel gestorben, wird neu gestartet"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:980
 msgid "Kernel restarting"
