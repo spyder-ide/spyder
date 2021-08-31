@@ -13,7 +13,6 @@ subclass of PluginMainWidget.
 
 # Standard library imports
 from collections import OrderedDict
-import os
 import sys
 import textwrap
 from typing import Optional

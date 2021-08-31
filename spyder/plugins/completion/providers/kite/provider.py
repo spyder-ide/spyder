@@ -21,7 +21,6 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
-from spyder.plugins.completion.api import SpyderCompletionProvider
 from spyder.plugins.completion.providers.kite.client import KiteClient
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed,

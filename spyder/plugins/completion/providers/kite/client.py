@@ -12,7 +12,6 @@ from urllib.parse import quote
 
 # Third party imports
 from qtpy.QtCore import QObject, QThread, Signal, QMutex
-from qtpy.QtWidgets import QMessageBox
 import requests
 
 # Local imports
@@ -22,8 +21,7 @@ from spyder.plugins.completion.providers.kite import (
 from spyder.plugins.completion.providers.kite.decorators import class_register
 from spyder.plugins.completion.providers.kite.providers import (
     KiteMethodProviderMixIn)
-from spyder.plugins.completion.providers.kite.utils.status import (
-    status, check_if_kite_running)
+from spyder.plugins.completion.providers.kite.utils.status import status
 from spyder.py3compat import (
     ConnectionError, ConnectionRefusedError, TEXT_TYPES)
 
@@ -135,7 +133,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         http_method = getattr(self.endpoint, verb)
         try:
             http_response = http_method(url, params=url_params, json=params)
-        except Exception as error:
+        except Exception:
             return False, None
         success = http_response.status_code == 200
         if success:
