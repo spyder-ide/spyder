@@ -24,8 +24,8 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets import editor
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
+from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 
 HERE = osp.dirname(osp.abspath(__file__))

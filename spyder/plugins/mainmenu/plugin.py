@@ -15,16 +15,14 @@ from typing import Dict, List, Tuple, Optional, Union
 
 # Third party imports
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
+from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.api.widgets.menus import MENU_SEPARATOR, SpyderMenu
-from spyder.plugins.mainmenu.api import (
-    ApplicationMenu, ApplicationMenus, HelpMenuSections)
-from spyder.utils.qthelpers import add_actions, set_menu_icons, SpyderAction
+from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
+from spyder.utils.qthelpers import set_menu_icons, SpyderAction
 
 # Localization
 _ = get_translation('spyder')

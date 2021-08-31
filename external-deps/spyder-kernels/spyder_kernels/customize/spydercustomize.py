@@ -580,7 +580,13 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
         sys.argv = ['']
 
 
-builtins.runfile = runfile
+# IPykernel 6.3.0+ shadows our runfile because it depends on the Pydev
+# debugger, which adds its own runfile to builtins. So we replace it with
+# our own using exec_lines in start.py
+if PY2:
+    builtins.runfile = runfile
+else:
+    builtins.spyder_runfile = runfile
 
 
 def debugfile(filename=None, args=None, wdir=None, post_mortem=False,

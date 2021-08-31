@@ -155,7 +155,9 @@ def make_app_bundle(dist_dir, make_lite=False):
                 # required for sphinx
                 'sphinxcontrib.applehelp', 'sphinxcontrib.devhelp',
                 'sphinxcontrib.htmlhelp', 'sphinxcontrib.jsmath',
-                'sphinxcontrib.qthelp', 'sphinxcontrib.serializinghtml']
+                'sphinxcontrib.qthelp', 'sphinxcontrib.serializinghtml',
+                'platformdirs.macos',  # required for platformdirs
+                ]
     EXCLUDES = []
     EXCLUDE_EGG = ['py2app']
 

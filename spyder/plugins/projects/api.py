@@ -54,7 +54,9 @@ class BaseProjectType:
             raw_mode=True,
             remove_obsolete=False,
         )
-        self.set_option("project_type", self.ID)
+        act_name = self.get_option("project_type")
+        if not act_name:
+            self.set_option("project_type", self.ID)
 
     # --- Helpers
     # -------------------------------------------------------------------------

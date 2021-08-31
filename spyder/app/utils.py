@@ -17,8 +17,9 @@ import sys
 # Third-party imports
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
-from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap
+from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap, QPainter, QImage
 from qtpy.QtWidgets import QApplication, QSplashScreen
+from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.base import (
@@ -179,9 +180,17 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 def create_splash_screen():
     """Create splash screen."""
     if not running_under_pytest():
-        pixmap = QPixmap(get_image_path('splash'))
-        splash = QSplashScreen(
-            pixmap.scaledToWidth(500, Qt.SmoothTransformation))
+        image = QImage(500, 400, QImage.Format_ARGB32_Premultiplied)
+        image.fill(0)
+        painter = QPainter(image)
+        renderer = QSvgRenderer(get_image_path('splash'))
+        renderer.render(painter)
+        painter.end()
+
+        pm = QPixmap.fromImage(image)
+        pm = pm.copy(0, 0, 500, 400)
+
+        splash = QSplashScreen(pm)
         splash_font = splash.font()
         splash_font.setPixelSize(14)
         splash.setFont(splash_font)

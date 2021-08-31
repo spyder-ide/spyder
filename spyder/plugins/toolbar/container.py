@@ -10,10 +10,12 @@ Toolbar Container.
 
 # Standard library imports
 from collections import OrderedDict
+from spyder.utils.qthelpers import SpyderAction
+from typing import Optional, Union, Tuple, Dict, List
 
 # Third party imports
 from qtpy.QtCore import QSize, Slot
-from qtpy.QtWidgets import QAction
+from qtpy.QtWidgets import QAction, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -27,6 +29,10 @@ from spyder.utils.registries import TOOLBAR_REGISTRY
 
 # Localization
 _ = get_translation('spyder')
+
+# Type annotations
+ToolbarItem = Union[SpyderAction, QWidget]
+ItemInfo = Tuple[ToolbarItem, Optional[str], Optional[str], Optional[str]]
 
 
 class ToolbarMenus:
@@ -61,6 +67,7 @@ class ToolbarContainer(PluginMainContainer):
         self._ADDED_TOOLBARS = OrderedDict()
         self._toolbarslist = []
         self._visible_toolbars = []
+        self._ITEMS_QUEUE = {}  # type: Dict[str, List[ItemInfo]]
 
     # ---- Private Methods
     # ------------------------------------------------------------------------
@@ -97,6 +104,13 @@ class ToolbarContainer(PluginMainContainer):
 
         self.update_actions()
 
+    def _add_missing_toolbar_elements(self, toolbar, toolbar_id):
+        if toolbar_id in self._ITEMS_QUEUE:
+            pending_items = self._ITEMS_QUEUE.pop(toolbar_id)
+            for item, section, before, before_section in pending_items:
+                toolbar.add_item(item, section=section, before=before,
+                                 before_section=before_section)
+
     # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
@@ -125,7 +139,8 @@ class ToolbarContainer(PluginMainContainer):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    def create_application_toolbar(self, toolbar_id, title):
+    def create_application_toolbar(
+            self, toolbar_id: str, title: str) -> ApplicationToolbar:
         """
         Create an application toolbar and add it to the main window.
 
@@ -153,6 +168,7 @@ class ToolbarContainer(PluginMainContainer):
             toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
+        self._add_missing_toolbar_elements(toolbar, toolbar_id)
         return toolbar
 
     def add_application_toolbar(self, toolbar, mainwindow=None):
@@ -194,9 +210,16 @@ class ToolbarContainer(PluginMainContainer):
         if mainwindow:
             mainwindow.addToolBar(toolbar)
 
-    def add_item_to_application_toolbar(self, item, toolbar=None, toolbar_id=None,
-                                        section=None, before=None,
-                                        before_section=None):
+        self._add_missing_toolbar_elements(toolbar, toolbar_id)
+
+
+    def add_item_to_application_toolbar(self,
+                                        item: ToolbarItem,
+                                        toolbar_id: Optional[str] = None,
+                                        section: Optional[str] = None,
+                                        before: Optional[str] = None,
+                                        before_section: Optional[str] = None,
+                                        omit_id: bool = False):
         """
         Add action or widget `item` to given application toolbar `section`.
 
@@ -204,8 +227,6 @@ class ToolbarContainer(PluginMainContainer):
         ----------
         item: SpyderAction or QWidget
             The item to add to the `toolbar`.
-        toolbar: ApplicationToolbar or None
-            Instance of a Spyder application toolbar.
         toolbar_id: str or None
             The application toolbar unique string identifier.
         section: str or None
@@ -215,33 +236,21 @@ class ToolbarContainer(PluginMainContainer):
         before_section: str or None
             Make the item defined section appear before another given section
             (the section must be already defined).
-
-        Notes
-        -----
-        Must provide a `toolbar` or a `toolbar_id`.
+        omit_id: bool
+            If True, then the toolbar will check if the item to add declares an
+            id, False otherwise. This flag exists only for items added on
+            Spyder 4 plugins. Default: False
         """
-        if toolbar and toolbar_id:
-            raise SpyderAPIError('Must provide only toolbar or toolbar_id!')
+        if toolbar_id not in self._APPLICATION_TOOLBARS:
+            pending_items = self._ITEMS_QUEUE.get(toolbar_id, [])
+            pending_items.append((item, section, before, before_section))
+            self._ITEMS_QUEUE[toolbar_id] = pending_items
+        else:
+            toolbar = self.get_application_toolbar(toolbar_id)
+            toolbar.add_item(item, section=section, before=before,
+                             before_section=before_section, omit_id=omit_id)
 
-        if toolbar is None and toolbar_id is None:
-            raise SpyderAPIError(
-                'Must provide at least toolbar or toolbar_id!')
-
-        if toolbar and not isinstance(toolbar, ApplicationToolbar):
-            raise SpyderAPIError('Not an `ApplicationToolbar`!')
-
-        if toolbar_id and toolbar_id not in self._APPLICATION_TOOLBARS:
-            raise SpyderAPIError(
-                '{} is not a valid toolbar_id'.format(toolbar_id))
-
-        toolbar_id = toolbar_id if toolbar_id else toolbar.ID
-        toolbar = toolbar if toolbar else self.get_application_toolbar(
-            toolbar_id)
-
-        toolbar.add_item(item, section=section, before=before,
-                         before_section=before_section)
-
-    def get_application_toolbar(self, toolbar_id):
+    def get_application_toolbar(self, toolbar_id: str) -> ApplicationToolbar:
         """
         Return an application toolbar by toolbar_id.
 

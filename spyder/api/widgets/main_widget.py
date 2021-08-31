@@ -13,7 +13,6 @@ subclass of PluginMainWidget.
 
 # Standard library imports
 from collections import OrderedDict
-import os
 import sys
 import textwrap
 from typing import Optional
@@ -228,6 +227,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
         )
+        self._corner_widget.ID = 'main_corner'
 
         self._main_toolbar = MainWidgetToolbar(
             parent=self,

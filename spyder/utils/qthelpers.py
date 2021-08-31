@@ -251,6 +251,8 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         setup_toggled_action(button, toggled, section, option)
     if shortcut is not None:
         button.setShortcut(shortcut)
+    if id_ is not None:
+        button.ID = id_
 
     if register_toolbutton:
         TOOLBUTTON_REGISTRY.register_reference(

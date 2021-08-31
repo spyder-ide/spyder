@@ -15,12 +15,10 @@ import uuid
 from intervaltree import IntervalTree
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem,
-                            QTreeWidgetItemIterator)
+from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
@@ -29,6 +27,8 @@ from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
+# ---- Constants
+# -----------------------------------------------------------------------------
 SYMBOL_NAME_MAP = {
     SymbolKind.FILE: _('File'),
     SymbolKind.MODULE: _('Module'),
@@ -60,33 +60,9 @@ SYMBOL_NAME_MAP = {
     SymbolKind.BLOCK_COMMENT: _('Block comment')
 }
 
-ICON_CACHE = {}
 
-
-def line_span(position):
-    return position[1] - position[0] + 1
-
-
-class OutlineExplorerToolbuttons:
-    GoToCursor = 'go_to_cursor'
-
-
-class OutlineExplorerSections:
-    Main = 'main_section'
-    DisplayOptions = 'display_options'
-
-
-class OutlineExplorerActions:
-    GoToCursor = 'go_to_cursor'
-    ShowFullPath = 'show_fullpath'
-    ShowAllFiles = 'show_all_files'
-    ShowSpecialComments = 'show_comments'
-    GroupCodeCells = 'group_code_cells'
-    DisplayVariables = 'display_variables'
-    FollowCursor = 'follow_cursor'
-    SortFiles = 'sort_files_alphabetically'
-
-
+# ---- Symbol status
+# -----------------------------------------------------------------------------
 class SymbolStatus:
     def __init__(self, name, kind, position, path, node=None):
         self.name = name
@@ -180,6 +156,8 @@ class SymbolStatus:
             self.position, self.name, self.id, self.status)
 
 
+# ---- Items
+# -----------------------------------------------------------------------------
 class BaseTreeItem(QTreeWidgetItem):
     def clear(self):
         self.takeChildren()
@@ -287,6 +265,8 @@ class TreeItem(QTreeWidgetItem):
         self.setup()
 
 
+# ---- Treewidget
+# -----------------------------------------------------------------------------
 class OutlineExplorerTreeWidget(OneColumnTree):
     # Used only for debug purposes
     sig_tree_updated = Signal()
@@ -320,6 +300,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.ordered_editor_ids = []
         self._current_editor = None
         self._languages = []
+        self.is_visible = True
 
         self.currentItemChanged.connect(self.selection_switched)
         self.itemExpanded.connect(self.tree_item_expanded)
@@ -552,6 +533,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
 
+    def update_all_editors(self, reset_info=False):
+        """Update all editors with LSP support."""
+        for language in self._languages:
+            self.set_editors_to_update(language, reset_info=reset_info)
+            self.update_timers[language].start()
+
     @Slot(list)
     def update_editor(self, items, editor=None):
         """
@@ -561,10 +548,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if items is None:
             return
 
+        # Only perform an update if the widget is visible.
+        if not self.is_visible:
+            self.sig_hide_spinner.emit()
+            return
+
         if editor is None:
             editor = self.current_editor
         editor_id = editor.get_id()
         language = editor.get_language()
+
         update = self.update_tree(items, editor_id, language)
 
         if update:
@@ -594,6 +587,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         return node
 
     def update_tree(self, items, editor_id, language):
+        """Update tree with new items that come from the LSP."""
         current_tree = self.editor_tree_cache[editor_id]
         tree_info = []
         for symbol in items:
@@ -637,8 +631,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             changed_entry_i = changed_entry.data
 
             if deleted_entry_i.name == changed_entry_i.name:
-                deleted_span = line_span(deleted_entry_i.position)
-                changed_span = line_span(changed_entry_i.position)
                 # Copy symbol status
                 changed_entry_i.clone_node(deleted_entry_i)
                 deleted_entry = next(deleted_iter, None)
@@ -872,151 +864,3 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for editor in self.editor_ids.keys():
             if editor.get_language().lower() == language:
                 editor.info = None
-
-
-class OutlineExplorerWidget(PluginMainWidget):
-    """Class browser"""
-    edit_goto = Signal(str, int, str)
-    edit = Signal(str)
-    is_visible = Signal()
-    sig_update_configuration = Signal()
-
-    ENABLE_SPINNER = True
-    CONF_SECTION = 'outline_explorer'
-
-    def __init__(self, name, plugin, parent=None, context=None):
-        if context is not None:
-            self.CONTEXT_NAME = context
-
-        super().__init__(name, plugin, parent)
-
-        self.treewidget = OutlineExplorerTreeWidget(self)
-        self.treewidget.sig_display_spinner.connect(self.start_spinner)
-        self.treewidget.sig_hide_spinner.connect(self.stop_spinner)
-        self.treewidget.sig_update_configuration.connect(
-            self.sig_update_configuration)
-
-        self.treewidget.header().hide()
-
-        layout = QHBoxLayout()
-        layout.addWidget(self.treewidget)
-        self.setLayout(layout)
-
-    # ---- PluginMainWidget API
-    # ------------------------------------------------------------------------
-    def get_focus_widget(self):
-        """Define the widget to focus."""
-        return self.treewidget
-
-    def get_title(self):
-        """Return the title of the plugin tab."""
-        return _("Outline")
-
-    def setup(self):
-        """Performs the setup of plugin's menu and actions."""
-        # Toolbar buttons
-        toolbar = self.get_main_toolbar()
-        fromcursor_btn = self.create_toolbutton(
-            OutlineExplorerToolbuttons.GoToCursor,
-            icon=self.create_icon('fromcursor'),
-            tip=_('Go to cursor position'),
-            triggered=self.treewidget.go_to_cursor_position)
-
-        for item in [fromcursor_btn,
-                     self.treewidget.collapse_all_action,
-                     self.treewidget.expand_all_action,
-                     self.treewidget.restore_action,
-                     self.treewidget.collapse_selection_action,
-                     self.treewidget.expand_selection_action]:
-            self.add_item_to_toolbar(item, toolbar=toolbar,
-                                     section=OutlineExplorerSections.Main)
-
-        # Actions
-        fromcursor_act = self.create_action(
-            OutlineExplorerActions.GoToCursor,
-            text=_('Go to cursor position'),
-            icon=self.create_icon('fromcursor'),
-            triggered=self.treewidget.go_to_cursor_position)
-
-        fullpath_act = self.create_action(
-            OutlineExplorerActions.ShowFullPath,
-            text=_('Show absolute path'),
-            toggled=True,
-            option='show_fullpath')
-
-        allfiles_act = self.create_action(
-            OutlineExplorerActions.ShowAllFiles,
-            text=_('Show all files'),
-            toggled=True,
-            option='show_all_files')
-
-        comment_act = self.create_action(
-            OutlineExplorerActions.ShowSpecialComments,
-            text=_('Show special comments'),
-            toggled=True,
-            option='show_comments')
-
-        group_cells_act = self.create_action(
-            OutlineExplorerActions.GroupCodeCells,
-            text=_('Group code cells'),
-            toggled=True,
-            option='group_cells')
-
-        display_variables_act = self.create_action(
-            OutlineExplorerActions.DisplayVariables,
-            text=_('Display variables and attributes'),
-            toggled=True,
-            option='display_variables'
-        )
-
-        follow_cursor_act = self.create_action(
-            OutlineExplorerActions.FollowCursor,
-            text=_('Follow cursor position'),
-            toggled=True,
-            option='follow_cursor'
-        )
-
-        sort_files_alphabetically_act = self.create_action(
-            OutlineExplorerActions.SortFiles,
-            text=_('Sort files alphabetically'),
-            toggled=True,
-            option='sort_files_alphabetically'
-        )
-
-        actions = [fullpath_act, allfiles_act, group_cells_act,
-                   display_variables_act, follow_cursor_act, comment_act,
-                   sort_files_alphabetically_act, fromcursor_act]
-
-        option_menu = self.get_options_menu()
-        for action in actions:
-            self.add_item_to_menu(
-                action,
-                option_menu,
-                section=OutlineExplorerSections.DisplayOptions,
-            )
-
-    def update_actions(self):
-        pass
-
-    def set_current_editor(self, editor, update, clear):
-        if clear:
-            self.remove_editor(editor)
-        if editor is not None:
-            self.treewidget.set_current_editor(editor, update)
-
-    def remove_editor(self, editor):
-        self.treewidget.remove_editor(editor)
-
-    def register_editor(self, editor):
-        self.treewidget.register_editor(editor)
-
-    def file_renamed(self, editor, new_filename):
-        self.treewidget.file_renamed(editor, new_filename)
-
-    def start_symbol_services(self, language):
-        """Enable LSP symbols functionality."""
-        self.treewidget.start_symbol_services(language)
-
-    def stop_symbol_services(self, language):
-        """Disable LSP symbols functionality."""
-        self.treewidget.stop_symbol_services(language)
