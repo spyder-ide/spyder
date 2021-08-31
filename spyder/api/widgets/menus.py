@@ -16,6 +16,7 @@ from typing import Optional, Union, TypeVar
 from qtpy.QtWidgets import QAction, QMenu
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.utils.qthelpers import add_actions, SpyderAction
 
 
@@ -86,7 +87,8 @@ class SpyderMenu(QMenu):
         self.unintroduced_actions = {}
         self.unintroduced_sections = []
 
-    def add_action(self: T, action: Union[SpyderAction, T],
+    def add_action(self: T,
+                   action: Union[SpyderAction, T],
                    section: Optional[str] = None,
                    before: Optional[str] = None,
                    before_section: Optional[str] = None,
@@ -203,18 +205,36 @@ class SpyderMenu(QMenu):
 
             # Iterate over unintroduced sections until all of them have been
             # introduced.
-            iter_sections = iter(self.unintroduced_sections)
-            while len(self.unintroduced_sections) > 0:
-                section, before_section = next(iter_sections)
-                self._update_sections(section, before_section)
+            try:
+                iter_sections = iter(self.unintroduced_sections)
+                while len(self.unintroduced_sections) > 0:
+                    section, before_section = next(iter_sections)
+                    self._update_sections(section, before_section)
 
-                # If section was introduced, remove it from the list and
-                # update iterator.
-                if section in self._sections:
-                    self.unintroduced_sections.remove(
-                        (section, before_section)
+                    # If section was introduced, remove it from the list and
+                    # update iterator.
+                    if section in self._sections:
+                        self.unintroduced_sections.remove(
+                            (section, before_section)
+                        )
+                        iter_sections = iter(self.unintroduced_sections)
+            except StopIteration:
+                # Internally, this should only happen in the Tools menu because
+                # the External section can be empty if Kite is not available.
+                # Fixes spyder-ide/spyder#16287
+                # Note: We can't use the ToolsMenuSections enum here to prevent
+                # a circular import.
+                left_sections = [('tools_section', 'external_section')]
+
+                if self.unintroduced_sections == left_sections:
+                    self._update_sections('tools_section', 'extras_section')
+                else:
+                    raise SpyderAPIError(
+                        f"You're trying to introduce some sections before "
+                        f"others that don't have any actions. This is the "
+                        f"list of (section, before_section) that's failing to "
+                        f"be added:\n\n{self.unintroduced_sections}"
                     )
-                    iter_sections = iter(self.unintroduced_sections)
 
             # Update actions with those that were not introduced because
             # a `before` action they required was not part of the menu yet.
