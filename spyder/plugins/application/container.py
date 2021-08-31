@@ -17,7 +17,7 @@ import glob
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
-from qtpy.QtWidgets import QAction, QCheckBox, QMessageBox, QPushButton
+from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
@@ -91,7 +91,6 @@ class ApplicationContainer(PluginMainContainer):
         super().__init__(name, plugin, parent)
 
         # Keep track of dpi message
-        self.show_dpi_message = True
         self.current_dpi = None
         self.dpi_messagebox = None
 
@@ -492,11 +491,11 @@ class ApplicationContainer(PluginMainContainer):
 
     def handle_dpi_change_response(self, result, dpi):
         """Handle dpi change message dialog result."""
+        if self.dpi_messagebox.is_checked():
+            self.set_conf('show_dpi_message', False)
+
         self.dpi_messagebox = None
 
-        if self.dpi_change_dismiss_box.isChecked():
-            self.show_dpi_message = False
-            self.dpi_change_dismiss_box = None
         if result == 0:  # Restart button was clicked
             # Activate HDPI auto-scaling option since is needed for a
             # proper display when using OS scaling
@@ -510,7 +509,7 @@ class ApplicationContainer(PluginMainContainer):
 
     def show_dpi_change_message(self, dpi):
         """Show message to restart Spyder since the DPI scale changed."""
-        if not self.show_dpi_message:
+        if not self.get_conf('show_dpi_message'):
             return
 
         if self.current_dpi != dpi:
@@ -524,13 +523,13 @@ class ApplicationContainer(PluginMainContainer):
             if self.dpi_messagebox is not None:
                 return
 
-            self.dpi_change_dismiss_box = QCheckBox(
-                _("Hide this message during the current session"),
-                self
-            )
+            self.dpi_messagebox = MessageCheckBox(icon=QMessageBox.Warning,
+                                                  parent=self)
 
-            self.dpi_messagebox = QMessageBox(self)
-            self.dpi_messagebox.setIcon(QMessageBox.Warning)
+            self.dpi_messagebox.set_checkbox_text(_("Don't show again."))
+            self.dpi_messagebox.set_checked(False)
+            self.dpi_messagebox.set_check_visible(True)
+
             self.dpi_messagebox.setText(
                 _
                 ("A monitor scale change was detected. <br><br>"
@@ -541,10 +540,10 @@ class ApplicationContainer(PluginMainContainer):
                  "Interface</tt>, in case Spyder is not displayed "
                  "correctly.<br><br>"
                  "Do you want to restart Spyder?"))
+
             self.dpi_messagebox.addButton(_('Restart now'), QMessageBox.NoRole)
             dismiss_button = self.dpi_messagebox.addButton(
                 _('Dismiss'), QMessageBox.NoRole)
-            self.dpi_messagebox.setCheckBox(self.dpi_change_dismiss_box)
             self.dpi_messagebox.setDefaultButton(dismiss_button)
             self.dpi_messagebox.finished.connect(
                 lambda result: self.handle_dpi_change_response(result, dpi))
