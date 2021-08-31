@@ -93,6 +93,7 @@ class ApplicationContainer(PluginMainContainer):
         # Keep track of dpi message
         self.show_dpi_message = True
         self.current_dpi = None
+        self.dpi_messagebox = None
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -491,6 +492,8 @@ class ApplicationContainer(PluginMainContainer):
 
     def handle_dpi_change_response(self, result, dpi):
         """Handle dpi change message dialog result."""
+        self.dpi_messagebox = None
+
         if self.dpi_change_dismiss_box.isChecked():
             self.show_dpi_message = False
             self.dpi_change_dismiss_box = None
@@ -518,14 +521,17 @@ class ApplicationContainer(PluginMainContainer):
                     sys.platform == 'darwin'):
                 return
 
+            if self.dpi_messagebox is not None:
+                return
+
             self.dpi_change_dismiss_box = QCheckBox(
                 _("Hide this message during the current session"),
                 self
             )
 
-            msgbox = QMessageBox(self)
-            msgbox.setIcon(QMessageBox.Warning)
-            msgbox.setText(
+            self.dpi_messagebox = QMessageBox(self)
+            self.dpi_messagebox.setIcon(QMessageBox.Warning)
+            self.dpi_messagebox.setText(
                 _
                 ("A monitor scale change was detected. <br><br>"
                  "We recommend restarting Spyder to ensure that it's properly "
@@ -535,11 +541,11 @@ class ApplicationContainer(PluginMainContainer):
                  "Interface</tt>, in case Spyder is not displayed "
                  "correctly.<br><br>"
                  "Do you want to restart Spyder?"))
-            msgbox.addButton(_('Restart now'), QMessageBox.NoRole)
-            dismiss_button = msgbox.addButton(
+            self.dpi_messagebox.addButton(_('Restart now'), QMessageBox.NoRole)
+            dismiss_button = self.dpi_messagebox.addButton(
                 _('Dismiss'), QMessageBox.NoRole)
-            msgbox.setCheckBox(self.dpi_change_dismiss_box)
-            msgbox.setDefaultButton(dismiss_button)
-            msgbox.finished.connect(
+            self.dpi_messagebox.setCheckBox(self.dpi_change_dismiss_box)
+            self.dpi_messagebox.setDefaultButton(dismiss_button)
+            self.dpi_messagebox.finished.connect(
                 lambda result: self.handle_dpi_change_response(result, dpi))
-            msgbox.open()
+            self.dpi_messagebox.open()
