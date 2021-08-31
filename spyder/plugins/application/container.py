@@ -17,7 +17,7 @@ import glob
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
-from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
+from qtpy.QtWidgets import QAction, QCheckBox, QMessageBox, QPushButton
 
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
@@ -86,6 +86,13 @@ class ApplicationContainer(PluginMainContainer):
     """
     Signal to load a log file
     """
+
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(name, plugin, parent)
+
+        # Keep track of dpi message
+        self.show_dpi_message = True
+        self.current_dpi = None
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -465,3 +472,74 @@ class ApplicationContainer(PluginMainContainer):
     def load_log_file(self, file):
         """Load log file in editor"""
         self.sig_load_log_file.emit(file)
+
+    # ---- DPI changes
+    # -------------------------------------------------------------------------
+    def set_window(self, window):
+        """Set window property of main window."""
+        self._window = window
+
+    def handle_new_screen(self, new_screen):
+        """Connect DPI signals for new screen."""
+        if new_screen is not None:
+            new_screen_dpi = new_screen.logicalDotsPerInch()
+            if self.current_dpi != new_screen_dpi:
+                self.show_dpi_change_message(new_screen_dpi)
+            else:
+                new_screen.logicalDotsPerInchChanged.connect(
+                    self.show_dpi_change_message)
+
+    def handle_dpi_change_response(self, result, dpi):
+        """Handle dpi change message dialog result."""
+        if self.dpi_change_dismiss_box.isChecked():
+            self.show_dpi_message = False
+            self.dpi_change_dismiss_box = None
+        if result == 0:  # Restart button was clicked
+            # Activate HDPI auto-scaling option since is needed for a
+            # proper display when using OS scaling
+            self.set_conf('normal_screen_resolution', False)
+            self.set_conf('high_dpi_scaling', True)
+            self.set_conf('high_dpi_custom_scale_factor', False)
+            self.sig_restart_requested.emit()
+        else:
+            # Update current dpi for future checks
+            self.current_dpi = dpi
+
+    def show_dpi_change_message(self, dpi):
+        """Show message to restart Spyder since the DPI scale changed."""
+        if not self.show_dpi_message:
+            return
+
+        if self.current_dpi != dpi:
+            # Check the window state to not show the message if the window
+            # is in fullscreen mode.
+            window = self._window.windowHandle()
+            if (window.windowState() == Qt.WindowFullScreen and
+                    sys.platform == 'darwin'):
+                return
+
+            self.dpi_change_dismiss_box = QCheckBox(
+                _("Hide this message during the current session"),
+                self
+            )
+
+            msgbox = QMessageBox(self)
+            msgbox.setIcon(QMessageBox.Warning)
+            msgbox.setText(
+                _
+                ("A monitor scale change was detected. <br><br>"
+                 "We recommend restarting Spyder to ensure that it's properly "
+                 "displayed. If you don't want to do that, please be sure to "
+                 "activate the option<br><br><tt>Enable auto high DPI scaling"
+                 "</tt><br><br>in <tt>Preferences > Application > "
+                 "Interface</tt>, in case Spyder is not displayed "
+                 "correctly.<br><br>"
+                 "Do you want to restart Spyder?"))
+            msgbox.addButton(_('Restart now'), QMessageBox.NoRole)
+            dismiss_button = msgbox.addButton(
+                _('Dismiss'), QMessageBox.NoRole)
+            msgbox.setCheckBox(self.dpi_change_dismiss_box)
+            msgbox.setDefaultButton(dismiss_button)
+            msgbox.finished.connect(
+                lambda result: self.handle_dpi_change_response(result, dpi))
+            msgbox.open()
