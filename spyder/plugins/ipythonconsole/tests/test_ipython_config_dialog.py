@@ -21,6 +21,9 @@ class MainWindowMock(QMainWindow):
     register_shortcut = MagicMock()
     editor = MagicMock()
 
+    def __getattr__(self, attr):
+        return MagicMock()
+
 
 @pytest.mark.parametrize(
     'config_dialog',

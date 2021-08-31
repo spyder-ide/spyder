@@ -87,7 +87,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
-
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
@@ -96,6 +95,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._cwd = ''
 
         # Keyboard shortcuts
+        # Registered here to use shellwidget as the parent
         self.shortcuts = self.create_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
@@ -396,7 +396,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         banner_parts = [
             'Python %s\n' % py_ver,
-            'Type "copyright", "credits" or "license" for more information.\n\n',
+            'Type "copyright", "credits" or "license" for more information.',
+            '\n\n',
             'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
         ]
         banner = ''.join(banner_parts)
@@ -565,13 +566,13 @@ the sympy module (e.g. plot)
         """Create shortcuts for ipyconsole."""
         inspect = self.config_shortcut(
             self._control.inspect_current_object,
-            context='Console',
+            context='ipython_console',
             name='Inspect current object',
             parent=self)
 
         clear_console = self.config_shortcut(
             self.clear_console,
-            context='Console',
+            context='ipython_console',
             name='Clear shell',
             parent=self)
 
@@ -595,19 +596,19 @@ the sympy module (e.g. plot)
 
         array_inline = self.config_shortcut(
             self._control.enter_array_inline,
-            context='array_builder',
+            context='ipython_console',
             name='enter array inline',
             parent=self)
 
         array_table = self.config_shortcut(
             self._control.enter_array_table,
-            context='array_builder',
+            context='ipython_console',
             name='enter array table',
             parent=self)
 
         clear_line = self.config_shortcut(
             self.ipyclient.clear_line,
-            context='console',
+            context='ipython_console',
             name='clear line',
             parent=self)
 
@@ -656,11 +657,13 @@ the sympy module (e.g. plot)
         if self.kernel_client is None:
             return
 
-        msg_id = self.kernel_client.execute('', silent=True,
-                                            user_expressions={ local_uuid:code })
+        msg_id = self.kernel_client.execute(
+            '', silent=True,
+            user_expressions={local_uuid: code})
         self._kernel_methods[local_uuid] = code
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
-                                                          'silent_exec_method')
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(
+            msg_id,
+            'silent_exec_method')
 
     def handle_exec_method(self, msg):
         """
@@ -695,9 +698,9 @@ the sympy module (e.g. plot)
         """
         calling_mayavi = False
         lines = command.splitlines()
-        for l in lines:
-            if not l.startswith('#'):
-                if 'import mayavi' in l or 'from mayavi' in l:
+        for line in lines:
+            if not line.startswith('#'):
+                if 'import mayavi' in line or 'from mayavi' in line:
                     calling_mayavi = True
                     break
         if calling_mayavi:
@@ -715,7 +718,7 @@ the sympy module (e.g. plot)
         """
         if (command.startswith('%matplotlib') and
                 len(command.splitlines()) == 1):
-            if not 'inline' in command:
+            if 'inline' not in command:
                 self.silent_execute(command)
 
     def append_html_message(self, html, before_prompt=False,
@@ -784,7 +787,8 @@ the sympy module (e.g. plot)
 
     def get_editorstack(self):
         """Get the current editorstack."""
-        plugin = self.ipyclient.plugin
+        # TODO: Should not call the Editor directly
+        plugin = self.ipyclient.container._plugin
         if plugin.main.editor is not None:
             editor = plugin.main.editor
             return editor.get_current_editorstack()
@@ -1020,7 +1024,7 @@ the sympy module (e.g. plot)
                 )
             self.show_modules_message = False
 
-    #---- Qt methods ----------------------------------------------------------
+    # --- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
