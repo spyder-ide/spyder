@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = prevent-runfile-shadow
-	commit = 90795d9c50ca04f3353274b43c7a9dc6c4510d62
-	parent = 758fb18bce8ae3024ac2215678a16a91635abea2
+	branch = 2.x
+	commit = aaa8d2699d325ea823d95acd426fa9abc829d2c0
+	parent = db5f1fb9ca4ea812b8239963e193f8cddb2ce3f5
 	method = merge
 	cmdver = 0.4.3
