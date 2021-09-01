@@ -26,10 +26,9 @@ dependencies:
 - psutil >=5.3
 - pygments >=2.0
 - pylint >=2.5.0
-- python-lsp-server >=1.0.0
-- python-lsp-black >=1.0.0
 - pyls-spyder >=0.4.0
 - pyqt <5.13
+- python-lsp-black >=1.0.0
 # NOTE: There's no need to set constraints for python-lsp-server
 # here because Spyder uses the subrepo for it when started in Binder.
 - python-lsp-server

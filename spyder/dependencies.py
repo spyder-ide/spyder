@@ -14,7 +14,6 @@ import sys
 # Local imports
 from spyder.config.base import (
     _, DEV, is_pynsist, running_in_ci, running_under_pytest)
-from spyder.config.utils import is_anaconda
 from spyder.utils import programs
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -53,7 +52,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=2.5.0'
-PYLSP_REQVER = '>=1.2.1;<1.3.0'
+PYLSP_REQVER = '>=1.2.2;<1.3.0'
 PYLSP_BLACK_REQVER = '>=1.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
@@ -66,7 +65,7 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.1.0;<2.2.0'
+SPYDER_KERNELS_REQVER = '>=2.1.1;<2.2.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
