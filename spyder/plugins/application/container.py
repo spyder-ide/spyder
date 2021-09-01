@@ -87,6 +87,15 @@ class ApplicationContainer(PluginMainContainer):
     Signal to load a log file
     """
 
+    def __init__(self, name, plugin, parent=None):
+        super().__init__(name, plugin, parent)
+
+        # Keep track of dpi message
+        self.current_dpi = None
+        self.dpi_messagebox = None
+
+    # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
     def setup(self):
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread()
@@ -193,49 +202,28 @@ class ApplicationContainer(PluginMainContainer):
             self.menu_debug_logs.aboutToShow.connect(
                 self.create_debug_log_actions)
 
-    def create_debug_log_actions(self):
-        """Create an action for each lsp and debug log file."""
-        self.menu_debug_logs.clear_actions()
-
-        files = [os.environ['SPYDER_DEBUG_FILE']]
-        files += glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
-
-        debug_logs_actions = []
-        for file in files:
-            action = self.create_action(
-                file,
-                os.path.basename(file),
-                tip=file,
-                triggered=lambda _, file=file: self.load_log_file(file),
-                overwrite=True,
-                register_action=False
-            )
-            debug_logs_actions.append(action)
-
-        # Add Spyder log on its own section
-        self.add_item_to_menu(
-            debug_logs_actions[0],
-            self.menu_debug_logs,
-            section=LogsMenuSections.SpyderLogSection
-        )
-
-        # Add LSP logs
-        for action in debug_logs_actions[1:]:
-            self.add_item_to_menu(
-                action,
-                self.menu_debug_logs,
-                section=LogsMenuSections.LSPLogsSection
-            )
-
-        # Render menu
-        self.menu_debug_logs._render()
-
     def update_actions(self):
         pass
 
+    # ---- Other functionality
+    # -------------------------------------------------------------------------
     def on_close(self):
+        """To call from Spyder when the plugin is closed."""
         self.dialog_manager.close_all()
 
+    @Slot()
+    def show_about(self):
+        """Show Spyder About dialog."""
+        abt = AboutDialog(self)
+        abt.show()
+
+    @Slot()
+    def show_windows_env_variables(self):
+        """Show Windows current user environment variables."""
+        self.dialog_manager.show(WinUserEnvDialog(self))
+
+    # ---- Updates
+    # -------------------------------------------------------------------------
     def _check_updates_ready(self):
         """Show results of the Spyder update checking process."""
 
@@ -348,23 +336,14 @@ class ApplicationContainer(PluginMainContainer):
         updates_timer.timeout.connect(self.thread_updates.start)
         updates_timer.start()
 
+    # ---- Dependencies
+    # -------------------------------------------------------------------------
     @Slot()
     def show_dependencies(self):
         """Show Spyder Dependencies dialog."""
         dlg = DependenciesDialog(self)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.show()
-
-    @Slot()
-    def show_about(self):
-        """Show Spyder About dialog."""
-        abt = AboutDialog(self)
-        abt.show()
-
-    @Slot()
-    def show_windows_env_variables(self):
-        """Show Windows current user environment variables."""
-        self.dialog_manager.show(WinUserEnvDialog(self))
 
     def compute_dependencies(self):
         """Compute dependencies"""
@@ -417,6 +396,8 @@ class ApplicationContainer(PluginMainContainer):
             message_box.setText(message)
             message_box.show()
 
+    # ---- Restart
+    # -------------------------------------------------------------------------
     @Slot()
     def restart_normal(self):
         """Restart in standard mode."""
@@ -449,6 +430,121 @@ class ApplicationContainer(PluginMainContainer):
 
         self.sig_restart_requested.emit()
 
+    # ---- Log files
+    # -------------------------------------------------------------------------
+    def create_debug_log_actions(self):
+        """Create an action for each lsp and debug log file."""
+        self.menu_debug_logs.clear_actions()
+
+        files = [os.environ['SPYDER_DEBUG_FILE']]
+        files += glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
+
+        debug_logs_actions = []
+        for file in files:
+            action = self.create_action(
+                file,
+                os.path.basename(file),
+                tip=file,
+                triggered=lambda _, file=file: self.load_log_file(file),
+                overwrite=True,
+                register_action=False
+            )
+            debug_logs_actions.append(action)
+
+        # Add Spyder log on its own section
+        self.add_item_to_menu(
+            debug_logs_actions[0],
+            self.menu_debug_logs,
+            section=LogsMenuSections.SpyderLogSection
+        )
+
+        # Add LSP logs
+        for action in debug_logs_actions[1:]:
+            self.add_item_to_menu(
+                action,
+                self.menu_debug_logs,
+                section=LogsMenuSections.LSPLogsSection
+            )
+
+        # Render menu
+        self.menu_debug_logs._render()
+
     def load_log_file(self, file):
         """Load log file in editor"""
         self.sig_load_log_file.emit(file)
+
+    # ---- DPI changes
+    # -------------------------------------------------------------------------
+    def set_window(self, window):
+        """Set window property of main window."""
+        self._window = window
+
+    def handle_new_screen(self, new_screen):
+        """Connect DPI signals for new screen."""
+        if new_screen is not None:
+            new_screen_dpi = new_screen.logicalDotsPerInch()
+            if self.current_dpi != new_screen_dpi:
+                self.show_dpi_change_message(new_screen_dpi)
+            else:
+                new_screen.logicalDotsPerInchChanged.connect(
+                    self.show_dpi_change_message)
+
+    def handle_dpi_change_response(self, result, dpi):
+        """Handle dpi change message dialog result."""
+        if self.dpi_messagebox.is_checked():
+            self.set_conf('show_dpi_message', False)
+
+        self.dpi_messagebox = None
+
+        if result == 0:  # Restart button was clicked
+            # Activate HDPI auto-scaling option since is needed for a
+            # proper display when using OS scaling
+            self.set_conf('normal_screen_resolution', False)
+            self.set_conf('high_dpi_scaling', True)
+            self.set_conf('high_dpi_custom_scale_factor', False)
+            self.sig_restart_requested.emit()
+        else:
+            # Update current dpi for future checks
+            self.current_dpi = dpi
+
+    def show_dpi_change_message(self, dpi):
+        """Show message to restart Spyder since the DPI scale changed."""
+        if not self.get_conf('show_dpi_message'):
+            return
+
+        if self.current_dpi != dpi:
+            # Check the window state to not show the message if the window
+            # is in fullscreen mode.
+            window = self._window.windowHandle()
+            if (window.windowState() == Qt.WindowFullScreen and
+                    sys.platform == 'darwin'):
+                return
+
+            if self.dpi_messagebox is not None:
+                return
+
+            self.dpi_messagebox = MessageCheckBox(icon=QMessageBox.Warning,
+                                                  parent=self)
+
+            self.dpi_messagebox.set_checkbox_text(_("Don't show again."))
+            self.dpi_messagebox.set_checked(False)
+            self.dpi_messagebox.set_check_visible(True)
+
+            self.dpi_messagebox.setText(
+                _
+                ("A monitor scale change was detected. <br><br>"
+                 "We recommend restarting Spyder to ensure that it's properly "
+                 "displayed. If you don't want to do that, please be sure to "
+                 "activate the option<br><br><tt>Enable auto high DPI scaling"
+                 "</tt><br><br>in <tt>Preferences > Application > "
+                 "Interface</tt>, in case Spyder is not displayed "
+                 "correctly.<br><br>"
+                 "Do you want to restart Spyder?"))
+
+            self.dpi_messagebox.addButton(_('Restart now'), QMessageBox.NoRole)
+            dismiss_button = self.dpi_messagebox.addButton(
+                _('Dismiss'), QMessageBox.NoRole)
+            self.dpi_messagebox.setDefaultButton(dismiss_button)
+            self.dpi_messagebox.finished.connect(
+                lambda result: self.handle_dpi_change_response(result, dpi))
+            self.dpi_messagebox.open()

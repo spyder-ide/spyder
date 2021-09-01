@@ -49,8 +49,8 @@ from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence, QIcon
-from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QMenu,
-                            QMessageBox, QShortcut, QStyleFactory, QCheckBox)
+from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
+                            QShortcut, QStyleFactory)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -152,7 +152,7 @@ class MainWindow(QMainWindow):
     sig_moved = Signal("QMoveEvent")
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
-    # --- Plugin handling methods
+    # ---- Plugin handling methods
     # ------------------------------------------------------------------------
     def get_plugin(self, plugin_name, error=True):
         """
@@ -701,9 +701,6 @@ class MainWindow(QMainWindow):
         self.last_focused_widget = None
         self.previous_focused_widget = None
 
-        # Keep track of dpi message
-        self.show_dpi_message = True
-
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
         # See spyder-ide/spyder#4132.
@@ -736,7 +733,7 @@ class MainWindow(QMainWindow):
 
         logger.info("End of MainWindow constructor")
 
-    # --- Window setup
+    # ---- Window setup
     def _update_shortcuts_in_panes_menu(self, show=True):
         """
         Display the shortcut for the "Switch to plugin..." on the toggle view
@@ -1052,7 +1049,7 @@ class MainWindow(QMainWindow):
             triggered=self.show_path_manager,
             tip=_("PYTHONPATH manager"),
             id_='spyder_path_action')
-        from spyder.plugins.application.plugin import (
+        from spyder.plugins.application.container import (
             ApplicationActions, WinUserEnvDialog)
         winenv_action = None
         if WinUserEnvDialog:
@@ -1238,18 +1235,6 @@ class MainWindow(QMainWindow):
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
 
-        # Handle DPI scale and window changes to show a restart message.
-        # Don't activate this functionality on macOS because it's being
-        # triggered in the wrong situations.
-        # See spyder-ide/spyder#11846
-        if not sys.platform == 'darwin':
-            window = self.window().windowHandle()
-            window.screenChanged.connect(self.handle_new_screen)
-            screen = self.window().windowHandle().screen()
-            self.current_dpi = screen.logicalDotsPerInch()
-            screen.logicalDotsPerInchChanged.connect(
-                self.show_dpi_change_message)
-
         # To avoid regressions. We shouldn't have loaded the modules
         # below at this point.
         if DEV is not None:
@@ -1259,71 +1244,6 @@ class MainWindow(QMainWindow):
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
         self.sig_setup_finished.emit()
-
-    def handle_new_screen(self, new_screen):
-        """Connect DPI signals for new screen."""
-        if new_screen is not None:
-            new_screen_dpi = new_screen.logicalDotsPerInch()
-            if self.current_dpi != new_screen_dpi:
-                self.show_dpi_change_message(new_screen_dpi)
-            else:
-                new_screen.logicalDotsPerInchChanged.connect(
-                    self.show_dpi_change_message)
-
-    def handle_dpi_change_response(self, result, dpi):
-        """Handle dpi change message dialog result."""
-        if self.dpi_change_dismiss_box.isChecked():
-            self.show_dpi_message = False
-            self.dpi_change_dismiss_box = None
-        if result == 0:  # Restart button was clicked
-            # Activate HDPI auto-scaling option since is needed for a
-            # proper display when using OS scaling
-            CONF.set('main', 'normal_screen_resolution', False)
-            CONF.set('main', 'high_dpi_scaling', True)
-            CONF.set('main', 'high_dpi_custom_scale_factor', False)
-            self.application.sig_restart_requested.emit()
-        else:
-            # Update current dpi for future checks
-            self.current_dpi = dpi
-
-    def show_dpi_change_message(self, dpi):
-        """Show message to restart Spyder since the DPI scale changed."""
-        if not self.show_dpi_message:
-            return
-
-        if self.current_dpi != dpi:
-            # Check the window state to not show the message if the window
-            # is in fullscreen mode.
-            window = self.window().windowHandle()
-            if (window.windowState() == Qt.WindowFullScreen and
-                    sys.platform == 'darwin'):
-                return
-
-            self.dpi_change_dismiss_box = QCheckBox(
-                _("Hide this message during the current session"),
-                self
-            )
-
-            msgbox = QMessageBox(self)
-            msgbox.setIcon(QMessageBox.Warning)
-            msgbox.setText(
-                _
-                ("A monitor scale change was detected. <br><br>"
-                 "We recommend restarting Spyder to ensure that it's properly "
-                 "displayed. If you don't want to do that, please be sure to "
-                 "activate the option<br><br><tt>Enable auto high DPI scaling"
-                 "</tt><br><br>in <tt>Preferences > Application > "
-                 "Interface</tt>, in case Spyder is not displayed "
-                 "correctly.<br><br>"
-                 "Do you want to restart Spyder?"))
-            msgbox.addButton(_('Restart now'), QMessageBox.NoRole)
-            dismiss_button = msgbox.addButton(
-                _('Dismiss'), QMessageBox.NoRole)
-            msgbox.setCheckBox(self.dpi_change_dismiss_box)
-            msgbox.setDefaultButton(dismiss_button)
-            msgbox.finished.connect(
-                lambda result: self.handle_dpi_change_response(result, dpi))
-            msgbox.open()
 
     def set_window_title(self):
         """Set window title."""

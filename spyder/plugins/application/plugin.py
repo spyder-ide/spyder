@@ -5,8 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """
-Main menu Plugin.
+Application Plugin.
 """
+
 # Standard library imports
 import os
 import os.path as osp
@@ -26,8 +27,7 @@ from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, ApplicationPluginMenus,
-    WinUserEnvDialog)
+    ApplicationContainer, ApplicationPluginMenus, WinUserEnvDialog)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -58,6 +58,7 @@ class Application(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
+        container.set_window(self._window)
 
         self.sig_restart_requested.connect(self.restart)
 
@@ -112,7 +113,19 @@ class Application(SpyderPluginV2):
             container.give_updates_feedback = False
             container.check_updates(startup=True)
 
-    # ---- Private methods
+        # Handle DPI scale and window changes to show a restart message.
+        # Don't activate this functionality on macOS because it's being
+        # triggered in the wrong situations.
+        # See spyder-ide/spyder#11846
+        if not sys.platform == 'darwin':
+            window = self._window.windowHandle()
+            window.screenChanged.connect(container.handle_new_screen)
+            screen = self._window.windowHandle().screen()
+            container.current_dpi = screen.logicalDotsPerInch()
+            screen.logicalDotsPerInchChanged.connect(
+                container.show_dpi_change_message)
+
+    # ---- Private API
     # ------------------------------------------------------------------------
     def _populate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
@@ -184,6 +197,10 @@ class Application(SpyderPluginV2):
             self.about_action,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.About)
+
+    @property
+    def _window(self):
+        return self.main.window()
 
     # ---- Public API
     # ------------------------------------------------------------------------
