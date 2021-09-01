@@ -1,5 +1,21 @@
 # History of changes
 
+## Version 2.1.1 (2021-09-01)
+
+
+### Pull Requests Merged
+
+* [PR 318](https://github.com/spyder-ide/spyder-kernels/pull/318) - PR: Avoid runfile to be shadowed by other packages, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 314](https://github.com/spyder-ide/spyder-kernels/pull/314) - PR: Remove dependency on ipython_genutils, by [@Carreau](https://github.com/Carreau)
+* [PR 313](https://github.com/spyder-ide/spyder-kernels/pull/313) - PR: Memoize results of is_module_installed, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 309](https://github.com/spyder-ide/spyder-kernels/pull/309) - PR: Restrict jupyter-client to be less than version 7, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 4 pull requests were closed.
+
+
+----
+
+
 ## Version 2.1.0 (2021-07-31)
 
 ### New features
