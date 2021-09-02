@@ -52,7 +52,7 @@ setup(
             'pycodestyle>=2.7.0',
             'pydocstyle>=2.0.0',
             'pyflakes>=2.3.0,<2.4.0',
-            'pylint>=2.5.0',
+            'pylint>=2.5.0,<2.10.0',
             'rope>=0.10.5',
             'yapf',
         ],
@@ -62,11 +62,11 @@ setup(
         'pycodestyle': ['pycodestyle>=2.7.0'],
         'pydocstyle': ['pydocstyle>=2.0.0'],
         'pyflakes': ['pyflakes>=2.3.0,<2.4.0'],
-        'pylint': ['pylint>=2.5.0'],
+        'pylint': ['pylint>=2.5.0,<2.10.0'],
         'rope': ['rope>0.10.5'],
         'yapf': ['yapf'],
-        'test': ['pylint>=2.5.0', 'pytest', 'pytest-cov', 'coverage', 'numpy',
-                 'pandas', 'matplotlib', 'pyqt5', 'flaky'],
+        'test': ['pylint>=2.5.0,<2.10.0', 'pytest', 'pytest-cov', 'coverage',
+                 'numpy', 'pandas', 'matplotlib', 'pyqt5', 'flaky'],
     },
     entry_points={
         'console_scripts': [

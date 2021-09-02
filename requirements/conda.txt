@@ -21,10 +21,10 @@ pexpect >=4.4.0
 pickleshare >=0.4
 psutil >=5.3
 pygments >=2.0
-pylint >=2.5.0
-python-lsp-black >=1.0.0
+pylint >=2.5.0,<2.10.0
 pyls-spyder >=0.4.0
 pyqt <5.13
+python-lsp-black >=1.0.0
 # There's no need to set a version for python-lsp-server
 # because we install it from master for our tests.
 python-lsp-server
