@@ -55,7 +55,8 @@ jobs:
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Test Application Bundle
-        run: ./test.sh -t 60 -i 5 -d 2 ${DISTDIR}/Spyder.app/Contents/MacOS/Spyder --debug-info=minimal
+        if: ${{github.event_name == 'pull_request'}}
+        run: ./test.sh -t 60 ${DISTDIR}
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact

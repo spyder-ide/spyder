@@ -16,9 +16,9 @@
 
 scriptName="${0##*/}"
 
-declare -i DEFAULT_TIMEOUT=9
+declare -i DEFAULT_TIMEOUT=10
 declare -i DEFAULT_INTERVAL=1
-declare -i DEFAULT_DELAY=1
+declare -i DEFAULT_DELAY=2
 
 # Timeout.
 declare -i timeout=DEFAULT_TIMEOUT
@@ -31,8 +31,8 @@ function printUsage() {
     cat <<EOF
 
 Synopsis
-    $scriptName [-t timeout] [-i interval] [-d delay] command
-    Execute a command with a time-out.
+    $scriptName [-t timeout] [-i interval] [-d delay] distdir
+    Launch Spyder.app in distdir with a time-out.
     Upon time-out expiration SIGTERM (15) is sent to the process. If SIGTERM
     signal is blocked, then the subsequent SIGKILL (9) terminates it.
 
@@ -59,7 +59,7 @@ while getopts ":t:i:d:" option; do
         t) timeout=$OPTARG ;;
         i) interval=$OPTARG ;;
         d) delay=$OPTARG ;;
-        *) printUsage; exit 1 ;;
+        *) printUsage; exit 0 ;;
     esac
 done
 shift $((OPTIND - 1))
@@ -74,18 +74,19 @@ fi
 # kill -0 pid   Exit code indicates if a signal may be sent to $pid process.
 (
     ((t = timeout))
-
     while ((t > 0)); do
         sleep $interval
         kill -0 $$ || exit 0
         ((t -= interval))
     done
+    echo "Timeout reached!"
 
     # Be nice, post SIGTERM first.
-    # The 'exit 0' below will be executed if any preceeding command fails.
-    kill -s SIGTERM $$ && kill -0 $$ || exit 0
+    kill -s SIGTERM $$ && exit 0
     sleep $delay
-    kill -s SIGKILL $$
+    kill -s SIGKILL $$ && exit 0
 ) 2> /dev/null &
 
-exec "$@"
+export PYTHONHOME=$@/Spyder.app/Contents/Resources
+export SPYDER_DEBUG=2
+exec $@/Spyder.app/Contents/MacOS/Spyder  # python -c "from spyder.app import start; start.main()"
