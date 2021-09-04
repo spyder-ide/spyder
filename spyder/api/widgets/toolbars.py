@@ -20,11 +20,15 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
     APP_TOOLBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
 
+
+# Translations
+_ = get_translation('spyder')
 
 # Generic type annotations
 ToolbarItem = Union[SpyderAction, QWidget]
@@ -101,6 +105,7 @@ class SpyderToolbar(QToolBar):
         # From https://stackoverflow.com/a/55412455/438386
         ext_button = self.findChild(QToolButton, "qt_toolbar_ext_button")
         ext_button.setIcon(ima.icon('toolbar_ext_button'))
+        ext_button.setToolTip(_("More"))
 
     def add_item(self, action_or_widget: ToolbarItem,
                  section: Optional[str] = None, before: Optional[str] = None,
