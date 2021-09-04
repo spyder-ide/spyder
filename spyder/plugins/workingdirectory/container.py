@@ -61,7 +61,12 @@ class WorkingDirectoryComboBox(PathComboBox):
         self.setMinimumWidth(140)
 
     def sizeHint(self):
+        """Recommended size when there are toolbars to the right."""
         return QSize(250, 10)
+
+    def enterEvent(self, event):
+        """Set current path as the tooltip of the widget on hover."""
+        self.setToolTip(self.currentText())
 
 
 # ---- Container
@@ -100,14 +105,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Widget Setup
         self.toolbar.setWindowTitle(title)
         self.toolbar.setObjectName(title)
-        self.pathedit.setToolTip(
-            _(
-                "This is the working directory for newly\n"
-                "opened IPython consoles, for the Files\n"
-                "and Find panes and for new files\n"
-                "created in the editor"
-            )
-        )
         self.pathedit.setMaxCount(self.get_conf('working_dir_history'))
         self.pathedit.selected_text = self.pathedit.currentText()
 
