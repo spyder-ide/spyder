@@ -11,13 +11,12 @@ import mimetypes as mime
 import sys
 
 # Third party imports
-from qtpy.QtCore import QBuffer, QByteArray, Qt
-from qtpy.QtGui import QIcon, QImage, QPixmap
+from qtpy.QtCore import QBuffer, QByteArray
+from qtpy.QtGui import QIcon, QImage
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.config.gui import is_dark_interface
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import is_text_file
 from spyder.utils.palette import QStylePalette, SpyderPalette
@@ -292,7 +291,6 @@ class IconManager():
             'array':                   [('mdi.alpha-a-box',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'object':                  [('mdi.alpha-o-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'key':                     [('mdi.alpha-k-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
-            'class':                   [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'null':                    [('mdi.alpha-n-box',), {'color': SpyderPalette.GROUP_12, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'enum_member':             [('mdi.alpha-e-box',), {'color': SpyderPalette.COLOR_ERROR_3, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'struct':                  [('mdi.alpha-s-box',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.BIG_ATTR_FACTOR}],
