@@ -100,9 +100,6 @@ def main():
     Spyder is already running, this will just parse and send command line
     options to the application.
     """
-    # raise Exception('Test')  # TODO: remove after testing
-    sys.exit(0)  # TODO: remove after testing
-
     # Parse command line options
     options, args = (CLI_OPTIONS, CLI_ARGS)
 
