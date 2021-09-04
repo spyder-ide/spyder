@@ -380,21 +380,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         # Update title
         self.setWindowTitle(self.get_title())
-        self._update_style()
-
-    def _update_style(self):
-        """
-        Update style of the widget.
-        """
-        qss = r"""
-            QToolButton::menu-indicator {
-                image: none;
-            }
-            QToolButton {
-                margin: 0px;
-            }
-            """
-        self._options_button.setStyleSheet(textwrap.dedent(qss))
 
     def _update_actions(self):
         """
@@ -416,7 +401,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         # Widget setup
         # --------------------------------------------------------------------
         self.update_actions()
-        self._update_style()
 
     @Slot(bool)
     def _on_top_level_change(self, top_level):

@@ -249,6 +249,7 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
             height=self.BUTTON_HEIGHT,
             width=self.BUTTON_WIDTH,
             border='0px',
+            margin='0px'
         )
 
         # Remove indicator for popup mode
