@@ -14,7 +14,7 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import QSize, Signal, Slot
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -30,7 +30,7 @@ from spyder.widgets.comboboxes import PathComboBox
 _ = get_translation('spyder')
 
 
-# --- Constants
+# ---- Constants
 # ----------------------------------------------------------------------------
 class WorkingDirectoryActions:
     Previous = 'previous_action'
@@ -46,13 +46,30 @@ class WorkingDirectoryToolbarSections:
 class WorkingDirectoryToolbarItems:
     PathComboBox = 'path_combo'
 
-# --- Widgets
+# ---- Widgets
 # ----------------------------------------------------------------------------
 class WorkingDirectoryToolbar(ApplicationToolbar):
     ID = 'working_directory_toolbar'
 
 
-# --- Container
+class WorkingDirectoryComboBox(PathComboBox):
+
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
+        super().__init__(parent, adjust_to_contents, id_=id_)
+
+        # Set min width
+        self.setMinimumWidth(140)
+
+    def sizeHint(self):
+        """Recommended size when there are toolbars to the right."""
+        return QSize(250, 10)
+
+    def enterEvent(self, event):
+        """Set current path as the tooltip of the widget on hover."""
+        self.setToolTip(self.currentText())
+
+
+# ---- Container
 # ----------------------------------------------------------------------------
 class WorkingDirectoryContainer(PluginMainContainer):
     """Container for the working directory toolbar."""
@@ -79,7 +96,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Widgets
         title = _('Current working directory')
         self.toolbar = WorkingDirectoryToolbar(self, title)
-        self.pathedit = PathComboBox(
+        self.pathedit = WorkingDirectoryComboBox(
             self,
             adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
             id_=WorkingDirectoryToolbarItems.PathComboBox
@@ -88,14 +105,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Widget Setup
         self.toolbar.setWindowTitle(title)
         self.toolbar.setObjectName(title)
-        self.pathedit.setToolTip(
-            _(
-                "This is the working directory for newly\n"
-                "opened IPython consoles, for the Files\n"
-                "and Find panes and for new files\n"
-                "created in the editor"
-            )
-        )
         self.pathedit.setMaxCount(self.get_conf('working_dir_history'))
         self.pathedit.selected_text = self.pathedit.currentText()
 
@@ -153,7 +162,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
     def on_history_update(self, value):
         self.history = value
 
-    # --- API
+    # ---- API
     # ------------------------------------------------------------------------
     def get_workdir(self):
         """
