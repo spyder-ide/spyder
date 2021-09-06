@@ -23,7 +23,8 @@ from spyder.config.base import get_conf_path
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget)
-from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.utils.programs import get_temp_dir
 
 # Localization
@@ -196,13 +197,14 @@ class IPythonConsole(SpyderDockablePlugin):
         return self.create_icon('ipython_console')
 
     def on_initialize(self):
-        # TODO: Check main_widget signals connection
         widget = self.get_widget()
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
+        widget.sig_edit_goto_requested[str, int, str, bool].connect(
+            self.sig_edit_goto_requested[str, int, str, bool])
         widget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
@@ -216,6 +218,7 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_help_requested.connect(self.sig_help_requested)
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
+        widget.sig_exception_occurred.connect(self.sig_exception_occurred)
 
         # Update kernels if python path is changed
         self.main.sig_pythonpath_changed.connect(self.update_path)
@@ -233,9 +236,14 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_main_menu_available(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        console_menu = mainmenu.get_application_menu("consoles_menu")
+
+        # Add signal to update actions state before showing the menu
+        console_menu = mainmenu.get_application_menu(
+            ApplicationMenus.Consoles)
         console_menu.aboutToShow.connect(
             widget.update_execution_state_kernel)
+
+        # Main menu actions for the IPython Console
         new_consoles_actions = [
             widget.create_client_action, widget.special_console_menu,
             widget.connect_to_kernel_action]
@@ -243,12 +251,20 @@ class IPythonConsole(SpyderDockablePlugin):
             widget.interrupt_action,
             widget.restart_action,
             widget.reset_action]
+
+        # Console menu
         for console_new_action in new_consoles_actions:
             mainmenu.add_item_to_application_menu(
-                self.get_widget().ipython_menu,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.ExternalDocumentation,
-                before_section=HelpMenuSections.About,
+                console_new_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.New,
+                omit_id=True)
+
+        for console_action in restart_connect_consoles_actions:
+            mainmenu.add_item_to_application_menu(
+                console_action,
+                menu_id=ApplicationMenus.Consoles,
+                section=ConsolesMenuSections.Restart,
                 omit_id=True)
 
         # IPython documentation
@@ -261,7 +277,6 @@ class IPythonConsole(SpyderDockablePlugin):
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
-        # TODO: Check Editor connections
         editor = self.get_plugin(Plugins.Editor)
         self.sig_edit_goto_requested.connect(editor.load)
         self.sig_edit_goto_requested[str, int, str, bool].connect(

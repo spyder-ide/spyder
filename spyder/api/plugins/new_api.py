@@ -321,6 +321,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 container.update_actions()
 
             if isinstance(container, PluginMainContainer):
+                # TODO: This signals should also affect the main_widgets?
+                # Currently this is not working for
+                # instances of PluginMainWidget subclasses
                 # Default signals to connect in main container or main widget.
                 container.sig_exception_occurred.connect(
                     self.sig_exception_occurred)
