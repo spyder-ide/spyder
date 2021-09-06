@@ -73,6 +73,10 @@ class CompletionConfigPage(PluginConfigPage):
             _("Show automatic completions after keyboard idle (ms):"), None,
             'automatic_completions_after_ms', min_=0, max_=10000, step=10,
             tip=_("Default is 300 milliseconds"), section='editor')
+        completions_hint_after_idle = self.create_spinbox(
+            _("Show completion details after keyboard idle (ms):"), None,
+            'completions_hint_after_ms', min_=0, max_=10000, step=10,
+            tip=_("Default is 500 milliseconds"), section='editor')
 
         # ------------------- Completions group ---------------------------
         self.completions_group = QGroupBox(_('Completions'))
@@ -85,8 +89,10 @@ class CompletionConfigPage(PluginConfigPage):
         completions_layout.addWidget(completions_after_characters.spinbox, 4, 1)
         completions_layout.addWidget(completions_after_idle.plabel, 5, 0)
         completions_layout.addWidget(completions_after_idle.spinbox, 5, 1)
-        completions_layout.addWidget(completions_wait_for_ms.plabel, 6, 0)
-        completions_layout.addWidget(completions_wait_for_ms.spinbox, 6, 1)
+        completions_layout.addWidget(completions_hint_after_idle.plabel, 6, 0)
+        completions_layout.addWidget(completions_hint_after_idle.spinbox, 6, 1)
+        completions_layout.addWidget(completions_wait_for_ms.plabel, 7, 0)
+        completions_layout.addWidget(completions_wait_for_ms.spinbox, 7, 1)
         completions_layout.setColumnStretch(2, 6)
         self.completions_group.setLayout(completions_layout)
 
