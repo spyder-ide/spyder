@@ -303,14 +303,14 @@ def test_auto_backend(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import matplotlib; matplotlib.get_backend()")
+        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
 
     # Assert there are no errors in the console and we set the right
     # backend.
     control = ipyconsole.get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
-    assert 'Qt5Agg' in control.toPlainText()
+    assert 'loop_qt5' in control.toPlainText()
 
 
 @flaky(max_runs=3)
