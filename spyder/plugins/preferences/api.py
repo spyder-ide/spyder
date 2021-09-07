@@ -310,21 +310,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
             edit.textChanged.connect(lambda _foo, opt=option, sect=sec:
                                      self.has_been_modified(sect, opt))
-            # QAbstractButton works differently for PySide and PyQt
-            if not API == 'pyside':
-                btn.clicked.connect(lambda _foo, opt=option, sect=sec:
-                                    self.has_been_modified(sect, opt))
-                cb_bold.clicked.connect(lambda _foo, opt=option, sect=sec:
-                                        self.has_been_modified(sect, opt))
-                cb_italic.clicked.connect(lambda _foo, opt=option, sect=sec:
+            btn.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
+                                      self.has_been_modified(sect, opt))
+            cb_bold.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
                                           self.has_been_modified(sect, opt))
-            else:
-                btn.clicked.connect(lambda opt=option, sect=sec:
-                                    self.has_been_modified(sect, opt))
-                cb_bold.clicked.connect(lambda opt=option, sect=sec:
-                                        self.has_been_modified(sect, opt))
-                cb_italic.clicked.connect(lambda opt=option, sect=sec:
-                                          self.has_been_modified(sect, opt))
+            cb_italic.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
+                                            self.has_been_modified(sect, opt))
 
     def save_to_conf(self):
         """Save settings to configuration file"""
