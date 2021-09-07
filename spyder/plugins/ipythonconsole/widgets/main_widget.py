@@ -140,6 +140,11 @@ class IPythonConsoleWidget(PluginMainWidget):
     This signal is emitted when the plugin focus changes.
     """
 
+    sig_editor_focus_requested = Signal()
+    """
+    This signal will request to change the focus to the editor is available
+    """
+
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
@@ -593,11 +598,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             client = self.get_current_client()
             client.set_show_elapsed_time(state)
             self.refresh_container()
-
-    def update_style(self):
-        rich_font = self._plugin.get_font(option='rich_font')
-        font = self._plugin.get_font()
-        self.update_font(font, rich_font)
 
     def update_actions(self):
         pass
@@ -1647,7 +1647,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.sig_append_to_history_requested)
 
         # Set font for client
-        client.set_font(self._plugin.get_font())
+        client.set_font(self._font)
 
         # Set editor for the find widget
         self.find_widget.set_editor(control)
@@ -2176,9 +2176,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         console = self
         console.change_visibility(True)
         console.execute_code(lines)
-        # TODO: Move to a signal?
-        if focus_to_editor and self._plugin.main.editor:
-            self._plugin.main.editor.switch_to_plugin()
+        if focus_to_editor:
+            self.sig_editor_focus_requested.emit()
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
