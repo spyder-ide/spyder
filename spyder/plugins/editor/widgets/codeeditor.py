@@ -1295,18 +1295,19 @@ class CodeEditor(TextEditBaseWidget):
                 'severity', DiagnosticSeverity.ERROR)
 
             block = document.findBlockByNumber(start['line'])
-            data = block.userData()
+            text = block.text()
 
             # Skip messages according to certain criteria.
             # This one works for any programming language
-            if 'analysis:ignore' in block.text():
+            if 'analysis:ignore' in text:
                 continue
 
             # This only works for Python.
             if self.language == 'Python':
-                if NOQA_INLINE_REGEXP.search(block.text()) is not None:
+                if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 
+            data = block.userData()
             if not data:
                 data = BlockUserData(self)
 
