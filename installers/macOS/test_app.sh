@@ -82,9 +82,9 @@ fi
     echo "Timeout reached!"
 
     # Be nice, post SIGTERM first.
-    kill -s SIGTERM $$ && exit 0
+    kill -s SIGTERM $$ && kill -0 $$ || exit 0
     sleep $delay
-    kill -s SIGKILL $$ && exit 0
+    kill -s SIGKILL $$
 ) 2> /dev/null &
 
 export PYTHONHOME=$@/Spyder.app/Contents/Resources
