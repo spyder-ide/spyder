@@ -273,6 +273,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.css_path = self.get_conf('css_path', section='appearance')
         self.run_cell_filename = None
         self.interrupt_action = None
+        self.spyder_pythonpath = []
         self.initial_conf_options = self.get_conf_options()
 
         # Attrs for testing
@@ -1859,11 +1860,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Create a kernel spec for our own kernels"""
         # Before creating our kernel spec, we always need to
         # set this value in spyder.ini
-        # TODO: Check PYTHONPATH management
         self.set_conf(
-            'spyder_pythonpath',
-            self._plugin.main.get_spyder_pythonpath(),
-            section='main')
+            'spyder_pythonpath', self.spyder_pythonpath, section='main')
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
                                 is_sympy=is_sympy,
@@ -2158,13 +2156,15 @@ class IPythonConsoleWidget(PluginMainWidget):
         if shellwidget is not None:
             shellwidget.update_cwd()
 
+    @on_conf_change(section='main', option='spyder_pythonpath')
+    def update_spyder_pythonpath(self, value):
+        self.spyder_pythonpath = value
+
     def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""
         for client in self.get_clients():
             shell = client.shellwidget
             if shell is not None:
-                # TODO: Change to use the preferences?
-                self._plugin.main.get_spyder_pythonpath()
                 shell.update_syspath(path_dict, new_path_dict)
 
     # ---- For execution

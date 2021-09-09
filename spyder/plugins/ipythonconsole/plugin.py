@@ -227,7 +227,8 @@ class IPythonConsole(SpyderDockablePlugin):
             self.sig_current_directory_changed)
         widget.sig_exception_occurred.connect(self.sig_exception_occurred)
 
-        # Update kernels if python path is changed
+        # Update kernels if python path is changed and initialize value
+        widget.spyder_pythonpath = self.main.get_spyder_pythonpath()
         self.main.sig_pythonpath_changed.connect(self.update_path)
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
@@ -498,9 +499,10 @@ class IPythonConsole(SpyderDockablePlugin):
         """Update working directory to console cwd."""
         self.get_widget().update_working_directory()
 
-    def update_path(self, path_dict, new_path_dict):
+    def update_path(self, path_dict, new_path_dict, new_spyder_pythonpath):
         """Update path on consoles."""
-        self.get_widget().update_path(path_dict, new_path_dict)
+        self.get_widget().update_path(
+            path_dict, new_path_dict, new_spyder_pythonpath)
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into all clients"""

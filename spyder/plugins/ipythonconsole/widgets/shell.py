@@ -111,6 +111,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'pdb_state': self.set_pdb_state,
             'pdb_execute': self.pdb_execute,
             'get_pdb_settings': self.get_pdb_settings,
+            # TODO: All this handlers use the Editor instance to get
+            # information
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
