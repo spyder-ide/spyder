@@ -541,6 +541,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Diagnostics
         self.update_diagnostics_thread = QThread()
+        self.update_diagnostics_thread.run = self.set_errors
+        self.update_diagnostics_thread.finished.connect(
+            self.finish_code_analysis)
         self._diagnostics = []
 
         # Editor Extensions
@@ -1210,9 +1213,6 @@ class CodeEditor(TextEditBaseWidget):
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
-        self.update_diagnostics_thread.run = self.set_errors
-        self.update_diagnostics_thread.finished.connect(
-            self.finish_code_analysis)
         self.update_diagnostics_thread.start()
 
     def cleanup_code_analysis(self):
