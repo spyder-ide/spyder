@@ -21,6 +21,7 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.app.utils import InstallerPylspError
 from spyder.config.base import (_, get_conf_path, running_under_pytest,
                                 running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
@@ -253,6 +254,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         Handle automatic restart of client/server on failure.
         """
+        InstallerPylspError(language)
         if (not self.clients_restarting.get(language, False)
                 and not running_under_pytest()):
             try:

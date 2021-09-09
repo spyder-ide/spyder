@@ -14,6 +14,7 @@ import os.path as osp
 import re
 import sys
 import traceback
+import textwrap
 
 # Third-party imports
 import psutil
@@ -384,3 +385,17 @@ class InstallerIPythonKernelError(SpyderInstallerError):
 class InstallerInternalError(SpyderInstallerError):
     """Error for internal issues"""
     pass
+
+
+class InstallerPylspError(SpyderInstallerError):
+    """Error for PyLSP issues"""
+    def _msg(self, *args):
+        msg, *args = args
+
+        files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
+        for file in files:
+            with open(file, 'r') as f:
+                cat = textwrap.indent(f.read(), '  ')
+            msg = msg + '\n' + file + '\n' + cat
+
+        return msg, args
