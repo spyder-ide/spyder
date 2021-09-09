@@ -5,12 +5,6 @@
 # is blocked, then the subsequent SIGKILL (9) terminates it.
 #
 # Based on the Bash documentation example.
-
-# Hello Chet,
-# please find attached a "little easier"  :-)  to comprehend
-# time-out example.  If you find it suitable, feel free to include
-# anywhere: the very same logic as in the original examples/scripts, a
-# little more transparent implementation to my taste.
 #
 # Dmitry V Golovashkin <Dmitry.Golovashkin@sas.com>
 
@@ -87,6 +81,6 @@ fi
     kill -s SIGKILL $$
 ) 2> /dev/null &
 
-export PYTHONHOME=$@/Spyder.app/Contents/Resources
 export SPYDER_DEBUG=2
-exec $@/Spyder.app/Contents/MacOS/Spyder  # python -c "from spyder.app import start; start.main()"
+export INSTALLER_TEST=1
+exec $@/Spyder.app/Contents/MacOS/Spyder

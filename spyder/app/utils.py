@@ -25,7 +25,7 @@ from qtpy.QtSvg import QSvgRenderer
 # Local imports
 from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_in_mac_app,
-    running_under_pytest, running_in_ci)
+    running_under_pytest, running_installer_test)
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
@@ -253,7 +253,7 @@ def create_application():
     # ---- Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
     def spy_excepthook(type_, value, tback):
         sys.__excepthook__(type_, value, tback)
-        if running_in_ci() and running_in_mac_app():
+        if running_installer_test():
             # This will exit Spyder with exit code 1 without invoking
             # macOS system dialogue window.
             ORIGINAL_SYS_EXIT(1)
@@ -335,12 +335,12 @@ def create_window(WindowClass, app, splash, options, args):
     return main
 
 
-def mac_app_test_error(msg):
+def installer_test_error(msg):
     """Exit Spyder with code 1"""
-    # If running in CI and running the mac app, print the stack trace,
+    # If testing the installer, print the stack trace,
     # provided message, and exit Spyder with code 1.
     # Note: raising exceptions will not print the
-    if running_in_ci() and running_in_mac_app():
+    if running_installer_test():
         try:
             exc = Exception(msg)
             stack = ['Traceback (most recent call last):\n']
