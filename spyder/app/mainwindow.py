@@ -69,7 +69,7 @@ from qtawesome.iconic_font import FontError
 from spyder import __version__
 from spyder import dependencies
 from spyder.app.utils import (
-    create_application, create_splash_screen, create_window,
+    create_application, create_splash_screen, create_window, ORIGINAL_SYS_EXIT,
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
@@ -114,9 +114,6 @@ if os.name == 'nt':
 #==============================================================================
 # Module logger
 logger = logging.getLogger(__name__)
-
-# Keeping a reference to the original sys.exit before patching it
-ORIGINAL_SYS_EXIT = sys.exit
 
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session

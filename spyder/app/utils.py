@@ -13,6 +13,7 @@ import os
 import os.path as osp
 import re
 import sys
+import traceback
 
 # Third-party imports
 import psutil
@@ -24,7 +25,7 @@ from qtpy.QtSvg import QSvgRenderer
 # Local imports
 from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_in_mac_app,
-    running_under_pytest)
+    running_under_pytest, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
@@ -41,6 +42,9 @@ except Exception:
 root_logger = logging.getLogger()
 FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')
 FILTER_NAMES = [f.strip() for f in FILTER_NAMES]
+
+# Keeping a reference to the original sys.exit before patching it
+ORIGINAL_SYS_EXIT = sys.exit
 
 
 class Spy:
@@ -325,3 +329,19 @@ def create_window(WindowClass, app, splash, options, args):
     if not running_under_pytest():
         app.exec_()
     return main
+
+
+def mac_app_test_error(msg):
+    """Exit Spyder with code 1"""
+    # If running in CI and running the mac app, print the stack trace,
+    # provided message, and exit Spyder with code 1.
+    # Note: raising exceptions will not print the
+    if running_in_ci() and running_in_mac_app():
+        try:
+            exc = Exception(msg)
+            stack = ['Traceback (most recent call last):\n']
+            stack.extend(traceback.format_stack()[:-1])
+            stack.extend(traceback.format_exception_only(type(exc), exc))
+            print('\n'.join(stack))
+        finally:
+            ORIGINAL_SYS_EXIT(1)
