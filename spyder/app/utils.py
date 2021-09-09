@@ -379,3 +379,8 @@ class InstallerIPythonKernelError(SpyderInstallerError):
         msg = '\n' + msg.replace('<tt>', '').replace('</tt>', '')
 
         return msg, args
+
+
+class InstallerInternalError(SpyderInstallerError):
+    """Error for internal issues"""
+    pass
