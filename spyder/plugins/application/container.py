@@ -24,7 +24,7 @@ from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.app.utils import installer_test_error
+from spyder.app.utils import InstallerMissingDependencies
 from spyder.config.utils import is_anaconda
 from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.console.api import ConsoleActions
@@ -365,14 +365,13 @@ class ApplicationContainer(PluginMainContainer):
         missing_deps = dependencies.missing_dependencies()
 
         if missing_deps:
-            missing_deps = missing_deps.replace('<br>', '\n')
-            installer_test_error('Missing dependencies' + missing_deps)
+            InstallerMissingDependencies(missing_deps)
 
             # We change '<br>' by '\n', in order to replace the '<'
             # that appear in our deps by '&lt' (to not break html
             # formatting) and finally we restore '<br>' again.
-            missing_deps = (missing_deps.replace('<', '&lt;').
-                            replace('\n', '<br>'))
+            missing_deps = (missing_deps.replace('<br>', '\n').
+                            replace('<', '&lt;').replace('\n', '<br>'))
 
             message = (
                 _("<b>You have missing dependencies!</b>"

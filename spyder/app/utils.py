@@ -335,17 +335,47 @@ def create_window(WindowClass, app, splash, options, args):
     return main
 
 
-def installer_test_error(msg):
-    """Exit Spyder with code 1"""
-    # If testing the installer, print the stack trace,
-    # provided message, and exit Spyder with code 1.
-    # Note: raising exceptions will not print the
-    if running_installer_test():
-        try:
-            exc = Exception(msg)
-            stack = ['Traceback (most recent call last):\n']
-            stack.extend(traceback.format_stack()[:-1])
-            stack.extend(traceback.format_exception_only(type(exc), exc))
-            print('\n'.join(stack))
-        finally:
-            ORIGINAL_SYS_EXIT(1)
+class SpyderInstallerError(Exception):
+    """
+    Base class for installer error; do not use directly.
+    Exit Spyder with code 1.
+    """
+    def __init__(self, *args, **kwargs):
+        if not running_installer_test():
+            # Don't do anything
+            return
+
+        msg, args = self._msg(*args)
+
+        super().__init__(msg, *args, **kwargs)
+
+        # Print the stack trace and provided message,
+        # then exit Spyder with code 1.
+        # Note: raising exceptions will not print the stack trace
+        stack = ['Traceback (most recent call last):\n']
+        stack.extend(traceback.format_stack()[:-2])
+        stack.extend(traceback.format_exception_only(type(self), self))
+        print(''.join(stack))
+
+        ORIGINAL_SYS_EXIT(1)
+
+    def _msg(self, *args):
+        return args
+
+
+class InstallerMissingDependencies(SpyderInstallerError):
+    """Error for missing dependencies"""
+    def _msg(self, *args):
+        msg, *args = args
+        msg = msg.replace('<br>', '\n')
+
+        return msg, args
+
+
+class InstallerIPythonKernelError(SpyderInstallerError):
+    """Error for IPython kernel issues"""
+    def _msg(self, *args):
+        msg, *args = args
+        msg = '\n' + msg.replace('<tt>', '').replace('</tt>', '')
+
+        return msg, args
