@@ -473,6 +473,7 @@ class CodeEditor(TextEditBaseWidget):
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread()
+        self.update_folding_thread.finished.connect(self.finish_code_folding)
 
         # Completions hint
         self.completions_hint = True
@@ -1888,8 +1889,6 @@ class CodeEditor(TextEditBaseWidget):
         # Update folding in a thread
         self.update_folding_thread.run = functools.partial(
             self.update_and_merge_folding, extended_ranges)
-        self.update_folding_thread.finished.connect(
-            self.finish_code_folding)
         self.update_folding_thread.start()
 
     def update_and_merge_folding(self, extended_ranges):
