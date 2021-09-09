@@ -253,6 +253,10 @@ def create_application():
     # ---- Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
     def spy_excepthook(type_, value, tback):
         sys.__excepthook__(type_, value, tback)
+        if running_in_ci() and running_in_mac_app():
+            # This will exit Spyder with exit code 1 without invoking
+            # macOS system dialogue window.
+            ORIGINAL_SYS_EXIT(1)
     sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter
