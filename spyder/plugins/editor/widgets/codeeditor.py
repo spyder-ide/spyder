@@ -137,10 +137,10 @@ class CodeEditor(TextEditBaseWidget):
     # linting results arrive, according to the number of lines in the file.
     SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS = {
         # Lines: Timeout
-        500: 500,
-        1500: 1200,
-        2500: 3200,
-        6500: 4500
+        500: 350,
+        1500: 800,
+        2500: 1200,
+        6500: 1800
     }
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
