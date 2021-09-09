@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        build_type: ['Full']
+        build_type: ['Full', 'Lite']
     defaults:
       run:
         shell: bash -l {0}
