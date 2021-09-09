@@ -1244,7 +1244,13 @@ class CodeEditor(TextEditBaseWidget):
     def underline_errors(self):
         """Underline errors and warnings."""
         try:
+            # Clear current selections before painting the new ones.
+            # This prevents accumulating them when moving around in or editing
+            # the file, which generated a memory leakage and sluggishness
+            # after some time.
+            self.clear_extra_selections('code_analysis_underline')
             self._process_code_analysis(underline=True)
+            self.update_extra_selections()
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1255,8 +1261,8 @@ class CodeEditor(TextEditBaseWidget):
     def finish_code_analysis(self):
         """Finish processing code analysis results."""
         self.linenumberarea.update()
-        self.underline_errors()
-        self.update_extra_selections()
+        if self.underline_errors_enabled:
+            self.underline_errors()
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
 
@@ -3014,14 +3020,7 @@ class CodeEditor(TextEditBaseWidget):
     def update_decorations(self):
         """Update decorations on the visible portion of the screen."""
         if self.underline_errors_enabled:
-            # Clear current selections before painting the new ones.
-            # This prevents accumulating them when moving around in the file,
-            # which generated a memory leak and sluggishness in the editor
-            # after some time.
-            self.clear_extra_selections('code_analysis_underline')
-
             self.underline_errors()
-            self.update_extra_selections()
 
         # This is required to update decorations whether there are or not
         # underline errors in the visible portion of the screen.
