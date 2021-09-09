@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.app.utils import installer_test_error
 from spyder.config.base import (_, get_module_source_path,
                                 running_under_pytest)
 from spyder.utils.icon_manager import ima
@@ -384,6 +385,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
+        installer_test_error('IPython kernel error\n' + error.replace('<tt>', '').replace('</tt>', ''))
+
         # Replace end of line chars with <br>
         eol = sourcecode.get_eol_chars(error)
         if eol:
