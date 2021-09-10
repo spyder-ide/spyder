@@ -1287,6 +1287,9 @@ class CodeEditor(TextEditBaseWidget):
             them can't.
         """
         document = self.document()
+        if underline:
+            first_block, last_block = self.get_buffer_block_numbers()
+
         for diagnostic in self._diagnostics:
             if self.is_ipython() and (
                     diagnostic["message"] == "undefined name 'get_ipython'"):
@@ -1320,10 +1323,7 @@ class CodeEditor(TextEditBaseWidget):
 
             if underline:
                 block_nb = block.blockNumber()
-                first, last = self.get_buffer_block_numbers()
-
-                if (self.underline_errors_enabled and
-                        first <= block_nb <= last):
+                if first_block <= block_nb <= last_block:
                     error = severity == DiagnosticSeverity.ERROR
                     color = self.error_color if error else self.warning_color
                     color = QColor(color)
@@ -1335,7 +1335,7 @@ class CodeEditor(TextEditBaseWidget):
 
                     # Don't call highlight_selection with `update=True` so that
                     # all underline selections are updated in bulk in
-                    # finish_code_analysis or update_decorations.
+                    # underline_errors.
                     self.highlight_selection('code_analysis_underline',
                                              data._selection(),
                                              underline_color=block.color)
