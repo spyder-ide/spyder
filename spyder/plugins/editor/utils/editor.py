@@ -70,15 +70,11 @@ class BlockUserData(QTextBlockUserData):
         # Add a reference to the user data in the editor as the block won't.
         # The list should /not/ be used to list BlockUserData as the blocks
         # they refer to might not exist anymore.
-        # This prevent a segmentation fault.
+        # This prevents a segmentation fault.
         if editor is None:
             # Won't be destroyed
             self.refloop = self
             return
-        # Destroy with the editor
-        if not hasattr(editor, '_user_data_reference_list'):
-            editor._user_data_reference_list = []
-        editor._user_data_reference_list.append(self)
 
     def _selection(self):
         """
