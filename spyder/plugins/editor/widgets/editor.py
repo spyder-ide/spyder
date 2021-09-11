@@ -2650,6 +2650,7 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
         finfo = self.data[index]
         eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
+        logger.debug(f"Set OS eol chars {eol_chars} for file {finfo.filename}")
         finfo.editor.set_eol_chars(eol_chars)
         finfo.editor.document().setModified(True)
 
@@ -2658,18 +2659,21 @@ class EditorStack(QWidget):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Remove trailing spaces for file {finfo.filename}")
         finfo.editor.trim_trailing_spaces()
 
     def trim_trailing_newlines(self, index=None):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Trim trailing new lines for file {finfo.filename}")
         finfo.editor.trim_trailing_newlines()
 
     def add_newline_to_file(self, index=None):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Add new line to file {finfo.filename}")
         finfo.editor.add_newline_to_file()
 
     def fix_indentation(self, index=None):
@@ -2677,12 +2681,14 @@ class EditorStack(QWidget):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Fix indentation for file {finfo.filename}")
         finfo.editor.fix_indentation()
 
     def format_document_or_selection(self, index=None):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
 
     #  ------ Run

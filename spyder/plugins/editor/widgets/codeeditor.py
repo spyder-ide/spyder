@@ -2268,21 +2268,24 @@ class CodeEditor(TextEditBaseWidget):
         this_line = self.get_text_line(line)
         previous_line = self.get_text_line(line - 1)
 
-        while this_line == '':
-            cursor.movePosition(QTextCursor.PreviousBlock,
-                                QTextCursor.KeepAnchor)
+        # Don't try to trim new lines for a file with a single line.
+        # Fixes spyder-ide/spyder#16401
+        if self.get_line_count() > 1:
+            while this_line == '':
+                cursor.movePosition(QTextCursor.PreviousBlock,
+                                    QTextCursor.KeepAnchor)
 
-            if self.add_newline:
-                if this_line == '' and previous_line != '':
-                    cursor.movePosition(QTextCursor.NextBlock,
-                                        QTextCursor.KeepAnchor)
+                if self.add_newline:
+                    if this_line == '' and previous_line != '':
+                        cursor.movePosition(QTextCursor.NextBlock,
+                                            QTextCursor.KeepAnchor)
 
-            line -= 1
-            if line == 0:
-                break
+                line -= 1
+                if line == 0:
+                    break
 
-            this_line = self.get_text_line(line)
-            previous_line = self.get_text_line(line - 1)
+                this_line = self.get_text_line(line)
+                previous_line = self.get_text_line(line - 1)
 
         if not self.add_newline:
             cursor.movePosition(QTextCursor.EndOfBlock,
