@@ -137,10 +137,10 @@ class CodeEditor(TextEditBaseWidget):
     # linting results arrive, according to the number of lines in the file.
     SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS = {
         # Lines: Timeout
-        500: 500,
-        1500: 1200,
-        2500: 3200,
-        6500: 4500
+        500: 350,
+        1500: 800,
+        2500: 1200,
+        6500: 1800
     }
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
@@ -473,6 +473,7 @@ class CodeEditor(TextEditBaseWidget):
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread()
+        self.update_folding_thread.finished.connect(self.finish_code_folding)
 
         # Completions hint
         self.completions_hint = True
@@ -541,6 +542,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Diagnostics
         self.update_diagnostics_thread = QThread()
+        self.update_diagnostics_thread.run = self.set_errors
+        self.update_diagnostics_thread.finished.connect(
+            self.finish_code_analysis)
         self._diagnostics = []
 
         # Editor Extensions
@@ -1210,9 +1214,6 @@ class CodeEditor(TextEditBaseWidget):
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
-        self.update_diagnostics_thread.run = self.set_errors
-        self.update_diagnostics_thread.finished.connect(
-            self.finish_code_analysis)
         self.update_diagnostics_thread.start()
 
     def cleanup_code_analysis(self):
@@ -1244,7 +1245,13 @@ class CodeEditor(TextEditBaseWidget):
     def underline_errors(self):
         """Underline errors and warnings."""
         try:
+            # Clear current selections before painting the new ones.
+            # This prevents accumulating them when moving around in or editing
+            # the file, which generated a memory leakage and sluggishness
+            # after some time.
+            self.clear_extra_selections('code_analysis_underline')
             self._process_code_analysis(underline=True)
+            self.update_extra_selections()
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1255,8 +1262,8 @@ class CodeEditor(TextEditBaseWidget):
     def finish_code_analysis(self):
         """Finish processing code analysis results."""
         self.linenumberarea.update()
-        self.underline_errors()
-        self.update_extra_selections()
+        if self.underline_errors_enabled:
+            self.underline_errors()
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
 
@@ -1280,6 +1287,9 @@ class CodeEditor(TextEditBaseWidget):
             them can't.
         """
         document = self.document()
+        if underline:
+            first_block, last_block = self.get_buffer_block_numbers()
+
         for diagnostic in self._diagnostics:
             if self.is_ipython() and (
                     diagnostic["message"] == "undefined name 'get_ipython'"):
@@ -1295,27 +1305,25 @@ class CodeEditor(TextEditBaseWidget):
                 'severity', DiagnosticSeverity.ERROR)
 
             block = document.findBlockByNumber(start['line'])
-            data = block.userData()
+            text = block.text()
 
             # Skip messages according to certain criteria.
             # This one works for any programming language
-            if 'analysis:ignore' in block.text():
+            if 'analysis:ignore' in text:
                 continue
 
             # This only works for Python.
             if self.language == 'Python':
-                if NOQA_INLINE_REGEXP.search(block.text()) is not None:
+                if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 
+            data = block.userData()
             if not data:
                 data = BlockUserData(self)
 
             if underline:
                 block_nb = block.blockNumber()
-                first, last = self.get_buffer_block_numbers()
-
-                if (self.underline_errors_enabled and
-                        first <= block_nb <= last):
+                if first_block <= block_nb <= last_block:
                     error = severity == DiagnosticSeverity.ERROR
                     color = self.error_color if error else self.warning_color
                     color = QColor(color)
@@ -1327,7 +1335,7 @@ class CodeEditor(TextEditBaseWidget):
 
                     # Don't call highlight_selection with `update=True` so that
                     # all underline selections are updated in bulk in
-                    # finish_code_analysis or update_decorations.
+                    # underline_errors.
                     self.highlight_selection('code_analysis_underline',
                                              data._selection(),
                                              underline_color=block.color)
@@ -1881,8 +1889,6 @@ class CodeEditor(TextEditBaseWidget):
         # Update folding in a thread
         self.update_folding_thread.run = functools.partial(
             self.update_and_merge_folding, extended_ranges)
-        self.update_folding_thread.finished.connect(
-            self.finish_code_folding)
         self.update_folding_thread.start()
 
     def update_and_merge_folding(self, extended_ranges):
@@ -3016,14 +3022,7 @@ class CodeEditor(TextEditBaseWidget):
     def update_decorations(self):
         """Update decorations on the visible portion of the screen."""
         if self.underline_errors_enabled:
-            # Clear current selections before painting the new ones.
-            # This prevents accumulating them when moving around in the file,
-            # which generated a memory leak and sluggishness in the editor
-            # after some time.
-            self.clear_extra_selections('code_analysis_underline')
-
             self.underline_errors()
-            self.update_extra_selections()
 
         # This is required to update decorations whether there are or not
         # underline errors in the visible portion of the screen.
