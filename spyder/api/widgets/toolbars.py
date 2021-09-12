@@ -78,7 +78,7 @@ class ToolbarStyle(QProxyStyle):
             elif self.TYPE == 'MainWidget':
                 return 20
             else:
-                print("Unknown toolbar style type")
+                print("Unknown toolbar style type")  # spyder: test-skip
         return super().pixelMetric(pm, option, widget)
 
 
