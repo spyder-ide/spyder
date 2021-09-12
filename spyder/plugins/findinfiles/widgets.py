@@ -701,14 +701,11 @@ class FileMatchItem(QTreeWidgetItem):
         if rel_dirname.startswith(osp.sep):
             rel_dirname = rel_dirname[1:]
 
-        # Use a dimmer color for directories
-        dir_color_name = QStylePalette.COLOR_TEXT_2
-
         title = (
             f'<!-- FileMatchItem -->'
             f'<b style="color:{text_color}">{osp.basename(filename)}</b>'
             f'&nbsp;&nbsp;&nbsp;'
-            f'<span style="color:{dir_color_name}">'
+            f'<span style="color:{text_color}">'
             f'<em>{rel_dirname}</em>'
             f'</span>'
         )
