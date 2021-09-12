@@ -1,5 +1,33 @@
 # History of changes
 
+## Version 5.1.4 (2021-09-12)
+
+### Important fixes
+* Fix serious memory leaks and improve performance when typing in the editor.
+
+### Issues Closed
+
+* [Issue 16401](https://github.com/spyder-ide/spyder/issues/16401) - `Trim all newlines after the final one` when saving a file causes Spyder to freeze when saving a blank file ([PR 16405](https://github.com/spyder-ide/spyder/pull/16405) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16384](https://github.com/spyder-ide/spyder/issues/16384) - Editor becomes sluggish when displaying errors ([PR 16396](https://github.com/spyder-ide/spyder/pull/16396) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16343](https://github.com/spyder-ide/spyder/issues/16343) - No handler for workspace/executeCommand request ([PR 16344](https://github.com/spyder-ide/spyder/pull/16344) by [@hlouzada](https://github.com/hlouzada))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 16405](https://github.com/spyder-ide/spyder/pull/16405) - PR: Don't try to trim new lines for files with a single line (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([16401](https://github.com/spyder-ide/spyder/issues/16401))
+* [PR 16396](https://github.com/spyder-ide/spyder/pull/16396) - PR: Improve linting and folding performance (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([16384](https://github.com/spyder-ide/spyder/issues/16384))
+* [PR 16389](https://github.com/spyder-ide/spyder/pull/16389) - PR: Add constraint for jupyter_client version on conda based test, by [@dalthviz](https://github.com/dalthviz)
+* [PR 16371](https://github.com/spyder-ide/spyder/pull/16371) - PR: Restore a couple of completion options lost during the migration (Completions), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16351](https://github.com/spyder-ide/spyder/pull/16351) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 16344](https://github.com/spyder-ide/spyder/pull/16344) - PR: Handle execute command response (LSP), by [@hlouzada](https://github.com/hlouzada) ([16343](https://github.com/spyder-ide/spyder/issues/16343))
+
+In this release 6 pull requests were closed.
+
+
+----
+
+
 ## Version 5.1.3 (2021-09-05)
 
 ### Important fixes
