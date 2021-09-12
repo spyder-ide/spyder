@@ -1,23 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.1.1 is released!
+**Subject**: [ANN] Spyder 5.1.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.1.1** has been released and is available for
+I'm pleased to announce that Spyder **5.1.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two days after version 5.1.0 and it contains the
-following mportant fixes:
+This release comes one week after version 5.1.3 and it contains the
+following important fixes:
 
-* Fix loading internal plugins, which prevents a crash at startup in Python
-  3.8+ and issues with completion and linting in other versions.
-* Make functionality related to Jedi work in our Windows installer again.
+* Fix serious memory leaks and improve performance when typing in the editor.
 
-In this release we fixed 6 issues and merged 6 pull requests that amount
-to more than 25 commits. For a full list of fixes, please see our
+In this release we fixed 3 issues and merged 6 pull requests that amount
+to more than 20 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

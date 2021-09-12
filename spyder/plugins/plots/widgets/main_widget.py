@@ -56,6 +56,10 @@ class PlotsWidgetMainToolbarSections:
     Zoom = 'zoom_section'
 
 
+class PlotsWidgetToolbarItems:
+    ZoomSpinBox = 'zoom_spin'
+
+
 # --- Widgets
 # ----------------------------------------------------------------------------
 class PlotsStackedWidget(QStackedWidget, SpyderWidgetMixin):
@@ -146,6 +150,7 @@ class PlotsWidget(PluginMainWidget):
         self._stack = PlotsStackedWidget(parent=self)
         self._shellwidgets = {}
         self.zoom_disp = QSpinBox(self)
+        self.zoom_disp.ID = PlotsWidgetToolbarItems.ZoomSpinBox
         self._right_clicked_thumbnail = None
 
         # Widget setup

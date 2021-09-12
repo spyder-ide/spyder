@@ -21,12 +21,12 @@ import sys
 import time
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtGui import QColor, QPixmap, QIcon
-from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
+from qtpy.QtGui import QColor, QIcon
+from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
+from spyder.app.utils import create_splash_screen
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import to_unicode
@@ -85,21 +85,17 @@ class Restarter(QWidget):
     """Widget in charge of displaying the splash information screen and the
        error messages.
     """
+
     def __init__(self):
         super(Restarter, self).__init__()
         self.ellipsis = ['', '.', '..', '...', '..', '.']
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = QSplashScreen(QPixmap(get_image_path('splash'),
-                                    'svg'))
+        self.splash = create_splash_screen()
 
         # Widget setup
         self.setVisible(False)
-
-        font = self.splash.font()
-        font.setPixelSize(10)
-        self.splash.setFont(font)
         self.splash.show()
 
         self.timer_ellipsis.timeout.connect(self.animate_ellipsis)
@@ -114,7 +110,7 @@ class Restarter(QWidget):
     def animate_ellipsis(self):
         """Animate dots at the end of the splash screen message."""
         ellipsis = self.ellipsis.pop(0)
-        text = ' '*len(ellipsis) + self.splash_text + ellipsis
+        text = ' ' * len(ellipsis) + self.splash_text + ellipsis
         self.ellipsis.append(ellipsis)
         self._show_message(text)
 
@@ -123,6 +119,12 @@ class Restarter(QWidget):
         self.splash_text = text
         self._show_message(text)
         self.timer_ellipsis.start(500)
+
+        # Wait 1.2 seconds so we can give feedback to users that a
+        # restart is happening.
+        for __ in range(40):
+            time.sleep(0.03)
+            QApplication.processEvents()
 
     def launch_error_message(self, error_type, error=None):
         """Launch a message box with a predefined error message.
@@ -183,11 +185,10 @@ def main():
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables
-    # Note: Variables defined in app/mainwindow.py 'restart()' method
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
-    reset = os.environ.pop('SPYDER_RESET', None)
+    reset = os.environ.pop('SPYDER_RESET', 'False')
 
     # Get the spyder base folder based on this file
     this_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
@@ -203,6 +204,14 @@ def main():
     pid = ast.literal_eval(pid)
     args = ast.literal_eval(spyder_args)
     reset = ast.literal_eval(reset)
+
+    # SPYDER_DEBUG takes presedence over SPYDER_ARGS
+    if '--debug' in args:
+        args.remove('--debug')
+    for level in ['minimal', 'verbose']:
+        arg = f'--debug-info={level}'
+        if arg in args:
+            args.remove(arg)
 
     # Enforce the --new-instance flag when running spyder
     if '--new-instance' not in args:
@@ -240,7 +249,7 @@ def main():
     # previous one has closed. We wait for a fixed and "reasonable" amount of
     # time and check, otherwise an error is launched
     wait_time = 90 if IS_WINDOWS else 30  # Seconds
-    for counter in range(int(wait_time/SLEEP_TIME)):
+    for counter in range(int(wait_time / SLEEP_TIME)):
         if not is_pid_running(pid):
             break
         time.sleep(SLEEP_TIME)  # Throttling control
@@ -269,7 +278,7 @@ def main():
         # reset subprocess has closed. We wait for a fixed and "reasonable"
         # amount of time and check, otherwise an error is launched.
         wait_time = 20  # Seconds
-        for counter in range(int(wait_time/SLEEP_TIME)):
+        for counter in range(int(wait_time / SLEEP_TIME)):
             if not is_pid_running(pid_reset):
                 break
             time.sleep(SLEEP_TIME)  # Throttling control

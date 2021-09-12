@@ -17,18 +17,19 @@ import sys
 # Third-party imports
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
-from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap
+from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap, QPainter, QImage
 from qtpy.QtWidgets import QApplication, QSplashScreen
+from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_in_mac_app,
     running_under_pytest)
 from spyder.config.manager import CONF
-from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.qthelpers import file_uri, qapplication
 from spyder.utils.external.dafsa.dafsa import DAFSA
-from spyder.utils.stylesheet import QStylePalette
+from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.palette import QStylePalette
+from spyder.utils.qthelpers import file_uri, qapplication
 
 # For spyder-ide/spyder#7447.
 try:
@@ -114,13 +115,10 @@ def setup_logging(cli_options):
         console_filters = [x for x in console_filters if x != '']
 
         handlers = [logging.StreamHandler()]
-        if cli_options.debug_output == 'file':
-            log_file = 'spyder-debug.log'
-            handlers.append(
-                logging.FileHandler(filename=log_file, mode='w+')
-            )
-        else:
-            log_file = None
+        filepath = os.environ['SPYDER_DEBUG_FILE']
+        handlers.append(
+            logging.FileHandler(filename=filepath, mode='w+')
+        )
 
         match_func = lambda x: True
         if console_filters != [''] and len(console_filters) > 0:
@@ -145,8 +143,8 @@ def setup_logging(cli_options):
             root_logger.addHandler(handler)
 
 
-def delete_lsp_log_files():
-    """Delete previous dead Spyder instances LSP log files."""
+def delete_debug_log_files():
+    """Delete previous debug log files."""
     regex = re.compile(r'.*_.*_(\d+)[.]log')
     files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
     for f in files:
@@ -155,6 +153,10 @@ def delete_lsp_log_files():
             pid = int(match.group(1))
             if not psutil.pid_exists(pid):
                 os.remove(f)
+
+    debug_file = os.environ['SPYDER_DEBUG_FILE']
+    if osp.exists(debug_file):
+        os.remove(debug_file)
 
 
 def qt_message_handler(msg_type, msg_log_context, msg_string):
@@ -178,9 +180,17 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 def create_splash_screen():
     """Create splash screen."""
     if not running_under_pytest():
-        pixmap = QPixmap(get_image_path('splash'))
-        splash = QSplashScreen(
-            pixmap.scaledToWidth(500, Qt.SmoothTransformation))
+        image = QImage(500, 400, QImage.Format_ARGB32_Premultiplied)
+        image.fill(0)
+        painter = QPainter(image)
+        renderer = QSvgRenderer(get_image_path('splash'))
+        renderer.render(painter)
+        painter.end()
+
+        pm = QPixmap.fromImage(image)
+        pm = pm.copy(0, 0, 500, 400)
+
+        splash = QSplashScreen(pm)
         splash_font = splash.font()
         splash_font.setPixelSize(14)
         splash.setFont(splash_font)

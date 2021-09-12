@@ -5,8 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """
-Main menu Plugin.
+Application Plugin.
 """
+
 # Standard library imports
 import os
 import os.path as osp
@@ -22,10 +23,11 @@ from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import DEV, get_module_path, running_under_pytest
+from spyder.config.base import (DEV, get_module_path, get_debug_level,
+                                running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, WinUserEnvDialog)
+    ApplicationContainer, ApplicationPluginMenus, WinUserEnvDialog)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -37,7 +39,8 @@ _ = get_translation('spyder')
 class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts]
+    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
+                Plugins.Editor]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
@@ -55,6 +58,9 @@ class Application(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
+        container.set_window(self._window)
+
+        self.sig_restart_requested.connect(self.restart)
 
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
@@ -74,8 +80,6 @@ class Application(SpyderPluginV2):
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        main_menu = self.get_plugin(Plugins.MainMenu)
-
         self._populate_file_menu()
         self._populate_tools_menu()
 
@@ -87,6 +91,11 @@ class Application(SpyderPluginV2):
 
         if not self.is_plugin_available(Plugins.Console):
             self.report_action.setVisible(False)
+
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        editor = self.get_plugin(Plugins.Editor)
+        self.get_container().sig_load_log_file.connect(editor.load)
 
     def on_close(self):
         self.get_container().on_close()
@@ -104,12 +113,28 @@ class Application(SpyderPluginV2):
             container.give_updates_feedback = False
             container.check_updates(startup=True)
 
-    # ---- Private methods
+        # Handle DPI scale and window changes to show a restart message.
+        # Don't activate this functionality on macOS because it's being
+        # triggered in the wrong situations.
+        # See spyder-ide/spyder#11846
+        if not sys.platform == 'darwin':
+            window = self._window.windowHandle()
+            window.screenChanged.connect(container.handle_new_screen)
+            screen = self._window.windowHandle().screen()
+            container.current_dpi = screen.logicalDotsPerInch()
+            screen.logicalDotsPerInchChanged.connect(
+                container.show_dpi_change_message)
+
+    # ---- Private API
     # ------------------------------------------------------------------------
     def _populate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.add_item_to_application_menu(
             self.restart_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Restart)
+        mainmenu.add_item_to_application_menu(
+            self.restart_debug_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.Restart)
 
@@ -121,6 +146,12 @@ class Application(SpyderPluginV2):
                 self.winenv_action,
                 menu_id=ApplicationMenus.Tools,
                 section=ToolsMenuSections.Tools)
+
+        if get_debug_level() >= 2:
+            mainmenu.add_item_to_application_menu(
+                self.debug_logs_menu,
+                menu_id=ApplicationMenus.Tools,
+                section=ToolsMenuSections.Extras)
 
     def _populate_help_menu(self):
         """Add base actions and menus to the Help menu."""
@@ -136,8 +167,7 @@ class Application(SpyderPluginV2):
 
         if shortcuts:
             from spyder.plugins.shortcuts.plugin import ShortcutActions
-            shortcuts_summary_action = shortcuts.get_action(
-                ShortcutActions.ShortcutSummaryAction)
+            shortcuts_summary_action = ShortcutActions.ShortcutSummaryAction
         for documentation_action in [
                 self.documentation_action, self.video_action]:
             mainmenu.add_item_to_application_menu(
@@ -167,6 +197,10 @@ class Application(SpyderPluginV2):
             self.about_action,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.About)
+
+    @property
+    def _window(self):
+        return self.main.window()
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -210,7 +244,7 @@ class Application(SpyderPluginV2):
         self._main.apply_settings()
 
     @Slot()
-    def restart(self, reset=False):
+    def restart(self):
         """
         Quit and Restart Spyder application.
 
@@ -244,7 +278,6 @@ class Application(SpyderPluginV2):
         env['SPYDER_ARGS'] = spyder_args
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
-        env['SPYDER_RESET'] = str(reset)
 
         if DEV:
             repo_dir = osp.dirname(spyder_start_directory)
@@ -323,6 +356,16 @@ class Application(SpyderPluginV2):
         return self.get_container().restart_action
 
     @property
+    def restart_debug_action(self):
+        """Restart Spyder in DEBUG mode action."""
+        return self.get_container().restart_debug_action
+
+    @property
     def report_action(self):
         """Restart Spyder action."""
         return self.get_container().report_action
+
+    @property
+    def debug_logs_menu(self):
+        return self.get_container().get_menu(
+            ApplicationPluginMenus.DebugLogsMenu)

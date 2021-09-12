@@ -24,6 +24,10 @@ if [ "$USE_CONDA" = "true" ]; then
         conda install pyzmq=19
     fi
 
+    # Constrain jupyter_client version on conda based tests
+    # The actual dependency constrain is done in spyder-kernels since v2.1.1
+    conda install jupyter_client=6
+
     # Remove packages we have subrepos for.
     conda remove spyder-kernels --force -q -y
     conda remove python-lsp-server --force -q -y
@@ -51,6 +55,7 @@ else
     pip uninstall spyder-kernels -q -y
     pip uninstall python-lsp-server -q -y
     pip uninstall qdarkstyle -q -y
+
 fi
 
 # Install subrepos in development mode

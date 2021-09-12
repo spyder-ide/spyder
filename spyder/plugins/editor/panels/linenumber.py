@@ -12,19 +12,14 @@ This module contains the Line Number panel
 from math import ceil
 
 # Third party imports
-from qtpy import QT_VERSION
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QPainter, QColor
 
 # Local imports
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
-from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
-
-
-QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
 
 
 class LineNumberArea(Panel):
@@ -76,14 +71,13 @@ class LineNumberArea(Panel):
         active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(xleft, ytop, pixmap):
-            if not QT55_VERSION:
-                pixmap_height = pixmap.height()
-            else:
-                # scale pixmap height to device independent pixels
-                pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
-            painter.drawPixmap(xleft, ceil(ytop +
-                                           (font_height-pixmap_height) / 2),
-                               pixmap)
+            # Scale pixmap height to device independent pixels
+            pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
+            painter.drawPixmap(
+                xleft,
+                ceil(ytop + (font_height-pixmap_height) / 2),
+                pixmap
+            )
 
         for top, line_number, block in self.editor.visible_blocks:
             if self._margin:

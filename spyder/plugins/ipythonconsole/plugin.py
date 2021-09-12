@@ -182,6 +182,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.css_path = CONF.get('appearance', 'css_path')
         self.run_cell_filename = None
         self.interrupt_action = None
+        self.add_actions_to_main_menus = True
 
         # Attrs for testing
         self.testing = testing
@@ -661,49 +662,55 @@ class IPythonConsole(SpyderPluginWidget):
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
 
-        # Add actions to the 'Consoles' menu on the main window
-        console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
-        console_menu.aboutToShow.connect(self.update_execution_state_kernel)
-        new_consoles_actions = [
-            create_client_action, special_console_menu,
-            connect_to_kernel_action]
-        restart_connect_consoles_actions = [
-            self.interrupt_action, restart_action, reset_action]
-        for console_new_action in new_consoles_actions:
-            self.main.mainmenu.add_item_to_application_menu(
-                console_new_action,
-                menu_id=ApplicationMenus.Consoles,
-                section=ConsolesMenuSections.New)
-        for console_restart_connect_action in restart_connect_consoles_actions:
-            self.main.mainmenu.add_item_to_application_menu(
-                console_restart_connect_action,
-                menu_id=ApplicationMenus.Consoles,
-                section=ConsolesMenuSections.Restart)
+        # Add actions to main menus
+        if self.add_actions_to_main_menus:
+            console_menu = self.main.mainmenu.get_application_menu("consoles_menu")
+            console_menu.aboutToShow.connect(self.update_execution_state_kernel)
+            new_consoles_actions = [
+                create_client_action, special_console_menu,
+                connect_to_kernel_action]
+            restart_connect_consoles_actions = [
+                self.interrupt_action, restart_action, reset_action]
+            for console_new_action in new_consoles_actions:
+                self.main.mainmenu.add_item_to_application_menu(
+                    console_new_action,
+                    menu_id=ApplicationMenus.Consoles,
+                    section=ConsolesMenuSections.New,
+                    omit_id=True)
+            for console_restart_connect_action in restart_connect_consoles_actions:
+                self.main.mainmenu.add_item_to_application_menu(
+                    console_restart_connect_action,
+                    menu_id=ApplicationMenus.Consoles,
+                    section=ConsolesMenuSections.Restart,
+                    omit_id=True)
 
-        # IPython documentation
-        self.ipython_menu = SpyderMenu(
-            parent=self,
-            title=_("IPython documentation"))
-        intro_action = create_action(
-            self,
-            _("Intro to IPython"),
-            triggered=self.show_intro)
-        quickref_action = create_action(
-            self,
-            _("Quick reference"),
-            triggered=self.show_quickref)
-        guiref_action = create_action(
-            self,
-            _("Console help"),
-            triggered=self.show_guiref)
-        add_actions(
-            self.ipython_menu,
-            (intro_action, guiref_action, quickref_action))
-        self.main.mainmenu.add_item_to_application_menu(
-            self.ipython_menu,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.ExternalDocumentation,
-            before_section=HelpMenuSections.About)
+            # IPython documentation
+            self.ipython_menu = SpyderMenu(
+                parent=self,
+                title=_("IPython documentation"))
+            intro_action = create_action(
+                self,
+                _("Intro to IPython"),
+                triggered=self.show_intro)
+            quickref_action = create_action(
+                self,
+                _("Quick reference"),
+                triggered=self.show_quickref)
+            guiref_action = create_action(
+                self,
+                _("Console help"),
+                triggered=self.show_guiref)
+            add_actions(
+                self.ipython_menu,
+                (intro_action, guiref_action, quickref_action))
+            self.main.mainmenu.add_item_to_application_menu(
+                self.ipython_menu,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.ExternalDocumentation,
+                before_section=HelpMenuSections.About,
+                omit_id=True)
+
+        self.add_actions_to_main_menus = False
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,

@@ -58,15 +58,11 @@ class Tours(SpyderPluginV2):
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        docs_action = self.get_action(
-            ApplicationActions.SpyderDocumentationAction,
-            plugin=Plugins.Application)
-
         mainmenu.add_item_to_application_menu(
             self.get_container().tour_action,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.Documentation,
-            before=docs_action)
+            before=ApplicationActions.SpyderDocumentationAction)
 
     def on_mainwindow_visible(self):
         self.show_tour_message()

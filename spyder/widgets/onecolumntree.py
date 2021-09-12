@@ -6,14 +6,13 @@
 
 # Third party imports
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QTreeWidget, QMenu
+from qtpy.QtWidgets import QTreeWidget
 
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    get_item_user_text)
+from spyder.utils.qthelpers import get_item_user_text
 
 
 class OneColumnTreeActions:

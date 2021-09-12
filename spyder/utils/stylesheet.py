@@ -226,6 +226,11 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
                 backgroundColor=color
             )
 
+        # Remove indicator for popup mode
+        css['QToolBar QToolButton::menu-indicator'].setValues(
+            image='none'
+        )
+
 
 class PanesToolbarStyleSheet(SpyderStyleSheet):
     """Stylesheet for pane toolbars."""
@@ -244,8 +249,10 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
             height=self.BUTTON_HEIGHT,
             width=self.BUTTON_WIDTH,
             border='0px',
+            margin='0px'
         )
 
+        # Remove indicator for popup mode
         css['QToolButton::menu-indicator'].setValues(
             image='none'
         )

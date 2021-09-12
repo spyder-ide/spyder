@@ -145,12 +145,15 @@ class SpyderToolbarMixin:
         """
         toolbar.add_item(action_or_widget, section=section, before=before)
 
-    def create_stretcher(self):
+    def create_stretcher(self, id_=None):
         """
         Create a stretcher widget to be used in a Qt toolbar.
         """
         stretcher = QWidget()
         stretcher.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        if id_ is not None:
+            stretcher.ID = id_
         return stretcher
 
     def create_toolbar(self, name: str) -> QToolBar:
@@ -254,7 +257,7 @@ class SpyderMenuMixin:
         """
         from spyder.api.widgets.menus import SpyderMenu
 
-        menu = SpyderMenu(parent=self, title=text)
+        menu = SpyderMenu(parent=self, title=text, menu_id=name)
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)
             menu.setIcon(icon)

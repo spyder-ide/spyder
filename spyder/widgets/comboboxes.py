@@ -144,7 +144,7 @@ class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
 
     def __init__(self, parent, items=None, tip=None,
-                 adjust_to_minimum=True):
+                 adjust_to_minimum=True, id_=None):
         BaseComboBox.__init__(self, parent)
         if hasattr(self.lineEdit(), 'setClearButtonEnabled'):  # only Qt >= 5.2
             self.lineEdit().setClearButtonEnabled(True)
@@ -155,6 +155,8 @@ class PatternComboBox(BaseComboBox):
             self.addItems(items)
         if tip is not None:
             self.setToolTip(tip)
+        if id_ is not None:
+            self.ID = id_
 
 
 class EditableComboBox(BaseComboBox):
@@ -204,7 +206,7 @@ class PathComboBox(EditableComboBox):
     """
     open_dir = Signal(str)
 
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         EditableComboBox.__init__(self, parent)
 
         # Replace the default lineedit by a custom one with icon display
@@ -224,6 +226,9 @@ class PathComboBox(EditableComboBox):
         self.highlighted.connect(self.add_tooltip_to_highlighted_item)
         self.sig_tab_pressed.connect(self.tab_complete)
         self.valid.connect(lineedit.update_status)
+
+        if id_ is not None:
+            self.ID = id_
 
     # --- Qt overrides
     def focusInEvent(self, event):
@@ -306,11 +311,14 @@ class UrlComboBox(PathComboBox):
     """
     QComboBox handling urls
     """
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
         line_edit = QLineEdit(self)
         self.setLineEdit(line_edit)
         self.editTextChanged.disconnect(self.validate)
+
+        if id_ is not None:
+            self.ID = id_
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
@@ -387,8 +395,10 @@ class PythonModulesComboBox(PathComboBox):
     QComboBox handling Python modules or packages path
     (i.e. .py, .pyw files *and* directories containing __init__.py)
     """
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
+        if id_ is not None:
+            self.ID = id_
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""

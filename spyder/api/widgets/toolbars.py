@@ -9,18 +9,25 @@ Spyder API toolbar widgets.
 """
 
 # Standard library imports
-import textwrap
 import uuid
 from collections import OrderedDict
+from typing import Union, Optional, Tuple, List, Dict
 
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt
-from qtpy.QtWidgets import QAction, QToolBar, QToolButton
+from qtpy.QtWidgets import QAction, QToolBar, QToolButton, QWidget
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
+from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
     APP_TOOLBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
 
+
+# Generic type annotations
+ToolbarItem = Union[SpyderAction, QWidget]
+ToolbarItemEntry = Tuple[ToolbarItem, Optional[str], Optional[str],
+                         Optional[str]]
 
 # --- Constants
 # ----------------------------------------------------------------------------
@@ -58,25 +65,69 @@ class SpyderToolbar(QToolBar):
     def __init__(self, parent, title):
         super().__init__(parent=parent)
         self._section_items = OrderedDict()
+        self._item_map = {}  # type: Dict[str, ToolbarItem]
+        self._pending_items = {}  # type: Dict[str, List[ToolbarItemEntry]]
         self._title = title
         self._default_section = "default_section"
 
         self.setWindowTitle(title)
 
-    def add_item(self, action_or_widget, section=None, before=None,
-                 before_section=None):
+    def add_item(self, action_or_widget: ToolbarItem,
+                 section: Optional[str] = None, before: Optional[str] = None,
+                 before_section: Optional[str] = None, omit_id: bool = False):
         """
         Add action or widget item to given toolbar `section`.
+
+        Parameters
+        ----------
+        item: SpyderAction or QWidget
+            The item to add to the `toolbar`.
+        toolbar_id: str or None
+            The application toolbar unique string identifier.
+        section: str or None
+            The section id in which to insert the `item` on the `toolbar`.
+        before: str or None
+            Make the item appear before another given item.
+        before_section: str or None
+            Make the item defined section appear before another given section
+            (must be already defined).
+        omit_id: bool
+            If True, then the toolbar will check if the item to add declares an
+            id, False otherwise. This flag exists only for items added on
+            Spyder 4 plugins. Default: False
         """
+        item_id = None
+        if (isinstance(action_or_widget, SpyderAction) or
+                hasattr(action_or_widget, 'action_id')):
+            item_id = action_or_widget.action_id
+        elif hasattr(action_or_widget, 'ID'):
+            item_id = action_or_widget.ID
+
+        if not omit_id and item_id is None and action_or_widget is not None:
+            raise SpyderAPIError(
+                f'Item {action_or_widget} must declare an ID attribute.')
+
+        if before is not None:
+            if before not in self._item_map:
+                before_pending_items = self._pending_items.get(before, [])
+                before_pending_items.append(
+                    (action_or_widget, section, before, before_section))
+                self._pending_items[before] = before_pending_items
+                return
+            else:
+                before = self._item_map[before]
+
         if section is None:
             section = self._default_section
 
         action_or_widget._section = section
-        if section is None and before is not None:
-            action_or_widget._section = before._section
-            section = before._section
 
-        if section is not None and section not in self._section_items:
+        if before is not None:
+            if section == self._default_section:
+                action_or_widget._section = before._section
+                section = before._section
+
+        if section not in self._section_items:
             self._section_items[section] = [action_or_widget]
         else:
             if before is not None:
@@ -85,6 +136,7 @@ class SpyderToolbar(QToolBar):
                     if act_or_wid == before:
                         new_actions_or_widgets.append(action_or_widget)
                     new_actions_or_widgets.append(act_or_wid)
+
                 self._section_items[section] = new_actions_or_widgets
             else:
                 self._section_items[section].append(action_or_widget)
@@ -99,6 +151,14 @@ class SpyderToolbar(QToolBar):
             self._section_items = OrderedDict(
                 (section_key, self._section_items[section_key])
                 for section_key in new_sections_keys)
+
+        if item_id is not None:
+            self._item_map[item_id] = action_or_widget
+            if item_id in self._pending_items:
+                item_pending = self._pending_items.pop(item_id)
+                for item, section, before, before_section in item_pending:
+                    self.add_item(item, section=section, before=before,
+                                  before_section=before_section)
 
     def _render(self):
         """

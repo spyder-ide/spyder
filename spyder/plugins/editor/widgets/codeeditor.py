@@ -37,7 +37,7 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
-                            QToolTip, QScrollBar)
+                            QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
 from three_merge import merge
 
@@ -133,9 +133,15 @@ class CodeEditor(TextEditBaseWidget):
     # the up/down arrow keys.
     UPDATE_DECORATIONS_TIMEOUT = 500  # milliseconds
 
-    # Timeout to sychronize symbols and folding after linting results
-    # arrive
-    SYNC_SYMBOLS_AND_FOLDING_TIMEOUT = 500  # milliseconds
+    # Timeouts (in milliseconds) to sychronize symbols and folding after
+    # linting results arrive, according to the number of lines in the file.
+    SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS = {
+        # Lines: Timeout
+        500: 350,
+        1500: 800,
+        2500: 1200,
+        6500: 1800
+    }
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -304,10 +310,10 @@ class CodeEditor(TextEditBaseWidget):
         # See: process_diagnostics
         self._timer_sync_symbols_and_folding = QTimer(self)
         self._timer_sync_symbols_and_folding.setSingleShot(True)
-        self._timer_sync_symbols_and_folding.setInterval(
-            self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUT)
         self._timer_sync_symbols_and_folding.timeout.connect(
             self.sync_symbols_and_folding)
+        self.blockCountChanged.connect(
+            self.set_sync_symbols_and_folding_timeout)
 
         # Goto uri
         self._last_hover_pattern_key = None
@@ -467,6 +473,7 @@ class CodeEditor(TextEditBaseWidget):
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread()
+        self.update_folding_thread.finished.connect(self.finish_code_folding)
 
         # Completions hint
         self.completions_hint = True
@@ -535,6 +542,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Diagnostics
         self.update_diagnostics_thread = QThread()
+        self.update_diagnostics_thread.run = self.set_errors
+        self.update_diagnostics_thread.finished.connect(
+            self.finish_code_analysis)
         self._diagnostics = []
 
         # Editor Extensions
@@ -1172,6 +1182,25 @@ class CodeEditor(TextEditBaseWidget):
         # Process results (runs in a thread)
         self.process_code_analysis(params['params'])
 
+    def set_sync_symbols_and_folding_timeout(self):
+        """
+        Set timeout to sync symbols and folding according to the file
+        size.
+        """
+        current_lines = self.get_line_count()
+        timeout = None
+
+        for lines in self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS.keys():
+            if (current_lines // lines) == 0:
+                timeout = self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS[lines]
+                break
+
+        if not timeout:
+            timeouts = self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS.values()
+            timeout = list(timeouts)[-1]
+
+        self._timer_sync_symbols_and_folding.setInterval(timeout)
+
     def sync_symbols_and_folding(self):
         """
         Synchronize symbols and folding after linting results arrive.
@@ -1185,9 +1214,6 @@ class CodeEditor(TextEditBaseWidget):
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
-        self.update_diagnostics_thread.run = self.set_errors
-        self.update_diagnostics_thread.finished.connect(
-            self.finish_code_analysis)
         self.update_diagnostics_thread.start()
 
     def cleanup_code_analysis(self):
@@ -1219,7 +1245,13 @@ class CodeEditor(TextEditBaseWidget):
     def underline_errors(self):
         """Underline errors and warnings."""
         try:
+            # Clear current selections before painting the new ones.
+            # This prevents accumulating them when moving around in or editing
+            # the file, which generated a memory leakage and sluggishness
+            # after some time.
+            self.clear_extra_selections('code_analysis_underline')
             self._process_code_analysis(underline=True)
+            self.update_extra_selections()
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1230,8 +1262,8 @@ class CodeEditor(TextEditBaseWidget):
     def finish_code_analysis(self):
         """Finish processing code analysis results."""
         self.linenumberarea.update()
-        self.underline_errors()
-        self.update_extra_selections()
+        if self.underline_errors_enabled:
+            self.underline_errors()
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
 
@@ -1255,6 +1287,9 @@ class CodeEditor(TextEditBaseWidget):
             them can't.
         """
         document = self.document()
+        if underline:
+            first_block, last_block = self.get_buffer_block_numbers()
+
         for diagnostic in self._diagnostics:
             if self.is_ipython() and (
                     diagnostic["message"] == "undefined name 'get_ipython'"):
@@ -1270,27 +1305,25 @@ class CodeEditor(TextEditBaseWidget):
                 'severity', DiagnosticSeverity.ERROR)
 
             block = document.findBlockByNumber(start['line'])
-            data = block.userData()
+            text = block.text()
 
             # Skip messages according to certain criteria.
             # This one works for any programming language
-            if 'analysis:ignore' in block.text():
+            if 'analysis:ignore' in text:
                 continue
 
             # This only works for Python.
             if self.language == 'Python':
-                if NOQA_INLINE_REGEXP.search(block.text()) is not None:
+                if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 
+            data = block.userData()
             if not data:
                 data = BlockUserData(self)
 
             if underline:
                 block_nb = block.blockNumber()
-                first, last = self.get_buffer_block_numbers()
-
-                if (self.underline_errors_enabled and
-                        first <= block_nb <= last):
+                if first_block <= block_nb <= last_block:
                     error = severity == DiagnosticSeverity.ERROR
                     color = self.error_color if error else self.warning_color
                     color = QColor(color)
@@ -1300,6 +1333,9 @@ class CodeEditor(TextEditBaseWidget):
                     data.selection_start = start
                     data.selection_end = end
 
+                    # Don't call highlight_selection with `update=True` so that
+                    # all underline selections are updated in bulk in
+                    # underline_errors.
                     self.highlight_selection('code_analysis_underline',
                                              data._selection(),
                                              underline_color=block.color)
@@ -1747,7 +1783,11 @@ class CodeEditor(TextEditBaseWidget):
         if edits is None:
             return
 
-        text = self.get_text_with_eol()
+        # We need to use here toPlainText and not get_text_with_eol to
+        # to not mess up the code when applying formatting.
+        # See spyder-ide/spyder#16180
+        text = self.toPlainText()
+
         text_tokens = list(text)
         merged_text = None
         for edit in edits:
@@ -1849,8 +1889,6 @@ class CodeEditor(TextEditBaseWidget):
         # Update folding in a thread
         self.update_folding_thread.run = functools.partial(
             self.update_and_merge_folding, extended_ranges)
-        self.update_folding_thread.finished.connect(
-            self.finish_code_folding)
         self.update_folding_thread.start()
 
     def update_and_merge_folding(self, extended_ranges):
@@ -2236,21 +2274,24 @@ class CodeEditor(TextEditBaseWidget):
         this_line = self.get_text_line(line)
         previous_line = self.get_text_line(line - 1)
 
-        while this_line == '':
-            cursor.movePosition(QTextCursor.PreviousBlock,
-                                QTextCursor.KeepAnchor)
+        # Don't try to trim new lines for a file with a single line.
+        # Fixes spyder-ide/spyder#16401
+        if self.get_line_count() > 1:
+            while this_line == '':
+                cursor.movePosition(QTextCursor.PreviousBlock,
+                                    QTextCursor.KeepAnchor)
 
-            if self.add_newline:
-                if this_line == '' and previous_line != '':
-                    cursor.movePosition(QTextCursor.NextBlock,
-                                        QTextCursor.KeepAnchor)
+                if self.add_newline:
+                    if this_line == '' and previous_line != '':
+                        cursor.movePosition(QTextCursor.NextBlock,
+                                            QTextCursor.KeepAnchor)
 
-            line -= 1
-            if line == 0:
-                break
+                line -= 1
+                if line == 0:
+                    break
 
-            this_line = self.get_text_line(line)
-            previous_line = self.get_text_line(line - 1)
+                this_line = self.get_text_line(line)
+                previous_line = self.get_text_line(line - 1)
 
         if not self.add_newline:
             cursor.movePosition(QTextCursor.EndOfBlock,
@@ -2803,33 +2844,48 @@ class CodeEditor(TextEditBaseWidget):
         first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
         first_line = preceding_text + first_line_selected
 
-        lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
-            preceding_text)
+        first_line_adjustment = 0
 
-        if preceding_text.strip() == "" and first_line.strip != "":
-            # The indent is controlled by preceding_text. Remove extra indent
-            extra_indent = self.get_line_indentation(first_line_selected)
-            lines_adjustment -= extra_indent
-            first_line = self.adjust_indentation(
-                first_line, -extra_indent)
-
-        # Fix indentation of multiline text
-        if self.is_python_like() and len(preceding_text.strip()) == 0:
+        # Dedent if automatic indentation makes code invalid
+        # Minimum indentation = max of current and paster indentation
+        if (self.is_python_like() and len(preceding_text.strip()) == 0
+                and len(first_line.strip()) > 0):
             # Correct indentation
             desired_indent = self.find_indentation()
             if desired_indent:
+                # minimum indentation is either the current indentation
+                # or the indentation of the paster text
+                desired_indent = max(
+                    desired_indent,
+                    self.get_line_indentation(first_line_selected),
+                    self.get_line_indentation(preceding_text))
                 first_line_adjustment = (
                     desired_indent - self.get_line_indentation(first_line))
-                if first_line_adjustment < 0:
-                    # Only dedent, don't indent
-                    lines_adjustment += first_line_adjustment
-                    first_line = self.adjust_indentation(
-                        first_line, first_line_adjustment)
+                # Only dedent, don't indent
+                first_line_adjustment = min(first_line_adjustment, 0)
+                # Only dedent, don't indent
+                first_line = self.adjust_indentation(
+                    first_line, first_line_adjustment)
 
-        # Get new text
-        remaining_lines = [
-            self.adjust_indentation(line, lines_adjustment)
-            for line in remaining_lines]
+        # Fix indentation of multiline text based on first line
+        if len(remaining_lines) > 0 and len(first_line.strip()) > 0:
+            lines_adjustment = first_line_adjustment
+            lines_adjustment += CLIPBOARD_HELPER.remaining_lines_adjustment(
+                preceding_text)
+
+            # Make sure the code is not flattened
+            indentations = [
+                self.get_line_indentation(line)
+                for line in remaining_lines if line.strip() != ""]
+            if indentations:
+                max_dedent = min(indentations)
+                lines_adjustment = max(lines_adjustment, -max_dedent)
+    
+            # Get new text
+            remaining_lines = [
+                self.adjust_indentation(line, lines_adjustment)
+                for line in remaining_lines]
+
         text = eol_chars.join([first_line, *remaining_lines])
 
         self.skip_rstrip = True
@@ -2967,9 +3023,11 @@ class CodeEditor(TextEditBaseWidget):
         """Update decorations on the visible portion of the screen."""
         if self.underline_errors_enabled:
             self.underline_errors()
-            self.update_extra_selections()
-        else:
-            self.decorations.update()
+
+        # This is required to update decorations whether there are or not
+        # underline errors in the visible portion of the screen.
+        # See spyder-ide/spyder#14268.
+        self.decorations.update()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""

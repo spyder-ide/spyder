@@ -24,8 +24,8 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets import editor
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
+from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -375,8 +375,6 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
         qtbot.keyPress(code_editor, Qt.Key_Return)
 
     qtbot.keyPress(code_editor, Qt.Key_Up)
-    # Add a tab for correct indentation
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
     code_editor.paste()
     qtbot.wait(3000)
 

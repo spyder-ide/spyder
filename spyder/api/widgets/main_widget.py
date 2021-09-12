@@ -13,7 +13,6 @@ subclass of PluginMainWidget.
 
 # Standard library imports
 from collections import OrderedDict
-import os
 import sys
 import textwrap
 from typing import Optional
@@ -228,6 +227,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
         )
+        self._corner_widget.ID = 'main_corner'
 
         self._main_toolbar = MainWidgetToolbar(
             parent=self,
@@ -380,21 +380,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         # Update title
         self.setWindowTitle(self.get_title())
-        self._update_style()
-
-    def _update_style(self):
-        """
-        Update style of the widget.
-        """
-        qss = r"""
-            QToolButton::menu-indicator {
-                image: none;
-            }
-            QToolButton {
-                margin: 0px;
-            }
-            """
-        self._options_button.setStyleSheet(textwrap.dedent(qss))
 
     def _update_actions(self):
         """
@@ -416,7 +401,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         # Widget setup
         # --------------------------------------------------------------------
         self.update_actions()
-        self._update_style()
 
     @Slot(bool)
     def _on_top_level_change(self, top_level):
@@ -555,11 +539,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 'Menu name "{}" already in use!'.format(menu_id)
             )
 
-        menu = MainWidgetMenu(parent=self, title=title)
-        menu.ID = menu_id
+        menu = MainWidgetMenu(parent=self, title=title, menu_id=menu_id)
 
         MENU_REGISTRY.register_reference(
-            menu, menu.ID, self.PLUGIN_NAME, self.CONTEXT_NAME)
+            menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
 
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)

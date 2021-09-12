@@ -27,7 +27,6 @@ import pytest
 from flaky import flaky
 from jupyter_core import paths
 from jupyter_client import BlockingKernelClient
-from ipython_genutils import py3compat
 import numpy as np
 
 # Local imports
@@ -77,7 +76,8 @@ def setup_kernel(cmd):
 
         if kernel.poll() is not None:
             o,e = kernel.communicate()
-            e = py3compat.cast_unicode(e)
+            if not PY3 and isinstance(e, bytes):
+                e = e.decode()
             raise IOError("Kernel failed to start:\n%s" % e)
 
         if not os.path.exists(connection_file):

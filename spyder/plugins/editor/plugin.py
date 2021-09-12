@@ -149,6 +149,11 @@ class Editor(SpyderPluginWidget):
     :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
     """
 
+    sig_open_files_finished = Signal()
+    """
+    This signal is emitted when the editor finished to open files.
+    """
+
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
 
@@ -985,7 +990,8 @@ class Editor(SpyderPluginWidget):
             self.new_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.New,
-            before_section=FileMenuSections.Restart)
+            before_section=FileMenuSections.Restart,
+            omit_id=True)
         # Open section
         open_actions = [
             self.open_action,
@@ -997,7 +1003,8 @@ class Editor(SpyderPluginWidget):
                 open_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Open,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Save section
         save_actions = [
             self.save_action,
@@ -1011,7 +1018,8 @@ class Editor(SpyderPluginWidget):
                 save_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Print
         print_actions = [
             print_preview_action,
@@ -1022,7 +1030,8 @@ class Editor(SpyderPluginWidget):
                 print_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Print,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Close
         close_actions = [
             self.close_action,
@@ -1033,14 +1042,16 @@ class Editor(SpyderPluginWidget):
                 close_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Navigation
         if sys.platform == 'darwin':
             self.main.mainmenu.add_item_to_application_menu(
                 self.tab_navigation_actions,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Navigation,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
 
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +
@@ -3169,6 +3180,7 @@ class Editor(SpyderPluginWidget):
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
+        self.sig_open_files_finished.emit()
 
     def save_open_files(self):
         """Save the list of open files"""
