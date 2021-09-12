@@ -72,11 +72,14 @@ class ToolbarStyle(QProxyStyle):
 
         From https://stackoverflow.com/a/27042352/438386
         """
+        # Important: These values need to be updated in case we change the size
+        # of our toolbar buttons in utils/stylesheet.py. That's because Qt only
+        # allow to set them in pixels here, not em's.
         if pm == QStyle.PM_ToolBarExtensionExtent:
             if self.TYPE == 'Application':
-                return 30
+                return 57
             elif self.TYPE == 'MainWidget':
-                return 20
+                return 44
             else:
                 print("Unknown toolbar style type")  # spyder: test-skip
         return super().pixelMetric(pm, option, widget)
