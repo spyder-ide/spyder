@@ -265,7 +265,7 @@ class IconManager():
             '1downarrow':              [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR}],
             'undock':                  [('mdi.open-in-new',), {'color': self.MAIN_FG_COLOR}],
             'close_pane':              [('mdi.window-close',), {'color': self.MAIN_FG_COLOR}],
-            'toolbar_ext_button':      [('mdi.dots-vertical',), {'color': self.MAIN_FG_COLOR}],
+            'toolbar_ext_button':      [('mdi.dots-horizontal',), {'color': self.MAIN_FG_COLOR}],
             # --- Autocompletion/document symbol type icons --------------
             'keyword':                 [('mdi.alpha-k-box',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'color':                   [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
