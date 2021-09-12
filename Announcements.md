@@ -1,21 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.1.3 is released!
+**Subject**: [ANN] Spyder 5.1.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.1.3** has been released and is available for
+I'm pleased to announce that Spyder **5.1.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three days after version 5.1.2 and it contains the
+This release comes one week after version 5.1.3 and it contains the
 following important fixes:
 
-* Fix error when starting kernels in macOS application.
+* Fix serious memory leaks and improve performance when typing in the editor.
 
-In this release we fixed 3 issues and merged 4 pull requests that amount
-to more than 10 commits. For a full list of fixes, please see our
+In this release we fixed 3 issues and merged 6 pull requests that amount
+to more than 20 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
