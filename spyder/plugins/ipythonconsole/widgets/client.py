@@ -187,7 +187,173 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 and self.restart_thread.isRunning()):
             self.restart_thread.wait()
 
-    # ----- Public API --------------------------------------------------------
+    # ----- Private methods ---------------------------------------------------
+    def _before_prompt_is_ready(self):
+        """Configure shellwidget before kernel is connected."""
+        self._show_loading_page()
+        self.shellwidget.sig_prompt_ready.connect(
+            self._when_prompt_is_ready)
+        # If remote execution, the loading page should be hidden as well
+        self.shellwidget.sig_remote_execute.connect(
+            self._when_prompt_is_ready)
+
+    def _when_prompt_is_ready(self):
+        """Configuration after the prompt is shown."""
+        # To hide the loading page
+        self._hide_loading_page()
+
+        # Show possible errors when setting Matplotlib backend
+        self._show_mpl_backend_errors()
+
+        # To show if special console is valid
+        self._check_special_console_error()
+
+        self.shellwidget.sig_prompt_ready.disconnect(
+            self._when_prompt_is_ready)
+        self.shellwidget.sig_remote_execute.disconnect(
+            self._when_prompt_is_ready)
+
+        # It's necessary to do this at this point to avoid giving
+        # focus to _control at startup.
+        self._connect_control_signals()
+
+        if self.give_focus:
+            self.shellwidget._control.setFocus()
+
+    def _create_loading_page(self):
+        """Create html page to show while the kernel is starting"""
+        loading_template = Template(LOADING)
+        loading_img = get_image_path('loading_sprites')
+        if os.name == 'nt':
+            loading_img = loading_img.replace('\\', '/')
+        message = _("Connecting to kernel...")
+        page = loading_template.substitute(css_path=self.css_path,
+                                           loading_img=loading_img,
+                                           message=message)
+        return page
+
+    def _create_blank_page(self):
+        """Create html page to show while the kernel is starting"""
+        loading_template = Template(BLANK)
+        page = loading_template.substitute(css_path=self.css_path)
+        return page
+
+    def _show_loading_page(self):
+        """Show animation while the kernel is loading."""
+        self.shellwidget.hide()
+        self.infowidget.show()
+        self.info_page = self.loading_page
+        self.set_info_page()
+
+    def _hide_loading_page(self):
+        """Hide animation shown while the kernel is loading."""
+        self.infowidget.hide()
+        self.info_page = self.blank_page
+        self.set_info_page()
+        self.shellwidget.show()
+
+    def _read_stderr(self):
+        """Read the stderr file of the kernel."""
+        # We need to read stderr_file as bytes to be able to
+        # detect its encoding with chardet
+        f = open(self.stderr_file, 'rb')
+
+        try:
+            stderr_text = f.read()
+
+            # This is needed to avoid showing an empty error message
+            # when the kernel takes too much time to start.
+            # See spyder-ide/spyder#8581.
+            if not stderr_text:
+                return ''
+
+            # This is needed since the stderr file could be encoded
+            # in something different to utf-8.
+            # See spyder-ide/spyder#4191.
+            encoding = get_coding(stderr_text)
+            stderr_text = to_text_string(stderr_text, encoding)
+            return stderr_text
+        finally:
+            f.close()
+
+    def _show_mpl_backend_errors(self):
+        """
+        Show possible errors when setting the selected Matplotlib backend.
+        """
+        if self.shellwidget.is_spyder_kernel:
+            self.shellwidget.call_kernel().show_mpl_backend_errors()
+
+    def _check_special_console_error(self):
+        """Check if the dependecies for special consoles are available."""
+        self.shellwidget.call_kernel(
+            callback=self._show_special_console_error
+            ).is_special_kernel_valid()
+
+    def _show_special_console_error(self, missing_dependency):
+        if missing_dependency is not None:
+            error_message = _(
+                "Your Python environment or installation doesn't have the "
+                "<tt>{missing_dependency}</tt> module installed or it "
+                "occurred a problem importing it. Due to that, it is not "
+                "possible for Spyder to create this special console for "
+                "you."
+            ).format(missing_dependency=missing_dependency)
+
+            self.show_kernel_error(error_message)
+
+    def _abort_kernel_restart(self):
+        """
+        Abort kernel restart if there are errors while starting it.
+
+        We also ignore errors about comms, which are irrelevant.
+        """
+        stderr = self.get_stderr_contents()
+        if stderr and 'No such comm' not in stderr:
+            return True
+        else:
+            return False
+
+    def _connect_control_signals(self):
+        """Connect signals of control widgets."""
+        control = self.shellwidget._control
+        page_control = self.shellwidget._page_control
+
+        control.sig_focus_changed.connect(
+            lambda: self.container.sig_focus_changed.emit())
+        page_control.sig_focus_changed.connect(
+            lambda: self.container.sig_focus_changed.emit())
+        control.sig_visibility_changed.connect(
+            self.container.refresh_container)
+        page_control.sig_visibility_changed.connect(
+            self.container.refresh_container)
+        page_control.sig_show_find_widget_requested.connect(
+            self.container.find_widget.show)
+
+    # ---- Spyder-kernels runcell related functionality that uses the Editor --
+    def handle_get_file_code(self, filename, save_all=True):
+        """
+        Return the bytes that compose the file.
+
+        Bytes are returned instead of str to support non utf-8 files.
+        """
+        return self.container.handle_get_file_code(
+            filename, save_all=save_all)
+
+    def handle_run_cell(self, cell_name, filename):
+        """
+        Get cell code from cell name and file name.
+        """
+        return self.container.handle_run_cell(cell_name, filename)
+
+    def handle_cell_count(self, filename):
+        """Get number of cells in file to loop."""
+        return self.container.handle_cell_count(filename)
+
+    def handle_current_filename(self):
+        """Get the current filename."""
+        return self.container.handle_current_filename()
+
+    # ---- Public methods -----------------------------------------------------
     @property
     def kernel_id(self):
         """Get kernel id"""
@@ -317,38 +483,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if self.shellwidget.is_debugging():
             return
         return super(ClientWidget, self).add_to_history(command)
-
-    def _before_prompt_is_ready(self):
-        """Configure shellwidget before kernel is connected."""
-        self._show_loading_page()
-        self.shellwidget.sig_prompt_ready.connect(
-            self._when_prompt_is_ready)
-        # If remote execution, the loading page should be hidden as well
-        self.shellwidget.sig_remote_execute.connect(
-            self._when_prompt_is_ready)
-
-    def _when_prompt_is_ready(self):
-        """Configuration after the prompt is shown."""
-        # To hide the loading page
-        self._hide_loading_page()
-
-        # Show possible errors when setting Matplotlib backend
-        self._show_mpl_backend_errors()
-
-        # To show if special console is valid
-        self._check_special_console_error()
-
-        self.shellwidget.sig_prompt_ready.disconnect(
-            self._when_prompt_is_ready)
-        self.shellwidget.sig_remote_execute.disconnect(
-            self._when_prompt_is_ready)
-
-        # It's necessary to do this at this point to avoid giving
-        # focus to _control at startup.
-        self._connect_control_signals()
-
-        if self.give_focus:
-            self.shellwidget._control.setFocus()
 
     def is_client_executing(self):
         return (self.shellwidget._executing or
@@ -671,113 +805,3 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 self.info_page,
                 QUrl.fromLocalFile(self.css_path)
             )
-
-    # ----- Private API -------------------------------------------------------
-    def _create_loading_page(self):
-        """Create html page to show while the kernel is starting"""
-        loading_template = Template(LOADING)
-        loading_img = get_image_path('loading_sprites')
-        if os.name == 'nt':
-            loading_img = loading_img.replace('\\', '/')
-        message = _("Connecting to kernel...")
-        page = loading_template.substitute(css_path=self.css_path,
-                                           loading_img=loading_img,
-                                           message=message)
-        return page
-
-    def _create_blank_page(self):
-        """Create html page to show while the kernel is starting"""
-        loading_template = Template(BLANK)
-        page = loading_template.substitute(css_path=self.css_path)
-        return page
-
-    def _show_loading_page(self):
-        """Show animation while the kernel is loading."""
-        self.shellwidget.hide()
-        self.infowidget.show()
-        self.info_page = self.loading_page
-        self.set_info_page()
-
-    def _hide_loading_page(self):
-        """Hide animation shown while the kernel is loading."""
-        self.infowidget.hide()
-        self.info_page = self.blank_page
-        self.set_info_page()
-        self.shellwidget.show()
-
-    def _read_stderr(self):
-        """Read the stderr file of the kernel."""
-        # We need to read stderr_file as bytes to be able to
-        # detect its encoding with chardet
-        f = open(self.stderr_file, 'rb')
-
-        try:
-            stderr_text = f.read()
-
-            # This is needed to avoid showing an empty error message
-            # when the kernel takes too much time to start.
-            # See spyder-ide/spyder#8581.
-            if not stderr_text:
-                return ''
-
-            # This is needed since the stderr file could be encoded
-            # in something different to utf-8.
-            # See spyder-ide/spyder#4191.
-            encoding = get_coding(stderr_text)
-            stderr_text = to_text_string(stderr_text, encoding)
-            return stderr_text
-        finally:
-            f.close()
-
-    def _show_mpl_backend_errors(self):
-        """
-        Show possible errors when setting the selected Matplotlib backend.
-        """
-        if self.shellwidget.is_spyder_kernel:
-            self.shellwidget.call_kernel().show_mpl_backend_errors()
-
-    def _check_special_console_error(self):
-        """Check if the dependecies for special consoles are available."""
-        self.shellwidget.call_kernel(
-            callback=self._show_special_console_error
-            ).is_special_kernel_valid()
-
-    def _show_special_console_error(self, missing_dependency):
-        if missing_dependency is not None:
-            error_message = _(
-                "Your Python environment or installation doesn't have the "
-                "<tt>{missing_dependency}</tt> module installed or it "
-                "occurred a problem importing it. Due to that, it is not "
-                "possible for Spyder to create this special console for "
-                "you."
-            ).format(missing_dependency=missing_dependency)
-
-            self.show_kernel_error(error_message)
-
-    def _abort_kernel_restart(self):
-        """
-        Abort kernel restart if there are errors while starting it.
-
-        We also ignore errors about comms, which are irrelevant.
-        """
-        stderr = self.get_stderr_contents()
-        if stderr and 'No such comm' not in stderr:
-            return True
-        else:
-            return False
-
-    def _connect_control_signals(self):
-        """Connect signals of control widgets."""
-        control = self.shellwidget._control
-        page_control = self.shellwidget._page_control
-
-        control.sig_focus_changed.connect(
-            lambda: self.container.sig_focus_changed.emit())
-        page_control.sig_focus_changed.connect(
-            lambda: self.container.sig_focus_changed.emit())
-        control.sig_visibility_changed.connect(
-            self.container.refresh_container)
-        page_control.sig_visibility_changed.connect(
-            self.container.refresh_container)
-        page_control.sig_show_find_widget_requested.connect(
-            self.container.find_widget.show)

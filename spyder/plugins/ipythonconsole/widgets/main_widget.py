@@ -1117,6 +1117,31 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Register client
         self.register_client(client)
 
+    # --- Spyder-kernels runcell related functionality that uses the Editor
+    # -------------------------------------------------------------------------
+    def handle_get_file_code(self, filename, save_all=True):
+        """
+        Return the bytes that compose the file.
+
+        Bytes are returned instead of str to support non utf-8 files.
+        """
+        return self._plugin.handle_get_file_code(
+            filename, save_all=save_all)
+
+    def handle_run_cell(self, cell_name, filename):
+        """
+        Get cell code from cell name and file name.
+        """
+        return self._plugin.handle_run_cell(cell_name, filename)
+
+    def handle_cell_count(self, filename):
+        """Get number of cells in file to loop."""
+        return self._plugin.handle_cell_count(filename)
+
+    def handle_current_filename(self):
+        """Get the current filename."""
+        return self._plugin.handle_current_filename()
+
     # ---- Public API
     # -------------------------------------------------------------------------
 

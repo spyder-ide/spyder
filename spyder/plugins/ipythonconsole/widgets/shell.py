@@ -772,79 +772,28 @@ the sympy module (e.g. plot)
         self._control.insert_horizontal_ruler()
 
     # ---- Spyder-kernels methods ---------------------------------------------
-    def get_editor(self, filename):
-        """Get editor for filename and set it as the current editor."""
-        editorstack = self.get_editorstack()
-        if editorstack is None:
-            return None
-
-        if not filename:
-            return None
-
-        index = editorstack.has_filename(filename)
-        if index is None:
-            return None
-
-        return editorstack.data[index].editor
-
-    def get_editorstack(self):
-        """Get the current editorstack."""
-        # TODO: Should not call the Editor directly
-        plugin = self.ipyclient.container._plugin
-        if plugin.main.editor is not None:
-            editor = plugin.main.editor
-            return editor.get_current_editorstack()
-        raise RuntimeError('No editorstack found.')
-
     def handle_get_file_code(self, filename, save_all=True):
         """
         Return the bytes that compose the file.
 
         Bytes are returned instead of str to support non utf-8 files.
         """
-        editorstack = self.get_editorstack()
-        if save_all and self.get_conf(
-                'save_all_before_run', default=True, section='editor'):
-            editorstack.save_all(save_new_files=False)
-        editor = self.get_editor(filename)
-
-        if editor is None:
-            # Load it from file instead
-            text, _enc = encoding.read(filename)
-            return text
-
-        return editor.toPlainText()
+        return self.ipyclient.handle_get_file_code(
+            filename, save_all=save_all)
 
     def handle_run_cell(self, cell_name, filename):
         """
         Get cell code from cell name and file name.
         """
-        editorstack = self.get_editorstack()
-        editor = self.get_editor(filename)
-
-        if editor is None:
-            raise RuntimeError(
-                "File {} not open in the editor".format(filename))
-
-        editorstack.last_cell_call = (filename, cell_name)
-
-        # The file is open, load code from editor
-        return editor.get_cell_code(cell_name)
+        return self.ipyclient.handle_run_cell(cell_name, filename)
 
     def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""
-        editor = self.get_editor(filename)
-
-        if editor is None:
-            raise RuntimeError(
-                "File {} not open in the editor".format(filename))
-
-        # The file is open, get cell count from editor
-        return editor.get_cell_count()
+        return self.ipyclient.handle_cell_count(filename)
 
     def handle_current_filename(self):
         """Get the current filename."""
-        return self.get_editorstack().get_current_finfo().filename
+        return self.ipyclient.handle_current_filename()
 
     # ---- Public methods (overrode by us) ------------------------------------
     def request_restart_kernel(self):
