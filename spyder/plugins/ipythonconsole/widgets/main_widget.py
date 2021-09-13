@@ -269,11 +269,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.clients = []
         self.filenames = []
         self.mainwindow_close = False
+        self.spyder_pythonpath = []
+        self.projects_available = False
+        self.active_project_path = None
         self.create_new_client_if_empty = True
         self.css_path = self.get_conf('css_path', section='appearance')
         self.run_cell_filename = None
         self.interrupt_action = None
-        self.spyder_pythonpath = []
         self.initial_conf_options = self.get_conf_options()
 
         # Attrs for testing
@@ -1616,15 +1618,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
         # Set shell cwd according to preferences
-        # TODO: Check dependency with Projects
         cwd_path = ''
         if self.get_conf(
                 'console/use_project_or_home_directory', section='workingdir'):
             cwd_path = get_home_dir()
-            if (self._plugin.main.projects is not None and
-                    self._plugin.main.projects.get_active_project()
-                    is not None):
-                cwd_path = self._plugin.main.projects.get_active_project_path()
+            if (self.projects_available and
+                    self.active_project_path is not None):
+                cwd_path = self.active_project_path
         elif self.get_conf(
                 'startup/use_fixed_directory', section='workingdir'):
             cwd_path = self.get_conf(
@@ -2157,8 +2157,22 @@ class IPythonConsoleWidget(PluginMainWidget):
             shellwidget.update_cwd()
 
     @on_conf_change(section='main', option='spyder_pythonpath')
-    def update_spyder_pythonpath(self, value):
-        self.spyder_pythonpath = value
+    def update_spyder_pythonpath(self, spyder_pythonpath):
+        """
+        Update the spyder_pythonpath value used to create kernelspecs
+
+        Parameters
+        ----------
+        value : list
+            Path set in the spyder_pythonpath configuration. The value is the
+            PYTHONPATH that is used inside Spyder
+
+        Returns
+        -------
+        None.
+
+        """
+        self.spyder_pythonpath = spyder_pythonpath
 
     def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""
@@ -2166,6 +2180,23 @@ class IPythonConsoleWidget(PluginMainWidget):
             shell = client.shellwidget
             if shell is not None:
                 shell.update_syspath(path_dict, new_path_dict)
+
+    def update_active_project_path(self, active_project_path):
+        """
+        Update the active project path attribute used to set the current
+        working directory on the shells in case a project is active
+
+        Parameters
+        ----------
+        active_project_path : str
+            Root path of the active project if any.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.active_project_path = active_project_path
 
     # ---- For execution
     def execute_code_and_focus_editor(self, lines, focus_to_editor=True):

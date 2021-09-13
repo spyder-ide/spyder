@@ -312,6 +312,19 @@ class IPythonConsole(SpyderDockablePlugin):
             history = self.get_plugin(Plugins.History)
             history.add_history(get_conf_path('history.py'))
 
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        projects = self.get_plugin(Plugins.Projects)
+        widget = self.get_widget()
+        widget.projects_available = True
+        projects.sig_project_loaded.connect(
+            lambda:
+                widget.update_active_project_path(
+                    projects.get_active_project_path()))
+        projects.sig_project_closed.connect(
+            lambda:
+                widget.update_active_project_path(None))
+
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font()
@@ -499,10 +512,9 @@ class IPythonConsole(SpyderDockablePlugin):
         """Update working directory to console cwd."""
         self.get_widget().update_working_directory()
 
-    def update_path(self, path_dict, new_path_dict, new_spyder_pythonpath):
+    def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""
-        self.get_widget().update_path(
-            path_dict, new_path_dict, new_spyder_pythonpath)
+        self.get_widget().update_path(path_dict, new_path_dict)
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into all clients"""
