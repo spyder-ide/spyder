@@ -336,7 +336,7 @@ class ConsoleWidget(PluginMainWidget):
         self._report_dlg.show()
 
     @Slot(dict)
-    def handle_exception(self, error_data, sender=None, internal_plugins=None):
+    def handle_exception(self, error_data, sender=None):
         """
         Exception ocurred in the internal console.
 

@@ -208,10 +208,6 @@ class MainWindow(QMainWindow):
         Add plugin to plugins dictionary.
         """
         self._PLUGINS[plugin.NAME] = plugin
-        if external:
-            self._EXTERNAL_PLUGINS[plugin.NAME] = plugin
-        else:
-            self._INTERNAL_PLUGINS[plugin.NAME] = plugin
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
@@ -600,8 +596,6 @@ class MainWindow(QMainWindow):
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._STATUS_WIDGETS = OrderedDict()
         self._PLUGINS = OrderedDict()
-        self._EXTERNAL_PLUGINS = OrderedDict()
-        self._INTERNAL_PLUGINS = OrderedDict()
         # Mapping of new plugin identifiers vs old attributtes
         # names given for plugins or to prevent collisions with other
         # attributes, i.e layout (Qt) vs layout (SpyderPluginV2)
@@ -1112,7 +1106,8 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         # Create external plugins before loading the layout to include them in
         # the window restore state after restarts.
-        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             self.tabify_plugin(plugin_instance, Plugins.Console)
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 plugin_instance.get_widget().toggle_view(False)
@@ -1536,9 +1531,10 @@ class MainWindow(QMainWindow):
                 pass
 
         # New API: External plugins
-        for plugin_name, plugin in self._EXTERNAL_PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
-                if isinstance(plugin, SpyderDockablePlugin):
+                if isinstance(plugin_instance, SpyderDockablePlugin):
                     plugin.close_window()
 
                 if not plugin.on_close(cancelable):

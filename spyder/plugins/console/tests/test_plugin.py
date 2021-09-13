@@ -46,15 +46,12 @@ def console_plugin(qtbot):
     class MainWindowMock(QMainWindow):
         def __init__(self):
             super().__init__()
-            self._INTERNAL_PLUGINS = {'internal_console': Console}
 
         def __getattr__(self, attr):
             if attr == '_PLUGINS':
                 return {}
-            elif attr != '_INTERNAL_PLUGINS':
-                return Mock()
             else:
-                return self.__dict__[attr]
+                return Mock()
 
     window = MainWindowMock()
     console_plugin = PLUGIN_REGISTRY.register_plugin(

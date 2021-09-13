@@ -204,8 +204,7 @@ class Console(SpyderDockablePlugin):
         """
         self.get_widget().handle_exception(
             error_data,
-            sender=self.sender(),
-            internal_plugins=self._main._INTERNAL_PLUGINS,
+            sender=self.sender()
         )
 
     def quit(self):
