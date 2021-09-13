@@ -47,12 +47,6 @@ def console_plugin(qtbot):
         def __init__(self):
             super().__init__()
 
-        def __getattr__(self, attr):
-            if attr == '_PLUGINS':
-                return {}
-            else:
-                return Mock()
-
     window = MainWindowMock()
     console_plugin = PLUGIN_REGISTRY.register_plugin(
         window, Console, external=False)

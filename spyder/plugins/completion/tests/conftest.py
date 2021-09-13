@@ -41,7 +41,6 @@ class MainWindowMock(QMainWindow):
         self.thirdparty_plugins = []
         self.shortcut_data = []
         self.prefs_dialog_instance = None
-        self._PLUGINS = OrderedDict()
         self._APPLICATION_TOOLBARS = MagicMock()
 
         self.console = Mock()
@@ -63,14 +62,10 @@ class MainWindowMock(QMainWindow):
     def register_plugin(self, plugin_name, external=False):
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
         plugin._register()
-        self.add_plugin(plugin, external=external)
 
     def get_plugin(self, plugin_name):
         if plugin_name in PLUGIN_REGISTRY:
             return PLUGIN_REGISTRY.get_plugin(plugin_name)
-
-    def add_plugin(self, plugin, external=False):
-        self._PLUGINS[plugin.CONF_SECTION] = plugin
 
     def set_prefs_size(self, size):
         pass

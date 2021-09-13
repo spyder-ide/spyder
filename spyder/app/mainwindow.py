@@ -203,12 +203,6 @@ class MainWindow(QMainWindow):
         messageBox.setStandardButtons(QMessageBox.Ok)
         messageBox.show()
 
-    def add_plugin(self, plugin, external=False):
-        """
-        Add plugin to plugins dictionary.
-        """
-        self._PLUGINS[plugin.NAME] = plugin
-
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
         Register a plugin in Spyder Main Window.
@@ -258,8 +252,6 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'use_custom_margin'):
                 margin = CONF.get('main', 'custom_margin')
             plugin.update_margins(margin)
-
-        self.add_plugin(plugin, external=external)
 
         if plugin_name == Plugins.Shortcuts:
             for action, context, action_name in self.shortcut_queue:
@@ -595,7 +587,6 @@ class MainWindow(QMainWindow):
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._STATUS_WIDGETS = OrderedDict()
-        self._PLUGINS = OrderedDict()
         # Mapping of new plugin identifiers vs old attributtes
         # names given for plugins or to prevent collisions with other
         # attributes, i.e layout (Qt) vs layout (SpyderPluginV2)
@@ -1132,7 +1123,8 @@ class MainWindow(QMainWindow):
                     pass
 
         # Register custom layouts
-        for plugin, plugin_instance in self._PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
                 if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
                     for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
@@ -1142,7 +1134,7 @@ class MainWindow(QMainWindow):
                     logger.info(
                         'Unable to load custom layouts for {}. '
                         'Expecting a list of layout classes but got {}'
-                        .format(plugin, plugin_instance.CUSTOM_LAYOUTS)
+                        .format(plugin_name, plugin_instance.CUSTOM_LAYOUTS)
                     )
         self.layouts.update_layout_menu_actions()
 

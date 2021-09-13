@@ -9,8 +9,6 @@
 Testing utilities to be used with pytest.
 """
 
-from collections import OrderedDict
-import traceback
 import types
 
 from unittest.mock import Mock, MagicMock
@@ -38,7 +36,6 @@ class MainWindowMock(QMainWindow):
         self.thirdparty_plugins = []
         self.shortcut_data = []
         self.prefs_dialog_instance = None
-        self._PLUGINS = OrderedDict()
         self._APPLICATION_TOOLBARS = MagicMock()
 
         self.console = Mock()
@@ -62,14 +59,10 @@ class MainWindowMock(QMainWindow):
     def register_plugin(self, plugin_name, external=False):
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
         plugin._register(omit_conf=True)
-        self.add_plugin(plugin, external=external)
 
     def get_plugin(self, plugin_name):
         if plugin_name in PLUGIN_REGISTRY:
             return PLUGIN_REGISTRY.get_plugin(plugin_name)
-
-    def add_plugin(self, plugin, external=False):
-        self._PLUGINS[plugin.CONF_SECTION] = plugin
 
     def set_prefs_size(self, size):
         pass
@@ -94,23 +87,16 @@ class ConfigDialogTester:
         def register_plugin(self, plugin_name, external=False):
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             plugin._register()
-            self.add_plugin(plugin, external=external)
 
         def get_plugin(self, plugin_name, error=False):
             if plugin_name in PLUGIN_REGISTRY:
                 return PLUGIN_REGISTRY.get_plugin(plugin_name)
             return None
 
-        def add_plugin(self, plugin, external=False):
-            self._PLUGINS[plugin.CONF_SECTION] = plugin
-
-        setattr(self._main, '_PLUGINS', OrderedDict())
         setattr(self._main, 'register_plugin',
                 types.MethodType(register_plugin, self._main))
         setattr(self._main, 'get_plugin',
                 types.MethodType(get_plugin, self._main))
-        setattr(self._main, 'add_plugin',
-                types.MethodType(add_plugin, self._main))
         setattr(self._main, 'reset_spyder',
                 types.MethodType(reset_spyder, self._main))
         setattr(self._main, 'set_prefs_size',
@@ -123,8 +109,8 @@ class ConfigDialogTester:
             for Plugin in plugins:
                 if hasattr(Plugin, 'CONF_WIDGET_CLASS'):
                     for required in (Plugin.REQUIRES or []):
-                        if required not in self._main._PLUGINS:
-                            self._main._PLUGINS[required] = MagicMock()
+                        if required not in PLUGIN_REGISTRY:
+                            PLUGIN_REGISTRY.plugin_registry[required] = MagicMock()
 
                     PLUGIN_REGISTRY.register_plugin(self._main, Plugin)
                 else:

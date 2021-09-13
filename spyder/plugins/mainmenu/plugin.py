@@ -18,6 +18,7 @@ from qtpy.QtGui import QKeySequence
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.api.widgets.menus import MENU_SEPARATOR, SpyderMenu
@@ -129,18 +130,19 @@ class MainMenu(SpyderPluginV2):
 
     def _hide_options_menus(self):
         """Hide options menu when menubar is pressed in macOS."""
-        for _plugin_id, plugin in self.main._PLUGINS.items():
-            if isinstance(plugin, SpyderDockablePlugin):
-                if plugin.CONF_SECTION == 'editor':
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                if plugin_instance.CONF_SECTION == 'editor':
                     editorstack = self.editor.get_current_editorstack()
                     editorstack.menu.hide()
                 else:
                     try:
                         # New API
-                        plugin.options_menu.hide()
+                        plugin_instance.options_menu.hide()
                     except AttributeError:
                         # Old API
-                        plugin._options_menu.hide()
+                        plugin_instance._options_menu.hide()
 
     def _setup_menus(self):
         """Setup menus."""

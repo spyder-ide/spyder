@@ -7,7 +7,7 @@
 """Tests for plugin config dialog."""
 
 # Standard library imports
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 import pkg_resources
 
 # Test library imports
@@ -17,7 +17,6 @@ import pytest
 
 # Local imports
 from spyder.config.base import running_in_ci
-from spyder.config.manager import CONF
 from spyder.plugins.completion.plugin import CompletionPlugin
 from spyder.plugins.preferences.tests.conftest import config_dialog
 
@@ -59,7 +58,6 @@ class MainWindowMock(QMainWindow):
         super(MainWindowMock, self).__init__(None)
         self.statusbar = Mock()
         self.console = Mock()
-        self._PLUGINS = {}
 
 
 def WrappedCompletionPlugin():
