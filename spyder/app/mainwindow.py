@@ -470,11 +470,15 @@ class MainWindow(QMainWindow):
                         plugin.NAME))
                 tabify_helper(plugin, next_to_plugins)
 
+                # Show external plugins
+                if plugin.NAME in PLUGIN_REGISTRY.external_plugins:
+                    plugin.get_widget().toggle_view(True)
+
             plugin.set_conf('enable', True)
             plugin.set_conf('first_time', False)
         else:
-            # This is needed to ensure new plugins are placed correctly
-            # without the need for a layout reset.
+            # This is needed to ensure plugins are placed correctly when
+            # switching layouts.
             logger.info("Tabify {} dockwidget...".format(plugin.NAME))
             # Check if plugin has no other dockwidgets in the same position
             if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
@@ -1095,13 +1099,6 @@ class MainWindow(QMainWindow):
         The actions here are related with setting up the main window.
         """
         logger.info("Setting up window...")
-        # Create external plugins before loading the layout to include them in
-        # the window restore state after restarts.
-        for plugin_name in PLUGIN_REGISTRY.external_plugins:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            self.tabify_plugin(plugin_instance, Plugins.Console)
-            if isinstance(plugin_instance, SpyderDockablePlugin):
-                plugin_instance.get_widget().toggle_view(False)
 
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -1109,6 +1106,16 @@ class MainWindow(QMainWindow):
                 plugin_instance.before_mainwindow_visible()
             except AttributeError:
                 pass
+
+        # Tabify external plugins which were installed after Spyder was
+        # installed.
+        # Note: This is only necessary the first time a plugin is loaded.
+        # Afterwwrds, the plugin placement is recorded on the window hexstate,
+        # which is loaded by the layouts plugin during the next session.
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
+            if plugin_instance.get_conf('first_time', True):
+                self.tabify_plugin(plugin_instance, Plugins.Console)
 
         if self.splash is not None:
             self.splash.hide()
