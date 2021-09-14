@@ -150,7 +150,7 @@ def make_app_bundle(dist_dir, make_lite=False):
 
     PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'docutils', 'IPython',
                 'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
-                'pylsp', 'pylsp_black', 'pyls_spyder', 'qtawesome',
+                'pylsp_black', 'pyls_spyder', 'qtawesome',
                 'setuptools', 'sphinx', 'spyder', 'spyder_kernels',
                 'textdistance', 'debugpy',
                 ]
