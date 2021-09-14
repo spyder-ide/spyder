@@ -38,7 +38,7 @@ class SpyderInstallerError(object):
         raise SystemExit(1)
 
     def _msg(self, msg):
-        return msg
+        raise NotImplementedError()
 
 
 class InstallerMissingDependencies(SpyderInstallerError):
@@ -61,7 +61,8 @@ class InstallerIPythonKernelError(SpyderInstallerError):
 
 class InstallerInternalError(SpyderInstallerError):
     """Error for internal issues"""
-    pass
+    def _msg(self, msg):
+        msg = 'Spyder internal error\n' + textwrap.indent(msg, '  ')
 
 
 class InstallerPylspError(SpyderInstallerError):
