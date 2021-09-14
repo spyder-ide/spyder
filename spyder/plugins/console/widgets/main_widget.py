@@ -30,7 +30,7 @@ from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.config.decorators import on_conf_change
-from spyder.app.utils import InstallerInternalError
+from spyder.utils.installers import InstallerInternalError
 from spyder.config.base import DEV, get_debug_level
 from spyder.plugins.console.widgets.internalshell import InternalShell
 from spyder.py3compat import to_text_string

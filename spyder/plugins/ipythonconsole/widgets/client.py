@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.app.utils import InstallerIPythonKernelError
+from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.config.base import (_, get_module_source_path,
                                 running_under_pytest)
 from spyder.utils.icon_manager import ima

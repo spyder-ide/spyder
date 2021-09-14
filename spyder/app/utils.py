@@ -13,8 +13,6 @@ import os
 import os.path as osp
 import re
 import sys
-import traceback
-import textwrap
 
 # Third-party imports
 import psutil
@@ -26,10 +24,11 @@ from qtpy.QtSvg import QSvgRenderer
 # Local imports
 from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_in_mac_app,
-    running_under_pytest, running_installer_test)
+    running_under_pytest)
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.installers import running_installer_test
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import file_uri, qapplication
 
@@ -257,7 +256,7 @@ def create_application():
         if running_installer_test():
             # This will exit Spyder with exit code 1 without invoking
             # macOS system dialogue window.
-            ORIGINAL_SYS_EXIT(1)
+            raise SystemExit(1)
     sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter
@@ -334,59 +333,3 @@ def create_window(WindowClass, app, splash, options, args):
     if not running_under_pytest():
         app.exec_()
     return main
-
-
-class SpyderInstallerError(object):
-    """
-    Base class for installer error; do not use directly.
-    Exit Spyder with code 1.
-    """
-    logger = logging.getLogger('Installer')
-    logger.setLevel(logging.DEBUG)
-    def __init__(self, msg):
-        if not running_installer_test():
-            # Don't do anything
-            return
-
-        msg = self._msg(msg)
-
-        self.logger.error(msg, stack_info=True)
-
-        ORIGINAL_SYS_EXIT(1)
-
-    def _msg(self, msg):
-        return msg
-
-
-class InstallerMissingDependencies(SpyderInstallerError):
-    """Error for missing dependencies"""
-    def _msg(self, msg):
-        msg = msg.replace('<br>', '\n')
-
-        return msg
-
-
-class InstallerIPythonKernelError(SpyderInstallerError):
-    """Error for IPython kernel issues"""
-    def _msg(self, msg):
-        msg = '\n' + msg.replace('<tt>', '').replace('</tt>', '')
-
-        return msg
-
-
-class InstallerInternalError(SpyderInstallerError):
-    """Error for internal issues"""
-    pass
-
-
-class InstallerPylspError(SpyderInstallerError):
-    """Error for PyLSP issues"""
-    def _msg(self, msg):
-
-        files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
-        for file in files:
-            with open(file, 'r') as f:
-                cat = textwrap.indent(f.read(), '  ')
-            msg = msg + '\n' + file + '\n' + cat
-
-        return msg

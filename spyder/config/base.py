@@ -15,7 +15,6 @@ sip API incompatibility issue in spyder's non-gui modules)
 from __future__ import print_function
 
 import codecs
-import getpass
 import locale
 import os
 import os.path as osp
@@ -66,11 +65,6 @@ def running_under_pytest():
 def running_in_ci():
     """Return True if currently running under CI."""
     return bool(os.environ.get('CI'))
-
-
-def running_installer_test():
-    """Return True if currently running installer test"""
-    return bool(int(os.environ.get('INSTALLER_TEST', '0')))
 
 
 def is_stable_version(version):

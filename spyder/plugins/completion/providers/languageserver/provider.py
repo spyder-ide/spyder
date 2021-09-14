@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.app.utils import InstallerPylspError
+from spyder.utils.installers import InstallerPylspError
 from spyder.config.base import (_, get_conf_path, running_under_pytest,
                                 running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
