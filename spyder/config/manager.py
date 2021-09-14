@@ -12,7 +12,7 @@ Configuration manager providing access to user/site/project configuration.
 import logging
 import os
 import os.path as osp
-from typing import Optional, Any
+from typing import Any, Dict, Optional, Set
 import weakref
 
 # Local imports
