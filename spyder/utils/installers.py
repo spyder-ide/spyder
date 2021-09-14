@@ -33,7 +33,7 @@ class SpyderInstallerError(object):
 
         msg = self._msg(msg)
 
-        self.logger.error(msg, stack_info=True)
+        self.logger.error(msg + '\n', stack_info=True)
 
         raise SystemExit(1)
 
@@ -45,6 +45,7 @@ class InstallerMissingDependencies(SpyderInstallerError):
     """Error for missing dependencies"""
     def _msg(self, msg):
         msg = msg.replace('<br>', '\n')
+        msg = 'Missing dependencies' + textwrap.indent(msg, '  ')
 
         return msg
 
@@ -52,7 +53,8 @@ class InstallerMissingDependencies(SpyderInstallerError):
 class InstallerIPythonKernelError(SpyderInstallerError):
     """Error for IPython kernel issues"""
     def _msg(self, msg):
-        msg = '\n' + msg.replace('<tt>', '').replace('</tt>', '')
+        msg = msg.replace('<tt>', '').replace('</tt>', '')
+        msg = 'IPython kernel error\n' + textwrap.indent(msg, '  ')
 
         return msg
 
@@ -67,9 +69,12 @@ class InstallerPylspError(SpyderInstallerError):
     def _msg(self, msg):
 
         files = glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
+        cat = ''
         for file in files:
+            cat += f'{file}\n'
             with open(file, 'r') as f:
-                cat = textwrap.indent(f.read(), '  ')
-            msg = msg + '\n' + file + '\n' + cat
+                cat += textwrap.indent(f.read(), '  ')
+
+        msg = f'PyLSP Error: {msg}\n' + textwrap.indent(cat, '  ')
 
         return msg
