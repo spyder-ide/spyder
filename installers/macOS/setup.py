@@ -152,7 +152,7 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
                 'pylsp', 'pylsp_black', 'pyls_spyder', 'qtawesome',
                 'setuptools', 'sphinx', 'spyder', 'spyder_kernels',
-                'textdistance', 'debugpy',
+                'textdistance',  # 'debugpy',
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()
                 # required for sphinx
