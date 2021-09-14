@@ -70,7 +70,7 @@ def running_in_ci():
 
 def running_installer_test():
     """Return True if currently running installer test"""
-    return bool(os.environ.get('INSTALLER_TEST'))
+    return bool(int(os.environ.get('INSTALLER_TEST', '0')))
 
 
 def is_stable_version(version):

@@ -336,50 +336,42 @@ def create_window(WindowClass, app, splash, options, args):
     return main
 
 
-class SpyderInstallerError(Exception):
+class SpyderInstallerError(object):
     """
     Base class for installer error; do not use directly.
     Exit Spyder with code 1.
     """
-    def __init__(self, *args, **kwargs):
+    logger = logging.getLogger('Installer')
+    logger.setLevel(logging.DEBUG)
+    def __init__(self, msg):
         if not running_installer_test():
             # Don't do anything
             return
 
-        msg, args = self._msg(*args)
+        msg = self._msg(msg)
 
-        super().__init__(msg, *args, **kwargs)
-
-        # Print the stack trace and provided message,
-        # then exit Spyder with code 1.
-        # Note: raising exceptions will not print the stack trace
-        stack = ['Traceback (most recent call last):\n']
-        stack.extend(traceback.format_stack()[:-2])
-        stack.extend(traceback.format_exception_only(type(self), self))
-        print(''.join(stack))
+        self.logger.error(msg, stack_info=True)
 
         ORIGINAL_SYS_EXIT(1)
 
-    def _msg(self, *args):
-        return args
+    def _msg(self, msg):
+        return msg
 
 
 class InstallerMissingDependencies(SpyderInstallerError):
     """Error for missing dependencies"""
-    def _msg(self, *args):
-        msg, *args = args
+    def _msg(self, msg):
         msg = msg.replace('<br>', '\n')
 
-        return msg, args
+        return msg
 
 
 class InstallerIPythonKernelError(SpyderInstallerError):
     """Error for IPython kernel issues"""
-    def _msg(self, *args):
-        msg, *args = args
+    def _msg(self, msg):
         msg = '\n' + msg.replace('<tt>', '').replace('</tt>', '')
 
-        return msg, args
+        return msg
 
 
 class InstallerInternalError(SpyderInstallerError):
@@ -389,8 +381,7 @@ class InstallerInternalError(SpyderInstallerError):
 
 class InstallerPylspError(SpyderInstallerError):
     """Error for PyLSP issues"""
-    def _msg(self, *args):
-        msg, *args = args
+    def _msg(self, msg):
 
         files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
         for file in files:
@@ -398,4 +389,4 @@ class InstallerPylspError(SpyderInstallerError):
                 cat = textwrap.indent(f.read(), '  ')
             msg = msg + '\n' + file + '\n' + cat
 
-        return msg, args
+        return msg
