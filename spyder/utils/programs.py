@@ -39,6 +39,16 @@ from spyder.utils.misc import get_python_executable
 
 HERE = osp.abspath(osp.dirname(__file__))
 
+# Minimum environment variables required for subprocesses
+REQ_ENV_VARS = []
+if os.name == 'nt':
+    REQ_ENV_VARS.extend([
+        'PATH', 'SYSTEMROOT', 'SYSTEMDRIVE', 'TMP', 'USERPROFILE'])
+elif sys.platform.startswith('linux'):
+    REQ_ENV_VARS.extend(['PATH', 'HOME', 'DISPLAY', 'XAUTHORITY'])
+elif sys.platform == 'darwin':
+    REQ_ENV_VARS.extend(['PATH', 'HOME'])
+
 
 class ProgramError(Exception):
     pass
@@ -188,19 +198,22 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
 
         # ensure Windows subprocess environment has SYSTEMROOT
         if kwargs.get('env') is not None:
-            # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
-            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE']:
-                if env_var not in map(str.upper, kwargs['env'].keys()):
+            # case insensitive
+            for req_var in REQ_ENV_VARS:
+                if req_var not in map(str.upper, kwargs['env'].keys()):
                     # Add from os.environ
                     for k, v in os.environ.items():
-                        if env_var == k.upper():
+                        if req_var == k.upper():
                             kwargs['env'].update({k: v})
                             break  # don't risk multiple values
     else:
         # linux and macOS
         if kwargs.get('env') is not None:
-            if 'HOME' not in kwargs['env']:
-                kwargs['env'].update({'HOME': get_home_dir()})
+            req_dict = {k: os.environ.get(k) for k in REQ_ENV_VARS}
+            req_dict.update(kwargs['env'])
+            if req_dict['HOME'] is None:
+                req_dict['HOME'] = get_home_dir()
+            kwargs['env'] = req_dict
 
     return kwargs
 
