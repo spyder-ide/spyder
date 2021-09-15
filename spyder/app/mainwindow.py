@@ -582,6 +582,7 @@ class MainWindow(QMainWindow):
         self.path = ()
         self.not_active_path = ()
         self.project_path = ()
+        self._path_manager = None
 
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
@@ -1743,19 +1744,28 @@ class MainWindow(QMainWindow):
     @Slot()
     def show_path_manager(self):
         """Show path manager dialog."""
-        from spyder.widgets.pathmanager import PathManager
-        projects = self.get_plugin(Plugins.Projects, error=False)
+        def _dialog_finished(result_code):
+            self._path_manager = None
 
-        read_only_path = ()
-        if projects:
-            read_only_path = tuple(projects.get_pythonpath())
+        if self._path_manager is None:
+            from spyder.widgets.pathmanager import PathManager
+            projects = self.get_plugin(Plugins.Projects, error=False)
+            read_only_path = ()
+            if projects:
+                read_only_path = tuple(projects.get_pythonpath())
 
-        dialog = PathManager(self, self.path, read_only_path,
-                             self.not_active_path, sync=True)
-        self._path_manager = dialog
-        dialog.sig_path_changed.connect(self.update_python_path)
-        dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
-        dialog.show()
+            dialog = PathManager(self, self.path, read_only_path,
+                                 self.not_active_path, sync=True)
+            self._path_manager = dialog
+            dialog.sig_path_changed.connect(self.update_python_path)
+            dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
+            dialog.finished.connect(_dialog_finished)
+            dialog.show()
+        else:
+            self._path_manager.show()
+            self._path_manager.activateWindow()
+            self._path_manager.raise_()
+            self._path_manager.setFocus()
 
     def pythonpath_changed(self):
         """Project's PYTHONPATH contribution has changed."""
