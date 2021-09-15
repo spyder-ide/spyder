@@ -14,12 +14,12 @@ from unittest.mock import Mock, MagicMock
 
 # Third party imports
 import pytest
-from qtpy.QtCore import Signal, QObject
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
-from spyder.plugins.pylint.main_widget import PylintWidget
 from spyder.plugins.pylint.plugin import Pylint
 from spyder.plugins.pylint.utils import get_pylintrc_path
 
@@ -55,7 +55,6 @@ good-names=e
 
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
-    _PLUGINS = {}
 
     def __init__(self):
         super(MainWindowMock, self).__init__(None)
@@ -63,11 +62,13 @@ class MainWindowMock(QMainWindow):
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
         self.projects = MagicMock()
 
-        self._PLUGINS['editor'] = self.editor
-        self._PLUGINS['projects'] = self.projects
+        PLUGIN_REGISTRY.plugin_registry = {
+            'editor': self.editor,
+            'projects': self.projects
+        }
 
     def get_plugin(self, plugin_name):
-        return self._PLUGINS[plugin_name]
+        return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
 
 @pytest.fixture

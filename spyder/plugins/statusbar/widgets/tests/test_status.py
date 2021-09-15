@@ -7,9 +7,6 @@
 
 """Tests for status bar widgets."""
 
-# Standard library imports
-from unittest.mock import Mock
-
 # Thrid party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QMainWindow
@@ -22,9 +19,7 @@ from spyder.plugins.statusbar.plugin import StatusBar
 
 
 class MainWindowMock(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self._PLUGINS = {'preferences': Mock()}
+    pass
 
 
 @pytest.fixture

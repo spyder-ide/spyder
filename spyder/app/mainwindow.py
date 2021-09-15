@@ -203,16 +203,6 @@ class MainWindow(QMainWindow):
         messageBox.setStandardButtons(QMessageBox.Ok)
         messageBox.show()
 
-    def add_plugin(self, plugin, external=False):
-        """
-        Add plugin to plugins dictionary.
-        """
-        self._PLUGINS[plugin.NAME] = plugin
-        if external:
-            self._EXTERNAL_PLUGINS[plugin.NAME] = plugin
-        else:
-            self._INTERNAL_PLUGINS[plugin.NAME] = plugin
-
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
         Register a plugin in Spyder Main Window.
@@ -262,8 +252,6 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'use_custom_margin'):
                 margin = CONF.get('main', 'custom_margin')
             plugin.update_margins(margin)
-
-        self.add_plugin(plugin, external=external)
 
         if plugin_name == Plugins.Shortcuts:
             for action, context, action_name in self.shortcut_queue:
@@ -482,11 +470,15 @@ class MainWindow(QMainWindow):
                         plugin.NAME))
                 tabify_helper(plugin, next_to_plugins)
 
+                # Show external plugins
+                if plugin.NAME in PLUGIN_REGISTRY.external_plugins:
+                    plugin.get_widget().toggle_view(True)
+
             plugin.set_conf('enable', True)
             plugin.set_conf('first_time', False)
         else:
-            # This is needed to ensure new plugins are placed correctly
-            # without the need for a layout reset.
+            # This is needed to ensure plugins are placed correctly when
+            # switching layouts.
             logger.info("Tabify {} dockwidget...".format(plugin.NAME))
             # Check if plugin has no other dockwidgets in the same position
             if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
@@ -599,9 +591,6 @@ class MainWindow(QMainWindow):
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._STATUS_WIDGETS = OrderedDict()
-        self._PLUGINS = OrderedDict()
-        self._EXTERNAL_PLUGINS = OrderedDict()
-        self._INTERNAL_PLUGINS = OrderedDict()
         # Mapping of new plugin identifiers vs old attributtes
         # names given for plugins or to prevent collisions with other
         # attributes, i.e layout (Qt) vs layout (SpyderPluginV2)
@@ -1110,12 +1099,6 @@ class MainWindow(QMainWindow):
         The actions here are related with setting up the main window.
         """
         logger.info("Setting up window...")
-        # Create external plugins before loading the layout to include them in
-        # the window restore state after restarts.
-        for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(plugin_instance, Plugins.Console)
-            if isinstance(plugin_instance, SpyderDockablePlugin):
-                plugin_instance.get_widget().toggle_view(False)
 
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -1123,6 +1106,16 @@ class MainWindow(QMainWindow):
                 plugin_instance.before_mainwindow_visible()
             except AttributeError:
                 pass
+
+        # Tabify external plugins which were installed after Spyder was
+        # installed.
+        # Note: This is only necessary the first time a plugin is loaded.
+        # Afterwwrds, the plugin placement is recorded on the window hexstate,
+        # which is loaded by the layouts plugin during the next session.
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
+            if plugin_instance.get_conf('first_time', True):
+                self.tabify_plugin(plugin_instance, Plugins.Console)
 
         if self.splash is not None:
             self.splash.hide()
@@ -1137,7 +1130,8 @@ class MainWindow(QMainWindow):
                     pass
 
         # Register custom layouts
-        for plugin, plugin_instance in self._PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
                 if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
                     for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
@@ -1147,7 +1141,7 @@ class MainWindow(QMainWindow):
                     logger.info(
                         'Unable to load custom layouts for {}. '
                         'Expecting a list of layout classes but got {}'
-                        .format(plugin, plugin_instance.CUSTOM_LAYOUTS)
+                        .format(plugin_name, plugin_instance.CUSTOM_LAYOUTS)
                     )
         self.layouts.update_layout_menu_actions()
 
@@ -1536,9 +1530,10 @@ class MainWindow(QMainWindow):
                 pass
 
         # New API: External plugins
-        for plugin_name, plugin in self._EXTERNAL_PLUGINS.items():
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
-                if isinstance(plugin, SpyderDockablePlugin):
+                if isinstance(plugin_instance, SpyderDockablePlugin):
                     plugin.close_window()
 
                 if not plugin.on_close(cancelable):
