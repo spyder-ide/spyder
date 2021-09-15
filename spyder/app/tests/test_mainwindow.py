@@ -4077,6 +4077,8 @@ def test_pdb_without_comm(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Flaky on Mac and Windows")
 def test_print_comms(main_window, qtbot):
     """Test warning printed when comms print."""
     # Write code with a cell to a file
