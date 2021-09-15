@@ -9,34 +9,42 @@ Spyder API toolbar widgets.
 """
 
 # Standard library imports
-import uuid
 from collections import OrderedDict
+import os
+import sys
 from typing import Union, Optional, Tuple, List, Dict
+import uuid
 
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt
-from qtpy.QtWidgets import QAction, QToolBar, QToolButton, QWidget
+from qtpy.QtWidgets import (
+    QAction, QProxyStyle, QStyle, QToolBar, QToolButton, QWidget)
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.translations import get_translation
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
     APP_TOOLBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
 
+
+# Translations
+_ = get_translation('spyder')
 
 # Generic type annotations
 ToolbarItem = Union[SpyderAction, QWidget]
 ToolbarItemEntry = Tuple[ToolbarItem, Optional[str], Optional[str],
                          Optional[str]]
 
-# --- Constants
+# ---- Constants
 # ----------------------------------------------------------------------------
 class ToolbarLocation:
     Top = Qt.TopToolBarArea
     Bottom = Qt.BottomToolBarArea
 
 
-# --- Event filters
+# ---- Event filters
 # ----------------------------------------------------------------------------
 class ToolTipFilter(QObject):
     """
@@ -53,7 +61,43 @@ class ToolTipFilter(QObject):
         return QObject.eventFilter(self, obj, event)
 
 
-# --- Widgets
+# ---- Styles
+# ----------------------------------------------------------------------------
+class ToolbarStyle(QProxyStyle):
+
+    # The toolbar type. This can be 'Application' or 'MainWidget'
+    TYPE = None
+
+    def pixelMetric(self, pm, option, widget):
+        """
+        Adjust size of toolbar extension button (in pixels).
+
+        From https://stackoverflow.com/a/27042352/438386
+        """
+        # Important: These values need to be updated in case we change the size
+        # of our toolbar buttons in utils/stylesheet.py. That's because Qt only
+        # allow to set them in pixels here, not em's.
+        if pm == QStyle.PM_ToolBarExtensionExtent:
+            if self.TYPE == 'Application':
+                if os.name == 'nt':
+                    return 40
+                elif sys.platform == 'darwin':
+                    return 54
+                else:
+                    return 57
+            elif self.TYPE == 'MainWidget':
+                if os.name == 'nt':
+                    return 36
+                elif sys.platform == 'darwin':
+                    return 42
+                else:
+                    return 44
+            else:
+                print("Unknown toolbar style type")  # spyder: test-skip
+        return super().pixelMetric(pm, option, widget)
+
+
+# ---- Toolbars
 # ----------------------------------------------------------------------------
 class SpyderToolbar(QToolBar):
     """
@@ -71,6 +115,12 @@ class SpyderToolbar(QToolBar):
         self._default_section = "default_section"
 
         self.setWindowTitle(title)
+
+        # Set icon for extension button.
+        # From https://stackoverflow.com/a/55412455/438386
+        ext_button = self.findChild(QToolButton, "qt_toolbar_ext_button")
+        ext_button.setIcon(ima.icon('toolbar_ext_button'))
+        ext_button.setToolTip(_("More"))
 
     def add_item(self, action_or_widget: ToolbarItem,
                  section: Optional[str] = None, before: Optional[str] = None,
@@ -211,6 +261,11 @@ class ApplicationToolbar(SpyderToolbar):
 
     def __init__(self, parent, title):
         super().__init__(parent=parent, title=title)
+
+        self._style = ToolbarStyle(None)
+        self._style.TYPE = 'Application'
+        self.setStyle(self._style)
+
         self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
 
 
@@ -239,7 +294,12 @@ class MainWidgetToolbar(SpyderToolbar):
         self.setContextMenuPolicy(Qt.PreventContextMenu)
         self.setIconSize(self._icon_size)
 
-        self._setup_style()
+        self._style = ToolbarStyle(None)
+        self._style.TYPE = 'MainWidget'
+        self.setStyle(self._style)
+
+        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+
         self._filter = ToolTipFilter()
 
     def set_icon_size(self, icon_size):
@@ -282,9 +342,3 @@ class MainWidgetToolbar(SpyderToolbar):
 
                 if item.isCheckable():
                     widget.setCheckable(True)
-
-    def _setup_style(self):
-        """
-        Set the style of this toolbar with a stylesheet.
-        """
-        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
