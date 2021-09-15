@@ -133,8 +133,7 @@ class Panel(QWidget, EditorExtension):
             painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
         else:
-            raise NotImplementedError(
-                f'paintEvent method must be defined in {self}')
+            logger.debug(f'paintEvent method must be defined in {self}')
 
     def sizeHint(self):
         """
