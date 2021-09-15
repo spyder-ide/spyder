@@ -71,6 +71,7 @@ class PathManager(QDialog):
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(ima.icon('pythonpath'))
         self.resize(500, 300)
+        self.import_button.setVisible(sync)
         self.sync_button.setVisible(os.name == 'nt' and sync)
 
         # Layouts
@@ -152,6 +153,13 @@ class PathManager(QDialog):
             icon=ima.icon('edit_remove'),
             triggered=lambda x: self.remove_path(),
             text_beside_icon=True)
+        self.import_button = create_toolbutton(
+            self,
+            text=_("Import"),
+            icon=ima.icon('fileimport'),
+            triggered=self.import_pythonpath,
+            tip=_("Import PYTHONPATH environment variable"),
+            text_beside_icon=True)
         self.sync_button = create_toolbutton(
             self,
             text=_("Synchronize..."),
@@ -162,7 +170,8 @@ class PathManager(QDialog):
             text_beside_icon=True)
 
         self.selection_widgets.append(self.remove_button)
-        return [self.add_button, self.remove_button, None, self.sync_button]
+        return [self.add_button, self.remove_button, None, self.import_button,
+                self.sync_button]
 
     def _create_item(self, path):
         """Helper to create a new list item."""
@@ -199,6 +208,26 @@ class PathManager(QDialog):
             self.listwidget.addItem(item)
         self.listwidget.setCurrentRow(0)
         self.original_path_dict = self.get_path_dict()
+        self.refresh()
+
+    @Slot()
+    def import_pythonpath(self):
+        """Import PYTHONPATH environment variable"""
+        env_pypath = os.environ.get('PYTHONPATH', '')
+        if not env_pypath:
+            return
+        env_pypath = env_pypath.split(os.pathsep)
+        env_pypath.reverse()
+
+        spy_pypath = self.get_path_dict()
+        n = len(spy_pypath)
+
+        for path in env_pypath:
+            if (path in spy_pypath) or not self.check_path(path):
+                continue
+            item = self._create_item(path)
+            self.listwidget.insertItem(n, item)
+
         self.refresh()
 
     @Slot()
