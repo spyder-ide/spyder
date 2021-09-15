@@ -9,9 +9,11 @@ Spyder API toolbar widgets.
 """
 
 # Standard library imports
-import uuid
 from collections import OrderedDict
+import os
+import sys
 from typing import Union, Optional, Tuple, List, Dict
+import uuid
 
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt
@@ -77,9 +79,19 @@ class ToolbarStyle(QProxyStyle):
         # allow to set them in pixels here, not em's.
         if pm == QStyle.PM_ToolBarExtensionExtent:
             if self.TYPE == 'Application':
-                return 57
+                if os.name == 'nt':
+                    return 40
+                elif sys.platform == 'darwin':
+                    return 54
+                else:
+                    return 57
             elif self.TYPE == 'MainWidget':
-                return 44
+                if os.name == 'nt':
+                    return 36
+                elif sys.platform == 'darwin':
+                    return 42
+                else:
+                    return 44
             else:
                 print("Unknown toolbar style type")  # spyder: test-skip
         return super().pixelMetric(pm, option, widget)
