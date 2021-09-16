@@ -92,6 +92,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.is_external_kernel = is_external_kernel
+        self.is_spyder_kernel = is_spyder_kernel
         self._cwd = ''
 
         # Keyboard shortcuts
@@ -126,9 +127,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
-
-        # Internal kernel are always spyder kernels
-        self.is_spyder_kernel = is_spyder_kernel
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
