@@ -1,5 +1,28 @@
 # History of changes
 
+## Version 5.1.5 (2021-09-16)
+
+### Important fixes
+* Fix docking of external plugins.
+
+### Issues Closed
+
+* [Issue 16419](https://github.com/spyder-ide/spyder/issues/16419) - Plugins not appearing in tabs in 5.2.0dev ([PR 16416](https://github.com/spyder-ide/spyder/pull/16416) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 16428](https://github.com/spyder-ide/spyder/pull/16428) - PR: Catch error when starting watcher (Projects), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16416](https://github.com/spyder-ide/spyder/pull/16416) - PR: Fix some issues with external plugins, by [@ccordoba12](https://github.com/ccordoba12) ([16419](https://github.com/spyder-ide/spyder/issues/16419))
+* [PR 16375](https://github.com/spyder-ide/spyder/pull/16375) - PR: Improve appearance of toolbar extension button, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 3 pull requests were closed.
+
+
+----
+
+
 ## Version 5.1.4 (2021-09-12)
 
 ### Important fixes
