@@ -1610,10 +1610,10 @@ class IPythonConsole(SpyderPluginWidget):
             executing = client.stop_button.isEnabled()
             self.interrupt_action.setEnabled(executing)
 
-    def connect_external_kernel(self, shellwidget):
+    def connect_external_spyder_kernel(self, shellwidget):
         """
-        Connect an external kernel to the Variable Explorer, Help and
-        Plots, but only if it is a Spyder kernel.
+        Connect an external Spyder kernel to the Variable Explorer,
+        Help and Plots.
         """
         shellwidget.is_spyder_kernel = True
         self.sig_shellwidget_changed.emit(shellwidget)
@@ -1917,7 +1917,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.sig_exception_occurred)
 
         if not known_spyder_kernel:
-            shellwidget.sig_is_spykernel.connect(self.connect_external_kernel)
+            shellwidget.sig_is_spykernel.connect(
+                self.connect_external_spyder_kernel)
             shellwidget.check_spyder_kernel()
 
         self.sig_shellwidget_created.emit(shellwidget)
