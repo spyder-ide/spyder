@@ -1616,6 +1616,7 @@ class IPythonConsole(SpyderPluginWidget):
         Help and Plots.
         """
         shellwidget.is_spyder_kernel = True
+        shellwidget.spyder_kernel_comm.open_comm(shellwidget.kernel_client)
         self.sig_shellwidget_changed.emit(shellwidget)
         shellwidget.set_namespace_view_settings()
         shellwidget.refresh_namespacebrowser()
