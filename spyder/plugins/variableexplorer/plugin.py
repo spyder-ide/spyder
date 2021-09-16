@@ -82,23 +82,3 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
         spyder.plugins.plots.widgets.namespacebrowser.NamespaceBrowser
         """
         return self.get_widget().current_widget()
-
-    def add_shellwidget(self, shellwidget, external):
-        """
-        Add a new shellwidget to be registered.
-
-        This function registers a new NamespaceBrowser for browsing variables
-        in the shellwidget.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        external: bool
-            True if the kernel is external
-        """
-        self.get_widget().add_shellwidget(shellwidget)
-
-        if external:
-            shellwidget.set_namespace_view_settings()
-            shellwidget.refresh_namespacebrowser()

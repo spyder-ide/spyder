@@ -85,7 +85,7 @@ class IPythonConsole(SpyderPluginWidget):
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     sig_pdb_state_changed = Signal(bool, dict)
 
-    sig_shellwidget_created = Signal(object, bool)
+    sig_shellwidget_created = Signal(object)
     """
     This signal is emitted when a shellwidget is connected to
     a kernel.
@@ -94,11 +94,9 @@ class IPythonConsole(SpyderPluginWidget):
     ----------
     shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
         The shellwigdet.
-    external: bool
-        True if the kernel is external
     """
 
-    sig_shellwidget_deleted = Signal(object, bool)
+    sig_shellwidget_deleted = Signal(object)
     """
     This signal is emitted when a shellwidget is disconnected from
     a kernel.
@@ -107,8 +105,6 @@ class IPythonConsole(SpyderPluginWidget):
     ----------
     shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
         The shellwigdet.
-    external: bool
-        True if the kernel is external
     """
 
     sig_shellwidget_changed = Signal(object)
@@ -1619,9 +1615,10 @@ class IPythonConsole(SpyderPluginWidget):
         Connect an external kernel to the Variable Explorer, Help and
         Plots, but only if it is a Spyder kernel.
         """
-        sw = shellwidget
-        kc = shellwidget.kernel_client
-        self.sig_shellwidget_changed.emit(sw)
+        shellwidget.is_spyder_kernel = True
+        self.sig_shellwidget_changed.emit(shellwidget)
+        shellwidget.set_namespace_view_settings()
+        shellwidget.refresh_namespacebrowser()
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
@@ -1797,10 +1794,10 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def shellwidget_started(self, client):
-        self.sig_shellwidget_created.emit(client.shellwidget, False)
+        self.sig_shellwidget_created.emit(client.shellwidget)
 
     def shellwidget_deleted(self, client):
-        self.sig_shellwidget_deleted.emit(client.shellwidget, False)
+        self.sig_shellwidget_deleted.emit(client.shellwidget)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
@@ -1920,17 +1917,12 @@ class IPythonConsole(SpyderPluginWidget):
             self.sig_exception_occurred)
 
         if not known_spyder_kernel:
-            shellwidget.sig_is_spykernel.connect(
-                self.connect_external_kernel)
-
-            # Here we notify about external shellwidgets
+            shellwidget.sig_is_spykernel.connect(self.connect_external_kernel)
             shellwidget.check_spyder_kernel()
 
-        self.sig_shellwidget_created.emit(
-            shellwidget, is_external_kernel)
+        self.sig_shellwidget_created.emit(shellwidget)
         kernel_client.stopped_channels.connect(
-            lambda: self.sig_shellwidget_deleted.emit(
-                shellwidget, is_external_kernel))
+            lambda: self.sig_shellwidget_deleted.emit(shellwidget))
 
         # Set elapsed time, if possible
         if not is_external_kernel:

@@ -45,7 +45,7 @@ class ShellConnectMixin:
         """
         self.get_widget().set_shellwidget(shellwidget)
 
-    def add_shellwidget(self, shellwidget, external):
+    def add_shellwidget(self, shellwidget):
         """
         Add a new shellwidget to be registered.
 
@@ -56,12 +56,10 @@ class ShellConnectMixin:
         ----------
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
-        external: bool
-            True if the kernel is external.
         """
         self.get_widget().add_shellwidget(shellwidget)
 
-    def remove_shellwidget(self, shellwidget, external):
+    def remove_shellwidget(self, shellwidget):
         """
         Remove the registered shellwidget.
 
@@ -69,7 +67,5 @@ class ShellConnectMixin:
         ----------
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
-        external: bool
-            True if the kernel is external.
         """
         self.get_widget().remove_shellwidget(shellwidget)
