@@ -29,7 +29,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-version_info = (5, 1, 5)
+version_info = (5, 2, 0, "dev0")
 
 __version__ = '.'.join(map(str, version_info))
 __installer_version__ = __version__
