@@ -24,9 +24,14 @@ if [ "$USE_CONDA" = "true" ]; then
         conda install pyzmq=19
     fi
 
-    # Remove packages we have subrepos for
+    # Constrain jupyter_client version on conda based tests
+    # The actual dependency constrain is done in spyder-kernels since v2.1.1
+    conda install jupyter_client=6
+
+    # Remove packages we have subrepos for.
     conda remove spyder-kernels --force -q -y
     conda remove python-lsp-server --force -q -y
+    conda remove qdarkstyle --force -q -y
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -49,16 +54,29 @@ else
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
     pip uninstall python-lsp-server -q -y
+    pip uninstall qdarkstyle -q -y
 
 fi
 
-# This is necessary only for Windows (don't know why).
-if [ "$OS" = "win" ]; then
-    # Install python-lsp-server from our subrepo
-    pushd external-deps/python-lsp-server
+# Install subrepos in development mode
+for dep in $(ls external-deps)
+do
+    pushd external-deps/$dep
     pip install --no-deps -q -e .
     popd
-fi
+done
+
+# Install boilerplate plugin
+pushd spyder/app/tests/spyder-boilerplate
+pip install --no-deps -q -e .
+popd
+
+# Install Spyder to test it as if it was properly installed
+# Note: `python setup.py egg_info` doesn't work here but it
+# does locally.
+pip uninstall spyder -q -y
+python setup.py bdist_wheel
+pip install --no-deps dist/spyder*.whl
 
 # To check our manifest
 pip install check-manifest

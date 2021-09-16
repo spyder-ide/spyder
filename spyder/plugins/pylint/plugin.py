@@ -126,9 +126,8 @@ class Pylint(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
         pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-        source_menu = mainmenu.get_application_menu(
-            ApplicationMenus.Source)
-        mainmenu.add_item_to_application_menu(pylint_act, menu=source_menu)
+        mainmenu.add_item_to_application_menu(
+            pylint_act, menu_id=ApplicationMenus.Source)
 
     # --- Private API
     # ------------------------------------------------------------------------

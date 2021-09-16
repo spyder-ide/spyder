@@ -131,7 +131,6 @@ class KiteCallToAction(QFrame, SpyderConfigurationAccessor):
         is_lower = ord('a') <= key <= ord('z')
         is_digit = ord('0') <= key <= ord('9')
         is_under = key == ord('_')
-        is_dot = key == ord('.')
         return is_upper or is_lower or is_digit or is_under
 
     def _dismiss_forever(self):

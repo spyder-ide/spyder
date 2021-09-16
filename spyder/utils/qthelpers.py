@@ -251,6 +251,8 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         setup_toggled_action(button, toggled, section, option)
     if shortcut is not None:
         button.setShortcut(shortcut)
+    if id_ is not None:
+        button.ID = id_
 
     if register_toolbutton:
         TOOLBUTTON_REGISTRY.register_reference(
@@ -311,7 +313,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   id_=None, plugin=None, context_name=None,
                   register_action=False, overwrite=False):
     """Create a QAction"""
-    action = SpyderAction(text, parent)
+    action = SpyderAction(text, parent, action_id=id_)
     if triggered is not None:
         action.triggered.connect(triggered)
     if toggled is not None:
@@ -552,9 +554,10 @@ def get_filetype_icon(fname):
 class SpyderAction(QAction):
     """Spyder QAction class wrapper to handle cross platform patches."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, action_id=None, **kwargs):
         """Spyder QAction class wrapper to handle cross platform patches."""
         super(SpyderAction, self).__init__(*args, **kwargs)
+        self.action_id = action_id
         if sys.platform == "darwin":
             self.setIconVisibleInMenu(False)
 

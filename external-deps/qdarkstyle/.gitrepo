@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ColinDuquesnoy/QDarkStyleSheet.git
 	branch = develop
-	commit = ea408544f502b4c0e97f4cf1dda171ed53cead9b
+	commit = 6f39fa368b070e742fbfe8c74caf9cd5e03407f3
 	parent = 520d09910e2358d29bc932b96bcdd4ab2c702333
 	method = merge
 	cmdver = 0.4.3

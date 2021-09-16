@@ -9,7 +9,6 @@
 # Standard library imports
 import copy
 import functools
-import inspect
 
 # Third party imports
 from qtpy.QtGui import QTextCursor, QColor
@@ -359,25 +358,41 @@ class SnippetsExtension(EditorExtension):
     def insert_text(self, text, line, column):
         has_selected_text = self.editor.has_selected_text()
         start, end = self.editor.get_selection_start_end()
+
         if has_selected_text:
-            self._remove_selection(start, end)
+            # Catch error with Kite snippets
+            # Fixes spyder-ide/spyder#16358
+            try:
+                self._remove_selection(start, end)
+            except Exception:
+                return
             line, column = start
+
         node, snippet, text_node = self._find_node_by_position(line, column)
-        if node is None or text_node is None:
+        if node is None or snippet is None or text_node is None:
             self.reset()
             return
+
         tokens = tokenize(text)
         token_nodes = [nodes.LeafNode(t.token, t.value) for t in tokens]
         for token in token_nodes:
             token.compute_position((line, column))
+
         if node.name == 'EPSILON':
             new_text_node = nodes.TextNode(*token_nodes)
             snippet.placeholder = new_text_node
             return
+
         position = node.position
         if len(position) == 1:
             x, y = position[0]
-            position = ((x, y), (x, y + 1))
+            # Catch error with Kite snippets.
+            # Fixes spyder-ide/spyder#16358
+            try:
+                position = ((x, y), (x, y + 1))
+            except TypeError:
+                return
+
         leaf_start, leaf_end = position
         node_index = node.index_in_parent
         text_node_tokens = list(text_node.tokens)
@@ -387,6 +402,7 @@ class SnippetsExtension(EditorExtension):
             right_offset = 0
             first_token = token_nodes[0]
             last_token = token_nodes[-1]
+
             if node_index > 0 and len(text_node_tokens) > 1:
                 previous_node = text_node_tokens[node_index - 1]
                 if first_token.mark_for_position:
@@ -395,6 +411,7 @@ class SnippetsExtension(EditorExtension):
                             left_offset = 1
                             first_token.value = (
                                 previous_node.value + first_token.value)
+
             if last_token.mark_for_position:
                 if last_token.name in MERGE_ALLOWED:
                     if last_token.name == node.name:
@@ -448,6 +465,7 @@ class SnippetsExtension(EditorExtension):
                     if first_token == node.name:
                         left_merge = True
                         first_token.value = first_part + first_token.value
+
             if not left_merge:
                 first_tokens.append(nodes.LeafNode(node.name, first_part))
 
@@ -457,6 +475,7 @@ class SnippetsExtension(EditorExtension):
                     if last_token == node.name:
                         right_merge = True
                         last_token.value = last_token.value + second_part
+
             if not right_merge:
                 second_tokens.insert(0, nodes.LeafNode(node.name, second_part))
 

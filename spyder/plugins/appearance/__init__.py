@@ -10,8 +10,3 @@ spyder.plugins.appearance
 
 Appearance Plugin.
 """
-
-from spyder.plugins.appearance.plugin import Appearance
-
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [Appearance]

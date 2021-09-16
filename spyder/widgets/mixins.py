@@ -21,7 +21,7 @@ import sys
 import textwrap
 
 # Third party imports
-from qtpy.QtCore import QPoint, Qt
+from qtpy.QtCore import QPoint, QRegularExpression, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
 from qtpy import QT_VERSION
@@ -31,18 +31,11 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
 # Local imports
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
-from spyder.utils import encoding, sourcecode, programs
+from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import QStylePalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
-
-QT55_VERSION = programs.check_version(QT_VERSION, "5.5", ">=")
-
-if QT55_VERSION:
-    from qtpy.QtCore import QRegularExpression
-else:
-    from qtpy.QtCore import QRegExp
 
 
 class BaseEditMixin(object):
@@ -697,9 +690,12 @@ class BaseEditMixin(object):
         characters.
         """
         text = self.toPlainText()
+        lines = text.splitlines()
         linesep = self.get_line_separator()
-        text.replace('\n', linesep)
-        return text
+        text_with_eol = linesep.join(lines)
+        if text.endswith('\n'):
+            text_with_eol += linesep
+        return text_with_eol
 
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
@@ -1117,11 +1113,15 @@ class BaseEditMixin(object):
 
         return word
 
+    def get_line_indentation(self, text):
+        """Get indentation for given line."""
+        text = text.replace("\t", " "*self.tab_stop_width_spaces)
+        return len(text)-len(text.lstrip())
+
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)."""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
-        text = text.replace("\t", " "*self.tab_stop_width_spaces)
-        return len(text)-len(text.lstrip())
+        return self.get_line_indentation(text)
 
     def get_selection_bounds(self, cursor=None):
         """Return selection bounds (block numbers)."""
@@ -1231,9 +1231,15 @@ class BaseEditMixin(object):
 
     def find_text(self, text, changed=True, forward=True, case=False,
                   word=False, regexp=False):
-        """Find text"""
+        """Find text."""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
+
+        # Get visible region to center cursor in case it's necessary.
+        if getattr(self, 'get_visible_block_numbers', False):
+            current_visible_region = self.get_visible_block_numbers()
+        else:
+            current_visible_region = None
 
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
@@ -1259,16 +1265,10 @@ class BaseEditMixin(object):
         else:
             text = re.escape(to_text_string(text))
 
-        if QT55_VERSION:
-            pattern = QRegularExpression(u"\\b{}\\b".format(text) if word else
-                                         text)
-            if case:
-                pattern.setPatternOptions(
-                    QRegularExpression.CaseInsensitiveOption)
-        else:
-            pattern = QRegExp(u"\\b{}\\b".format(text)
-                              if word else text, Qt.CaseSensitive if case else
-                              Qt.CaseInsensitive, QRegExp.RegExp2)
+        pattern = QRegularExpression(u"\\b{}\\b".format(text) if word else
+                                     text)
+        if case:
+            pattern.setPatternOptions(QRegularExpression.CaseInsensitiveOption)
 
         for move in moves:
             cursor.movePosition(move)
@@ -1282,6 +1282,14 @@ class BaseEditMixin(object):
                 found_cursor = self.document().find(pattern, cursor, findflag)
             if found_cursor is not None and not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
+
+                # Center cursor if we move out of the visible region.
+                if current_visible_region is not None:
+                    found_visible_region = self.get_visible_block_numbers()
+                    if current_visible_region != found_visible_region:
+                        current_visible_region = found_visible_region
+                        self.centerCursor()
+
                 return True
 
         return False

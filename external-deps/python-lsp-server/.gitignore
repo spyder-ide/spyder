@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Mypy cache
+.mypy_cache/
+
 # IntelliJ
 *.iml
 *.ipr
@@ -112,3 +115,4 @@ ENV/
 
 # Special files
 .DS_Store
+*.temp

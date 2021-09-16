@@ -14,6 +14,7 @@ from flaky import flaky
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.utils.programs import (_clean_win_application_path, check_version,
                                    find_program, get_application_icon,
                                    get_installed_applications, get_temp_dir,
@@ -70,8 +71,7 @@ def scriptpath_with_blanks(tmpdir):
 # =============================================================================
 # ---- Tests
 # =============================================================================
-@pytest.mark.skipif((sys.platform.startswith('linux') or
-                     os.environ.get('CI', None) is None),
+@pytest.mark.skipif(sys.platform.startswith('linux') or not running_in_ci(),
                     reason='It only runs in CI services and '
                            'Linux does not have pythonw executables.')
 def test_is_valid_w_interpreter():
@@ -79,7 +79,7 @@ def test_is_valid_w_interpreter():
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Only on CI!')
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_run_python_script_in_terminal(scriptpath, qtbot):
     """
     Test running a Python script in an external terminal when specifying
@@ -99,7 +99,7 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.skipif(
-    os.environ.get('CI', None) is None or os.name == 'nt',
+    not running_in_ci() or os.name == 'nt',
     reason='Only on CI and not on windows!',
 )
 def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
@@ -123,7 +123,7 @@ def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.skipif(
-    os.environ.get('CI', None) is None or os.name == 'nt',
+    not running_in_ci() or os.name == 'nt',
     reason='Only on CI and not on windows!',
 )
 def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
@@ -146,19 +146,19 @@ def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
 
 
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.environ.get('CI', None) is None, reason='Only on CI!')
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_is_valid_interpreter():
     assert is_python_interpreter(VALID_INTERPRETER)
 
 
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.environ.get('CI', None) is None, reason='Only on CI!')
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_is_invalid_interpreter():
     assert not is_python_interpreter(INVALID_INTERPRETER)
 
 
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.environ.get('CI', None) is None, reason='Only on CI!')
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_is_valid_interpreter_name():
     names = ['python', 'pythonw', 'python2.7', 'python3.5', 'python.exe', 'pythonw.exe']
     assert all([is_python_interpreter_valid_name(n) for n in names])
@@ -195,7 +195,7 @@ def test_is_module_installed_with_custom_interpreter():
     current = sys.executable
     assert is_module_installed('qtconsole', '>=4.5', interpreter=current)
     assert not is_module_installed('IPython', '>=1.0;<3.0', interpreter=current)
-    assert is_module_installed('jedi', '>=0.7.0', interpreter=current)
+    assert is_module_installed('cloudpickle', '>=0.5.0', interpreter=current)
 
 
 def test_get_temp_dir_ensure_dir_exists():

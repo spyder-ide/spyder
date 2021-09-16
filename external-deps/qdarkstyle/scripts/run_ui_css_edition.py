@@ -34,6 +34,7 @@ def main():
     styled = None
     no_styled = None
     themes = {'Styled': styled, 'No styled': no_styled}
+    shell = True if os.name == 'nt' else False
     while True:
         for theme_name, theme_process in themes.items():
             try:
@@ -49,16 +50,16 @@ def main():
 
         # Process qrc files
         process_qrc = os.path.join(SCRIPTS_PATH, '../qdarkstyle/utils/__main__.py')
-        call(['python', process_qrc], shell=True)
+        call(['python', process_qrc], shell=shell)
 
         # Show window
         example = os.path.join(SCRIPTS_PATH, '../qdarkstyle/example/__main__.py')
 
         # Open styled window
-        styled = call(['python', example, '--palette', palette] + sys.argv[1:], shell=True)
+        styled = call(['python', example, '--palette', palette] + sys.argv[1:], shell=shell)
 
         # Open unstyled window
-        no_styled = call(['python', example, '--palette', 'none'] + sys.argv[1:], shell=True)
+        no_styled = call(['python', example, '--palette', 'none'] + sys.argv[1:], shell=shell)
 
         if styled or no_styled:
             print('Unf! It not worked! Please, check the error(s).')

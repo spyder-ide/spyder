@@ -10,7 +10,10 @@
 
 import re
 
+from spyder_kernels.py3compat import lru_cache
 
+
+@lru_cache(maxsize=100)
 def is_module_installed(module_name):
     """
     Simpler version of spyder.utils.programs.is_module_installed.

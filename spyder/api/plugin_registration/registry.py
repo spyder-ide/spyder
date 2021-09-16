@@ -15,10 +15,9 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.api.plugins_enum import Plugins
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import (
-    SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,
+    Plugins, SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,
     SpyderPlugin)
 
 
@@ -371,6 +370,22 @@ class SpyderPluginRegistry(QObject):
             True if the plugin is enabled and False if not.
         """
         return plugin_name in self.enabled_plugins
+
+    def is_plugin_available(self, plugin_name: str) -> bool:
+        """
+        Determine if a given plugin was loaded and is available.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to query.
+
+        Returns
+        -------
+        plugin_available: bool
+            True if the plugin is available and False if not.
+        """
+        return self.plugin_availability.get(plugin_name, False)
 
     def reset(self):
         """Reset and empty the plugin registry."""

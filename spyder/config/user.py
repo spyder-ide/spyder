@@ -466,6 +466,10 @@ class UserConfig(DefaultsConfig):
         for section in self.sections():
             secdict = {}
             for option, value in self.items(section, raw=self._raw):
+                try:
+                    value = ast.literal_eval(value)
+                except (SyntaxError, ValueError):
+                    pass
                 secdict[option] = value
             self.defaults.append((section, secdict))
 

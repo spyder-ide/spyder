@@ -136,6 +136,16 @@ class WorkspaceProvider:
         }
         return params
 
+    @handles(CompletionRequestTypes.WORKSPACE_EXECUTE_COMMAND)
+    def handle_execute_command_response(self, response, req_id):
+        if req_id in self.req_reply:
+            self.req_reply[req_id](
+                CompletionRequestTypes.WORKSPACE_EXECUTE_COMMAND,
+                {'params': response}
+            )
+
+        return response
+
     @send_response(method=CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
     def send_edit_response(self, edits):
         params = {

@@ -16,31 +16,72 @@ def pylsp_document_symbols(config, document):
     # pylint: disable=too-many-nested-blocks
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-branches
+    # pylint: disable=too-many-statements
+
     symbols_settings = config.plugin_settings('jedi_symbols')
     all_scopes = symbols_settings.get('all_scopes', True)
     add_import_symbols = symbols_settings.get('include_import_symbols', True)
-
-    use_document_path = False
-    document_dir = os.path.normpath(os.path.dirname(document.path))
-    if not os.path.isfile(os.path.join(document_dir, '__init__.py')):
-        use_document_path = True
-
-    definitions = document.jedi_names(use_document_path, all_scopes=all_scopes)
-    module_name = document.dot_path
+    definitions = document.jedi_names(all_scopes=all_scopes)
     symbols = []
     exclude = set({})
     redefinitions = {}
+
     while definitions != []:
         d = definitions.pop(0)
+
+        # Skip symbols imported from other modules.
         if not add_import_symbols:
+            # Skip if there's an import in the code the symbol is defined.
+            code = d.get_line_code()
+            if ' import ' in code or 'import ' in code:
+                continue
+
+            # Skip imported symbols comparing module names.
             sym_full_name = d.full_name
+            document_dot_path = document.dot_path
             if sym_full_name is not None:
-                if (not sym_full_name.startswith(module_name) and
-                        not sym_full_name.startswith('__main__')):
-                    continue
+                # We assume a symbol is imported from another module to start
+                # with.
+                imported_symbol = True
+
+                # The last element of sym_full_name is the symbol itself, so
+                # we need to discard it to do module comparisons below.
+                if '.' in sym_full_name:
+                    sym_module_name = sym_full_name.rpartition('.')[0]
+
+                # This is necessary to display symbols in init files (the checks
+                # below fail without it).
+                if document_dot_path.endswith('__init__'):
+                    document_dot_path = document_dot_path.rpartition('.')[0]
+
+                # document_dot_path is the module where the symbol is imported,
+                # whereas sym_module_name is the one where it was declared.
+                if sym_module_name.startswith(document_dot_path):
+                    # If sym_module_name starts with the same string as document_dot_path,
+                    # we can safely assume it was declared in the document.
+                    imported_symbol = False
+                elif sym_module_name.split('.')[0] in document_dot_path.split('.'):
+                    # If the first module in sym_module_name is one of the modules in
+                    # document_dot_path, we need to check if sym_module_name starts
+                    # with the modules in document_dot_path.
+                    document_mods = document_dot_path.split('.')
+                    for i in range(1, len(document_mods) + 1):
+                        submod = '.'.join(document_mods[-i:])
+                        if sym_module_name.startswith(submod):
+                            imported_symbol = False
+                            break
+
+                # When there's no __init__.py next to a file or in one of its
+                # parents, the checks above fail. However, Jedi has a nice way
+                # to tell if the symbol was declared in the same file: if
+                # full_name starts by __main__.
+                if imported_symbol:
+                    if not sym_module_name.startswith('__main__'):
+                        continue
+
         try:
             docismodule = os.path.samefile(document.path, d.module_path)
-        except TypeError:
+        except (TypeError, FileNotFoundError):
             # Python 2 on Windows has no .samefile, but then these are
             # strings for sure
             docismodule = document.path == d.module_path

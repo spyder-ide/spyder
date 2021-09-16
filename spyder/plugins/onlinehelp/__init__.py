@@ -7,8 +7,3 @@
 """
 Spyder Online help plugin using Pydoc.
 """
-
-from spyder.plugins.onlinehelp.plugin import OnlineHelp
-
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [OnlineHelp]

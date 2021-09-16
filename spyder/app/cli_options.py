@@ -116,10 +116,10 @@ def get_options(argv=None):
         default='terminal',
         dest="debug_output",
         choices=['terminal', 'file'],
-        help=("Print internal debugging info either to the "
-              "terminal or to a file called spyder-debug.log "
-              "in your current working directory. Default is "
-              "'terminal'.")
+        help=("Print internal debugging info to the terminal and a file in "
+              "the configuration directory or to the terminal and a file "
+              "called spyder-debug.log in the current working directory. "
+              "Default is 'terminal'.")
     )
     parser.add_argument(
         '--filter-log',
@@ -141,6 +141,13 @@ def get_options(argv=None):
         action='store_true',
         default=False,
         help="Report segmentation fault to Github."
+    )
+    parser.add_argument(
+        '--conf-dir',
+        type=str,
+        dest="conf_dir",
+        default=None,
+        help="Choose a configuration directory to use for Spyder."
     )
 
     parser.add_argument('files', nargs='*')

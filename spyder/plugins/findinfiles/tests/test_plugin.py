@@ -32,7 +32,7 @@ def findinfiles(qtbot):
 
     # qtbot wants to close the widget
     findinfiles_plugin.close = lambda: True
-    qtbot.addWidget(findinfiles_plugin)
+    qtbot.addWidget(findinfiles_plugin.get_widget())
 
     return findinfiles_plugin
 

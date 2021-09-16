@@ -68,6 +68,9 @@ def make_app_bundle(dist_dir, make_lite=False):
         File "<frozen zipimport>", line 177, in get_data
         KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
         Grammar3.8.6.final.0.pickle'
+    debugpy :
+        NotADirectoryError: [Errno 20] Not a directory:
+        '<path>/Resources/lib/python39.zip/debugpy/_vendored'
     docutils :
         [Errno 20] Not a directory: '<path>/Resources/lib/python39.zip/
         docutils/writers/latex2e/docutils.sty'
@@ -149,13 +152,15 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
                 'pylsp', 'pylsp_black', 'pyls_spyder', 'qtawesome',
                 'setuptools', 'sphinx', 'spyder', 'spyder_kernels',
-                'textdistance',
+                'textdistance', 'debugpy',
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()
                 # required for sphinx
                 'sphinxcontrib.applehelp', 'sphinxcontrib.devhelp',
                 'sphinxcontrib.htmlhelp', 'sphinxcontrib.jsmath',
-                'sphinxcontrib.qthelp', 'sphinxcontrib.serializinghtml']
+                'sphinxcontrib.qthelp', 'sphinxcontrib.serializinghtml',
+                'platformdirs.macos',  # required for platformdirs
+                ]
     EXCLUDES = []
     EXCLUDE_EGG = ['py2app']
 

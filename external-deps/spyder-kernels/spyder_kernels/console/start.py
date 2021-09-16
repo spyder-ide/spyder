@@ -17,6 +17,9 @@ import os.path as osp
 import sys
 import site
 
+from traitlets import DottedObjectName
+import ipykernel
+
 # Local imports
 from spyder_kernels.utils.misc import is_module_installed
 from spyder_kernels.utils.mpl import (
@@ -24,6 +27,8 @@ from spyder_kernels.utils.mpl import (
 
 
 PY2 = sys.version[0] == '2'
+IPYKERNEL_6 = ipykernel.__version__[0] >= '6'
+
 
 
 def import_spydercustomize():
@@ -41,7 +46,7 @@ def import_spydercustomize():
 
     # Import our customizations
     site.addsitedir(customize_dir)
-    import spydercustomize
+    import spydercustomize  # noqa
 
     # Remove our customize path from sys.path
     try:
@@ -104,8 +109,17 @@ def kernel_config():
     # Spyder, to avoid deleting the sys module if users want to import
     # it through them.
     # See spyder-ide/spyder#15788
-    clear_argv = "import sys;sys.argv = [''];del sys"
+    clear_argv = "import sys; sys.argv = ['']; del sys"
     spy_cfg.IPKernelApp.exec_lines = [clear_argv]
+
+    # Set our runfile in builtins here to prevent other packages shadowing it.
+    # This started to be a problem since IPykernel 6.3.0.
+    if not PY2:
+        spy_cfg.IPKernelApp.exec_lines.append(
+            "import builtins; "
+            "builtins.runfile = builtins.spyder_runfile; "
+            "del builtins.spyder_runfile; del builtins"
+        )
 
     # Run lines of code at startup
     run_lines_o = os.environ.get('SPY_RUN_LINES_O')
@@ -269,6 +283,10 @@ def main():
     from spyder_kernels.console.kernel import SpyderKernel
 
     class SpyderKernelApp(IPKernelApp):
+
+        if IPYKERNEL_6:
+            outstream_class = DottedObjectName(
+                'spyder_kernels.console.outstream.TTYOutStream')
 
         def init_pdb(self):
             """

@@ -17,16 +17,19 @@ import sys
 # Third-party imports
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
-from qtpy.QtGui import QColor, QPalette, QPixmap
-from qtpy.QtWidgets import QSplashScreen
+from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap, QPainter, QImage
+from qtpy.QtWidgets import QApplication, QSplashScreen
+from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
-from spyder.config.base import (DEV, get_conf_path, get_debug_level,
-                                running_under_pytest)
-from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.qthelpers import file_uri
+from spyder.config.base import (
+    DEV, get_conf_path, get_debug_level, running_in_mac_app,
+    running_under_pytest)
+from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
-from spyder.utils.stylesheet import QStylePalette
+from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.palette import QStylePalette
+from spyder.utils.qthelpers import file_uri, qapplication
 
 # For spyder-ide/spyder#7447.
 try:
@@ -112,13 +115,10 @@ def setup_logging(cli_options):
         console_filters = [x for x in console_filters if x != '']
 
         handlers = [logging.StreamHandler()]
-        if cli_options.debug_output == 'file':
-            log_file = 'spyder-debug.log'
-            handlers.append(
-                logging.FileHandler(filename=log_file, mode='w+')
-            )
-        else:
-            log_file = None
+        filepath = os.environ['SPYDER_DEBUG_FILE']
+        handlers.append(
+            logging.FileHandler(filename=filepath, mode='w+')
+        )
 
         match_func = lambda x: True
         if console_filters != [''] and len(console_filters) > 0:
@@ -143,8 +143,8 @@ def setup_logging(cli_options):
             root_logger.addHandler(handler)
 
 
-def delete_lsp_log_files():
-    """Delete previous dead Spyder instances LSP log files."""
+def delete_debug_log_files():
+    """Delete previous debug log files."""
     regex = re.compile(r'.*_.*_(\d+)[.]log')
     files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
     for f in files:
@@ -153,6 +153,10 @@ def delete_lsp_log_files():
             pid = int(match.group(1))
             if not psutil.pid_exists(pid):
                 os.remove(f)
+
+    debug_file = os.environ['SPYDER_DEBUG_FILE']
+    if osp.exists(debug_file):
+        os.remove(debug_file)
 
 
 def qt_message_handler(msg_type, msg_log_context, msg_string):
@@ -176,7 +180,17 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 def create_splash_screen():
     """Create splash screen."""
     if not running_under_pytest():
-        splash = QSplashScreen(QPixmap(get_image_path('splash')))
+        image = QImage(500, 400, QImage.Format_ARGB32_Premultiplied)
+        image.fill(0)
+        painter = QPainter(image)
+        renderer = QSvgRenderer(get_image_path('splash'))
+        renderer.render(painter)
+        painter.end()
+
+        pm = QPixmap.fromImage(image)
+        pm = pm.copy(0, 0, 500, 400)
+
+        splash = QSplashScreen(pm)
         splash_font = splash.font()
         splash_font.setPixelSize(14)
         splash.setFont(splash_font)
@@ -192,9 +206,122 @@ def set_links_color(app):
 
     This was taken from QDarkstyle, which is MIT licensed.
     """
-    color = QStylePalette.COLOR_ACCENT_3
+    color = QStylePalette.COLOR_ACCENT_4
     qcolor = QColor(color)
 
     app_palette = app.palette()
     app_palette.setColor(QPalette.Normal, QPalette.Link, qcolor)
     app.setPalette(app_palette)
+
+
+def create_application():
+    """Create application and patch sys.exit."""
+    # Our QApplication
+    app = qapplication()
+
+    # --- Set application icon
+    app_icon = QIcon(get_image_path("spyder"))
+    app.setWindowIcon(app_icon)
+
+    # Required for correct icon on GNOME/Wayland:
+    if hasattr(app, 'setDesktopFileName'):
+        app.setDesktopFileName('spyder')
+
+    # ---- Monkey patching QApplication
+    class FakeQApplication(QApplication):
+        """Spyder's fake QApplication"""
+        def __init__(self, args):
+            self = app  # analysis:ignore
+
+        @staticmethod
+        def exec_():
+            """Do nothing because the Qt mainloop is already running"""
+            pass
+
+    from qtpy import QtWidgets
+    QtWidgets.QApplication = FakeQApplication
+
+    # ---- Monkey patching sys.exit
+    def fake_sys_exit(arg=[]):
+        pass
+    sys.exit = fake_sys_exit
+
+    # ---- Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
+    def spy_excepthook(type_, value, tback):
+        sys.__excepthook__(type_, value, tback)
+    sys.excepthook = spy_excepthook
+
+    # Removing arguments from sys.argv as in standard Python interpreter
+    sys.argv = ['']
+
+    return app
+
+
+def create_window(WindowClass, app, splash, options, args):
+    """
+    Create and show Spyder's main window and start QApplication event loop.
+
+    Parameters
+    ----------
+    WindowClass: QMainWindow
+        Subclass to instantiate the Window.
+    app: QApplication
+        Instance to start the application.
+    splash: QSplashScreen
+        Splash screen instamce.
+    options: argparse.Namespace
+        Command line options passed to Spyder
+    args: list
+        List of file names passed to the Spyder executable in the
+        command line.
+    """
+    # Main window
+    main = WindowClass(splash, options)
+    try:
+        main.setup()
+    except BaseException:
+        if main.console is not None:
+            try:
+                main.console.exit_interpreter()
+            except BaseException:
+                pass
+        raise
+
+    main.pre_visible_setup()
+    main.show()
+    main.post_visible_setup()
+
+    if main.console:
+        namespace = CONF.get('internal_console', 'namespace', {})
+        main.console.start_interpreter(namespace)
+        main.console.set_namespace_item('spy', Spy(app=app, window=main))
+
+    # Propagate current configurations to all configuration observers
+    CONF.notify_all_observers()
+
+    # Don't show icons in menus for Mac
+    if sys.platform == 'darwin':
+        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
+
+    # Open external files with our Mac app
+    if running_in_mac_app():
+        app.sig_open_external_file.connect(main.open_external_file)
+        app._has_started = True
+        if hasattr(app, '_pending_file_open'):
+            if args:
+                args = app._pending_file_open + args
+            else:
+                args = app._pending_file_open
+
+    # Open external files passed as args
+    if args:
+        for a in args:
+            main.open_external_file(a)
+
+    # To give focus again to the last focused widget after restoring
+    # the window
+    app.focusChanged.connect(main.change_last_focused_widget)
+
+    if not running_under_pytest():
+        app.exec_()
+    return main

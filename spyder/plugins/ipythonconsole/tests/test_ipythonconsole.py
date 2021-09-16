@@ -35,7 +35,7 @@ from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
@@ -218,6 +218,7 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 # Tests
 # =============================================================================
+@flaky(max_runs=3)
 @pytest.mark.external_interpreter
 def test_banners(ipyconsole, qtbot):
     """Test that console banners are generated correctly."""
@@ -292,7 +293,6 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend is working correctly."""
     # Wait until the window is fully up
@@ -300,14 +300,15 @@ def test_auto_backend(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # This is here to generate further errors
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%matplotlib qt5")
+        shell.execute("import matplotlib; matplotlib.get_backend()")
 
-    # Assert there are no errors in the console
+    # Assert there are no errors in the console and we set the right
+    # backend.
     control = ipyconsole.get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
+    assert 'Qt5Agg' in control.toPlainText()
 
 
 @flaky(max_runs=3)
@@ -855,8 +856,8 @@ def test_read_stderr(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
-                    reason="It times out on AppVeyor.")
+@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
+                    reason="Times out on Windows")
 @pytest.mark.skipif(PY2, reason="It times out in Python 2.")
 def test_values_dbg(ipyconsole, qtbot):
     """
@@ -1028,8 +1029,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or PYQT5,
-                    reason="It fails frequently in PyQt5 and our CIs")
+@pytest.mark.skipif(running_in_ci(), reason="Fails frequently in CI")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
     Test that Ctrl+C works while debugging
@@ -1295,6 +1295,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Fails sometimes on macOS")
 def test_kernel_crash(ipyconsole, qtbot):
     """Test that we show an error message when a kernel crash occurs."""
     # Create an IPython kernel config file with a bad config
@@ -1326,6 +1328,7 @@ def test_kernel_crash(ipyconsole, qtbot):
     os.remove(ipy_kernel_cfg)
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
 def test_remove_old_stderr_files(ipyconsole, qtbot):
     """Test that we are removing old stderr files."""
@@ -1487,6 +1490,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
+@flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
 def test_pdb_multiline(ipyconsole, qtbot):
     """Test entering a multiline statment into pdb"""
@@ -1725,7 +1729,7 @@ def test_stderr_poll(ipyconsole, qtbot):
     assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
 
 
-@pytest.mark.slow
+@flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
 def test_startup_code_pdb(ipyconsole, qtbot):
     """Test that startup code for pdb works."""

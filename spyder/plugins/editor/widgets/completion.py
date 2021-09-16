@@ -46,9 +46,9 @@ class CompletionWidget(QListWidget):
         CompletionItemKind.KEYWORD: 'keyword',
         CompletionItemKind.SNIPPET: 'snippet',
         CompletionItemKind.COLOR: 'color',
-        CompletionItemKind.FILE: 'filenew',
+        CompletionItemKind.FILE: 'file',
         CompletionItemKind.REFERENCE: 'reference',
-        }
+    }
     ICON_MAP = {}
 
     sig_show_completions = Signal(object)
@@ -71,6 +71,8 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
+        self.current_selected_item_label = None
+        self.current_selected_item_point = None
         self.display_index = []
 
         # Setup item rendering
@@ -95,6 +97,9 @@ class CompletionWidget(QListWidget):
 
     def show_list(self, completion_list, position, automatic):
         """Show list corresponding to position."""
+        self.current_selected_item_label = None
+        self.current_selected_item_point = None
+
         if not completion_list:
             self.hide()
             return
@@ -445,18 +450,7 @@ class CompletionWidget(QListWidget):
                                             self.completion_position)
         self.hide()
 
-    def trigger_completion_hint(self, row=None):
-        if not self.completion_list:
-            return
-        if row is None:
-            row = self.currentRow()
-        if row < 0 or len(self.completion_list) <= row:
-            return
-
-        item = self.completion_list[row]
-        if 'point' not in item:
-            return
-
+    def _get_insert_text(self, item):
         if 'textEdit' in item:
             insert_text = item['textEdit']['newText']
         else:
@@ -469,6 +463,34 @@ class CompletionWidget(QListWidget):
 
             for ch in chars:
                 insert_text = insert_text.split(ch)[0]
+        return insert_text
+
+    def trigger_completion_hint(self, row=None):
+        self.current_selected_item_label = None
+        self.current_selected_item_point = None
+
+        if not self.completion_list:
+            return
+        if row is None:
+            row = self.currentRow()
+        if row < 0 or len(self.completion_list) <= row:
+            return
+
+        item = self.completion_list[row]
+        if 'point' not in item:
+            return
+
+        self.current_selected_item_label = item['label']
+        self.current_selected_item_point = item['point']
+
+        insert_text = self._get_insert_text(item)
+
+        if hasattr(self.textedit, 'resolve_completion_item'):
+            if item.get('resolve', False):
+                to_resolve = item.copy()
+                to_resolve.pop('point')
+                to_resolve.pop('resolve')
+                self.textedit.resolve_completion_item(to_resolve)
 
         if isinstance(item['documentation'], dict):
             item['documentation'] = item['documentation']['value']
@@ -477,6 +499,14 @@ class CompletionWidget(QListWidget):
             insert_text,
             item['documentation'],
             item['point'])
+
+    def augment_completion_info(self, item):
+        if self.current_selected_item_label == item['label']:
+            insert_text = self._get_insert_text(item)
+            self.sig_completion_hint.emit(
+                insert_text,
+                item['documentation'],
+                self.current_selected_item_point)
 
     @Slot(int)
     def row_changed(self, row):

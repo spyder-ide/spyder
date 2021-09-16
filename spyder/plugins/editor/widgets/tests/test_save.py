@@ -18,7 +18,7 @@ import pytest
 # Local imports
 from spyder.plugins.editor.panels import DebuggerPanel
 from spyder.plugins.editor.widgets import editor
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 
 # ---- Helpers

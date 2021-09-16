@@ -10,20 +10,17 @@ Internal Console Plugin.
 
 # Standard library imports
 import logging
-import os
 
 # Third party imports
-from qtpy.QtCore import QObject, Signal, Slot
+from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
-from spyder.plugins.application.plugin import ApplicationActions
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget
-from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, FileMenuSections, HelpMenuSections)
+from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
 
 # Localization
 _ = get_translation('spyder')
@@ -207,8 +204,7 @@ class Console(SpyderDockablePlugin):
         """
         self.get_widget().handle_exception(
             error_data,
-            sender=self.sender(),
-            internal_plugins=self._main._INTERNAL_PLUGINS,
+            sender=self.sender()
         )
 
     def quit(self):

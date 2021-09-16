@@ -10,8 +10,3 @@ spyder.plugins.shortcuts
 
 Shortcuts Plugin.
 """
-
-from spyder.plugins.shortcuts.plugin import Shortcuts
-
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [Shortcuts]

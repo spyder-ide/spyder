@@ -20,7 +20,7 @@ import functools
 import unicodedata
 
 # Third party imports
-import qstylizer
+import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
@@ -47,7 +47,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.py3compat import qbytearray_to_str, to_text_string
@@ -2632,6 +2632,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
         self.analyze_script(index)
+        finfo.editor.set_sync_symbols_and_folding_timeout()
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
@@ -2649,6 +2650,7 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
         finfo = self.data[index]
         eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
+        logger.debug(f"Set OS eol chars {eol_chars} for file {finfo.filename}")
         finfo.editor.set_eol_chars(eol_chars)
         finfo.editor.document().setModified(True)
 
@@ -2657,18 +2659,21 @@ class EditorStack(QWidget):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Remove trailing spaces for file {finfo.filename}")
         finfo.editor.trim_trailing_spaces()
 
     def trim_trailing_newlines(self, index=None):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Trim trailing new lines for file {finfo.filename}")
         finfo.editor.trim_trailing_newlines()
 
     def add_newline_to_file(self, index=None):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Add new line to file {finfo.filename}")
         finfo.editor.add_newline_to_file()
 
     def fix_indentation(self, index=None):
@@ -2676,12 +2681,14 @@ class EditorStack(QWidget):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Fix indentation for file {finfo.filename}")
         finfo.editor.fix_indentation()
 
     def format_document_or_selection(self, index=None):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
 
     #  ------ Run

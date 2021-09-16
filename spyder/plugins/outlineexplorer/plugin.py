@@ -8,15 +8,12 @@
 
 # Third party imports
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
 from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import get_translation
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
-from spyder.py3compat import is_text_string
-from spyder.utils.icon_manager import ima
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 # Localization
 _ = get_translation('spyder')
@@ -25,7 +22,7 @@ _ = get_translation('spyder')
 class OutlineExplorer(SpyderDockablePlugin):
     NAME = 'outline_explorer'
     CONF_SECTION = 'outline_explorer'
-    REQUIRES = [Plugins.Completions]
+    REQUIRES = [Plugins.Completions, Plugins.Editor]
     OPTIONAL = []
 
     CONF_FILE = False
@@ -58,6 +55,13 @@ class OutlineExplorer(SpyderDockablePlugin):
             self.start_symbol_services)
         completions.sig_stop_completions.connect(
             self.stop_symbol_services)
+
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        editor = self.get_plugin(Plugins.Editor)
+
+        editor.sig_open_files_finished.connect(
+            self.update_all_editors)
 
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):

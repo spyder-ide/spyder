@@ -16,6 +16,7 @@ from qtpy.QtWidgets import QMessageBox
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
 from spyder.utils.vcs import get_git_remotes
 
@@ -29,7 +30,7 @@ TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = 'conftest.py'
 
 
-@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
+@pytest.mark.skipif(running_in_ci(), reason='Fails on CI!')
 @pytest.mark.parametrize('params', [
             # Parameter, expected output 1, full file path, expected output 2
             # ----------------------------------------------------------------

@@ -37,7 +37,7 @@ import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QUrl
 from qtpy.QtTest import QTest
-from qtpy.QtGui import QImage
+from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
                             QTabBar, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -49,8 +49,10 @@ from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow
-from spyder.config.base import get_home_dir, get_conf_path, get_module_path
+from spyder.config.base import (
+    get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
+from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -58,7 +60,9 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, to_text_string
+from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
 
 
@@ -94,19 +98,6 @@ def open_file_in_editor(main_window, fname, directory=None):
             input_field = w.findChildren(QLineEdit)[0]
             input_field.setText(fname)
             QTest.keyClick(w, Qt.Key_Enter)
-
-
-def get_thirdparty_plugin(main_window, plugin_title):
-    """Get a reference to the thirdparty plugin with the title given."""
-    for plugin in main_window.thirdparty_plugins:
-        try:
-            # New API
-            if plugin.get_name() == plugin_title:
-                return plugin
-        except AttributeError:
-            # Old API
-            if plugin.get_plugin_title() == plugin_title:
-                return plugin
 
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
@@ -151,7 +142,6 @@ def register_fake_entrypoints():
     """
     Create entry points distribution to register elements:
      * Completion providers (Fallback, Shippets, LSP)
-     * Puglins (SpyderBoilerplate plugin)
     """
     # Completion providers
     fallback = pkg_resources.EntryPoint.parse(
@@ -167,26 +157,18 @@ def register_fake_entrypoints():
         'LanguageServerProvider'
     )
 
-    # Extra plugins
-    spyder_boilerplate = pkg_resources.EntryPoint.parse(
-        'spyder_boilerplate = spyder.app.tests.spyder_boilerplate.spyder.'
-        'plugin:SpyderBoilerplate'
-    )
-
     # Create a fake Spyder distribution
     d = pkg_resources.Distribution(__file__)
 
-    # Add the providers and plugins to the fake EntryPoints
+    # Add the providers to the fake EntryPoints
     d._ep_map = {
         'spyder.completions': {
             'fallback': fallback,
             'snippets': snippets,
             'lsp': lsp
-        },
-        'spyder.plugins': {
-            'spyder_boilerplate': spyder_boilerplate
         }
     }
+
     # Add the fake distribution to the global working_set
     pkg_resources.working_set.add(d, 'spyder')
 
@@ -202,14 +184,19 @@ def remove_fake_entrypoints():
         pass
 
 
+def read_asset_file(filename):
+    """Read contents of an asset file."""
+    return encoding.read(osp.join(LOCATION, filename))[0]
+
+
 # =============================================================================
 # ---- Fixtures
 # =============================================================================
-
 @pytest.fixture
 def main_window(request, tmpdir):
     """Main Window fixture"""
-    register_fake_entrypoints()
+    if not running_in_ci():
+        register_fake_entrypoints()
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -241,32 +228,78 @@ def main_window(request, tmpdir):
     else:
         CONF.set('main', 'single_instance', False)
 
-    # Check if we need to preload a project in a give test
+    # Check if we need to load a simple project to the interface
     preload_project = request.node.get_closest_marker('preload_project')
 
     if preload_project:
-        # Create project
-        project_path = str(tmpdir.mkdir('test_project'))
-        project = EmptyProject(project_path)
+        # Create project directory
+        project = tmpdir.mkdir('test_project')
+        project_path = str(project)
+
+        # Create Spyder project
+        spy_project = EmptyProject(project_path)
         CONF.set('project_explorer', 'current_project_path', project_path)
 
-        # Add some files to project
-        filenames = [
-            osp.join(project_path, f) for f in
-            ['file1.py', 'file2.py', 'file3.txt']
-        ]
-
-        for filename in filenames:
-            with open(filename, 'w') as f:
-                if osp.splitext(filename)[1] == '.py':
-                    f.write("def f(x):\n"
-                            "    return x\n")
-                else:
-                    f.write("Hello world!")
-
-        project.set_recent_files(filenames)
+        # Add a file to the project
+        file = project.join('file.py')
+        file.write(read_asset_file('script_outline_1.py'))
+        spy_project.set_recent_files([str(file)])
     else:
         CONF.set('project_explorer', 'current_project_path', None)
+
+    # Check if we need to preload a complex project in a give test
+    preload_complex_project = request.node.get_closest_marker(
+        'preload_complex_project')
+
+    if preload_complex_project:
+        # Create project
+        project = tmpdir.mkdir('test_project')
+        project_subdir = project.mkdir('subdir')
+        project_sub_subdir = project_subdir.mkdir('sub_subdir')
+
+        # Create directories out of the project
+        out_of_project_1 = tmpdir.mkdir('out_of_project_1')
+        out_of_project_2 = tmpdir.mkdir('out_of_project_2')
+        out_of_project_1_subdir = out_of_project_1.mkdir('subdir')
+        out_of_project_2_subdir = out_of_project_2.mkdir('subdir')
+
+        project_path = str(project)
+        spy_project = EmptyProject(project_path)
+        CONF.set('project_explorer', 'current_project_path', project_path)
+
+        # Add some files to project. This is necessary to test that we get
+        # symbols for all these files.
+        abs_filenames = []
+        filenames_to_create = {
+            project: ['file1.py', 'file2.py', 'file3.txt', '__init__.py'],
+            project_subdir: ['a.py', '__init__.py'],
+            project_sub_subdir: ['b.py', '__init__.py'],
+            out_of_project_1: ['c.py'],
+            out_of_project_2: ['d.py', '__init__.py'],
+            out_of_project_1_subdir: ['e.py', '__init__.py'],
+            out_of_project_2_subdir: ['f.py']
+        }
+
+        for path in filenames_to_create.keys():
+            filenames = filenames_to_create[path]
+            for filename in filenames:
+                file = path.join(filename)
+                abs_filenames.append(str(file))
+                if osp.splitext(filename)[1] == '.py':
+                    if path == project_subdir:
+                        code = read_asset_file('script_outline_2.py')
+                    elif path == project_sub_subdir:
+                        code = read_asset_file('script_outline_3.py')
+                    else:
+                        code = read_asset_file('script_outline_1.py')
+                    file.write(code)
+                else:
+                    file.write("Hello world!")
+
+        spy_project.set_recent_files(abs_filenames)
+    else:
+        if not preload_project:
+            CONF.set('project_explorer', 'current_project_path', None)
 
     # Get config values passed in parametrize and apply them
     try:
@@ -326,15 +359,18 @@ def main_window(request, tmpdir):
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request):
     """Cleanup a testing directory once we are finished."""
-    def remove_test_dir():
+    def close_window():
         if hasattr(main_window, 'window'):
             try:
                 main_window.window.close()
             except AttributeError:
                 pass
-        remove_fake_entrypoints()
 
-    request.addfinalizer(remove_test_dir)
+        # Also clean entry points if running locally.
+        if not running_in_ci():
+            remove_fake_entrypoints()
+
+    request.addfinalizer(close_window)
 
 
 # =============================================================================
@@ -343,8 +379,8 @@ def cleanup(request):
 @pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.single_instance
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of CIs")
+@pytest.mark.skipif(
+    not running_in_ci(), reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
@@ -631,8 +667,8 @@ def test_get_help_ipython_console_special_characters(
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
+@pytest.mark.skipif(os.name == 'nt' and running_in_ci(),
+                    reason="Times out on Windows")
 def test_get_help_ipython_console(main_window, qtbot):
     """Test that Help works when called from the IPython console."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -717,9 +753,9 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
-@pytest.mark.parametrize(
-    "debugcell", [True, False])
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Fails sometimes on Windows and Mac")
+@pytest.mark.parametrize("debugcell", [True, False])
 def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
@@ -918,6 +954,8 @@ def test_dedicated_consoles(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Fails frequently on Linux")
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -1507,10 +1545,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None or PYQT5,
-                    reason="It times out sometimes on Windows, it's not "
-                           "meant to be run outside of a CI and it segfaults "
-                           "too frequently in PyQt5")
+@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -1575,8 +1610,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' or
-                     os.environ.get('CI', None) is not None and PYQT_VERSION >= '5.9'),
+@pytest.mark.skipif(os.name == 'nt' or running_in_ci() and PYQT_VERSION >= '5.9',
                     reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
 def test_issue_4066(main_window, qtbot):
     """
@@ -2156,7 +2190,7 @@ def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     from spyder.plugins.pylint.main_widget import PylintWidgetActions
     # Select the third-party plugin
-    pylint_plugin = get_thirdparty_plugin(main_window, "Code Analysis")
+    pylint_plugin = main_window.get_plugin(Plugins.Pylint)
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
@@ -2286,9 +2320,7 @@ def test_custom_layouts(main_window, qtbot):
             layout = mw.layouts.setup_default_layouts(
                 layout_idx, settings=settings)
 
-            with qtbot.waitSignal(None, timeout=500, raising=False):
-                # Add a wait to see changes
-                pass
+            qtbot.wait(500)
 
             for area in layout._areas:
                 if area['visible']:
@@ -2306,6 +2338,8 @@ def test_custom_layouts(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(not running_in_ci() or sys.platform.startswith('linux'),
+                    reason="Only runs in CIs and fails on Linux sometimes")
 def test_programmatic_custom_layouts(main_window, qtbot):
     """
     Test that a custom layout gets registered and it is recognized."""
@@ -2322,9 +2356,7 @@ def test_programmatic_custom_layouts(main_window, qtbot):
     with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
         mw.layouts.quick_layout_switch(layout_id)
 
-        with qtbot.waitSignal(None, timeout=500, raising=False):
-            # Add a wait to see changes
-            pass
+        qtbot.wait(500)
 
         for area in layout._areas:
             if area['visible']:
@@ -2370,10 +2402,7 @@ def test_save_on_runfile(main_window, qtbot):
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
-    for plugin in main_window.thirdparty_plugins:
-        if plugin.CONF_SECTION == 'pylint':
-            pylint_plugin = plugin
-            break
+    pylint_plugin = main_window.get_plugin(Plugins.Pylint)
 
     # Show pylint plugin
     pylint_plugin.dockwidget.show()
@@ -3156,9 +3185,8 @@ def test_runcell_cache(main_window, qtbot, debug):
     qtbot.waitUntil(lambda: "Done" in shell._control.toPlainText())
 
 
-# --- Path manager
-# ----------------------------------------------------------------------------
 @pytest.mark.slow
+@flaky(max_runs=3)
 def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     """Check that on path manager updates, consoles correctly update."""
     main_window.show_path_manager()
@@ -3714,6 +3742,7 @@ hello()
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
+@pytest.mark.skipif(os.name == 'nt', reason='Times out on Windows')
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a
@@ -3818,8 +3847,9 @@ def test_tour_message(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
-@pytest.mark.preload_project
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+@pytest.mark.preload_complex_project
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
 def test_update_outline(main_window, qtbot, tmpdir):
     """
     Test that files in the Outline pane are updated at startup and
@@ -3837,12 +3867,12 @@ def test_update_outline(main_window, qtbot, tmpdir):
     ]
 
     # Wait a bit for trees to be filled
-    qtbot.wait(5000)
+    qtbot.wait(25000)
 
     # Assert all Python editors are filled
     assert all(
         [
-            len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+            len(treewidget.editor_tree_cache[editor.get_id()]) == 4
             for editor in editors_py
         ]
     )
@@ -3867,21 +3897,46 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # Assert spinner is not shown
     assert not outline_explorer.get_widget()._spinner.isSpinning()
 
-    # Set one file as session without projects
-    prev_file = tmpdir.join("foo.py")
-    prev_file.write("def zz(x):\n"
-                    "    return x**2\n")
-    CONF.set('editor', 'filenames', [str(prev_file)])
+    # Hide outline from view
+    outline_explorer.toggle_view_action.setChecked(False)
+
+    # Remove content from first file
+    editorstack.set_stack_index(0)
+    editor = editorstack.get_current_editor()
+    editor.selectAll()
+    editor.cut()
+    editorstack.save(index=0)
+
+    # Assert outline was not updated
+    qtbot.wait(1000)
+    len(treewidget.editor_tree_cache[treewidget.current_editor.get_id()]) == 4
+
+    # Set some files as session without projects
+    prev_filenames = ["prev_file_1.py", "prev_file_2.py"]
+    prev_paths = []
+    for fname in prev_filenames:
+        file = tmpdir.join(fname)
+        file.write(read_asset_file("script_outline_1.py"))
+        prev_paths.append(str(file))
+
+    CONF.set('editor', 'filenames', prev_paths)
 
     # Close project to open that file automatically
     main_window.projects.close_project()
 
-    # Wait a bit for its tree to be filled
-    qtbot.wait(1000)
+    # Show outline again
+    outline_explorer.toggle_view_action.setChecked(True)
 
-    # Assert the editor was filled
-    editor = list(treewidget.editor_ids.keys())[0]
-    assert len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+    # Wait a bit for its tree to be filled
+    qtbot.wait(3000)
+
+    # Assert the editors were filled
+    assert all(
+        [
+            len(treewidget.editor_tree_cache[editor.get_id()]) == 4
+            for editor in treewidget.editor_ids.keys()
+        ]
+    )
 
     # Remove test file from session
     CONF.set('editor', 'filenames', [])
@@ -3989,6 +4044,8 @@ def test_outline_no_init(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Flaky on Linux")
 def test_pdb_without_comm(main_window, qtbot):
     """Check if pdb works without comm."""
     ipyconsole = main_window.ipyconsole
@@ -4020,6 +4077,8 @@ def test_pdb_without_comm(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Flaky on Mac and Windows")
 def test_print_comms(main_window, qtbot):
     """Test warning printed when comms print."""
     # Write code with a cell to a file
@@ -4093,6 +4152,82 @@ def test_goto_find(main_window, qtbot, tmpdir):
         cursor = code_editor.textCursor()
         position = (cursor.selectionStart(), cursor.selectionEnd())
         assert position == match_positions[i]
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="test fails on windows.")
+def test_copy_paste(main_window, qtbot, tmpdir):
+    """Test copy paste."""
+    code = (
+        "if True:\n"
+        "    class a():\n"
+        "        def b():\n"
+        "            print()\n"
+        "        def c():\n"
+        "            print()\n"
+        )
+
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    # Test copy
+    cursor = code_editor.textCursor()
+    cursor.setPosition(69)
+    cursor.movePosition(QTextCursor.End,
+                        QTextCursor.KeepAnchor)
+    code_editor.setTextCursor(cursor)
+    qtbot.keyClick(code_editor, "c", modifier=Qt.ControlModifier)
+    assert QApplication.clipboard().text() == (
+        "def c():\n            print()\n")
+    assert CLIPBOARD_HELPER.metadata_indent == 8
+
+    # Test paste in console
+    qtbot.keyClick(shell._control, "v", modifier=Qt.ControlModifier)
+    expected = "In [1]: def c():\n   ...:     print()"
+    assert expected in shell._control.toPlainText()
+
+    # Test paste at zero indentation
+    qtbot.keyClick(code_editor, Qt.Key_Backspace)
+    qtbot.keyClick(code_editor, Qt.Key_Backspace)
+    qtbot.keyClick(code_editor, Qt.Key_Backspace)
+    # Check again that the clipboard is ready
+    assert QApplication.clipboard().text() == (
+        "def c():\n            print()\n")
+    assert CLIPBOARD_HELPER.metadata_indent == 8
+    qtbot.keyClick(code_editor, "v", modifier=Qt.ControlModifier)
+    assert "\ndef c():\n    print()" in code_editor.toPlainText()
+
+    # Test paste at automatic indentation
+    qtbot.keyClick(code_editor, "z", modifier=Qt.ControlModifier)
+    qtbot.keyClick(code_editor, Qt.Key_Tab)
+    qtbot.keyClick(code_editor, "v", modifier=Qt.ControlModifier)
+    expected = (
+        "\n"
+        "            def c():\n"
+        "                print()\n"
+        )
+    assert expected in code_editor.toPlainText()
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
+def test_add_external_plugins_to_dependencies(main_window):
+    """Test that we register external plugins in the main window."""
+    external_names = []
+    for dep in DEPENDENCIES:
+        name = getattr(dep, 'package_name', None)
+        if name:
+            external_names.append(name)
+
+    assert 'spyder-boilerplate' in external_names
 
 
 if __name__ == "__main__":

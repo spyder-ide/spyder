@@ -64,9 +64,6 @@ from spyder.plugins.mainmenu.api import ApplicationMenus
 logger = logging.getLogger(__name__)
 
 
-WINPDB_PATH = programs.find_program('winpdb')
-
-
 class Editor(SpyderPluginWidget):
     """
     Multi-file Editor widget
@@ -150,6 +147,11 @@ class Editor(SpyderPluginWidget):
     See Also
     --------
     :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    """
+
+    sig_open_files_finished = Signal()
+    """
+    This signal is emitted when the editor finished to open files.
     """
 
     def __init__(self, parent, ignore_last_opened_files=False):
@@ -602,10 +604,6 @@ class Editor(SpyderPluginWidget):
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
 
-        self.winpdb_action = create_action(self, _("Debug with winpdb"),
-                                           triggered=self.run_winpdb)
-        self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
-
         # --- Debug toolbar ---
         self.debug_action = create_action(
             self, _("&Debug"),
@@ -992,7 +990,8 @@ class Editor(SpyderPluginWidget):
             self.new_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.New,
-            before_section=FileMenuSections.Restart)
+            before_section=FileMenuSections.Restart,
+            omit_id=True)
         # Open section
         open_actions = [
             self.open_action,
@@ -1004,7 +1003,8 @@ class Editor(SpyderPluginWidget):
                 open_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Open,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Save section
         save_actions = [
             self.save_action,
@@ -1018,7 +1018,8 @@ class Editor(SpyderPluginWidget):
                 save_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Print
         print_actions = [
             print_preview_action,
@@ -1029,7 +1030,8 @@ class Editor(SpyderPluginWidget):
                 print_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Print,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Close
         close_actions = [
             self.close_action,
@@ -1040,14 +1042,16 @@ class Editor(SpyderPluginWidget):
                 close_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
         # Navigation
         if sys.platform == 'darwin':
             self.main.mainmenu.add_item_to_application_menu(
                 self.tab_navigation_actions,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Navigation,
-                before_section=FileMenuSections.Restart)
+                before_section=FileMenuSections.Restart,
+                omit_id=True)
 
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +
@@ -1056,10 +1060,11 @@ class Editor(SpyderPluginWidget):
         self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
-        self.main.search_menu_actions = [find_action,
-                                         find_next_action,
-                                         find_previous_action,
-                                         replace_action]
+        search_menu_actions = [find_action,
+                               find_next_action,
+                               find_previous_action,
+                               replace_action,
+                               gotoline_action]
         self.main.search_toolbar_actions = [find_action,
                                             find_next_action,
                                             replace_action]
@@ -1072,7 +1077,8 @@ class Editor(SpyderPluginWidget):
                                   self.text_lowercase_action]
 
         # ---- Search menu/toolbar construction ----
-        self.main.search_menu_actions += [gotoline_action]
+        self.main.search_menu_actions = (
+            search_menu_actions + self.main.search_menu_actions)
 
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
@@ -1080,15 +1086,13 @@ class Editor(SpyderPluginWidget):
                             re_run_last_cell_action, MENU_SEPARATOR,
                             run_selected_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
-        self.main.run_menu_actions += run_menu_actions
+        self.main.run_menu_actions = (
+            run_menu_actions + self.main.run_menu_actions)
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, run_selected_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
-        # NOTE: 'list_breakpoints' is used by the breakpoints
-        # plugin to add its "List breakpoints" action to this
-        # menu
         debug_menu_actions = [
             self.debug_action,
             self.debug_cell_action,
@@ -1101,11 +1105,9 @@ class Editor(SpyderPluginWidget):
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
-            'list_breakpoints',
-            MENU_SEPARATOR,
-            self.winpdb_action
         ]
-        self.main.debug_menu_actions += debug_menu_actions
+        self.main.debug_menu_actions = (
+            debug_menu_actions + self.main.debug_menu_actions)
         debug_toolbar_actions = [
             self.debug_action,
             self.debug_next_action,
@@ -1141,7 +1143,8 @@ class Editor(SpyderPluginWidget):
             fixindentation_action,
             self.formatting_action
         ]
-        self.main.source_menu_actions += source_menu_actions
+        self.main.source_menu_actions = (
+            source_menu_actions + self.main.source_menu_actions)
 
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
@@ -1164,7 +1167,6 @@ class Editor(SpyderPluginWidget):
             re_run_last_cell_action,
             blockcomment_action,
             unblockcomment_action,
-            self.winpdb_action
         ]
         self.cythonfile_compatible_actions = [run_action, configure_action]
         self.file_dependent_actions = (
@@ -1823,26 +1825,22 @@ class Editor(SpyderPluginWidget):
                     enable = cython_enable
                 else:
                     enable = python_enable
-                if action is self.winpdb_action:
-                    action.setEnabled(enable and WINPDB_PATH is not None)
-                else:
-                    action.setEnabled(enable)
+                action.setEnabled(enable)
             self.sig_file_opened_closed_or_updated.emit(
                 self.get_current_filename(), self.get_current_language())
 
     def update_code_analysis_actions(self):
         """Update actions in the warnings menu."""
         editor = self.get_current_editor()
+
         # To fix an error at startup
         if editor is None:
             return
-        results = editor.get_current_warnings()
-        # Update code analysis actions
-        state = results is not None and len(results)
+
+        # Update actions state if there are errors present
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
-            if state is not None:
-                action.setEnabled(state)
+            action.setEnabled(editor.errors_present())
 
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()
@@ -2480,24 +2478,6 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         line, column = editor.get_cursor_line_column()
         self.add_cursor_position_to_history(filename, position, line, column)
-
-    @Slot()
-    def run_winpdb(self):
-        """Run winpdb to debug current file"""
-        if self.save():
-            fname = self.get_current_filename()
-            runconf = get_run_configuration(fname)
-            if runconf is None:
-                args = []
-                wdir = None
-            else:
-                args = runconf.get_arguments().split()
-                wdir = runconf.get_working_directory()
-            # Handle the case where wdir comes back as an empty string
-            # when the working directory dialog checkbox is unchecked.
-            # (subprocess "cwd" default is None, so empty str
-            # must be changed to None in this case.)
-            programs.run_program(WINPDB_PATH, [fname] + args, cwd=wdir or None)
 
     def toggle_eol_chars(self, os_name, checked):
         if checked:
@@ -3200,6 +3180,7 @@ class Editor(SpyderPluginWidget):
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
+        self.sig_open_files_finished.emit()
 
     def save_open_files(self):
         """Save the list of open files"""

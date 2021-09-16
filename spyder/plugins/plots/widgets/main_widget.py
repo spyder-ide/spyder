@@ -54,6 +54,10 @@ class PlotsWidgetMainToolbarSections:
     Zoom = 'zoom_section'
 
 
+class PlotsWidgetToolbarItems:
+    ZoomSpinBox = 'zoom_spin'
+
+
 # --- Widgets
 # ----------------------------------------------------------------------------
 class PlotsWidget(ShellConnectMainWidget):
@@ -76,6 +80,7 @@ class PlotsWidget(ShellConnectMainWidget):
 
         # Widgets
         self.zoom_disp = QSpinBox(self)
+        self.zoom_disp.ID = PlotsWidgetToolbarItems.ZoomSpinBox
         self._right_clicked_thumbnail = None
 
         # Widget setup
@@ -86,7 +91,11 @@ class PlotsWidget(ShellConnectMainWidget):
         self.zoom_disp.setRange(0, 9999)
         self.zoom_disp.setValue(100)
 
-    # --- PluginMainWidget API
+        # Resize to a huge width to get the right size of the thumbnail
+        # scrollbar at startup.
+        self.resize(50000, self.height())
+
+    # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
         return _('Plots')
@@ -272,7 +281,7 @@ class PlotsWidget(ShellConnectMainWidget):
                 widget.setup({option: value})
                 self.update_actions()
 
-    # --- Public API:
+    # ---- Public API:
     # ------------------------------------------------------------------------
 
     def create_new_widget(self, shellwidget):

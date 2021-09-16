@@ -32,9 +32,6 @@ class TourActions:
     """
     ShowTour = "show tour"
 
-# --- Plugin
-# ----------------------------------------------------------------------------
-
 
 class ToursContainer(PluginMainContainer):
     """

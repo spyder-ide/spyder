@@ -5,10 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder Working Directory plugin.
+spyder.plugins.workingdirectory
+===============================
+
+Spyder Working Directory Plugin.
 """
-
-from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [WorkingDirectory]

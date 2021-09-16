@@ -17,7 +17,6 @@ import os.path as osp
 
 # Third-party imports
 from qtpy.QtCore import Signal, Slot, QTimer
-from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -25,7 +24,6 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import (_, get_conf_path, running_under_pytest,
                                 running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.config.manager import CONF
 from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
                                            SpyderCompletionProvider,
@@ -218,6 +216,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         Check if client or server for a given language are down.
         """
+        # This avoids an odd error when running our tests.
+        if running_under_pytest():
+            if not getattr(self, 'clients', None):
+                return
+
         client = self.clients[language]
         status = client['status']
         instance = client.get('instance', None)

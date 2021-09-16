@@ -17,6 +17,7 @@ from textwrap import dedent
 # Third party imports
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
+from qtpy import QtCore, QtWidgets, QtGui
 
 # Local imports
 from spyder.config.base import (
@@ -24,6 +25,7 @@ from spyder.config.base import (
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils import encoding
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
@@ -449,14 +451,62 @@ the sympy module (e.g. plot)
 
     def reset_namespace(self, warning=False, message=False):
         """Reset the namespace by removing all names defined by the user."""
-        reset_str = _("Remove all variables")
-        warn_str = _("All user-defined variables will be removed. "
-                     "Are you sure you want to proceed?")
-
         # Don't show the warning when running our tests.
         if running_under_pytest():
             warning = False
 
+        if warning:
+            reset_str = _("Remove all variables")
+            warn_str = _("All user-defined variables will be removed. "
+                         "Are you sure you want to proceed?")
+            box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
+            box.setWindowTitle(reset_str)
+            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            box.setDefaultButton(QMessageBox.Yes)
+
+            box.set_checkbox_text(_("Don't show again."))
+            box.set_checked(False)
+            box.set_check_visible(True)
+            box.setText(warn_str)
+
+            box.buttonClicked.connect(
+                lambda button: self.handle_reset_message_answer(
+                    box, button, message)
+            )
+            box.show()
+        else:
+            self._perform_reset(message)
+
+    def handle_reset_message_answer(self, message_box, button, message):
+        """
+        Handle the answer of the reset namespace message box.
+
+        Parameters
+        ----------
+        message_box
+            Instance of the message box shown to the user.
+        button: QPushButton
+            Instance of the button clicked by the user on the dialog.
+        message: bool
+            Whether to show a message in the console telling users the
+            namespace was reset.
+        """
+        if message_box.buttonRole(button) == QMessageBox.YesRole:
+            self._update_reset_options(message_box)
+            self._perform_reset(message)
+        else:
+            self._update_reset_options(message_box)
+
+    def _perform_reset(self, message):
+        """
+        Perform the reset namespace operation.
+
+        Parameters
+        ----------
+        message: bool
+            Whether to show a message in the console telling users the
+            namespace was reset.
+        """
         # This is necessary to make resetting variables work in external
         # kernels.
         # See spyder-ide/spyder#9505.
@@ -464,27 +514,6 @@ the sympy module (e.g. plot)
             kernel_env = self.kernel_manager._kernel_spec.env
         except AttributeError:
             kernel_env = {}
-
-        if warning:
-            box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
-            box.setWindowTitle(reset_str)
-            box.set_checkbox_text(_("Don't show again."))
-            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            box.setDefaultButton(QMessageBox.Yes)
-
-            box.set_checked(False)
-            box.set_check_visible(True)
-            box.setText(warn_str)
-
-            answer = box.show()
-
-            # Update checkbox based on user interaction
-            self.set_conf(
-                'show_reset_namespace_warning', not box.is_checked())
-            self.ipyclient.reset_warning = not box.is_checked()
-
-            if answer != QMessageBox.Yes:
-                return
 
         try:
             if self.is_waiting_pdb_input():
@@ -521,6 +550,17 @@ the sympy module (e.g. plot)
                     self.call_kernel().close_all_mpl_figures()
         except AttributeError:
             pass
+
+    def _update_reset_options(self, message_box):
+        """
+        Update options and variables based on the interaction in the
+        reset warning message box shown to the user.
+        """
+        self.set_conf(
+            'show_reset_namespace_warning',
+            not message_box.is_checked()
+        )
+        self.ipyclient.reset_warning = not message_box.is_checked()
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
@@ -805,6 +845,106 @@ the sympy module (e.g. plot)
     def request_restart_kernel(self):
         """Reimplemented to call our own restart mechanism."""
         self.ipyclient.restart_kernel()
+
+    def adjust_indentation(self, line, indent_adjustment):
+        """Adjust indentation."""
+        if indent_adjustment == 0 or line == "":
+            return line
+
+        if indent_adjustment > 0:
+            return ' ' * indent_adjustment + line
+
+        max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
+        indent_adjustment = min(max_indent, -indent_adjustment)
+
+        return line[indent_adjustment:]
+
+    def paste(self, mode=QtGui.QClipboard.Clipboard):
+        """ Paste the contents of the clipboard into the input region.
+
+        Parameters
+        ----------
+        mode : QClipboard::Mode, optional [default QClipboard::Clipboard]
+
+            Controls which part of the system clipboard is used. This can be
+            used to access the selection clipboard in X11 and the Find buffer
+            in Mac OS. By default, the regular clipboard is used.
+        """
+        if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
+            # Make sure the paste is safe.
+            self._keep_cursor_in_buffer()
+            cursor = self._control.textCursor()
+
+            # Remove any trailing newline, which confuses the GUI and forces
+            # the user to backspace.
+            text = QtWidgets.QApplication.clipboard().text(mode).rstrip()
+
+            # Adjust indentation of multilines pastes
+            if len(text.splitlines()) > 1:
+                lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
+                    self._get_preceding_text())
+                eol_chars = "\n"
+                first_line, *remaining_lines = (text + eol_chars).splitlines()
+                remaining_lines = [
+                    self.adjust_indentation(line, lines_adjustment)
+                    for line in remaining_lines]
+                text = eol_chars.join([first_line, *remaining_lines])
+
+            # dedent removes "common leading whitespace" but to preserve
+            # relative indent of multiline code, we have to compensate for any
+            # leading space on the first line, if we're pasting into
+            # an indented position.
+            cursor_offset = cursor.position() - self._get_line_start_pos()
+            if text.startswith(' ' * cursor_offset):
+                text = text[cursor_offset:]
+
+            self._insert_plain_text_into_buffer(cursor, dedent(text))
+
+    def _get_preceding_text(self):
+        """Get preciding text."""
+        cursor = self._control.textCursor()
+        text = cursor.selection().toPlainText()
+        if text == "":
+            return ""
+        first_line_selection = text.splitlines()[0]
+        cursor.setPosition(cursor.selectionStart())
+        cursor.setPosition(cursor.block().position(),
+                           QtGui.QTextCursor.KeepAnchor)
+        preceding_text = cursor.selection().toPlainText()
+        first_line = preceding_text + first_line_selection
+        len_with_prompt = len(first_line)
+        # Remove prompt
+        first_line = self._highlighter.transform_classic_prompt(first_line)
+        first_line = self._highlighter.transform_ipy_prompt(first_line)
+
+        prompt_len = len_with_prompt - len(first_line)
+        if prompt_len >= len(preceding_text):
+            return ""
+
+        return preceding_text[prompt_len:]
+
+    def _save_clipboard_indentation(self):
+        """
+        Save the indentation corresponding to the clipboard data.
+
+        Must be called right after copying.
+        """
+        CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
+
+    def copy(self):
+        """
+        Copy the currently selected text to the clipboard.
+        """
+        super().copy()
+        self._save_clipboard_indentation()
+
+    def cut(self):
+        """
+        Copy the currently selected text to the clipboard and delete it
+        if it's inside the input buffer.
+        """
+        super().cut()
+        self._save_clipboard_indentation()
 
     # ---- Private methods (overrode by us) -----------------------------------
     def _handle_error(self, msg):

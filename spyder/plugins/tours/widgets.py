@@ -37,7 +37,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.qthelpers import add_actions, create_action
-
+from spyder.utils.stylesheet import DialogStyle
 
 MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
 
@@ -741,12 +741,7 @@ class AnimatedTour(QWidget):
                 try:
                     temp = getattr(spy_window, name)
                 except AttributeError:
-                    for item in spy_window.thirdparty_plugins:
-                        if type(item).__name__ == name:
-                            temp = item
-                            break
-                    else:
-                        temp = None
+                    temp = None
                     # Check if it is the current editor
                     if 'get_current_editor()' in name:
                         temp = temp.get_current_editor()
@@ -1058,12 +1053,6 @@ class AnimatedTour(QWidget):
 class OpenTourDialog(QDialog):
     """Initial widget with tour."""
 
-    ICON_SCALE_FACTOR = 0.7 if MAC else 0.75
-    TITLE_FONT_SIZE = '19pt' if MAC else '16pt'
-    CONTENT_FONT_SIZE = '15pt' if MAC else '12pt'
-    BUTTONS_FONT_SIZE = '15pt' if MAC else '13pt'
-    BUTTONS_PADDING = '6px' if MAC else '4px 10px'
-
     def __init__(self, parent, tour_function):
         super().__init__(parent)
         if MAC:
@@ -1080,8 +1069,8 @@ class OpenTourDialog(QDialog):
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
-        image_height = image.height() * self.ICON_SCALE_FACTOR
-        image_width = image.width() * self.ICON_SCALE_FACTOR
+        image_height = image.height() * DialogStyle.IconScaleFactor
+        image_width = image.width() * DialogStyle.IconScaleFactor
         image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
                              Qt.SmoothTransformation)
         image_label.setPixmap(image)
@@ -1096,12 +1085,12 @@ class OpenTourDialog(QDialog):
 
         # Label
         tour_label_title = QLabel(_("Welcome to Spyder!"))
-        tour_label_title.setStyleSheet(f"font-size: {self.TITLE_FONT_SIZE}")
+        tour_label_title.setStyleSheet(f"font-size: {DialogStyle.TitleFontSize}")
         tour_label_title.setWordWrap(True)
         tour_label = QLabel(
             _("Check out our interactive tour to "
               "explore some of Spyder's panes and features."))
-        tour_label.setStyleSheet(f"font-size: {self.CONTENT_FONT_SIZE}")
+        tour_label.setStyleSheet(f"font-size: {DialogStyle.ContentFontSize}")
         tour_label.setWordWrap(True)
         tour_label.setFixedWidth(340)
 
@@ -1129,9 +1118,9 @@ class OpenTourDialog(QDialog):
           "background-color: {color_pressed}}}"
         ).format(background_color=start_tour_color,
                  border_color=start_tour_color,
-                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_size=DialogStyle.ButtonsFontSize,
                  font_color=font_color,
-                 padding=self.BUTTONS_PADDING,
+                 padding=DialogStyle.ButtonsPadding,
                  color_hover=start_tour_hover,
                  color_pressed=start_tour_pressed))
         self.launch_tour_button.setAutoDefault(False)
@@ -1149,9 +1138,9 @@ class OpenTourDialog(QDialog):
           "background-color: {color_pressed}}}"
         ).format(background_color=dismiss_tour_color,
                  border_color=dismiss_tour_color,
-                 font_size=self.BUTTONS_FONT_SIZE,
+                 font_size=DialogStyle.ButtonsFontSize,
                  font_color=font_color,
-                 padding=self.BUTTONS_PADDING,
+                 padding=DialogStyle.ButtonsPadding,
                  color_hover=dismiss_tour_hover,
                  color_pressed=dismiss_tour_pressed))
         self.dismiss_button.setAutoDefault(False)

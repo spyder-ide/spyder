@@ -10,8 +10,3 @@ spyder.plugins.run
 
 Run Plugin.
 """
-
-from spyder.plugins.run.plugin import Run
-
-# The following statement is required to be able to grab internal plugins.
-PLUGIN_CLASSES = [Run]

@@ -12,8 +12,8 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _, DEV, is_pynsist, running_under_pytest
-from spyder.config.utils import is_anaconda
+from spyder.config.base import (
+    _, DEV, is_pynsist, running_in_ci, running_under_pytest)
 from spyder.utils import programs
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -40,19 +40,19 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
 IPYTHON_REQVER = ">=7.6.0"
-JEDI_REQVER = '=0.17.2'
+JEDI_REQVER = '>=0.17.2;<0.19.0'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PARAMIKO_REQVER = '>=2.4.0'
-PARSO_REQVER = '=0.7.0'
+PARSO_REQVER = '>=0.7.0;<0.9.0'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
-PYLINT_REQVER = '>=2.5.0'
-PYLSP_REQVER = '>=1.0.0'
+PYLINT_REQVER = '>=2.5.0;<2.10.0'
+PYLSP_REQVER = '>=1.2.2;<1.3.0'
 PYLSP_BLACK_REQVER = '>=1.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
@@ -65,7 +65,7 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.0.4;<2.1.0'
+SPYDER_KERNELS_REQVER = '>=2.1.1;<2.2.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
@@ -403,7 +403,7 @@ def missing_dependencies():
     missing_deps = []
     for dependency in DEPENDENCIES:
         # Skip checking dependencies for which we have subrepos
-        if DEV or running_under_pytest():
+        if (DEV or running_under_pytest()) and not running_in_ci():
             repo_path = osp.normpath(osp.join(HERE, '..'))
             subrepos_path = osp.join(repo_path, 'external-deps')
             subrepos = os.listdir(subrepos_path)

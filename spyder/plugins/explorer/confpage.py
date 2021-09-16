@@ -75,7 +75,7 @@ class ExplorerConfigPage(PluginConfigPage):
         file_associations = FileAssociationsWidget()
 
         # Widget setup
-        file_associations.load_values(self.get_option('file_associations'))
+        file_associations.load_values(self.get_option('file_associations', {}))
         # The actual config data is stored on this text edit set to invisible
         self.edit_file_associations.setVisible(False)
 

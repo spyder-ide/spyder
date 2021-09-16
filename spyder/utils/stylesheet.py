@@ -12,13 +12,15 @@ import sys
 
 # Third-party imports
 import qdarkstyle
-import qstylizer
 from qstylizer.parser import parse as parse_stylesheet
+import qstylizer.style
 
 # Local imports
 from spyder.config.gui import OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
+
+MAC = sys.platform == 'darwin'
 
 # =============================================================================
 # ---- Base stylesheet class
@@ -28,21 +30,13 @@ class SpyderStyleSheet:
 
     def __init__(self):
         self._stylesheet = qstylizer.style.StyleSheet()
-        self._stylesheet_as_string = None
+        self.set_stylesheet()
 
     def get_stylesheet(self):
         return self._stylesheet
 
     def to_string(self):
-        "Save stylesheet as a string for quick access."
-        if self._stylesheet_as_string is None:
-            # Leave this line here so that stylesheets are computed when
-            # used and not when importing this module.
-            self.set_stylesheet()
-
-            # Cache stylesheet string
-            self._stylesheet_as_string = self._stylesheet.toString()
-        return self._stylesheet_as_string
+        return self._stylesheet.toString()
 
     def get_copy(self):
         """
@@ -74,6 +68,16 @@ class AppStylesheet(SpyderStyleSheet):
     Class to build and access the stylesheet we use in the entire
     application.
     """
+
+    def __init__(self):
+        super().__init__()
+        self._stylesheet_as_string = None
+
+    def to_string(self):
+        "Save stylesheet as a string for quick access."
+        if self._stylesheet_as_string is None:
+            self._stylesheet_as_string = self._stylesheet.toString()
+        return self._stylesheet_as_string
 
     def set_stylesheet(self):
         """
@@ -172,6 +176,15 @@ class AppStylesheet(SpyderStyleSheet):
                 backgroundColor=color
             )
 
+        # Adjust padding of QPushButton's in QDialog's
+        css["QDialog QPushButton"].setValues(
+            padding='3px 15px 3px 15px',
+        )
+
+        css["QDialogButtonBox QPushButton:!default"].setValues(
+            padding='3px 0px 3px 0px',
+        )
+
 
 APP_STYLESHEET = AppStylesheet()
 
@@ -213,6 +226,11 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
                 backgroundColor=color
             )
 
+        # Remove indicator for popup mode
+        css['QToolBar QToolButton::menu-indicator'].setValues(
+            image='none'
+        )
+
 
 class PanesToolbarStyleSheet(SpyderStyleSheet):
     """Stylesheet for pane toolbars."""
@@ -231,8 +249,10 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
             height=self.BUTTON_HEIGHT,
             width=self.BUTTON_WIDTH,
             border='0px',
+            margin='0px'
         )
 
+        # Remove indicator for popup mode
         css['QToolButton::menu-indicator'].setValues(
             image='none'
         )
@@ -334,7 +354,6 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         )
 
     def to_string(self):
-        super().to_string()
         css_string = self._stylesheet.toString()
 
         # TODO: We need to fix this in qstylizer
@@ -347,3 +366,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
 
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
+
+
+# =============================================================================
+# ---- Style for special dialogs
+# =============================================================================
+class DialogStyle:
+    """Style constants for tour, about and kite dialogs."""
+
+    IconScaleFactor = 0.5
+    TitleFontSize = '19pt' if MAC else '14pt'
+    ContentFontSize = '15pt' if MAC else '12pt'
+    ButtonsFontSize = '15pt' if MAC else '13pt'
+    ButtonsPadding = '6px' if MAC else '4px 10px'

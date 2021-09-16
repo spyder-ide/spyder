@@ -20,8 +20,10 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 # Local imports
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import get_translation
-from spyder.plugins.explorer.widgets.explorer import DirViewActions
-from spyder.plugins.projects.widgets.explorer import ExplorerTreeWidget
+from spyder.plugins.explorer.api import DirViewActions
+from spyder.plugins.projects.widgets.projectexplorer import (
+    ProjectExplorerTreeWidget)
+
 
 _ = get_translation('spyder')
 
@@ -48,14 +50,14 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.name_filters = self.get_conf('name_filters')
         self.show_hscrollbar = self.get_conf('show_hscrollbar')
 
-        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
+        self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
         self.treewidget.setup()
         self.treewidget.setup_view()
         self.treewidget.hide()
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        self.emptywidget = ExplorerTreeWidget(self)
+        self.emptywidget = ProjectExplorerTreeWidget(self)
 
         layout = QVBoxLayout()
         layout.addWidget(self.emptywidget)
@@ -67,11 +69,14 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Setup the widget."""
         menu = self.get_options_menu()
 
+        hidden_action = self.get_action(DirViewActions.ToggleHiddenFiles)
         single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
-        self.add_item_to_menu(
-            single_click_action,
-            menu=menu,
-            section=ProjectExplorerOptionsMenuSections.Main)
+
+        for action in [hidden_action, single_click_action]:
+            self.add_item_to_menu(
+                action,
+                menu=menu,
+                section=ProjectExplorerOptionsMenuSections.Main)
 
     def update_actions(self):
         pass
