@@ -24,6 +24,8 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
+        ipyconsole.sig_external_spyder_kernel_connected.connect(
+            self.on_connection_to_external_spyder_kernel)
 
     def unregister_ipythonconsole(self, ipyconsole):
         """Disconnect from the IPython console."""
@@ -69,3 +71,16 @@ class ShellConnectMixin:
             The shell widget.
         """
         self.get_widget().remove_shellwidget(shellwidget)
+
+    def on_connection_to_external_spyder_kernel(self, shellwidget):
+        """
+        Actions to take when the IPython console connects to an
+        external Spyder kernel.
+
+        Parameters
+        ----------
+        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+            The shell widget that was connected to the external Spyder
+            kernel.
+        """
+        pass

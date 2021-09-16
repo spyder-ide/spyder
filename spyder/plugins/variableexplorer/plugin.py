@@ -82,3 +82,8 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
         spyder.plugins.plots.widgets.namespacebrowser.NamespaceBrowser
         """
         return self.get_widget().current_widget()
+
+    def on_connection_to_external_spyder_kernel(self, shellwidget):
+        """Send namespace view settings to the kernel."""
+        shellwidget.set_namespace_view_settings()
+        shellwidget.refresh_namespacebrowser()

@@ -117,6 +117,16 @@ class IPythonConsole(SpyderPluginWidget):
         The shellwigdet.
     """
 
+    sig_external_spyder_kernel_connected = Signal(object)
+    """
+    This signal is emitted when we connect to an external Spyder kernel.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet that was connected to the kernel.
+    """
+
     sig_render_plain_text_requested = Signal(str)
     """
     This signal is emitted to request a plain text help render.
@@ -1611,15 +1621,11 @@ class IPythonConsole(SpyderPluginWidget):
             self.interrupt_action.setEnabled(executing)
 
     def connect_external_spyder_kernel(self, shellwidget):
-        """
-        Connect an external Spyder kernel to the Variable Explorer,
-        Help and Plots.
-        """
+        """Connect to an external Spyder kernel."""
         shellwidget.is_spyder_kernel = True
         shellwidget.spyder_kernel_comm.open_comm(shellwidget.kernel_client)
         self.sig_shellwidget_changed.emit(shellwidget)
-        shellwidget.set_namespace_view_settings()
-        shellwidget.refresh_namespacebrowser()
+        self.sig_external_spyder_kernel_connected.emit(shellwidget)
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
