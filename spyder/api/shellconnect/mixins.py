@@ -5,27 +5,28 @@
 # (see spyder/__init__.py for details)
 
 """
-classes to connect to a shellwidget.
+Mixin to connect a plugin to the IPython console.
 """
 
 
 class ShellConnectMixin:
     """
-    Manager to connect a stacked widget to a shell widget.
+    Mixin to connect a plugin composed of stacked widgets to the shell
+    widgets in the IPython console.
 
-    It is assumed that self.get_widget() returns a child of
+    It is assumed that self.get_widget() returns an instance of
     ShellConnectMainWidget
     """
 
     def register_ipythonconsole(self, ipyconsole):
-        """Connect to ipyconsole."""
+        """Connect to the IPython console."""
         # Signals
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
 
     def unregister_ipythonconsole(self, ipyconsole):
-        """Disconnect from ipyconsole."""
+        """Disconnect from the IPython console."""
         # Signals
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
@@ -48,27 +49,27 @@ class ShellConnectMixin:
         """
         Add a new shellwidget to be registered.
 
-        This function registers a new NamespaceBrowser for browsing variables
-        in the shellwidget.
+        This function registers a new widget to display content that
+        comes from shellwidget.
 
         Parameters
         ----------
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
         external: bool
-            True if the kernel is external
+            True if the kernel is external.
         """
         self.get_widget().add_shellwidget(shellwidget)
 
     def remove_shellwidget(self, shellwidget, external):
         """
-        Remove the shellwidget registered.
+        Remove the registered shellwidget.
 
         Parameters
         ----------
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
         external: bool
-            True if the kernel is external
+            True if the kernel is external.
         """
         self.get_widget().remove_shellwidget(shellwidget)

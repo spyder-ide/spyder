@@ -5,16 +5,17 @@
 # (see spyder/__init__.py for details)
 
 """
-classes to connect to a shellwidget.
+Main widget to use in plugins that show content that comes from the IPython
+console, such as the Variable Explorer or Plots.
 """
 
 # Third party imports
-from qtpy.QtWidgets import (
-    QStackedWidget, QVBoxLayout)
+from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
+
 
 # Localization
 _ = get_translation('spyder')
@@ -23,6 +24,13 @@ _ = get_translation('spyder')
 class ShellConnectMainWidget(PluginMainWidget):
     """
     Main widget to use in a plugin that shows console-specific content.
+
+    Notes
+    -----
+    * This is composed of a QStackedWidget to stack widgets associated to each
+      shell widget in the console and only show one of them at a time.
+    * The current widget in the stack will display the content associated to
+      the console with focus.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,8 +47,7 @@ class ShellConnectMainWidget(PluginMainWidget):
         self.setLayout(layout)
 
     def update_style(self):
-        self._stack.setStyleSheet(
-            "QStackedWidget {padding: 0px; border: 0px}")
+        self._stack.setStyleSheet("QStackedWidget {padding: 0px; border: 0px}")
 
     # ---- Stack accesors
     # ------------------------------------------------------------------------
@@ -61,7 +68,7 @@ class ShellConnectMainWidget(PluginMainWidget):
 
         Returns
         -------
-        spyder.plugins.plots.widgets.figurebrowser.FigureBrowser
+        QWidget
             The current widget.
         """
         return self._stack.currentWidget()
@@ -73,9 +80,8 @@ class ShellConnectMainWidget(PluginMainWidget):
     # ------------------------------------------------------------------------
     def add_shellwidget(self, shellwidget):
         """
-        Register shell.
-
-        This function creates a new Widget.
+        Create a new widget in the stack and associate it to
+        shellwidget.
         """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self._shellwidgets:
@@ -86,7 +92,7 @@ class ShellConnectMainWidget(PluginMainWidget):
             self.update_actions()
 
     def remove_shellwidget(self, shellwidget):
-        """Remove widget associated with shellwidget."""
+        """Remove widget associated to shellwidget."""
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
             widget = self._shellwidgets.pop(shellwidget_id)
