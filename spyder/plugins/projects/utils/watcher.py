@@ -125,7 +125,11 @@ class WorkspaceWatcher(QObject):
             self.observer = Observer()
             self.observer.schedule(
                 self.event_handler, workspace_folder, recursive=True)
-            self.observer.start()
+            try:
+                self.observer.start()
+            except OSError:
+                # This error happens frequently on Linux
+                logger.debug("Watcher could not be started.")
         except OSError as e:
             if u'inotify' in to_text_string(e):
                 QMessageBox.warning(
