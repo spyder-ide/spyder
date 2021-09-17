@@ -147,16 +147,13 @@ for path in os.listdir(DEPS_PATH):
 # Create an egg-info folder to declare the PyLS subrepo entry points.
 pyls_submodule = osp.join(DEPS_PATH, 'python-lsp-server')
 pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
-pyls_installation_egg = osp.join(
-    pyls_submodule, 'python_lsp_server.egg-info')
 
 
 def remove_pyls_installation():
     shutil.rmtree(pyls_installation_dir, ignore_errors=True)
-    shutil.rmtree(pyls_installation_egg, ignore_errors=True)
 
 
-if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
+if osp.exists(pyls_installation_dir):
     # Remove any leftover installation from previous execution
     print("*. Removing previous PyLSP local installation.")
     remove_pyls_installation()
