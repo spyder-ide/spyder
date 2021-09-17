@@ -106,7 +106,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  ask_before_restart=True,
                  ask_before_closing=False,
                  css_path=None,
-                 configuration=None):
+                 configuration=None,
+                 handlers={}):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -147,6 +148,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             interpreter_versions=interpreter_versions,
             is_external_kernel=is_external_kernel,
             is_spyder_kernel=is_spyder_kernel,
+            handlers=handlers,
             local_kernel=True,
             configuration=configuration)
         self.infowidget = self.container.infowidget
@@ -328,30 +330,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.container.refresh_container)
         page_control.sig_show_find_widget_requested.connect(
             self.container.find_widget.show)
-
-    # ---- Spyder-kernels runcell related functionality that uses the Editor --
-    def handle_get_file_code(self, filename, save_all=True):
-        """
-        Return the bytes that compose the file.
-
-        Bytes are returned instead of str to support non utf-8 files.
-        """
-        return self.container.handle_get_file_code(
-            filename, save_all=save_all)
-
-    def handle_run_cell(self, cell_name, filename):
-        """
-        Get cell code from cell name and file name.
-        """
-        return self.container.handle_run_cell(cell_name, filename)
-
-    def handle_cell_count(self, filename):
-        """Get number of cells in file to loop."""
-        return self.container.handle_cell_count(filename)
-
-    def handle_current_filename(self):
-        """Get the current filename."""
-        return self.container.handle_current_filename()
 
     # ---- Public methods -----------------------------------------------------
     @property

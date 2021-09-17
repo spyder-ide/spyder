@@ -78,7 +78,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_exception_occurred = Signal(dict)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 is_external_kernel, is_spyder_kernel, *args, **kw):
+                 is_external_kernel, is_spyder_kernel, handlers, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -107,22 +107,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = None
         self.kernel_client = None
         self.shutdown_thread = None
-        handlers = {
+        handlers.update({
             'pdb_state': self.set_pdb_state,
             'pdb_execute': self.pdb_execute,
             'get_pdb_settings': self.get_pdb_settings,
-            # TODO: All this handlers use the Editor instance to get
-            # information
-            'run_cell': self.handle_run_cell,
-            'cell_count': self.handle_cell_count,
-            'current_filename': self.handle_current_filename,
-            'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.set_debug_state,
             'update_syspath': self.update_syspath,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
             'request_interrupt_eventloop': self.request_interrupt_eventloop,
-        }
+        })
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
@@ -770,30 +764,6 @@ the sympy module (e.g. plot)
         append_html_message.
         """
         self._control.insert_horizontal_ruler()
-
-    # ---- Spyder-kernels methods ---------------------------------------------
-    def handle_get_file_code(self, filename, save_all=True):
-        """
-        Return the bytes that compose the file.
-
-        Bytes are returned instead of str to support non utf-8 files.
-        """
-        return self.ipyclient.handle_get_file_code(
-            filename, save_all=save_all)
-
-    def handle_run_cell(self, cell_name, filename):
-        """
-        Get cell code from cell name and file name.
-        """
-        return self.ipyclient.handle_run_cell(cell_name, filename)
-
-    def handle_cell_count(self, filename):
-        """Get number of cells in file to loop."""
-        return self.ipyclient.handle_cell_count(filename)
-
-    def handle_current_filename(self):
-        """Get the current filename."""
-        return self.ipyclient.handle_current_filename()
 
     # ---- Public methods (overrode by us) ------------------------------------
     def request_restart_kernel(self):

@@ -358,88 +358,49 @@ class IPythonConsole(SpyderDockablePlugin):
                     except Exception:
                         pass
 
-    # ---- For getting a reference to the Editor editorstack
-    def _get_editorstack(self):
-        """Get the Editor current editorstack."""
-        editor = self.get_plugin(Plugins.Editor)
-        if editor is None:
-            return None
-
-        editorstack = editor.get_current_editorstack()
-        if editorstack is None:
-            raise RuntimeError('No editorstack found.')
-
-        return editorstack
-
-    def _get_editor(self, filename):
-        """Get editor for filename and set it as the current editor."""
-        editorstack = self._get_editorstack()
-        if editorstack is None:
-            return None
-
-        if not filename:
-            return None
-
-        index = editorstack.has_filename(filename)
-        if index is None:
-            return None
-
-        return editorstack.data[index].editor
-
-    # --- Spyder-kernels runcell related functionality that uses the Editor
-    # -------------------------------------------------------------------------
-    def handle_run_cell(self, cell_name, filename):
-        """
-        Get cell code from cell name and file name.
-        """
-        editorstack = self._get_editorstack()
-        editor = self._get_editor(filename)
-
-        if editor is None:
-            raise RuntimeError(
-                "File {} not open in the editor".format(filename))
-
-        editorstack.last_cell_call = (filename, cell_name)
-
-        # The file is open, load code from editor
-        return editor.get_cell_code(cell_name)
-
-    def handle_cell_count(self, filename):
-        """Get number of cells in file to loop."""
-        editor = self._get_editor(filename)
-
-        if editor is None:
-            raise RuntimeError(
-                "File {} not open in the editor".format(filename))
-
-        # The file is open, get cell count from editor
-        return editor.get_cell_count()
-
-    def handle_current_filename(self, filename):
-        """Get the current filename."""
-        return self._get_editorstack().get_current_finfo().filename
-
-    def handle_get_file_code(self, filename, save_all=True):
-        """
-        Return the bytes that compose the file.
-
-        Bytes are returned instead of str to support non utf-8 files.
-        """
-        editorstack = self._get_editorstack()
-        if save_all and self.get_conf(
-                'save_all_before_run', default=True, section='editor'):
-            editorstack.save_all(save_new_files=False)
-        editor = self._get_editor(filename)
-
-        if editor is None:
-            # Load it from file instead
-            text, _enc = encoding.read(filename)
-            return text
-
-        return editor.toPlainText()
-
     # --- Public API
     # -------------------------------------------------------------------------
+
+    # ---- Spyder Kernels handlers registry functionality ---------------------
+    # -------------------------------------------------------------------------
+    def register_spyder_kernel_call_handler(self, handler_id, handler):
+        """
+        Register a callback for it to be available for all the available
+        spyder kernels
+
+        Parameters
+        ----------
+        handler_id : str
+            Handler name to be registered and that will be used to
+            call the respective handler from the spyder kernel.
+        handler : func
+            Callback function that will be call when the spyder-kernel instance
+            request the request_i identifierd.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.get_widget().register_spyder_kernel_call_handler(
+            handler_id, handler)
+
+    def unregister_spyder_kernel_call_handler(self, handler_id):
+        """
+        Unregister/remove a handler from the spyder kernels
+
+        Parameters
+        ----------
+        request_id : str
+            Handler name that was registered and that will be removed
+            from the spyder kernel available handlers.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.get_widget().unregister_spyder_kernel_call_handler(handler_id)
 
     # ---- For client widgets
     def get_clients(self):

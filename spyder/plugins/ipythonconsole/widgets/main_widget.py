@@ -277,6 +277,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.run_cell_filename = None
         self.interrupt_action = None
         self.initial_conf_options = self.get_conf_options()
+        self.registered_spyder_kernel_handlers = {}
 
         # Attrs for testing
         self._testing = bool(os.environ.get('testing'))
@@ -358,6 +359,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
+        # TODO: Check shortcut for find widget
         # self.register_widget_shortcuts(self.find_widget)
         layout.addWidget(self.find_widget)
 
@@ -1049,7 +1051,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               reset_warning=reset_warning,
                               ask_before_restart=ask_before_restart,
                               css_path=self.css_path,
-                              configuration=self.CONFIGURATION)
+                              configuration=self.CONFIGURATION,
+                              handlers=self.registered_spyder_kernel_handlers)
 
         # Change stderr_dir if requested
         if self._test_dir:
@@ -1117,33 +1120,48 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Register client
         self.register_client(client)
 
-    # --- Spyder-kernels runcell related functionality that uses the Editor
-    # -------------------------------------------------------------------------
-    def handle_get_file_code(self, filename, save_all=True):
-        """
-        Return the bytes that compose the file.
-
-        Bytes are returned instead of str to support non utf-8 files.
-        """
-        return self._plugin.handle_get_file_code(
-            filename, save_all=save_all)
-
-    def handle_run_cell(self, cell_name, filename):
-        """
-        Get cell code from cell name and file name.
-        """
-        return self._plugin.handle_run_cell(cell_name, filename)
-
-    def handle_cell_count(self, filename):
-        """Get number of cells in file to loop."""
-        return self._plugin.handle_cell_count(filename)
-
-    def handle_current_filename(self):
-        """Get the current filename."""
-        return self._plugin.handle_current_filename()
-
     # ---- Public API
     # -------------------------------------------------------------------------
+
+    # ---- Spyder Kernels handlers registry functionality ---------------------
+    # -------------------------------------------------------------------------
+    def register_spyder_kernel_call_handler(self, handler_id, handler):
+        """
+        Register a callback for it to be available for all the available
+        spyder kernels
+
+        Parameters
+        ----------
+        handler_id : str
+            Handler name to be registered and that will be used to
+            call the respective handler from the spyder kernel.
+        handler : func
+            Callback function that will be call when the spyder-kernel instance
+            request the request_i identifierd.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.registered_spyder_kernel_handlers[handler_id] = handler
+
+    def unregister_spyder_kernel_call_handler(self, handler_id):
+        """
+        Unregister/remove a handler from the spyder kernels
+
+        Parameters
+        ----------
+        request_id : str
+            Handler name that was registered and that will be removed
+            from the spyder kernel available handlers.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.registered_spyder_kernel_handlers.pop(handler_id, None)
 
     # ---- General
     # -------------------------------------------------------------------------
@@ -1483,7 +1501,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_restart=ask_before_restart,
                               ask_before_closing=ask_before_closing,
                               css_path=self.css_path,
-                              configuration=self.CONFIGURATION)
+                              configuration=self.CONFIGURATION,
+                              handlers=self.registered_spyder_kernel_handlers)
 
         # Change stderr_dir if requested
         if self._test_dir:
