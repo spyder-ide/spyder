@@ -365,8 +365,8 @@ class IPythonConsole(SpyderDockablePlugin):
     # -------------------------------------------------------------------------
     def register_spyder_kernel_call_handler(self, handler_id, handler):
         """
-        Register a callback for it to be available for all the available
-        spyder kernels
+        Register a callback for it to be available for new create
+        clients kernels
 
         Parameters
         ----------
@@ -387,7 +387,7 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def unregister_spyder_kernel_call_handler(self, handler_id):
         """
-        Unregister/remove a handler from the spyder kernels
+        Unregister/remove a handler for not be added to new clients kernels
 
         Parameters
         ----------

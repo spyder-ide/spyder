@@ -1123,46 +1123,6 @@ class IPythonConsoleWidget(PluginMainWidget):
     # ---- Public API
     # -------------------------------------------------------------------------
 
-    # ---- Spyder Kernels handlers registry functionality ---------------------
-    # -------------------------------------------------------------------------
-    def register_spyder_kernel_call_handler(self, handler_id, handler):
-        """
-        Register a callback for it to be available for all the available
-        spyder kernels
-
-        Parameters
-        ----------
-        handler_id : str
-            Handler name to be registered and that will be used to
-            call the respective handler from the spyder kernel.
-        handler : func
-            Callback function that will be call when the spyder-kernel instance
-            request the request_i identifierd.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.registered_spyder_kernel_handlers[handler_id] = handler
-
-    def unregister_spyder_kernel_call_handler(self, handler_id):
-        """
-        Unregister/remove a handler from the spyder kernels
-
-        Parameters
-        ----------
-        request_id : str
-            Handler name that was registered and that will be removed
-            from the spyder kernel available handlers.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.registered_spyder_kernel_handlers.pop(handler_id, None)
-
     # ---- General
     # -------------------------------------------------------------------------
     def update_font(self, font, rich_font):
@@ -1877,6 +1837,44 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For kernels
     # -------------------------------------------------------------------------
+    def register_spyder_kernel_call_handler(self, handler_id, handler):
+        """
+        Register a callback for it to be available for new create
+        clients kernels
+
+        Parameters
+        ----------
+        handler_id : str
+            Handler name to be registered and that will be used to
+            call the respective handler from the spyder kernel.
+        handler : func
+            Callback function that will be call when the spyder-kernel instance
+            request the request_i identifierd.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.registered_spyder_kernel_handlers[handler_id] = handler
+
+    def unregister_spyder_kernel_call_handler(self, handler_id):
+        """
+        Unregister/remove a handler for not be added to new clients kernels
+
+        Parameters
+        ----------
+        request_id : str
+            Handler name that was registered and that will be removed
+            from the spyder kernel available handlers.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.registered_spyder_kernel_handlers.pop(handler_id, None)
+
     def ssh_tunnel(self, *args, **kwargs):
         if os.name == 'nt':
             return zmqtunnel.paramiko_tunnel(*args, **kwargs)

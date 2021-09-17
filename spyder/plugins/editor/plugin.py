@@ -2710,7 +2710,6 @@ class Editor(SpyderPluginWidget):
 
     def debug_command(self, command):
         """Debug actions"""
-        # TODO: Check IPython Console usage
         self.switch_to_plugin()
         self.main.ipyconsole.pdb_execute_command(command)
         self.main.ipyconsole.switch_to_plugin()
