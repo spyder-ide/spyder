@@ -130,21 +130,8 @@ if args.debug:
     # if operation is successful
 
 
-# Add this path to the front of sys.path
-sys.path.insert(0, DEVPATH)
-print("*. Patched sys.path with %s" % DEVPATH)
-
-# Add external dependencies subrepo paths to be the next entries
-# (1, 2, etc) of sys.path
-DEPS_PATH = osp.join(DEVPATH, 'external-deps')
-i = 1
-for path in os.listdir(DEPS_PATH):
-    external_dep_path = osp.join(DEPS_PATH, path)
-    sys.path.insert(i, external_dep_path)
-    print("*. Patched sys.path with %s" % external_dep_path)
-    i += 1
-
 # Create an egg-info folder to declare the PyLS subrepo entry points.
+DEPS_PATH = osp.join(DEVPATH, 'external-deps')
 pyls_submodule = osp.join(DEPS_PATH, 'python-lsp-server')
 pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
 
