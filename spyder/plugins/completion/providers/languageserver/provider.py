@@ -783,16 +783,22 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
 
         # Jedi configuration
+        # env_vars will inherit os.environ from PyLS, which removes PYTHONPATH
+        # for python language completion, so we don't have to worry about it
+        # here.
+        env_vars = None
         if self.get_conf('default', section='main_interpreter'):
             environment = None
-            env_vars = None
         else:
             environment = self.get_conf('custom_interpreter',
                                         section='main_interpreter')
-            env_vars = os.environ.copy()
-            # external interpreter should not use internal PYTHONPATH
-            env_vars.pop('PYTHONPATH', None)
             if running_in_mac_app():
+                # External interpreter environments cannot have PYTHONHOME,
+                # so we must assign os.environ and remove it. PyLS removes
+                # PYTHONPATH from its os.environ, but since we're assigning
+                # os.environ here we must remove PYTHONPATH also.
+                env_vars = os.environ.copy()
+                env_vars.pop('PYTHONPATH', None)
                 env_vars.pop('PYTHONHOME', None)
 
         jedi = {
