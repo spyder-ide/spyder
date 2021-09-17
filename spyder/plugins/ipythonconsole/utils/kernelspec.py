@@ -19,9 +19,8 @@ from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.config.base import (
-    DEV, get_safe_mode, is_pynsist, running_in_ci, running_in_mac_app,
-    running_under_pytest)
+from spyder.config.base import (get_safe_mode, is_pynsist, running_in_mac_app,
+                                running_under_pytest)
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
