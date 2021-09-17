@@ -14,12 +14,13 @@ import math
 import os
 import os.path as osp
 import re
+import stat
 import traceback
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QSize, Qt, QThread,
-                         Signal, Slot)
+from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QPoint, QSize, Qt,
+                         QThread, Signal, Slot)
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
                             QInputDialog, QLabel, QMessageBox, QSizePolicy,
@@ -31,6 +32,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.gui import get_font
+from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import SpyderPalette, QStylePalette
@@ -112,6 +114,16 @@ def truncate_path(text):
 
 class SearchThread(QThread):
     """Find in files search thread."""
+    PYTHON_EXTENSIONS = ['.py', '.pyw', '.pyx', '.ipy', '.pyi', '.pyt']
+
+    USEFUL_EXTENSIONS = [
+        '.ipynb', '.md',  '.c', '.cpp', '.h', '.cxx', '.f', '.f03', '.f90',
+        '.json', '.dat', '.csv', '.tsv', '.txt', '.md', '.rst', '.yml',
+        '.yaml', '.ini', '.bat', '.sh', '.ui'
+    ]
+
+    SKIPPED_EXTENSIONS = ['.svg']
+
     sig_finished = Signal(bool)
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
@@ -123,7 +135,7 @@ class SearchThread(QThread):
     power = 0       # 0**1 = 1
     max_power = 9   # 2**9 = 512
 
-    def __init__(self, parent, search_text, text_color=None):
+    def __init__(self, parent, search_text, text_color):
         super().__init__(parent)
         self.mutex = QMutex()
         self.stopped = None
@@ -187,24 +199,55 @@ class SearchThread(QThread):
                 if self.stopped:
                     return False
             try:
+                # For directories
                 for d in dirs[:]:
                     with QMutexLocker(self.mutex):
                         if self.stopped:
                             return False
+
                     dirname = os.path.join(path, d)
+
+                    # Only search in regular directories
+                    st_dir_mode = os.stat(dirname).st_mode
+                    if not stat.S_ISDIR(st_dir_mode):
+                        dirs.remove(d)
+
                     if (self.exclude and
                             re.search(self.exclude, dirname + os.sep)):
+                        # Exclude patterns defined by the user
                         dirs.remove(d)
-                    elif d == '.git' or d == '.hg':
+                    elif d.startswith('.'):
+                        # Exclude all dot dirs.
                         dirs.remove(d)
+
+                # For files
                 for f in files:
                     with QMutexLocker(self.mutex):
                         if self.stopped:
                             return False
+
                     filename = os.path.join(path, f)
+                    ext = osp.splitext(filename)[1]
+
+                    # Only search in regular files (i.e. not pipes)
+                    st_file_mode = os.stat(filename).st_mode
+                    if not stat.S_ISREG(st_file_mode):
+                        continue
+
+                    # Exclude patterns defined by the user
                     if self.exclude and re.search(self.exclude, filename):
                         continue
-                    if is_text_file(filename):
+
+                    # Don't search in plain text files with skipped extensions
+                    # (e.g .svg)
+                    if ext in self.SKIPPED_EXTENSIONS:
+                        continue
+
+                    # It's much faster to check for extension first before
+                    # validating if the file is plain text.
+                    if (ext in self.PYTHON_EXTENSIONS or
+                            ext in self.USEFUL_EXTENSIONS or
+                            is_text_file(filename)):
                         self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")
@@ -408,14 +451,19 @@ class SearchThread(QThread):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = ('<span style="color:{0}">{{0}}'
-                             '<b>{{1}}</b>{{2}}</span>')
-        line_match_format = line_match_format.format(self.text_color)
-
         left = html_escape(left)
         right = html_escape(right)
         match = html_escape(match)
-        trunc_line = line_match_format.format(left, match, right)
+
+        match_color = SpyderPalette.COLOR_OCCURRENCE_4
+        trunc_line = (
+            f'<span style="color:{self.text_color}">'
+            f'{left}'
+            f'<span style="background-color:{match_color}">{match}</span>'
+            f'{right}'
+            f'</span>'
+        )
+
         return trunc_line
 
     def get_results(self):
@@ -608,8 +656,7 @@ class SearchInComboBox(QComboBox):
 
 class LineMatchItem(QTreeWidgetItem):
 
-    def __init__(self, parent, lineno, colno, match, font,
-                 text_color=None):
+    def __init__(self, parent, lineno, colno, match, font, text_color):
         self.lineno = lineno
         self.colno = colno
         self.match = match
@@ -619,12 +666,14 @@ class LineMatchItem(QTreeWidgetItem):
 
     def __repr__(self):
         match = str(self.match).rstrip()
-        _str = ("<!-- LineMatchItem -->"
-                "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
-                "<span style='font-family:{0};"
-                "font-size:75%;'>{3}</span></p>")
-        return _str.format(self.font.family(), self.lineno, self.colno, match,
-                           self.text_color)
+        _str = (
+            f"<!-- LineMatchItem -->"
+            f"<p style=\"color:'{self.text_color}';\">"
+            f"<b>{self.lineno}</b> ({self.colno}): "
+            f"<span style='font-family:{self.font.family()};"
+            f"font-size:{self.font.pointSize()}pt;'>{match}</span></p>"
+        )
+        return _str
 
     def __unicode__(self):
         return self.__repr__()
@@ -641,21 +690,29 @@ class LineMatchItem(QTreeWidgetItem):
 
 class FileMatchItem(QTreeWidgetItem):
 
-    def __init__(self, parent, filename, sorting, text_color=None):
+    def __init__(self, parent, path, filename, sorting, text_color):
 
         self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title_format = ('<!-- FileMatchItem -->'
-                        '<b style="color:{2}">{0}</b>'
-                        '&nbsp;&nbsp;&nbsp;'
-                        '<small style="color:{2}"><em>{1}</em>'
-                        '</small>')
-        title = (title_format.format(osp.basename(filename),
-                                     osp.dirname(filename),
-                                     text_color))
+        # Get relative dirname according to the path we're searching in.
+        dirname = osp.dirname(filename)
+        rel_dirname = dirname.split(path)[1]
+        if rel_dirname.startswith(osp.sep):
+            rel_dirname = rel_dirname[1:]
+
+        title = (
+            f'<!-- FileMatchItem -->'
+            f'<b style="color:{text_color}">{osp.basename(filename)}</b>'
+            f'&nbsp;&nbsp;&nbsp;'
+            f'<span style="color:{text_color}">'
+            f'<em>{rel_dirname}</em>'
+            f'</span>'
+        )
+
         super().__init__(parent, [title], QTreeWidgetItem.Type)
 
+        self.setIcon(0, ima.get_icon_by_extension_or_type(filename, 1.0))
         self.setToolTip(0, filename)
 
     def __lt__(self, x):
@@ -700,8 +757,7 @@ class ItemDelegate(QStyledItemDelegate):
                                         options, None)
         painter.save()
 
-        painter.translate(textRect.topLeft())
-        painter.setClipRect(textRect.translated(-textRect.topLeft()))
+        painter.translate(textRect.topLeft() + QPoint(0, 4))
         doc.documentLayout().draw(painter, ctx)
         painter.restore()
 
@@ -719,7 +775,7 @@ class ResultsBrowser(OneColumnTree):
     sig_edit_goto_requested = Signal(str, int, str, int, int)
     sig_max_results_reached = Signal()
 
-    def __init__(self, parent, text_color=None, max_results=1000):
+    def __init__(self, parent, text_color, max_results=1000):
         super().__init__(parent)
         self.search_text = None
         self.results = None
@@ -733,6 +789,7 @@ class ResultsBrowser(OneColumnTree):
         self.files = None
         self.root_items = None
         self.text_color = text_color
+        self.path = None
 
         # Setup
         self.set_title('')
@@ -787,8 +844,8 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            self.files[filename] = FileMatchItem(
-                self, filename, self.sorting, self.text_color)
+            self.files[filename] = FileMatchItem(self, self.path, filename,
+                                                 self.sorting, self.text_color)
             self.files[filename].setExpanded(True)
             self.num_files += 1
 
@@ -819,6 +876,10 @@ class ResultsBrowser(OneColumnTree):
     def set_max_results(self, value):
         """Set maximum amount of results to add."""
         self.max_results = value
+
+    def set_path(self, path):
+        """Set path where the search is performed."""
+        self.path = path
 
 
 class FindInFilesWidget(PluginMainWidget):
@@ -891,9 +952,11 @@ class FindInFilesWidget(PluginMainWidget):
         self.search_text_edit = PatternComboBox(
             self,
             search_text,
-            _("Search pattern"),
             id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
         )
+
+        self.search_text_edit.lineEdit().setPlaceholderText(
+            _('Write text to search'))
 
         self.search_in_label = QLabel(_('Search in:'))
         self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
@@ -959,7 +1022,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.search_regexp_action = self.create_action(
             FindInFilesWidgetActions.ToggleSearchRegex,
             text=_('Regular expression'),
-            tip=_('Regular expression'),
+            tip=_('Use regular expressions'),
             icon=self.create_icon('regex'),
             toggled=True,
             initial=self.get_conf('search_text_regexp'),
@@ -968,7 +1031,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.case_action = self.create_action(
             FindInFilesWidgetActions.ToggleExcludeCase,
             text=_("Case sensitive"),
-            tip=_("Case sensitive"),
+            tip=_("Case sensitive search"),
             icon=self.create_icon("format_letter_case"),
             toggled=True,
             initial=self.get_conf('case_sensitive'),
@@ -977,7 +1040,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.find_action = self.create_action(
             FindInFilesWidgetActions.Find,
             text=_("&Find in files"),
-            tip=_("Search text in multiple files"),
+            tip=_("Search text"),
             icon=self.create_icon('find'),
             triggered=self.find,
             register_shortcut=False,
@@ -985,7 +1048,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.exclude_regexp_action = self.create_action(
             FindInFilesWidgetActions.ToggleExcludeRegex,
             text=_('Regular expression'),
-            tip=_('Regular expression'),
+            tip=_('Use regular expressions'),
             icon=self.create_icon('regex'),
             toggled=True,
             initial=self.get_conf('exclude_regexp'),
@@ -1018,9 +1081,9 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.search_text_edit, self.search_regexp_action,
-                     self.case_action, self.more_options_action,
-                     self.find_action]:
+        for item in [self.search_text_edit, self.find_action,
+                     self.search_regexp_action, self.case_action,
+                     self.more_options_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
@@ -1320,6 +1383,9 @@ class FindInFilesWidget(PluginMainWidget):
         # Update and set options
         self._update_options()
 
+        # Set path in result_browser
+        self.result_browser.set_path(options[0])
+
         # Start
         self.running = True
         self.start_spinner()
@@ -1361,7 +1427,7 @@ class FindInFilesWidget(PluginMainWidget):
 
             # Set dialog properties
             dialog.setModal(False)
-            dialog.setWindowTitle(self.get_name())
+            dialog.setWindowTitle(_('Max results'))
             dialog.setLabelText(_('Set maximum number of results: '))
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(1, 10000)
