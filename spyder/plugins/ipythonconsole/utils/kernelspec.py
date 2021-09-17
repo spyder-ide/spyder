@@ -134,18 +134,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'default', section='main_interpreter')
         env_vars = os.environ.copy()
 
-        # Avoid IPython adding the virtualenv on which Spyder is running
-        # to the kernel sys.path
-        env_vars.pop('VIRTUAL_ENV', None)
-
-        # Add spyder-kernels subrepo path to PYTHONPATH
-        if (DEV or running_under_pytest()) and not running_in_ci():
-            repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
-            subrepo_path = osp.join(repo_path, 'external-deps',
-                                    'spyder-kernels')
-
-            env_vars.update({'PYTHONPATH': subrepo_path})
-
         # List of paths declared by the user, plus project's path, to
         # add to PYTHONPATH
         pathlist = self.get_conf(
@@ -200,12 +188,18 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # App considerations
         if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
             env_vars.pop('PYTHONHOME', None)
-            env_vars.pop('PYTHONPATH', None)
+
+        # PYTHONPATH is populated by executable and SPY_PYTHONPATH
+        env_vars.pop('PYTHONPATH', None)
 
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.
         # Fixes spyder-ide/spyder#13252
         env_vars.pop('PYTHONEXECUTABLE', None)
+
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
 
         # Making all env_vars strings
         clean_env_vars = clean_env(env_vars)
