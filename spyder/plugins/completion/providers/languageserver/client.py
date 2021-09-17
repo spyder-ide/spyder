@@ -170,9 +170,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             section='main',
             default=[]
         )
+        user_pypath = os.environ.get('PYTHONPATH', '').split(os.pathsep)
 
         sys_path = sys.path[:]
-        for path in spyder_pythonpath:
+        for path in spyder_pythonpath + user_pypath + ['']:
             if path in sys_path:
                 sys_path.remove(path)
 
@@ -277,10 +278,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
-        # Use local PyLS instead of site-packages one.
-        if (DEV or running_under_pytest()) and not running_in_ci():
-            sys_path = self._clean_sys_path()
-            env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
+        # Most LSP servers spawn other processes, which may require
+        # some environment variables.
+        for var in os.environ:
+            env.insert(var, os.environ[var])
 
         # Adjustments for the Python language server.
         if self.language == 'python':
@@ -292,21 +293,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             if not osp.exists(cwd):
                 os.makedirs(cwd)
 
-            # On Windows, some modules (notably Matplotlib)
-            # cause exceptions if they cannot get the user home.
-            # So, we need to pass the USERPROFILE env variable to
-            # the PyLS.
-            if os.name == "nt" and "USERPROFILE" in os.environ:
-                env.insert("USERPROFILE", os.environ["USERPROFILE"])
+            # PyLS will add PYTHONPATH to the completion search paths. Since
+            # we want to control this with extra_paths, we need to remove it
+            env.remove('PYTHONPATH')
         else:
             # There's no need to define a cwd for other servers.
             cwd = None
 
-            # Most LSP servers spawn other processes, which may require
-            # some environment variables.
-            for var in os.environ:
-                env.insert(var, os.environ[var])
-            logger.info('Server process env variables: {0}'.format(env.keys()))
+        logger.info('Server process env variables: {0}'.format(env.keys()))
 
         # Setup server
         self.server.setProcessEnvironment(env)
@@ -333,22 +327,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         if self.language != 'python' and self.stdio:
             for var in os.environ:
                 env.insert(var, os.environ[var])
-            logger.info('Transport process env variables: {0}'.format(
-                env.keys()))
-
-        self.transport.setProcessEnvironment(env)
 
         # Modifying PYTHONPATH to run transport in development mode or
         # tests
         if (DEV or running_under_pytest()) and not running_in_ci():
             sys_path = self._clean_sys_path()
-            if running_under_pytest():
-                env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
-            else:
-                env.insert('PYTHONPATH', os.pathsep.join(sys_path)[1:])
-            self.transport.setProcessEnvironment(env)
+            env.insert('PYTHONPATH', os.pathsep.join(sys_path))
+
+        logger.info('Transport process env variables: {0}'.format(env.keys()))
 
         # Set up transport
+        self.transport.setProcessEnvironment(env)
         self.transport.errorOccurred.connect(self.handle_process_errors)
         if self.stdio:
             self.transport.setProcessChannelMode(QProcess.SeparateChannels)
