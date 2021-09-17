@@ -11,7 +11,6 @@ Tests for the Spyder kernel
 import os
 import pytest
 
-from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.py3compat import PY2, is_binary_string, to_text_string
@@ -19,10 +18,9 @@ from spyder.utils.encoding import to_fs_from_unicode
 
 
 @pytest.mark.parametrize('default_interpreter', [True, False])
-@pytest.mark.skipif(not running_in_ci(), reason="Only works in CI")
-def test_preserve_pypath(tmpdir, default_interpreter):
+def test_kernel_pypath(tmpdir, default_interpreter):
     """
-    Test that PYTHONPATH is preserved in the env vars passed to the kernel
+    Test that PYTHONPATH and spyder_pythonpath option are properly handled
     when an external interpreter is used or not.
 
     Regression test for spyder-ide/spyder#8681.
@@ -30,13 +28,17 @@ def test_preserve_pypath(tmpdir, default_interpreter):
     # Set default interpreter value
     CONF.set('main_interpreter', 'default', default_interpreter)
 
-    # Add a path to PYTHONPATH env var
+    # Add a path to spyder_pythonpath config option
     pypath = to_text_string(tmpdir.mkdir('test-pypath'))
-    os.environ['PYTHONPATH'] = pypath
+    CONF.set('main', 'spyder_pythonpath', [pypath])
 
-    # Check that PYTHONPATH is in our kernelspec
     kernel_spec = SpyderKernelSpec()
-    assert pypath in kernel_spec.env['PYTHONPATH']
+
+    # Check that PYTHONPATH is not in our kernelspec environment
+    assert 'PYTHONPATH' not in kernel_spec.env
+
+    # Check that pypath is in SPY_PYTHONPATH
+    assert pypath in kernel_spec.env['SPY_PYTHONPATH']
 
     # Restore default value
     CONF.set('main_interpreter', 'default', True)
@@ -71,13 +73,10 @@ def test_env_vars():
     # Create a kernel spec
     kernel_spec = SpyderKernelSpec()
 
-    # Assert PYTHONPATH is in env vars and it's not empty
-    assert kernel_spec.env['PYTHONPATH'] != ''
-
     # Assert all env vars are binary strings
     assert all([is_binary_string(v) for v in kernel_spec.env.values()])
 
-    # Remove our entry from PYTHONPATH
+    # Remove our entry from spyder_pythonpath
     CONF.set('main', 'spyder_pythonpath', [])
 
 
