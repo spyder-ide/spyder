@@ -157,6 +157,7 @@ DEFAULTS = [
               'out_prompt': '',
               'show_elapsed_time': False,
               'ask_before_restart': True,
+              'info_widget': True,
               # This is True because there are libraries like Pyomo
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.

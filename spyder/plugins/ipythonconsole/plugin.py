@@ -173,6 +173,7 @@ class IPythonConsole(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
+        self.infowidget = None
         self.menu_actions = None
         self.master_clients = 0
         self.clients = []
@@ -180,6 +181,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
         self.css_path = CONF.get('appearance', 'css_path')
+        self.info_widget_enable = CONF.get(self.CONF_SECTION, 'info_widget')
         self.run_cell_filename = None
         self.interrupt_action = None
         self.add_actions_to_main_menus = True
@@ -228,14 +230,15 @@ class IPythonConsole(SpyderPluginWidget):
             layout.addWidget(self.tabwidget)
 
         # Info widget
-        self.infowidget = FrameWebView(self)
-        if WEBENGINE:
-            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
-        else:
-            self.infowidget.setStyleSheet(
-                "background:{}".format(MAIN_BG_COLOR))
-        self.set_infowidget_font()
-        layout.addWidget(self.infowidget)
+        if self.info_widget_enable:
+            self.infowidget = FrameWebView(self)
+            if WEBENGINE:
+                self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
+            else:
+                self.infowidget.setStyleSheet(
+                    "background:{}".format(MAIN_BG_COLOR))
+            self.set_infowidget_font()
+            layout.addWidget(self.infowidget)
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
@@ -558,10 +561,12 @@ class IPythonConsole(SpyderPluginWidget):
                 # Show info_page if it has content
                 client.set_info_page()
                 client.shellwidget.hide()
-                client.layout.addWidget(self.infowidget)
-                self.infowidget.show()
+                if self.infowidget is not None:
+                    client.layout.addWidget(self.infowidget)
+                    self.infowidget.show()
             else:
-                self.infowidget.hide()
+                if self.infowidget is not None:
+                    self.infowidget.hide()
                 client.shellwidget.show()
 
             # Give focus to the control widget of the selected tab
@@ -1502,8 +1507,9 @@ class IPythonConsole(SpyderPluginWidget):
 
     def set_infowidget_font(self):
         """Set font for infowidget"""
-        font = get_font(option='rich_font')
-        self.infowidget.set_font(font)
+        if self.infowidget is not None:
+            font = get_font(option='rich_font')
+            self.infowidget.set_font(font)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):

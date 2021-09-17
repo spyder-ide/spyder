@@ -537,6 +537,8 @@ class MainWindow(QMainWindow):
         if os.name == "nt":
             qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
 
+        self.help = None
+
         self.default_style = str(qapp.style().objectName())
 
         self.init_workdir = options.working_directory
@@ -833,7 +835,7 @@ class MainWindow(QMainWindow):
             "internal errors and to inspect Spyder\n"
             "internals with the following commands:\n"
             "  spy.app, spy.window, dir(spy)\n\n"
-            "Please don't use it to run your code\n\n"
+            "Please do not use it to run your code\n\n"
         )
         CONF.set('internal_console', 'message', message)
         CONF.set('internal_console', 'multithreaded', self.multithreaded)

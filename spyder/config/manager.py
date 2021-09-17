@@ -44,8 +44,6 @@ class ConfigurationManager(object):
         Configuration manager to provide access to user/site/project config.
         """
         path = self.get_user_config_path()
-        if not osp.isdir(path):
-            os.makedirs(path)
 
         # Site configuration defines the system defaults if a file
         # is found in the site location
