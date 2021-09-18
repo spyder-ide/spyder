@@ -163,7 +163,7 @@ class PathManager(QDialog):
         self.sync_button = create_toolbutton(
             self,
             text=_("Synchronize..."),
-            icon=ima.icon('fileimport'),
+            icon=ima.icon('filesync'),
             triggered=self.synchronize,
             tip=_("Synchronize Spyder's path list with PYTHONPATH "
                   "environment variable"),
