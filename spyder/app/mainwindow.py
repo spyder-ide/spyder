@@ -1595,9 +1595,10 @@ class MainWindow(QMainWindow):
                     executable = get_python_executable()
                 else:
                     executable = CONF.get('main_interpreter', 'executable')
+                pypath = CONF.get('main', 'spyder_pythonpath', None)
                 programs.run_python_script_in_terminal(
                         fname, wdir, args, interact, debug, python_args,
-                        executable)
+                        executable, pypath)
             except NotImplementedError:
                 QMessageBox.critical(self, _("Run"),
                                      _("Running an external system terminal "

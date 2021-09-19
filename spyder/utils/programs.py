@@ -734,8 +734,8 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     return p_args
 
 
-def run_python_script_in_terminal(fname, wdir, args, interact,
-                                  debug, python_args, executable=None):
+def run_python_script_in_terminal(fname, wdir, args, interact, debug,
+                                  python_args, executable=None, pypath=None):
     """
     Run Python script in an external system terminal.
 
@@ -812,7 +812,10 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         if wdir:
             f.write('cd {}\n'.format(wdir))
         if running_in_mac_app(executable):
-            f.write(f'export PYTHONHOME={os.environ["PYTHONPATH"]}\n')
+            f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
+        if pypath is not None:
+            pypath = os.pathsep.join(pypath)
+            f.write(f'export PYTHONPATH={pypath}\n')
         f.write(' '.join(p_args))
         f.close()
         os.chmod(f.name, 0o777)
