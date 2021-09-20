@@ -136,6 +136,13 @@ def get_options(argv=None):
         help="Start Spyder with a clean configuration directory"
     )
     parser.add_argument(
+        '--offline',
+        dest="offline",
+        action='store_true',
+        default=False,
+        help="Disable all web engine and download functionality."
+    )
+    parser.add_argument(
         '--report-segfault',
         dest="report_segfault",
         action='store_true',

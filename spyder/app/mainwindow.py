@@ -1977,6 +1977,11 @@ def main(options, args):
             pass
     CONF.set('main', 'previous_crash', previous_crash)
 
+    if options.offline:
+        CONF.set('ipython_console', 'info_widget', False)
+        CONF.set('help', 'enable', False)
+        CONF.set('onlinehelp', 'enable', False)
+
     # **** Set color for links ****
     set_links_color(app)
 
