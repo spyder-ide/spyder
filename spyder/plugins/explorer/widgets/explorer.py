@@ -562,7 +562,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.context_menu.aboutToShow.connect(self.update_actions)
 
     @on_conf_change(option=['size_column', 'type_column', 'date_column',
-                            'name_filters', 'show_hidden'])
+                            'name_filters', 'show_hidden',
+                            'single_click_to_open'])
     def on_conf_update(self, option, value):
         if option == 'size_column':
             self.setColumnHidden(DirViewColumns.Size, not value)
@@ -574,7 +575,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
             if self.filter_on:
                 self.filter_files(value)
         elif option == 'show_hidden':
-            self.set_show_hidden(self.get_conf('show_hidden'))
+            self.set_show_hidden(value)
+        elif option == 'single_click_to_open':
+            self.set_single_click_to_open(value)
 
     def update_actions(self):
         fnames = self.get_selected_filenames()
@@ -774,6 +777,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
         super().mouseReleaseEvent(event)
         if self.get_conf('single_click_to_open'):
             self.clicked(index=self.indexAt(event.pos()))
+
+    def mouseMoveEvent(self, event):
+        """Change cursor shape when using single_click_to_open option."""
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            vrect = self.visualRect(index)
+            item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
+            if event.pos().x() > item_identation:
+                # When hovering over directories or files
+                self.setCursor(Qt.PointingHandCursor)
+            else:
+                # On every other element
+                self.setCursor(Qt.ArrowCursor)
+
+        super().mouseMoveEvent(event)
 
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
@@ -1577,7 +1595,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
     # ------------------------------------------------------------------------
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
-        self.set_conf('single_click_to_open', value)
+        # Track mouse movements to change cursor shape.
+        if value:
+            self.setMouseTracking(True)
+        else:
+            self.unsetCursor()
+            self.setMouseTracking(False)
 
     def set_file_associations(self, value):
         """Set file associations open items."""
