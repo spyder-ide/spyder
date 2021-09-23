@@ -9,5 +9,6 @@ Find in files widget API.
 """
 
 # Local imports
-from spyder.plugins.findinfiles.plugin import FindInFilesActions # noqa
-from spyder.plugins.findinfiles.main_widget import FindInFilesWidgetActions  # noqa
+from spyder.plugins.findinfiles.plugin import FindInFilesActions  # noqa
+from spyder.plugins.findinfiles.widgets.main_widget import (  # noqa
+    FindInFilesWidgetActions)

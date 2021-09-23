@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 12:05:05 2021
-
-@author: carlos
-"""
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
 
 # Standard library imports
 import fnmatch
@@ -19,8 +17,11 @@ from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.plugins.findinfiles.widgets import (
-    MAX_PATH_HISTORY, ON, ResultsBrowser, SearchInComboBox, SearchThread)
+from spyder.plugins.findinfiles.widgets.results_browser import (
+    ON, ResultsBrowser)
+from spyder.plugins.findinfiles.widgets.combobox import (
+    MAX_PATH_HISTORY, SearchInComboBox)
+from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import PatternComboBox
