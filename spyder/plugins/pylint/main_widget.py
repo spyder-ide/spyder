@@ -169,8 +169,14 @@ class ResultsTree(OneColumnTree):
             self.sig_edit_goto_requested.emit(fname, lineno, "")
 
     def clicked(self, item):
-        """Click event"""
-        self.activated(item)
+        """Click event."""
+        if isinstance(item, CategoryItem):
+            if item.isExpanded():
+                self.collapseItem(item)
+            else:
+                self.expandItem(item)
+        else:
+            self.activated(item)
 
     def clear_results(self):
         self.clear()
