@@ -206,7 +206,13 @@ class ResultsBrowser(OneColumnTree):
 
     def clicked(self, item):
         """Click event."""
-        self.activated(item)
+        if isinstance(item, FileMatchItem):
+            if item.isExpanded():
+                self.collapseItem(item)
+            else:
+                self.expandItem(item)
+        else:
+            self.activated(item)
 
     def clear_title(self, search_text):
         self.font = get_font()
