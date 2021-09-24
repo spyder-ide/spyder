@@ -24,7 +24,6 @@ import atexit
 import argparse
 import os
 import os.path as osp
-import pkg_resources
 import shutil
 import subprocess
 import sys
