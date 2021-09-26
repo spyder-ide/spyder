@@ -25,9 +25,7 @@ pylint >=2.5.0,<2.10.0
 pyls-spyder >=0.4.0
 pyqt <5.13
 python-lsp-black >=1.0.0
-# There's no need to set a version for python-lsp-server
-# because we install it from master for our tests.
-python-lsp-server
+python-lsp-server >=1.2.2,<1.3.0
 pyxdg >=0.26
 pyzmq >=17
 qdarkstyle =3.0.2
@@ -38,9 +36,7 @@ qtpy >=1.5.0
 rtree >=0.9.7
 setuptools >=49.6.0
 sphinx >=0.6.6
-# NOTE: There's no need to set a version for spyder-kernels
-# here because we're using a subrepo for it to run our tests.
-spyder-kernels
+spyder-kernels >=2.1.1,<2.2.0
 textdistance >=4.2.0
 three-merge >=0.1.1
 watchdog >=0.10.3
