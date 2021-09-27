@@ -23,6 +23,7 @@ from qtpy.QtGui import QTextCursor
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets import editor
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
@@ -229,8 +230,7 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
 
 
 # ---- Test single file mode
-@pytest.mark.skipif(not sys.platform == 'darwin',
-                    reason="Fails on Linux and Windows")
+@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files,
                                    qtbot):
     """

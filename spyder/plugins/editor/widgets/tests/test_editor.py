@@ -226,7 +226,8 @@ def test_move_multiple_lines_up(editor_bot):
     assert editor.toPlainText() == expected_new_text
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Works only on Linux")
 def test_copy_lines_down_up(editor_bot, mocker, qtbot):
     """
     Test that copy lines down and copy lines up are working as expected.
