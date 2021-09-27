@@ -2632,6 +2632,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
         self.analyze_script(index)
+        finfo.editor.set_sync_symbols_and_folding_timeout()
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
