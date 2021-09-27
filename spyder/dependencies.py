@@ -130,7 +130,7 @@ DESCRIPTIONS = [
      'required_version': JEDI_REQVER},
     {'modname': "jellyfish",
      'package_name': "jellyfish",
-     'features': _("Optimize algorithms for textdistance"),
+     'features': _("Optimize algorithms for folding"),
      'required_version': JELLYFISH_REQVER},
     {'modname': 'jsonschema',
      'package_name': 'jsonschema',
