@@ -487,7 +487,7 @@ def get_file_code(filename, save_all=True):
     try:
         file_code = frontend_request().get_file_code(
             filename, save_all=save_all)
-    except (CommError, TimeoutError):
+    except (CommError, TimeoutError, RuntimeError):
         file_code = None
     if file_code is None:
         with open(filename, 'r') as f:
