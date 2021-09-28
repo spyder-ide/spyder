@@ -41,6 +41,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
 IPYTHON_REQVER = ">=7.6.0"
 JEDI_REQVER = '>=0.17.2;<0.19.0'
+JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
@@ -127,6 +128,10 @@ DESCRIPTIONS = [
      'package_name': "jedi",
      'features': _("Main backend for the Python Language Server"),
      'required_version': JEDI_REQVER},
+    {'modname': "jellyfish",
+     'package_name': "jellyfish",
+     'features': _("Optimize algorithms for folding"),
+     'required_version': JELLYFISH_REQVER},
     {'modname': 'jsonschema',
      'package_name': 'jsonschema',
      'features': _('Verify if snippets files are valid'),
