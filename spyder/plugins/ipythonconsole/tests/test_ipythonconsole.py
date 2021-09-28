@@ -102,6 +102,8 @@ def ipyconsole(qtbot, request):
         def __getattr__(self, attr):
             if attr == 'consoles_menu_actions':
                 return []
+            elif attr == 'editor':
+                return None
             else:
                 return Mock()
 
@@ -1944,6 +1946,34 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("!abba")
     assert "Unknown command 'abba'" in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Falis on Windows")
+def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
+    """Check that the breakpoint builtin is working."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    # Code to run
+    code = dedent("""
+    print('foo')
+    breakpoint()
+    """)
+
+    # Write code to file on disk
+    file = tmpdir.join('test_breakpoint.py')
+    file.write(code)
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"runfile(filename='{str(file)}')")
+
+    # Assert we entered debugging after the print statement
+    assert 'foo' in control.toPlainText()
+    assert 'IPdb [1]:' in control.toPlainText()
 
 
 if __name__ == "__main__":

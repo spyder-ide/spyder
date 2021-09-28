@@ -213,8 +213,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.tabwidget.set_close_function(self.close_client)
 
-        self.main.editor.sig_file_debug_message_requested.connect(
-            self.print_debug_file_msg)
+        if self.main.editor:
+            self.main.editor.sig_file_debug_message_requested.connect(
+                self.print_debug_file_msg)
 
         if sys.platform == 'darwin':
             tab_container = QWidget()
