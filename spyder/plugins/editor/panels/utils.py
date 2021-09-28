@@ -157,7 +157,7 @@ def merge_folding(ranges, current_tree, root):
     while deleted_entry is not None and changed_entry is not None:
         deleted_entry_i = deleted_entry.data
         changed_entry_i = changed_entry.data
-        dist = textdistance.jaccard.normalized_similarity(
+        dist = textdistance.hamming.normalized_similarity(
             deleted_entry_i.text, changed_entry_i.text)
 
         if dist >= 0.80:
