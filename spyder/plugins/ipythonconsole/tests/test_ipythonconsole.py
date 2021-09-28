@@ -1981,13 +1981,12 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Falis on Windows")
 def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     """Check that the breakpoint builtin is working."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
 
     # Code to run
     code = dedent("""
@@ -2001,8 +2000,9 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
 
     # Run file
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"runfile(filename='{str(file)}')")
+        shell.execute(f"runfile(filename=r'{str(file)}')")
 
+    qtbot.wait(5000)
     # Assert we entered debugging after the print statement
     assert 'foo' in control.toPlainText()
     assert 'IPdb [1]:' in control.toPlainText()
