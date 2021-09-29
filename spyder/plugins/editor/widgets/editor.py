@@ -2698,7 +2698,8 @@ class EditorStack(QWidget):
         """ Select and run all lines from cursor in given direction"""
         editor = self.get_current_editor()
 
-        # Move cursor to start of line, then move to beginning of document with KeepAnchor
+        # Move cursor to start of line then move to beginning or end of
+        # document with KeepAnchor
         cursor = editor.textCursor()
         cursor.movePosition(QTextCursor.StartOfLine)
 
@@ -2709,14 +2710,14 @@ class EditorStack(QWidget):
 
         code_text = editor.get_selection_as_executable_code(cursor)
         if code_text:
-            self.exec_in_extconsole.emit(code_text.rstrip(), self.focus_to_editor)
+            self.exec_in_extconsole.emit(code_text.rstrip(),
+                                         self.focus_to_editor)
 
     def run_to_line(self):
         """
         Run all lines from the beginning up to, but not including, current
         line.
         """
-        # alternative names: run_above, run_below. Icon can be run symbol with arrow up (to line) and down (from line)
         self._run_lines_cursor(direction='up')
 
     def run_from_line(self):
