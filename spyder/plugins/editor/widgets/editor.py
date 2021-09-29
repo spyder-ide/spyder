@@ -24,7 +24,7 @@ import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
                             QSplitter, QVBoxLayout, QWidget, QListWidget,
@@ -2438,6 +2438,8 @@ class EditorStack(QWidget):
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
+        editor.sig_run_to_line.connect(self.run_to_line)
+        editor.sig_run_from_line.connect(self.run_from_line)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
@@ -2692,6 +2694,38 @@ class EditorStack(QWidget):
         finfo.editor.format_document_or_range()
 
     #  ------ Run
+    def _run_lines_cursor(self, direction):
+        """ Select and run all lines from cursor in given direction"""
+        editor = self.get_current_editor()
+
+        # Move cursor to start of line, then move to beginning of document with KeepAnchor
+        cursor = editor.textCursor()
+        cursor.movePosition(QTextCursor.StartOfLine)
+
+        if direction == 'up':
+            cursor.movePosition(QTextCursor.Start, QTextCursor.KeepAnchor)
+        elif direction == 'down':
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+
+        code_text = editor.get_selection_as_executable_code(cursor)
+        if code_text:
+            self.exec_in_extconsole.emit(code_text.rstrip(), self.focus_to_editor)
+
+    def run_to_line(self):
+        """
+        Run all lines from the beginning up to, but not including, current
+        line.
+        """
+        # alternative names: run_above, run_below. Icon can be run symbol with arrow up (to line) and down (from line)
+        self._run_lines_cursor(direction='up')
+
+    def run_from_line(self):
+        """
+        Run all lines from and including the current line to the end of
+        the document.
+        """
+        self._run_lines_cursor(direction='down')
+
     def run_selection(self):
         """
         Run selected text or current line in console.
