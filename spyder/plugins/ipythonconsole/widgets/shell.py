@@ -795,16 +795,13 @@ the sympy module (e.g. plot)
             return editor.get_current_editorstack()
         raise RuntimeError('No editorstack found.')
 
-    def handle_get_file_code(self, filename, save_all=True):
+    def handle_get_file_code(self, filename):
         """
         Return the bytes that compose the file.
 
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self.get_editorstack()
-        if save_all and self.get_conf(
-                'save_all_before_run', default=True, section='editor'):
-            editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 
         if editor is None:
