@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = 2.x
-	commit = d151e3b4f01a1284487b6183def17161307f8bb5
-	parent = eb1cd5b7fe9ddb77a1869512c129d89c93484a46
+	branch = fix_autoformat_issue_16280_kernel
+	commit = 15b66780db9f26d8db0df558d6c7fbbd7ba621fe
+	parent = fba6e064f630cb42db3b519509a984d87e3dbb6c
 	method = merge
 	cmdver = 0.4.3

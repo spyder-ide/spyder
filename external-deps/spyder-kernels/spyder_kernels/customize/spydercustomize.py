@@ -481,12 +481,11 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
     __tracebackhide__ = "__pdb_exit__"
 
 
-def get_file_code(filename, save_all=True):
+def get_file_code(filename):
     """Retrive the content of a file."""
     # Get code from spyder
     try:
-        file_code = frontend_request().get_file_code(
-            filename, save_all=save_all)
+        file_code = frontend_request().get_file_code(filename)
     except (CommError, TimeoutError, RuntimeError):
         file_code = None
     if file_code is None:
@@ -665,7 +664,7 @@ def runcell(cellname, filename=None, post_mortem=False):
     # See Spyder PR #7310.
     ipython_shell.events.trigger('post_execute')
     try:
-        file_code = get_file_code(filename, save_all=False)
+        file_code = get_file_code(filename)
     except Exception:
         file_code = None
     with NamespaceManager(filename, current_namespace=True,
