@@ -233,7 +233,8 @@ class IPythonConsole(SpyderPluginWidget):
         if self.info_widget_enable:
             self.infowidget = FrameWebView(self)
             if WEBENGINE:
-                self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
+                self.infowidget.page().setBackgroundColor(
+                    QColor(MAIN_BG_COLOR))
             else:
                 self.infowidget.setStyleSheet(
                     "background:{}".format(MAIN_BG_COLOR))
