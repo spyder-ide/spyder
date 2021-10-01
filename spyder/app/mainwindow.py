@@ -537,7 +537,7 @@ class MainWindow(QMainWindow):
         if os.name == "nt":
             qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
 
-        self.help = None
+        self.help_status = CONF.get('help', 'enable')
 
         self.default_style = str(qapp.style().objectName())
 
@@ -1201,7 +1201,7 @@ class MainWindow(QMainWindow):
 
         # Show Help and Consoles by default
         plugins_to_show = [self.ipyconsole]
-        if self.help is not None:
+        if self.help_status is True:
             plugins_to_show.append(self.help)
         for plugin in plugins_to_show:
             if plugin.dockwidget.isVisible():
