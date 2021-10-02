@@ -5,7 +5,7 @@ on:
     types:
       - created
 
-name: Create Windows Installer
+name: Create Windows Installer 
 
 jobs:
   build:
