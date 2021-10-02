@@ -141,6 +141,11 @@ def ipyconsole(qtbot, request):
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
 
+    # Use the Tkinter backend if requested
+    tk_backend = request.node.get_closest_marker('tk_backend')
+    if tk_backend:
+        CONF.set('ipython_console', 'pylab/backend', 8)
+
     # Start a Pylab client if requested
     pylab_client = request.node.get_closest_marker('pylab_client')
     is_pylab = True if pylab_client else False
@@ -296,21 +301,39 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
 def test_auto_backend(ipyconsole, qtbot):
-    """Test that the automatic backend is working correctly."""
+    """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import matplotlib; matplotlib.get_backend()")
+        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
 
     # Assert there are no errors in the console and we set the right
     # backend.
     control = ipyconsole.get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
-    assert 'Qt5Agg' in control.toPlainText()
+    assert 'loop_qt5' in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.tk_backend
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_tk_backend(ipyconsole, qtbot):
+    """Test that the Tkinter backend was set correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
+
+    # Assert we set the right backend in the kernel.
+    control = ipyconsole.get_focus_widget()
+    assert 'loop_tk' in control.toPlainText()
 
 
 @flaky(max_runs=3)
