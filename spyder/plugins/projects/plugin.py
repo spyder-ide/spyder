@@ -861,7 +861,7 @@ class Projects(SpyderDockablePlugin):
         project_type_id = EmptyProject.ID
         if osp.isfile(fpath):
             config = configparser.ConfigParser()
-            config.read(fpath)
+            config.read(fpath, encoding='utf-8')
             project_type_id = config[WORKSPACE].get(
                 "project_type", EmptyProject.ID)
 
