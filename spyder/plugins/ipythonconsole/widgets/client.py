@@ -788,7 +788,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderConfigurationAccessor):
 
     def set_info_page(self):
         """Set current info_page."""
-        if self.infowidget is not None:
+        if self.infowidget is not None and self.info_page is not None:
             self.infowidget.setHtml(
                 self.info_page,
                 QUrl.fromLocalFile(self.css_path)
