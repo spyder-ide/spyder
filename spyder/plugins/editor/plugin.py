@@ -1069,6 +1069,7 @@ class Editor(SpyderPluginWidget):
                                find_previous_action,
                                replace_action,
                                gotoline_action]
+
         self.main.search_toolbar_actions = [find_action,
                                             find_next_action,
                                             replace_action]
@@ -1081,6 +1082,10 @@ class Editor(SpyderPluginWidget):
                                   self.text_lowercase_action]
 
         # ---- Search menu/toolbar construction ----
+        if not hasattr(self.main, 'search_menu_actions'):
+            # This list will not exist in the fast tests.
+            self.main.search_menu_actions = []
+
         self.main.search_menu_actions = (
             search_menu_actions + self.main.search_menu_actions)
 
