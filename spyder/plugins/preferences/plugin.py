@@ -25,12 +25,14 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.config.base import _
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
-from spyder.plugins.preferences.widgets.container import PreferencesContainer
+from spyder.plugins.preferences.widgets.container import (
+    PreferencesActions, PreferencesContainer)
 from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 
 logger = logging.getLogger(__name__)
@@ -303,6 +305,36 @@ class Preferences(SpyderPluginV2):
         container = self.get_container()
         container.sig_reset_preferences_requested.connect(self.reset)
 
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        container = self.get_container()
+        main_menu = self.get_plugin(Plugins.MainMenu)
+
+        main_menu.remove_item_from_application_menu(
+            PreferencesActions.Show,
+            menu_id=ApplicationMenus.Tools,
+        )
+
+        main_menu.remove_item_from_application_menu(
+            PreferencesActions.Reset,
+            menu_id=ApplicationMenus.Tools,
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.remove_item_from_application_toolbar(
+            PreferencesActions.Show,
+            toolbar_id=ApplicationToolbars.Main
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Application)
+    def on_application_teardown(self):
+        container = self.get_container()
+        container.sig_reset_preferences_requested.disconnect(self.reset)
+
     @Slot()
     def reset(self):
         answer = QMessageBox.warning(self.main, _("Warning"),
@@ -314,6 +346,6 @@ class Preferences(SpyderPluginV2):
             application = self.get_plugin(Plugins.Application)
             application.sig_restart_requested.emit()
 
-    def on_close(self, cancelable=False) -> bool:
+    def can_close(self) -> bool:
         container = self.get_container()
         return not container.is_dialog_open()

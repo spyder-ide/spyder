@@ -17,7 +17,8 @@ from qtpy.QtCore import Slot
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
@@ -89,6 +90,19 @@ class MainInterpreter(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         if statusbar:
             statusbar.add_status_widget(self.interpreter_status)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        # Deregister conf page
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        if statusbar:
+            statusbar.remove_status_widget(self.interpreter_status.ID)
 
     # ---- Public API
     def get_interpreter(self):

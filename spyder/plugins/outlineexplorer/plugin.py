@@ -10,7 +10,8 @@
 from qtpy.QtCore import Slot
 
 # Local imports
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
@@ -62,6 +63,15 @@ class OutlineExplorer(SpyderDockablePlugin):
 
         editor.sig_open_files_finished.connect(
             self.update_all_editors)
+
+    @on_plugin_teardown(plugin=Plugins.Completions)
+    def on_completions_teardown(self):
+        completions = self.get_plugin(Plugins.Completions)
+
+        completions.sig_language_completions_available.disconnect(
+            self.start_symbol_services)
+        completions.sig_stop_completions.disconnect(
+            self.stop_symbol_services)
 
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
