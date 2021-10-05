@@ -122,7 +122,9 @@ class Profiler(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
         mainmenu.remove_item_from_application_menu(
-            ProfilerActions.ProfileCurrentFile, menu_id=ApplicationMenus.Run)
+            ProfilerActions.ProfileCurrentFile,
+            menu_id=ApplicationMenus.Run
+        )
 
     # --- Public API
     # ------------------------------------------------------------------------

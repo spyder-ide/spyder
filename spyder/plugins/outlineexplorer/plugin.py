@@ -73,6 +73,13 @@ class OutlineExplorer(SpyderDockablePlugin):
         completions.sig_stop_completions.disconnect(
             self.stop_symbol_services)
 
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+
+        editor.sig_open_files_finished.disconnect(
+            self.update_all_editors)
+
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""

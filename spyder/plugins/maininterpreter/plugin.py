@@ -88,8 +88,7 @@ class MainInterpreter(SpyderPluginV2):
     def on_statusbar_available(self):
         # Add status widget
         statusbar = self.get_plugin(Plugins.StatusBar)
-        if statusbar:
-            statusbar.add_status_widget(self.interpreter_status)
+        statusbar.add_status_widget(self.interpreter_status)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -101,8 +100,7 @@ class MainInterpreter(SpyderPluginV2):
     def on_statusbar_teardown(self):
         # Add status widget
         statusbar = self.get_plugin(Plugins.StatusBar)
-        if statusbar:
-            statusbar.remove_status_widget(self.interpreter_status.ID)
+        statusbar.remove_status_widget(self.interpreter_status.ID)
 
     # ---- Public API
     def get_interpreter(self):
