@@ -153,6 +153,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     # Define context to store actions, toolbars, toolbuttons and menus.
     CONTEXT_NAME = None
 
+    # Define if a plugin can be disabled in preferences.
+    # If False, the plugin is considered "core" and therefore it cannot be
+    # disabled. Default: True
+    CAN_BE_DISABLED = True
+
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
     # Signals here are automatically connected by the Spyder main window and
@@ -758,14 +763,19 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         Perform actions before the main window is closed.
 
+        This method **must** only operate on local attributes and not other
+        plugins.
+        """
+        pass
+
+    def can_close(self) -> bool:
+        """
+        Determine if a plugin can be closed.
+
         Returns
         -------
-        bool
-            Whether the plugin may be closed immediately or not.
-
-        Notes
-        -----
-        The returned value is ignored if *cancelable* is False.
+        close: bool
+            True if the plugin can be closed, False otherwise.
         """
         return True
 

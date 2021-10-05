@@ -223,6 +223,33 @@ class SpyderPluginRegistry(QObject):
                     logger.debug(f'Plugin {plugin} has already loaded')
                     plugin_instance._on_plugin_available(plugin)
 
+    def _notify_plugin_teardown(self, plugin_name: str):
+        """Notify dependents of a plugin that is going to be unavailable."""
+        plugin_dependents = self.plugin_dependents.get(plugin_name, {})
+        required_plugins = plugin_dependents.get('requires', [])
+        optional_plugins = plugin_dependents.get('optional', [])
+
+        for plugin in required_plugins + optional_plugins:
+            if plugin in self.plugin_registry:
+                if self.plugin_availability.get(plugin, False):
+                    logger.debug(f'Notifying plugin {plugin} that '
+                                 f'{plugin_name} is going to be turned off')
+                    plugin_instance = self.plugin_registry[plugin]
+                    plugin_instance._on_plugin_teardown(plugin_name)
+
+    def _teardown_plugin(self, plugin_name: str):
+        """Disconnect a plugin from its dependencies."""
+        plugin_instance = self.plugin_registry[plugin_name]
+        plugin_dependencies = self.plugin_dependencies.get(plugin_name, {})
+        required_plugins = plugin_dependencies.get('requires', [])
+        optional_plugins = plugin_dependencies.get('optional', [])
+
+        for plugin in required_plugins + optional_plugins:
+            if plugin in self.plugin_registry:
+                if self.plugin_availability.get(plugin, False):
+                    logger.debug(f'Disconnecting {plugin_name} from {plugin}')
+                    plugin_instance._on_plugin_teardown(plugin)
+
     # -------------------------- PUBLIC API -----------------------------------
     def register_plugin(
             self, main_window: Any,
@@ -316,6 +343,78 @@ class SpyderPluginRegistry(QObject):
             if plugin in self.plugin_registry:
                 plugin_instance = self.plugin_registry[plugin]
                 plugin_instance._on_plugin_available(plugin_name)
+
+    def delete_plugin(self, plugin_name: str) -> bool:
+        """
+        Remove and delete a plugin from the registry by its name.
+
+        Paremeters
+        ----------
+        plugin_name: str
+            Name of the plugin to delete.
+
+        Returns
+        -------
+        plugin_deleted: bool
+            True if the registry was able to teardown and remove the plugin.
+            False otherwise.
+        """
+        plugin_instance = self.plugin_registry[plugin_name]
+
+        # Determine if plugin can be closed
+        can_delete = True
+        if isinstance(plugin_instance, SpyderPluginV2):
+            can_delete = plugin_instance.can_close()
+        elif isinstance(plugin_instance, SpyderPlugin):
+            can_delete = plugin_instance.closing_plugin(True)
+
+        if not can_delete:
+            return False
+
+        if isinstance(plugin_instance, SpyderPluginV2):
+            # Disconnect plugin from other plugins
+            self._teardown_plugin(plugin_name)
+
+            # Disconnect depending plugins from the plugin to delete
+            self._notify_plugin_teardown(plugin_name)
+
+            # Remove the plugin from the main window (if graphical)
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                plugin_instance.close_window()
+
+            # Perform plugin closure tasks
+            plugin_instance.on_close(True)
+        elif isinstance(plugin_instance, SpyderPlugin):
+            # Disconnect depending plugins from the plugin to delete
+            self._notify_plugin_teardown(plugin_name)
+            if isinstance(plugin_instance, SpyderPluginWidget):
+                plugin_instance._close_window()
+
+        # Delete plugin from the registry and auxiliary structures
+        self.plugin_dependents.pop(plugin_name)
+        self.plugin_dependencies.pop(plugin_name)
+
+        for plugin_ in self.plugin_dependents:
+            all_plugin_dependents = self.plugin_dependents[plugin_]
+            for key in {'requires', 'optional'}:
+                plugin_dependents = all_plugin_dependents[key]
+                plugin_dependents.remove(plugin_name)
+
+        for plugin_ in self.plugin_dependencies:
+            all_plugin_dependencies = self.plugin_dependencies[plugin_]
+            for key in {'requires', 'optional'}:
+                plugin_dependencies = all_plugin_dependencies[key]
+                plugin_dependencies.remove(plugin_name)
+
+        self.plugin_availability.pop(plugin_name)
+        self.old_plugins -= {plugin_name}
+        self.enabled_plugins -= {plugin_name}
+        self.internal_plugins -= {plugin_name}
+        self.external_plugins -= {plugin_name}
+
+        # Remove the plugin from the registry
+        self.plugin_registry.pop(plugin_name)
+        return True
 
     def get_plugin(self, plugin_name: str) -> SpyderPluginClass:
         """

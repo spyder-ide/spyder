@@ -103,6 +103,22 @@ class Preferences(SpyderPluginV2):
             self.config_pages[plugin.CONF_SECTION] = (
                 self.OLD_API, Widget, plugin)
 
+    def deregister_plugin_preferences(
+            self, plugin: Union[SpyderPluginV2, SpyderPlugin]):
+        """Remove a plugin preference page and additional configuration tabs."""
+        name = (getattr(plugin, 'NAME', None) or
+                    getattr(plugin, 'CONF_SECTION', None))
+
+        # Remove configuration page for the plugin
+        self.config_pages.pop(name)
+
+        # Remove additional configuration tabs that the plugin did introduce
+        if isinstance(plugin, SpyderPluginV2):
+            for plugin_name in plugin.ADDITIONAL_CONF_TABS:
+                tabs = plugin.ADDITIONAL_CONF_TABS[plugin_name]
+                for tab in tabs:
+                    self.config_tabs[plugin_name].remove(tab)
+
     def check_version_and_merge(self, conf_section: str, conf_key: str,
                                 new_value: BasicType,
                                 current_version: Version, plugin):

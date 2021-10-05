@@ -21,7 +21,8 @@ from qtpy.QtWidgets import QMenu
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
@@ -45,6 +46,7 @@ class Application(SpyderPluginV2):
     CONF_SECTION = 'main'
     CONF_FILE = False
     CONF_WIDGET_CLASS = ApplicationConfigPage
+    CAN_BE_DISABLED = False
 
     def get_name(self):
         return _('Application')
@@ -62,6 +64,7 @@ class Application(SpyderPluginV2):
 
         self.sig_restart_requested.connect(self.restart)
 
+    # --------------------- PLUGIN INITIALIZATION -----------------------------
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
         if self.is_plugin_available(Plugins.MainMenu):
@@ -96,6 +99,9 @@ class Application(SpyderPluginV2):
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
         self.get_container().sig_load_log_file.connect(editor.load)
+
+    # -------------------------- PLUGIN TEARDOWN ------------------------------
+    # @on_plugin_teardown(plugin=Plugins.)
 
     def on_close(self):
         self.get_container().on_close()
