@@ -10,6 +10,7 @@ Preferences plugin public facing API
 
 # Standard library imports
 import ast
+import functools
 import os.path as osp
 
 # Third party imports
@@ -211,25 +212,27 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file."""
         for checkbox, (sec, option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default, section=sec))
-            checkbox.clicked.connect(lambda _, opt=option:
-                                     self.has_been_modified(opt))
+            checkbox.clicked.connect(lambda _, opt=option, sect=sec:
+                                     self.has_been_modified(sect, opt))
+            if checkbox.restart_required:
+                self.restart_options[(sec, option)] = checkbox.text()
         for radiobutton, (sec, option, default) in list(
                 self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default,
                                                    section=sec))
-            radiobutton.toggled.connect(lambda _foo, opt=option:
-                                        self.has_been_modified(opt))
+            radiobutton.toggled.connect(lambda _foo, opt=option, sect=sec:
+                                        self.has_been_modified(sect, opt))
             if radiobutton.restart_required:
-                self.restart_options[option] = radiobutton.label_text
+                self.restart_options[(sec, option)] = radiobutton.label_text
         for lineedit, (sec, option, default) in list(self.lineedits.items()):
             data = self.get_option(option, default, section=sec)
             if getattr(lineedit, 'content_type', None) == list:
                 data = ', '.join(data)
             lineedit.setText(data)
-            lineedit.textChanged.connect(lambda _, opt=option:
-                                         self.has_been_modified(opt))
+            lineedit.textChanged.connect(lambda _, opt=option, sect=sec:
+                                         self.has_been_modified(sect, opt))
             if lineedit.restart_required:
-                self.restart_options[option] = lineedit.label_text
+                self.restart_options[(sec, option)] = lineedit.label_text
         for textedit, (sec, option, default) in list(self.textedits.items()):
             data = self.get_option(option, default, section=sec)
             if getattr(textedit, 'content_type', None) == list:
@@ -237,14 +240,14 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             elif getattr(textedit, 'content_type', None) == dict:
                 data = to_text_string(data)
             textedit.setPlainText(data)
-            textedit.textChanged.connect(lambda opt=option:
-                                         self.has_been_modified(opt))
+            textedit.textChanged.connect(lambda opt=option, sect=sec:
+                                         self.has_been_modified(sect, opt))
             if textedit.restart_required:
-                self.restart_options[option] = textedit.label_text
+                self.restart_options[(sec, option)] = textedit.label_text
         for spinbox, (sec, option, default) in list(self.spinboxes.items()):
             spinbox.setValue(self.get_option(option, default, section=sec))
-            spinbox.valueChanged.connect(lambda _foo, opt=option:
-                                         self.has_been_modified(opt))
+            spinbox.valueChanged.connect(lambda _foo, opt=option, sect=sec:
+                                         self.has_been_modified(sect, opt))
         for combobox, (sec, option, default) in list(self.comboboxes.items()):
             value = self.get_option(option, default, section=sec)
             for index in range(combobox.count()):
@@ -259,10 +262,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     index = None
             if index:
                 combobox.setCurrentIndex(index)
-            combobox.currentIndexChanged.connect(lambda _foo, opt=option:
-                                                 self.has_been_modified(opt))
+            combobox.currentIndexChanged.connect(lambda _foo, opt=option, sect=sec:
+                                                 self.has_been_modified(
+                                                     sect, opt))
             if combobox.restart_required:
-                self.restart_options[option] = combobox.label_text
+                self.restart_options[(sec, option)] = combobox.label_text
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
             rich_font = True if "rich" in option.lower() else False
@@ -274,9 +278,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             else:
                 property = option
             fontbox.currentIndexChanged.connect(lambda _foo, opt=property:
-                                                self.has_been_modified(opt))
+                                                self.has_been_modified(
+                                                    self.CONF_SECTION, opt))
             sizebox.valueChanged.connect(lambda _foo, opt=property:
-                                         self.has_been_modified(opt))
+                                         self.has_been_modified(
+                                             self.CONF_SECTION, opt))
         for clayout, (sec, option, default) in list(self.coloredits.items()):
             property = to_qvariant(option)
             edit = clayout.lineedit
@@ -284,13 +290,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit.setText(self.get_option(option, default, section=sec))
             # QAbstractButton works differently for PySide and PyQt
             if not API == 'pyside':
-                btn.clicked.connect(lambda _foo, opt=option:
-                                    self.has_been_modified(opt))
+                btn.clicked.connect(lambda _foo, opt=option, sect=sec:
+                                    self.has_been_modified(sect, opt))
             else:
-                btn.clicked.connect(lambda opt=option:
-                                    self.has_been_modified(opt))
-            edit.textChanged.connect(lambda _foo, opt=option:
-                                     self.has_been_modified(opt))
+                btn.clicked.connect(lambda opt=option, sect=sec:
+                                    self.has_been_modified(sect, opt))
+            edit.textChanged.connect(lambda _foo, opt=option, sect=sec:
+                                     self.has_been_modified(sect, opt))
         for (clayout, cb_bold, cb_italic
              ), (sec, option, default) in list(self.scedits.items()):
             edit = clayout.lineedit
@@ -302,39 +308,39 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 cb_bold.setChecked(bold)
                 cb_italic.setChecked(italic)
 
-            edit.textChanged.connect(lambda _foo, opt=option:
-                                     self.has_been_modified(opt))
+            edit.textChanged.connect(lambda _foo, opt=option, sect=sec:
+                                     self.has_been_modified(sect, opt))
             # QAbstractButton works differently for PySide and PyQt
             if not API == 'pyside':
-                btn.clicked.connect(lambda _foo, opt=option:
-                                    self.has_been_modified(opt))
-                cb_bold.clicked.connect(lambda _foo, opt=option:
-                                        self.has_been_modified(opt))
-                cb_italic.clicked.connect(lambda _foo, opt=option:
-                                          self.has_been_modified(opt))
+                btn.clicked.connect(lambda _foo, opt=option, sect=sec:
+                                    self.has_been_modified(sect, opt))
+                cb_bold.clicked.connect(lambda _foo, opt=option, sect=sec:
+                                        self.has_been_modified(sect, opt))
+                cb_italic.clicked.connect(lambda _foo, opt=option, sect=sec:
+                                          self.has_been_modified(sect, opt))
             else:
-                btn.clicked.connect(lambda opt=option:
-                                    self.has_been_modified(opt))
-                cb_bold.clicked.connect(lambda opt=option:
-                                        self.has_been_modified(opt))
-                cb_italic.clicked.connect(lambda opt=option:
-                                          self.has_been_modified(opt))
+                btn.clicked.connect(lambda opt=option, sect=sec:
+                                    self.has_been_modified(sect, opt))
+                cb_bold.clicked.connect(lambda opt=option, sect=sec:
+                                        self.has_been_modified(sect, opt))
+                cb_italic.clicked.connect(lambda opt=option, sect=sec:
+                                          self.has_been_modified(sect, opt))
 
     def save_to_conf(self):
         """Save settings to configuration file"""
         for checkbox, (sec, option, _default) in list(
                 self.checkboxes.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 value = checkbox.isChecked()
                 self.set_option(option, value, section=sec,
                                 recursive_notification=False)
         for radiobutton, (sec, option, _default) in list(
                 self.radiobuttons.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 self.set_option(option, radiobutton.isChecked(), section=sec,
                                 recursive_notification=False)
         for lineedit, (sec, option, _default) in list(self.lineedits.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 data = lineedit.text()
                 content_type = getattr(lineedit, 'content_type', None)
                 if content_type == list:
@@ -344,7 +350,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 self.set_option(option, data, section=sec,
                                 recursive_notification=False)
         for textedit, (sec, option, _default) in list(self.textedits.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 data = textedit.toPlainText()
                 content_type = getattr(textedit, 'content_type', None)
                 if content_type == dict:
@@ -359,27 +365,27 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 self.set_option(option, data, section=sec,
                                 recursive_notification=False)
         for spinbox, (sec, option, _default) in list(self.spinboxes.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 self.set_option(option, spinbox.value(), section=sec,
                                 recursive_notification=False)
         for combobox, (sec, option, _default) in list(self.comboboxes.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 data = combobox.itemData(combobox.currentIndex())
                 self.set_option(option, from_qvariant(data, to_text_string),
                                 section=sec, recursive_notification=False)
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            if option in self.changed_options:
+            if (self.CONF_SECTION, option) in self.changed_options:
                 font = fontbox.currentFont()
                 font.setPointSize(sizebox.value())
                 self.set_font(font, option)
         for clayout, (sec, option, _default) in list(self.coloredits.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 self.set_option(option,
                                 to_text_string(clayout.lineedit.text()),
                                 section=sec, recursive_notification=False)
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
                 self.scedits.items()):
-            if option in self.changed_options:
+            if (sec, option) in self.changed_options:
                 color = to_text_string(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
@@ -387,13 +393,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                 recursive_notification=False)
 
     @Slot(str)
-    def has_been_modified(self, option):
+    def has_been_modified(self, section, option):
         self.set_modified(True)
-        self.changed_options.add(option)
+        self.changed_options.add((section, option))
 
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
-                        msg_if_enabled=False, section=None):
+                        msg_if_enabled=False, section=None, restart=False):
         checkbox = QCheckBox(text)
         self.checkboxes[checkbox] = (section, option, default)
         if section is not None and section != self.CONF_SECTION:
@@ -410,6 +416,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         QMessageBox.information(self, self.get_name(),
                                                 msg_info, QMessageBox.Ok)
             checkbox.clicked.connect(show_message)
+        checkbox.restart_required = restart
         return checkbox
 
     def create_radiobutton(self, text, option, default=NoDefault,
@@ -773,7 +780,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         btn = QPushButton(text)
         btn.clicked.connect(callback)
         btn.clicked.connect(
-            lambda checked=False, opt='': self.has_been_modified(opt))
+            lambda checked=False, opt='': self.has_been_modified(
+                self.CONF_SECTION, opt))
         return btn
 
     def create_tab(self, *widgets):
@@ -809,7 +817,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         answer = QMessageBox.information(self, msg_title, msg,
                                          QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self.main.application.sig_restart_requested.emit()
+            self.restart()
+
+    def restart(self):
+        """Restart Spyder."""
+        self.main.restart(close_immediately=True)
 
     def add_tab(self, Widget):
         widget = Widget(self)

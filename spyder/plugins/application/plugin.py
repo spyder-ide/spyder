@@ -327,7 +327,7 @@ class Application(SpyderPluginV2):
         self._main.apply_settings()
 
     @Slot()
-    def restart(self):
+    def restart(self, reset=False, close_immediately=False):
         """
         Quit and Restart Spyder application.
 
@@ -383,7 +383,7 @@ class Application(SpyderPluginV2):
         command = command.format(python, restart_script)
 
         try:
-            if self.main.closing(True):
+            if self.main.closing(True, close_immediately=close_immediately):
                 subprocess.Popen(command, shell=shell, env=env,
                                  startupinfo=startupinfo)
                 console.quit()

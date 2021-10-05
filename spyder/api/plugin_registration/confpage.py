@@ -49,7 +49,7 @@ class PluginsConfigPage(PluginConfigPage):
             plugin_loc_name = PluginClass.get_name()
             plugin_state = CONF.get(conf_section_name, 'enable', True)
             cb = newcb(plugin_loc_name, 'enable', default=True,
-                       section=conf_section_name)
+                       section=conf_section_name, restart=True)
             internal_layout.addWidget(cb, i // 2, i % 2)
             self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
             i += 1
@@ -70,8 +70,8 @@ class PluginsConfigPage(PluginConfigPage):
                 continue
 
             plugin_loc_name = PluginClass.get_name()
-            cb = newcb(_('Enable {0} plugin').format(plugin_loc_name),
-                       'enable', default=True, section=conf_section_name)
+            cb = newcb(plugin_loc_name, 'enable', default=True,
+                       section=conf_section_name, restart=True)
             external_layout.addWidget(cb, i // 2, i % 2)
             self.plugins_checkboxes[plugin_name] = cb
             i += 1
@@ -101,8 +101,15 @@ class PluginsConfigPage(PluginConfigPage):
                      PluginClass) = self.plugin.all_external_plugins[plugin_name]
                     external = True
 
-                self.plugin.register_plugin(self.main, PluginClass,
-                                            external=external)
+                # TODO: Once we can test that all plugins can be restarted
+                # without problems during runtime, we can enable the
+                # autorestart feature provided by the plugin registry:
+                # self.plugin.register_plugin(self.main, PluginClass,
+                #                             external=external)
             elif not cb.isChecked() and previous_state:
-                self.plugin.delete_plugin(plugin_name)
+                # TODO: Once we can test that all plugins can be restarted
+                # without problems during runtime, we can enable the
+                # autorestart feature provided by the plugin registry:
+                # self.plugin.delete_plugin(plugin_name)
+                pass
         return set({})

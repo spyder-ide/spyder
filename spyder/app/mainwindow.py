@@ -1474,10 +1474,9 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'layouts'):
             if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
                 self.window_position = self.pos()
-            QMainWindow.moveEvent(self, event)
-
-            # To be used by the tour to be able to move
-            self.sig_moved.emit(event)
+        QMainWindow.moveEvent(self, event)
+        # To be used by the tour to be able to move
+        self.sig_moved.emit(event)
 
     def hideEvent(self, event):
         """Reimplement Qt method"""
@@ -1508,7 +1507,7 @@ class MainWindow(QMainWindow):
 
         self.previous_focused_widget =  old
 
-    def closing(self, cancelable=False):
+    def closing(self, cancelable=False, close_immediately=False):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
@@ -1524,9 +1523,9 @@ class MainWindow(QMainWindow):
             self.open_files_server.close()
 
         can_close = PLUGIN_REGISTRY.delete_all_plugins(
-            excluding={Plugins.Layout})
+            excluding={Plugins.Layout}, close_immediately=close_immediately)
 
-        if not can_close:
+        if not can_close and not close_immediately:
             return False
 
         # Save window settings *after* closing all plugin windows, in order
@@ -1826,6 +1825,25 @@ class MainWindow(QMainWindow):
             fname = fname.decode('utf-8')
             self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
+
+    # ---- Quit and restart, and reset spyder defaults
+    @Slot()
+    def reset_spyder(self):
+        """
+        Quit and reset Spyder and then Restart application.
+        """
+        answer = QMessageBox.warning(self, _("Warning"),
+             _("Spyder will restart and reset to default settings: <br><br>"
+               "Do you want to continue?"),
+             QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.restart(reset=True)
+
+    @Slot()
+    def restart(self, reset=False, close_immediately=False):
+        """Wrapper to handle plugins request to restart Spyder."""
+        self.application.restart(
+            reset=reset, close_immediately=close_immediately)
 
     # ---- Global Switcher
     def open_switcher(self, symbol=False):

@@ -465,7 +465,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         self.plugin_registry.pop(plugin_name)
         return True
 
-    def delete_all_plugins(self, excluding: Optional[Set[str]] = None) -> bool:
+    def delete_all_plugins(self, excluding: Optional[Set[str]] = None,
+                           close_immediately: bool = False) -> bool:
         """
         Remove all plugins from the registry.
 
@@ -477,6 +478,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         ----------
         excluding: Optional[Set[str]]
             A set that lists plugins (by name) that will not be deleted.
+        close_immediately: bool
+            If true, then the `can_close` status will be ignored.
 
         Returns
         -------
@@ -492,7 +495,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPlugin):
                     can_close &= self.delete_plugin(plugin_name)
-                    if not can_close:
+                    if not can_close and not close_immediately:
                         break
 
         if not can_close:
@@ -504,10 +507,10 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
                     can_close &= self.delete_plugin(plugin_name)
-                    if not can_close:
+                    if not can_close and not close_immediately:
                         break
 
-        if not can_close:
+        if not can_close and not close_immediately:
             return False
 
         # Delete Spyder 4 internal plugins
@@ -516,7 +519,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPlugin):
                     can_close &= self.delete_plugin(plugin_name)
-                    if not can_close:
+                    if not can_close and not close_immediately:
                         break
 
         if not can_close:
@@ -527,7 +530,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
                     can_close &= self.delete_plugin(plugin_name)
-                    if not can_close:
+                    if not can_close and not close_immediately:
                         break
 
         return can_close
