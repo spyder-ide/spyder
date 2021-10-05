@@ -17,6 +17,7 @@ import logging
 import os
 import os.path as osp
 from typing import List, Union
+import warnings
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
@@ -709,13 +710,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     # --- API: Optional methods to override ----------------------------------
     # ------------------------------------------------------------------------
-    def unregister(self):
-        """
-        Disconnect signals and clean up the plugin to be able to stop it while
-        Spyder is running.
-        """
-        pass
-
     @staticmethod
     def check_compatibility():
         """
@@ -761,12 +755,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     def on_close(self, cancelable=False):
         """
-        Perform actions before the main window is closed.
+        Perform actions before the plugin is closed.
 
         This method **must** only operate on local attributes and not other
         plugins.
         """
-        pass
+        if hasattr(self, 'unregister'):
+            warnings.warn('The unregister method was deprecated and it '
+                          'was replaced by `on_close`. Please see the '
+                          'Spyder 5.2.0 migration guide to get more '
+                          'information.')
 
     def can_close(self) -> bool:
         """
