@@ -354,18 +354,19 @@ class Projects(SpyderDockablePlugin):
         projects_menu.aboutToShow.disconnect(self.is_invalid_active_project)
 
         main_menu.remove_item_from_application_menu(
-            new_project_action,
-            menu=projects_menu)
+            ProjectsActions.NewProject,
+            menu_id=ApplicationMenus.Projects)
 
-        for item in [open_project_action, self.close_project_action,
-                     self.delete_project_action]:
+        for item in [ProjectsActions.OpenProject,
+                     ProjectsActions.CloseProject,
+                     ProjectsActions.DeleteProject]:
             main_menu.remove_item_from_application_menu(
                 item,
-                menu=projects_menu)
+                menu_id=ApplicationMenus.Projects)
 
         main_menu.remove_item_from_application_menu(
-            self.recent_project_menu,
-            menu=projects_menu)
+            ProjectsMenuSubmenus.RecentProjects,
+            menu_id=ApplicationMenus.Projects)
 
     def setup(self):
         """Setup the plugin actions."""
