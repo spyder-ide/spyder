@@ -58,12 +58,6 @@ class Toolbar(SpyderPluginV2):
         create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
         create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
 
-    def on_close(self):
-        container = self.get_container()
-        container._save_visible_toolbars()
-        for toolbar in container._visible_toolbars:
-            toolbar.setVisible(False)
-
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
