@@ -152,15 +152,10 @@ class Pylint(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
-        widget = self.get_widget()
-
-        # Connect to projects
+        # Disconnect from projects
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._set_project_dir)
         projects.sig_project_closed.disconnect(self._unset_project_dir)
-
-        self._set_project_dir = None
-        self._unset_project_dir = None
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
