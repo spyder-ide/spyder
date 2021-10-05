@@ -17,7 +17,8 @@ from qtpy.QtCore import Qt, Signal
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
@@ -126,8 +127,8 @@ class Help(SpyderDockablePlugin):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
 
         # See: spyder-ide/spyder#6992
-        shortcuts.sig_shortcuts_updated.connect(
-            lambda: self.show_intro_message())
+        self._show_intro_message = lambda: self.show_intro_message()
+        shortcuts.sig_shortcuts_updated.connect(self._show_intro_message)
 
         if self.is_plugin_available(Plugins.MainMenu):
             self._setup_menus()
@@ -139,6 +140,48 @@ class Help(SpyderDockablePlugin):
                 self._setup_menus()
         else:
             self._setup_menus()
+
+    @on_plugin_teardown(plugin=Plugins.Console)
+    def on_console_teardown(self):
+        widget = self.get_widget()
+        internal_console = self.get_plugin(Plugins.Console)
+        internal_console.sig_help_requested.disconnect(self.set_object_text)
+        widget.set_internal_console(None)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+        editor.sig_help_requested.disconnect(self.set_editor_doc)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardown(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+
+        ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
+        ipyconsole.sig_shellwidget_created.disconnect(
+            self.set_shellwidget)
+        ipyconsole.sig_render_plain_text_requested.disconnect(
+            self.show_plain_text)
+        ipyconsole.sig_render_rich_text_requested.disconnect(
+            self.show_rich_text)
+
+        ipyconsole.sig_help_requested.disconnect(self.set_object_text)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Shortcuts)
+    def on_shortcuts_teardown(self):
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
+        self.shortcuts_available = False
+        shortcuts.sig_shortcuts_updated.disconnect(self._show_intro_message)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        self.main_menu_available = False
+        self._remove_menus()
 
     def update_font(self):
         color_scheme = self.get_color_scheme()
@@ -188,6 +231,13 @@ class Help(SpyderDockablePlugin):
                 section=HelpMenuSections.Documentation,
                 before=shortcuts_summary_action,
                 before_section=HelpMenuSections.Support)
+
+    def _remove_menus(self):
+        from spyder.plugins.mainmenu.api import ApplicationMenus
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            self.tutorial_action,
+            menu_id=ApplicationMenus.Help)
 
     # --- Public API
     # ------------------------------------------------------------------------
