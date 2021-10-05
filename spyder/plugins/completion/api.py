@@ -1275,6 +1275,35 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
             shortcut_context=shortcut_context, context=context,
             initial=initial, register_shortcut=register_shortcut)
 
+    def get_action(self, name, context=None, plugin=None):
+        """
+        Return an action by name, context and plugin.
+
+        Parameters
+        ----------
+        name: str
+            Name of the action to retrieve.
+        context: Optional[str]
+            Widget or context identifier under which the action was stored.
+            If None, then `CONTEXT_NAME` is used instead
+        plugin: Optional[str]
+            Name of the plugin where the action was defined. If None, then
+            `PLUGIN_NAME` is used.
+
+        Returns
+        -------
+        action: SpyderAction
+            The corresponding action stored under the given `name`, `context`
+            and `plugin`.
+
+        Raises
+        ------
+        KeyError
+            If either of `name`, `context` or `plugin` keys do not exist in the
+            toolbar registry.
+        """
+        return self.main.get_action(name, context=context, plugin=plugin)
+
     def create_application_menu(self, menu_id, title, dynamic=True):
         """
         Create a Spyder application menu.
@@ -1361,3 +1390,23 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         self.main.add_item_to_application_menu(
             item, menu_id=menu_id, section=section,
             before=before, before_section=before_section)
+
+    def remove_item_from_application_menu(self, item, menu=None, menu_id=None):
+        """
+        Remove action or widget `item` from given application menu.
+
+        Parameters
+        ----------
+        item: SpyderAction or SpyderMenu
+            The item to add to the `menu`.
+        menu: ApplicationMenu or None
+            Instance of a Spyder application menu.
+        menu_id: str or None
+            The application menu unique string identifier.
+
+        Notes
+        -----
+        Must provide a `menu` or a `menu_id`.
+        """
+        self.main.remove_item_from_application_menu(
+            item, menu=menu, menu_id=menu_id)

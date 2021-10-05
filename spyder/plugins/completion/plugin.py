@@ -899,6 +899,10 @@ class CompletionPlugin(SpyderPluginV2):
         kwargs['parent'] = container
         return container.create_action(*args, **kwargs)
 
+    def get_action(self, *args, **kwargs):
+        container = self.get_container()
+        return container.get_action(*args, **kwargs)
+
     def get_application_menu(self, *args, **kwargs):
         # TODO: Check if this method makes sense with the new plugin
         # registration mechanism.
@@ -919,6 +923,11 @@ class CompletionPlugin(SpyderPluginV2):
 
     def add_item_to_application_menu(self, *args, **kwargs):
         self.items_to_add_to_application_menus.append((args, kwargs))
+
+    def remove_item_from_application_menu(self, *args, **kwargs):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        if main_menu:
+            main_menu.remove_item_from_application_menu(*args, **kwargs)
 
     def add_item_to_menu(self, *args, **kwargs):
         container = self.get_container()
