@@ -331,6 +331,17 @@ class CompletionPlugin(SpyderPluginV2):
                 # TODO: Remove status bar widgets
                 provider_info['instance'].shutdown()
 
+    def can_close(self) -> bool:
+        """Check if any provider has any pending task."""
+        can_close = False
+        for provider_name in self.providers:
+            provider_info = self.providers[provider_name]
+            if provider_info['status'] == self.RUNNING:
+                provider = provider_info['instance']
+                provider_can_close = provider.can_close()
+                can_close |= provider_can_close
+        return can_close
+
     def on_close(self, cancelable=False) -> bool:
         """Check if any provider has any pending task before closing."""
         can_close = False
