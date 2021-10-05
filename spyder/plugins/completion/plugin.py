@@ -347,7 +347,7 @@ class CompletionPlugin(SpyderPluginV2):
                 main_menu.remove_item_from_application_menu(
                     item_id, menu_id=menu_id)
 
-    def unregister(self):
+    def stop_all_providers(self):
         """Stop all running completion providers."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
