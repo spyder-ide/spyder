@@ -15,6 +15,7 @@ import os.path as osp
 from qtpy.QtCore import Qt, Signal, Slot
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -180,9 +181,13 @@ class Pylint(SpyderDockablePlugin):
         """
         Set filename without code analysis.
         """
-        editor = self.get_plugin(Plugins.Editor)
-        if editor:
-            self.get_widget().set_filename(editor.get_current_filename())
+        try:
+            editor = self.get_plugin(Plugins.Editor)
+            if editor:
+                self.get_widget().set_filename(editor.get_current_filename())
+        except SpyderAPIError:
+            # Editor was deleted
+            pass
 
     # --- Public API
     # ------------------------------------------------------------------------
