@@ -16,7 +16,8 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
@@ -90,17 +91,20 @@ class WorkingDirectory(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
-        editor.sig_dir_opened.connect(
+        self._editor_dir_chdir = (
             lambda path, plugin=editor: self.chdir(path, editor))
+        editor.sig_dir_opened.connect(self._editor_dir_chdir)
 
     @on_plugin_available(plugin=Plugins.Explorer)
     def on_explorer_available(self):
         explorer = self.get_plugin(Plugins.Explorer)
-
-        self.sig_current_directory_changed.connect(
+        self._explorer_path_chdir = (
             lambda path: explorer.chdir(path, emit=False))
-        explorer.sig_dir_opened.connect(
+        self._explorer_dir_opened = (
             lambda path, plugin=explorer: self.chdir(path, plugin))
+
+        self.sig_current_directory_changed.connect(self._explorer_path_chdir)
+        explorer.sig_dir_opened.connect(self._explorer_dir_opened)
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_available(self):
@@ -110,26 +114,76 @@ class WorkingDirectory(SpyderPluginV2):
             ipyconsole.set_current_client_working_directory)
         # TODO: chdir_current_client might follow a better naming
         # convention
-        ipyconsole.sig_current_directory_changed.connect(
+        self._ipyconsole_chdir = (
             lambda path, plugin=ipyconsole: self.chdir(path, plugin))
+        ipyconsole.sig_current_directory_changed.connect(
+            self._ipyconsole_chdir)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-        projects.sig_project_loaded.connect(
+        self._projects_loaded = (
             lambda path:
             self.chdir(
                 directory=path,
                 sender_plugin=projects
            )
         )
-
-        projects.sig_project_closed[object].connect(
+        self._projects_closed = (
             lambda path: self.chdir(
                 directory=projects.get_last_working_dir(),
                 sender_plugin=projects
             )
         )
+
+        projects.sig_project_loaded.connect(self._projects_loaded)
+        projects.sig_project_closed[object].connect(self._projects_closed)
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.remove_application_toolbar(container.toolbar)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+        editor.sig_dir_opened.disconnect(self._editor_dir_chdir)
+        self._editor_dir_chdir = None
+
+    @on_plugin_teardown(plugin=Plugins.Explorer)
+    def on_explorer_teardown(self):
+        explorer = self.get_plugin(Plugins.Explorer)
+        self.sig_current_directory_changed.disconnect(self._explorer_path_chdir)
+        explorer.sig_dir_opened.disconnect(self._explorer_dir_opened)
+
+        self._explorer_path_chdir = None
+        self._explorer_dir_opened = None
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_teardown(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+
+        self.sig_current_directory_changed.disconnect(
+            ipyconsole.set_current_client_working_directory)
+        ipyconsole.sig_current_directory_changed.disconnect(
+            self._ipyconsole_chdir)
+
+        self._ipyconsole_chdir = None
+
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardown(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self._projects_loaded)
+        projects.sig_project_closed[object].disconnect(self._projects_closed)
+
+        self._projects_loaded = None
+        self._projects_closed = None
 
     # --- Public API
     # ------------------------------------------------------------------------

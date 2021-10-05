@@ -212,6 +212,28 @@ class ToolbarContainer(PluginMainContainer):
 
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
 
+    def remove_application_toolbar(self, toolbar_id: str, mainwindow=None):
+        """
+        Add toolbar from application toolbars.
+
+        Parameters
+        ----------
+        toolbar: str
+            The application toolbar to add to the `mainwindow`.
+        mainwindow: QMainWindow
+            The main application window.
+        """
+
+        if toolbar_id not in self._ADDED_TOOLBARS:
+            raise SpyderAPIError(
+                'Toolbar with ID "{}" is not in the main window'.format(
+                    toolbar_id))
+
+        toolbar = self._ADDED_TOOLBARS.pop(toolbar_id)
+        self._toolbarslist.remove(toolbar)
+
+        if mainwindow:
+            mainwindow.removeToolBar(toolbar)
 
     def add_item_to_application_toolbar(self,
                                         item: ToolbarItem,

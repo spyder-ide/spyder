@@ -163,6 +163,20 @@ class Toolbar(SpyderPluginV2):
         """
         self.get_container().add_application_toolbar(toolbar, self._main)
 
+    def remove_application_toolbar(self, toolbar_id: str):
+        """
+        Remove toolbar from the application toolbars.
+
+        This can be used to remove a custom toolbar. The `WorkingDirectory`
+        plugin is an example of this.
+
+        Parameters
+        ----------
+        toolbar: str
+            The application toolbar to remove from the main window.
+        """
+        self.get_container().remove_application_toolbar(toolbar_id, self._main)
+
     def add_item_to_application_toolbar(self,
                                         item: Union[SpyderAction, QWidget],
                                         toolbar_id: Optional[str] = None,

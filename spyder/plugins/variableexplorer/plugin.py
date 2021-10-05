@@ -10,7 +10,8 @@ Variable Explorer Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.variableexplorer.confpage import (
     VariableExplorerConfigPage)
@@ -67,8 +68,13 @@ class VariableExplorer(SpyderDockablePlugin):
         ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
 
-    def unregister(self):
-        # Plugins
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Signals
