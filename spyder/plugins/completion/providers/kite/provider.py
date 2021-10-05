@@ -129,7 +129,7 @@ class KiteProvider(SpyderCompletionProvider):
     def shutdown(self):
         try:
             install_action = self.get_action(KiteProviderActions.Installation)
-            self.add_remove_from_application_menu(
+            self.remove_item_from_application_menu(
                 install_action,
                 menu_id=ApplicationMenus.Tools)
         except KeyError:
