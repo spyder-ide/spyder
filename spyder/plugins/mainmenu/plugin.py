@@ -282,17 +282,31 @@ class MainMenu(SpyderPluginV2):
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
         app_menu_actions = {
-            ApplicationMenus.Edit: self._main.edit_menu_actions,
-            ApplicationMenus.Search: self._main.search_menu_actions,
-            ApplicationMenus.Source: self._main.source_menu_actions,
-            ApplicationMenus.Run: self._main.run_menu_actions,
-            ApplicationMenus.Debug: self._main.debug_menu_actions,
+            ApplicationMenus.Edit: (
+                self._main.edit_menu_actions, self._main.edit_menu),
+            ApplicationMenus.Search: (
+                self._main.search_menu_actions, self._main.search_menu),
+            ApplicationMenus.Source: (
+                self._main.source_menu_actions, self._main.source_menu),
+            ApplicationMenus.Run: (
+                self._main.run_menu_actions, self._main.run_menu),
+            ApplicationMenus.Debug: (
+                self._main.debug_menu_actions, self._main.debug_menu),
+        }
+
+        app_menus = {
+            ApplicationMenus.Edit: self._main.edit_menu,
+            ApplicationMenus.Search: self._main.search_menu,
+            ApplicationMenus.Source: self._main.source_menu,
+            ApplicationMenus.Run: self._main.run_menu,
+            ApplicationMenus.Debug: self._main.debug_menu
         }
 
         menu = self.get_application_menu(menu_id)
 
         if menu_id in app_menu_actions:
             actions = app_menu_actions[menu_id]  # type: list
+            menu = app_menus[menu_id]
             position = None
             for i, action in enumerate(actions):
                 this_item_id = None
@@ -307,6 +321,7 @@ class MainMenu(SpyderPluginV2):
                     break
             if position is not None:
                 actions.pop(position)
+                menu.remove_action(item_id)
         else:
             menu.remove_action(item_id)
 

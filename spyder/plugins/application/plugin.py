@@ -270,12 +270,11 @@ class Application(SpyderPluginV2):
 
     def _depopulate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        mainmenu.remove_item_from_application_menu(
-            ApplicationActions.SpyderRestart,
-            menu_id=ApplicationMenus.File)
-        mainmenu.remove_item_from_application_menu(
-            ApplicationActions.SpyderRestartDebug,
-            menu_id=ApplicationMenus.File)
+        for action_id in [ApplicationActions.SpyderRestart,
+                          ApplicationActions.SpyderRestartDebug]:
+            mainmenu.remove_item_from_application_menu(
+                action_id,
+                menu_id=ApplicationMenus.File)
 
     def _depopulate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""

@@ -180,6 +180,7 @@ class SpyderMenu(QMenu):
 
             if position is not None:
                 self._actions.pop(position)
+                self._dirty = True
 
     def get_title(self):
         """
