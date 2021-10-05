@@ -21,7 +21,8 @@ from qtpy.QtWidgets import QAction, QShortcut
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.shortcuts.confpage import ShortcutsConfigPage
@@ -95,6 +96,24 @@ class Shortcuts(SpyderPluginV2):
             shortcuts_action,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.Documentation,
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        shortcuts_action = self.get_action(
+            ShortcutActions.ShortcutSummaryAction)
+
+        # Add to Help menu.
+        help_menu = mainmenu.get_application_menu(ApplicationMenus.Help)
+        mainmenu.remove_item_from_application_menu(
+            shortcuts_action,
+            menu=help_menu
         )
 
     def on_mainwindow_visible(self):

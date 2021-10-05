@@ -16,7 +16,8 @@ from qtpy.QtCore import Qt, Signal, Slot
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.utils.programs import is_module_installed
 from spyder.plugins.mainmenu.api import ApplicationMenus
@@ -116,10 +117,13 @@ class Pylint(SpyderDockablePlugin):
 
         # Connect to projects
         projects = self.get_plugin(Plugins.Projects)
-        projects.sig_project_loaded.connect(
+        self._set_project_dir = (
             lambda value: widget.set_conf("project_dir", value))
-        projects.sig_project_closed.connect(
-            lambda value: widget.set_conf("project_dir", None))
+        self._unset_project_dir = (
+            lambda value: widget.set_conf("project_dir", value))
+
+        projects.sig_project_loaded.connect(self._set_project_dir)
+        projects.sig_project_closed.connect(self._unset_project_dir)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -128,6 +132,46 @@ class Pylint(SpyderDockablePlugin):
         pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
         mainmenu.add_item_to_application_menu(
             pylint_act, menu_id=ApplicationMenus.Source)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+
+        # Connect to Editor
+        widget.sig_edit_goto_requested.disconnect(editor.load)
+        editor.sig_editor_focus_changed.disconnect(self._set_filename)
+
+        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
+
+        # TODO: use new API when editor has migrated
+        editor.pythonfile_dependent_actions.remove(pylint_act)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardown(self):
+        widget = self.get_widget()
+
+        # Connect to projects
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self._set_project_dir)
+        projects.sig_project_closed.disconnect(self._unset_project_dir)
+
+        self._set_project_dir = None
+        self._unset_project_dir = None
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
+        source_menu = mainmenu.get_application_menu(
+            ApplicationMenus.Source)
+        mainmenu.remove_item_from_application_menu(pylint_act, menu=source_menu)
 
     # --- Private API
     # ------------------------------------------------------------------------
