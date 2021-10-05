@@ -101,6 +101,11 @@ class Application(SpyderPluginV2):
         self.get_container().sig_load_log_file.connect(editor.load)
 
     # -------------------------- PLUGIN TEARDOWN ------------------------------
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
     def on_close(self, _unused=True):
         self.get_container().on_close()
 
