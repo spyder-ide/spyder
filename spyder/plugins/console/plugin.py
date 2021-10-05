@@ -20,7 +20,8 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
-from spyder.plugins.console.widgets.main_widget import ConsoleWidget
+from spyder.plugins.console.widgets.main_widget import (
+    ConsoleWidget, ConsoleWidgetActions)
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
 
 # Localization
@@ -128,7 +129,7 @@ class Console(SpyderDockablePlugin):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            widget.quit_action,
+            ConsoleWidgetActions.Quit,
             menu_id=ApplicationMenus.File)
 
     def update_font(self):

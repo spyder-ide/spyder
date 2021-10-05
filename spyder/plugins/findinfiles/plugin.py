@@ -109,12 +109,10 @@ class FindInFiles(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        findinfiles_action = self.get_action(FindInFilesActions.FindInFiles)
 
-        menu = mainmenu.get_application_menu(ApplicationMenus.Search)
         mainmenu.remove_item_from_application_menu(
-            findinfiles_action,
-            menu=menu,
+            FindInFilesActions.FindInFiles,
+            menu_id=ApplicationMenus.Search,
         )
 
     def on_close(self, cancelable=False):
