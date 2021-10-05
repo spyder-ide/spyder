@@ -34,6 +34,8 @@ import sys
 import threading
 import traceback
 
+from attr import has
+
 #==============================================================================
 # Check requirements before proceeding
 #==============================================================================
@@ -1460,12 +1462,13 @@ class MainWindow(QMainWindow):
 
     def moveEvent(self, event):
         """Reimplement Qt method"""
-        if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
-            self.window_position = self.pos()
-        QMainWindow.moveEvent(self, event)
+        if hasattr(self, 'layouts'):
+            if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
+                self.window_position = self.pos()
+            QMainWindow.moveEvent(self, event)
 
-        # To be used by the tour to be able to move
-        self.sig_moved.emit(event)
+            # To be used by the tour to be able to move
+            self.sig_moved.emit(event)
 
     def hideEvent(self, event):
         """Reimplement Qt method"""
