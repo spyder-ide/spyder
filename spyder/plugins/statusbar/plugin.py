@@ -68,6 +68,9 @@ class StatusBar(SpyderPluginV2):
         self.add_status_widget(
             self.clock_status, StatusBarWidgetPosition.Right)
 
+    def on_close(self):
+        self._statusbar.setVisible(False)
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)

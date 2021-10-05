@@ -20,7 +20,8 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.plugins.toolbar.container import ToolbarContainer
+from spyder.plugins.toolbar.container import (
+    ToolbarContainer, ToolbarMenus, ToolbarActions)
 
 # Third-party imports
 from qtpy.QtWidgets import QWidget
@@ -77,10 +78,10 @@ class Toolbar(SpyderPluginV2):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         # View menu Toolbar section
         mainmenu.remove_item_from_application_menu(
-            'toolbars_menu',
+            ToolbarMenus.ToolbarsMenu,
             menu_id=ApplicationMenus.View)
         mainmenu.remove_item_from_application_menu(
-            'show toolbars',
+            ToolbarActions.ShowToolbars,
             menu_id=ApplicationMenus.View)
 
     def on_mainwindow_visible(self):
@@ -115,8 +116,9 @@ class Toolbar(SpyderPluginV2):
 
     def on_close(self, _unused):
         container = self.get_container()
-        if container._visible_toolbars:
-            container._save_visible_toolbars()
+        container._save_visible_toolbars()
+        for toolbar in container._visible_toolbars:
+            toolbar.setVisible(False)
 
     # --- Public API
     # ------------------------------------------------------------------------

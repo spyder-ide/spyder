@@ -323,6 +323,9 @@ class ToolbarContainer(PluginMainContainer):
         else:
             self._get_visible_toolbars()
 
+        for toolbar in self._visible_toolbars:
+            toolbar.setVisible(True)
+
         self.update_actions()
 
     def create_toolbars_menu(self):
