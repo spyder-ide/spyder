@@ -340,7 +340,6 @@ class MainWindow(QMainWindow):
         logger.info("Removing {} dockwidget...".format(plugin.NAME))
         self.remove_dockwidget(plugin)
 
-        plugin.unregister()
         plugin._unregister()
 
     def create_plugin_conf_widget(self, plugin):
