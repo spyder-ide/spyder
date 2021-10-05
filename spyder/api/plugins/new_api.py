@@ -603,7 +603,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         Notes
         -----
         This method should be called to initialize the plugin, but it should
-        not be overriden, since it internally calls `on_initialize` and emits
+        not be overridden, since it internally calls `on_initialize` and emits
         the `sig_plugin_ready` signal.
         """
         self.on_initialize()

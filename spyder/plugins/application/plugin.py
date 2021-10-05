@@ -106,6 +106,21 @@ class Application(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
 
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+        self.get_container().sig_load_log_file.disconnect(editor.load)
+
+    @on_plugin_teardown(plugin=Plugins.Console)
+    def on_console_teardown(self):
+        if self.is_plugin_available(Plugins.MainMenu):
+            self.report_action.setVisible(False)
+
+    @on_plugin_teardown(plugin=Plugins.Shortcuts)
+    def on_shortcuts_teardown(self):
+        if self.is_plugin_available(Plugins.MainMenu):
+            self._depopulate_help_menu()
+
     def on_close(self, _unused=True):
         self.get_container().on_close()
 
@@ -210,6 +225,9 @@ class Application(SpyderPluginV2):
     @property
     def _window(self):
         return self.main.window()
+
+    def _depopulate_help_menu(self):
+        pass
 
     # ---- Public API
     # ------------------------------------------------------------------------
