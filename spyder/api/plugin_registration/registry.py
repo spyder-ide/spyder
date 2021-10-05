@@ -8,7 +8,7 @@
 
 # Standard library imports
 import logging
-from typing import Dict, List, Union, Type, Any, Set, Optional
+from typing import Dict, List, Union, Type, Any, Set, Optional, Tuple
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -18,7 +18,7 @@ from spyder import dependencies
 from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.plugin_registration.confpage import PluginsConfigPage
+from spyder.api.plugin_registration._confpage import PluginsConfigPage
 from spyder.api.plugins.enum import Plugins
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import (
@@ -90,6 +90,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         super().__init__()
         PreferencesAdapter.__init__(self)
 
+        # Reference to the main window
         self.main = None
 
         # Dictionary that maps a plugin name to a list of the plugin names
@@ -208,10 +209,9 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 module = PluginClass._spyder_module_name
                 package_name = PluginClass._spyder_package_name
                 version = PluginClass._spyder_version
-                description = instance.get_description()
+                description = plugin_instance.get_description()
                 dependencies.add(module, package_name, description,
-                                    version, None,
-                                    kind=dependencies.PLUGIN)
+                                 version, None, kind=dependencies.PLUGIN)
 
         return plugin_instance
 

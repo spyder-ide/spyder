@@ -129,6 +129,8 @@ class PluginConfigPage(SpyderConfigPage):
         to_update = {}
         for opt in opts:
             if isinstance(opt, tuple):
+                # This is necessary to filter tuple options that do not
+                # belong to a section.
                 if len(opt) == 2 and opt[0] is None:
                     opt = opt[1]
 

@@ -419,7 +419,7 @@ class Editor(SpyderPluginWidget):
     @staticmethod
     def get_plugin_title():
         """Return widget title"""
-        # TODO: This is a temporary measure to get the title of the plugins
+        # TODO: This is a temporary measure to get the title of this plugin
         # without creating an instance
         title = _('Editor')
         return title

@@ -909,15 +909,6 @@ class MainWindow(QMainWindow):
                 try:
                     plugin_instance = PLUGIN_REGISTRY.register_plugin(
                         self, PluginClass, external=True)
-
-                    # These attributes come from spyder.app.find_plugins to
-                    # add plugins to the dependencies dialog
-                    module = PluginClass._spyder_module_name
-                    package_name = PluginClass._spyder_package_name
-                    version = PluginClass._spyder_version
-                    description = plugin_instance.get_description()
-                    dependencies.add(module, package_name, description,
-                                     version, None, kind=dependencies.PLUGIN)
                 except Exception as error:
                     print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)

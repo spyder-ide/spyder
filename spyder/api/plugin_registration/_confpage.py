@@ -4,17 +4,17 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Spyder completion plugin configuration page."""
+"""Plugin registry configuration page."""
 
 # Third party imports
 from qtpy.QtWidgets import (QGroupBox, QVBoxLayout, QCheckBox,
                             QGridLayout, QLabel)
 
 # Local imports
+from spyder.api.plugins import SpyderPlugin
+from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.api.preferences import PluginConfigPage
-from spyder.api.plugins import SpyderPlugin
 
 
 class PluginsConfigPage(PluginConfigPage):
@@ -23,10 +23,10 @@ class PluginsConfigPage(PluginConfigPage):
         self.plugins_checkboxes = {}
 
         header_label = QLabel(
-            _("Spyder can run with a reduced number of internal and external "
-              "plugins in order to provide a lighter experience. Any plugin "
-              "unchecked in this page will be unloaded immediately and will "
-              "not be loaded next time Spyder starts."))
+            _("Here you can turn on/off any internal or external Spyder plugin "
+              "to disable functionality that is not desired or to have a lighter "
+              "experience. Unchecked plugins in this page will be unloaded "
+              "immediately and will not be loaded the next time Spyder starts."))
         header_label.setWordWrap(True)
 
         # ------------------ Internal plugin status group ---------------------
