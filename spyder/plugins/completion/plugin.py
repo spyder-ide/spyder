@@ -27,7 +27,8 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
@@ -309,6 +310,18 @@ class CompletionPlugin(SpyderPluginV2):
         # Add items to application menus.
         for args, kwargs in self.items_to_add_to_application_menus:
             main_menu.add_item_to_application_menu(*args, **kwargs)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        container = self.get_container()
+        self.statusbar = self.get_plugin(Plugins.StatusBar)
+        for sb in container.all_statusbar_widgets():
+            self.statusbar.remove_status_widget(sb.ID)
 
     def unregister(self):
         """Stop all running completion providers."""
