@@ -40,7 +40,8 @@ class MainMenu(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Main menus')
 
     def get_icon(self):

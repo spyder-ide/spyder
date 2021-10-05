@@ -42,7 +42,8 @@ class MainInterpreter(SpyderPluginV2):
     CONF_FILE = False
 
     # ---- SpyderPluginV2 API
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Python interpreter")
 
     def get_description(self):

@@ -1,0 +1,108 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
+"""Spyder completion plugin configuration page."""
+
+# Third party imports
+from qtpy.QtWidgets import (QGroupBox, QVBoxLayout, QCheckBox,
+                            QGridLayout, QLabel)
+
+# Local imports
+from spyder.config.base import _
+from spyder.config.manager import CONF
+from spyder.api.preferences import PluginConfigPage
+from spyder.api.plugins import SpyderPlugin
+
+
+class PluginsConfigPage(PluginConfigPage):
+    def setup_page(self):
+        newcb = self.create_checkbox
+        self.plugins_checkboxes = {}
+
+        header_label = QLabel(
+            _("Spyder can run with a reduced number of internal and external "
+              "plugins in order to provide a lighter experience. Any plugin "
+              "unchecked in this page will be unloaded immediately and will "
+              "not be loaded next time Spyder starts."))
+        header_label.setWordWrap(True)
+
+        # ------------------ Internal plugin status group ---------------------
+        internal_layout = QGridLayout()
+        self.internal_plugins_group = QGroupBox(_("Internal plugins"))
+
+        i = 0
+        for plugin_name in self.plugin.all_internal_plugins:
+            (conf_section_name,
+             PluginClass) = self.plugin.all_internal_plugins[plugin_name]
+
+            if issubclass(PluginClass, SpyderPlugin):
+                # Do not add Spyder 4 plugins to the disable page
+                continue
+
+            if not PluginClass.CAN_BE_DISABLED:
+                # Do not list core plugins that can not be disabled
+                continue
+
+            plugin_loc_name = PluginClass.get_name()
+            plugin_state = CONF.get(conf_section_name, 'enable', True)
+            cb = newcb(plugin_loc_name, 'enable', default=True,
+                       section=conf_section_name)
+            internal_layout.addWidget(cb, i // 2, i % 2)
+            self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
+            i += 1
+
+        self.internal_plugins_group.setLayout(internal_layout)
+
+        # ------------------ External plugin status group ---------------------
+        external_layout = QGridLayout()
+        self.external_plugins_group = QGroupBox(_("External plugins"))
+
+        i = 0
+        for i, plugin_name in enumerate(self.plugin.all_external_plugins):
+            (conf_section_name,
+             PluginClass) = self.plugin.all_external_plugins[plugin_name]
+
+            if issubclass(PluginClass, SpyderPlugin):
+                # Do not add Spyder 4 plugins to the disable page
+                continue
+
+            plugin_loc_name = PluginClass.get_name()
+            cb = newcb(_('Enable {0} plugin').format(plugin_loc_name),
+                       'enable', default=True, section=conf_section_name)
+            external_layout.addWidget(cb, i // 2, i % 2)
+            self.plugins_checkboxes[plugin_name] = cb
+            i += 1
+
+        self.external_plugins_group.setLayout(external_layout)
+
+        layout = QVBoxLayout()
+        layout.addWidget(header_label)
+        layout.addWidget(self.internal_plugins_group)
+        if self.plugin.all_external_plugins:
+            layout.addWidget(self.external_plugins_group)
+        layout.addStretch(1)
+        self.setLayout(layout)
+
+    def apply_settings(self):
+        for plugin_name in self.plugins_checkboxes:
+            cb, previous_state = self.plugins_checkboxes[plugin_name]
+            if cb.isChecked() and not previous_state:
+                self.plugin.set_plugin_enabled(plugin_name)
+                PluginClass = None
+                external = False
+                if plugin_name in self.plugin.all_internal_plugins:
+                    (__,
+                     PluginClass) = self.plugin.all_internal_plugins[plugin_name]
+                elif plugin_name in self.plugin.all_external_plugins:
+                    (__,
+                     PluginClass) = self.plugin.all_external_plugins[plugin_name]
+                    external = True
+
+                self.plugin.register_plugin(self.main, PluginClass,
+                                            external=external)
+            elif not cb.isChecked() and previous_state:
+                self.plugin.delete_plugin(plugin_name)
+        return set({})

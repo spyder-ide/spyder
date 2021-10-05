@@ -39,7 +39,8 @@ class Appearance(SpyderPluginV2):
 
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Appearance")
 
     def get_description(self):

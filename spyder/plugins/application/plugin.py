@@ -50,7 +50,8 @@ class Application(SpyderPluginV2):
     CONF_WIDGET_CLASS = ApplicationConfigPage
     CAN_BE_DISABLED = False
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Application')
 
     def get_icon(self):

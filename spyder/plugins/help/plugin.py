@@ -63,7 +63,8 @@ class Help(SpyderDockablePlugin):
 
     # --- SpyderDocakblePlugin API
     #  -----------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Help')
 
     def get_description(self):

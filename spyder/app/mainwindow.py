@@ -765,6 +765,8 @@ class MainWindow(QMainWindow):
             lambda plugin_name, omit_conf: self.register_plugin(
                 plugin_name, omit_conf=omit_conf))
 
+        PLUGIN_REGISTRY.set_main(self)
+
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
@@ -851,12 +853,20 @@ class MainWindow(QMainWindow):
 
         # Determine 'enable' config for the plugins that have it
         enabled_plugins = {}
+        registry_internal_plugins = {}
+        registry_external_plugins = {}
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
                 else plugin_name)
+            if plugin_name in internal_plugins:
+                registry_internal_plugins[plugin_name] = (
+                    plugin_main_attribute_name, plugin)
+            else:
+                registry_external_plugins[plugin_name] = (
+                    plugin_main_attribute_name, plugin)
             try:
                 if CONF.get(plugin_main_attribute_name, "enable"):
                     enabled_plugins[plugin_name] = plugin
@@ -864,6 +874,9 @@ class MainWindow(QMainWindow):
             except (cp.NoOptionError, cp.NoSectionError):
                 enabled_plugins[plugin_name] = plugin
                 PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
+
+        PLUGIN_REGISTRY.set_all_internal_plugins(registry_internal_plugins)
+        PLUGIN_REGISTRY.set_all_external_plugins(registry_external_plugins)
 
         # Instantiate internal Spyder 5 plugins
         for plugin_name in internal_plugins:
@@ -1197,7 +1210,7 @@ class MainWindow(QMainWindow):
 
         # Show Help and Consoles by default
         plugins_to_show = [self.ipyconsole]
-        if self.help is not None:
+        if hasattr(self, 'help'):
             plugins_to_show.append(self.help)
         for plugin in plugins_to_show:
             if plugin.dockwidget.isVisible():

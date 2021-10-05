@@ -39,7 +39,8 @@ class Tours(SpyderPluginV2):
 
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Interactive tours")
 
     def get_description(self):

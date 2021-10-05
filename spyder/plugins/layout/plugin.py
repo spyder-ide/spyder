@@ -72,7 +72,8 @@ class Layout(SpyderPluginV2):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Layout")
 
     def get_description(self):

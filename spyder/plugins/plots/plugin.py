@@ -37,7 +37,8 @@ class Plots(SpyderDockablePlugin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Plots')
 
     def get_description(self):

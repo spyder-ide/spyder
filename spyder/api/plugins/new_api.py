@@ -650,7 +650,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     # --- API: Mandatory methods to define -----------------------------------
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         """
         Return the plugin localized name.
 

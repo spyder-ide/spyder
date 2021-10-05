@@ -46,7 +46,8 @@ class FindInFiles(SpyderDockablePlugin):
 
     # --- SpyderDocakblePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Find")
 
     def get_description(self):

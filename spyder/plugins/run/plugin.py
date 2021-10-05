@@ -38,7 +38,8 @@ class Run(SpyderPluginV2):
 
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Run")
 
     def get_description(self):

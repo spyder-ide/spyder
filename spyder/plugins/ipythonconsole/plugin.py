@@ -520,8 +520,11 @@ class IPythonConsole(SpyderPluginWidget):
             self.dockwidget.hide()
 
     #------ SpyderPluginWidget API --------------------------------------------
-    def get_plugin_title(self):
+    @staticmethod
+    def get_plugin_title():
         """Return widget title"""
+        # TODO: This is a temporary measure to get the title of the plugins
+        # without creating an instance
         return _('IPython console')
 
     def get_plugin_icon(self):
@@ -760,7 +763,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.sig_pythonpath_changed.connect(self.update_path)
 
         # Show history file if no console is visible
-        if not self._isvisible and self.main.historylog:
+        if not self._isvisible and hasattr(self.main, 'historylog'):
             self.main.historylog.add_history(get_conf_path('history.py'))
 
     #------ Public API (for clients) ------------------------------------------

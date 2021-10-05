@@ -52,7 +52,8 @@ class StatusBar(SpyderPluginV2):
         'vcs_status', 'interpreter_status', 'lsp_status', 'kite_status'}
 
     # ---- SpyderPluginV2 API
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Status bar')
 
     def get_icon(self):

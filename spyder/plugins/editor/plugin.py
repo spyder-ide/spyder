@@ -416,8 +416,11 @@ class Editor(SpyderPluginWidget):
         meth(*args, **kwargs)
 
     #------ SpyderPluginWidget API ---------------------------------------------
-    def get_plugin_title(self):
+    @staticmethod
+    def get_plugin_title():
         """Return widget title"""
+        # TODO: This is a temporary measure to get the title of the plugins
+        # without creating an instance
         title = _('Editor')
         return title
 

@@ -61,7 +61,8 @@ class Shortcuts(SpyderPluginV2):
 
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Keyboard shortcuts")
 
     def get_description(self):

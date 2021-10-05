@@ -46,7 +46,8 @@ class HistoryLog(SpyderDockablePlugin):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('History')
 
     def get_description(self):

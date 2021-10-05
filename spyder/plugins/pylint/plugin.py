@@ -62,7 +62,8 @@ class Pylint(SpyderDockablePlugin):
         Word to select on given row.
     """
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Code Analysis")
 
     def get_description(self):

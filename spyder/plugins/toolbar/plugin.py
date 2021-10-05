@@ -42,7 +42,8 @@ class Toolbar(SpyderPluginV2):
 
     # --- SpyderDocakblePlugin API
     #  -----------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Toolbar')
 
     def get_description(self):

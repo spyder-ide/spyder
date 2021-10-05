@@ -76,7 +76,8 @@ class Console(SpyderDockablePlugin):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Internal console')
 
     def get_icon(self):

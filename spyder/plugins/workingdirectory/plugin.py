@@ -59,7 +59,8 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Current working directory')
 
     def get_description(self):

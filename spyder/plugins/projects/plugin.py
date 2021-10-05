@@ -138,7 +138,8 @@ class Projects(SpyderDockablePlugin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Project")
 
     def get_description(self):

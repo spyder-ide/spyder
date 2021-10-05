@@ -14,11 +14,17 @@ from typing import Dict, List, Union, Type, Any, Set, Optional
 from qtpy.QtCore import QObject, Signal
 
 # Local imports
+from spyder import dependencies
+from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.plugin_registration.confpage import PluginsConfigPage
+from spyder.api.plugins.enum import Plugins
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import (
     Plugins, SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,
     SpyderPlugin)
+from spyder.utils.icon_manager import ima
 
 
 # TODO: Remove SpyderPlugin and SpyderPluginWidget once the migration
@@ -34,7 +40,23 @@ ALL_PLUGINS = [getattr(Plugins, attr) for attr in dir(Plugins)
 logger = logging.getLogger(__name__)
 
 
-class SpyderPluginRegistry(QObject):
+class PreferencesAdapter(SpyderConfigurationAccessor):
+    # Fake class constants used to register the configuration page
+    CONF_WIDGET_CLASS = PluginsConfigPage
+    NAME = 'plugin_registry'
+    CONF_VERSION = None
+    ADDITIONAL_CONF_OPTIONS = None
+    ADDITIONAL_CONF_TABS = None
+    CONF_SECTION = ""
+
+    def apply_plugin_settings(self, _unused):
+        pass
+
+    def apply_conf(self, _unused):
+        pass
+
+
+class SpyderPluginRegistry(QObject, PreferencesAdapter):
     """
     Global plugin registry.
 
@@ -66,6 +88,10 @@ class SpyderPluginRegistry(QObject):
 
     def __init__(self):
         super().__init__()
+        PreferencesAdapter.__init__(self)
+
+        self.main = None
+
         # Dictionary that maps a plugin name to a list of the plugin names
         # that depend on it.
         self.plugin_dependents = {}  # type: Dict[str, Dict[str, List[str]]]
@@ -91,6 +117,12 @@ class SpyderPluginRegistry(QObject):
 
         # Set that stores the names of the external plugins
         self.external_plugins = set({})  # type: set[str]
+
+        # Dictionary that contains all the internal plugins (enabled or not)
+        self.all_internal_plugins = {}  # type: Dict[str, Tuple[str, Type[SpyderPluginClass]]]
+
+        # Dictionary that contains all the external plugins (enabled or not)
+        self.all_external_plugins = {}  # type: Dict[str, Tuple[str, Type[SpyderPluginClass]]]
 
     # ------------------------- PRIVATE API -----------------------------------
     def _update_dependents(self, plugin: str, dependent_plugin: str, key: str):
@@ -169,6 +201,17 @@ class SpyderPluginRegistry(QObject):
             self.external_plugins |= {plugin_name}
         else:
             self.internal_plugins |= {plugin_name}
+
+        if external:
+            if not running_under_pytest():
+                # These attributes come from spyder.app.find_plugins
+                module = PluginClass._spyder_module_name
+                package_name = PluginClass._spyder_package_name
+                version = PluginClass._spyder_version
+                description = instance.get_description()
+                dependencies.add(module, package_name, description,
+                                    version, None,
+                                    kind=dependencies.PLUGIN)
 
         return plugin_instance
 
@@ -343,6 +386,10 @@ class SpyderPluginRegistry(QObject):
             if plugin in self.plugin_registry:
                 plugin_instance = self.plugin_registry[plugin]
                 plugin_instance._on_plugin_available(plugin_name)
+
+        if plugin_name == Plugins.Preferences and not running_under_pytest():
+            plugin_instance = self.plugin_registry[plugin_name]
+            plugin_instance.register_plugin_preferences(self)
 
     def delete_plugin(self, plugin_name: str) -> bool:
         """
@@ -588,6 +635,23 @@ class SpyderPluginRegistry(QObject):
         except TypeError:
             # Omit failures if there are no slots connected
             pass
+
+    def set_all_internal_plugins(
+            self, all_plugins: Dict[str, Type[SpyderPluginClass]]):
+        self.all_internal_plugins = all_plugins
+
+    def set_all_external_plugins(
+            self, all_plugins: Dict[str, Type[SpyderPluginClass]]):
+        self.all_external_plugins = all_plugins
+
+    def set_main(self, main):
+        self.main = main
+
+    def get_icon(self):
+        return ima.icon('plugins')
+
+    def get_name(self):
+        return _('Plugins')
 
     def __contains__(self, plugin_name: str) -> bool:
         """

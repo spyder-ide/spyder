@@ -31,7 +31,8 @@ class OutlineExplorer(SpyderDockablePlugin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self) -> str:
+    @staticmethod
+    def get_name() -> str:
         """Return widget title."""
         return _('Outline Explorer')
 

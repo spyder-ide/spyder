@@ -153,7 +153,8 @@ class Explorer(SpyderDockablePlugin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         """Return widget title"""
         return _("Files")
 

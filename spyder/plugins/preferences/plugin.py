@@ -257,7 +257,8 @@ class Preferences(SpyderPluginV2):
             self.get_main())
 
     # ---------------- Public Spyder API required methods ---------------------
-    def get_name(self) -> str:
+    @staticmethod
+    def get_name() -> str:
         return _('Preferences')
 
     def get_description(self) -> str:

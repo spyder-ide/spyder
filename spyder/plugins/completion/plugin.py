@@ -254,7 +254,8 @@ class CompletionPlugin(SpyderPluginV2):
         self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
 
     # ---------------- Public Spyder API required methods ---------------------
-    def get_name(self) -> str:
+    @staticmethod
+    def get_name() -> str:
         return _('Completion and linting')
 
     def get_description(self) -> str:

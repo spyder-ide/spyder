@@ -38,7 +38,8 @@ class VariableExplorer(SpyderDockablePlugin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Variable explorer')
 
     def get_description(self):

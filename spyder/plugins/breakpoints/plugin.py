@@ -89,7 +89,8 @@ class Breakpoints(SpyderDockablePlugin):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Breakpoints")
 
     def get_description(self):
