@@ -12,7 +12,8 @@ Tours Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_safe_mode, running_under_pytest
 from spyder.plugins.application.api import ApplicationActions
@@ -63,6 +64,13 @@ class Tours(SpyderPluginV2):
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.Documentation,
             before=ApplicationActions.SpyderDocumentationAction)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            self.get_container().tour_action,
+            menu_id=ApplicationMenus.Help)
 
     def on_mainwindow_visible(self):
         self.show_tour_message()

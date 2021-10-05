@@ -15,7 +15,8 @@ from typing import Union, Optional
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
@@ -70,6 +71,17 @@ class Toolbar(SpyderPluginV2):
             menu_id=ApplicationMenus.View,
             section=ViewMenuSections.Toolbar,
             before_section=ViewMenuSections.Layout)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        # View menu Toolbar section
+        mainmenu.remove_item_from_application_menu(
+            self.toolbars_menu,
+            menu_id=ApplicationMenus.View)
+        mainmenu.remove_item_from_application_menu(
+            self.show_toolbars_action,
+            menu_id=ApplicationMenus.View)
 
     def on_mainwindow_visible(self):
         container = self.get_container()
