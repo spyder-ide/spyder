@@ -219,6 +219,8 @@ class SpyderToolbar(QToolBar):
                 section_items.remove(item)
             if len(section_items) == 0:
                 self._section_items.pop(section)
+        self.clear()
+        self._render()
 
     def _render(self):
         """

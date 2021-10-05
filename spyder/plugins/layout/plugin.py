@@ -24,7 +24,7 @@ from spyder.api.translations import get_translation
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.layout.container import (
-    LayoutContainer, LayoutContainerActions)
+    LayoutContainer, LayoutContainerActions, LayoutPluginMenus)
 from spyder.plugins.layout.layouts import (DefaultLayouts,
                                            HorizontalSplitLayout,
                                            MatlabLayout, RLayout,
@@ -153,7 +153,7 @@ class Layout(SpyderPluginV2):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         # Remove Panes related actions from the View application menu
         panes_items = [
-            "plugins_menu",
+            LayoutPluginMenus.PluginsMenu,
             LayoutContainerActions.LockDockwidgetsAndToolbars,
             LayoutContainerActions.CloseCurrentDockwidget,
             LayoutContainerActions.MaximizeCurrentDockwidget]
@@ -163,7 +163,7 @@ class Layout(SpyderPluginV2):
                 menu_id=ApplicationMenus.View)
         # Remove layouts menu from the View application menu
         layout_items = [
-            'layouts_menu',
+            LayoutPluginMenus.LayoutsMenu,
             LayoutContainerActions.NextLayout,
             LayoutContainerActions.PreviousLayout]
         for layout_item in layout_items:

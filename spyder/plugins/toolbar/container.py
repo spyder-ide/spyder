@@ -258,7 +258,7 @@ class ToolbarContainer(PluginMainContainer):
         Parameters
         ----------
         item: str
-            The item to add to the `toolbar`.
+            The item to remove from the `toolbar`.
         toolbar_id: str or None
             The application toolbar unique string identifier.
         """
