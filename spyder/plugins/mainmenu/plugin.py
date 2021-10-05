@@ -264,6 +264,52 @@ class MainMenu(SpyderPluginV2):
                 menu.add_action(item, section=section, before=before,
                                 before_section=before_section, omit_id=omit_id)
 
+    def remove_item_from_application_menu(self, item_id: str,
+                                          menu_id: Optional[str] = None):
+        """
+        Remove action or widget from given application menu by id.
+
+        Parameters
+        ----------
+        item_id: str
+            The item identifier to remove from the given menu.
+        menu_id: str or None
+            The application menu unique string identifier.
+        """
+        if menu_id not in self._APPLICATION_MENUS:
+            raise SpyderAPIError('{} is not a valid menu_id'.format(menu_id))
+
+        # TODO: For now just add the item to the bottom for non-migrated menus.
+        #       Temporal solution while migration is complete
+        app_menu_actions = {
+            ApplicationMenus.Edit: self._main.edit_menu_actions,
+            ApplicationMenus.Search: self._main.search_menu_actions,
+            ApplicationMenus.Source: self._main.source_menu_actions,
+            ApplicationMenus.Run: self._main.run_menu_actions,
+            ApplicationMenus.Debug: self._main.debug_menu_actions,
+        }
+
+        menu = self.get_application_menu(menu_id)
+
+        if menu_id in app_menu_actions:
+            actions = app_menu_actions[menu_id]  # type: list
+            position = None
+            for i, action in enumerate(actions):
+                this_item_id = None
+                if (isinstance(action, SpyderAction) or
+                        hasattr(action, 'action_id')):
+                    this_item_id = action.action_id
+                elif (isinstance(action, SpyderMenu) or
+                        hasattr(action, 'menu_id')):
+                    this_item_id = action.menu_id
+                if this_item_id is not None and this_item_id == item_id:
+                    position = i
+                    break
+            if position is not None:
+                actions.pop(position)
+        else:
+            menu.remove_action(item_id)
+
     def get_application_menu(self, menu_id: str) -> SpyderMenu:
         """
         Return an application menu by menu unique id.

@@ -227,7 +227,36 @@ class Application(SpyderPluginV2):
         return self.main.window()
 
     def _depopulate_help_menu(self):
-        pass
+        self._depopulate_help_menu_documentation_section()
+        self._depopulate_help_menu_support_section()
+        self._depopulate_help_menu_about_section()
+
+    def _depopulate_help_menu_documentation_section(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for documentation_action in [
+                ApplicationActions.SpyderDocumentationAction,
+                ApplicationActions.SpyderDocumentationVideoAction]:
+            mainmenu.remove_item_from_application_menu(
+                documentation_action,
+                menu_id=ApplicationMenus.Help)
+
+    def _depopulate_help_menu_support_section(self):
+        """Remove Spyder base support actions from the Help main menu."""
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for support_action in [
+                ApplicationActions.SpyderTroubleshootingAction,
+                ApplicationActions.SpyderDependenciesAction,
+                ApplicationActions.SpyderCheckUpdatesAction,
+                ApplicationActions.SpyderSupportAction]:
+            mainmenu.remove_item_from_application_menu(
+                support_action,
+                menu_id=ApplicationMenus.Help)
+
+    def _depopulate_help_menu_about_section(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            ApplicationActions.SpyderAbout,
+            menu_id=ApplicationMenus.Help)
 
     # ---- Public API
     # ------------------------------------------------------------------------
