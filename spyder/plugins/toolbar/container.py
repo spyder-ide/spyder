@@ -214,12 +214,12 @@ class ToolbarContainer(PluginMainContainer):
 
     def remove_application_toolbar(self, toolbar_id: str, mainwindow=None):
         """
-        Add toolbar from application toolbars.
+        Remove toolbar from application toolbars.
 
         Parameters
         ----------
         toolbar: str
-            The application toolbar to add to the `mainwindow`.
+            The application toolbar to remove from the `mainwindow`.
         mainwindow: QMainWindow
             The main application window.
         """
