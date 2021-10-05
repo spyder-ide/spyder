@@ -314,10 +314,6 @@ class Preferences(SpyderPluginV2):
             application = self.get_plugin(Plugins.Application)
             application.sig_restart_requested.emit()
 
-
-    def unregister(self):
-        pass
-
     def on_close(self, cancelable=False) -> bool:
         container = self.get_container()
         return not container.is_dialog_open()
