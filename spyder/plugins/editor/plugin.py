@@ -2556,9 +2556,10 @@ class Editor(SpyderPluginWidget):
             current_stack.hide_tooltip()
 
         # Update debugging state
-        if self.main.ipyconsole is not None:
-            pdb_state = self.main.ipyconsole.get_pdb_state()
-            pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
+        ipyconsole = getattr(self.main, 'ipyconsole', None)
+        if ipyconsole is not None:
+            pdb_state = ipyconsole.get_pdb_state()
+            pdb_last_step = ipyconsole.get_pdb_last_step()
             self.update_pdb_state(pdb_state, pdb_last_step)
 
     def current_editor_cursor_changed(self, line, column):
