@@ -250,6 +250,25 @@ class ToolbarContainer(PluginMainContainer):
             toolbar.add_item(item, section=section, before=before,
                              before_section=before_section, omit_id=omit_id)
 
+    def remove_item_from_application_toolbar(self, item_id: str,
+                                             toolbar_id: Optional[str] = None):
+        """
+        Remove action or widget from given application toolbar by id.
+
+        Parameters
+        ----------
+        item: str
+            The item to add to the `toolbar`.
+        toolbar_id: str or None
+            The application toolbar unique string identifier.
+        """
+        if toolbar_id not in self._APPLICATION_TOOLBARS:
+            raise SpyderAPIError(
+                '{} is not a valid toolbar_id'.format(toolbar_id))
+
+        toolbar = self.get_application_toolbar(toolbar_id)
+        toolbar.remove_item(item_id)
+
     def get_application_toolbar(self, toolbar_id: str) -> ApplicationToolbar:
         """
         Return an application toolbar by toolbar_id.

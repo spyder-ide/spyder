@@ -210,6 +210,16 @@ class SpyderToolbar(QToolBar):
                     self.add_item(item, section=section, before=before,
                                   before_section=before_section)
 
+    def remove_item(self, item_id: str):
+        """Remove action or widget from toolbar by id."""
+        item = self._item_map.pop(item_id)
+        for section in list(self._section_items.keys()):
+            section_items = self._section_items[section]
+            if item in section_items:
+                section_items.remove(item)
+            if len(section_items) == 0:
+                self._section_items.pop(section)
+
     def _render(self):
         """
         Create the toolbar taking into account sections and locations.
