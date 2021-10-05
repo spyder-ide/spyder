@@ -207,6 +207,8 @@ class Projects(SpyderDockablePlugin):
         # completions.sig_language_completions_available.connect(
         #     lambda settings, language:
         #         self.start_workspace_services())
+        self.completions.sig_stop_completions.connect(
+            self.stop_workspace_services)
         self.sig_project_loaded.connect(self._add_path_to_completions)
         self.sig_project_closed.connect(self._remove_path_from_completions)
 
