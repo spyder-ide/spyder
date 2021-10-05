@@ -323,6 +323,30 @@ class CompletionPlugin(SpyderPluginV2):
         for sb in container.all_statusbar_widgets():
             self.statusbar.remove_status_widget(sb.ID)
 
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_mainmenu_teardown(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        signature = inspect.signature(main_menu.add_item_to_application_menu)
+
+        for args, kwargs in self.application_menus_to_create:
+            menu_id = args[0]
+            main_menu.remove_application_menu(menu_id)
+
+        for args, kwargs in self.items_to_add_to_application_menus:
+            binding = signature.bind(*args, **kwargs)
+            binding.apply_defaults()
+
+            item = binding.arguments['item']
+            menu_id = binding.arguments['menu_id']
+            item_id = None
+            if hasattr(item, 'action_id'):
+                item_id = item.action_id
+            elif hasattr(item, 'menu_id'):
+                item_id = item.menu_id
+            if item_id is not None:
+                main_menu.remove_item_from_application_menu(
+                    item_id, menu_id=menu_id)
+
     def unregister(self):
         """Stop all running completion providers."""
         for provider_name in self.providers:

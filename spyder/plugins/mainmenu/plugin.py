@@ -264,6 +264,19 @@ class MainMenu(SpyderPluginV2):
                 menu.add_action(item, section=section, before=before,
                                 before_section=before_section, omit_id=omit_id)
 
+    def remove_application_menu(self, menu_id: str):
+        """
+        Remove a Spyder application menu.
+
+        Parameters
+        ----------
+        menu_id: str
+            The menu unique identifier string.
+        """
+        if menu_id in self._APPLICATION_MENUS:
+            menu = self._APPLICATION_MENUS.pop(menu_id)
+            self.main.menuBar().removeAction(menu.menuAction())
+
     def remove_item_from_application_menu(self, item_id: str,
                                           menu_id: Optional[str] = None):
         """
