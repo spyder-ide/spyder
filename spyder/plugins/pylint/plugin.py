@@ -118,10 +118,6 @@ class Pylint(SpyderDockablePlugin):
 
         # Connect to projects
         projects = self.get_plugin(Plugins.Projects)
-        self._set_project_dir = (
-            lambda value: widget.set_conf("project_dir", value))
-        self._unset_project_dir = (
-            lambda value: widget.set_conf("project_dir", value))
 
         projects.sig_project_loaded.connect(self._set_project_dir)
         projects.sig_project_closed.connect(self._unset_project_dir)
@@ -146,6 +142,7 @@ class Pylint(SpyderDockablePlugin):
         pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
 
         # TODO: use new API when editor has migrated
+        pylint_act.setVisible(False)
         editor.pythonfile_dependent_actions.remove(pylint_act)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
@@ -169,7 +166,9 @@ class Pylint(SpyderDockablePlugin):
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            PylintActions.AnalyzeCurrentFile, menu_id=ApplicationMenus.Source)
+            PylintActions.AnalyzeCurrentFile,
+            menu_id=ApplicationMenus.Source
+        )
 
     # --- Private API
     # ------------------------------------------------------------------------
@@ -185,6 +184,14 @@ class Pylint(SpyderDockablePlugin):
         except SpyderAPIError:
             # Editor was deleted
             pass
+
+    def _set_project_dir(self, value):
+        widget = self.get_widget()
+        widget.set_conf("project_dir", value)
+
+    def _unset_project_dir(self, _unused):
+        widget = self.get_widget()
+        widget.set_conf("project_dir", None)
 
     # --- Public API
     # ------------------------------------------------------------------------
