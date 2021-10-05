@@ -479,6 +479,18 @@ class EditorStack(QWidget):
             name='Run selection',
             parent=self)
 
+        run_to_line = CONF.config_shortcut(
+            self.run_to_line,
+            context='Editor',
+            name='Run to line',
+            parent=self)
+
+        run_from_line = CONF.config_shortcut(
+            self.run_from_line,
+            context='Editor',
+            name='Run from line',
+            parent=self)
+
         new_file = CONF.config_shortcut(
             lambda: self.sig_new_file[()].emit(),
             context='Editor',
@@ -643,11 +655,11 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
-                tabshift, run_selection, new_file, open_file, save_file,
-                save_all, save_as, close_all, prev_edit_pos, prev_cursor,
-                next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, debug_cell,
-                run_cell_and_advance,
+                tabshift, run_selection, run_to_line, run_from_line, new_file,
+                open_file, save_file, save_all, save_as, close_all,
+                prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
+                zoom_out, zoom_reset, close_file_1, close_file_2, run_cell,
+                debug_cell, run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
