@@ -191,8 +191,8 @@ class Projects(SpyderDockablePlugin):
         treewidget.sig_module_created.connect(self.editor.new)
         treewidget.sig_file_created.connect(self._new_editor)
 
-        self.sig_project_loaded.connect(self._editor_open_files)
-        self.sig_project_closed[bool].connect(self._editor_open_files)
+        self.sig_project_loaded.connect(self._setup_editor_files)
+        self.sig_project_closed[bool].connect(self._setup_editor_files)
 
         self.editor.set_projects(self)
         self.sig_project_loaded.connect(self._set_path_in_editor)
@@ -260,8 +260,8 @@ class Projects(SpyderDockablePlugin):
         treewidget.sig_module_created.disconnect(self.editor.new)
         treewidget.sig_file_created.disconnect(self._editor_new)
 
-        self.sig_project_loaded.disconnect(self._editor_open_files)
-        self.sig_project_closed[bool].disconnect(self._editor_open_files)
+        self.sig_project_loaded.disconnect(self._setup_editor_files)
+        self.sig_project_closed[bool].disconnect(self._setup_editor_files)
         self.editor.set_projects(None)
         self.sig_project_loaded.disconnect(self._set_path_in_editor)
         self.sig_project_closed.disconnect(self._unset_path_in_editor)
@@ -945,7 +945,7 @@ class Projects(SpyderDockablePlugin):
     def _new_editor(self, text):
         self.editor.new(text=text)
 
-    def _editor_open_files(self, _unused):
+    def _setup_editor_files(self, __unused):
         self.editor.setup_open_files()
 
     def _set_path_in_editor(self, path):
