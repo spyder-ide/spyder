@@ -258,7 +258,7 @@ class Projects(SpyderDockablePlugin):
         treewidget.sig_renamed.disconnect(self.editor.renamed)
         treewidget.sig_tree_renamed.disconnect(self.editor.renamed_tree)
         treewidget.sig_module_created.disconnect(self.editor.new)
-        treewidget.sig_file_created.disconnect(self._editor_new)
+        treewidget.sig_file_created.disconnect(self._new_editor)
 
         self.sig_project_loaded.disconnect(self._setup_editor_files)
         self.sig_project_closed[bool].disconnect(self._setup_editor_files)
