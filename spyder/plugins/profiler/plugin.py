@@ -120,10 +120,9 @@ class Profiler(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        run_action = self.get_action(ProfilerActions.ProfileCurrentFile)
 
-        run_menu = mainmenu.get_application_menu(ApplicationMenus.Run)
-        mainmenu.remove_item_from_application_menu(run_action, menu=run_menu)
+        mainmenu.remove_item_from_application_menu(
+            ProfilerActions.ProfileCurrentFile, menu_id=ApplicationMenus.Run)
 
     # --- Public API
     # ------------------------------------------------------------------------
