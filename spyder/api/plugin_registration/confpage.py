@@ -38,15 +38,16 @@ class PluginsConfigPage(PluginConfigPage):
             (conf_section_name,
              PluginClass) = self.plugin.all_internal_plugins[plugin_name]
 
-            if issubclass(PluginClass, SpyderPlugin):
-                # Do not add Spyder 4 plugins to the disable page
-                continue
-
-            if not PluginClass.CAN_BE_DISABLED:
+            if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
                 # Do not list core plugins that can not be disabled
                 continue
 
-            plugin_loc_name = PluginClass.get_name()
+            plugin_loc_name = None
+            if hasattr(PluginClass, 'get_name'):
+                plugin_loc_name = PluginClass.get_name()
+            elif hasattr(PluginClass, 'get_plugin_title'):
+                plugin_loc_name = PluginClass.get_plugin_title()
+
             plugin_state = CONF.get(conf_section_name, 'enable', True)
             cb = newcb(plugin_loc_name, 'enable', default=True,
                        section=conf_section_name, restart=True)
@@ -65,11 +66,12 @@ class PluginsConfigPage(PluginConfigPage):
             (conf_section_name,
              PluginClass) = self.plugin.all_external_plugins[plugin_name]
 
-            if issubclass(PluginClass, SpyderPlugin):
-                # Do not add Spyder 4 plugins to the disable page
-                continue
+            plugin_loc_name = None
+            if hasattr(PluginClass, 'get_name'):
+                plugin_loc_name = PluginClass.get_name()
+            elif hasattr(PluginClass, 'get_plugin_title'):
+                plugin_loc_name = PluginClass.get_plugin_title()
 
-            plugin_loc_name = PluginClass.get_name()
             cb = newcb(plugin_loc_name, 'enable', default=True,
                        section=conf_section_name, restart=True)
             external_layout.addWidget(cb, i // 2, i % 2)
