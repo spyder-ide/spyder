@@ -128,6 +128,10 @@ class PluginConfigPage(SpyderConfigPage):
         """Aggregate options by sections in order to notify observers."""
         to_update = {}
         for opt in opts:
+            if isinstance(opt, tuple):
+                if len(opt) == 2 and opt[0] is None:
+                    opt = opt[1]
+
             section = self.CONF_SECTION
             if opt in self.cross_section_options:
                 section = self.cross_section_options[opt]

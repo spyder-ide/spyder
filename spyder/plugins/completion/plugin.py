@@ -388,6 +388,8 @@ class CompletionPlugin(SpyderPluginV2):
         provider tabs.
         """
         providers_to_update = set({})
+        options = [x[1] if isinstance(x, tuple) and
+                   len(x) == 2 and x[0] is None else x for x in options]
         for option in options:
             if option == 'completions_wait_for_ms':
                 self.wait_for_ms = self.get_conf(
