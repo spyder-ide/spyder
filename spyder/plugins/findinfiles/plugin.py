@@ -112,7 +112,7 @@ class FindInFiles(SpyderDockablePlugin):
         findinfiles_action = self.get_action(FindInFilesActions.FindInFiles)
 
         menu = mainmenu.get_application_menu(ApplicationMenus.Search)
-        mainmenu.remove_item_to_application_menu(
+        mainmenu.remove_item_from_application_menu(
             findinfiles_action,
             menu=menu,
         )
