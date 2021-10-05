@@ -17,7 +17,8 @@ from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
@@ -121,6 +122,14 @@ class Console(SpyderDockablePlugin):
             widget.quit_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.Restart)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        widget = self.get_widget()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            widget.quit_action,
+            menu_id=ApplicationMenus.File)
 
     def update_font(self):
         font = self.get_font()

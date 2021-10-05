@@ -20,7 +20,8 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.plugins.explorer.widgets.main_widget import ExplorerWidget
 from spyder.plugins.explorer.confpage import ExplorerConfigPage
 
@@ -210,6 +211,30 @@ class Explorer(SpyderDockablePlugin):
             ipyconsole.run_script(fname, osp.dirname(fname), '', False,
                                   False, False, True, False))
 
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+
+        editor.sig_dir_opened.disconnect(self.chdir)
+        self.sig_file_created.disconnect()
+        self.sig_file_removed.disconnect(editor.removed)
+        self.sig_file_renamed.disconnect(editor.renamed)
+        self.sig_folder_removed.disconnect(editor.removed_tree)
+        self.sig_folder_renamed.disconnect(editor.renamed_tree)
+        self.sig_module_created.disconnect(editor.new)
+        self.sig_open_file_requested.disconnect(editor.load)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardown(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        self.sig_interpreter_opened.disconnect(
+            ipyconsole.create_client_from_path)
+        self.sig_run_requested.disconnect()
 
     # ---- Public API
     # ------------------------------------------------------------------------
