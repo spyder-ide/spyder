@@ -19,7 +19,6 @@ Licensed under the terms of the MIT License
 # =============================================================================
 # Stdlib imports
 # =============================================================================
-from __future__ import print_function
 from collections import OrderedDict
 from enum import Enum
 import errno
@@ -33,8 +32,6 @@ import socket
 import sys
 import threading
 import traceback
-
-from attr import has
 
 #==============================================================================
 # Check requirements before proceeding

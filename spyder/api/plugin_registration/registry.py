@@ -394,15 +394,15 @@ class SpyderPluginRegistry(QObject):
         self.plugin_dependents.pop(plugin_name, None)
         self.plugin_dependencies.pop(plugin_name, None)
 
-        for plugin_ in self.plugin_dependents:
-            all_plugin_dependents = self.plugin_dependents[plugin_]
+        for plugin in self.plugin_dependents:
+            all_plugin_dependents = self.plugin_dependents[plugin]
             for key in {'requires', 'optional'}:
                 plugin_dependents = all_plugin_dependents.get(key, [])
                 if plugin_name in plugin_dependents:
                     plugin_dependents.remove(plugin_name)
 
-        for plugin_ in self.plugin_dependencies:
-            all_plugin_dependencies = self.plugin_dependencies[plugin_]
+        for plugin in self.plugin_dependencies:
+            all_plugin_dependencies = self.plugin_dependencies[plugin]
             for key in {'requires', 'optional'}:
                 plugin_dependencies = all_plugin_dependencies.get(key, [])
                 if plugin_name in plugin_dependencies:
