@@ -114,7 +114,7 @@ class Preferences(SpyderPluginV2):
 
         # Remove additional configuration tabs that the plugin did introduce
         if isinstance(plugin, SpyderPluginV2):
-            for plugin_name in plugin.ADDITIONAL_CONF_TABS:
+            for plugin_name in (plugin.ADDITIONAL_CONF_TABS or []):
                 tabs = plugin.ADDITIONAL_CONF_TABS[plugin_name]
                 for tab in tabs:
                     self.config_tabs[plugin_name].remove(tab)

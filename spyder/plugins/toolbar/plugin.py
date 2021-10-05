@@ -101,11 +101,6 @@ class Toolbar(SpyderPluginV2):
         container.create_toolbars_menu()
         container.load_last_visible_toolbars()
 
-    def on_close(self):
-        container = self.get_container()
-        if container._toolbars_visible:
-            self.save_visible_toolbars()
-
     # --- Public API
     # ------------------------------------------------------------------------
     def create_application_toolbar(self, toolbar_id, title):

@@ -12,7 +12,8 @@ Appearance Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.appearance.confpage import AppearanceConfigPage
 
@@ -34,6 +35,7 @@ class Appearance(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = AppearanceConfigPage
     CONF_FILE = False
+    CAN_BE_DISABLED = False
 
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
@@ -53,3 +55,8 @@ class Appearance(SpyderPluginV2):
     def register_preferences(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def deregister_preferences(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)

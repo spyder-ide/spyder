@@ -8,7 +8,7 @@
 
 # Standard library imports
 import logging
-from typing import Dict, List, Union, Type, Any
+from typing import Dict, List, Union, Type, Any, Set, Optional
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -391,20 +391,22 @@ class SpyderPluginRegistry(QObject):
                 plugin_instance._close_window()
 
         # Delete plugin from the registry and auxiliary structures
-        self.plugin_dependents.pop(plugin_name)
-        self.plugin_dependencies.pop(plugin_name)
+        self.plugin_dependents.pop(plugin_name, None)
+        self.plugin_dependencies.pop(plugin_name, None)
 
         for plugin_ in self.plugin_dependents:
             all_plugin_dependents = self.plugin_dependents[plugin_]
             for key in {'requires', 'optional'}:
-                plugin_dependents = all_plugin_dependents[key]
-                plugin_dependents.remove(plugin_name)
+                plugin_dependents = all_plugin_dependents.get(key, [])
+                if plugin_name in plugin_dependents:
+                    plugin_dependents.remove(plugin_name)
 
         for plugin_ in self.plugin_dependencies:
             all_plugin_dependencies = self.plugin_dependencies[plugin_]
             for key in {'requires', 'optional'}:
-                plugin_dependencies = all_plugin_dependencies[key]
-                plugin_dependencies.remove(plugin_name)
+                plugin_dependencies = all_plugin_dependencies.get(key, [])
+                if plugin_name in plugin_dependencies:
+                    plugin_dependencies.remove(plugin_name)
 
         self.plugin_availability.pop(plugin_name)
         self.old_plugins -= {plugin_name}
@@ -415,6 +417,73 @@ class SpyderPluginRegistry(QObject):
         # Remove the plugin from the registry
         self.plugin_registry.pop(plugin_name)
         return True
+
+    def delete_all_plugins(self, excluding: Optional[Set[str]] = None) -> bool:
+        """
+        Remove all plugins from the registry.
+
+        The teardown mechanism will remove external plugins first and then
+        internal ones, where the Spyder 4 plugins will be removed first and
+        then the Spyder 5 ones.
+
+        Parameters
+        ----------
+        excluding: Optional[Set[str]]
+            A set that lists plugins (by name) that will not be deleted.
+
+        Returns
+        -------
+        all_deleted: bool
+            True if all the plugins were closed and deleted. False otherwise.
+        """
+        excluding = excluding or set({})
+        can_close = True
+
+        # Delete Spyder 4 external plugins
+        for plugin_name in set(self.external_plugins):
+            if plugin_name not in excluding:
+                plugin_instance = self.plugin_registry[plugin_name]
+                if isinstance(plugin_instance, SpyderPlugin):
+                    can_close &= self.delete_plugin(plugin_name)
+                    if not can_close:
+                        break
+
+        if not can_close:
+            return False
+
+        # Delete Spyder 5+ external plugins
+        for plugin_name in set(self.external_plugins):
+            if plugin_name not in excluding:
+                plugin_instance = self.plugin_registry[plugin_name]
+                if isinstance(plugin_instance, SpyderPluginV2):
+                    can_close &= self.delete_plugin(plugin_name)
+                    if not can_close:
+                        break
+
+        if not can_close:
+            return False
+
+        # Delete Spyder 4 internal plugins
+        for plugin_name in set(self.internal_plugins):
+            if plugin_name not in excluding:
+                plugin_instance = self.plugin_registry[plugin_name]
+                if isinstance(plugin_instance, SpyderPlugin):
+                    can_close &= self.delete_plugin(plugin_name)
+                    if not can_close:
+                        break
+
+        if not can_close:
+            return False
+
+        for plugin_name in set(self.internal_plugins):
+            if plugin_name not in excluding:
+                plugin_instance = self.plugin_registry[plugin_name]
+                if isinstance(plugin_instance, SpyderPluginV2):
+                    can_close &= self.delete_plugin(plugin_name)
+                    if not can_close:
+                        break
+
+        return can_close
 
     def get_plugin(self, plugin_name: str) -> SpyderPluginClass:
         """

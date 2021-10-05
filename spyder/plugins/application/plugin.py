@@ -103,7 +103,7 @@ class Application(SpyderPluginV2):
     # -------------------------- PLUGIN TEARDOWN ------------------------------
     # @on_plugin_teardown(plugin=Plugins.)
 
-    def on_close(self):
+    def on_close(self, _unused=True):
         self.get_container().on_close()
 
     def on_mainwindow_visible(self):

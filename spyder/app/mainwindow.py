@@ -1084,9 +1084,9 @@ class MainWindow(QMainWindow):
         """
         # Mapping of new plugin identifiers vs old attributtes
         # names given for plugins
-        if attr in self._INTERNAL_PLUGINS_MAPPING.keys():
-            return self.get_plugin(self._INTERNAL_PLUGINS_MAPPING[attr])
         try:
+            if attr in self._INTERNAL_PLUGINS_MAPPING.keys():
+                return self.get_plugin(self._INTERNAL_PLUGINS_MAPPING[attr])
             return self.get_plugin(attr)
         except SpyderAPIError:
             pass
@@ -1510,42 +1510,18 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
 
-        # Internal plugins
-        for plugin in (self.widgetlist + self.thirdparty_plugins):
-            # New API
-            try:
-                if isinstance(plugin, SpyderDockablePlugin):
-                    plugin.close_window()
-                if not plugin.on_close(cancelable):
-                    return False
-            except AttributeError:
-                pass
+        can_close = PLUGIN_REGISTRY.delete_all_plugins(
+            excluding={Plugins.Layout})
 
-            # Old API
-            try:
-                plugin._close_window()
-                if not plugin.closing_plugin(cancelable):
-                    return False
-            except AttributeError:
-                pass
-
-        # New API: External plugins
-        for plugin_name in PLUGIN_REGISTRY.external_plugins:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            try:
-                if isinstance(plugin_instance, SpyderDockablePlugin):
-                    plugin.close_window()
-
-                if not plugin.on_close(cancelable):
-                    return False
-            except AttributeError as e:
-                logger.error(str(e))
+        if not can_close:
+            return False
 
         # Save window settings *after* closing all plugin windows, in order
         # to show them in their previous locations in the next session.
         # Fixes spyder-ide/spyder#12139
         prefix = 'window' + '/'
         self.layouts.save_current_window_settings(prefix)
+        PLUGIN_REGISTRY.delete_plugin(Plugins.Layout)
 
         self.already_closed = True
         return True

@@ -404,7 +404,11 @@ class Editor(SpyderPluginWidget):
     def send_completion_request(self, language, request, params):
         logger.debug("Perform request {0} for: {1}".format(
             request, params['file']))
-        self.main.completions.send_request(language, request, params)
+        try:
+            self.main.completions.send_request(language, request, params)
+        except AttributeError:
+            # Completions was closed
+            pass
 
     @Slot(str, tuple, dict)
     def _rpc_call(self, method, args, kwargs):

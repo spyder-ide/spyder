@@ -585,7 +585,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client:
             sw = client.shellwidget
-            self.main.variableexplorer.set_shellwidget(sw)
+            variableexplorer = getattr(self.main, 'variableexplorer', None)
+            if variableexplorer:
+                variableexplorer.set_shellwidget(sw)
             self.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
@@ -1811,8 +1813,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.sig_shellwidget_created.emit(client.shellwidget)
 
     def shellwidget_deleted(self, client):
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.remove_shellwidget(client.shellwidget)
+        variableexplorer = getattr(self.main, 'variableexplorer', None)
+        if variableexplorer:
+            variableexplorer.remove_shellwidget(client.shellwidget)
 
         self.sig_shellwidget_deleted.emit(client.shellwidget)
 
