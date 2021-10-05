@@ -175,12 +175,10 @@ class Help(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Shortcuts)
     def on_shortcuts_teardown(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
-        self.shortcuts_available = False
         shortcuts.sig_shortcuts_updated.disconnect(self._show_intro_message)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
-        self.main_menu_available = False
         self._remove_menus()
 
     def update_font(self):
