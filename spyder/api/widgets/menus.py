@@ -169,8 +169,9 @@ class SpyderMenu(QMenu):
         self._actions_map[item_id] = action
 
     def remove_action(self, item_id: str):
-        action = self._actions_map.pop(item_id)
-        self._actions.remove(action)
+        if item_id in self._actions_map:
+            action = self._actions_map.pop(item_id)
+            self._actions.remove(action)
 
     def get_title(self):
         """

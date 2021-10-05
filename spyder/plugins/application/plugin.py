@@ -28,7 +28,9 @@ from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationContainer, ApplicationPluginMenus, WinUserEnvDialog)
+    ApplicationActions, ApplicationContainer, ApplicationPluginMenus,
+    WinUserEnvDialog)
+from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -120,6 +122,13 @@ class Application(SpyderPluginV2):
     def on_shortcuts_teardown(self):
         if self.is_plugin_available(Plugins.MainMenu):
             self._depopulate_help_menu()
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        self._depopulate_file_menu()
+        self._depopulate_tools_menu()
+        self._depopulate_help_menu()
+        self.report_action.setVisible(False)
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -245,6 +254,7 @@ class Application(SpyderPluginV2):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for support_action in [
                 ApplicationActions.SpyderTroubleshootingAction,
+                ConsoleActions.SpyderReportAction,
                 ApplicationActions.SpyderDependenciesAction,
                 ApplicationActions.SpyderCheckUpdatesAction,
                 ApplicationActions.SpyderSupportAction]:
@@ -257,6 +267,28 @@ class Application(SpyderPluginV2):
         mainmenu.remove_item_from_application_menu(
             ApplicationActions.SpyderAbout,
             menu_id=ApplicationMenus.Help)
+
+    def _depopulate_file_menu(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            ApplicationActions.SpyderRestart,
+            menu_id=ApplicationMenus.File)
+        mainmenu.remove_item_from_application_menu(
+            ApplicationActions.SpyderRestartDebug,
+            menu_id=ApplicationMenus.File)
+
+    def _depopulate_tools_menu(self):
+        """Add base actions and menus to the Tools menu."""
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        if WinUserEnvDialog is not None:
+            mainmenu.remove_item_from_application_menu(
+                ApplicationActions.SpyderWindowsEnvVariables,
+                menu_id=ApplicationMenus.Tools)
+
+        if get_debug_level() >= 2:
+            mainmenu.remove_item_from_application_menu(
+                ApplicationPluginMenus.DebugLogsMenu,
+                menu_id=ApplicationMenus.Tools)
 
     # ---- Public API
     # ------------------------------------------------------------------------
