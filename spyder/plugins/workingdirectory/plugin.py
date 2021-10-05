@@ -141,9 +141,8 @@ class WorkingDirectory(SpyderPluginV2):
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
-        container = self.get_container()
         toolbar = self.get_plugin(Plugins.Toolbar)
-        toolbar.remove_application_toolbar(container.toolbar)
+        toolbar.remove_application_toolbar('working_directory_toolbar')
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
