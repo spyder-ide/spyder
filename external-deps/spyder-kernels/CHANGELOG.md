@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 2.1.3 (2021-10-02)
+
+### Pull Requests Merged
+
+* [PR 319](https://github.com/spyder-ide/spyder-kernels/pull/319) - PR: Fix errors when setting or getting the Matplotlib backend, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 2.1.2 (2021-09-28)
 
 ### Pull Requests Merged
