@@ -236,7 +236,7 @@ class Help(SpyderDockablePlugin):
         from spyder.plugins.mainmenu.api import ApplicationMenus
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            self.tutorial_action,
+            HelpActions.ShowSpyderTutorialAction,
             menu_id=ApplicationMenus.Help)
 
     # --- Public API
