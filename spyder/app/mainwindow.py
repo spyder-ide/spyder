@@ -1395,7 +1395,7 @@ class MainWindow(QMainWindow):
         # Comment, uncomment, indent, unindent...
         if not console and not_readonly:
             # This is the editor and current file is writable
-            if self.editor:
+            if hasattr(self, 'editor'):
                 for action in self.editor.edit_menu_actions:
                     action.setEnabled(True)
 
