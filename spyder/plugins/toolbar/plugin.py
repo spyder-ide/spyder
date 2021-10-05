@@ -184,27 +184,20 @@ class Toolbar(SpyderPluginV2):
                 omit_id=omit_id
             )
 
-    def remove_item_from_application_toolbar(self, item, toolbar=None,
-                                             toolbar_id=None):
+    def remove_item_from_application_toolbar(self, item_id: str,
+                                             toolbar_id: Optional[str] = None):
         """
-        Remove action or widget `item` from given application menu.
+        Remove action or widget `item` from given application menu by id.
 
         Parameters
         ----------
-        item: SpyderAction or QWidget
-            The item to add to the `toolbar`.
-        toolbar: ApplicationToolbar or None
-            Instance of a Spyder application toolbar.
+        item_id: str
+            The item to remove from the toolbar.
         toolbar_id: str or None
             The application toolbar unique string identifier.
-
-        Notes
-        -----
-        Must provide a `toolbar` or a `toolbar_id`.
         """
         self.get_container().remove_item_from_application_toolbar(
-            item,
-            toolbar=toolbar,
+            item_id,
             toolbar_id=toolbar_id
         )
 
