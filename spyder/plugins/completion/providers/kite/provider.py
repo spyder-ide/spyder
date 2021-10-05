@@ -128,9 +128,8 @@ class KiteProvider(SpyderCompletionProvider):
 
     def shutdown(self):
         try:
-            install_action = self.get_action(KiteProviderActions.Installation)
             self.remove_item_from_application_menu(
-                install_action,
+                KiteProviderActions.Installation,
                 menu_id=ApplicationMenus.Tools)
         except KeyError:
             # Action does not exist

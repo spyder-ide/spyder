@@ -1391,22 +1391,16 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
             item, menu_id=menu_id, section=section,
             before=before, before_section=before_section)
 
-    def remove_item_from_application_menu(self, item, menu=None, menu_id=None):
+    def remove_item_from_application_menu(self, item_id: str,
+                                          menu_id: Optional[str] = None):
         """
-        Remove action or widget `item` from given application menu.
+        Remove action or widget from given application menu by id.
 
         Parameters
         ----------
-        item: SpyderAction or SpyderMenu
-            The item to add to the `menu`.
-        menu: ApplicationMenu or None
-            Instance of a Spyder application menu.
+        item_id: str
+            The item identifier to remove from the given menu.
         menu_id: str or None
             The application menu unique string identifier.
-
-        Notes
-        -----
-        Must provide a `menu` or a `menu_id`.
         """
-        self.main.remove_item_from_application_menu(
-            item, menu=menu, menu_id=menu_id)
+        self.main.remove_item_from_application_menu(item_id, menu_id=menu_id)
