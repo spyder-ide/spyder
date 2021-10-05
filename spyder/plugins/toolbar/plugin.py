@@ -77,10 +77,10 @@ class Toolbar(SpyderPluginV2):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         # View menu Toolbar section
         mainmenu.remove_item_from_application_menu(
-            self.toolbars_menu,
+            'toolbars_menu',
             menu_id=ApplicationMenus.View)
         mainmenu.remove_item_from_application_menu(
-            self.show_toolbars_action,
+            'show toolbars',
             menu_id=ApplicationMenus.View)
 
     def on_mainwindow_visible(self):
