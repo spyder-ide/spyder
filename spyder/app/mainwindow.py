@@ -1368,10 +1368,11 @@ class MainWindow(QMainWindow):
         #     instance
         console, not_readonly, readwrite_editor = textedit_properties
 
-        # Editor has focus and there is no file opened in it
-        if (not console and not_readonly and self.editor
-                and not self.editor.is_file_opened()):
-            return
+        if hasattr(self, 'editor'):
+            # Editor has focus and there is no file opened in it
+            if (not console and not_readonly and self.editor
+                    and not self.editor.is_file_opened()):
+                return
 
         # Disabling all actions to begin with
         for child in self.edit_menu.actions():
