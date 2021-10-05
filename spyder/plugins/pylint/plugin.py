@@ -168,11 +168,8 @@ class Pylint(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-
-        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-        source_menu = mainmenu.get_application_menu(
-            ApplicationMenus.Source)
-        mainmenu.remove_item_from_application_menu(pylint_act, menu=source_menu)
+        mainmenu.remove_item_from_application_menu(
+            PylintActions.AnalyzeCurrentFile, menu_id=ApplicationMenus.Source)
 
     # --- Private API
     # ------------------------------------------------------------------------

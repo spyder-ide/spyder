@@ -106,14 +106,9 @@ class Shortcuts(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        shortcuts_action = self.get_action(
-            ShortcutActions.ShortcutSummaryAction)
-
-        # Add to Help menu.
-        help_menu = mainmenu.get_application_menu(ApplicationMenus.Help)
         mainmenu.remove_item_from_application_menu(
-            shortcuts_action,
-            menu=help_menu
+            ShortcutActions.ShortcutSummaryAction,
+            menu_id=ApplicationMenus.Help
         )
 
     def on_mainwindow_visible(self):
