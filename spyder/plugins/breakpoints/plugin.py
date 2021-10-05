@@ -161,9 +161,8 @@ class Breakpoints(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        list_action = self.get_action(BreakpointsActions.ListBreakpoints)
-        debug_menu = mainmenu.get_application_menu(ApplicationMenus.Debug)
-        mainmenu.remove_item_from_application_menu(list_action, debug_menu)
+        mainmenu.remove_item_from_application_menu(
+            BreakpointsActions.ListBreakpoints, menu_id=ApplicationMenus.Debug)
 
     # --- Private API
     # ------------------------------------------------------------------------
