@@ -118,11 +118,6 @@ class Application(SpyderPluginV2):
         if self.is_plugin_available(Plugins.MainMenu):
             self.report_action.setVisible(False)
 
-    @on_plugin_teardown(plugin=Plugins.Shortcuts)
-    def on_shortcuts_teardown(self):
-        if self.is_plugin_available(Plugins.MainMenu):
-            self._depopulate_help_menu()
-
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         self._depopulate_file_menu()
