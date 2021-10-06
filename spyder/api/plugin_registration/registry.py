@@ -204,14 +204,13 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             self.internal_plugins |= {plugin_name}
 
         if external:
-            if not running_under_pytest():
-                # These attributes come from spyder.app.find_plugins
-                module = PluginClass._spyder_module_name
-                package_name = PluginClass._spyder_package_name
-                version = PluginClass._spyder_version
-                description = plugin_instance.get_description()
-                dependencies.add(module, package_name, description,
-                                 version, None, kind=dependencies.PLUGIN)
+            # These attributes come from spyder.app.find_plugins
+            module = PluginClass._spyder_module_name
+            package_name = PluginClass._spyder_package_name
+            version = PluginClass._spyder_version
+            description = plugin_instance.get_description()
+            dependencies.add(module, package_name, description,
+                                version, None, kind=dependencies.PLUGIN)
 
         return plugin_instance
 
