@@ -404,7 +404,11 @@ class Editor(SpyderPluginWidget):
     def send_completion_request(self, language, request, params):
         logger.debug("Perform request {0} for: {1}".format(
             request, params['file']))
-        self.main.completions.send_request(language, request, params)
+        try:
+            self.main.completions.send_request(language, request, params)
+        except AttributeError:
+            # Completions was closed
+            pass
 
     @Slot(str, tuple, dict)
     def _rpc_call(self, method, args, kwargs):
@@ -412,8 +416,11 @@ class Editor(SpyderPluginWidget):
         meth(*args, **kwargs)
 
     #------ SpyderPluginWidget API ---------------------------------------------
-    def get_plugin_title(self):
+    @staticmethod
+    def get_plugin_title():
         """Return widget title"""
+        # TODO: This is a temporary measure to get the title of this plugin
+        # without creating an instance
         title = _('Editor')
         return title
 
@@ -1065,6 +1072,7 @@ class Editor(SpyderPluginWidget):
                                find_previous_action,
                                replace_action,
                                gotoline_action]
+
         self.main.search_toolbar_actions = [find_action,
                                             find_next_action,
                                             replace_action]
@@ -1077,6 +1085,10 @@ class Editor(SpyderPluginWidget):
                                   self.text_lowercase_action]
 
         # ---- Search menu/toolbar construction ----
+        if not hasattr(self.main, 'search_menu_actions'):
+            # This list will not exist in the fast tests.
+            self.main.search_menu_actions = []
+
         self.main.search_menu_actions = (
             search_menu_actions + self.main.search_menu_actions)
 
@@ -2552,9 +2564,10 @@ class Editor(SpyderPluginWidget):
             current_stack.hide_tooltip()
 
         # Update debugging state
-        if self.main.ipyconsole is not None:
-            pdb_state = self.main.ipyconsole.get_pdb_state()
-            pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
+        ipyconsole = getattr(self.main, 'ipyconsole', None)
+        if ipyconsole is not None:
+            pdb_state = ipyconsole.get_pdb_state()
+            pdb_last_step = ipyconsole.get_pdb_last_step()
             self.update_pdb_state(pdb_state, pdb_last_step)
 
     def current_editor_cursor_changed(self, line, column):

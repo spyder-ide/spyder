@@ -1143,4 +1143,5 @@ class HelpWidget(PluginMainWidget):
             Console plugin.
         """
         self.internal_console = console
-        self.internal_shell = console.get_widget().shell
+        if self.internal_console is not None:
+            self.internal_shell = console.get_widget().shell

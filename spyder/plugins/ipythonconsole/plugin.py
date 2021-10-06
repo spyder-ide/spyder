@@ -520,8 +520,11 @@ class IPythonConsole(SpyderPluginWidget):
             self.dockwidget.hide()
 
     #------ SpyderPluginWidget API --------------------------------------------
-    def get_plugin_title(self):
+    @staticmethod
+    def get_plugin_title():
         """Return widget title"""
+        # TODO: This is a temporary measure to get the title of this plugin
+        # without creating an instance
         return _('IPython console')
 
     def get_plugin_icon(self):
@@ -585,7 +588,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client:
             sw = client.shellwidget
-            self.main.variableexplorer.set_shellwidget(sw)
+            variableexplorer = getattr(self.main, 'variableexplorer', None)
+            if variableexplorer:
+                variableexplorer.set_shellwidget(sw)
             self.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
@@ -758,7 +763,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.sig_pythonpath_changed.connect(self.update_path)
 
         # Show history file if no console is visible
-        if not self._isvisible and self.main.historylog:
+        if not self._isvisible and hasattr(self.main, 'historylog'):
             self.main.historylog.add_history(get_conf_path('history.py'))
 
     #------ Public API (for clients) ------------------------------------------
@@ -1811,8 +1816,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.sig_shellwidget_created.emit(client.shellwidget)
 
     def shellwidget_deleted(self, client):
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.remove_shellwidget(client.shellwidget)
+        variableexplorer = getattr(self.main, 'variableexplorer', None)
+        if variableexplorer:
+            variableexplorer.remove_shellwidget(client.shellwidget)
 
         self.sig_shellwidget_deleted.emit(client.shellwidget)
 

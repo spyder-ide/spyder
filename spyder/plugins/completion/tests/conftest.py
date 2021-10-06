@@ -188,7 +188,7 @@ def completion_plugin_all_started(request, qtbot_module,
 
     def teardown():
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-        completion_plugin.unregister()
+        completion_plugin.stop_all_providers()
 
     request.addfinalizer(teardown)
     return completion_plugin, capabilities

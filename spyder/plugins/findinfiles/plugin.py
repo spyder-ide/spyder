@@ -13,7 +13,8 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.findinfiles.widgets import FindInFilesWidget
 from spyder.plugins.mainmenu.api import ApplicationMenus
@@ -45,7 +46,8 @@ class FindInFiles(SpyderDockablePlugin):
 
     # --- SpyderDocakblePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Find")
 
     def get_description(self):
@@ -88,6 +90,29 @@ class FindInFiles(SpyderDockablePlugin):
 
         mainmenu.add_item_to_application_menu(
             findinfiles_action,
+            menu_id=ApplicationMenus.Search,
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        widget.sig_edit_goto_requested.disconnect()
+        editor.sig_file_opened_closed_or_updated.disconnect(
+            self.set_current_opened_file)
+
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardon_plugin_teardown(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self.set_project_path)
+        projects.sig_project_closed.disconnect(self.unset_project_path)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        mainmenu.remove_item_from_application_menu(
+            FindInFilesActions.FindInFiles,
             menu_id=ApplicationMenus.Search,
         )
 

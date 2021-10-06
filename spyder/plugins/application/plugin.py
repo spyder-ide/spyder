@@ -21,13 +21,16 @@ from qtpy.QtWidgets import QMenu
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationContainer, ApplicationPluginMenus, WinUserEnvDialog)
+    ApplicationActions, ApplicationContainer, ApplicationPluginMenus,
+    WinUserEnvDialog)
+from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
@@ -45,8 +48,10 @@ class Application(SpyderPluginV2):
     CONF_SECTION = 'main'
     CONF_FILE = False
     CONF_WIDGET_CLASS = ApplicationConfigPage
+    CAN_BE_DISABLED = False
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Application')
 
     def get_icon(self):
@@ -62,6 +67,7 @@ class Application(SpyderPluginV2):
 
         self.sig_restart_requested.connect(self.restart)
 
+    # --------------------- PLUGIN INITIALIZATION -----------------------------
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
         if self.is_plugin_available(Plugins.MainMenu):
@@ -97,7 +103,30 @@ class Application(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         self.get_container().sig_load_log_file.connect(editor.load)
 
-    def on_close(self):
+    # -------------------------- PLUGIN TEARDOWN ------------------------------
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+        self.get_container().sig_load_log_file.disconnect(editor.load)
+
+    @on_plugin_teardown(plugin=Plugins.Console)
+    def on_console_teardown(self):
+        if self.is_plugin_available(Plugins.MainMenu):
+            self.report_action.setVisible(False)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        self._depopulate_file_menu()
+        self._depopulate_tools_menu()
+        self._depopulate_help_menu()
+        self.report_action.setVisible(False)
+
+    def on_close(self, _unused=True):
         self.get_container().on_close()
 
     def on_mainwindow_visible(self):
@@ -202,6 +231,60 @@ class Application(SpyderPluginV2):
     def _window(self):
         return self.main.window()
 
+    def _depopulate_help_menu(self):
+        self._depopulate_help_menu_documentation_section()
+        self._depopulate_help_menu_support_section()
+        self._depopulate_help_menu_about_section()
+
+    def _depopulate_help_menu_documentation_section(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for documentation_action in [
+                ApplicationActions.SpyderDocumentationAction,
+                ApplicationActions.SpyderDocumentationVideoAction]:
+            mainmenu.remove_item_from_application_menu(
+                documentation_action,
+                menu_id=ApplicationMenus.Help)
+
+    def _depopulate_help_menu_support_section(self):
+        """Remove Spyder base support actions from the Help main menu."""
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for support_action in [
+                ApplicationActions.SpyderTroubleshootingAction,
+                ConsoleActions.SpyderReportAction,
+                ApplicationActions.SpyderDependenciesAction,
+                ApplicationActions.SpyderCheckUpdatesAction,
+                ApplicationActions.SpyderSupportAction]:
+            mainmenu.remove_item_from_application_menu(
+                support_action,
+                menu_id=ApplicationMenus.Help)
+
+    def _depopulate_help_menu_about_section(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            ApplicationActions.SpyderAbout,
+            menu_id=ApplicationMenus.Help)
+
+    def _depopulate_file_menu(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for action_id in [ApplicationActions.SpyderRestart,
+                          ApplicationActions.SpyderRestartDebug]:
+            mainmenu.remove_item_from_application_menu(
+                action_id,
+                menu_id=ApplicationMenus.File)
+
+    def _depopulate_tools_menu(self):
+        """Add base actions and menus to the Tools menu."""
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        if WinUserEnvDialog is not None:
+            mainmenu.remove_item_from_application_menu(
+                ApplicationActions.SpyderWindowsEnvVariables,
+                menu_id=ApplicationMenus.Tools)
+
+        if get_debug_level() >= 2:
+            mainmenu.remove_item_from_application_menu(
+                ApplicationPluginMenus.DebugLogsMenu,
+                menu_id=ApplicationMenus.Tools)
+
     # ---- Public API
     # ------------------------------------------------------------------------
     def get_application_context_menu(self, parent=None):
@@ -244,7 +327,7 @@ class Application(SpyderPluginV2):
         self._main.apply_settings()
 
     @Slot()
-    def restart(self):
+    def restart(self, reset=False, close_immediately=False):
         """
         Quit and Restart Spyder application.
 
@@ -300,7 +383,7 @@ class Application(SpyderPluginV2):
         command = command.format(python, restart_script)
 
         try:
-            if self.main.closing(True):
+            if self.main.closing(True, close_immediately=close_immediately):
                 subprocess.Popen(command, shell=shell, env=env,
                                  startupinfo=startupinfo)
                 console.quit()

@@ -58,6 +58,11 @@ class LayoutContainerActions:
     LockDockwidgetsAndToolbars = 'Lock unlock panes'
 
 
+class LayoutPluginMenus:
+    PluginsMenu = "plugins_menu"
+    LayoutsMenu = 'layouts_menu'
+
+
 class LayoutContainer(PluginMainContainer):
     """
     Plugin container class that handles the Spyder quick layouts functionality.
@@ -155,10 +160,10 @@ class LayoutContainer(PluginMainContainer):
 
         # Layouts menu
         self._layouts_menu = self.create_menu(
-            "layouts_menu", _("Window layouts"))
+            LayoutPluginMenus.LayoutsMenu, _("Window layouts"))
 
         self._plugins_menu = self.create_menu(
-            "plugins_menu", _("Panes"))
+            LayoutPluginMenus.PluginsMenu, _("Panes"))
         self._plugins_menu.setObjectName('checkbox-padding')
 
     def update_actions(self):
