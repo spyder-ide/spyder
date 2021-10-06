@@ -607,7 +607,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         """
         Notify spyder on any pdb command.
         """
-        self.notify_spyder(self.curframe)
+        self.notify_spyder()
         return super(SpyderPdb, self).postcmd(stop, line)
 
     if PY2:
@@ -704,15 +704,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     logger.debug(
                         "Could not send a Pdb continue call to the frontend.")
 
-    def notify_spyder(self, frame=None):
+    def notify_spyder(self):
         """Send kernel state to the frontend."""
-        if frame is None:
-            frame = self.curframe
 
+        frame = self.curframe
         if frame is None:
             return
-
-        kernel = get_ipython().kernel
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -730,11 +727,22 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         # Publish Pdb state so we can update the Variable Explorer
         # and the Editor on the Spyder side
-        kernel._pdb_step = step
-        try:
-            kernel.publish_pdb_state()
-        except (CommError, TimeoutError):
-            logger.debug("Could not send Pdb state to the frontend.")
+        pdb_stack = traceback.StackSummary.extract(self.stack)
+        pdb_index = self.curindex
+
+        skip_hidden = getattr(self, 'skip_hidden', False)
+
+        if skip_hidden:
+            # Filter out the hidden frames
+            hidden = self.hidden_frames(self.stack)
+            pdb_stack = [f for f, h in zip(pdb_stack, hidden) if not h]
+            # Adjust the index
+            pdb_index -= sum(hidden[:pdb_index])
+
+        state = dict(step=step,
+                     pdb_stack=(pdb_stack, pdb_index))
+
+        get_ipython().kernel.publish_pdb_state(state)
 
     def run(self, cmd, globals=None, locals=None):
         """Debug a statement executed via the exec() function.
