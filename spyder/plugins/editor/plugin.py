@@ -1246,13 +1246,13 @@ class Editor(SpyderPluginWidget):
             self.set_outlineexplorer(self.main.outlineexplorer)
 
         if ipyconsole:
-            self.main.ipyconsole.register_spyder_kernel_call_handler(
+            ipyconsole.register_spyder_kernel_call_handler(
                 'cell_count', self.handle_cell_count)
-            self.main.ipyconsole.register_spyder_kernel_call_handler(
+            ipyconsole.register_spyder_kernel_call_handler(
                 'current_filename', self.handle_current_filename)
-            self.main.ipyconsole.register_spyder_kernel_call_handler(
+            ipyconsole.register_spyder_kernel_call_handler(
                 'get_file_code', self.handle_get_file_code)
-            self.main.ipyconsole.register_spyder_kernel_call_handler(
+            ipyconsole.register_spyder_kernel_call_handler(
                 'run_cell', self.handle_run_cell)
 
         self.add_dockwidget()

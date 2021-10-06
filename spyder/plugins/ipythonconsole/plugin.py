@@ -55,6 +55,7 @@ class IPythonConsole(SpyderDockablePlugin):
     """
     This signal is emitted when the plugin requires to add commands to a
     history file.
+
     Parameters
     ----------
     filename: str
@@ -76,13 +77,14 @@ class IPythonConsole(SpyderDockablePlugin):
 
     sig_editor_focus_requested = Signal()
     """
-    This signal will request to change the focus to the editor is available
+    This signal will request to change the focus to the editor if available.
     """
 
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
     using a code editor.
+
     Parameters
     ----------
     path: str
@@ -96,6 +98,7 @@ class IPythonConsole(SpyderDockablePlugin):
     sig_pdb_state_changed = Signal(bool, dict)
     """
     This signal is emitted when the debugging state changes.
+
     Parameters
     ----------
     waiting_pdb_input: bool
@@ -254,12 +257,16 @@ class IPythonConsole(SpyderDockablePlugin):
 
         # Main menu actions for the IPython Console
         new_consoles_actions = [
-            widget.create_client_action, widget.special_console_menu,
-            widget.connect_to_kernel_action]
+            widget.create_client_action,
+            widget.special_console_menu,
+            widget.connect_to_kernel_action
+        ]
+
         restart_connect_consoles_actions = [
             widget.interrupt_action,
             widget.restart_action,
-            widget.reset_action]
+            widget.reset_action
+        ]
 
         # Console menu
         for console_new_action in new_consoles_actions:
@@ -365,17 +372,17 @@ class IPythonConsole(SpyderDockablePlugin):
     # -------------------------------------------------------------------------
     def register_spyder_kernel_call_handler(self, handler_id, handler):
         """
-        Register a callback for it to be available for new create
-        clients kernels
+        Register a callback for it to be available for the kernels of new
+        clients.
 
         Parameters
         ----------
         handler_id : str
             Handler name to be registered and that will be used to
-            call the respective handler from the spyder kernel.
+            call the respective handler in the Spyder kernel.
         handler : func
-            Callback function that will be call when the spyder-kernel instance
-            request the request_i identifierd.
+            Callback function that will be called when the kernel calls
+            the handler.
 
         Returns
         -------
@@ -391,9 +398,9 @@ class IPythonConsole(SpyderDockablePlugin):
 
         Parameters
         ----------
-        request_id : str
+        handler_id : str
             Handler name that was registered and that will be removed
-            from the spyder kernel available handlers.
+            from the Spyder kernel available handlers.
 
         Returns
         -------
@@ -432,14 +439,14 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def create_client_for_file(self, filename, is_cython=False):
         """
-        Create a client widget to execute code related to a file
+        Create a client widget to execute code related to a file.
 
         Parameters
         ----------
         filename : str
             File to be executed.
         is_cython : bool, optional
-            If the execution is for a cython file. The default is False.
+            If the execution is for a Cython file. The default is False.
 
         Returns
         -------
@@ -449,12 +456,13 @@ class IPythonConsole(SpyderDockablePlugin):
         self.get_widget().create_client_for_file(filename, is_cython=is_cython)
 
     def get_client_for_file(self, filename):
-        """Get client associated with a given file."""
+        """Get client associated with a given file name."""
         return self.get_widget().get_client_for_file(filename)
 
     def create_client_from_path(self, path):
         """
         Create a new console with `path` set as the current working directory.
+
         Parameters
         ----------
         path: str
@@ -463,7 +471,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.get_widget().create_client_from_path(path)
 
     def close_client(self, index=None, client=None, force=False):
-        """Close client tab from index or widget (or close current tab)"""
+        """Close client tab from index or client (or close current tab)"""
         self.get_widget().close_client(index=index, client=client, force=force)
 
     # ---- For execution and debugging
@@ -551,7 +559,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.get_widget().set_working_directory(dirname)
 
     def update_working_directory(self):
-        """Update working directory to console cwd."""
+        """Update working directory to console current working directory."""
         self.get_widget().update_working_directory()
 
     def update_path(self, path_dict, new_path_dict):
@@ -564,16 +572,16 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def restart(self):
         """
-        Restart the console
+        Restart the console.
 
         This is needed when we switch projects to update PYTHONPATH
-        and the selected interpreter
+        and the selected interpreter.
         """
         self.get_widget().restart()
 
     def restart_kernel(self):
         """
-        Restart the current client kernel
+        Restart the current client's kernel.
 
         Returns
         -------

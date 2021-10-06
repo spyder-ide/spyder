@@ -136,8 +136,11 @@ class SpyderConfigurationAccessor:
                 'class attribute!'
             )
         self.CONFIGURATION.set(
-            section, option, value,
-            recursive_notification=recursive_notification)
+            section,
+            option,
+            value,
+            recursive_notification=recursive_notification
+        )
 
     def remove_conf(self,
                     option: ConfigurationKey,
@@ -235,7 +238,11 @@ class SpyderConfigurationAccessor:
         """
         shortcut_context = self.CONF_SECTION if context is None else context
         return self.CONFIGURATION.config_shortcut(
-            action, shortcut_context, name, parent)
+            action,
+            shortcut_context,
+            name,
+            parent
+        )
 
     @property
     def old_conf_version(self):

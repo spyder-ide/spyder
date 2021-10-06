@@ -24,7 +24,6 @@ from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
                             QWidget)
 
 # Local imports
-
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
