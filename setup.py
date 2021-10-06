@@ -295,6 +295,7 @@ spyder_plugins_entry_points = [
     'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
     'tours = spyder.plugins.tours.plugin:Tours',
     'variable_explorer = spyder.plugins.variableexplorer.plugin:VariableExplorer',
+    'frames_explorer = spyder.plugins.framesexplorer.plugin:FramesExplorer',
     'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]
 
