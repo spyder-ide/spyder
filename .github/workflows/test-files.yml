@@ -69,7 +69,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0 xterm --fix-missing
       - name: Cache conda
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         env:
           # Increase this value to reset cache if requirements/*.txt has not changed
           CACHE_NUMBER: 0
@@ -78,19 +78,22 @@ jobs:
           key: ${{ runner.os }}-cacheconda-installconda-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
       - name: Cache pip
         if: env.RUN_BUILD == 'true'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
+          key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Install Conda
         if: env.RUN_BUILD == 'true'
         uses: conda-incubator/setup-miniconda@v2
         with:
            activate-environment: test
-           auto-update-conda: true
+           auto-update-conda: false
            auto-activate-base: false
            python-version: ${{ matrix.PYTHON_VERSION }}
            use-only-tar-bz2: true
+           channels: conda-forge,defaults
+           channel-priority: strict
+           miniforge-variant: Mambaforge
       - name: Create test environment
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}

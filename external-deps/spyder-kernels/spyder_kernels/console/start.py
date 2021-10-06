@@ -121,6 +121,15 @@ def kernel_config():
             "del builtins.spyder_runfile; del builtins"
         )
 
+    # Prevent other libraries to change the breakpoint builtin.
+    # This started to be a problem since IPykernel 6.3.0.
+    if sys.version_info[0:2] >= (3, 7):
+        spy_cfg.IPKernelApp.exec_lines.append(
+            "import sys; import pdb; "
+            "sys.breakpointhook = pdb.set_trace; "
+            "del sys; del pdb"
+        )
+
     # Run lines of code at startup
     run_lines_o = os.environ.get('SPY_RUN_LINES_O')
     if run_lines_o is not None:

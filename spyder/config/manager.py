@@ -614,6 +614,9 @@ class ConfigurationManager(object):
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
         for context_name, keystr in self._user_config.items('shortcuts'):
+            if context_name == 'enable':
+                continue
+
             if 'additional_configuration' not in context_name:
                 context, name = context_name.split('/', 1)
                 yield context, name, keystr

@@ -210,6 +210,7 @@ install_requires = [
     'intervaltree>=3.0.2',
     'ipython>=7.6.0',
     'jedi>=0.17.2,<0.19.0',
+    'jellyfish>=0.7',
     'jsonschema>=3.2.0',
     'keyring>=17.0.0',
     'nbconvert>=4.0',

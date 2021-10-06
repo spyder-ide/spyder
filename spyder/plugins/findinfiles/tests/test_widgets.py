@@ -26,6 +26,8 @@ from spyder.plugins.findinfiles.widgets import (FindInFilesWidget,
                                                 CWD, CLEAR_LIST, PROJECT,
                                                 FILE_PATH, QMessageBox,
                                                 SearchThread)
+from spyder.utils.palette import QStylePalette, SpyderPalette
+
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 NONASCII_DIR = osp.join(LOCATION, "èáïü Øαôå 字分误")
@@ -242,13 +244,16 @@ def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
 
     line_input_expected = line_input
 
-    expected_result = '<span style="color:None">%s<b>%s</b>%s</span>' % (
-        line_input_expected[:slice_start],
-        line_input_expected[slice_start:slice_end],
-        line_input_expected[slice_end:])
+    expected_result = (
+        f'<span style="color:{QStylePalette.COLOR_TEXT_1}">'
+        f'{line_input_expected[:slice_start]}'
+        f'<span style="background-color:{SpyderPalette.COLOR_OCCURRENCE_4}">'
+        f'{line_input_expected[slice_start:slice_end]}</span>'
+        f'{line_input_expected[slice_end:]}</span>'
+    )
 
     # when
-    thread = SearchThread(None, '')
+    thread = SearchThread(None, '', text_color=QStylePalette.COLOR_TEXT_1)
     truncated_line = thread.truncate_result(line_input, slice_start,
                                             slice_end)
     # then

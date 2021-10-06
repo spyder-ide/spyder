@@ -10,7 +10,8 @@ Plots Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
@@ -33,7 +34,8 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Plots')
 
     def get_description(self):
@@ -55,7 +57,8 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
         # Register IPython console.
         self.register_ipythonconsole(ipyconsole)
 
-    def unregister(self):
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardown(self):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 

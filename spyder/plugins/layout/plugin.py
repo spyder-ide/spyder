@@ -18,11 +18,13 @@ from qtpy.QtWidgets import QApplication, QDesktopWidget, QDockWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
-from spyder.plugins.layout.container import LayoutContainer
+from spyder.plugins.layout.container import (
+    LayoutContainer, LayoutContainerActions, LayoutPluginMenus)
 from spyder.plugins.layout.layouts import (DefaultLayouts,
                                            HorizontalSplitLayout,
                                            MatlabLayout, RLayout,
@@ -70,7 +72,8 @@ class Layout(SpyderPluginV2):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Layout")
 
     def get_description(self):
@@ -144,6 +147,43 @@ class Layout(SpyderPluginV2):
             toolbar_id=ApplicationToolbars.Main,
             section=MainToolbarSections.ApplicationSection,
             before=PreferencesActions.Show
+        )
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        # Remove Panes related actions from the View application menu
+        panes_items = [
+            LayoutPluginMenus.PluginsMenu,
+            LayoutContainerActions.LockDockwidgetsAndToolbars,
+            LayoutContainerActions.CloseCurrentDockwidget,
+            LayoutContainerActions.MaximizeCurrentDockwidget]
+        for panes_item in panes_items:
+            mainmenu.remove_item_from_application_menu(
+                panes_item,
+                menu_id=ApplicationMenus.View)
+        # Remove layouts menu from the View application menu
+        layout_items = [
+            LayoutPluginMenus.LayoutsMenu,
+            LayoutContainerActions.NextLayout,
+            LayoutContainerActions.PreviousLayout]
+        for layout_item in layout_items:
+            mainmenu.remove_item_from_application_menu(
+                layout_item,
+                menu_id=ApplicationMenus.View)
+        # Remove fullscreen action from the View application menu
+        mainmenu.remove_item_from_application_menu(
+            LayoutContainerActions.Fullscreen,
+            menu_id=ApplicationMenus.View)
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbars = self.get_plugin(Plugins.Toolbar)
+
+        # Remove actions from the Main application toolbar
+        toolbars.remove_item_from_application_toolbar(
+            LayoutContainerActions.MaximizeCurrentDockwidget,
+            toolbar_id=ApplicationToolbars.Main
         )
 
     def before_mainwindow_visible(self):

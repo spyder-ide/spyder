@@ -18,9 +18,16 @@ INLINE_FIGURE_FORMATS = {
 }
 
 
+# Inline backend
+if is_module_installed('matplotlib_inline'):
+    inline_backend = 'module://matplotlib_inline.backend_inline'
+else:
+    inline_backend = 'module://ipykernel.pylab.backend_inline'
+
+
 # Mapping of matlotlib backends options to Spyder
 MPL_BACKENDS_TO_SPYDER = {
-    'module://ipykernel.pylab.backend_inline': 0,
+    inline_backend: 0,
     'Qt5Agg': 2,
     'Qt4Agg': 3,
     'MacOSX': 4,
