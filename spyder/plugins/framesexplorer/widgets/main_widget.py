@@ -23,8 +23,7 @@ from spyder.plugins.framesexplorer.widgets.framesbrowser import (
     FramesBrowser,
     FramesBrowserFinder,
     VALID_VARIABLE_CHARS)
-from spyder.plugins.ipythonconsole.utils.shellconnect import (
-    StackedShellConnectWidget)
+from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 
 # Localization
 _ = get_translation('spyder')
@@ -72,7 +71,7 @@ class FramesExplorerContextMenuSections:
 
 
 
-class FramesExplorerWidget(StackedShellConnectWidget):
+class FramesExplorerWidget(ShellConnectMainWidget):
 
     # PluginMainWidget class constants
     ENABLE_SPINNER = True
@@ -240,7 +239,7 @@ class FramesExplorerWidget(StackedShellConnectWidget):
     # ---- Public API
     # ------------------------------------------------------------------------
 
-    def new_widget(self, shellwidget):
+    def create_new_widget(self, shellwidget):
         color_scheme = get_color_scheme(
             CONF.get('appearance', 'selected'))
         nsb = FramesBrowser(self, color_scheme=color_scheme)
