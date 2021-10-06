@@ -8,21 +8,18 @@
 Plots Plugin.
 """
 
-# Third party imports
-from qtpy.QtCore import Signal
-
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
-
 
 # Localization
 _ = get_translation('spyder')
 
 
-class Plots(SpyderDockablePlugin):
+class Plots(SpyderDockablePlugin, ShellConnectMixin):
     """
     Plots plugin.
     """
@@ -55,22 +52,15 @@ class Plots(SpyderDockablePlugin):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        # Signals
-        ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.connect(
-            self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(
-            self.remove_shellwidget)
+        # Register IPython console.
+        self.register_ipythonconsole(ipyconsole)
 
     def unregister(self):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        # Signals
-        ipyconsole.sig_shellwidget_created.disconnect(
-            self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(
-            self.remove_shellwidget)
+        # Unregister IPython console.
+        self.unregister_ipythonconsole(ipyconsole)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -85,41 +75,6 @@ class Plots(SpyderDockablePlugin):
         """
         return self.get_widget().current_widget()
 
-    def add_shellwidget(self, shellwidget):
-        """
-        Add a new shellwidget to be registered with the Plots plugin.
-
-        This function registers a new FigureBrowser for browsing the figures
-        in the shellwidget.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().add_shellwidget(shellwidget)
-
-    def remove_shellwidget(self, shellwidget):
-        """
-        Remove the shellwidget registered with the plots plugin.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().remove_shellwidget(shellwidget)
-
-    def set_shellwidget(self, shellwidget):
-        """
-        Update the current shellwidget displayed with the plots plugin.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        self.get_widget().set_shellwidget(shellwidget)
 
     # ---- Private API
     # ------------------------------------------------------------------------

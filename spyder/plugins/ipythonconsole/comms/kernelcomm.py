@@ -145,9 +145,11 @@ class KernelComm(CommBase, QObject):
         for comm_id in id_list:
             del self._comms[comm_id]
 
-    def close(self, comm_id=None):
+    def close(self, comm_id=None, shutdown_channel=True):
         """Ask kernel to close comm and send confirmation."""
-        self.shutdown_comm_channel()
+        if shutdown_channel:
+            # Only shutdown the channel if the kernel closes as well
+            self.shutdown_comm_channel()
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             # Send comm_close directly to avoid really closing the comm

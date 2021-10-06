@@ -107,8 +107,7 @@ class Help(SpyderDockablePlugin):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.connect(
-            self.set_shellwidget)
+        ipyconsole.sig_shellwidget_created.connect(self.set_shellwidget)
         ipyconsole.sig_render_plain_text_requested.connect(
             self.show_plain_text)
         ipyconsole.sig_render_rich_text_requested.connect(
