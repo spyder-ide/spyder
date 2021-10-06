@@ -102,6 +102,8 @@ def ipyconsole(qtbot, request):
         def __getattr__(self, attr):
             if attr == 'consoles_menu_actions':
                 return []
+            elif attr == 'editor':
+                return None
             else:
                 return Mock()
 
@@ -138,6 +140,11 @@ def ipyconsole(qtbot, request):
     auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
+
+    # Use the Tkinter backend if requested
+    tk_backend = request.node.get_closest_marker('tk_backend')
+    if tk_backend:
+        CONF.set('ipython_console', 'pylab/backend', 8)
 
     # Start a Pylab client if requested
     pylab_client = request.node.get_closest_marker('pylab_client')
@@ -294,21 +301,39 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
 def test_auto_backend(ipyconsole, qtbot):
-    """Test that the automatic backend is working correctly."""
+    """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import matplotlib; matplotlib.get_backend()")
+        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
 
     # Assert there are no errors in the console and we set the right
     # backend.
     control = ipyconsole.get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
-    assert 'Qt5Agg' in control.toPlainText()
+    assert 'loop_qt5' in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.tk_backend
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_tk_backend(ipyconsole, qtbot):
+    """Test that the Tkinter backend was set correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
+
+    # Assert we set the right backend in the kernel.
+    control = ipyconsole.get_focus_widget()
+    assert 'loop_tk' in control.toPlainText()
 
 
 @flaky(max_runs=3)
@@ -1944,6 +1969,34 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("!abba")
     assert "Unknown command 'abba'" in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Falis on Windows")
+def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
+    """Check that the breakpoint builtin is working."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    # Code to run
+    code = dedent("""
+    print('foo')
+    breakpoint()
+    """)
+
+    # Write code to file on disk
+    file = tmpdir.join('test_breakpoint.py')
+    file.write(code)
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"runfile(filename='{str(file)}')")
+
+    # Assert we entered debugging after the print statement
+    assert 'foo' in control.toPlainText()
+    assert 'IPdb [1]:' in control.toPlainText()
 
 
 if __name__ == "__main__":

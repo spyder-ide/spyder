@@ -10,10 +10,12 @@ Tests for editortool.py
 # Standard Libray Imports
 import json
 import os.path as osp
+import sys
 from textwrap import dedent
 from unittest.mock import MagicMock
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 
@@ -201,6 +203,7 @@ def test_outline_explorer(case, create_outlineexplorer):
     assert root_tree == expected_tree
 
 
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
 def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
@@ -223,6 +226,7 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'inner'
 
 
+@flaky(max_runs=10)
 def test_follow_cursor(create_outlineexplorer, qtbot):
     """
     Test that the cursor is followed.
@@ -248,6 +252,7 @@ def test_follow_cursor(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'b'
 
 
+@flaky(max_runs=10)
 def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
@@ -269,6 +274,7 @@ def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem().text(0) == filename
 
 
+@flaky(max_runs=10)
 def test_go_to_last_item(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the

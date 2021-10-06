@@ -204,11 +204,11 @@ def test_single_click_to_open(qtbot, file_explorer):
                         assert full_path != file_explorer.label1.text()
 
     # Test single click to open
-    treewidget.set_single_click_to_open(True)
+    treewidget.set_conf('single_click_to_open', True)
     run_test_helper(single_click=True, initial_index=initial_index)
 
     # Test double click to open
-    treewidget.set_single_click_to_open(False)
+    treewidget.set_conf('single_click_to_open', False)
     run_test_helper(single_click=False, initial_index=initial_index)
 
 

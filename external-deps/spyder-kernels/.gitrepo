@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
 	branch = 2.x
-	commit = c24e88f0f303bce22fb24b3c4fc3ce54b13cf63c
-	parent = f8dc5121c140e1002b6cdbe3a57965f379d59a50
+	commit = ac40350c9260e2e5d73f0fc3f8a9cc15da8d8a03
+	parent = 01421c2ae26c7a3861fc4c912f295f9f2b2c1c1f
 	method = merge
-	cmdver = 0.4.3
+	cmdver = 0.4.1

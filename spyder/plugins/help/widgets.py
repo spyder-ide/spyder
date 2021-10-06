@@ -195,8 +195,7 @@ class RichText(QWidget, SpyderWidgetMixin):
             qurl = url
         else:
             qurl = QUrl(url)
-
-        self.load(qurl)
+        self.webview.load(qurl)
 
     def clear(self):
         self.set_html('', self.webview.url())
