@@ -82,9 +82,13 @@ class PluginConfigPage(SpyderConfigPage):
 
     def __init__(self, plugin, parent):
         self.plugin = plugin
-        self.CONF_SECTION = plugin.CONF_SECTION
         self.main = parent.main
-        self.get_font = plugin.get_font
+
+        if hasattr(plugin, 'CONF_SECTION'):
+            self.CONF_SECTION = plugin.CONF_SECTION
+
+        if hasattr(plugin, 'get_font'):
+            self.get_font = plugin.get_font
 
         if not self.APPLY_CONF_PAGE_SETTINGS:
             self._patch_apply_settings(plugin)
@@ -124,6 +128,12 @@ class PluginConfigPage(SpyderConfigPage):
         """Aggregate options by sections in order to notify observers."""
         to_update = {}
         for opt in opts:
+            if isinstance(opt, tuple):
+                # This is necessary to filter tuple options that do not
+                # belong to a section.
+                if len(opt) == 2 and opt[0] is None:
+                    opt = opt[1]
+
             section = self.CONF_SECTION
             if opt in self.cross_section_options:
                 section = self.cross_section_options[opt]
