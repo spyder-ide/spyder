@@ -16,10 +16,10 @@ on:
       - '**.sh'
 
   pull_request:
-    # branches:
-    #   - master
-    #   - 5.*
-    #   - 4.x
+    branches:
+      - master
+      - 5.*
+      - 4.x
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
