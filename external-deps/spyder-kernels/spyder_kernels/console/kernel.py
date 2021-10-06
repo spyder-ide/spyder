@@ -616,8 +616,8 @@ class SpyderKernel(IPythonKernel):
         """
         if frame is not None:
             ns = frame.f_globals.copy()
-            if self._pdb_frame is frame:
-                ns.update(self._pdb_locals)
+            if self.shell._pdb_frame is frame:
+                ns.update(self.shell._pdb_locals)
             else:
                 ns.update(frame.f_locals)
             return ns
