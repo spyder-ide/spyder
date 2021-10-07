@@ -149,8 +149,8 @@ class IconManager():
             'prev_cursor':             [('mdi.hand-pointing-left',), {'color': self.MAIN_FG_COLOR}],
             'next_cursor':             [('mdi.hand-pointing-right',), {'color': self.MAIN_FG_COLOR}],
             'comment':                 [('mdi.comment-text-outline',), {'color': self.MAIN_FG_COLOR}],
-            'indent':                  [('mdi.format-indent-decrease',), {'color': self.MAIN_FG_COLOR}],
-            'unindent':                [('mdi.format-indent-increase',), {'color': self.MAIN_FG_COLOR}],
+            'indent':                  [('mdi.format-indent-increase',), {'color': self.MAIN_FG_COLOR}],
+            'unindent':                [('mdi.format-indent-decrease',), {'color': self.MAIN_FG_COLOR}],
             'toggle_lowercase':        [('mdi.format-letter-case-lower',), {'color': self.MAIN_FG_COLOR}],
             'toggle_uppercase':        [('mdi.format-letter-case-upper',), {'color': self.MAIN_FG_COLOR}],
             'gotoline':                [('mdi.format-line-spacing',), {'color': self.MAIN_FG_COLOR}],
@@ -334,6 +334,8 @@ class IconManager():
             # --- Status bar --------------------------------------------------------
             'code_fork':               [('mdi.source-fork',), {'color': self.MAIN_FG_COLOR}],
             'statusbar':               [('mdi.dock-bottom',), {'color': self.MAIN_FG_COLOR}],
+            # --- Plugin registry ---------------------------------------------------
+            'plugins':                 [('mdi.puzzle',), {'color': self.MAIN_FG_COLOR}],
         }
 
     def get_std_icon(self, name, size=None):

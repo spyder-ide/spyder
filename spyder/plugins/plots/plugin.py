@@ -13,7 +13,8 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
 
@@ -36,7 +37,8 @@ class Plots(SpyderDockablePlugin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Plots')
 
     def get_description(self):
@@ -62,14 +64,16 @@ class Plots(SpyderDockablePlugin):
         ipyconsole.sig_shellwidget_deleted.connect(
             self.remove_shellwidget)
 
-    def unregister(self):
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardown(self):
         # Plugins
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         # Signals
+        ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.disconnect(
             self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(
+        ipyconsole.sig_shellwidget_deleted.disconnect(
             self.remove_shellwidget)
 
     # ---- Public API

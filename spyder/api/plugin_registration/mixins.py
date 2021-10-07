@@ -34,12 +34,19 @@ class SpyderPluginObserver:
 
     def __init__(self):
         self._plugin_listeners = {}
+        self._plugin_teardown_listeners = {}
         for method_name in dir(self):
             method = getattr(self, method_name, None)
             if hasattr(method, '_plugin_listen'):
                 info = method._plugin_listen
                 logger.debug(f'Method {method_name} is watching plugin {info}')
                 self._plugin_listeners[info] = method_name
+
+            if hasattr(method, '_plugin_teardown'):
+                info = method._plugin_teardown
+                logger.debug(f'Method {method_name} will handle plugin '
+                             f'teardown for {info}')
+                self._plugin_teardown_listeners[info] = method_name
 
     def _on_plugin_available(self, plugin: str):
         """
@@ -63,3 +70,20 @@ class SpyderPluginObserver:
             method_name = self._plugin_listeners['__all']
             method = getattr(self, method_name)
             method(plugin)
+
+    def _on_plugin_teardown(self, plugin: str):
+        """
+        Handle plugin teardown and redirect it to plugin-specific teardown
+        handlers.
+
+        Parameters
+        ----------
+        plugin: str
+            Name of the plugin that is going through its teardown process.
+        """
+        # Call plugin specific handler
+        if plugin in self._plugin_teardown_listeners:
+            method_name = self._plugin_teardown_listeners[plugin]
+            method = getattr(self, method_name)
+            logger.debug(f'Calling {method}')
+            method()

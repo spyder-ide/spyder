@@ -73,6 +73,7 @@ def test_object_arrays_display(qtbot):
     assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Segfaults on Windows")
 def test_attribute_errors(qtbot):
     """
     Verify that we don't get a AttributeError for certain structured arrays.
@@ -84,6 +85,7 @@ def test_attribute_errors(qtbot):
     dlg = setup_arrayeditor(qtbot, data['S'])
     contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
     assert_array_equal(contents, data['S'][0][0][0])
+
 
 def test_type_errors(qtbot):
     """
@@ -98,6 +100,7 @@ def test_type_errors(qtbot):
     assert_array_equal(contents, np.ones(10))
 
 
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
 def test_arrayeditor_format(qtbot):
     """Changes the format of the array and validates its selected content."""
     arr = np.array([1, 2, 3], dtype=np.float32)

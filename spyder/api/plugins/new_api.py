@@ -17,6 +17,7 @@ import logging
 import os
 import os.path as osp
 from typing import List, Union
+import warnings
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
@@ -152,6 +153,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     # Define context to store actions, toolbars, toolbuttons and menus.
     CONTEXT_NAME = None
+
+    # Define if a plugin can be disabled in preferences.
+    # If False, the plugin is considered "core" and therefore it cannot be
+    # disabled. Default: True
+    CAN_BE_DISABLED = True
 
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
@@ -597,7 +603,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         Notes
         -----
         This method should be called to initialize the plugin, but it should
-        not be overriden, since it internally calls `on_initialize` and emits
+        not be overridden, since it internally calls `on_initialize` and emits
         the `sig_plugin_ready` signal.
         """
         self.on_initialize()
@@ -644,7 +650,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     # --- API: Mandatory methods to define -----------------------------------
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         """
         Return the plugin localized name.
 
@@ -704,13 +711,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     # --- API: Optional methods to override ----------------------------------
     # ------------------------------------------------------------------------
-    def unregister(self):
-        """
-        Disconnect signals and clean up the plugin to be able to stop it while
-        Spyder is running.
-        """
-        pass
-
     @staticmethod
     def check_compatibility():
         """
@@ -756,16 +756,25 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     def on_close(self, cancelable=False):
         """
-        Perform actions before the main window is closed.
+        Perform actions before the plugin is closed.
+
+        This method **must** only operate on local attributes and not other
+        plugins.
+        """
+        if hasattr(self, 'unregister'):
+            warnings.warn('The unregister method was deprecated and it '
+                          'was replaced by `on_close`. Please see the '
+                          'Spyder 5.2.0 migration guide to get more '
+                          'information.')
+
+    def can_close(self) -> bool:
+        """
+        Determine if a plugin can be closed.
 
         Returns
         -------
-        bool
-            Whether the plugin may be closed immediately or not.
-
-        Notes
-        -----
-        The returned value is ignored if *cancelable* is False.
+        close: bool
+            True if the plugin can be closed, False otherwise.
         """
         return True
 

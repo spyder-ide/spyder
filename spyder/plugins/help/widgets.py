@@ -195,8 +195,7 @@ class RichText(QWidget, SpyderWidgetMixin):
             qurl = url
         else:
             qurl = QUrl(url)
-
-        self.load(qurl)
+        self.webview.load(qurl)
 
     def clear(self):
         self.set_html('', self.webview.url())
@@ -1144,4 +1143,5 @@ class HelpWidget(PluginMainWidget):
             Console plugin.
         """
         self.internal_console = console
-        self.internal_shell = console.get_widget().shell
+        if self.internal_console is not None:
+            self.internal_shell = console.get_widget().shell

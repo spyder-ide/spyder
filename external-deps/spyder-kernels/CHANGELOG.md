@@ -1,7 +1,31 @@
 # History of changes
 
-## Version 2.1.1 (2021-09-01)
+## Version 2.1.3 (2021-10-02)
 
+### Pull Requests Merged
+
+* [PR 319](https://github.com/spyder-ide/spyder-kernels/pull/319) - PR: Fix errors when setting or getting the Matplotlib backend, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 2.1.2 (2021-09-28)
+
+### Pull Requests Merged
+
+* [PR 323](https://github.com/spyder-ide/spyder-kernels/pull/323) - PR: Add `ipython_genutils` dependency for testing, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 322](https://github.com/spyder-ide/spyder-kernels/pull/322) - PR: Prevent other libraries to change the breakpoint builtin, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
+## Version 2.1.1 (2021-09-01)
 
 ### Pull Requests Merged
 

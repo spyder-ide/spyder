@@ -60,7 +60,7 @@ $ workon spyder-dev
 After you have created your development environment, you need to install Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 
 ```bash
-$ conda install -c spyder-ide/label/dev --file requirements/conda.txt
+$ conda install -c conda-forge --file requirements/conda.txt
 ```
 
 This installs all Spyder's dependencies into the environment.
@@ -99,7 +99,7 @@ $ python bootstrap.py --debug
 To install our test dependencies under Anaconda:
 
 ```bash
-$ conda install -c spyder-ide --file requirements/tests.txt
+$ conda install -c conda-forge --file requirements/tests.txt
 ```
 
 If using `pip` (for experts only), run the following from the directory where your git clone is stored:

@@ -1,32 +1,26 @@
 #!/bin/bash -ex
 
+# Adjust PATH in macOS
 if [ "$OS" = "macos" ]; then
-    # Adjust PATH in macOS because conda is not at front of it
-    PATH=/usr/local/miniconda/envs/test/bin:/usr/local/miniconda/condabin:$PATH
+    PATH=/Users/runner/miniconda3/envs/test/bin:/Users/runner/miniconda3/condabin:$PATH
 fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
-    if [ "$OS" != "win" ]; then
-        # Install nomkl to avoid installing Intel MKL libraries
-        conda install nomkl -q -y
-    fi
-
     # Install main dependencies
-    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y -c spyder-ide/label/dev
+    mamba install python=$PYTHON_VERSION --file requirements/conda.txt -c conda-forge -q -y
 
     # Install test ones
-    conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
+    mamba install python=$PYTHON_VERSION --file requirements/tests.txt -c conda-forge -q -y
 
     # Install Pyzmq 19 because our tests are failing with version 20
     if [ "$OS" = "win" ]; then
-        conda install pyzmq=19
+        mamba install pyzmq=19
     fi
 
-    # Constrain jupyter_client version on conda based tests
-    # The actual dependency constrain is done in spyder-kernels since v2.1.1
-    conda install jupyter_client=6
+    # To check our manifest and coverage
+    mamba install check-manifest codecov -c conda-forge -q -y
 
     # Remove packages we have subrepos for.
     conda remove spyder-kernels --force -q -y
@@ -51,11 +45,13 @@ else
     # Install QtAwesome from Github
     pip install git+https://github.com/spyder-ide/qtawesome.git
 
+    # To check our manifest and coverage
+    pip install -q check-manifest codecov
+
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
     pip uninstall python-lsp-server -q -y
     pip uninstall qdarkstyle -q -y
-
 fi
 
 # Install subrepos in development mode
@@ -71,31 +67,25 @@ pushd spyder/app/tests/spyder-boilerplate
 pip install --no-deps -q -e .
 popd
 
-# Install Spyder to test it as if it was properly installed
+# Install Spyder to test it as if it was properly installed.
 # Note: `python setup.py egg_info` doesn't work here but it
 # does locally.
 pip uninstall spyder -q -y
-python setup.py bdist_wheel
-pip install --no-deps dist/spyder*.whl
-
-# To check our manifest
-pip install check-manifest
+python setup.py -q bdist_wheel
+pip install --no-deps -q dist/spyder*.whl
 
 # Create environment for Jedi environments tests
-conda create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
-conda list -n jedi-test-env
+mamba create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
+mamba list -n jedi-test-env
 
 # Create environment to test conda activation before launching a spyder kernel
-conda create -n spytest-ž -q -y python=3.6 spyder-kernels
-conda list -n spytest-ž
+mamba create -n spytest-ž -q -y python=3.6 spyder-kernels
+mamba list -n spytest-ž
 
-# Install pyenv
+# Install pyenv in Posix systems
 if [ "$RUN_SLOW" = "false" ]; then
     if [ "$OS" != "win" ]; then
         curl https://pyenv.run | bash
         $HOME/.pyenv/bin/pyenv install 3.8.1
     fi
 fi
-
-# Coverage
-pip install codecov
