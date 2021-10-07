@@ -88,5 +88,17 @@ jobs:
                "reply": "Thanks for reporting. This issue is a duplicate of #13346 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda update anaconda`<br>`conda install spyder=4.1.5`",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "AttributeError: module 'qdarkstyle.palette' has no attribute 'DarkPalette'",
+               "reply": "Thanks for reporting. To fix this, please close Spyder, open the Anaconda Prompt and run there:<br><br>`conda install qdarkstyle=2.8.1`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: 'SpyderKernelManager' object has no attribute 'kernel'",
+               "reply": "Thanks for reporting. To fix this, please close Spyder, open the Anaconda Prompt and run there:<br><br>`conda install jupyter_client=6.1.12`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
