@@ -11,12 +11,12 @@ Variable Explorer Main Plugin Widget.
 # Third party imports
 from qtpy.QtCore import QTimer, Signal, Slot
 from qtpy.QtWidgets import (
-    QAction, QHBoxLayout, QStackedWidget, QVBoxLayout, QWidget)
+    QAction, QHBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
 from spyder.utils.programs import is_module_installed
@@ -89,34 +89,8 @@ class VariableExplorerContextMenuSections:
 # =============================================================================
 # ---- Widgets
 # =============================================================================
-class NamespaceStackedWidget(QStackedWidget):
-    # Signals
-    sig_free_memory_requested = Signal()
-    sig_start_spinner_requested = Signal()
-    sig_stop_spinner_requested = Signal()
-    sig_hide_finder_requested = Signal()
 
-    def __init__(self, parent):
-        super().__init__(parent=parent)
-
-    def addWidget(self, widget):
-        """
-        Override Qt method.
-        """
-        if isinstance(widget, NamespaceBrowser):
-            widget.sig_free_memory_requested.connect(
-                self.sig_free_memory_requested)
-            widget.sig_start_spinner_requested.connect(
-                self.sig_start_spinner_requested)
-            widget.sig_stop_spinner_requested.connect(
-                self.sig_stop_spinner_requested)
-            widget.sig_hide_finder_requested.connect(
-                self.sig_hide_finder_requested)
-
-        super().addWidget(widget)
-
-
-class VariableExplorerWidget(PluginMainWidget):
+class VariableExplorerWidget(ShellConnectMainWidget):
 
     # PluginMainWidget class constants
     ENABLE_SPINNER = True
@@ -132,34 +106,16 @@ class VariableExplorerWidget(PluginMainWidget):
         super().__init__(name, plugin, parent)
 
         # Widgets
-        self._stack = NamespaceStackedWidget(self)
-        self._shellwidgets = {}
         self.context_menu = None
         self.empty_context_menu = None
 
         # --- Finder
         self.finder = None
 
-        # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self._stack)
-        # Note: Later with the addition of the first NamespaceBrowser the
-        # find/search widget is added. See 'set_current_widget'
-        self.setLayout(layout)
-
-        # Signals
-        self._stack.sig_free_memory_requested.connect(self.free_memory)
-        self._stack.sig_start_spinner_requested.connect(self.start_spinner)
-        self._stack.sig_stop_spinner_requested.connect(self.stop_spinner)
-        self._stack.sig_hide_finder_requested.connect(self.hide_finder)
-
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
         return _('Variable Explorer')
-
-    def get_focus_widget(self):
-        return self.current_widget()
 
     def setup(self):
         # ---- Options menu actions
@@ -421,10 +377,6 @@ class VariableExplorerWidget(PluginMainWidget):
                 section=VariableExplorerContextMenuSections.Edit,
             )
 
-    def update_style(self):
-        self._stack.setStyleSheet(
-            "NamespaceStackedWidget {padding: 0px; border: 0px}")
-
     def update_actions(self):
         action = self.get_action(VariableExplorerWidgetActions.ToggleMinMax)
         action.setEnabled(is_module_installed('numpy'))
@@ -454,18 +406,6 @@ class VariableExplorerWidget(PluginMainWidget):
 
     # ---- Stack accesors
     # ------------------------------------------------------------------------
-    def add_widget(self, nsb):
-        self._stack.addWidget(nsb)
-
-    def count(self):
-        return self._stack.count()
-
-    def current_widget(self):
-        return self._stack.currentWidget()
-
-    def remove_widget(self, nsb):
-        self._stack.removeWidget(nsb)
-
     def update_finder(self, nsb, old_nsb):
         """Initialize or update finder widget."""
         if self.finder is None:
@@ -504,7 +444,7 @@ class VariableExplorerWidget(PluginMainWidget):
                 main=nsb,
             )
 
-    def set_current_widget(self, nsb, old_nsb):
+    def switch_widget(self, nsb, old_nsb):
         """
         Set the current NamespaceBrowser.
 
@@ -513,46 +453,30 @@ class VariableExplorerWidget(PluginMainWidget):
         """
         self.update_finder(nsb, old_nsb)
         finder_visible = nsb.set_text_finder(self.text_finder)
-        self._stack.setCurrentWidget(nsb)
         self.finder.setVisible(finder_visible)
         search_action = self.get_action(VariableExplorerWidgetActions.Search)
         search_action.setChecked(finder_visible)
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    def add_shellwidget(self, shellwidget):
-        """
-        Register shell with variable explorer.
 
-        This function creates a new NamespaceBrowser for browsing
-        variables in the shell.
-        """
-        shellwidget_id = id(shellwidget)
-        if shellwidget_id not in self._shellwidgets:
-            old_nsb = self.current_widget()
-            nsb = NamespaceBrowser(self)
-            nsb.set_shellwidget(shellwidget)
-            nsb.setup()
-            self.add_widget(nsb)
-            self._set_actions_and_menus(nsb)
-            self._shellwidgets[shellwidget_id] = nsb
-            self.set_current_widget(nsb, old_nsb)
-            self.update_actions()
-            return nsb
+    def create_new_widget(self, shellwidget):
+        nsb = NamespaceBrowser(self)
+        nsb.set_shellwidget(shellwidget)
+        nsb.setup()
+        nsb.sig_free_memory_requested.connect(
+            self.free_memory)
+        nsb.sig_start_spinner_requested.connect(
+            self.start_spinner)
+        nsb.sig_stop_spinner_requested.connect(
+            self.stop_spinner)
+        nsb.sig_hide_finder_requested.connect(
+            self.hide_finder)
+        self._set_actions_and_menus(nsb)
+        return nsb
 
-    def remove_shellwidget(self, shellwidget):
-        shellwidget_id = id(shellwidget)
-        if shellwidget_id in self._shellwidgets:
-            nsb = self._shellwidgets.pop(shellwidget_id)
-            self.remove_widget(nsb)
-            nsb.close()
-
-    def set_shellwidget(self, shellwidget):
-        shellwidget_id = id(shellwidget)
-        old_nsb = self.current_widget()
-        if shellwidget_id in self._shellwidgets:
-            nsb = self._shellwidgets[shellwidget_id]
-            self.set_current_widget(nsb, old_nsb)
+    def close_widget(self, nsb):
+        nsb.close()
 
     def import_data(self, filenames=None):
         """

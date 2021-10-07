@@ -78,7 +78,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_exception_occurred = Signal(dict)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 external_kernel, *args, **kw):
+                 is_external_kernel, is_spyder_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -91,7 +91,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
-        self.external_kernel = external_kernel
+        self.is_external_kernel = is_external_kernel
+        self.is_spyder_kernel = is_spyder_kernel
         self._cwd = ''
 
         # Keyboard shortcuts
@@ -127,9 +128,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
 
-        # Internal kernel are always spyder kernels
-        self._is_spyder_kernel = not external_kernel
-
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
         self.show_modules_message = is_pynsist() or running_in_mac_app()
@@ -141,10 +139,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.shutdown_thread.wait()
 
     # ---- Public API ---------------------------------------------------------
-    def is_spyder_kernel(self):
-        """Is the widget a spyder kernel."""
-        return self._is_spyder_kernel
-
     def shutdown(self):
         """Shutdown kernel"""
         self.shutdown_called = True
@@ -173,7 +167,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             if self.kernel_client is not None:
                 self.kernel_client.stop_channels()
         if externally_managed:
-            self.spyder_kernel_comm.close()
+            self.spyder_kernel_comm.close(shutdown_channel=False)
             if self.kernel_client is not None:
                 self.kernel_client.stop_channels()
         super(ShellWidget, self).will_close(externally_managed)
@@ -214,7 +208,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
-        self.spyder_kernel_comm.open_comm(kernel_client)
+        if self.is_spyder_kernel:
+            self.spyder_kernel_comm.open_comm(kernel_client)
 
         # Redefine the complete method to work while debugging.
         self._redefine_complete_for_dbg(self.kernel_client)
@@ -550,7 +545,7 @@ the sympy module (e.g. plot)
                 # Fixes spyder-ide/spyder#12689
                 self.refresh_namespacebrowser(interrupt=False)
 
-                if not self.external_kernel:
+                if self.is_spyder_kernel:
                     self.call_kernel().close_all_mpl_figures()
         except AttributeError:
             pass
@@ -687,7 +682,7 @@ the sympy module (e.g. plot)
                     if data is not None and 'text/plain' in data:
                         is_spyder_kernel = data['text/plain']
                         if 'SpyderKernel' in is_spyder_kernel:
-                            self._is_spyder_kernel = True
+                            self.is_spyder_kernel = True
                             self.sig_is_spykernel.emit(self)
 
                 # Remove method after being processed
@@ -968,7 +963,7 @@ the sympy module (e.g. plot)
         banner or not
         """
         # Don't change banner for external kernels
-        if self.external_kernel:
+        if self.is_external_kernel:
             return ''
         show_banner_o = self.additional_options['show_banner']
         if show_banner_o:
