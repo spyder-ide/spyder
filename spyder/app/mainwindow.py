@@ -19,7 +19,6 @@ Licensed under the terms of the MIT License
 # =============================================================================
 # Stdlib imports
 # =============================================================================
-from __future__ import print_function
 from collections import OrderedDict
 from enum import Enum
 import errno
@@ -341,7 +340,6 @@ class MainWindow(QMainWindow):
         logger.info("Removing {} dockwidget...".format(plugin.NAME))
         self.remove_dockwidget(plugin)
 
-        plugin.unregister()
         plugin._unregister()
 
     def create_plugin_conf_widget(self, plugin):
@@ -768,6 +766,8 @@ class MainWindow(QMainWindow):
             lambda plugin_name, omit_conf: self.register_plugin(
                 plugin_name, omit_conf=omit_conf))
 
+        PLUGIN_REGISTRY.set_main(self)
+
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
@@ -854,12 +854,20 @@ class MainWindow(QMainWindow):
 
         # Determine 'enable' config for the plugins that have it
         enabled_plugins = {}
+        registry_internal_plugins = {}
+        registry_external_plugins = {}
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
                 else plugin_name)
+            if plugin_name in internal_plugins:
+                registry_internal_plugins[plugin_name] = (
+                    plugin_main_attribute_name, plugin)
+            else:
+                registry_external_plugins[plugin_name] = (
+                    plugin_main_attribute_name, plugin)
             try:
                 if CONF.get(plugin_main_attribute_name, "enable"):
                     enabled_plugins[plugin_name] = plugin
@@ -867,6 +875,9 @@ class MainWindow(QMainWindow):
             except (cp.NoOptionError, cp.NoSectionError):
                 enabled_plugins[plugin_name] = plugin
                 PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
+
+        PLUGIN_REGISTRY.set_all_internal_plugins(registry_internal_plugins)
+        PLUGIN_REGISTRY.set_all_external_plugins(registry_external_plugins)
 
         # Instantiate internal Spyder 5 plugins
         for plugin_name in internal_plugins:
@@ -899,15 +910,6 @@ class MainWindow(QMainWindow):
                 try:
                     plugin_instance = PLUGIN_REGISTRY.register_plugin(
                         self, PluginClass, external=True)
-
-                    # These attributes come from spyder.app.find_plugins to
-                    # add plugins to the dependencies dialog
-                    module = PluginClass._spyder_module_name
-                    package_name = PluginClass._spyder_package_name
-                    version = PluginClass._spyder_version
-                    description = plugin_instance.get_description()
-                    dependencies.add(module, package_name, description,
-                                     version, None, kind=dependencies.PLUGIN)
                 except Exception as error:
                     print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
@@ -1085,9 +1087,10 @@ class MainWindow(QMainWindow):
         """
         # Mapping of new plugin identifiers vs old attributtes
         # names given for plugins
-        if attr in self._INTERNAL_PLUGINS_MAPPING.keys():
-            return self.get_plugin(self._INTERNAL_PLUGINS_MAPPING[attr])
         try:
+            if attr in self._INTERNAL_PLUGINS_MAPPING.keys():
+                return self.get_plugin(
+                    self._INTERNAL_PLUGINS_MAPPING[attr], error=False)
             return self.get_plugin(attr)
         except SpyderAPIError:
             pass
@@ -1200,7 +1203,7 @@ class MainWindow(QMainWindow):
 
         # Show Help and Consoles by default
         plugins_to_show = [self.ipyconsole]
-        if self.help is not None:
+        if hasattr(self, 'help'):
             plugins_to_show.append(self.help)
         for plugin in plugins_to_show:
             if plugin.dockwidget.isVisible():
@@ -1369,10 +1372,11 @@ class MainWindow(QMainWindow):
         #     instance
         console, not_readonly, readwrite_editor = textedit_properties
 
-        # Editor has focus and there is no file opened in it
-        if (not console and not_readonly and self.editor
-                and not self.editor.is_file_opened()):
-            return
+        if hasattr(self, 'editor'):
+            # Editor has focus and there is no file opened in it
+            if (not console and not_readonly and self.editor
+                    and not self.editor.is_file_opened()):
+                return
 
         # Disabling all actions to begin with
         for child in self.edit_menu.actions():
@@ -1395,7 +1399,7 @@ class MainWindow(QMainWindow):
         # Comment, uncomment, indent, unindent...
         if not console and not_readonly:
             # This is the editor and current file is writable
-            if self.editor:
+            if hasattr(self, 'editor'):
                 for action in self.editor.edit_menu_actions:
                     action.setEnabled(True)
 
@@ -1460,10 +1464,10 @@ class MainWindow(QMainWindow):
 
     def moveEvent(self, event):
         """Reimplement Qt method"""
-        if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
-            self.window_position = self.pos()
+        if hasattr(self, 'layouts'):
+            if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
+                self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
-
         # To be used by the tour to be able to move
         self.sig_moved.emit(event)
 
@@ -1496,7 +1500,7 @@ class MainWindow(QMainWindow):
 
         self.previous_focused_widget =  old
 
-    def closing(self, cancelable=False):
+    def closing(self, cancelable=False, close_immediately=False):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
@@ -1511,42 +1515,18 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
 
-        # Internal plugins
-        for plugin in (self.widgetlist + self.thirdparty_plugins):
-            # New API
-            try:
-                if isinstance(plugin, SpyderDockablePlugin):
-                    plugin.close_window()
-                if not plugin.on_close(cancelable):
-                    return False
-            except AttributeError:
-                pass
+        can_close = PLUGIN_REGISTRY.delete_all_plugins(
+            excluding={Plugins.Layout}, close_immediately=close_immediately)
 
-            # Old API
-            try:
-                plugin._close_window()
-                if not plugin.closing_plugin(cancelable):
-                    return False
-            except AttributeError:
-                pass
-
-        # New API: External plugins
-        for plugin_name in PLUGIN_REGISTRY.external_plugins:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            try:
-                if isinstance(plugin_instance, SpyderDockablePlugin):
-                    plugin.close_window()
-
-                if not plugin.on_close(cancelable):
-                    return False
-            except AttributeError as e:
-                logger.error(str(e))
+        if not can_close and not close_immediately:
+            return False
 
         # Save window settings *after* closing all plugin windows, in order
         # to show them in their previous locations in the next session.
         # Fixes spyder-ide/spyder#12139
         prefix = 'window' + '/'
         self.layouts.save_current_window_settings(prefix)
+        PLUGIN_REGISTRY.delete_plugin(Plugins.Layout)
 
         self.already_closed = True
         return True
@@ -1838,6 +1818,25 @@ class MainWindow(QMainWindow):
             fname = fname.decode('utf-8')
             self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
+
+    # ---- Quit and restart, and reset spyder defaults
+    @Slot()
+    def reset_spyder(self):
+        """
+        Quit and reset Spyder and then Restart application.
+        """
+        answer = QMessageBox.warning(self, _("Warning"),
+             _("Spyder will restart and reset to default settings: <br><br>"
+               "Do you want to continue?"),
+             QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.restart(reset=True)
+
+    @Slot()
+    def restart(self, reset=False, close_immediately=False):
+        """Wrapper to handle plugins request to restart Spyder."""
+        self.application.restart(
+            reset=reset, close_immediately=close_immediately)
 
     # ---- Global Switcher
     def open_switcher(self, symbol=False):

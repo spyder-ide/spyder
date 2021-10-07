@@ -8,6 +8,10 @@
 Mixin to connect a plugin to the IPython console.
 """
 
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
+from spyder.api.plugins import Plugins
+
 
 class ShellConnectMixin:
     """
@@ -18,24 +22,32 @@ class ShellConnectMixin:
     ShellConnectMainWidget
     """
 
-    def register_ipythonconsole(self, ipyconsole):
+    # ---- Connection to the IPython console
+    # -------------------------------------------------------------------------
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
         """Connect to the IPython console."""
-        # Signals
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
         ipyconsole.sig_external_spyder_kernel_connected.connect(
             self.on_connection_to_external_spyder_kernel)
 
-    def unregister_ipythonconsole(self, ipyconsole):
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardown(self):
         """Disconnect from the IPython console."""
-        # Signals
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.disconnect(self.remove_shellwidget)
+        ipyconsole.sig_external_spyder_kernel_connected.disconnect(
+            self.on_connection_to_external_spyder_kernel)
 
     # ---- Public API
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def set_shellwidget(self, shellwidget):
         """
         Update the current shellwidget.

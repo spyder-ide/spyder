@@ -212,6 +212,28 @@ class ToolbarContainer(PluginMainContainer):
 
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
 
+    def remove_application_toolbar(self, toolbar_id: str, mainwindow=None):
+        """
+        Remove toolbar from application toolbars.
+
+        Parameters
+        ----------
+        toolbar: str
+            The application toolbar to remove from the `mainwindow`.
+        mainwindow: QMainWindow
+            The main application window.
+        """
+
+        if toolbar_id not in self._ADDED_TOOLBARS:
+            raise SpyderAPIError(
+                'Toolbar with ID "{}" is not in the main window'.format(
+                    toolbar_id))
+
+        toolbar = self._ADDED_TOOLBARS.pop(toolbar_id)
+        self._toolbarslist.remove(toolbar)
+
+        if mainwindow:
+            mainwindow.removeToolBar(toolbar)
 
     def add_item_to_application_toolbar(self,
                                         item: ToolbarItem,
@@ -249,6 +271,25 @@ class ToolbarContainer(PluginMainContainer):
             toolbar = self.get_application_toolbar(toolbar_id)
             toolbar.add_item(item, section=section, before=before,
                              before_section=before_section, omit_id=omit_id)
+
+    def remove_item_from_application_toolbar(self, item_id: str,
+                                             toolbar_id: Optional[str] = None):
+        """
+        Remove action or widget from given application toolbar by id.
+
+        Parameters
+        ----------
+        item: str
+            The item to remove from the `toolbar`.
+        toolbar_id: str or None
+            The application toolbar unique string identifier.
+        """
+        if toolbar_id not in self._APPLICATION_TOOLBARS:
+            raise SpyderAPIError(
+                '{} is not a valid toolbar_id'.format(toolbar_id))
+
+        toolbar = self.get_application_toolbar(toolbar_id)
+        toolbar.remove_item(item_id)
 
     def get_application_toolbar(self, toolbar_id: str) -> ApplicationToolbar:
         """
@@ -303,6 +344,9 @@ class ToolbarContainer(PluginMainContainer):
             self._visible_toolbars = toolbars
         else:
             self._get_visible_toolbars()
+
+        for toolbar in self._visible_toolbars:
+            toolbar.setVisible(True)
 
         self.update_actions()
 

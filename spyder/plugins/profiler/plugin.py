@@ -16,7 +16,8 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
@@ -61,7 +62,8 @@ class Profiler(SpyderDockablePlugin):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Profiler")
 
     def get_description(self):
@@ -104,6 +106,26 @@ class Profiler(SpyderDockablePlugin):
 
         mainmenu.add_item_to_application_menu(
             run_action, menu_id=ApplicationMenus.Run)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        widget.sig_edit_goto_requested.disconnect(editor.load)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        mainmenu.remove_item_from_application_menu(
+            ProfilerActions.ProfileCurrentFile,
+            menu_id=ApplicationMenus.Run
+        )
 
     # --- Public API
     # ------------------------------------------------------------------------

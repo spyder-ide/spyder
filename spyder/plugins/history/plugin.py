@@ -13,7 +13,8 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.history.confpage import HistoryConfigPage
 from spyder.plugins.history.widgets import HistoryWidget
@@ -45,7 +46,8 @@ class HistoryLog(SpyderDockablePlugin):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('History')
 
     def get_description(self):
@@ -67,6 +69,16 @@ class HistoryLog(SpyderDockablePlugin):
     def on_console_available(self):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.connect(self.refresh)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Console)
+    def on_console_teardown(self):
+        console = self.get_plugin(Plugins.Console)
+        console.sig_refreshed.disconnect(self.refresh)
 
     def update_font(self):
         color_scheme = self.get_color_scheme()

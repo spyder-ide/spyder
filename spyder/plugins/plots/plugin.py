@@ -10,7 +10,6 @@ Plots Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
@@ -33,7 +32,8 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Plots')
 
     def get_description(self):
@@ -46,21 +46,6 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
         # If a figure is loaded, raise the dockwidget the first time
         # a plot is generated.
         self.get_widget().sig_figure_loaded.connect(self._on_first_plot)
-
-    @on_plugin_available(plugin=Plugins.IPythonConsole)
-    def on_ipython_console_available(self):
-        # Plugins
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        # Register IPython console.
-        self.register_ipythonconsole(ipyconsole)
-
-    def unregister(self):
-        # Plugins
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        # Unregister IPython console.
-        self.unregister_ipythonconsole(ipyconsole)
 
     # ---- Public API
     # ------------------------------------------------------------------------
