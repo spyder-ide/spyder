@@ -1088,7 +1088,8 @@ class MainWindow(QMainWindow):
         # names given for plugins
         try:
             if attr in self._INTERNAL_PLUGINS_MAPPING.keys():
-                return self.get_plugin(self._INTERNAL_PLUGINS_MAPPING[attr])
+                return self.get_plugin(
+                    self._INTERNAL_PLUGINS_MAPPING[attr], error=False)
             return self.get_plugin(attr)
         except SpyderAPIError:
             pass
