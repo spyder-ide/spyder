@@ -10,13 +10,10 @@ Frames Explorer Main Plugin Widget.
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import (
-    QHBoxLayout, QStackedWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import QHBoxLayout, QWidget
 
 # Local imports
-from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
-from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.manager import CONF
 from spyder.config.gui import get_color_scheme
 from spyder.plugins.framesexplorer.widgets.framesbrowser import (
@@ -68,7 +65,6 @@ class FramesExplorerContextMenuSections:
 # =============================================================================
 # ---- Widgets
 # =============================================================================
-
 
 
 class FramesExplorerWidget(ShellConnectMainWidget):
@@ -233,8 +229,6 @@ class FramesExplorerWidget(ShellConnectMainWidget):
                 callback=nsb.results_browser.set_regex,
                 main=nsb,
             )
-
-
 
     # ---- Public API
     # ------------------------------------------------------------------------
