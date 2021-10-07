@@ -59,24 +59,10 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-    @on_plugin_available(plugin=Plugins.IPythonConsole)
-    def on_ipyconsole_available(self):
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        # Register IPython console.
-        self.register_ipythonconsole(ipyconsole)
-
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
-
-    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
-    def on_ipyconsole_teardown(self):
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        # Unregister IPython console.
-        self.unregister_ipythonconsole(ipyconsole)
 
     # ---- Public API
     # ------------------------------------------------------------------------
