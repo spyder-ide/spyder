@@ -16,7 +16,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
-from spyder.plugins.findinfiles.widgets import FindInFilesWidget
+from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.utils.misc import getcwd_or_home
 

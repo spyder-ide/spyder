@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.plugins.findinfiles
-==========================
+spyder.plugins.findinfiles.widgets
+==================================
 
-Find in files plugin.
+Widgets for Find in files plugin.
 """
