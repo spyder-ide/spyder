@@ -4232,8 +4232,9 @@ def test_add_external_plugins_to_dependencies(main_window):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(PY2,
-                    reason="Not supported for python 2")
+@pytest.mark.skipif(
+    PY2 or not sys.platform.startswith('linux'),
+    reason="Not supported for python 2, Does not work on Mac and Windows!")
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "thread", [False, True])
