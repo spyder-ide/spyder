@@ -2338,7 +2338,8 @@ def test_custom_layouts(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not running_in_ci() or sys.platform.startswith('linux'),
+# Disable to test
+@pytest.mark.skipif(True or not running_in_ci() or sys.platform.startswith('linux'),
                     reason="Only runs in CIs and fails on Linux sometimes")
 def test_programmatic_custom_layouts(main_window, qtbot):
     """
