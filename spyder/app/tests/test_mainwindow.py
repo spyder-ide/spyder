@@ -4232,8 +4232,8 @@ def test_add_external_plugins_to_dependencies(main_window):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(PY2 or sys.platform == 'darwin',
-                    reason="Not supported for python 2 and fails on macOS")
+@pytest.mark.skipif(PY2,
+                    reason="Not supported for python 2")
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "thread", [False, True])
@@ -4250,12 +4250,14 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
             "t = threading.Thread(target=deadlock)\n"
             "t.start()\n"
             "t.join()\n")
+        expected_number_threads = 2
     else:
         code = (
             'import threading\n'
             'lock = threading.Lock()\n'
             'lock.acquire()\n'
             'lock.acquire()')
+        expected_number_threads = 1
     p = tmpdir.join("print-test.py")
     p.write(code)
     main_window.editor.load(to_text_string(p))
@@ -4280,10 +4282,11 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     qtbot.wait(1000)
     qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
 
-    if thread:
-        assert len(frames_browser.frames) == 2
-    else:
-        assert len(frames_browser.frames) == 1
+    if len(frames_browser.frames) != expected_number_threads:
+        # Failed, print stack for debugging
+        import pprint
+        pprint.pprint(frames_browser.frames)
+    assert len(frames_browser.frames) == expected_number_threads
 
 
 if __name__ == "__main__":
