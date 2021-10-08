@@ -124,6 +124,8 @@ class SpyderKernel(IPythonKernel):
             self.parent.iopub_thread.thread,  # iopub
             gc.thread,  # ZMQ garbage collector thread
             ]
+        if hasattr(self.parent, "control_thread"):
+            ignore_threads.append(self.parent.control_thread)
         return [
             thread.ident for thread in ignore_threads if thread is not None]
 
