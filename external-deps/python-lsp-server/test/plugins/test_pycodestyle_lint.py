@@ -91,7 +91,7 @@ def test_pycodestyle_config(workspace):
 
     for conf_file, (content, working) in list(content.items()):
         # Now we'll add config file to ignore it
-        with open(os.path.join(workspace.root_path, conf_file), 'w+') as f:
+        with open(os.path.join(workspace.root_path, conf_file), 'w+', encoding='utf-8') as f:
             f.write(content)
         workspace._config.settings.cache_clear()
 
