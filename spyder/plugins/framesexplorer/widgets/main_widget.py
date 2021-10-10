@@ -306,7 +306,6 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         self.postmortem_debug_action.setEnabled(
             self.current_widget().post_mortem)
 
-
     @Slot()
     def hide_finder(self):
         action = self.get_action(FramesExplorerWidgetActions.Search)
