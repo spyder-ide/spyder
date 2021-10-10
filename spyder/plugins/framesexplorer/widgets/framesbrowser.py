@@ -43,6 +43,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_show_namespace = Signal(dict)
     sig_hide_finder_requested = Signal()
+    sig_update_postmortem_requested = Signal()
 
     def __init__(self, parent, color_scheme):
         QWidget.__init__(self, parent)
@@ -52,11 +53,22 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.color_scheme = color_scheme
         self.execution_frames = False
         self.should_clear = False
+        self.post_mortem = False
 
         # Finder
         self.text_finder = None
         self.last_find = ''
         self.finder_is_visible = False
+
+    def disable_post_mortem(self):
+        """Disable post-mortem button."""
+        self.post_mortem = False
+        self.sig_update_postmortem_requested.emit()
+
+    def enable_post_mortem(self):
+        """Enable post-mortem button."""
+        self.post_mortem = True
+        self.sig_update_postmortem_requested.emit()
 
     def setup(self):
         """
@@ -97,7 +109,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
                     ignore_internal_threads=self.get_conf("exclude_internal"),
                     capture_locals=self.get_conf("capture_locals"))
 
-    def set_frames(self, frames, title):
+    def _set_frames(self, frames, title):
         """Set current frames"""
         if self.results_browser is not None:
             self.results_browser.set_frames(frames)
@@ -111,30 +123,34 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def set_from_pdb(self, pdb_stack, curindex):
         """Set from pdb stack"""
-        self.set_frames({'pdb': pdb_stack}, _("Pdb stack"))
+        self._set_frames({'pdb': pdb_stack}, _("Pdb stack"))
         self.set_current_item(0, curindex)
         self.results_browser.sig_activated.connect(
             self.shellwidget.set_pdb_index)
         self.execution_frames = True
         self.should_clear = False
+        self.disable_post_mortem()
 
     def set_from_exception(self, etype, error, tb):
         """Set from exception"""
-        self.set_frames({etype.__name__: tb}, _("Exception occured"))
+        self._set_frames({etype.__name__: tb}, _("Exception occured"))
         self.execution_frames = True
         self.should_clear = False
+        self.enable_post_mortem()
 
     def set_from_refresh(self, frames):
         """Set from pdb call"""
-        self.set_frames(frames, _("Snapshot of frames"))
+        self._set_frames(frames, _("Snapshot of frames"))
         self.execution_frames = False
         self.should_clear = False
+        self.disable_post_mortem()
 
     def clear_if_needed(self):
         """Execution finished. Clear if it is relevant."""
         if self.should_clear:
-            self.set_frames(None, "")
+            self._set_frames(None, "")
             self.should_clear = False
+            self.disable_post_mortem()
         elif self.execution_frames:
             self.should_clear = True
         self.execution_frames = False

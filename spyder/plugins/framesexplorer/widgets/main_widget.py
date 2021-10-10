@@ -33,6 +33,7 @@ class FramesExplorerWidgetActions:
     # Triggers
     Search = 'search'
     Refresh = 'refresh'
+    PostMortemDebug = 'pmdebug'
 
     # Toggles
     ToggleExcludeInternal = 'toggle_exclude_internal_action'
@@ -88,6 +89,10 @@ class FramesExplorerWidget(ShellConnectMainWidget):
     def set_namespace_view(self, view):
         self.current_widget().shellwidget.set_namespace_view(view)
 
+    def postmortem(self):
+        """Ask for post mortem debug."""
+        self.current_widget().shellwidget.execute("%debug")
+
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -140,6 +145,14 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             register_shortcut=True,
         )
 
+        self.postmortem_debug_action = self.create_action(
+            FramesExplorerWidgetActions.PostMortemDebug,
+            text=_("Post-mortem debug"),
+            icon=self.create_icon('debug'),
+            triggered=self.postmortem,
+            register_shortcut=True,
+        )
+
         # ---- Context menu actions
         self.view_locals_action = self.create_action(
             FramesExplorerContextMenuActions.ViewLocalsAction,
@@ -162,7 +175,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [search_action, self.refresh_action]:
+        for item in [search_action, self.refresh_action,
+                     self.postmortem_debug_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -240,6 +254,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         nsb.edit_goto.connect(self.edit_goto)
         nsb.sig_show_namespace.connect(self.set_namespace_view)
         nsb.sig_hide_finder_requested.connect(self.hide_finder)
+        nsb.sig_update_postmortem_requested.connect(self.update_postmortem)
         nsb.set_shellwidget(shellwidget)
         nsb.setup()
         self._set_actions_and_menus(nsb)
@@ -257,11 +272,17 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         self.finder.setVisible(finder_visible)
         search_action = self.get_action(FramesExplorerWidgetActions.Search)
         search_action.setChecked(finder_visible)
+        old_nsb.sig_update_postmortem_requested.disconnect(
+            self.update_postmortem)
+        nsb.sig_update_postmortem_requested.connect(
+            self.update_postmortem)
+        self.update_postmortem()
 
     def close_widget(self, nsb):
         nsb.edit_goto.disconnect(self.edit_goto)
         nsb.sig_show_namespace.disconnect(self.set_namespace_view)
         nsb.sig_hide_finder_requested.disconnect(self.hide_finder)
+        nsb.sig_update_postmortem_requested.disconnect(self.update_postmortem)
         nsb.close()
 
     @Slot(bool)
@@ -278,6 +299,13 @@ class FramesExplorerWidget(ShellConnectMainWidget):
                 self.finder.text_finder.setFocus()
             else:
                 nsb.results_browser.setFocus()
+
+    @Slot()
+    def update_postmortem(self):
+        """Enable and disable post mortem action."""
+        self.postmortem_debug_action.setEnabled(
+            self.current_widget().post_mortem)
+
 
     @Slot()
     def hide_finder(self):
