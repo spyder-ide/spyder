@@ -31,7 +31,8 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Frames explorer')
 
     def get_description(self):
