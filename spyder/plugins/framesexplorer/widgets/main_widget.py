@@ -258,7 +258,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         nsb.set_shellwidget(shellwidget)
         nsb.setup()
         self._set_actions_and_menus(nsb)
-        self.update_postmortem(nsb)
+        self.update_postmortem(nsb, force=True)
         return nsb
 
     def switch_widget(self, nsb, old_nsb):
@@ -273,11 +273,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         self.finder.setVisible(finder_visible)
         search_action = self.get_action(FramesExplorerWidgetActions.Search)
         search_action.setChecked(finder_visible)
-        old_nsb.sig_update_postmortem_requested.disconnect(
-            self.update_postmortem)
-        nsb.sig_update_postmortem_requested.connect(
-            self.update_postmortem)
-        self.update_postmortem(nsb)
+        self.update_postmortem(nsb, force=True)
 
     def close_widget(self, nsb):
         nsb.edit_goto.disconnect(self.edit_goto)
@@ -285,7 +281,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         nsb.sig_hide_finder_requested.disconnect(self.hide_finder)
         nsb.sig_update_postmortem_requested.disconnect(self.update_postmortem)
         nsb.close()
-        self.update_postmortem()
+        self.update_postmortem(self.current_widget())
 
     @Slot(bool)
     def show_finder(self, checked):
@@ -302,12 +298,13 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             else:
                 nsb.results_browser.setFocus()
 
-    @Slot()
-    def update_postmortem(self, widget=None):
+    @Slot(object)
+    def update_postmortem(self, widget, force=False):
         """Enable and disable post mortem action."""
         if widget is None:
-            widget = self.current_widget()
-        if widget is None:
+            return
+        if widget is not self.current_widget() and not force:
+            # Not the active widget
             return
         self.postmortem_debug_action.setEnabled(
             widget.post_mortem)

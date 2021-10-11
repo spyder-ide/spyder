@@ -43,7 +43,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_show_namespace = Signal(dict)
     sig_hide_finder_requested = Signal()
-    sig_update_postmortem_requested = Signal()
+    sig_update_postmortem_requested = Signal(object)
 
     def __init__(self, parent, color_scheme):
         QWidget.__init__(self, parent)
@@ -60,15 +60,10 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.last_find = ''
         self.finder_is_visible = False
 
-    def disable_post_mortem(self):
-        """Disable post-mortem button."""
-        self.post_mortem = False
-        self.sig_update_postmortem_requested.emit()
-
-    def enable_post_mortem(self):
+    def set_post_mortem_enabled(self, enabled):
         """Enable post-mortem button."""
-        self.post_mortem = True
-        self.sig_update_postmortem_requested.emit()
+        self.post_mortem = enabled
+        self.sig_update_postmortem_requested.emit(self)
 
     def setup(self):
         """
@@ -129,28 +124,28 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             self.shellwidget.set_pdb_index)
         self.execution_frames = True
         self.should_clear = False
-        self.disable_post_mortem()
+        self.set_post_mortem_enabled(False)
 
     def set_from_exception(self, etype, error, tb):
         """Set from exception"""
         self._set_frames({etype.__name__: tb}, _("Exception occured"))
         self.execution_frames = True
         self.should_clear = False
-        self.enable_post_mortem()
+        self.set_post_mortem_enabled(True)
 
     def set_from_refresh(self, frames):
         """Set from pdb call"""
         self._set_frames(frames, _("Snapshot of frames"))
         self.execution_frames = False
         self.should_clear = False
-        self.disable_post_mortem()
+        self.set_post_mortem_enabled(False)
 
     def clear_if_needed(self):
         """Execution finished. Clear if it is relevant."""
         if self.should_clear:
             self._set_frames(None, "")
             self.should_clear = False
-            self.disable_post_mortem()
+            self.set_post_mortem_enabled(False)
         elif self.execution_frames:
             self.should_clear = True
         self.execution_frames = False
