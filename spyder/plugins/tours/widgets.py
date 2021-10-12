@@ -1069,8 +1069,8 @@ class OpenTourDialog(QDialog):
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
-        image_height = image.height() * DialogStyle.IconScaleFactor
-        image_width = image.width() * DialogStyle.IconScaleFactor
+        image_height = int(image.height() * DialogStyle.IconScaleFactor)
+        image_width = int(image.width() * DialogStyle.IconScaleFactor)
         image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
                              Qt.SmoothTransformation)
         image_label.setPixmap(image)
