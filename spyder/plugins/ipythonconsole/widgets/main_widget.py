@@ -95,6 +95,7 @@ class IPythonConsoleWidgetActions:
 
 class IPythonConsoleWidgetOptionsMenus:
     SpecialConsoles = 'special_consoles_submenu'
+    Documentation = 'documentation_submenu'
 
 
 class IPythonConsoleWidgetConsolesMenusSection:
@@ -580,7 +581,8 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         self.ipython_menu = SpyderMenu(
             parent=self,
-            title=_("IPython documentation"))
+            title=_("IPython documentation"),
+            menu_id=IPythonConsoleWidgetOptionsMenus.Documentation)
         intro_action = self.create_action(
             IPythonConsoleWidgetActions.IPythonDocumentation,
             text=_("Intro to IPython"),
