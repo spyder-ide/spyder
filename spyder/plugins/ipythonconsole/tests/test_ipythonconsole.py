@@ -146,7 +146,7 @@ def ipyconsole(qtbot, request, tmpdir):
     # Use the Tkinter backend if requested
     tk_backend = request.node.get_closest_marker('tk_backend')
     if tk_backend:
-        CONF.set('ipython_console', 'pylab/backend', 8)
+        configuration.set('ipython_console', 'pylab/backend', 8)
 
     # Start a Pylab client if requested
     pylab_client = request.node.get_closest_marker('pylab_client')
@@ -336,7 +336,7 @@ def test_tk_backend(ipyconsole, qtbot):
         shell.execute("ip = get_ipython(); ip.kernel.eventloop")
 
     # Assert we set the right backend in the kernel.
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'loop_tk' in control.toPlainText()
 
 
