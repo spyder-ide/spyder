@@ -48,8 +48,13 @@ Installing these plugins will add extra functionality to the language server:
 - [pyls-isort](https://github.com/paradoxxxzero/pyls-isort): code formatting using [isort](https://github.com/PyCQA/isort) (automatic import sorting).
 - [python-lsp-black](https://github.com/python-lsp/python-lsp-black): code formatting using [Black](https://github.com/psf/black).
 - [pyls-memestra](https://github.com/QuantStack/pyls-memestra): detecting the use of deprecated APIs.
+- [pylsp-rope](https://github.com/python-rope/pylsp-rope): Extended refactoring capabilities using [Rope](https://github.com/python-rope/rope).
 
-Please see the above repositories for examples on how to write plugins for the Python LSP Server. Please file an issue if you require assistance writing a plugin.
+Please see the above repositories for examples on how to write plugins for the Python LSP Server.
+
+[cookiecutter-pylsp-plugin](https://github.com/python-lsp/cookiecutter-pylsp-plugin) is a [cookiecutter](https://cookiecutter.readthedocs.io/) template for setting up a basic plugin project for python-lsp-server. It documents all the essentials you need to know to kick start your own plugin project.
+
+Please file an issue if you require assistance writing a plugin.
 
 ## Configuration
 

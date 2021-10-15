@@ -37,7 +37,7 @@ def temp_document(doc_text, workspace):
 
 
 def write_temp_doc(document, contents):
-    with open(document.path, 'w') as temp_file:
+    with open(document.path, 'w', encoding='utf-8') as temp_file:
         temp_file.write(contents)
 
 

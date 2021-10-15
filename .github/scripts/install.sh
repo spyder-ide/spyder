@@ -26,6 +26,9 @@ if [ "$USE_CONDA" = "true" ]; then
     conda remove spyder-kernels --force -q -y
     conda remove python-lsp-server --force -q -y
     conda remove qdarkstyle --force -q -y
+
+    # Note: Remove this when PyLSP 1.3.0 is released
+    mamba install 'pylint >=2.10' -c conda-forge -q -y
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -52,6 +55,9 @@ else
     pip uninstall spyder-kernels -q -y
     pip uninstall python-lsp-server -q -y
     pip uninstall qdarkstyle -q -y
+
+    # Remove Spyder to properly install it below
+    pip uninstall spyder -q -y
 fi
 
 # Install subrepos in development mode
@@ -70,7 +76,6 @@ popd
 # Install Spyder to test it as if it was properly installed.
 # Note: `python setup.py egg_info` doesn't work here but it
 # does locally.
-pip uninstall spyder -q -y
 python setup.py -q bdist_wheel
 pip install --no-deps -q dist/spyder*.whl
 
