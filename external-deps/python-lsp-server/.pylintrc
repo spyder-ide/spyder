@@ -16,7 +16,8 @@ disable =
     too-few-public-methods,
     too-many-arguments,
     too-many-instance-attributes,
-    import-error
+    import-error,
+    consider-using-f-string,
 
 [REPORTS]
 

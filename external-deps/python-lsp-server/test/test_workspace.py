@@ -51,7 +51,7 @@ def test_non_root_project(pylsp, metafiles):
     os.mkdir(project_root)
 
     for metafile in metafiles:
-        with open(os.path.join(project_root, metafile), 'w+') as f:
+        with open(os.path.join(project_root, metafile), 'w+', encoding='utf-8') as f:
             f.write('# ' + metafile)
 
     test_uri = uris.from_fs_path(os.path.join(project_root, 'hello/test.py'))
