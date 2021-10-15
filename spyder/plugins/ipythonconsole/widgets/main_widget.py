@@ -27,7 +27,6 @@ from qtpy.QtWidgets import (
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
-
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
@@ -63,34 +62,34 @@ MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
 class IPythonConsoleWidgetActions:
     # Clients creation
     CreateNewClient = 'new tab'
-    CreateCythonClient = 'create_cython_client_action'
-    CreateSymPyClient = 'create_sympy_client_action'
-    CreatePyLabClient = 'create_pylab_client_action'
+    CreateCythonClient = 'create cython client'
+    CreateSymPyClient = 'create cympy client'
+    CreatePyLabClient = 'create pylab client'
 
     # Current console actions
     ClearConsole = 'Clear shell'
     ClearLine = 'clear line'
-    ConnectToKernel = 'connect_to_kernel_action'
-    Interrupt = 'interrupt_action'
+    ConnectToKernel = 'connect to kernel'
+    Interrupt = 'interrupt kernel'
     InspectObject = 'Inspect current object'
     Restart = 'Restart kernel'
     ResetNamespace = 'reset namespace'
-    ShowEnvironmentVariables = 'show_environment_variables_action'
-    ShowSystemPath = 'show_system_path_action'
-    ToggleElapsedTime = 'toggle_elapsed_time_action'
+    ShowEnvironmentVariables = 'Show environment variables'
+    ShowSystemPath = 'show system path'
+    ToggleElapsedTime = 'toggle elapsed time'
     Quit = 'exit'
 
     # Tabs
-    RenameTab = 'rename_tab_action'
+    RenameTab = 'rename tab'
 
     # Variables display
     ArrayInline = 'enter array inline'
     ArrayTable = 'enter array table'
 
     # Documentation and help
-    IPythonDocumentation = 'ipython_documentation'
-    ConsoleHelp = 'console_help'
-    QuickReference = 'quick_reference'
+    IPythonDocumentation = 'ipython documentation'
+    ConsoleHelp = 'console help'
+    QuickReference = 'quick reference'
 
 
 class IPythonConsoleWidgetOptionsMenus:
@@ -114,7 +113,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     """
     IPython Console plugin
 
-    This is a widget with tabs where each one is a ClientWidget
+    This is a widget with tabs where each one is a ClientWidget.
     """
 
     # Signals
@@ -122,6 +121,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     """
     This signal is emitted when the plugin requires to add commands to a
     history file.
+
     Parameters
     ----------
     filename: str
@@ -143,13 +143,14 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     sig_editor_focus_requested = Signal()
     """
-    This signal will request to change the focus to the editor is available
+    This signal will request to change the focus to the editor if available.
     """
 
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
     using a code editor.
+
     Parameters
     ----------
     path: str
@@ -163,6 +164,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     sig_pdb_state_changed = Signal(bool, dict)
     """
     This signal is emitted when the debugging state changes.
+
     Parameters
     ----------
     waiting_pdb_input: bool
@@ -256,15 +258,14 @@ class IPythonConsoleWidget(PluginMainWidget):
     """
 
     # Error messages
-    permission_error_msg = _("The directory {} is not writable and it is "
+    PERMISSION_ERROR_MSG = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(
-            self, name=None, plugin=None, parent=None, configuration=None):
+    def __init__(self, name=None, plugin=None, parent=None,
+                 configuration=None):
         super().__init__(name, plugin, parent, configuration=configuration)
 
-        self.tabwidget = None
         self.menu_actions = None
         self.master_clients = 0
         self.clients = []
@@ -296,8 +297,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               actions=self.menu_actions,
                               rename_tabs=True,
                               split_char='/', split_index=0)
-        if hasattr(self.tabwidget, 'setDocumentMode')\
-           and not sys.platform == 'darwin':
+        if (hasattr(self.tabwidget, 'setDocumentMode')
+                and not sys.platform == 'darwin'):
             # Don't set document mode to true on OSX because it generates
             # a crash when the console is detached from the main window
             # Fixes spyder-ide/spyder#561.
@@ -306,7 +307,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
         self.tabwidget.tabBar().sig_name_changed.connect(
             self.rename_tabs_after_change)
-
         self.tabwidget.set_close_function(self.close_client)
 
         if sys.platform == 'darwin':
@@ -384,7 +384,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             return client.get_control()
 
     def setup(self):
-        # ---- Options menu actions
+        # Options menu actions
         self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
             text=_("New console (default settings)"),
@@ -426,7 +426,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             triggered=self.tab_name_editor,
         )
 
-        # From client:
+        # For the client
         self.env_action = self.create_action(
             IPythonConsoleWidgetActions.ShowEnvironmentVariables,
             text=_("Show environment variables"),
@@ -494,12 +494,15 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         self.context_menu_actions = (
             None,
-            self.inspect_action, self.clear_line_action,
-            self.clear_console_action, self.reset_action,
-            self.array_table_action, self.array_inline_action,
+            self.inspect_action,
+            self.clear_line_action,
+            self.clear_console_action,
+            self.reset_action,
+            self.array_table_action,
+            self.array_inline_action,
             None,
             self.quit_action
-            )
+        )
 
         options_menu = self.get_options_menu()
         self.special_console_menu = self.create_menu(
@@ -558,23 +561,17 @@ class IPythonConsoleWidget(PluginMainWidget):
             triggered=self.create_cython_client,
         )
 
-        consoles_menu = self.get_menu(
-            IPythonConsoleWidgetOptionsMenus.SpecialConsoles)
-        self.add_item_to_menu(
-            create_pylab_action,
-            menu=consoles_menu,
-            section=IPythonConsoleWidgetConsolesMenusSection.Main,
-        )
-        self.add_item_to_menu(
-            create_sympy_action,
-            menu=consoles_menu,
-            section=IPythonConsoleWidgetConsolesMenusSection.Main,
-        )
-        self.add_item_to_menu(
-            create_cython_action,
-            menu=consoles_menu,
-            section=IPythonConsoleWidgetConsolesMenusSection.Main,
-        )
+        for item in [
+                create_pylab_action,
+                create_sympy_action,
+                create_cython_action]:
+            self.add_item_to_menu(
+                item,
+                menu=self.special_console_menu,
+                section=IPythonConsoleWidgetConsolesMenusSection.Main,
+            )
+
+        # Add tab corner widgets.
         self.add_corner_widget('reset', self.reset_button)
         self.add_corner_widget('start_interrupt', self.stop_button)
         self.add_corner_widget('timer', self.time_label)
@@ -586,15 +583,18 @@ class IPythonConsoleWidget(PluginMainWidget):
         intro_action = self.create_action(
             IPythonConsoleWidgetActions.IPythonDocumentation,
             text=_("Intro to IPython"),
-            triggered=self.show_intro)
+            triggered=self.show_intro
+        )
         quickref_action = self.create_action(
             IPythonConsoleWidgetActions.QuickReference,
             text=_("Quick reference"),
-            triggered=self.show_quickref)
+            triggered=self.show_quickref
+        )
         guiref_action = self.create_action(
             IPythonConsoleWidgetActions.ConsoleHelp,
             text=_("Console help"),
-            triggered=self.show_guiref)
+            triggered=self.show_guiref
+        )
 
         for help_action in [
                 intro_action, guiref_action, quickref_action]:
@@ -764,7 +764,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
         'pylab', 'pylab/backend', 'symbolic_math', 'hide_cmd_windows'])
     def change_possible_restart_conf(self, option, value):
-        """Apply configuration file's plugin settings."""
+        """Apply options that possibly require a kernel restart."""
         if not self.get_current_client():
             return
 
@@ -802,7 +802,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 any(client_backend_not_inline) and
                 pylab_backend_o != inline_backend)
 
-        # Review that we are not triggering validations in the initial
+        # Check that we are not triggering validations in the initial
         # notification sent when Spyder is starting or when another option
         # already required a restart and the restart dialog was shown
         if option in self.initial_conf_options:
@@ -836,6 +836,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                         self._change_client_mpl_conf(o, c)
                         sw.sig_pdb_prompt_ready.disconnect(
                             change_client_mpl_conf)
+
                     sw.sig_pdb_prompt_ready.connect(change_client_mpl_conf)
                 else:
                     self._change_client_mpl_conf(options, client)
@@ -853,7 +854,8 @@ class IPythonConsoleWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     def _change_client_conf(self, client, client_conf_func, value):
         """
-        Change a client configuration while handling a possible debugging state
+        Change a client configuration option, taking into account if it is
+        in a debugging session.
 
         Parameters
         ----------
@@ -1475,7 +1477,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             give_focus=give_focus)
 
         if cf is None:
-            error_msg = self.permission_error_msg.format(jupyter_runtime_dir())
+            error_msg = self.PERMISSION_ERROR_MSG.format(jupyter_runtime_dir())
             client.show_kernel_error(error_msg)
             return
 
@@ -1616,8 +1618,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         control.sig_help_requested.connect(self.sig_help_requested)
 
         shellwidget.sig_pdb_step.connect(
-                              lambda fname, lineno, shellwidget=shellwidget:
-                              self.pdb_has_stopped(fname, lineno, shellwidget))
+            lambda fname, lineno, shellwidget=shellwidget:
+            self.pdb_has_stopped(fname, lineno, shellwidget))
         shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
 
         # To handle %edit magic petitions
@@ -1703,14 +1705,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             close_all = True
             if client.ask_before_closing:
                 close = QMessageBox.question(
-                    self, self._plugin.get_name(),
+                    self,
+                    self._plugin.get_name(),
                     _("Do you want to close this console?"),
                     QMessageBox.Yes | QMessageBox.No)
                 if close == QMessageBox.No:
                     return
             if len(self.get_related_clients(client)) > 0:
                 close_all = QMessageBox.question(
-                    self, self._plugin.get_name(),
+                    self,
+                    self._plugin.get_name(),
                     _("Do you want to close all other consoles connected "
                       "to the same kernel as this one?"),
                     QMessageBox.Yes | QMessageBox.No)
@@ -1746,13 +1750,12 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def close_clients(self):
         """
-        Do close actions for each running client
+        Perform close actions for each running client.
 
         Returns
         -------
         bool
             If the closing action was succesful.
-
         """
         for client in self.get_clients():
             client.shutdown()
@@ -1773,8 +1776,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         """
         related_clients = []
         for cl in self.get_clients():
-            if cl.connection_file == client.connection_file and \
-              cl is not client:
+            if (cl.connection_file == client.connection_file and
+                    cl is not client):
                 related_clients.append(cl)
         return related_clients
 
@@ -1799,7 +1802,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.shutdown()
             except Exception as e:
                 QMessageBox.warning(
-                    self, _('Warning'),
+                    self,
+                    _('Warning'),
                     _("It was not possible to restart the IPython console "
                       "when switching to this project. The error was<br><br>"
                       "<tt>{0}</tt>").format(e), QMessageBox.Ok)
@@ -1841,39 +1845,38 @@ class IPythonConsoleWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     def register_spyder_kernel_call_handler(self, handler_id, handler):
         """
-        Register a callback for it to be available for new create
-        clients kernels
+        Register a callback for it to be available for newly created
+        client kernels.
 
         Parameters
         ----------
         handler_id : str
             Handler name to be registered and that will be used to
-            call the respective handler from the spyder kernel.
+            call the respective handler from the Spyder kernel.
         handler : func
-            Callback function that will be call when the spyder-kernel instance
-            request the request_i identifierd.
+            Callback function that will be called when the kernel request
+            the handler_id identifier.
 
         Returns
         -------
         None.
-
         """
         self.registered_spyder_kernel_handlers[handler_id] = handler
 
     def unregister_spyder_kernel_call_handler(self, handler_id):
         """
-        Unregister/remove a handler for not be added to new clients kernels
+        Unregister and remove a handler to not be added to newly created
+        client kernels.
 
         Parameters
         ----------
-        request_id : str
-            Handler name that was registered and that will be removed
-            from the spyder kernel available handlers.
+        handler_id : str
+            Handler name that was registered and will be removed from
+            the Spyder kernel available handlers.
 
         Returns
         -------
         None.
-
         """
         self.registered_spyder_kernel_handlers.pop(handler_id, None)
 
@@ -2061,7 +2064,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         debug_msg = _('The current file cannot be closed because it is '
                       'in debug mode.')
         self.get_current_client().shellwidget.append_html_message(
-                    debug_msg, before_prompt=True)
+            debug_msg, before_prompt=True)
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, run_cell_copy,
@@ -2098,12 +2101,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.change_visibility(True)
         else:
             # XXX: not sure it can really happen
-            QMessageBox.warning(self, _('Warning'),
-                                _("No IPython console is currently available "
-                                  "to run <b>{}</b>.<br><br>Please open a new "
-                                  "one and try again."
-                                  ).format(osp.basename(filename)),
-                                QMessageBox.Ok)
+            QMessageBox.warning(
+                self,
+                _('Warning'),
+                _("No IPython console is currently available "
+                  "to run <b>{}</b>.<br><br>Please open a new "
+                  "one and try again.").format(osp.basename(filename)),
+                QMessageBox.Ok
+            )
 
     def debug_cell(self, code, cell_name, filename, run_cell_copy):
         """Debug current cell."""
@@ -2175,10 +2180,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
-                self, _('Warning'),
+                self,
+                _('Warning'),
                 _("No IPython console is currently available to run <b>%s</b>."
                   "<br><br>Please open a new one and try again."
-                  ) % osp.basename(filename), QMessageBox.Ok)
+                  ) % osp.basename(filename),
+                QMessageBox.Ok
+            )
 
     # ---- For working directory and path management
     def set_current_client_working_directory(self, directory):
@@ -2214,7 +2222,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         Returns
         -------
         None.
-
         """
         self.spyder_pythonpath = spyder_pythonpath
 
