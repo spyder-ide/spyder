@@ -212,8 +212,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Load settings from configuration file."""
         for checkbox, (sec, option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default, section=sec))
-            checkbox.clicked.connect(lambda _, opt=option, sect=sec:
-                                     self.has_been_modified(sect, opt))
+            checkbox.clicked[bool].connect(lambda _, opt=option, sect=sec:
+                                           self.has_been_modified(sect, opt))
             if checkbox.restart_required:
                 self.restart_options[(sec, option)] = checkbox.text()
         for radiobutton, (sec, option, default) in list(
@@ -310,21 +310,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
             edit.textChanged.connect(lambda _foo, opt=option, sect=sec:
                                      self.has_been_modified(sect, opt))
-            # QAbstractButton works differently for PySide and PyQt
-            if not API == 'pyside':
-                btn.clicked.connect(lambda _foo, opt=option, sect=sec:
-                                    self.has_been_modified(sect, opt))
-                cb_bold.clicked.connect(lambda _foo, opt=option, sect=sec:
-                                        self.has_been_modified(sect, opt))
-                cb_italic.clicked.connect(lambda _foo, opt=option, sect=sec:
+            btn.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
+                                      self.has_been_modified(sect, opt))
+            cb_bold.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
                                           self.has_been_modified(sect, opt))
-            else:
-                btn.clicked.connect(lambda opt=option, sect=sec:
-                                    self.has_been_modified(sect, opt))
-                cb_bold.clicked.connect(lambda opt=option, sect=sec:
-                                        self.has_been_modified(sect, opt))
-                cb_italic.clicked.connect(lambda opt=option, sect=sec:
-                                          self.has_been_modified(sect, opt))
+            cb_italic.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
+                                            self.has_been_modified(sect, opt))
 
     def save_to_conf(self):
         """Save settings to configuration file"""
