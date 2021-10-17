@@ -21,6 +21,7 @@ import shutil
 import sys
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
@@ -249,8 +250,11 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        QTreeView.__init__(self, parent)
-        SpyderWidgetMixin.__init__(self, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent=parent, class_parent=parent)
+        else:
+            QTreeView.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Attributes
         self._parent = parent
