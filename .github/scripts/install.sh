@@ -33,6 +33,9 @@ else
     # Update pip and setuptools
     pip install -U pip setuptools
 
+    # Note: Remove this when PyLSP 1.3.0 is released
+    pip install pylint==2.9.6
+
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
 
@@ -58,6 +61,9 @@ else
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y
+
+    # Note: Remove this when PyLSP 1.3.0 is released
+    pip install -U pylint
 fi
 
 # Install subrepos in development mode
