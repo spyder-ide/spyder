@@ -14,6 +14,7 @@ import socket
 import sys
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE, QWebEnginePage
@@ -154,8 +155,11 @@ class RichText(QWidget, SpyderWidgetMixin):
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        SpyderWidgetMixin.__init__(self, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.webview = FrameWebView(self)
         self.webview.setup()

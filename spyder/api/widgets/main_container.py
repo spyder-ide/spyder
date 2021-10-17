@@ -12,6 +12,7 @@ subclass of PluginMainContainer, if they provide additional widgets like
 status bar widgets or toolbars.
 """
 
+from qtpy import PYQT5
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QWidget
 
@@ -101,8 +102,11 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
 
     def __init__(self, name, plugin, parent=None):
-        QWidget.__init__(self, parent)
-        SpyderWidgetMixin.__init__(self, class_parent=plugin)
+        if PYQT5:
+            super().__init__(parent=parent, class_parent=plugin)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=plugin)
 
         # Attributes
         # --------------------------------------------------------------------
