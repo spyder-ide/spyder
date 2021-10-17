@@ -1544,7 +1544,6 @@ class MainWindow(QMainWindow):
                 self.addDockWidget(location, dockwidget)
                 self.widgetlist.append(plugin)
 
-    @Slot()
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()

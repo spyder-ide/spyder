@@ -154,7 +154,8 @@ class RichText(QWidget, SpyderWidgetMixin):
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        super().__init__(parent, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.webview = FrameWebView(self)
         self.webview.setup()

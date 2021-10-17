@@ -338,7 +338,7 @@ class BaseSH(QSyntaxHighlighter):
                     start = max([0, start + offset])
                     end = max([0, end + offset])
                     font = self.format(start)
-                    font.setUnderlineStyle(True)
+                    font.setUnderlineStyle(QTextCharFormat.SingleUnderline)
                     self.setFormat(start, end - start, font)
 
             match = self.patterns.search(text, match.end())
@@ -1239,7 +1239,7 @@ class MarkdownSH(BaseSH):
         self.formats['strikethrough'] = font
 
         font = QTextCharFormat(self.formats['string'])
-        font.setUnderlineStyle(True)
+        font.setUnderlineStyle(QTextCharFormat.SingleUnderline)
         self.formats['link'] = font
 
         self.formats['code'] = self.formats['string']

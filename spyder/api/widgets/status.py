@@ -73,7 +73,8 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         1. To use an icon, you need to redefine the ``get_icon`` method.
         2. To use a label, you need to call ``set_value``.
         """
-        super().__init__(parent, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
         self._parent = parent
 
         self.show_icon = show_icon

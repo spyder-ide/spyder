@@ -184,7 +184,8 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
     sig_conditional_breakpoint_requested = Signal()
 
     def __init__(self, parent, data):
-        super().__init__(parent, class_parent=parent)
+        QTableView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Widgets
         self.model = BreakpointTableModel(self, data)

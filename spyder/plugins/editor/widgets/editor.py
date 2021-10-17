@@ -408,7 +408,7 @@ class EditorStack(QWidget):
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_current_filename()
         try:
             show_in_external_file_explorer(fnames)

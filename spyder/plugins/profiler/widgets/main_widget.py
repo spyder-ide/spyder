@@ -663,7 +663,8 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
     sig_edit_goto_requested = Signal(str, int, str)
 
     def __init__(self, parent=None):
-        super().__init__(parent, class_parent=parent)
+        QTreeWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]

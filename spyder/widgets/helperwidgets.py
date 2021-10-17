@@ -159,7 +159,14 @@ class HTMLDelegate(QStyledItemDelegate):
                     painter.translate(textRect.topLeft() + QPoint(2, 4))
         else:
             painter.translate(textRect.topLeft() + QPoint(0, -3))
-        doc.documentLayout().draw(painter, ctx)
+
+        # Type check: Prevent error in PySide where using
+        # doc.documentLayout().draw() may fail because doc.documentLayout()
+        # returns an object of type QtGui.QStandardItem (for whatever reason).
+        docLayout = doc.documentLayout()
+        if type(docLayout) is QAbstractTextDocumentLayout:
+            docLayout.draw(painter, ctx)
+
         painter.restore()
 
     def sizeHint(self, option, index):

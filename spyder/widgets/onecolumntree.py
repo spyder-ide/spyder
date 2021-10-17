@@ -36,7 +36,8 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent):
-        super().__init__(parent, class_parent=parent)
+        QTreeWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.__expanded_state = None
 
