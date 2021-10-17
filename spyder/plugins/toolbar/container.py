@@ -365,12 +365,13 @@ class ToolbarContainer(PluginMainContainer):
                 if not PYSIDE2:
                     # Modifying __class__ of a QObject created by C++ [1] seems
                     # to invalidate the corresponding Python object when PySide
-                    # is used (changing __class__ of a QObject created in Python
-                    # seems to work).
+                    # is used (changing __class__ of a QObject created in
+                    # Python seems to work).
                     #
-                    # [1] There are Qt functions such as QToolBar::toggleViewAction(),
-                    # QToolBar::addAction(QString), QMainWindow::addToolbar(QString)
-                    # wich return a pointer to an already existing QObject.
+                    # [1] There are Qt functions such as
+                    # QToolBar.toggleViewAction(), QToolBar.addAction(QString)
+                    # and QMainWindow.addToolbar(QString), which return a
+                    # pointer to an already existing QObject.
                     action.__class__ = QActionID
                 action.action_id = f'toolbar_{toolbar_id}'
                 section = (

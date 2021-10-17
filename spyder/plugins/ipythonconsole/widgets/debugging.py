@@ -676,4 +676,3 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             return True
 
         return super().eventFilter(obj, event)
-
