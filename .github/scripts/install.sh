@@ -95,7 +95,7 @@ mamba list -n spytest-ž
 
 # Install pyenv in Posix systems
 if [ "$RUN_SLOW" = "false" ]; then
-    if [ "$OS" != "win" ]; then
+    if [ "$OS" = "linux" ]; then
         curl https://pyenv.run | bash
         $HOME/.pyenv/bin/pyenv install 3.8.1
     fi
