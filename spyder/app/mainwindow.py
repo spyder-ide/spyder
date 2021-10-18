@@ -47,7 +47,7 @@ requirements.check_spyder_kernels()
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QKeySequence, QIcon
+from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
                             QShortcut, QStyleFactory)
 
@@ -1593,7 +1593,7 @@ class MainWindow(QMainWindow):
         if encoding.is_text_file(fname):
             self.editor.load(fname)
         elif self.variableexplorer is not None and ext in IMPORT_EXT:
-            self.variableexplorer.import_data(fname)
+            self.variableexplorer.get_widget().import_data(fname)
         elif not external:
             fname = file_uri(fname)
             start_file(fname)
