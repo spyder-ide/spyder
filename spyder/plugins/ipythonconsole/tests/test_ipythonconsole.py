@@ -960,7 +960,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
         shell.execute('%debug print()')
 
     # Set processing events to True
-    ipyconsole.set_conf('pdb_execute_events', True, section='ipython_console')
+    ipyconsole.set_conf('pdb_execute_events', True)
     shell.set_pdb_execute_events(True)
 
     # Test reset magic
@@ -972,7 +972,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
     # Set processing events to False
-    ipyconsole.set_conf('pdb_execute_events', False, section='ipython_console')
+    ipyconsole.set_conf('pdb_execute_events', False)
     shell.set_pdb_execute_events(False)
 
     # Test reset magic
@@ -1310,8 +1310,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
                     timeout=SHELL_TIMEOUT)
 
     # New client with the same kernel
-    ipyconsole.get_widget()._create_client_for_kernel(client.connection_file, None, None,
-                                         None)
+    ipyconsole.get_widget()._create_client_for_kernel(
+        client.connection_file, None, None, None)
 
     assert len(ipyconsole.get_widget().get_related_clients(client)) == 1
     other_client = ipyconsole.get_widget().get_related_clients(client)[0]
@@ -1566,8 +1566,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     control.setFocus()
 
     # Tests assume inline backend
-    ipyconsole.set_conf(
-        'pdb_ignore_lib', not show_lib, section='ipython_console')
+    ipyconsole.set_conf('pdb_ignore_lib', not show_lib)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
@@ -1584,7 +1583,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
         assert 'iostream.py' in control.toPlainText()
     else:
         assert 'iostream.py' not in control.toPlainText()
-    ipyconsole.set_conf('pdb_ignore_lib', True, section='ipython_console')
+    ipyconsole.set_conf('pdb_ignore_lib', True)
 
 
 @flaky(max_runs=3)
@@ -1776,7 +1775,8 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     # Run a line on startup
     ipyconsole.set_conf(
         'startup/pdb_run_lines',
-        'abba = 12; print("Hello")', section='ipython_console')
+        'abba = 12; print("Hello")'
+    )
 
     shell.execute('%debug print()')
     qtbot.waitUntil(lambda: 'Hello' in control.toPlainText())
@@ -1785,8 +1785,7 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     assert shell.get_value('abba') == 12
 
     # Reset setting
-    ipyconsole.set_conf(
-        'startup/pdb_run_lines', '', section='ipython_console')
+    ipyconsole.set_conf('startup/pdb_run_lines', '')
 
 
 @flaky(max_runs=3)
