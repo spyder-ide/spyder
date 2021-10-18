@@ -317,7 +317,7 @@ class IPythonConsole(SpyderDockablePlugin):
             self.print_debug_file_msg)
 
         # Connect Console focus request with Editor
-        self.sig_editor_focus_requested.connect(self._switch_to_edtior)
+        self.sig_editor_focus_requested.connect(self._switch_to_editor)
 
     @on_plugin_available(plugin=Plugins.History)
     def on_history_available(self):
@@ -354,7 +354,7 @@ class IPythonConsole(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         editor.load(fname, lineno, word, processevents=processevents)
 
-    def _switch_to_edtior(self):
+    def _switch_to_editor(self):
         editor = self.get_plugin(Plugins.Editor)
         editor.switch_to_plugin()
 
@@ -651,7 +651,7 @@ class IPythonConsole(SpyderDockablePlugin):
         console.execute_code(lines)
         # TODO: Change after editor migration
         if focus_to_editor and self.get_plugin(Plugins.Editor):
-            self._switch_to_edtior()
+            self._switch_to_editor()
 
     def stop_debugging(self):
         """Stop debugging in the current console."""
