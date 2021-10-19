@@ -31,7 +31,7 @@ from zmq.ssh import tunnel as zmqtunnel
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.widgets.menus import SpyderMenu
+from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_conf_path, get_home_dir, running_under_pytest)
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -134,6 +134,11 @@ class IPythonConsoleWidget(PluginMainWidget):
     """
     This signal is emitted when the plugin wants a specific history file
     to be shown.
+
+    Parameters
+    ----------
+    path: str
+        Path to history file.
     """
 
     sig_focus_changed = Signal()
@@ -159,6 +164,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         Cursor starting row position.
     word: str
         Word to select on given row.
+    processevents: bool
+        True if the code editor need to process qt events when loading the
+        requested file.
     """
 
     sig_pdb_state_changed = Signal(bool, dict)
@@ -282,9 +290,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.registered_spyder_kernel_handlers = {}
 
         # Attrs for testing
-        self._testing = bool(os.environ.get('testing'))
-        self._test_dir = os.environ.get('test_dir')
-        self._test_no_stderr = os.environ.get('test_no_stderr')
+        self._testing = bool(os.environ.get('IPYCONSOLE_TESTING'))
+        self._test_dir = os.environ.get('IPYCONSOLE_TEST_DIR')
+        self._test_no_stderr = os.environ.get('IPYCONSOLE_TEST_NO_STDERR')
 
         # Create temp dir on testing to save kernel errors
         if self._test_dir:
@@ -319,23 +327,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         else:
             layout.addWidget(self.tabwidget)
 
-        self.time_label = QLabel("")
-
-        self.stop_button = self.create_toolbutton(
-            'interrupt',
-            text=_("Interrupt kernel"),
-            tip=_("Interrupt kernel"),
-            icon=self.create_icon('stop'),
-            triggered=self.interrupt_kernel,
-        )
-        self.reset_button = self.create_toolbutton(
-            'reset',
-            text=_("Remove all variables"),
-            tip=_("Remove all variables from kernel namespace"),
-            icon=self.create_icon("editdelete"),
-            triggered=self.reset_namespace,
-        )
-
         # Info widget
         self.infowidget = FrameWebView(self)
         if WEBENGINE:
@@ -360,8 +351,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        # TODO: Check shortcut for find widget
-        # self.register_widget_shortcuts(self.find_widget)
         layout.addWidget(self.find_widget)
 
         self.setLayout(layout)
@@ -493,14 +482,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             register_shortcut=True)
 
         self.context_menu_actions = (
-            None,
+            MENU_SEPARATOR,
             self.inspect_action,
             self.clear_line_action,
             self.clear_console_action,
             self.reset_action,
             self.array_table_action,
             self.array_inline_action,
-            None,
+            MENU_SEPARATOR,
             self.quit_action
         )
 
@@ -571,15 +560,32 @@ class IPythonConsoleWidget(PluginMainWidget):
                 section=IPythonConsoleWidgetConsolesMenusSection.Main,
             )
 
+        # Widgets for the tab corner
+        self.reset_button = self.create_toolbutton(
+            'reset',
+            text=_("Remove all variables"),
+            tip=_("Remove all variables from kernel namespace"),
+            icon=self.create_icon("editdelete"),
+            triggered=self.reset_namespace,
+        )
+        self.stop_button = self.create_toolbutton(
+            'interrupt',
+            text=_("Interrupt kernel"),
+            tip=_("Interrupt kernel"),
+            icon=self.create_icon('stop'),
+            triggered=self.interrupt_kernel,
+        )
+        self.time_label = QLabel("")
+
         # Add tab corner widgets.
         self.add_corner_widget('reset', self.reset_button)
         self.add_corner_widget('start_interrupt', self.stop_button)
         self.add_corner_widget('timer', self.time_label)
 
-        self.ipython_menu = SpyderMenu(
-            parent=self,
-            title=_("IPython documentation"),
-            menu_id=IPythonConsoleWidgetOptionsMenus.Documentation)
+        # Create IPython documentation menu
+        self.ipython_menu = self.create_menu(
+            menu_id=IPythonConsoleWidgetOptionsMenus.Documentation,
+            title=_("IPython documentation"))
         intro_action = self.create_action(
             IPythonConsoleWidgetActions.IPythonDocumentation,
             text=_("Intro to IPython"),

@@ -185,9 +185,9 @@ def ipyconsole(qtbot, request, tmpdir):
     configuration.set('appearance', 'css_path', CSS_PATH)
 
     # Create the console and a new client and set environment
-    os.environ['testing'] = 'True'
-    os.environ['test_dir'] = test_dir
-    os.environ['test_no_stderr'] = test_no_stderr
+    os.environ['IPYCONSOLE_TESTING'] = 'True'
+    os.environ['IPYCONSOLE_TEST_DIR'] = test_dir
+    os.environ['IPYCONSOLE_TEST_NO_STDERR'] = test_no_stderr
     window = MainWindowMock()
     console = IPythonConsole(parent=window, configuration=configuration)
     console._register()
@@ -221,9 +221,9 @@ def ipyconsole(qtbot, request, tmpdir):
     # Close
     console.on_close()
     window.close()
-    os.environ.pop('testing')
-    os.environ.pop('test_dir')
-    os.environ.pop('test_no_stderr')
+    os.environ.pop('IPYCONSOLE_TESTING')
+    os.environ.pop('IPYCONSOLE_TEST_DIR')
+    os.environ.pop('IPYCONSOLE_TEST_NO_STDERR')
 
 
 # =============================================================================

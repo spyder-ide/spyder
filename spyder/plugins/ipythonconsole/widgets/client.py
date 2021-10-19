@@ -773,8 +773,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def set_show_elapsed_time(self, state):
         """Slot to show/hide elapsed time label."""
         self.show_elapsed_time = state
-        # if self.time_label is not None:
-        #     self.time_label.setVisible(state)
 
     def set_info_page(self):
         """Set current info_page."""
