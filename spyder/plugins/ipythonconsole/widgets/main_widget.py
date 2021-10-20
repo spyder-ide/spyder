@@ -39,8 +39,8 @@ from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
-    ClientWidget, ConsoleRestartDialog, KernelConnectionDialog,
-    PageControlWidget)
+    ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
+    KernelConnectionDialog, PageControlWidget)
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -639,7 +639,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client,
                 client.set_show_elapsed_time,
                 value)
-        self.set_show_elapsed_time_current_client(value)
+        if self.get_current_client():
+            self.refresh_container()
 
     @on_conf_change(option='show_reset_namespace_warning')
     def change_clients_show_reset_namespace_warning(self, value):
@@ -690,12 +691,10 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option='completion_type')
     def change_clients_completion_type(self, value):
         for idx, client in enumerate(self.clients):
-            # TODO: Maybe this is a constant in spyder-kernels?
-            completions = {0: "droplist", 1: "ncurses", 2: "plain"}
             self._change_client_conf(
                 client,
                 client.shellwidget._set_completion_widget,
-                completions[value])
+                COMPLETION_WIDGET_TYPE[value])
 
     # ---- Advanced GUI options
     @on_conf_change(option='in_prompt')
@@ -847,14 +846,20 @@ class IPythonConsoleWidget(PluginMainWidget):
                 else:
                     self._change_client_mpl_conf(options, client)
             elif restart and restart_all:
+                current_ask_before_restart = client.ask_before_restart
                 client.ask_before_restart = False
                 client.restart_kernel()
+                client.ask_before_restart = current_ask_before_restart
 
         if (((pylab_restart and current_client_backend_not_inline)
              or restart_needed) and restart_current):
             current_client = self.get_current_client()
+            current_client_ask_before_restart = (
+                current_client.ask_before_restart)
             current_client.ask_before_restart = False
             current_client.restart_kernel()
+            current_client.ask_before_restart = (
+                current_client_ask_before_restart)
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -880,11 +885,16 @@ class IPythonConsoleWidget(PluginMainWidget):
         sw = client.shellwidget
         if not client.is_client_executing():
             client_conf_func(value)
-        else:
+        elif client.shellwidget.is_debugging():
             def change_conf(c=client, ccf=client_conf_func, value=value):
                 ccf(value)
                 c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
             sw.sig_pdb_prompt_ready.connect(change_conf)
+        else:
+            def change_conf(c=client, ccf=client_conf_func, value=value):
+                ccf(value)
+                c.shellwidget.sig_prompt_ready.disconnect(change_conf)
+            sw.sig_prompt_ready.connect(change_conf)
 
     def _change_client_mpl_conf(self, options, client):
         """Apply Matplotlib related configurations to a client."""
@@ -1150,7 +1160,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         Refresh interface depending on the current widget client available.
 
         Refreshes corner widgets and actions as well as the info widget and
-        sets the shellwdiget for other plugins (Variable Explorer and Plots)
+        sets the shellwdiget and client signals
         """
         client = None
         if self.tabwidget.count():
@@ -1321,7 +1331,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Gui completion widget
         completion_type_o = self.get_conf('completion_type')
-        completions = {0: "droplist", 1: "ncurses", 2: "plain"}
+        completions = COMPLETION_WIDGET_TYPE
         spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
 
         # Calltips
@@ -1571,7 +1581,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         shellwidget = client.shellwidget
         shellwidget.set_kernel_client_and_manager(kc, km)
 
-        # FIXME:
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
 
