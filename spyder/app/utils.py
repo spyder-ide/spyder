@@ -28,6 +28,7 @@ from spyder.config.base import (
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.installers import running_installer_test
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import file_uri, qapplication
 
@@ -41,6 +42,9 @@ except Exception:
 root_logger = logging.getLogger()
 FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')
 FILTER_NAMES = [f.strip() for f in FILTER_NAMES]
+
+# Keeping a reference to the original sys.exit before patching it
+ORIGINAL_SYS_EXIT = sys.exit
 
 
 class Spy:
@@ -249,6 +253,10 @@ def create_application():
     # ---- Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
     def spy_excepthook(type_, value, tback):
         sys.__excepthook__(type_, value, tback)
+        if running_installer_test():
+            # This will exit Spyder with exit code 1 without invoking
+            # macOS system dialogue window.
+            raise SystemExit(1)
     sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter

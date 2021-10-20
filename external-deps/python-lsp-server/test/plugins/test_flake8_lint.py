@@ -93,7 +93,7 @@ def get_flake8_cfg_settings(workspace, config_str):
     This function creates a ``setup.cfg``; you'll have to delete it yourself.
     """
 
-    with open(os.path.join(workspace.root_path, "setup.cfg"), "w+") as f:
+    with open(os.path.join(workspace.root_path, "setup.cfg"), "w+", encoding='utf-8') as f:
         f.write(config_str)
 
     workspace.update_config({"pylsp": {"configurationSources": ["flake8"]}})

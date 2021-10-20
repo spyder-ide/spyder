@@ -92,7 +92,7 @@ def _configure_logger(verbose=0, log_config=None, log_file=None):
     root_logger = logging.root
 
     if log_config:
-        with open(log_config, 'r') as f:
+        with open(log_config, 'r', encoding='utf-8') as f:
             logging.config.dictConfig(json.load(f))
     else:
         formatter = logging.Formatter(LOG_FORMAT)

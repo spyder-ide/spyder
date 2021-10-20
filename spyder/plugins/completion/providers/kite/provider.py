@@ -127,6 +127,14 @@ class KiteProvider(SpyderCompletionProvider):
             self.client.start()
 
     def shutdown(self):
+        try:
+            self.remove_item_from_application_menu(
+                KiteProviderActions.Installation,
+                menu_id=ApplicationMenus.Tools)
+        except KeyError:
+            # Action does not exist
+            pass
+
         self.client.stop()
         if self.kite_process is not None:
             self.kite_process.kill()

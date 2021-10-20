@@ -12,7 +12,7 @@ import sys
 
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetrics
+from qtpy.QtGui import QFontMetrics, QFocusEvent
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QToolTip)
 
@@ -425,6 +425,12 @@ class CompletionWidget(QListWidget):
 
     def focusOutEvent(self, event):
         """Override Qt method."""
+
+        # Type check: Prevent error in PySide where 'event' may be of type
+        # QtGui.QPainter (for whatever reason).
+        if type(event) is not QFocusEvent:
+            return
+
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
         # keyboard input is lost.

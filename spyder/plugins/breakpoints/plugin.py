@@ -18,7 +18,8 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.breakpoints.widgets.main_widget import BreakpointWidget
 from spyder.plugins.mainmenu.api import ApplicationMenus
@@ -88,7 +89,8 @@ class Breakpoints(SpyderDockablePlugin):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _("Breakpoints")
 
     def get_description(self):
@@ -139,6 +141,29 @@ class Breakpoints(SpyderDockablePlugin):
         list_action = self.get_action(BreakpointsActions.ListBreakpoints)
         mainmenu.add_item_to_application_menu(
             list_action, menu_id=ApplicationMenus.Debug)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        list_action = self.get_action(BreakpointsActions.ListBreakpoints)
+
+        editor.breakpoints_saved.disconnect(self.set_data)
+        widget.sig_clear_all_breakpoints_requested.disconnect(
+            editor.clear_all_breakpoints)
+        widget.sig_clear_breakpoint_requested.disconnect(
+            editor.clear_breakpoint)
+        widget.sig_edit_goto_requested.disconnect(editor.load)
+        widget.sig_conditional_breakpoint_requested.disconnect(
+            editor.set_or_edit_conditional_breakpoint)
+
+        editor.pythonfile_dependent_actions.remove(list_action)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            BreakpointsActions.ListBreakpoints, menu_id=ApplicationMenus.Debug)
 
     # --- Private API
     # ------------------------------------------------------------------------

@@ -237,7 +237,8 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
     sig_update_plugin_title = Signal()
 
     def __init__(self, main=None):
-        super(BasePluginWidget, self).__init__(main)
+        QWidget.__init__(self)
+        BasePluginWidgetMixin.__init__(self, main)
 
         # Dockwidget for the plugin, i.e. the pane that's going to be
         # displayed in Spyder for this plugin.

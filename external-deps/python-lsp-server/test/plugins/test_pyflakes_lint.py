@@ -21,7 +21,7 @@ DOC_SYNTAX_ERR = """def hello()
 DOC_UNDEFINED_NAME_ERR = "a = b"
 
 
-DOC_ENCODING = u"""# encoding=utf-8
+DOC_ENCODING = """# encoding=utf-8
 import sys
 """
 

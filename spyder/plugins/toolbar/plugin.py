@@ -15,11 +15,13 @@ from typing import Union, Optional
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.plugins.toolbar.container import ToolbarContainer
+from spyder.plugins.toolbar.container import (
+    ToolbarContainer, ToolbarMenus, ToolbarActions)
 
 # Third-party imports
 from qtpy.QtWidgets import QWidget
@@ -40,7 +42,8 @@ class Toolbar(SpyderPluginV2):
 
     # --- SpyderDocakblePlugin API
     #  -----------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return _('Toolbar')
 
     def get_description(self):
@@ -70,6 +73,17 @@ class Toolbar(SpyderPluginV2):
             menu_id=ApplicationMenus.View,
             section=ViewMenuSections.Toolbar,
             before_section=ViewMenuSections.Layout)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        # View menu Toolbar section
+        mainmenu.remove_item_from_application_menu(
+            ToolbarMenus.ToolbarsMenu,
+            menu_id=ApplicationMenus.View)
+        mainmenu.remove_item_from_application_menu(
+            ToolbarActions.ShowToolbars,
+            menu_id=ApplicationMenus.View)
 
     def on_mainwindow_visible(self):
         container = self.get_container()
@@ -101,10 +115,11 @@ class Toolbar(SpyderPluginV2):
         container.create_toolbars_menu()
         container.load_last_visible_toolbars()
 
-    def on_close(self):
+    def on_close(self, _unused):
         container = self.get_container()
-        if container._toolbars_visible:
-            self.save_visible_toolbars()
+        container._save_visible_toolbars()
+        for toolbar in container._visible_toolbars:
+            toolbar.setVisible(False)
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -142,6 +157,20 @@ class Toolbar(SpyderPluginV2):
             The application toolbar to add to the main window.
         """
         self.get_container().add_application_toolbar(toolbar, self._main)
+
+    def remove_application_toolbar(self, toolbar_id: str):
+        """
+        Remove toolbar from the application toolbars.
+
+        This can be used to remove a custom toolbar. The `WorkingDirectory`
+        plugin is an example of this.
+
+        Parameters
+        ----------
+        toolbar: str
+            The application toolbar to remove from the main window.
+        """
+        self.get_container().remove_application_toolbar(toolbar_id, self._main)
 
     def add_item_to_application_toolbar(self,
                                         item: Union[SpyderAction, QWidget],
@@ -183,6 +212,23 @@ class Toolbar(SpyderPluginV2):
                 before_section=before_section,
                 omit_id=omit_id
             )
+
+    def remove_item_from_application_toolbar(self, item_id: str,
+                                             toolbar_id: Optional[str] = None):
+        """
+        Remove action or widget `item` from given application menu by id.
+
+        Parameters
+        ----------
+        item_id: str
+            The item to remove from the toolbar.
+        toolbar_id: str or None
+            The application toolbar unique string identifier.
+        """
+        self.get_container().remove_item_from_application_toolbar(
+            item_id,
+            toolbar_id=toolbar_id
+        )
 
     def get_application_toolbar(self, toolbar_id):
         """

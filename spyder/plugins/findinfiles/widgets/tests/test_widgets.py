@@ -17,15 +17,15 @@ from unittest.mock import MagicMock
 from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.plugins.findinfiles.widgets import (FindInFilesWidget,
-                                                SearchInComboBox,
-                                                EXTERNAL_PATHS, SELECT_OTHER,
-                                                CWD, CLEAR_LIST, PROJECT,
-                                                FILE_PATH, QMessageBox,
-                                                SearchThread)
+from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
+from spyder.plugins.findinfiles.widgets.combobox import (
+    CWD, CLEAR_LIST, EXTERNAL_PATHS, FILE_PATH, PROJECT, SearchInComboBox,
+    SELECT_OTHER)
+from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.palette import QStylePalette, SpyderPalette
 
 
@@ -92,7 +92,7 @@ def findinfiles(qtbot, request):
 @pytest.fixture
 def searchin_combobox(qtbot, request):
     """Set up SearchInComboBox combobox."""
-    from spyder.plugins.findinfiles import widgets
+    from spyder.plugins.findinfiles.widgets import combobox
 
     if getattr(request, 'param', False):
         param = request.param
@@ -100,7 +100,7 @@ def searchin_combobox(qtbot, request):
         param = None
 
     if param and param.get('max_history_path'):
-        widgets.MAX_PATH_HISTORY = param.get('max_history_path')
+        combobox.MAX_PATH_HISTORY = param.get('max_history_path')
 
     external_path_history = [
             LOCATION,
@@ -336,8 +336,10 @@ def test_add_external_paths(searchin_combobox, mocker):
     # Add a new external path to the combobox. The new path is added at the
     # end of the combobox.
     new_path = NONASCII_DIR
-    mocker.patch('spyder.plugins.findinfiles.widgets.getexistingdirectory',
-                 return_value=new_path)
+    mocker.patch(
+        'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
+        return_value=new_path
+    )
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
 
     expected_results.append(new_path)
@@ -348,8 +350,10 @@ def test_add_external_paths(searchin_combobox, mocker):
     # Add an external path that is already listed in the combobox. In this
     # case, the new path is removed from the list and is added back at the end.
     new_path = LOCATION
-    mocker.patch('spyder.plugins.findinfiles.widgets.getexistingdirectory',
-                 return_value=new_path)
+    mocker.patch(
+        'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
+        return_value=new_path
+    )
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
 
     expected_results.pop(0)
@@ -360,8 +364,10 @@ def test_add_external_paths(searchin_combobox, mocker):
 
     # Cancel the action of adding a new external path. In this case, the
     # expected results do not change.
-    mocker.patch('spyder.plugins.findinfiles.widgets.getexistingdirectory',
-                 return_value='')
+    mocker.patch(
+        'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
+        return_value=''
+    )
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
 
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
@@ -570,7 +576,7 @@ def test_current_search_path(findinfiles, qtbot):
 @pytest.mark.parametrize('searchin_combobox',
                          [{'max_history_path': 3}],
                          indirect=True)
-def test_max_history(searchin_combobox, mocker):
+def test_max_history(searchin_combobox):
     """
     Test that the specified maximum number of external path is observed.
     """

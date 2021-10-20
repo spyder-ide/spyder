@@ -14,7 +14,8 @@ This is the main widget used in the Variable Explorer plugin
 import os
 import os.path as osp
 
-# Third library imports (qtpy)
+# Third library imports
+from qtpy import PYQT5
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
@@ -55,7 +56,11 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     sig_hide_finder_requested = Signal()
 
     def __init__(self, parent):
-        super().__init__(parent=parent, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent=parent, class_parent=parent)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Attributes
         self.filename = None

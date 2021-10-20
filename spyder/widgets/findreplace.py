@@ -196,6 +196,12 @@ class FindReplace(QWidget):
         This signals are used for search forward and backward.
         Also, a crude hack to get tab working in the Find/Replace boxes.
         """
+
+        # Type check: Prevent error in PySide where 'event' may be of type
+        # QtGui.QPainter (for whatever reason).
+        if not isinstance(event, QEvent):
+            return True
+
         if event.type() == QEvent.KeyPress:
             key = event.key()
             shift = event.modifiers() & Qt.ShiftModifier

@@ -82,7 +82,6 @@ class EditTabNamePopup(QLineEdit):
                  event.key() == Qt.Key_Escape)):
             # Exits editing
             self.hide()
-            self.setFocus(False)
             return True
 
         # Event is not interessant, raise to parent
@@ -92,7 +91,7 @@ class EditTabNamePopup(QLineEdit):
         """Activate the edit tab."""
 
         # Sets focus, shows cursor
-        self.setFocus(True)
+        self.setFocus()
 
         # Updates tab index
         self.tab_index = index

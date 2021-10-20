@@ -26,9 +26,15 @@ if [ "$USE_CONDA" = "true" ]; then
     conda remove spyder-kernels --force -q -y
     conda remove python-lsp-server --force -q -y
     conda remove qdarkstyle --force -q -y
+
+    # Note: Remove this when PyLSP 1.3.0 is released
+    mamba install 'pylint >=2.10' -c conda-forge -q -y
 else
     # Update pip and setuptools
     pip install -U pip setuptools
+
+    # Note: Remove this when PyLSP 1.3.0 is released
+    pip install pylint==2.9.6
 
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
@@ -52,6 +58,12 @@ else
     pip uninstall spyder-kernels -q -y
     pip uninstall python-lsp-server -q -y
     pip uninstall qdarkstyle -q -y
+
+    # Remove Spyder to properly install it below
+    pip uninstall spyder -q -y
+
+    # Note: Remove this when PyLSP 1.3.0 is released
+    pip install -U pylint
 fi
 
 # Install subrepos in development mode
@@ -70,7 +82,6 @@ popd
 # Install Spyder to test it as if it was properly installed.
 # Note: `python setup.py egg_info` doesn't work here but it
 # does locally.
-pip uninstall spyder -q -y
 python setup.py -q bdist_wheel
 pip install --no-deps -q dist/spyder*.whl
 
@@ -84,7 +95,7 @@ mamba list -n spytest-ž
 
 # Install pyenv in Posix systems
 if [ "$RUN_SLOW" = "false" ]; then
-    if [ "$OS" != "win" ]; then
+    if [ "$OS" = "linux" ]; then
         curl https://pyenv.run | bash
         $HOME/.pyenv/bin/pyenv install 3.8.1
     fi

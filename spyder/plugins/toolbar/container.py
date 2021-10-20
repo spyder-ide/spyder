@@ -16,6 +16,7 @@ from typing import Optional, Union, Tuple, Dict, List
 # Third party imports
 from qtpy.QtCore import QSize, Slot
 from qtpy.QtWidgets import QAction, QWidget
+from qtpy import PYSIDE2
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -212,6 +213,28 @@ class ToolbarContainer(PluginMainContainer):
 
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
 
+    def remove_application_toolbar(self, toolbar_id: str, mainwindow=None):
+        """
+        Remove toolbar from application toolbars.
+
+        Parameters
+        ----------
+        toolbar: str
+            The application toolbar to remove from the `mainwindow`.
+        mainwindow: QMainWindow
+            The main application window.
+        """
+
+        if toolbar_id not in self._ADDED_TOOLBARS:
+            raise SpyderAPIError(
+                'Toolbar with ID "{}" is not in the main window'.format(
+                    toolbar_id))
+
+        toolbar = self._ADDED_TOOLBARS.pop(toolbar_id)
+        self._toolbarslist.remove(toolbar)
+
+        if mainwindow:
+            mainwindow.removeToolBar(toolbar)
 
     def add_item_to_application_toolbar(self,
                                         item: ToolbarItem,
@@ -249,6 +272,25 @@ class ToolbarContainer(PluginMainContainer):
             toolbar = self.get_application_toolbar(toolbar_id)
             toolbar.add_item(item, section=section, before=before,
                              before_section=before_section, omit_id=omit_id)
+
+    def remove_item_from_application_toolbar(self, item_id: str,
+                                             toolbar_id: Optional[str] = None):
+        """
+        Remove action or widget from given application toolbar by id.
+
+        Parameters
+        ----------
+        item: str
+            The item to remove from the `toolbar`.
+        toolbar_id: str or None
+            The application toolbar unique string identifier.
+        """
+        if toolbar_id not in self._APPLICATION_TOOLBARS:
+            raise SpyderAPIError(
+                '{} is not a valid toolbar_id'.format(toolbar_id))
+
+        toolbar = self.get_application_toolbar(toolbar_id)
+        toolbar.remove_item(item_id)
 
     def get_application_toolbar(self, toolbar_id: str) -> ApplicationToolbar:
         """
@@ -304,6 +346,9 @@ class ToolbarContainer(PluginMainContainer):
         else:
             self._get_visible_toolbars()
 
+        for toolbar in self._visible_toolbars:
+            toolbar.setVisible(True)
+
         self.update_actions()
 
     def create_toolbars_menu(self):
@@ -317,7 +362,17 @@ class ToolbarContainer(PluginMainContainer):
         for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
             if toolbar:
                 action = toolbar.toggleViewAction()
-                action.__class__ = QActionID
+                if not PYSIDE2:
+                    # Modifying __class__ of a QObject created by C++ [1] seems
+                    # to invalidate the corresponding Python object when PySide
+                    # is used (changing __class__ of a QObject created in
+                    # Python seems to work).
+                    #
+                    # [1] There are Qt functions such as
+                    # QToolBar.toggleViewAction(), QToolBar.addAction(QString)
+                    # and QMainWindow.addToolbar(QString), which return a
+                    # pointer to an already existing QObject.
+                    action.__class__ = QActionID
                 action.action_id = f'toolbar_{toolbar_id}'
                 section = (
                     main_section

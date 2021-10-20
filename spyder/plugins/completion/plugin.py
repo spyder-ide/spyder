@@ -27,7 +27,8 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
@@ -253,7 +254,8 @@ class CompletionPlugin(SpyderPluginV2):
         self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
 
     # ---------------- Public Spyder API required methods ---------------------
-    def get_name(self) -> str:
+    @staticmethod
+    def get_name() -> str:
         return _('Completion and linting')
 
     def get_description(self) -> str:
@@ -310,13 +312,60 @@ class CompletionPlugin(SpyderPluginV2):
         for args, kwargs in self.items_to_add_to_application_menus:
             main_menu.add_item_to_application_menu(*args, **kwargs)
 
-    def unregister(self):
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        container = self.get_container()
+        self.statusbar = self.get_plugin(Plugins.StatusBar)
+        for sb in container.all_statusbar_widgets():
+            self.statusbar.remove_status_widget(sb.ID)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_mainmenu_teardown(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        signature = inspect.signature(main_menu.add_item_to_application_menu)
+
+        for args, kwargs in self.application_menus_to_create:
+            menu_id = args[0]
+            main_menu.remove_application_menu(menu_id)
+
+        for args, kwargs in self.items_to_add_to_application_menus:
+            binding = signature.bind(*args, **kwargs)
+            binding.apply_defaults()
+
+            item = binding.arguments['item']
+            menu_id = binding.arguments['menu_id']
+            item_id = None
+            if hasattr(item, 'action_id'):
+                item_id = item.action_id
+            elif hasattr(item, 'menu_id'):
+                item_id = item.menu_id
+            if item_id is not None:
+                main_menu.remove_item_from_application_menu(
+                    item_id, menu_id=menu_id)
+
+    def stop_all_providers(self):
         """Stop all running completion providers."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 # TODO: Remove status bar widgets
                 provider_info['instance'].shutdown()
+
+    def can_close(self) -> bool:
+        """Check if any provider has any pending task."""
+        can_close = False
+        for provider_name in self.providers:
+            provider_info = self.providers[provider_name]
+            if provider_info['status'] == self.RUNNING:
+                provider = provider_info['instance']
+                provider_can_close = provider.can_close()
+                can_close |= provider_can_close
+        return can_close
 
     def on_close(self, cancelable=False) -> bool:
         """Check if any provider has any pending task before closing."""
@@ -339,6 +388,8 @@ class CompletionPlugin(SpyderPluginV2):
         provider tabs.
         """
         providers_to_update = set({})
+        options = [x[1] if isinstance(x, tuple) and
+                   len(x) == 2 and x[0] is None else x for x in options]
         for option in options:
             if option == 'completions_wait_for_ms':
                 self.wait_for_ms = self.get_conf(
@@ -886,6 +937,10 @@ class CompletionPlugin(SpyderPluginV2):
         kwargs['parent'] = container
         return container.create_action(*args, **kwargs)
 
+    def get_action(self, *args, **kwargs):
+        container = self.get_container()
+        return container.get_action(*args, **kwargs)
+
     def get_application_menu(self, *args, **kwargs):
         # TODO: Check if this method makes sense with the new plugin
         # registration mechanism.
@@ -906,6 +961,11 @@ class CompletionPlugin(SpyderPluginV2):
 
     def add_item_to_application_menu(self, *args, **kwargs):
         self.items_to_add_to_application_menus.append((args, kwargs))
+
+    def remove_item_from_application_menu(self, *args, **kwargs):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        if main_menu:
+            main_menu.remove_item_from_application_menu(*args, **kwargs)
 
     def add_item_to_menu(self, *args, **kwargs):
         container = self.get_container()

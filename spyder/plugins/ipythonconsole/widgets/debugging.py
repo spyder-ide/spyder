@@ -21,6 +21,7 @@ from pygments.lexer import bygroups
 from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtpy.QtCore import QEvent
 from qtpy.QtGui import QTextCursor
 
 # Local imports
@@ -662,3 +663,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         else:
             return super(DebuggingWidget, self)._register_is_complete_callback(
                 source, callback)
+
+    # ---- Qt methods ---------------------------------------------------------
+    def eventFilter(self, obj, event):
+        # When using PySide, it can happen that "event" is of type QWidgetItem
+        # (reason unknown). This causes an exception in eventFilter() in
+        # console_widget.py in the QtConsole package: Therein event.type() is
+        # accessed which fails due to an AttributeError. Catch this here and
+        # ignore the event.
+        if not isinstance(event, QEvent):
+            # Note for debugging: event.layout() or event.widget() SEGFAULTs
+            return True
+
+        return super().eventFilter(obj, event)

@@ -168,6 +168,20 @@ class SpyderMenu(QMenu):
         self._dirty = True
         self._actions_map[item_id] = action
 
+    def remove_action(self, item_id: str):
+        if item_id in self._actions_map:
+            action = self._actions_map.pop(item_id)
+            position = None
+
+            for i, (_, act) in enumerate(self._actions):
+                if act == action:
+                    position = i
+                    break
+
+            if position is not None:
+                self._actions.pop(position)
+                self._dirty = True
+
     def get_title(self):
         """
         Return the title for menu.

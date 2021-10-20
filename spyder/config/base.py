@@ -15,7 +15,6 @@ sip API incompatibility issue in spyder's non-gui modules)
 from __future__ import print_function
 
 import codecs
-import getpass
 import locale
 import os
 import os.path as osp

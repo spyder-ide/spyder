@@ -76,7 +76,7 @@ class Workspace:
         return self._root_uri
 
     def is_local(self):
-        return (self._root_uri_scheme == '' or self._root_uri_scheme == 'file') and os.path.exists(self._root_path)
+        return (self._root_uri_scheme in ['', 'file']) and os.path.exists(self._root_path)
 
     def get_document(self, doc_uri):
         """Return a managed document if-present, else create one pointing at disk.
