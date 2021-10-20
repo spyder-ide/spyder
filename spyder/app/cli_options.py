@@ -137,7 +137,7 @@ def get_options(argv=None):
     )
     parser.add_argument(
         '--no-web-widgets',
-        dest="no-web-widgets",
+        dest="no_web_widgets",
         action='store_true',
         default=False,
         help="Disable the usage of web widgets in Spyder (e.g. the Help and "

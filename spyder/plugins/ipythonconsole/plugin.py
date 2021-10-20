@@ -14,10 +14,10 @@ IPython Console plugin based on QtConsole.
 # pylint: disable=R0201
 
 # Standard library imports
+from inspect import trace
 import os
 import os.path as osp
 import sys
-import traceback
 import uuid
 
 # Third party imports
@@ -181,10 +181,14 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
         self.css_path = CONF.get('appearance', 'css_path')
-        self.info_widget_enable = CONF.get(self.CONF_SECTION, 'info_widget')
         self.run_cell_filename = None
         self.interrupt_action = None
         self.add_actions_to_main_menus = True
+
+        if parent.no_web_widgets:
+            self.info_widget_enable = False
+        else: 
+            self.info_widget_enable = CONF.get(self.CONF_SECTION, 'info_widget')
 
         # Attrs for testing
         self.testing = testing

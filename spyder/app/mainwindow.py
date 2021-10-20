@@ -537,19 +537,23 @@ class MainWindow(QMainWindow):
         if os.name == "nt":
             qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
 
-        self.help_status = CONF.get('help', 'enable')
-
         self.default_style = str(qapp.style().objectName())
 
         self.init_workdir = options.working_directory
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
+        self.no_web_widgets = options.no_web_widgets
         if options.project is not None and not running_in_mac_app():
             self.open_project = osp.normpath(osp.join(CWD, options.project))
         else:
             self.open_project = None
         self.window_title = options.window_title
+
+        if self.no_web_widgets:
+            self.help_status = False
+        else: 
+            self.help_status = CONF.get('help', 'enable')
 
         logger.info("Start of MainWindow constructor")
 
@@ -857,6 +861,9 @@ class MainWindow(QMainWindow):
         enabled_plugins = {}
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
+            if self.no_web_widgets:
+                if "help" in plugin_name:
+                    continue
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
@@ -1976,11 +1983,6 @@ def main(options, args):
         except Exception:
             pass
     CONF.set('main', 'previous_crash', previous_crash)
-
-    if options.offline:
-        CONF.set('ipython_console', 'info_widget', False)
-        CONF.set('help', 'enable', False)
-        CONF.set('onlinehelp', 'enable', False)
 
     # **** Set color for links ****
     set_links_color(app)
