@@ -218,6 +218,7 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_focus_changed.connect(self.sig_focus_changed)
+        widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
         widget.sig_editor_focus_requested.connect(
             self.sig_editor_focus_requested)
         widget.sig_history_requested.connect(self.sig_history_requested)
@@ -261,7 +262,7 @@ class IPythonConsole(SpyderDockablePlugin):
         console_menu = mainmenu.get_application_menu(
             ApplicationMenus.Consoles)
         console_menu.aboutToShow.connect(
-            widget.update_execution_state_kernel)
+            widget.update_actions)
 
         # Main menu actions for the IPython Console
         new_consoles_actions = [
@@ -649,7 +650,6 @@ class IPythonConsole(SpyderDockablePlugin):
         console = self
         console.switch_to_plugin()
         console.execute_code(lines)
-        # TODO: Change after editor migration
         if focus_to_editor and self.get_plugin(Plugins.Editor):
             self._switch_to_editor()
 

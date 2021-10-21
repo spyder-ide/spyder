@@ -146,6 +146,11 @@ class IPythonConsoleWidget(PluginMainWidget):
     This signal is emitted when the plugin focus changes.
     """
 
+    sig_switch_to_plugin_requested = Signal()
+    """
+    This signal will request to change the focus to the plugin.
+    """
+
     sig_editor_focus_requested = Signal()
     """
     This signal will request to change the focus to the editor if available.
@@ -529,8 +534,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                 section=IPythonConsoleWidgetOptionsMenuSections.View,
             )
 
-        self.update_execution_state_kernel()
-
         create_pylab_action = self.create_action(
             IPythonConsoleWidgetActions.CreatePyLabClient,
             text=_("New Pylab console (data plotting)"),
@@ -613,7 +616,11 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.refresh_container()
 
     def update_actions(self):
-        pass
+        client = self.get_current_client()
+        if client is not None:
+            executing = client.is_client_executing()
+            self.interrupt_action.setEnabled(executing)
+            self.stop_button.setEnabled(executing)
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -1207,7 +1214,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.sig_shellwidget_changed.emit(sw)
 
         self.update_tabs_text()
-        self.update_execution_state_kernel()
+        self.update_actions()
 
     # ---- For tabs
     # -------------------------------------------------------------------------
@@ -1219,8 +1226,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.tabwidget.setCurrentIndex(index)
 
         if self.dockwidget:
-            self.change_visibility(give_focus)
-
+            self.sig_switch_to_plugin_requested.emit()
         self.activateWindow()
         widget.get_control().setFocus()
         self.update_tabs_text()
@@ -1680,8 +1686,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         shellwidget.sig_working_directory_changed.connect(
             self.set_working_directory)
 
-        client.sig_execution_state_changed.connect(
-            self.update_execution_state_kernel)
+        # Connect client execution state to be reflected in the interface
+        client.sig_execution_state_changed.connect(self.update_actions)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1976,30 +1982,22 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Restart kernel of current client."""
         client = self.get_current_client()
         if client is not None:
-            self.change_visibility(True)
+            self.sig_switch_to_plugin_requested.emit()
             client.restart_kernel()
 
     def reset_namespace(self):
         """Reset namespace of current client."""
         client = self.get_current_client()
         if client is not None:
-            self.change_visibility(True)
+            self.sig_switch_to_plugin_requested.emit()
             client.reset_namespace()
 
     def interrupt_kernel(self):
         """Interrupt kernel of current client."""
         client = self.get_current_client()
         if client is not None:
-            self.change_visibility(True)
+            self.sig_switch_to_plugin_requested.emit()
             client.stop_button_click_handler()
-
-    def update_execution_state_kernel(self):
-        """Update actions following the execution state of the kernel."""
-        client = self.get_current_client()
-        if client is not None:
-            executing = client.is_client_executing()
-            self.interrupt_action.setEnabled(executing)
-            self.stop_button.setEnabled(executing)
 
     def connect_external_spyder_kernel(self, shellwidget):
         """Connect to an external Spyder kernel."""
@@ -2113,7 +2111,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.execute_code(line)
             except AttributeError:
                 pass
-            self.change_visibility(True)
+            self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
@@ -2191,7 +2189,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                                                       clear_variables))
             except AttributeError:
                 pass
-            self.change_visibility(True)
+            self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
@@ -2265,17 +2263,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.active_project_path = active_project_path
 
     # ---- For execution
-    def execute_code_and_focus_editor(self, lines, focus_to_editor=True):
-        """
-        Execute lines in IPython console and eventually set focus
-        to the Editor.
-        """
-        console = self
-        console.change_visibility(True)
-        console.execute_code(lines)
-        if focus_to_editor:
-            self.sig_editor_focus_requested.emit()
-
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
