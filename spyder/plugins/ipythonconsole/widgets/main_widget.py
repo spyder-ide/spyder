@@ -1224,8 +1224,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         index = self.tabwidget.addTab(widget, name)
         self.filenames.insert(index, filename)
         self.tabwidget.setCurrentIndex(index)
-
-        if self.dockwidget:
+        if self.dockwidget and give_focus:
             self.sig_switch_to_plugin_requested.emit()
         self.activateWindow()
         widget.get_control().setFocus()

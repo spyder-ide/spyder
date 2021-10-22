@@ -321,9 +321,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         page_control = self.shellwidget._page_control
 
         control.sig_focus_changed.connect(
-            lambda: self.container.sig_focus_changed.emit())
+            self.container.sig_focus_changed)
         page_control.sig_focus_changed.connect(
-            lambda: self.container.sig_focus_changed.emit())
+            self.container.sig_focus_changed)
         control.sig_visibility_changed.connect(
             self.container.refresh_container)
         page_control.sig_visibility_changed.connect(
