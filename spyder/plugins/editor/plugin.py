@@ -690,7 +690,6 @@ class Editor(SpyderPluginWidget):
                                name="Run selection", add_shortcut_to_tip=True)
 
         run_to_line_action = create_action(self, _("Run &to current line"),
-                                           icon=ima.icon('run_selection'),
                                            tip=_("Run to current line"),
                                            triggered=self.run_to_line,
                                            context=Qt.WidgetShortcut)
@@ -698,7 +697,6 @@ class Editor(SpyderPluginWidget):
                                name="Run to line", add_shortcut_to_tip=True)
 
         run_from_line_action = create_action(self, _("Run &from current line"),
-                                             icon=ima.icon('run_selection'),
                                              tip=_("Run from current line"),
                                              triggered=self.run_from_line,
                                              context=Qt.WidgetShortcut)

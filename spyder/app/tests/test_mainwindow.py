@@ -1383,7 +1383,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Run to line ----
-    # Run lines from beginning up until but excluding current cursor line
+    # Run lines from file start until, but excluding, current cursor line
     # Move to line 10 then move one characters into the line and
     # run lines above
     editor.go_to_line(10)

@@ -4347,11 +4347,11 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'run selection'),
             triggered=self.sig_run_selection.emit)
         self.run_to_line_action = create_action(
-            self, _("Run to current line"), icon=ima.icon('run_cell'),
+            self, _("Run to current line"),
             shortcut=CONF.get_shortcut('editor', 'run to line'),
             triggered=self.sig_run_to_line.emit)
         self.run_from_line_action = create_action(
-            self, _("Run from current line"), icon=ima.icon('run_cell'),
+            self, _("Run from current line"),
             shortcut=CONF.get_shortcut('editor', 'run from line'),
             triggered=self.sig_run_from_line.emit)
         self.debug_cell_action = create_action(
