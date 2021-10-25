@@ -200,7 +200,7 @@ class IPythonConsole(SpyderPluginWidget):
         if parent.no_web_widgets:
             self.info_widget_enable = False
         else: 
-            self.info_widget_enable = CONF.get(self.CONF_SECTION, 'info_widget')
+            self.info_widget_enable = True
 
         # Attrs for testing
         self.testing = testing

@@ -855,6 +855,9 @@ class MainWindow(QMainWindow):
         registry_external_plugins = {}
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
+            # Disable panes that use web widgets (currently Help and Online
+            # Help) if the user asks for it.
+            # See spyder-ide/spyder#16518
             if self.no_web_widgets:
                 if "help" in plugin_name:
                     continue
