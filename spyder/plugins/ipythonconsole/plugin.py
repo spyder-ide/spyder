@@ -14,11 +14,11 @@ IPython Console plugin based on QtConsole.
 # pylint: disable=R0201
 
 # Standard library imports
-from inspect import trace
 import os
 import os.path as osp
 import sys
 import uuid
+import traceback
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
