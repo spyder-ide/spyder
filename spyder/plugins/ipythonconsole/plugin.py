@@ -197,10 +197,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.interrupt_action = None
         self.add_actions_to_main_menus = True
 
-        if parent.no_web_widgets:
-            self.info_widget_enable = False
-        else: 
-            self.info_widget_enable = True
+        self.info_widget_enable = True
+
+        try:
+            if parent.no_web_widgets:
+                self.info_widget_enable = False
+        except AttributeError:
+            pass
 
         # Attrs for testing
         self.testing = testing
