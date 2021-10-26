@@ -99,6 +99,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  is_external_kernel=False,
                  is_spyder_kernel=True,
                  given_name=None,
+                 give_focus=True,
                  options_button=None,
                  time_label=None,
                  show_elapsed_time=False,
@@ -133,7 +134,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.stderr_dir = None
         self.is_error_shown = False
         self.restart_thread = None
-        self.give_focus = True
+        self.give_focus = give_focus
 
         if css_path is None:
             self.css_path = CSS_PATH

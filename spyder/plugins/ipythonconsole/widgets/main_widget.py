@@ -284,7 +284,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.clients = []
         self.filenames = []
         self.mainwindow_close = False
-        self.spyder_pythonpath = []
         self.projects_available = False
         self.active_project_path = None
         self.create_new_client_if_empty = True
@@ -1483,6 +1482,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
+                              give_focus=give_focus,
                               ask_before_restart=ask_before_restart,
                               ask_before_closing=ask_before_closing,
                               css_path=self.css_path,
@@ -1925,10 +1925,6 @@ class IPythonConsoleWidget(PluginMainWidget):
     def create_kernel_spec(self, is_cython=False,
                            is_pylab=False, is_sympy=False):
         """Create a kernel spec for our own kernels"""
-        # Before creating our kernel spec, we always need to
-        # set this value in spyder.ini
-        self.set_conf(
-            'spyder_pythonpath', self.spyder_pythonpath, section='main')
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
                                 is_sympy=is_sympy,
@@ -2219,23 +2215,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
             shellwidget.update_cwd()
-
-    @on_conf_change(section='main', option='spyder_pythonpath')
-    def update_spyder_pythonpath(self, spyder_pythonpath):
-        """
-        Update the spyder_pythonpath value used to create kernelspecs
-
-        Parameters
-        ----------
-        value : list
-            Path set in the spyder_pythonpath configuration. The value is the
-            PYTHONPATH that is used inside Spyder
-
-        Returns
-        -------
-        None.
-        """
-        self.spyder_pythonpath = spyder_pythonpath
 
     def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""

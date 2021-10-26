@@ -240,8 +240,7 @@ class IPythonConsole(SpyderDockablePlugin):
             self.sig_current_directory_changed)
         widget.sig_exception_occurred.connect(self.sig_exception_occurred)
 
-        # Update kernels if python path is changed and initialize value
-        widget.spyder_pythonpath = self.main.get_spyder_pythonpath()
+        # Update kernels if python path is changed
         self.main.sig_pythonpath_changed.connect(self.update_path)
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
