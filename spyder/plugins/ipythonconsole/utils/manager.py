@@ -138,8 +138,10 @@ class SpyderKernelManager(QtKernelManager):
             try:
                 await asyncio.wait_for(self._async_wait(), timeout=5.0)
             except asyncio.TimeoutError:
-                # Wait timed out, just log warning but continue - not much more we can do.
-                self.log.warning("Wait for final termination of kernel timed out - continuing...")
+                # Wait timed out, just log warning but continue
+                #  - not much more we can do.
+                self.log.warning("Wait for final termination of kernel timed"
+                                 " out - continuing...")
                 pass
             else:
                 # Process is no longer alive, wait and clear
