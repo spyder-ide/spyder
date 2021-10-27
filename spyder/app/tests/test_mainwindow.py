@@ -1015,12 +1015,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
     qtbot.wait(1000)
 
     # Make sure everything quit properly
-    assert km.kernel.poll() is not None
-    assert spykm.kernel.poll() is not None
-    if spykm._restarter:
-        assert spykm._restarter.poll() is not None
-    if km._restarter:
-        assert km._restarter.poll() is not None
+    assert not km.is_alive()
+    assert not spykm.is_alive()
 
     # Close the channels
     spykc.stop_channels()
