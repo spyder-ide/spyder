@@ -3132,6 +3132,7 @@ def test_runcell_pdb(main_window, qtbot):
     # Start debugging
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
 
     for key in ['!n', '!n', '!s', '!n', '!n']:
         with qtbot.waitSignal(shell.executed):
