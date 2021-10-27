@@ -135,6 +135,7 @@ class SpyderKernelManager(QtKernelManager):
             await self.provisioner.kill(restart=restart)
 
             # Wait until the kernel terminates.
+            import asyncio
             try:
                 await asyncio.wait_for(self._async_wait(), timeout=5.0)
             except asyncio.TimeoutError:
