@@ -57,9 +57,9 @@ def setup_kernel(cmd):
     This function was taken from the ipykernel project.
     We plan to remove it when dropping support for python 2.
 
-    Returns
+    Yields
     -------
-    kernel_manager: connected KernelManager instance
+    client: jupyter_client.BlockingKernelClient connected to the kernel
     """
     kernel = Popen([sys.executable, '-c', cmd], stdout=PIPE, stderr=PIPE)
     try:
@@ -423,7 +423,7 @@ def test_cwd_in_sys_path():
     with setup_kernel(cmd) as client:
         msg_id = client.execute("import sys; sys_path = sys.path",
                                 user_expressions={'output':'sys_path'})
-        reply = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        reply = client.get_shell_msg(timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -447,7 +447,7 @@ def test_multiprocessing(tmpdir):
     with setup_kernel(cmd) as client:
         # Remove all variables
         client.execute("%reset -f")
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Write multiprocessing code to a file
         code = """
@@ -465,11 +465,11 @@ if __name__ == '__main__':
 
         # Run code
         client.execute("runfile(r'{}')".format(to_text_string(p)))
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
         client.inspect('result')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -487,7 +487,7 @@ def test_dask_multiprocessing(tmpdir):
     with setup_kernel(cmd) as client:
         # Remove all variables
         client.execute("%reset -f")
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Write multiprocessing code to a file
         # Runs two times to verify that in the second case it doesn't break
@@ -504,14 +504,14 @@ if __name__=='__main__':
 
         # Run code two times
         client.execute("runfile(r'{}')".format(to_text_string(p)))
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         client.execute("runfile(r'{}')".format(to_text_string(p)))
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Verify that the `x` variable is defined
         client.inspect('x')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -527,7 +527,7 @@ def test_runfile(tmpdir):
     with setup_kernel(cmd) as client:
         # Remove all variables
         client.execute("%reset -f")
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Write defined variable code to a file
         code = u"result = 'hello world'; error # make an error"
@@ -547,40 +547,40 @@ def test_runfile(tmpdir):
         # Run code file `d` to define `result` even after an error
         client.execute("runfile(r'{}', current_namespace=False)"
                        .format(to_text_string(d)))
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Verify that `result` is defined in the current namespace
         client.inspect('result')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
         # Run code file `u` without current namespace
         client.execute("runfile(r'{}', current_namespace=False)"
                        .format(to_text_string(u)))
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Verify that the variable `result2` is defined
         client.inspect('result2')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
         # Run code file `u` with current namespace
         client.execute("runfile(r'{}', current_namespace=True)"
                        .format(to_text_string(u)))
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
 
         # Verify that the variable `result3` is defined
         client.inspect('result3')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
         # Verify that the variable `__file__` is undefined
         client.inspect('__file__')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert not content['found']
 
@@ -601,14 +601,14 @@ np.set_printoptions(
     suppress=True,
     formatter={'float_kind':'{:0.2f}'.format})
     """)
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Create a big Numpy array and an array to check decimal format
         client.execute("""
 x = np.random.rand(75000,5);
 a = np.array([123412341234.123412341234])
 """)
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Assert that NumPy threshold, suppress and formatter
         # are the same as the ones set by the user
@@ -617,29 +617,29 @@ t = np.get_printoptions()['threshold'];
 s = np.get_printoptions()['suppress'];
 f = np.get_printoptions()['formatter']
 """)
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Check correct decimal format
         client.inspect('a')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "123412341234.12" in content
 
         # Check threshold value
         client.inspect('t')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "inf" in content
 
         # Check suppress value
         client.inspect('s')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "True" in content
 
         # Check formatter
         client.inspect('f')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "{'float_kind': <built-in method format of str object" in content
 
@@ -667,7 +667,7 @@ def test_turtle_launch(tmpdir):
     with setup_kernel(cmd) as client:
         # Remove all variables
         client.execute("%reset -f")
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Write turtle code to a file
         code = """
@@ -692,11 +692,11 @@ turtle.bye()
 
         # Run code
         client.execute("runfile(r'{}')".format(to_text_string(p)))
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Verify that the `tess` variable is defined
         client.inspect('tess')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -708,11 +708,11 @@ turtle.bye()
 
         # Run code again
         client.execute("runfile(r'{}')".format(to_text_string(p)))
-        client.get_shell_msg(block=True, timeout=TIMEOUT)
+        client.get_shell_msg(timeout=TIMEOUT)
 
         # Verify that the `a` variable is defined
         client.inspect('a')
-        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -727,7 +727,7 @@ def test_matplotlib_inline(kernel):
         # Get current backend
         code = "import matplotlib; backend = matplotlib.get_backend()"
         client.execute(code, user_expressions={'output': 'backend'})
-        reply = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        reply = client.get_shell_msg(timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
