@@ -27,6 +27,9 @@ if [ "$USE_CONDA" = "true" ]; then
     conda remove python-lsp-server --force -q -y
     conda remove qdarkstyle --force -q -y
 
+    # FOR TEST ONLY, DO NOT MERGE
+    mamba install jupyter_client=7
+
     # Note: Remove this when PyLSP 1.3.0 is released
     mamba install 'pylint >=2.10' -c conda-forge -q -y
 else
@@ -61,6 +64,9 @@ else
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y
+
+    # FOR TEST ONLY, DO NOT MERGE
+    pip install jupyter-client~=7.0
 
     # Note: Remove this when PyLSP 1.3.0 is released
     pip install -U pylint
