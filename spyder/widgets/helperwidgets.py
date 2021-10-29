@@ -339,6 +339,7 @@ class FinderLineEdit(QLineEdit):
 class FinderWidget(QWidget):
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
+
     def __init__(self, parent, regex_base=None,
                  key_filter_dict=None, find_on_change=False):
         super(FinderWidget, self).__init__(parent)
@@ -357,7 +358,7 @@ class FinderWidget(QWidget):
             triggered=self.sig_hide_finder_requested.emit,
             icon=parent.create_icon('DialogCloseButton'),
         )
-    
+
         finder_layout = QHBoxLayout()
         finder_layout.addWidget(self.finder_close_button)
         finder_layout.addWidget(self.text_finder)

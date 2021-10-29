@@ -19,7 +19,7 @@ from qtpy import PYQT5
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog,
+from qtpy.QtWidgets import (QApplication, QInputDialog,
                             QMessageBox, QVBoxLayout, QWidget)
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -75,7 +75,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.finder.set_visible(show)
         if not show:
             self.editor.setFocus()
-    
+
     def do_find(self, text):
         """Search for text."""
         if self.editor is not None:
