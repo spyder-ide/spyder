@@ -10,16 +10,13 @@ Frames Explorer Main Plugin Widget.
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QHBoxLayout, QWidget
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.config.gui import get_color_scheme
 from spyder.plugins.framesexplorer.widgets.framesbrowser import (
-    FramesBrowser,
-    FramesBrowserFinder,
-    VALID_VARIABLE_CHARS)
+    FramesBrowser)
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 
 # Localization
@@ -55,12 +52,12 @@ class FramesExplorerWidgetMenus:
     PopulatedContextMenu = 'populated'
 
 
-class FramesExplorerContextMenuActions:
-    ViewLocalsAction = 'view_locals_action'
-
-
 class FramesExplorerContextMenuSections:
     Locals = 'locals_section'
+
+
+class FramesExplorerContextMenuActions:
+    ViewLocalsAction = 'view_locals_action'
 
 
 # =============================================================================
@@ -83,10 +80,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         self.context_menu = None
         self.empty_context_menu = None
 
-        # --- Finder
-        self.finder = None
-
     def set_namespace_view(self, view):
+        """Set the namespace view."""
         self.current_widget().shellwidget.set_namespace_view(view)
 
     def postmortem(self):
@@ -102,7 +97,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         return self.current_widget()
 
     def setup(self):
-
+        """Setup the widget."""
         # ---- Options menu actions
         exclude_internal_action = self.create_action(
             FramesExplorerWidgetActions.ToggleExcludeInternal,
@@ -133,7 +128,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             FramesExplorerWidgetActions.Search,
             text=_("Search frames"),
             icon=self.create_icon('find'),
-            toggled=self.show_finder,
+            toggled=self.toggle_finder,
             register_shortcut=True
         )
 
@@ -203,146 +198,76 @@ class FramesExplorerWidget(ShellConnectMainWidget):
                 section=FramesExplorerContextMenuSections.Locals,
             )
 
-    # ---- Stack accesors
-    # ------------------------------------------------------------------------
-
-    def update_finder(self, nsb, old_nsb):
-        """Initialize or update finder widget."""
-        if self.finder is None:
-            # Initialize finder/search related widgets
-            self.finder = QWidget(self)
-            self.text_finder = FramesBrowserFinder(
-                nsb.results_browser,
-                callback=nsb.results_browser.set_regex,
-                main=nsb,
-                regex_base=VALID_VARIABLE_CHARS)
-            self.finder.text_finder = self.text_finder
-            self.finder_close_button = self.create_toolbutton(
-                'close_finder',
-                triggered=self.hide_finder,
-                icon=self.create_icon('DialogCloseButton'),
-            )
-
-            finder_layout = QHBoxLayout()
-            finder_layout.addWidget(self.finder_close_button)
-            finder_layout.addWidget(self.text_finder)
-            finder_layout.setContentsMargins(0, 0, 0, 0)
-            self.finder.setLayout(finder_layout)
-
-            layout = self.layout()
-            layout.addSpacing(1)
-            layout.addWidget(self.finder)
-        else:
-            # Just update references to the same text_finder (Custom QLineEdit)
-            # widget to the new current FramesBrowser and save current
-            # finder state in the previous FramesBrowser
-            if old_nsb is not None:
-                self.save_finder_state(old_nsb)
-            self.text_finder.update_parent(
-                nsb.results_browser,
-                callback=nsb.results_browser.set_regex,
-                main=nsb,
-            )
-
     # ---- Public API
     # ------------------------------------------------------------------------
 
     def create_new_widget(self, shellwidget):
+        """Create a new widget."""
         color_scheme = get_color_scheme(
             CONF.get('appearance', 'selected'))
-        nsb = FramesBrowser(self, color_scheme=color_scheme)
-        nsb.edit_goto.connect(self.edit_goto)
-        nsb.sig_show_namespace.connect(self.set_namespace_view)
-        nsb.sig_hide_finder_requested.connect(self.hide_finder)
-        nsb.sig_update_postmortem_requested.connect(self.update_postmortem)
-        nsb.set_shellwidget(shellwidget)
-        nsb.setup()
-        self._set_actions_and_menus(nsb)
-        self.update_postmortem(nsb, force=True)
-        return nsb
+        widget = FramesBrowser(
+            self, shellwidget=shellwidget, color_scheme=color_scheme)
 
-    def switch_widget(self, nsb, old_nsb):
+        widget.edit_goto.connect(self.edit_goto)
+        widget.sig_show_namespace.connect(self.set_namespace_view)
+        widget.sig_hide_finder_requested.connect(self.hide_finder)
+        widget.sig_update_actions_requested.connect(self.update_actions)
+
+        widget.setup()
+        widget.set_context_menu(
+            self.context_menu,
+            self.empty_context_menu)
+
+        widget.results_browser.view_locals_action = self.view_locals_action
+        return widget
+
+    def switch_widget(self, widget, old_widget):
         """
         Set the current FramesBrowser.
 
         This also setup the finder widget to work with the current
         FramesBrowser.
         """
-        self.update_finder(nsb, old_nsb)
-        finder_visible = nsb.set_text_finder(self.text_finder)
-        self.finder.setVisible(finder_visible)
-        search_action = self.get_action(FramesExplorerWidgetActions.Search)
-        search_action.setChecked(finder_visible)
-        self.update_postmortem(nsb, force=True)
+        pass
 
-    def close_widget(self, nsb):
-        nsb.edit_goto.disconnect(self.edit_goto)
-        nsb.sig_show_namespace.disconnect(self.set_namespace_view)
-        nsb.sig_hide_finder_requested.disconnect(self.hide_finder)
-        nsb.sig_update_postmortem_requested.disconnect(self.update_postmortem)
-        nsb.close()
-        self.update_postmortem(self.current_widget())
+    def close_widget(self, widget):
+        """Close widget."""
+        widget.edit_goto.disconnect(self.edit_goto)
+        widget.sig_show_namespace.disconnect(self.set_namespace_view)
+        widget.sig_hide_finder_requested.disconnect(self.hide_finder)
+        widget.sig_update_actions_requested.disconnect(self.update_actions)
+
+        widget.close()
 
     @Slot(bool)
-    def show_finder(self, checked):
-        if self.count():
-            nsb = self.current_widget()
-            if checked:
-                self.finder.text_finder.setText(nsb.last_find)
-            else:
-                self.save_finder_state(nsb)
-                self.finder.text_finder.setText('')
-            self.finder.setVisible(checked)
-            if self.finder.isVisible():
-                self.finder.text_finder.setFocus()
-            else:
-                nsb.results_browser.setFocus()
-
-    @Slot(object)
-    def update_postmortem(self, widget, force=False):
-        """Enable and disable post mortem action."""
+    def toggle_finder(self, checked):
+        """Show or hide finder."""
+        widget = self.current_widget()
         if widget is None:
             return
-        if widget is not self.current_widget() and not force:
-            # Not the active widget
-            return
-        self.postmortem_debug_action.setEnabled(
-            widget.post_mortem)
+        widget.toggle_finder(checked)
 
     @Slot()
     def hide_finder(self):
+        """Hide finder."""
         action = self.get_action(FramesExplorerWidgetActions.Search)
         action.setChecked(False)
-        nsb = self.current_widget()
-        self.save_finder_state(nsb)
-        self.finder.text_finder.setText('')
-
-    def save_finder_state(self, nsb):
-        """
-        Save finder state (last input text and visibility).
-
-        The values are saved in the given FramesBrowser.
-        """
-        last_find = self.text_finder.text()
-        finder_visibility = self.finder.isVisible()
-        nsb.save_finder_state(last_find, finder_visibility)
 
     def view_item_locals(self):
+        """Request to view item locals."""
         self.current_widget().results_browser.view_item_locals()
 
-    def _set_actions_and_menus(self, nsb):
-        """
-        Set actions and menus created here and used by the frames
-        browser.
-
-        Although this is not ideal, it's necessary to be able to use
-        the CollectionsEditor widget separately from this plugin.
-        """
-        results_browser = nsb.results_browser
-
-        # Actions
-        results_browser.view_locals_action = self.view_locals_action
-
-        # Menus
-        results_browser.menu = self.context_menu
-        results_browser.empty_ws_menu = self.empty_context_menu
+    def update_actions(self):
+        """Update actions."""
+        widget = self.current_widget()
+        search_action = self.get_action(FramesExplorerWidgetActions.Search)
+        postmortem_debug_action = self.get_action(
+            FramesExplorerWidgetActions.PostMortemDebug)
+        if widget is None:
+            checked = False
+            post_mortem = False
+        else:
+            checked = widget.finder_is_visible()
+            post_mortem = widget.post_mortem
+        search_action.setChecked(checked)
+        postmortem_debug_action.setEnabled(post_mortem)

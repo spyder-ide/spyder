@@ -26,9 +26,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import get_translation
 from spyder.py3compat import to_text_string
 from spyder.config.gui import get_font
-from spyder.widgets.helperwidgets import FinderLineEdit
-
-VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
+from spyder.widgets.helperwidgets import FinderWidget
 
 # Localization
 _ = get_translation('spyder')
@@ -42,10 +40,10 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     # Signals
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_show_namespace = Signal(dict)
+    sig_update_actions_requested = Signal()
     sig_hide_finder_requested = Signal()
-    sig_update_postmortem_requested = Signal(object)
 
-    def __init__(self, parent, color_scheme):
+    def __init__(self, parent, shellwidget, color_scheme):
         QWidget.__init__(self, parent)
 
         self.shellwidget = None
@@ -56,14 +54,36 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.post_mortem = False
 
         # Finder
-        self.text_finder = None
-        self.last_find = ''
-        self.finder_is_visible = False
+        self.finder = None
+
+        self.set_shellwidget(shellwidget)
+
+    def set_context_menu(self, context_menu, empty_context_menu):
+        """Set the context menus."""
+        self.results_browser.menu = context_menu
+        self.results_browser.empty_ws_menu = empty_context_menu
+
+    def toggle_finder(self, show):
+        """Show and hide the finder."""
+        self.finder.set_visible(show)
+        if not show:
+            self.results_browser.setFocus()
+
+    def do_find(self, text):
+        """Search for text."""
+        if self.results_browser is not None:
+            self.results_browser.do_find(text)
+
+    def finder_is_visible(self):
+        """Check if the finder is visible."""
+        if self.finder is None:
+            return False
+        return self.finder.isVisible()
 
     def set_post_mortem_enabled(self, enabled):
         """Enable post-mortem button."""
         self.post_mortem = enabled
-        self.sig_update_postmortem_requested.emit(self)
+        self.sig_update_actions_requested.emit()
 
     def setup(self):
         """
@@ -79,10 +99,17 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.results_browser.sig_show_namespace.connect(
             self.sig_show_namespace)
 
+        self.finder = FinderWidget(self)
+        self.finder.sig_find_text.connect(self.do_find)
+        self.finder.sig_hide_finder_requested.connect(
+            self.sig_hide_finder_requested)
+
         # Setup layout.
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.results_browser)
+        layout.addSpacing(1)
+        layout.addWidget(self.finder)
         self.setLayout(layout)
 
     def set_shellwidget(self, shellwidget):
@@ -154,21 +181,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Set current item"""
         if self.results_browser is not None:
             self.results_browser.set_current_item(top_idx, sub_index)
-
-    def set_text_finder(self, text_finder):
-        """Bind NamespaceBrowsersFinder to namespace browser."""
-        self.text_finder = text_finder
-        if self.finder_is_visible:
-            self.text_finder.setText(self.last_find)
-        self.results_browser.finder = text_finder
-
-        return self.finder_is_visible
-
-    def save_finder_state(self, last_find, finder_visibility):
-        """Save last finder/search text input and finder visibility."""
-        if last_find and finder_visibility:
-            self.last_find = last_find
-        self.finder_is_visible = finder_visibility
 
 
 class LineFrameItem(QTreeWidgetItem):
@@ -322,6 +334,7 @@ class ResultsBrowser(QTreeWidget):
         self.frames = None
         self.menu = None
         self.empty_ws_menu = None
+        self.view_locals_action = None
 
         # Setup
         self.setItemsExpandable(True)
@@ -336,8 +349,6 @@ class ResultsBrowser(QTreeWidget):
         self.header().sectionClicked.connect(self.sort_section)
         self.itemActivated.connect(self.activated)
         self.itemClicked.connect(self.activated)
-
-        self.finder = None
 
     def set_title(self, title):
         self.setHeaderLabels([title])
@@ -368,6 +379,7 @@ class ResultsBrowser(QTreeWidget):
             return
 
         if self.frames:
+            self.refresh_menu()
             self.menu.popup(event.globalPos())
             event.accept()
         else:
@@ -421,13 +433,8 @@ class ResultsBrowser(QTreeWidget):
                     parent, 0, None, '', 0, '', None,
                     self.font, self.color_scheme)
 
-    def set_regex(self, regex=None):
+    def do_find(self, text):
         """Update the regex text for the variable finder."""
-        if self.finder is None or not self.finder.text():
-            text = ''
-        else:
-            text = self.finder.text().replace(' ', '').lower()
-
         for idx in range(self.topLevelItemCount()):
             item = self.topLevelItem(idx)
             all_hidden = True
@@ -445,31 +452,3 @@ class ResultsBrowser(QTreeWidget):
                     line_frame.setHidden(False)
                     all_hidden = False
             item.setHidden(all_hidden)
-
-
-class FramesBrowserFinder(FinderLineEdit):
-    """Textbox for filtering listed variables in the table."""
-    # To load all variables when filtering.
-    load_all = False
-
-    def update_parent(self, parent, callback=None, main=None):
-        self._parent = parent
-        self.main = main
-        try:
-            self.textChanged.disconnect()
-        except TypeError:
-            pass
-        if callback:
-            self.textChanged.connect(callback)
-
-    def keyPressEvent(self, event):
-        """Qt and FilterLineEdit Override."""
-        key = event.key()
-        if key in [Qt.Key_Up, Qt.Key_Down]:
-            self._parent.keyPressEvent(event)
-        elif key in [Qt.Key_Escape]:
-            self.main.sig_hide_finder_requested.emit()
-        elif key in [Qt.Key_Enter, Qt.Key_Return]:
-            pass
-        else:
-            super(FramesBrowserFinder, self).keyPressEvent(event)
