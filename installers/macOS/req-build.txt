@@ -1,3 +1,4 @@
 # For building standalone Mac app
 py2app==0.22
 dmgbuild>=1.4.2
+jupyter-core<4.9  # remove after py2app update
