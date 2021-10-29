@@ -31,8 +31,6 @@ from spyder.config.manager import CONF
 from spyder.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
     CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
-from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
 from spyder.py3compat import PY2, to_text_string
@@ -228,27 +226,25 @@ def test_filter_rows(qtbot):
              'view': 'Column names: 0'}}
     )
     editor = RemoteCollectionsEditorTableView(None, data)
-    editor.finder = NamespacesBrowserFinder(editor,
-                                            editor.set_regex)
     qtbot.addWidget(editor)
 
     # Initially two rows
     assert editor.model.rowCount() == 2
 
     # Match two rows by name
-    editor.finder.setText("df")
+    editor.do_find("df")
     assert editor.model.rowCount() == 2
 
     # Match two rows by type
-    editor.finder.setText("DataFrame")
+    editor.do_find("DataFrame")
     assert editor.model.rowCount() == 2
 
     # Only one match
-    editor.finder.setText("dfb")
+    editor.do_find("dfb")
     assert editor.model.rowCount() == 1
 
     # No match
-    editor.finder.setText("dfbc")
+    editor.do_find("dfbc")
     assert editor.model.rowCount() == 0
 
 
