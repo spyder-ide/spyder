@@ -600,7 +600,6 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.minmax_action = None
         self.rename_action = None
         self.duplicate_action = None
-        self.last_regex = ''
         self.view_action = None
         self.delegate = None
         self.proxy_model = None
@@ -1454,7 +1453,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.dictfilter = None
         self.delegate = None
         self.readonly = False
-        self.finder = None
 
         self.source_model = CollectionsModel(
             self, data, names=True,
@@ -1573,12 +1571,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         menu = BaseTableView.setup_menu(self)
         return menu
 
-    def set_regex(self, regex=None, reset=False):
+    def do_find(self, text):
         """Update the regex text for the variable finder."""
-        if reset or self.finder is None or not self.finder.text():
-            text = ''
-        else:
-            text = self.finder.text().replace(' ', '').lower()
+        text = text.replace(' ', '').lower()
 
         self.proxy_model.set_filter(text)
         self.source_model.update_search_letters(text)
@@ -1586,8 +1581,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         if text:
             # TODO: Use constants for column numbers
             self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for index
-
-        self.last_regex = regex
 
     def next_row(self):
         """Move to next row from currently selected row."""

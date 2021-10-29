@@ -13,13 +13,14 @@ import re
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt
+from qtpy.QtCore import (
+    QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QPainter,
                         QRegExpValidator, QTextDocument)
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QToolButton, QToolTip,
-                            QVBoxLayout)
+                            QVBoxLayout, QWidget, QHBoxLayout)
 
 # Local imports
 from spyder.config.base import _
@@ -159,7 +160,14 @@ class HTMLDelegate(QStyledItemDelegate):
                     painter.translate(textRect.topLeft() + QPoint(2, 4))
         else:
             painter.translate(textRect.topLeft() + QPoint(0, -3))
-        doc.documentLayout().draw(painter, ctx)
+
+        # Type check: Prevent error in PySide where using
+        # doc.documentLayout().draw() may fail because doc.documentLayout()
+        # returns an object of type QtGui.QStandardItem (for whatever reason).
+        docLayout = doc.documentLayout()
+        if type(docLayout) is QAbstractTextDocumentLayout:
+            docLayout.draw(painter, ctx)
+
         painter.restore()
 
     def sizeHint(self, option, index):
@@ -301,47 +309,76 @@ class IconLineEdit(QLineEdit):
 
 
 class FinderLineEdit(QLineEdit):
-    """QLineEdit for filtering listed elements in the parent widget."""
+    sig_hide_requested = Signal()
+    sig_find_requested = Signal()
 
-    def __init__(self, parent, callback=None, main=None,
-                 regex_base=VALID_FINDER_CHARS):
+    def __init__(self, parent,
+                 regex_base=None,
+                 key_filter_dict=None):
         super(FinderLineEdit, self).__init__(parent)
-        self._parent = parent
-        self.main = main
+        self.key_filter_dict = key_filter_dict
 
-        # Widget setup
-        regex = QRegExp(regex_base + "{100}")
-        self.setValidator(QRegExpValidator(regex))
-
-        # Signals
-        if callback:
-            self.textChanged.connect(callback)
-
-    def set_text(self, text):
-        """Set the filter text."""
-        text = text.strip()
-        new_text = self.text() + text
-        self.setText(new_text)
+        if regex_base is not None:
+            # Widget setup
+            regex = QRegExp(regex_base + "{100}")
+            self.setValidator(QRegExpValidator(regex))
 
     def keyPressEvent(self, event):
-        """
-        Qt Override.
-
-        The parent needs to implement the methods to handle focus on the
-        next/previous row and a action over the selected element.
-
-        This should be override.
-        """
+        """Qt and FilterLineEdit Override."""
         key = event.key()
-        if key in [Qt.Key_Up]:
-            self._parent.previous_row()
-        elif key in [Qt.Key_Down]:
-            self._parent.next_row()
+        if self.key_filter_dict is not None and key in self.key_filter_dict:
+            self.key_filter_dict[key]()
+        elif key in [Qt.Key_Escape]:
+            self.sig_hide_requested.emit()
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
-            self._parent.selected_element()
+            self.sig_find_requested.emit()
         else:
             super(FinderLineEdit, self).keyPressEvent(event)
 
+
+class FinderWidget(QWidget):
+    sig_find_text = Signal(str)
+    sig_hide_finder_requested = Signal()
+    def __init__(self, parent, regex_base=None,
+                 key_filter_dict=None, find_on_change=False):
+        super(FinderWidget, self).__init__(parent)
+        # Parent is assumed to be a spyder widget
+        self.text_finder = FinderLineEdit(
+            parent,
+            regex_base=regex_base,
+            key_filter_dict=key_filter_dict)
+        self.text_finder.sig_find_requested.connect(self.do_find)
+        if find_on_change:
+            self.text_finder.textChanged.connect(self.do_find)
+        self.text_finder.sig_hide_requested.connect(
+            self.sig_hide_finder_requested)
+        self.finder_close_button = parent.create_toolbutton(
+            'close_finder',
+            triggered=self.sig_hide_finder_requested.emit,
+            icon=parent.create_icon('DialogCloseButton'),
+        )
+    
+        finder_layout = QHBoxLayout()
+        finder_layout.addWidget(self.finder_close_button)
+        finder_layout.addWidget(self.text_finder)
+        finder_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(finder_layout)
+        self.setVisible(False)
+
+    def do_find(self):
+        """Send text."""
+        text = self.text_finder.text()
+        if not text:
+            text = ''
+        self.sig_find_text.emit(text)
+
+    def set_visible(self, visible):
+        """Set visibility of widget."""
+        self.setVisible(visible)
+        if visible:
+            self.text_finder.setFocus()
+        else:
+            self.text_finder.setText("")
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom column filter based on regex."""

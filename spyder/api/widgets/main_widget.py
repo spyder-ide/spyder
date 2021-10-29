@@ -14,10 +14,10 @@ subclass of PluginMainWidget.
 # Standard library imports
 from collections import OrderedDict
 import sys
-import textwrap
 from typing import Optional
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
@@ -187,7 +187,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
 
     def __init__(self, name, plugin, parent=None):
-        super().__init__(parent=parent, class_parent=plugin)
+        if PYQT5:
+            super().__init__(parent=parent, class_parent=plugin)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=plugin)
 
         # Attributes
         # --------------------------------------------------------------------

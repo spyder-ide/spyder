@@ -16,7 +16,7 @@ def test_document_lines(doc):
 
 
 def test_document_source_unicode(workspace):
-    document_mem = Document(DOC_URI, workspace, u'my source')
+    document_mem = Document(DOC_URI, workspace, 'my source')
     document_disk = Document(DOC_URI, workspace)
     assert isinstance(document_mem.source, type(document_disk.source))
 
@@ -44,27 +44,27 @@ def test_word_at_position(doc):
 
 
 def test_document_empty_edit(workspace):
-    doc = Document('file:///uri', workspace, u'')
+    doc = Document('file:///uri', workspace, '')
     doc.apply_change({
         'range': {
             'start': {'line': 0, 'character': 0},
             'end': {'line': 0, 'character': 0}
         },
-        'text': u'f'
+        'text': 'f'
     })
-    assert doc.source == u'f'
+    assert doc.source == 'f'
 
 
 def test_document_line_edit(workspace):
-    doc = Document('file:///uri', workspace, u'itshelloworld')
+    doc = Document('file:///uri', workspace, 'itshelloworld')
     doc.apply_change({
-        'text': u'goodbye',
+        'text': 'goodbye',
         'range': {
             'start': {'line': 0, 'character': 3},
             'end': {'line': 0, 'character': 8}
         }
     })
-    assert doc.source == u'itsgoodbyeworld'
+    assert doc.source == 'itsgoodbyeworld'
 
 
 def test_document_multiline_edit(workspace):
@@ -73,8 +73,8 @@ def test_document_multiline_edit(workspace):
         "    print a\n",
         "    print b\n"
     ]
-    doc = Document('file:///uri', workspace, u''.join(old))
-    doc.apply_change({'text': u'print a, b', 'range': {
+    doc = Document('file:///uri', workspace, ''.join(old))
+    doc.apply_change({'text': 'print a, b', 'range': {
         'start': {'line': 1, 'character': 4},
         'end': {'line': 2, 'character': 11}
     }})
@@ -89,8 +89,8 @@ def test_document_end_of_file_edit(workspace):
         "print 'a'\n",
         "print 'b'\n"
     ]
-    doc = Document('file:///uri', workspace, u''.join(old))
-    doc.apply_change({'text': u'o', 'range': {
+    doc = Document('file:///uri', workspace, ''.join(old))
+    doc.apply_change({'text': 'o', 'range': {
         'start': {'line': 2, 'character': 0},
         'end': {'line': 2, 'character': 0}
     }})

@@ -27,7 +27,7 @@ except Exception:
     pass
 
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import qApp, QMessageBox
+from qtpy.QtWidgets import QApplication, QMessageBox
 
 
 from spyder.config.manager import CONF
@@ -232,6 +232,7 @@ class GithubBackend(BaseBackend):
     def upload_log_file(self, log_content):
         gh = github.GitHub()
         try:
+            qApp = QApplication.instance()
             qApp.setOverrideCursor(Qt.WaitCursor)
             ret = gh.gists.post(
                 description="SpyderIDE log", public=True,

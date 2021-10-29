@@ -17,6 +17,7 @@ import sys
 
 # Third library imports
 from qtconsole.svg import svg_to_clipboard, svg_to_image
+from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
@@ -137,7 +138,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent=None, background_color=None):
-        super().__init__(parent=parent, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent=parent, class_parent=parent)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
+
         self.shellwidget = None
         self.is_visible = True
         self.figviewer = None
@@ -317,7 +323,12 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        super().__init__(parent, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QScrollArea.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
+
         self.setAlignment(Qt.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(

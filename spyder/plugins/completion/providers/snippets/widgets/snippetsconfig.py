@@ -407,7 +407,7 @@ class SnippetsModel(QAbstractTableModel):
     DESCRIPTION = 1
 
     def __init__(self, parent, text_color=None, text_color_highlight=None):
-        super(QAbstractTableModel, self).__init__()
+        QAbstractTableModel.__init__(self)
         self.parent = parent
 
         self.snippets = []

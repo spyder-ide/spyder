@@ -16,6 +16,7 @@ from typing import Optional, Union, Tuple, Dict, List
 # Third party imports
 from qtpy.QtCore import QSize, Slot
 from qtpy.QtWidgets import QAction, QWidget
+from qtpy import PYSIDE2
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -361,7 +362,17 @@ class ToolbarContainer(PluginMainContainer):
         for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
             if toolbar:
                 action = toolbar.toggleViewAction()
-                action.__class__ = QActionID
+                if not PYSIDE2:
+                    # Modifying __class__ of a QObject created by C++ [1] seems
+                    # to invalidate the corresponding Python object when PySide
+                    # is used (changing __class__ of a QObject created in
+                    # Python seems to work).
+                    #
+                    # [1] There are Qt functions such as
+                    # QToolBar.toggleViewAction(), QToolBar.addAction(QString)
+                    # and QMainWindow.addToolbar(QString), which return a
+                    # pointer to an already existing QObject.
+                    action.__class__ = QActionID
                 action.action_id = f'toolbar_{toolbar_id}'
                 section = (
                     main_section

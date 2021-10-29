@@ -82,7 +82,9 @@ def workspace_other_root_path(tmpdir):
 @pytest.fixture
 def config(workspace):  # pylint: disable=redefined-outer-name
     """Return a config object."""
-    return Config(workspace.root_uri, {}, 0, {})
+    cfg = Config(workspace.root_uri, {}, 0, {})
+    cfg._plugin_settings = {'plugins': {'pylint': {'enabled': False, 'args': [], 'executable': None}}}
+    return cfg
 
 
 @pytest.fixture
@@ -99,7 +101,7 @@ def temp_workspace_factory(workspace):  # pylint: disable=redefined-outer-name
     def fn(files):
         def create_file(name, content):
             fn = os.path.join(workspace.root_path, name)
-            with open(fn, 'w') as f:
+            with open(fn, 'w', encoding='utf-8') as f:
                 f.write(content)
             workspace.put_document(uris.from_fs_path(fn), content)
 

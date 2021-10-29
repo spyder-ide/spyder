@@ -23,6 +23,7 @@ import time
 from itertools import islice
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
@@ -663,7 +664,12 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
     sig_edit_goto_requested = Signal(str, int, str)
 
     def __init__(self, parent=None):
-        super().__init__(parent, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QTreeWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
+
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]

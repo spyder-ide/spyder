@@ -47,7 +47,7 @@ requirements.check_spyder_kernels()
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QKeySequence, QIcon
+from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
                             QShortcut, QStyleFactory)
 
@@ -68,7 +68,7 @@ from qtawesome.iconic_font import FontError
 from spyder import __version__
 from spyder import dependencies
 from spyder.app.utils import (
-    create_application, create_splash_screen, create_window,
+    create_application, create_splash_screen, create_window, ORIGINAL_SYS_EXIT,
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
@@ -113,9 +113,6 @@ if os.name == 'nt':
 #==============================================================================
 # Module logger
 logger = logging.getLogger(__name__)
-
-# Keeping a reference to the original sys.exit before patching it
-ORIGINAL_SYS_EXIT = sys.exit
 
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
@@ -1548,7 +1545,6 @@ class MainWindow(QMainWindow):
                 self.addDockWidget(location, dockwidget)
                 self.widgetlist.append(plugin)
 
-    @Slot()
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()
@@ -1598,7 +1594,7 @@ class MainWindow(QMainWindow):
         if encoding.is_text_file(fname):
             self.editor.load(fname)
         elif self.variableexplorer is not None and ext in IMPORT_EXT:
-            self.variableexplorer.import_data(fname)
+            self.variableexplorer.get_widget().import_data(fname)
         elif not external:
             fname = file_uri(fname)
             start_file(fname)

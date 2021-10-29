@@ -21,6 +21,7 @@ import shutil
 import sys
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
@@ -249,7 +250,11 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        super().__init__(parent=parent, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent=parent, class_parent=parent)
+        else:
+            QTreeView.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Attributes
         self._parent = parent
@@ -607,8 +612,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.open_interpreter_action.setVisible(only_dirs)
         self.open_with_spyder_action.setVisible(only_files and only_valid)
         self.open_with_submenu.menuAction().setVisible(False)
-        self.paste_action.setDisabled(
-            not QApplication.clipboard().mimeData().hasUrls())
+        clipboard = QApplication.clipboard()
+        has_urls = clipboard.mimeData().hasUrls()
+        self.paste_action.setDisabled(not has_urls)
 
         # VCS support is quite limited for now, so we are enabling the VCS
         # related actions only when a single file/folder is selected:

@@ -539,6 +539,7 @@ class CodeEditor(TextEditBaseWidget):
         self.folding_supported = False
         self.is_cloned = False
         self.operation_in_progress = False
+        self.formatting_in_progress = False
 
         # Diagnostics
         self.update_diagnostics_thread = QThread()
@@ -1149,6 +1150,8 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
+        # Cancel formatting
+        self.formatting_in_progress = False
         text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP
@@ -1672,6 +1675,9 @@ class CodeEditor(TextEditBaseWidget):
     def format_document(self):
         if not self.formatting_enabled:
             return
+        if self.formatting_in_progress:
+            # Already waiting for a formatting
+            return
 
         using_spaces = self.indent_chars != '\t'
         tab_size = (len(self.indent_chars) if using_spaces else
@@ -1693,12 +1699,16 @@ class CodeEditor(TextEditBaseWidget):
         self.document().setModified(True)
         self.sig_start_operation_in_progress.emit()
         self.operation_in_progress = True
+        self.formatting_in_progress = True
 
         return params
 
     @request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def format_document_range(self):
         if not self.range_formatting_enabled or not self.has_selected_text():
+            return
+        if self.formatting_in_progress:
+            # Already waiting for a formatting
             return
 
         start, end = self.get_selection_start_end()
@@ -1736,13 +1746,15 @@ class CodeEditor(TextEditBaseWidget):
         self.document().setModified(True)
         self.sig_start_operation_in_progress.emit()
         self.operation_in_progress = True
+        self.formatting_in_progress = True
 
         return params
 
     @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
     def handle_document_formatting(self, edits):
         try:
-            self._apply_document_edits(edits)
+            if self.formatting_in_progress:
+                self._apply_document_edits(edits)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1757,11 +1769,13 @@ class CodeEditor(TextEditBaseWidget):
             self.document().setModified(True)
             self.sig_stop_operation_in_progress.emit()
             self.operation_in_progress = False
+            self.formatting_in_progress = False
 
     @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def handle_document_range_formatting(self, edits):
         try:
-            self._apply_document_edits(edits)
+            if self.formatting_in_progress:
+                self._apply_document_edits(edits)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1776,6 +1790,7 @@ class CodeEditor(TextEditBaseWidget):
             self.document().setModified(True)
             self.sig_stop_operation_in_progress.emit()
             self.operation_in_progress = False
+            self.formatting_in_progress = False
 
     def _apply_document_edits(self, edits):
         """Apply a set of atomic document edits to the current editor text."""

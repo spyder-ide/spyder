@@ -92,7 +92,8 @@ def get_versions(reporev=True):
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': qtpy.QtCore.__version__,
         'qt_api': qtpy.API_NAME,      # PyQt5
-        'qt_api_ver': qtpy.PYQT_VERSION,
+        'qt_api_ver': (qtpy.PYSIDE_VERSION if qtpy.API == "pyside2"
+                       else qtpy.PYQT_VERSION),
         'system': system,   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
         'revision': revision,  # '9fdf926eccce',

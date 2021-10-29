@@ -59,6 +59,12 @@ class BaseComboBox(QComboBox):
 
         Filter tab keys and process double tab keys.
         """
+
+        # Type check: Prevent error in PySide where 'event' may be of type
+        # QtGui.QPainter (for whatever reason).
+        if not isinstance(event, QEvent):
+            return True
+
         if (event.type() == QEvent.KeyPress) and (event.key() == Qt.Key_Tab):
             self.sig_tab_pressed.emit(True)
             return True

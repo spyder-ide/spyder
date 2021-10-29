@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QTreeWidget
 
@@ -36,7 +37,11 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent):
-        super().__init__(parent, class_parent=parent)
+        if PYQT5:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QTreeWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.__expanded_state = None
 

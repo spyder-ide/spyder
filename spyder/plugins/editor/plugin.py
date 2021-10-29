@@ -2045,8 +2045,8 @@ class Editor(SpyderPluginWidget):
                 action = create_action(
                     self, fname,
                     icon=ima.get_icon_by_extension_or_type(
-                        fname, scale_factor=1.0),
-                    triggered=self.load)
+                        fname, scale_factor=1.0))
+                action.triggered[bool].connect(self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
         self.clear_recent_action.setEnabled(len(recent_files) > 0)

@@ -168,14 +168,14 @@ class RecoveryDialog(QDialog):
                         'replacing the original if it exists.')
             button = QPushButton(_('Restore'))
             button.setToolTip(tooltip)
-            button.clicked.connect(
+            button.clicked[bool].connect(
                     lambda checked, my_idx=idx: self.restore(my_idx))
             layout.addWidget(button)
 
             tooltip = _('Delete the autosave file.')
             button = QPushButton(_('Discard'))
             button.setToolTip(tooltip)
-            button.clicked.connect(
+            button.clicked[bool].connect(
                     lambda checked, my_idx=idx: self.discard(my_idx))
             layout.addWidget(button)
 
@@ -184,7 +184,7 @@ class RecoveryDialog(QDialog):
                         'or delete it manually.')
             button = QPushButton(_('Open'))
             button.setToolTip(tooltip)
-            button.clicked.connect(
+            button.clicked[bool].connect(
                     lambda checked, my_idx=idx: self.open_files(my_idx))
             layout.addWidget(button)
 
