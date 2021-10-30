@@ -149,7 +149,7 @@ def test_jedi_completion_item_resolve(config, workspace):
     # Over the blank line
     com_position = {'line': 8, 'character': 0}
     doc = Document(DOC_URI, workspace, DOC)
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': math.inf}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': math.inf}}})
     completions = pylsp_jedi_completions(config, doc, com_position)
 
     items = {c['label']: c for c in completions}
@@ -187,13 +187,13 @@ def test_jedi_completion_resolve_at_most(config, workspace):
     doc = Document(DOC_URI, workspace, DOC)
 
     # Do not resolve any labels
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': 0}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': 0}}})
     items = pylsp_jedi_completions(config, doc, com_position)
     labels = {i['label'] for i in items}
     assert 'isabs' in labels
 
     # Resolve all items
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': math.inf}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': math.inf}}})
     items = pylsp_jedi_completions(config, doc, com_position)
     labels = {i['label'] for i in items}
     assert 'isabs(path)' in labels
@@ -214,7 +214,7 @@ def test_jedi_completion_ordering(config, workspace):
     # Over the blank line
     com_position = {'line': 8, 'character': 0}
     doc = Document(DOC_URI, workspace, DOC)
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': math.inf}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': math.inf}}})
     completions = pylsp_jedi_completions(config, doc, com_position)
 
     items = {c['label']: c['sortText'] for c in completions}
@@ -316,6 +316,20 @@ def test_snippets_completion(config, workspace):
     completions = pylsp_jedi_completions(config, doc, com_position)
     assert completions[0]['insertText'] == 'defaultdict($0)'
     assert completions[0]['insertTextFormat'] == lsp.InsertTextFormat.Snippet
+
+
+def test_snippets_completion_at_most(config, workspace):
+    doc_snippets = 'from collections import defaultdict \na=defaultdict'
+    doc = Document(DOC_URI, workspace, doc_snippets)
+    config.capabilities['textDocument'] = {
+        'completion': {'completionItem': {'snippetSupport': True}}}
+    config.update({'plugins': {'jedi_completion': {'include_params': True}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': 0}}})
+
+    com_position = {'line': 1, 'character': len(doc_snippets)}
+    completions = pylsp_jedi_completions(config, doc, com_position)
+    assert completions[0]['insertText'] == 'defaultdict'
+    assert not completions[0].get('insertTextFormat', None)
 
 
 def test_completion_with_class_objects(config, workspace):
