@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/python-lsp/python-lsp-server.git
-	branch = snippets-cache
-	commit = d92e90ae5f688f663327d8e757f6c55c2f3320d8
-	parent = d6f3e21f2ed7d00fbd0a6642bb75b0021b55d6a1
+	branch = develop
+	commit = e46cddd7dc9fed0b1ede1b0e5fe440ce3378e78f
+	parent = 5720d7e171c2352bfade1b6e31dc6fbaa6d637f4
 	method = merge
 	cmdver = 0.4.3
