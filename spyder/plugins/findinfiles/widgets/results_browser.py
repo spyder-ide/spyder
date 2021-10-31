@@ -11,7 +11,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QPoint, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
+from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QBrush,
+                        QTextDocument, QPalette)
 from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
@@ -19,6 +20,7 @@ from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
 from spyder.api.translations import get_translation
 from spyder.config.gui import get_font
 from spyder.utils import icon_manager as ima
+from spyder.utils.palette import QStylePalette
 from spyder.widgets.onecolumntree import OneColumnTree
 
 # Localization
@@ -114,20 +116,39 @@ class ItemDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
         self._margin = None
+        self._background_color = QColor(QStylePalette.COLOR_BACKGROUND_3)
 
     def paint(self, painter, option, index):
         options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
-
         style = (QApplication.style() if options.widget is None
                  else options.widget.style())
 
+        # Set background color for selected and hovered items.
+        # Inspired by:
+        # - https://stackoverflow.com/a/43253004/438386
+        # - https://stackoverflow.com/a/27274233/438386
+
+        # This is commented for now until we find a way to correctly colorize
+        # the entire line with a single color.
+        # if options.state & QStyle.State_Selected:
+        #     # This only applies when the selected item doesn't have focus
+        #     if not (options.state & QStyle.State_HasFocus):
+        #         options.palette.setBrush(
+        #             QPalette.Highlight,
+        #             QBrush(self._background_color)
+        #         )
+
+        if options.state & QStyle.State_MouseOver:
+            painter.fillRect(option.rect, self._background_color)
+
+        # Set text
         doc = QTextDocument()
         text = options.text
         doc.setHtml(text)
         doc.setDocumentMargin(0)
 
-        # This needs to be an empty string to avoid the overlapping the
+        # This needs to be an empty string to avoid overlapping the
         # normal text of the QTreeWidgetItem
         options.text = ""
         style.drawControl(QStyle.CE_ItemViewItem, options, painter)
