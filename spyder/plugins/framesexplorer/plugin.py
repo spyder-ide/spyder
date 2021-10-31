@@ -49,6 +49,11 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -58,21 +63,3 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         self.get_widget().edit_goto.disconnect(editor.load)
-
-    @on_plugin_teardown(plugin=Plugins.Preferences)
-    def on_preferences_teardown(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.deregister_plugin_preferences(self)
-
-    # ---- Public API
-    # ------------------------------------------------------------------------
-    def current_widget(self):
-        """
-        Return the current widget displayed at the moment.
-
-        Returns
-        -------
-        spyder.plugins.spyder.plugins.framesexplorer.widgets.framesbrowser.
-            FramesBrowser
-        """
-        return self.get_widget().current_widget()

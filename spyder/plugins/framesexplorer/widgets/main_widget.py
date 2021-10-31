@@ -80,10 +80,6 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         self.context_menu = None
         self.empty_context_menu = None
 
-    def set_namespace_view(self, view):
-        """Set the namespace view."""
-        self.current_widget().shellwidget.set_namespace_view(view)
-
     def postmortem(self):
         """Ask for post mortem debug."""
         self.current_widget().shellwidget.execute("%debug")
@@ -209,7 +205,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             self, shellwidget=shellwidget, color_scheme=color_scheme)
 
         widget.edit_goto.connect(self.edit_goto)
-        widget.sig_show_namespace.connect(self.set_namespace_view)
+        widget.sig_show_namespace.connect(shellwidget.set_namespace_view)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
         widget.sig_update_actions_requested.connect(self.update_actions)
 
@@ -233,7 +229,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
     def close_widget(self, widget):
         """Close widget."""
         widget.edit_goto.disconnect(self.edit_goto)
-        widget.sig_show_namespace.disconnect(self.set_namespace_view)
+        widget.sig_show_namespace.disconnect(
+            widget.shellwidget.set_namespace_view)
         widget.sig_hide_finder_requested.disconnect(self.hide_finder)
         widget.sig_update_actions_requested.disconnect(self.update_actions)
 
