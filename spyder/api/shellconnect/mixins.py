@@ -84,6 +84,16 @@ class ShellConnectMixin:
         """
         self.get_widget().remove_shellwidget(shellwidget)
 
+    def current_widget(self):
+        """
+        Return the current widget displayed at the moment.
+
+        Returns
+        -------
+        current_widget: The widget displayed in the current tab.
+        """
+        return self.get_widget().current_widget()
+
     def on_connection_to_external_spyder_kernel(self, shellwidget):
         """
         Actions to take when the IPython console connects to an
