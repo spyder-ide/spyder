@@ -50,6 +50,7 @@ class LineMatchItem(QTreeWidgetItem):
         _str = (
             f"<!-- LineMatchItem -->"
             f"<p style=\"color:'{self.text_color}';\">"
+            f'&nbsp;&nbsp;'
             f"<b>{self.lineno}</b> ({self.colno}): "
             f"<span style='font-family:{self.font.family()};"
             f"font-size:{self.font.pointSize()}pt;'>{match}</span></p>"
