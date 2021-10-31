@@ -47,20 +47,6 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
         # a plot is generated.
         self.get_widget().sig_figure_loaded.connect(self._on_first_plot)
 
-    # ---- Public API
-    # ------------------------------------------------------------------------
-    def current_widget(self):
-        """
-        Return the current widget displayed at the moment.
-
-        Returns
-        -------
-        spyder.plugins.plots.widgets.figurebrowser.FigureBrowser
-            The current figure browser widget.
-        """
-        return self.get_widget().current_widget()
-
-
     # ---- Private API
     # ------------------------------------------------------------------------
     def _on_first_plot(self):

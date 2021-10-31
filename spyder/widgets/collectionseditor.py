@@ -319,7 +319,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return False
 
     def fetchMore(self, index=QModelIndex(), number_to_fetch=None):
+        # fetch more data
         reminder = self.total_rows - self.rows_loaded
+        if reminder <= 0:
+            # Everything is loaded
+            return
         if number_to_fetch is not None:
             items_to_fetch = min(reminder, number_to_fetch)
         else:
@@ -1574,6 +1578,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def do_find(self, text):
         """Update the regex text for the variable finder."""
         text = text.replace(' ', '').lower()
+
+        # Make sure everything is loaded
+        self.source_model.load_all()
 
         self.proxy_model.set_filter(text)
         self.source_model.update_search_letters(text)

@@ -70,8 +70,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget = None
         self.finder = None
 
-        self.all_loaded = True
-
     def toggle_finder(self, show):
         """Show and hide the finder."""
         self.finder.set_visible(show)
@@ -81,7 +79,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     def do_find(self, text):
         """Search for text."""
         if self.editor is not None:
-            self.load_all_variables()
             self.editor.do_find(text)
 
     def finder_is_visible(self):
@@ -89,12 +86,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         if self.finder is None:
             return False
         return self.finder.isVisible()
-
-    def load_all_variables(self):
-        """Load all variables if needed."""
-        if not self.all_loaded:
-            self.editor.source_model.load_all()
-        self.all_loaded = True
 
     def setup(self):
         """
@@ -177,7 +168,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     def set_data(self, data):
         """Set data."""
         if data != self.editor.source_model.get_data():
-            self.all_loaded = False
             self.editor.set_data(data)
             self.editor.adjust_columns()
 
