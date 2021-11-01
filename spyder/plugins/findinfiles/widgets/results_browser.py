@@ -82,13 +82,14 @@ class FileMatchItem(QTreeWidgetItem):
         rel_dirname = dirname.split(path)[1]
         if rel_dirname.startswith(osp.sep):
             rel_dirname = rel_dirname[1:]
+        self.rel_dirname = rel_dirname
 
         title = (
             f'<!-- FileMatchItem -->'
             f'<b style="color:{text_color}">{osp.basename(filename)}</b>'
             f'&nbsp;&nbsp;&nbsp;'
             f'<span style="color:{text_color}">'
-            f'<em>{rel_dirname}</em>'
+            f'<em>{self.rel_dirname}</em>'
             f'</span>'
         )
 
@@ -118,6 +119,7 @@ class ItemDelegate(QStyledItemDelegate):
         super().__init__(parent)
         self._margin = None
         self._background_color = QColor(QStylePalette.COLOR_BACKGROUND_3)
+        self.width = 0
 
     def paint(self, painter, option, index):
         options = QStyleOptionViewItem(option)
@@ -170,7 +172,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
-        size = QSize(int(doc.idealWidth()), int(doc.size().height()))
+        size = QSize(self.width, int(doc.size().height()))
         return size
 
 
@@ -193,6 +195,7 @@ class ResultsBrowser(OneColumnTree):
         self.root_items = None
         self.text_color = text_color
         self.path = None
+        self.longest_item = ''
 
         # Setup
         self.set_title('')
@@ -253,10 +256,20 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            self.files[filename] = FileMatchItem(self, self.path, filename,
-                                                 self.sorting, self.text_color)
-            self.files[filename].setExpanded(True)
+            self.files[filename] = item = FileMatchItem(
+                self,
+                self.path,
+                filename,
+                self.sorting,
+                self.text_color
+            )
+
+            item.setExpanded(True)
             self.num_files += 1
+
+            item_text = osp.join(item.rel_dirname, item.filename)
+            if len(item_text) > len(self.longest_item):
+                self.longest_item = item_text
 
     @Slot(object, object)
     def append_result(self, items, title):
@@ -289,3 +302,12 @@ class ResultsBrowser(OneColumnTree):
     def set_path(self, path):
         """Set path where the search is performed."""
         self.path = path
+
+    def set_width(self):
+        """Set widget width according to its longest item."""
+        text_size = self.fontMetrics().size(
+            Qt.TextSingleLine,
+            self.longest_item
+        )
+
+        self.itemDelegate().width = text_size.width() + 10
