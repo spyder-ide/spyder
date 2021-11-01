@@ -220,10 +220,15 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         widget.sig_update_actions_requested.connect(self.update_actions)
 
         widget.sig_show_namespace.connect(shellwidget.set_namespace_view)
-        shellwidget.sig_pdb_stack.connect(widget.set_from_pdb)
-        shellwidget.sig_show_traceback.connect(widget.set_from_exception)
         shellwidget.executed.connect(widget.clear_if_needed)
         widget.sig_goto_pdb.connect(shellwidget.set_pdb_index)
+
+        shellwidget.spyder_kernel_comm.register_call_handler(
+            "show_traceback", widget.set_from_exception)
+        shellwidget.spyder_kernel_comm.register_call_handler(
+            "set_pdb_stack", widget.set_from_pdb)
+
+        widget.shellwidget = shellwidget
 
         widget.setup()
         widget.set_context_menu(
@@ -251,10 +256,13 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         shellwidget = widget.shellwidget
 
         widget.sig_show_namespace.disconnect(shellwidget.set_namespace_view)
-        shellwidget.sig_pdb_stack.disconnect(widget.set_from_pdb)
-        shellwidget.sig_show_traceback.disconnect(widget.set_from_exception)
         shellwidget.executed.disconnect(widget.clear_if_needed)
         widget.sig_goto_pdb.disconnect(shellwidget.set_pdb_index)
+
+        shellwidget.spyder_kernel_comm.register_call_handler(
+            "show_traceback", None)
+        shellwidget.spyder_kernel_comm.register_call_handler(
+            "set_pdb_stack", None)
 
         widget.close()
 

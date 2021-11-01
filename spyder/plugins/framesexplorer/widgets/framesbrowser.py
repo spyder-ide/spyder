@@ -43,16 +43,16 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     sig_hide_finder_requested = Signal()
     sig_goto_pdb = Signal(int)
 
-    def __init__(self, parent, shellwidget, color_scheme):
+    def __init__(self, parent, color_scheme):
         QWidget.__init__(self, parent)
 
-        self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme
         self.execution_frames = False
         self.should_clear = False
         self.post_mortem = False
         self.finder = None
+        self.pdb_curindex = None
 
     def set_context_menu(self, context_menu, empty_context_menu):
         """Set the context menus."""
@@ -118,8 +118,20 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             except TypeError:
                 pass
 
+    def set_pdb_index(self, index):
+        """Set pdb index"""
+        if self.pdb_curindex is None:
+            return
+        delta_index = self.pdb_curindex - index
+        if delta_index > 0:
+            command = "up " + str(delta_index)
+        elif delta_index < 0:
+            command = "down " + str(-delta_index)
+        self.shellwidget.pdb_execute_command(command)
+
     def set_from_pdb(self, pdb_stack, curindex):
         """Set from pdb stack"""
+        self.pdb_curindex = curindex
         self._set_frames({'pdb': pdb_stack}, _("Pdb stack"))
         self.set_current_item(0, curindex)
         self.results_browser.sig_activated.connect(
@@ -130,6 +142,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def set_from_exception(self, etype, error, tb):
         """Set from exception"""
+        self.pdb_curindex = None
         self._set_frames({etype.__name__: tb}, _("Exception occured"))
         self.execution_frames = True
         self.should_clear = False
@@ -137,6 +150,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def set_from_refresh(self, frames):
         """Set from pdb call"""
+        self.pdb_curindex = None
         self._set_frames(frames, _("Snapshot of frames"))
         self.execution_frames = False
         self.should_clear = False
@@ -145,6 +159,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     def clear_if_needed(self):
         """Execution finished. Clear if it is relevant."""
         if self.should_clear:
+            self.pdb_curindex = None
             self._set_frames(None, "")
             self.should_clear = False
             self.set_post_mortem_enabled(False)
