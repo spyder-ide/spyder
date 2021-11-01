@@ -22,8 +22,8 @@ This server can be configured using `workspace/didChangeConfiguration` method. E
 | `pylsp.plugins.jedi_completion.include_class_objects` | `boolean` | Adds class objects as a separate completion item. | `true` |
 | `pylsp.plugins.jedi_completion.fuzzy` | `boolean` | Enable fuzzy when requesting autocomplete. | `false` |
 | `pylsp.plugins.jedi_completion.eager` | `boolean` | Resolve documentation and detail eagerly. | `false` |
-| `pylsp.plugins.jedi_completion.resolve_at_most_labels` | `number`  | How many labels (at most) should be resolved? | `25` |
-| `pylsp.plugins.jedi_completion.cache_labels_for` | `array`  of  `string` items | Modules for which the labels should be cached. | `["pandas", "numpy", "tensorflow", "matplotlib"]` |
+| `pylsp.plugins.jedi_completion.resolve_at_most` | `number`  | How many labels and snippets (at most) should be resolved? | `25` |
+| `pylsp.plugins.jedi_completion.cache_for` | `array`  of  `string` items | Modules for which labels and snippets should be cached. | `["pandas", "numpy", "tensorflow", "matplotlib"]` |
 | `pylsp.plugins.jedi_definition.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_definition.follow_imports` | `boolean` | The goto call will follow imports. | `true` |
 | `pylsp.plugins.jedi_definition.follow_builtin_imports` | `boolean` | If follow_imports is True will decide if it follow builtin imports. | `true` |
