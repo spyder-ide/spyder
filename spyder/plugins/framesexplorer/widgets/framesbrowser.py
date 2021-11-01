@@ -41,11 +41,10 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     sig_show_namespace = Signal(dict)
     sig_update_actions_requested = Signal()
     sig_hide_finder_requested = Signal()
-    sig_goto_pdb = Signal(int)
 
-    def __init__(self, parent, color_scheme):
+    def __init__(self, parent, shellwidget, color_scheme):
         QWidget.__init__(self, parent)
-
+        self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme
         self.execution_frames = False
@@ -114,7 +113,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
             try:
                 self.results_browser.sig_activated.disconnect(
-                    self.sig_goto_pdb)
+                    self.set_pdb_index)
             except TypeError:
                 pass
 
@@ -135,7 +134,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self._set_frames({'pdb': pdb_stack}, _("Pdb stack"))
         self.set_current_item(0, curindex)
         self.results_browser.sig_activated.connect(
-            self.sig_goto_pdb)
+            self.set_pdb_index)
         self.execution_frames = True
         self.should_clear = False
         self.set_post_mortem_enabled(False)
