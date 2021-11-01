@@ -84,6 +84,20 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         """Ask for post mortem debug."""
         self.current_widget().shellwidget.execute("%debug")
 
+    def capture_frames(self):
+        """Refresh frames table"""
+        widget = self.current_widget()
+        if widget is None:
+            return
+        sw = widget.shellwidget
+        if sw.kernel_client is None:
+            return
+        sw.call_kernel(
+            interrupt=True, callback=widget.set_from_refresh
+            ).get_current_frames(
+                ignore_internal_threads=self.get_conf("exclude_internal"),
+                capture_locals=self.get_conf("capture_locals"))
+
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -130,9 +144,9 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         self.refresh_action = self.create_action(
             FramesExplorerWidgetActions.Refresh,
-            text=_("Refresh frames"),
+            text=_("Capture frames now"),
             icon=self.create_icon('refresh'),
-            triggered=self.refresh,
+            triggered=self.capture_frames,
             register_shortcut=True,
         )
 
@@ -205,9 +219,14 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             self, shellwidget=shellwidget, color_scheme=color_scheme)
 
         widget.edit_goto.connect(self.edit_goto)
-        widget.sig_show_namespace.connect(shellwidget.set_namespace_view)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
         widget.sig_update_actions_requested.connect(self.update_actions)
+
+        widget.sig_show_namespace.connect(shellwidget.set_namespace_view)
+        shellwidget.sig_pdb_stack.connect(widget.set_from_pdb)
+        shellwidget.sig_show_traceback.connect(widget.set_from_exception)
+        shellwidget.executed.connect(widget.clear_if_needed)
+        widget.sig_goto_pdb.connect(shellwidget.set_pdb_index)
 
         widget.setup()
         widget.set_context_menu(
@@ -229,10 +248,16 @@ class FramesExplorerWidget(ShellConnectMainWidget):
     def close_widget(self, widget):
         """Close widget."""
         widget.edit_goto.disconnect(self.edit_goto)
-        widget.sig_show_namespace.disconnect(
-            widget.shellwidget.set_namespace_view)
         widget.sig_hide_finder_requested.disconnect(self.hide_finder)
         widget.sig_update_actions_requested.disconnect(self.update_actions)
+
+        shellwidget = widget.shellwidget
+
+        widget.sig_show_namespace.disconnect(shellwidget.set_namespace_view)
+        shellwidget.sig_pdb_stack.disconnect(widget.set_from_pdb)
+        shellwidget.sig_show_traceback.disconnect(widget.set_from_exception)
+        shellwidget.executed.disconnect(widget.clear_if_needed)
+        widget.sig_goto_pdb.disconnect(shellwidget.set_pdb_index)
 
         widget.close()
 
@@ -261,10 +286,10 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         postmortem_debug_action = self.get_action(
             FramesExplorerWidgetActions.PostMortemDebug)
         if widget is None:
-            checked = False
+            search = False
             post_mortem = False
         else:
-            checked = widget.finder_is_visible()
+            search = widget.finder_is_visible()
             post_mortem = widget.post_mortem
-        search_action.setChecked(checked)
+        search_action.setChecked(search)
         postmortem_debug_action.setEnabled(post_mortem)

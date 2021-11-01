@@ -34,7 +34,6 @@ _ = get_translation('spyder')
 
 class FramesBrowser(QWidget, SpyderWidgetMixin):
     """Frames browser (global frames explorer widget)"""
-    # This is necessary to test the widget separately from its plugin
     CONF_SECTION = 'frames_explorer'
 
     # Signals
@@ -42,21 +41,18 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     sig_show_namespace = Signal(dict)
     sig_update_actions_requested = Signal()
     sig_hide_finder_requested = Signal()
+    sig_goto_pdb = Signal(int)
 
     def __init__(self, parent, shellwidget, color_scheme):
         QWidget.__init__(self, parent)
 
-        self.shellwidget = None
+        self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme
         self.execution_frames = False
         self.should_clear = False
         self.post_mortem = False
-
-        # Finder
         self.finder = None
-
-        self.set_shellwidget(shellwidget)
 
     def set_context_menu(self, context_menu, empty_context_menu):
         """Set the context menus."""
@@ -89,8 +85,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """
         Setup the frames browser with provided settings.
         """
-        assert self.shellwidget is not None
-
         if self.results_browser is not None:
             return
 
@@ -112,25 +106,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         layout.addWidget(self.finder)
         self.setLayout(layout)
 
-    def set_shellwidget(self, shellwidget):
-        """Bind shellwidget instance to frames browser"""
-        self.shellwidget = shellwidget
-        shellwidget.sig_pdb_stack.connect(self.set_from_pdb)
-        shellwidget.sig_show_traceback.connect(self.set_from_exception)
-        shellwidget.executed.connect(self.clear_if_needed)
-
-    def refresh(self):
-        """Refresh frames table"""
-        if self.isVisible():
-            sw = self.shellwidget
-            if sw.kernel_client is None:
-                return
-            sw.call_kernel(
-                interrupt=True, callback=self.set_from_refresh
-                ).get_current_frames(
-                    ignore_internal_threads=self.get_conf("exclude_internal"),
-                    capture_locals=self.get_conf("capture_locals"))
-
     def _set_frames(self, frames, title):
         """Set current frames"""
         if self.results_browser is not None:
@@ -139,7 +114,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
             try:
                 self.results_browser.sig_activated.disconnect(
-                    self.shellwidget.set_pdb_index)
+                    self.sig_goto_pdb)
             except TypeError:
                 pass
 
@@ -148,7 +123,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self._set_frames({'pdb': pdb_stack}, _("Pdb stack"))
         self.set_current_item(0, curindex)
         self.results_browser.sig_activated.connect(
-            self.shellwidget.set_pdb_index)
+            self.sig_goto_pdb)
         self.execution_frames = True
         self.should_clear = False
         self.set_post_mortem_enabled(False)
