@@ -40,7 +40,8 @@ class LineMatchItem(QTreeWidgetItem):
     def __init__(self, parent, lineno, colno, match, font, text_color):
         self.lineno = lineno
         self.colno = colno
-        self.match = match
+        self.match = match['formatted_text']
+        self.plain_match = match['text']
         self.text_color = text_color
         self.font = font
         super().__init__(parent, [self.__repr__()], QTreeWidgetItem.Type)
