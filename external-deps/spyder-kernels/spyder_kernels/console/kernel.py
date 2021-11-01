@@ -35,6 +35,7 @@ from spyder_kernels.utils.nsview import get_remote_data, make_remote_view
 from spyder_kernels.console.shell import SpyderShell
 
 if PY3:
+    import faulthandler
     basestring = (str,)
 
 
@@ -87,6 +88,8 @@ class SpyderKernel(IPythonKernel):
             'get_matplotlib_backend': self.get_matplotlib_backend,
             'pdb_input_reply': self.pdb_input_reply,
             '_interrupt_eventloop': self._interrupt_eventloop,
+            'enable_faulthandler': self.enable_faulthandler,
+            "flush_std": self.flush_std,
             'get_current_frames': self.get_current_frames,
             }
         for call_id in handlers:
@@ -97,8 +100,14 @@ class SpyderKernel(IPythonKernel):
         self._mpl_backend_error = None
         self._running_namespace = None
         self._pdb_input_line = None
+        self.faulthandler_handle = None
 
     # -- Public API -----------------------------------------------------------
+    def do_shutdown(self, restart):
+        """Disable faulthandler if enabled before proceeding."""
+        self.disable_faulthandler()
+        super(SpyderKernel, self).do_shutdown(restart)
+
     def frontend_call(self, blocking=False, broadcast=True,
                       timeout=None, callback=None):
         """Call the frontend."""
@@ -113,6 +122,42 @@ class SpyderKernel(IPythonKernel):
             comm_id=comm_id,
             callback=callback,
             timeout=timeout)
+
+    def flush_std(self):
+        """Flush C standard streams."""
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
+
+    def enable_faulthandler(self, fn):
+        """
+        Open a file to save the faulthandling and identifiers for
+        internal threads.
+        """
+        if not PY3:
+            # Not implemented
+            return
+        self.disable_faulthandler()
+        f = open(fn, 'w')
+        self.faulthandler_handle = f
+        f.write("Main thread id:\n")
+        f.write(hex(threading.main_thread().ident))
+        f.write('\nSystem threads ids:\n')
+        f.write(" ".join([hex(thread.ident) for thread in threading.enumerate()
+                          if thread is not threading.main_thread()]))
+        f.write('\n')
+        faulthandler.enable(f)
+
+    def disable_faulthandler(self):
+        """
+        Cancel the faulthandling, close the file handle and remove the file.
+        """
+        if not PY3:
+            # Not implemented
+            return
+        if self.faulthandler_handle:
+            faulthandler.disable()
+            self.faulthandler_handle.close()
+            self.faulthandler_handle = None
 
     def get_system_threads_id(self):
         """Return the list of system threads id."""
