@@ -7,7 +7,7 @@
 # Third party imports
 from qtpy import PYQT5
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import QTreeWidget
+from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QTreeWidget
 
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -62,8 +62,15 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
         self.itemClicked.connect(self.clicked)
         self.itemSelectionChanged.connect(self.item_selection_changed)
 
-        self.item_selection_changed()
+        # To use mouseMoveEvent
         self.setMouseTracking(True)
+
+        # Use horizontal scrollbar when needed
+        self.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.header().setStretchLastSection(False)
+
+        self.item_selection_changed()
 
     # ---- SpyderWidgetMixin API
     # -------------------------------------------------------------------------
