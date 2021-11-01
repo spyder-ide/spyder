@@ -4279,7 +4279,7 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     control = main_window.ipyconsole.get_focus_widget()
     assert ']:' not in control.toPlainText().split()[-1]
 
-    frames_explorer.refresh()
+    frames_explorer.capture_frames()
     qtbot.wait(1000)
     qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
 

@@ -141,15 +141,13 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def set_from_exception(self, etype, error, tb):
         """Set from exception"""
-        self.pdb_curindex = None
         self._set_frames({etype.__name__: tb}, _("Exception occured"))
         self.execution_frames = True
         self.should_clear = False
         self.set_post_mortem_enabled(True)
 
-    def set_from_refresh(self, frames):
+    def set_from_capture_frames(self, frames):
         """Set from pdb call"""
-        self.pdb_curindex = None
         self._set_frames(frames, _("Snapshot of frames"))
         self.execution_frames = False
         self.should_clear = False

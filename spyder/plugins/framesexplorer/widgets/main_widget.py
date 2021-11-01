@@ -90,7 +90,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         if widget is None:
             return
         widget.shellwidget.call_kernel(
-            interrupt=True, callback=widget.set_from_refresh
+            interrupt=True, callback=widget.set_from_capture_frames
             ).get_current_frames(
                 ignore_internal_threads=self.get_conf("exclude_internal"),
                 capture_locals=self.get_conf("capture_locals"))
@@ -139,7 +139,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             register_shortcut=True
         )
 
-        self.refresh_action = self.create_action(
+        self.capture_frames_action = self.create_action(
             FramesExplorerWidgetActions.Refresh,
             text=_("Capture frames now"),
             icon=self.create_icon('refresh'),
@@ -177,7 +177,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [search_action, self.refresh_action,
+        for item in [search_action, self.capture_frames_action,
                      self.postmortem_debug_action]:
             self.add_item_to_toolbar(
                 item,
@@ -188,7 +188,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         # ---- Context menu to show when there are frames present
         self.context_menu = self.create_menu(
             FramesExplorerWidgetMenus.PopulatedContextMenu)
-        for item in [self.view_locals_action, self.refresh_action]:
+        for item in [self.view_locals_action, self.capture_frames_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
@@ -198,7 +198,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         # ---- Context menu when the frames explorer is empty
         self.empty_context_menu = self.create_menu(
             FramesExplorerWidgetMenus.EmptyContextMenu)
-        for item in [self.refresh_action]:
+        for item in [self.capture_frames_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.empty_context_menu,
