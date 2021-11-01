@@ -12,13 +12,15 @@ import os.path as osp
 # Third party imports
 from qtpy.QtCore import QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QBrush,
-                        QTextDocument, QPalette)
+                        QFontMetrics, QPalette, QTextDocument)
 from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.config.gui import get_font
+from spyder.plugins.findinfiles.widgets.search_thread import (
+    ELLIPSIS, MAX_RESULT_LENGTH)
 from spyder.utils import icon_manager as ima
 from spyder.utils.palette import QStylePalette
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -196,7 +198,8 @@ class ResultsBrowser(OneColumnTree):
         self.root_items = None
         self.text_color = text_color
         self.path = None
-        self.longest_item = ''
+        self.longest_file_item = ''
+        self.longest_line_item = ''
 
         # Setup
         self.set_title('')
@@ -269,8 +272,8 @@ class ResultsBrowser(OneColumnTree):
             self.num_files += 1
 
             item_text = osp.join(item.rel_dirname, item.filename)
-            if len(item_text) > len(self.longest_item):
-                self.longest_item = item_text
+            if len(item_text) > len(self.longest_file_item):
+                self.longest_file_item = item_text
 
     @Slot(object, object)
     def append_result(self, items, title):
@@ -294,6 +297,10 @@ class ResultsBrowser(OneColumnTree):
                 item = LineMatchItem(file_item, lineno, colno, line,
                                      self.font, self.text_color)
                 self.data[id(item)] = (filename, lineno, colno, match_end)
+
+                if len(item.plain_match) > len(self.longest_line_item):
+                    self.longest_line_item = item.plain_match
+
         self.setUpdatesEnabled(True)
 
     def set_max_results(self, value):
@@ -306,9 +313,25 @@ class ResultsBrowser(OneColumnTree):
 
     def set_width(self):
         """Set widget width according to its longest item."""
-        text_size = self.fontMetrics().size(
+        # File item width
+        file_item_size = self.fontMetrics().size(
             Qt.TextSingleLine,
-            self.longest_item
+            self.longest_file_item
         )
+        file_item_width = file_item_size.width()
 
-        self.itemDelegate().width = text_size.width() + 10
+        # Line item width
+        metrics = QFontMetrics(self.font)
+        line_item_chars = len(self.longest_line_item)
+        if line_item_chars >= MAX_RESULT_LENGTH:
+            line_item_chars = MAX_RESULT_LENGTH + len(ELLIPSIS) + 1
+        line_item_width = line_item_chars * metrics.width('W')
+
+        # Select width
+        if file_item_width > line_item_width:
+            width = file_item_width
+        else:
+            width = line_item_width
+
+        # Increase width a bit to not be too near to the edge
+        self.itemDelegate().width = width + 10

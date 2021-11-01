@@ -583,7 +583,8 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Setup result_browser
         self.result_browser.set_path(options[0])
-        self.result_browser.longest_item = ''
+        self.result_browser.longest_file_item = ''
+        self.result_browser.longest_line_item = ''
 
         # Start
         self.running = True
