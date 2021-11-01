@@ -4266,8 +4266,8 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    frames_explorer = main_window.framesexplorer.current_widget()
-    frames_browser = frames_explorer.results_browser
+    frames_explorer = main_window.framesexplorer.get_widget()
+    frames_browser = frames_explorer.current_widget().results_browser
 
     # Click the run button
     run_action = main_window.run_toolbar_actions[0]
