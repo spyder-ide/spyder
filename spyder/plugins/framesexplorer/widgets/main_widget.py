@@ -89,10 +89,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        sw = widget.shellwidget
-        if sw.kernel_client is None:
-            return
-        sw.call_kernel(
+        widget.shellwidget.call_kernel(
             interrupt=True, callback=widget.set_from_refresh
             ).get_current_frames(
                 ignore_internal_threads=self.get_conf("exclude_internal"),
