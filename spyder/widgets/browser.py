@@ -367,9 +367,15 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         else:
             super(WebView, self).setHtml(html, baseUrl)
 
-        # The event filter needs to be installed every time html is set
-        # because the proxy changes with new content.
-        self.focusProxy().installEventFilter(self)
+        # This is required to catch an error with PyQt 5.9, for which
+        # it seems this functionality is not working.
+        # Fixes spyder-ide/spyder#16703
+        try:
+            # The event filter needs to be installed every time html is set
+            # because the proxy changes with new content.
+            self.focusProxy().installEventFilter(self)
+        except AttributeError:
+            pass
 
     def load(self, url):
         """
