@@ -90,11 +90,11 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.treewidget.set_root_path(osp.dirname(directory))
             self.treewidget.set_folder_names([osp.basename(directory)])
         self.treewidget.setup_project_view()
-        try:
+
+        index = self.treewidget.get_index(directory)
+        if index is not None:
             self.treewidget.setExpanded(self.treewidget.get_index(directory),
                                         True)
-        except TypeError:
-            pass
 
     def clear(self):
         """Show an empty view"""
