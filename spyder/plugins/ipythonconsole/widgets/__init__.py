@@ -23,3 +23,6 @@ from .restartdialog import ConsoleRestartDialog
 # contains it
 from .shell import ShellWidget
 from .client import ClientWidget
+
+# Constant for different types of completion available
+COMPLETION_WIDGET_TYPE = {0: "droplist", 1: "ncurses", 2: "plain"}

@@ -888,14 +888,8 @@ class MainWindow(QMainWindow):
             if plugin_name in enabled_plugins:
                 PluginClass = internal_plugins[plugin_name]
                 if issubclass(PluginClass, SpyderPlugin):
-                    if plugin_name == Plugins.IPythonConsole:
-                        plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                            self, PluginClass, external=False)
-                        plugin_instance.sig_exception_occurred.connect(
-                            self.handle_exception)
-                    else:
-                        plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                            self, PluginClass, external=False)
+                    plugin_instance = PLUGIN_REGISTRY.register_plugin(
+                        self, PluginClass, external=False)
                     self.preferences.register_plugin_preferences(
                         plugin_instance)
 

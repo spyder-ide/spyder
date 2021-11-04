@@ -12,12 +12,14 @@ import os
 import sys
 
 from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
+from spyder.plugins.help.utils.sphinxify import CSS_PATH
 
 WIN = os.name == 'nt'
 LINUX = sys.platform.startswith('linux')
 
 # Default themes
 APPEARANCE = {
+    'css_path': CSS_PATH,
     'icon_theme': 'spyder 3',
     # Global Spyder fonts
     'font/family': MONOSPACE,
