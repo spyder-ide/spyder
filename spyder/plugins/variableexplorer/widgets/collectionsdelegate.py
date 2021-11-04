@@ -181,6 +181,10 @@ class CollectionsDelegate(QItemDelegate):
                 np.ndarray is not FakeObject and
                 PIL.Image is not FakeObject and
                 not object_explorer):
+            # Sometimes the ArrayEditor import above is not seen (don't know
+            # why), so we need to reimport it here.
+            # Fixes spyder-ide/spyder#16731
+            from .arrayeditor import ArrayEditor
             arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
