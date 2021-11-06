@@ -175,35 +175,66 @@ class ProjectDialog(QDialog):
             )
         )
 
-        if location:
+        if location and location != '.':
             if is_writable(location):
                 self.location = location
                 self.update_location()
 
     def update_location(self, text=''):
-        """Update text of location."""
-        self.text_project_name.setEnabled(self.radio_new_dir.isChecked())
+        """Update text of location and validate it."""
+        msg = ''
+        path_validation = False
+        path = self.location
         name = self.text_project_name.text().strip()
 
-        if name and self.radio_new_dir.isChecked():
-            path = osp.join(self.location, name)
-            self.button_create.setDisabled(os.path.isdir(path))
-        elif self.radio_from_dir.isChecked():
-            self.button_create.setEnabled(True)
-            path = self.location
-        else:
-            self.button_create.setEnabled(False)
-            path = self.location
+        # Setup
+        self.text_project_name.setEnabled(self.radio_new_dir.isChecked())
+        self.label_information.setText('')
 
+        if name and self.radio_new_dir.isChecked():
+            # Allow to create projects only on new directories.
+            path = osp.join(self.location, name)
+            path_validation = not osp.isdir(path)
+            if not path_validation:
+                msg = _("This directory already exists!")
+        elif self.radio_from_dir.isChecked():
+            # Allow to create projects in current directories that are not
+            # Spyder projects.
+            path = self.location
+            path_validation = not osp.isdir(osp.join(path, '.spyproject'))
+            if not path_validation:
+                msg = _("This directory is already a Spyder project!")
+
+        # Set path in text_location
         self.text_location.setText(path)
 
-        # Validate name with the method from the currently selected project
+        # Validate project name with the method from the currently selected
+        # project.
         project_type_id = self.combo_project_type.currentData()
         validate_func = self._project_types[project_type_id].validate_name
-        validated, msg = validate_func(path, name)
-        msg = "" if validated else msg
-        self.label_information.setText(msg)
+        project_name_validation, project_msg = validate_func(path, name)
+        if not project_name_validation:
+            if msg:
+                msg = msg + '\n\n' + project_msg
+            else:
+                msg = project_msg
+
+        # Set message
+        if msg:
+            self.label_information.setText('\n' + msg)
+
+        # Allow to create project if validation was successful
+        validated = path_validation and project_name_validation
         self.button_create.setEnabled(validated)
+
+        # Set default state of buttons according to validation
+        # Fixes spyder-ide/spyder#16745
+        if validated:
+            self.button_create.setDefault(True)
+            self.button_create.setAutoDefault(True)
+        else:
+            self.button_cancel.setDefault(True)
+            self.button_cancel.setAutoDefault(True)
 
     def create_project(self):
         """Create project."""
