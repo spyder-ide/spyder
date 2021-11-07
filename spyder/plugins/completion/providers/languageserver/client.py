@@ -384,11 +384,18 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
+
+        # waitForFinished(): Wait some time for process to exit. This fixes an
+        # error message by Qt (“QProcess: Destroyed while process (…) is still
+        # running.”). No further error handling because we are out of luck
+        # anyway if the process doesn’t finish.
         if self.transport is not None:
             self.transport.kill()
+            self.transport.waitForFinished(1000)
         self.context.destroy()
         if self.server is not None:
             self.server.kill()
+            self.server.waitForFinished(1000)
 
     def is_transport_alive(self):
         """Detect if transport layer is alive."""

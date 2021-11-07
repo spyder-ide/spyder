@@ -1226,6 +1226,7 @@ class Editor(SpyderPluginWidget):
         completions = self.main.get_plugin(Plugins.Completions, error=False)
         outlineexplorer = self.main.get_plugin(
             Plugins.OutlineExplorer, error=False)
+        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole)
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
         self.main.console.sig_edit_goto_requested.connect(self.load)
@@ -1243,6 +1244,16 @@ class Editor(SpyderPluginWidget):
 
         if outlineexplorer:
             self.set_outlineexplorer(self.main.outlineexplorer)
+
+        if ipyconsole:
+            ipyconsole.register_spyder_kernel_call_handler(
+                'cell_count', self.handle_cell_count)
+            ipyconsole.register_spyder_kernel_call_handler(
+                'current_filename', self.handle_current_filename)
+            ipyconsole.register_spyder_kernel_call_handler(
+                'get_file_code', self.handle_get_file_code)
+            ipyconsole.register_spyder_kernel_call_handler(
+                'run_cell', self.handle_run_cell)
 
         self.add_dockwidget()
         self.update_pdb_state(False, {})
@@ -2701,9 +2712,85 @@ class Editor(SpyderPluginWidget):
         """Debug actions"""
         self.switch_to_plugin()
         self.main.ipyconsole.pdb_execute_command(command)
-        focus_widget = self.main.ipyconsole.get_focus_widget()
-        if focus_widget:
-            focus_widget.setFocus()
+        self.main.ipyconsole.switch_to_plugin()
+
+    # ----- Handlers for the IPython Console kernels
+    def _get_editorstack(self):
+        """
+        Get the current editorstack.
+
+        Raises an exception in case no editorstack is found
+        """
+        editorstack = self.get_current_editorstack()
+        if editorstack is None:
+            raise RuntimeError('No editorstack found.')
+
+        return editorstack
+
+    def _get_editor(self, filename):
+        """Get editor for filename and set it as the current editor."""
+        editorstack = self._get_editorstack()
+        if editorstack is None:
+            return None
+
+        if not filename:
+            return None
+
+        index = editorstack.has_filename(filename)
+        if index is None:
+            return None
+
+        return editorstack.data[index].editor
+
+    def handle_run_cell(self, cell_name, filename):
+        """
+        Get cell code from cell name and file name.
+        """
+        editorstack = self._get_editorstack()
+        editor = self._get_editor(filename)
+
+        if editor is None:
+            raise RuntimeError(
+                "File {} not open in the editor".format(filename))
+
+        editorstack.last_cell_call = (filename, cell_name)
+
+        # The file is open, load code from editor
+        return editor.get_cell_code(cell_name)
+
+    def handle_cell_count(self, filename):
+        """Get number of cells in file to loop."""
+        editor = self._get_editor(filename)
+
+        if editor is None:
+            raise RuntimeError(
+                "File {} not open in the editor".format(filename))
+
+        # The file is open, get cell count from editor
+        return editor.get_cell_count()
+
+    def handle_current_filename(self, filename):
+        """Get the current filename."""
+        return self._get_editorstack().get_current_finfo().filename
+
+    def handle_get_file_code(self, filename, save_all=True):
+        """
+        Return the bytes that compose the file.
+
+        Bytes are returned instead of str to support non utf-8 files.
+        """
+        editorstack = self._get_editorstack()
+        if save_all and CONF.get(
+                'editor', 'save_all_before_run', default=True):
+            editorstack.save_all(save_new_files=False)
+        editor = self._get_editor(filename)
+
+        if editor is None:
+            # Load it from file instead
+            text, _enc = encoding.read(filename)
+            return text
+
+        return editor.toPlainText()
 
     #------ Run Python script
     @Slot()

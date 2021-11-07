@@ -402,6 +402,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute(lock_code)
+    qtbot.wait(1000)
     assert not shell.get_value('lock_created')
 
     # Test %edit magic
@@ -927,8 +928,8 @@ def test_dedicated_consoles(main_window, qtbot):
     nsb = main_window.variableexplorer.current_widget()
 
     assert len(main_window.ipyconsole.get_clients()) == 2
-    assert main_window.ipyconsole.filenames == ['', test_file]
-    assert main_window.ipyconsole.tabwidget.tabText(1) == 'script.py/A'
+    assert main_window.ipyconsole.get_widget().filenames == ['', test_file]
+    assert main_window.ipyconsole.get_widget().tabwidget.tabText(1) == 'script.py/A'
     qtbot.wait(500)
     assert nsb.editor.source_model.rowCount() == 4
 
@@ -961,8 +962,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
     # Test with a generic kernel
     km, kc = start_new_kernel()
 
-    main_window.ipyconsole._create_client_for_kernel(kc.connection_file, None,
-                                                     None, None)
+    main_window.ipyconsole.get_widget()._create_client_for_kernel(
+        kc.connection_file, None, None, None)
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
@@ -978,8 +979,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
 
     # Test with a kernel from Spyder
     spykm, spykc = start_new_kernel(spykernel=True)
-    main_window.ipyconsole._create_client_for_kernel(spykc.connection_file, None,
-                                                     None, None)
+    main_window.ipyconsole.get_widget()._create_client_for_kernel(
+        spykc.connection_file, None, None, None)
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
@@ -1636,7 +1637,7 @@ def test_issue_4066(main_window, qtbot):
     obj_editor = nsb.editor.delegate._editors[obj_editor_id]['editor']
 
     # Move to the IPython console and delete that object
-    main_window.ipyconsole.get_focus_widget().setFocus()
+    main_window.ipyconsole.get_widget().get_focus_widget().setFocus()
     with qtbot.waitSignal(shell.executed):
         shell.execute('del myobj')
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
@@ -1675,7 +1676,7 @@ def test_varexp_edit_inline(main_window, qtbot):
     nsb.editor.edit_item()
 
     # Change focus to IPython console
-    main_window.ipyconsole.get_focus_widget().setFocus()
+    main_window.ipyconsole.get_widget().get_focus_widget().setFocus()
 
     # Wait for the error
     qtbot.wait(3000)
@@ -1816,7 +1817,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     main_window.editor.load(test_file)
 
     # Give focus to the widget that's going to receive clicks
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Click the debug button
@@ -1857,7 +1858,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
     main_window.editor.load(test_file)
 
     # Give focus to the widget that's going to receive clicks
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Click the debug button
@@ -1957,7 +1958,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Generate a plot inline with bbox_inches=tight (since it is default) and
@@ -2442,7 +2443,6 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_report_comms_error(qtbot, main_window):
     """Test if a comms error is correctly displayed."""
     CONF.set('main', 'show_internal_errors', True)
@@ -2458,8 +2458,9 @@ def test_report_comms_error(qtbot, main_window):
     with qtbot.waitSignal(shell.executed, timeout=3000):
         shell.execute('ls')
 
+    qtbot.waitUntil(lambda: main_window.console.error_dialog is not None,
+                    timeout=EVAL_TIMEOUT)
     error_dialog = main_window.console.error_dialog
-    assert error_dialog is not None
     assert 'Exception in comms call get_cwd' in error_dialog.error_traceback
     assert 'No module named' in error_dialog.error_traceback
     main_window.console.close_error_dialog()
@@ -3045,7 +3046,7 @@ def test_varexp_refresh(main_window, qtbot):
     """
     # Create object
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
@@ -3090,6 +3091,7 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     # call runcell
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.wait(1000)
     assert 'runcell(0' in shell._control.toPlainText()
     assert 'cell is empty' not in shell._control.toPlainText()
     with qtbot.waitSignal(shell.executed):
@@ -3130,6 +3132,7 @@ def test_runcell_pdb(main_window, qtbot):
     # Start debugging
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
 
     for key in ['!n', '!n', '!s', '!n', '!n']:
         with qtbot.waitSignal(shell.executed):
@@ -3319,6 +3322,7 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
     with qtbot.waitSignal(shell.executed):
         shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
                       '", wdir="' + str(folder).replace("\\", "/") + '")')
+    qtbot.wait(1000)
     assert '1/0' in control.toPlainText()
 
     # Debug and enter first file
@@ -3448,7 +3452,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
         shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
 
     error_text = 'save this file with the .ipy extension'
     try:
@@ -3532,7 +3536,7 @@ def test_post_mortem(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
 
     test_file = tmpdir.join('test.py')
     test_file.write('raise RuntimeError\n')
@@ -4053,7 +4057,7 @@ def test_pdb_without_comm(main_window, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("get_ipython().kernel.frontend_comm.close()")
@@ -4088,7 +4092,7 @@ def test_print_comms(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
     nsb = main_window.variableexplorer.current_widget()
 
     # Create some output from spyder call

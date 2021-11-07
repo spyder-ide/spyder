@@ -345,7 +345,7 @@ class FinderWidget(QWidget):
         super(FinderWidget, self).__init__(parent)
         # Parent is assumed to be a spyder widget
         self.text_finder = FinderLineEdit(
-            parent,
+            self,
             regex_base=regex_base,
             key_filter_dict=key_filter_dict)
         self.text_finder.sig_find_requested.connect(self.do_find)
@@ -353,11 +353,11 @@ class FinderWidget(QWidget):
             self.text_finder.textChanged.connect(self.do_find)
         self.text_finder.sig_hide_requested.connect(
             self.sig_hide_finder_requested)
-        self.finder_close_button = parent.create_toolbutton(
-            'close_finder',
-            triggered=self.sig_hide_finder_requested.emit,
-            icon=parent.create_icon('DialogCloseButton'),
-        )
+
+        self.finder_close_button = QToolButton(self)
+        self.finder_close_button.setIcon(ima.icon('DialogCloseButton'))
+        self.finder_close_button.clicked.connect(
+            self.sig_hide_finder_requested)
 
         finder_layout = QHBoxLayout()
         finder_layout.addWidget(self.finder_close_button)
