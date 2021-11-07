@@ -267,7 +267,6 @@ def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
     # Click on the 'Go to cursor position' button of the outline explorer's
     # toolbar :
     filename = CASES['text']['file']
-    # assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(
         outlineexplorer.get_toolbutton(OutlineExplorerToolbuttons.GoToCursor),
         Qt.LeftButton)
@@ -293,7 +292,6 @@ def test_go_to_last_item(create_outlineexplorer, qtbot):
 
     # Click on the 'Go to cursor position' button of the outline explorer's
     # toolbar :
-    # assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(
         outlineexplorer.get_toolbutton(OutlineExplorerToolbuttons.GoToCursor),
         Qt.LeftButton)
