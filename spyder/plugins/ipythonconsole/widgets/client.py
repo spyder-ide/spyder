@@ -132,7 +132,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
-        self.std_dir = std_dir
+        self.stderr_dir = std_dir
         self.is_error_shown = False
         self.restart_thread = None
         self.give_focus = give_focus
@@ -560,7 +560,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
-        self.remove_std_files(is_last_client)
+        if is_last_client:
+            self.remove_stderr_file()
         shutdown_kernel = is_last_client and not self.is_external_kernel
         self.shellwidget.shutdown(shutdown_kernel)
 
