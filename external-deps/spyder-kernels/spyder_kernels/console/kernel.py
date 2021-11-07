@@ -25,8 +25,8 @@ from traitlets.config.loader import LazyConfigValue
 from zmq.utils.garbage import gc
 
 # Local imports
-from spyder_kernels.py3compat import TEXT_TYPES, to_text_string
-from spyder_kernels.py3compat import PY3, input, TimeoutError
+from spyder_kernels.py3compat import (
+    TEXT_TYPES, to_text_string, PY3, input, TimeoutError)
 from spyder_kernels.comms.frontendcomm import FrontendComm, CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import (
@@ -375,13 +375,16 @@ class SpyderKernel(IPythonKernel):
             return self.shell.pdb_session.do_complete(code, cursor_pos)
         return self._do_complete(code, cursor_pos)
 
-    def publish_pdb_state(self, state):
+    def publish_pdb_state(self, step):
         """
         Publish Variable Explorer state and Pdb step through
         send_spyder_msg.
         """
-        state["namespace_view"] = self.get_namespace_view()
-        state["var_properties"] = self.get_var_properties()
+        state = dict(
+            namespace_view=self.get_namespace_view(),
+            var_properties=self.get_var_properties(),
+            step=step
+         )
         try:
             self.frontend_call(blocking=False).pdb_state(state)
         except (CommError, TimeoutError):

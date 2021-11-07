@@ -725,7 +725,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         if isinstance(fname, basestring) and isinstance(lineno, int):
             step = dict(fname=fname, lineno=lineno)
 
-        get_ipython().kernel.publish_pdb_state(dict(step=step))
+        get_ipython().kernel.publish_pdb_state(step)
 
         # Publish Pdb state so we can update the Variable Explorer
         # and the Editor on the Spyder side
@@ -741,8 +741,11 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             # Adjust the index
             pdb_index -= sum(hidden[:pdb_index])
 
-        frontend_request(blocking=False).set_pdb_stack(
-            pdb_stack, pdb_index)
+        try:
+            frontend_request(blocking=False).set_pdb_stack(
+                pdb_stack, pdb_index)
+        except (CommError, TimeoutError):
+            logger.debug("Could not send Pdb stack to the frontend.")
 
     def run(self, cmd, globals=None, locals=None):
         """Debug a statement executed via the exec() function.
@@ -771,43 +774,42 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         with DebugWrapper(self):
             super(SpyderPdb, self).runcall(*args, **kwds)
 
-
-def enter_debugger(filename, continue_if_has_breakpoints, code_format):
-    """Enter debugger. Code format should be a format that accept filename."""
-    shell = get_ipython()
-    recursive = shell.is_debugging()
-    if recursive:
-        parent_debugger = shell.pdb_session
+    def enter_recursive_debugger(
+            self, code, filename, continue_if_has_breakpoints):
+        """
+        Enter debugger recursively.
+        """
         sys.settrace(None)
-        globals = parent_debugger.curframe.f_globals
-        locals = parent_debugger.curframe_locals
+        globals = self.curframe.f_globals
+        locals = self.curframe_locals
         # Create child debugger
         debugger = SpyderPdb(
-            completekey=parent_debugger.completekey,
-            stdin=parent_debugger.stdin, stdout=parent_debugger.stdout)
-        debugger.use_rawinput = parent_debugger.use_rawinput
-        debugger.prompt = "(%s) " % parent_debugger.prompt.strip()
-    else:
-        debugger = SpyderPdb()
+            completekey=self.completekey,
+            stdin=self.stdin, stdout=self.stdout)
+        debugger.use_rawinput = self.use_rawinput
+        debugger.prompt = "(%s) " % self.prompt.strip()
+
+        filename = debugger.canonic(filename)
+        debugger._wait_for_mainpyfile = True
+        debugger.mainpyfile = filename
+        debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
+        debugger._user_requested_quit = False
+
+        # Enter recursive debugger
+        sys.call_tracing(debugger.run, (code, globals, locals))
+        # Reset parent debugger
+        sys.settrace(self.trace_dispatch)
+        self.lastcmd = debugger.lastcmd
+        get_ipython().pdb_session = self
+
+
+def get_new_debugger(filename, continue_if_has_breakpoints):
+    """Get a new debugger."""
+    debugger = SpyderPdb()
 
     filename = debugger.canonic(filename)
     debugger._wait_for_mainpyfile = True
     debugger.mainpyfile = filename
     debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
     debugger._user_requested_quit = False
-
-    if os.name == 'nt':
-        filename = filename.replace('\\', '/')
-
-    code = code_format.format(repr(filename))
-
-    if recursive:
-        # Enter recursive debugger
-        sys.call_tracing(debugger.run, (code, globals, locals))
-        # Reset parent debugger
-        sys.settrace(parent_debugger.trace_dispatch)
-        parent_debugger.lastcmd = debugger.lastcmd
-        shell.pdb_session = parent_debugger
-    else:
-        # The breakpoint might not be in the cell
-        debugger.run(code)
+    return debugger
