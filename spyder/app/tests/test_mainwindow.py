@@ -4280,7 +4280,7 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     qtbot.wait(1000)
 
     # Check we are blocked
-    control = main_window.ipyconsole.get_focus_widget()
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
     assert ']:' not in control.toPlainText().split()[-1]
 
     frames_explorer.capture_frames()
