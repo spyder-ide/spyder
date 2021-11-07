@@ -1601,12 +1601,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
     # ------------------------------------------------------------------------
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
-        # Track mouse movements to change cursor shape.
+        # Track mouse movements to change cursor shape when the option is
+        # True. This activates the mouseMoveEvent declared above.
         if value:
             self.setMouseTracking(True)
         else:
-            self.unsetCursor()
             self.setMouseTracking(False)
+            self.unsetCursor()
 
     def set_file_associations(self, value):
         """Set file associations open items."""

@@ -165,7 +165,7 @@ DEFAULTS = [
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': True,
-              'pdb_stop_first_line': True,
+              'pdb_stop_first_line': True
               }),
             ('variable_explorer',
              {
@@ -508,6 +508,8 @@ DEFAULTS = [
               'ipython_console/inspect current object': "Ctrl+I",
               'ipython_console/clear shell': "Ctrl+L",
               'ipython_console/clear line': "Shift+Escape",
+              'ipython_console/enter array inline': "Ctrl+Alt+M",
+              'ipython_console/enter array table': "Ctrl+M",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
