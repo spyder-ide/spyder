@@ -108,8 +108,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  ask_before_closing=False,
                  css_path=None,
                  configuration=None,
-                 handlers={},
-                 std_dir=None):
+                 handlers={}):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -132,7 +131,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
-        self.stderr_dir = std_dir
+        self.stderr_dir = None
         self.is_error_shown = False
         self.restart_thread = None
         self.give_focus = give_focus

@@ -1081,8 +1081,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_restart=ask_before_restart,
                               css_path=self.css_path,
                               configuration=self.CONFIGURATION,
-                              handlers=self.registered_spyder_kernel_handlers,
-                              std_dir=self._test_dir)
+                              handlers=self.registered_spyder_kernel_handlers)
+
+        # Change stderr_dir if requested
+        if self._test_dir:
+            client.stderr_dir = self._test_dir
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
@@ -1485,8 +1488,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_closing=ask_before_closing,
                               css_path=self.css_path,
                               configuration=self.CONFIGURATION,
-                              handlers=self.registered_spyder_kernel_handlers,
-                              std_dir=self._test_dir)
+                              handlers=self.registered_spyder_kernel_handlers)
+
+        # Change stderr_dir if requested
+        if self._test_dir:
+            client.stderr_dir = self._test_dir
 
         self.add_tab(
             client, name=client.get_name(), filename=filename,
