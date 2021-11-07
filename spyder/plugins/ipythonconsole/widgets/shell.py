@@ -13,6 +13,7 @@ import os
 import os.path as osp
 import uuid
 from textwrap import dedent
+from threading import Lock
 
 # Third party imports
 from qtpy.QtCore import Signal, QThread
@@ -77,6 +78,27 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For printing internal errors
     sig_exception_occurred = Signal(dict)
 
+    # Class array of shutdown threads
+    shutdown_thread_list = []
+
+    @classmethod
+    def prune_shutdown_thread_list(cls):
+        """Remove  shutdown threads."""
+        cls.shutdown_thread_list = [
+            t for t in cls.shutdown_thread_list if t.isRunning()]
+
+    @classmethod
+    def wait_all_shutdown(cls):
+        """Wait for shutdown to finish."""
+        for thread in cls.shutdown_thread_list:
+            if thread.isRunning():
+                try:
+                    thread.kernel_manager._kill_kernel()
+                except Exception:
+                    pass
+                thread.wait()
+        cls.shutdown_thread_list = []
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  is_external_kernel, is_spyder_kernel, handlers, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -103,10 +125,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
-        self.shutdown_called = False
+        self.shutting_down = False
         self.kernel_manager = None
         self.kernel_client = None
-        self.shutdown_thread = None
         handlers.update({
             'pdb_state': self.set_pdb_state,
             'pdb_execute': self.pdb_execute,
@@ -127,46 +148,48 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
         self.show_modules_message = is_pynsist() or running_in_mac_app()
-
-    def __del__(self):
-        """Avoid destroying shutdown_thread."""
-        if (self.shutdown_thread is not None
-                and self.shutdown_thread.isRunning()):
-            self.shutdown_thread.wait()
+        self.shutdown_lock = Lock()
 
     # ---- Public API ---------------------------------------------------------
-    def shutdown(self):
-        """Shutdown kernel"""
-        self.shutdown_called = True
-        self.spyder_kernel_comm.close()
-        self.kernel_manager.stop_restarter()
+    def shutdown_kernel(self):
+        """Shutdown kernel."""
+        with self.shutdown_lock:
+            # Avoid calling shutdown_kernel on the same manager twice
+            # from different threads to avoid crash.
+            if self.kernel_manager.shutting_down:
+                return
+            self.kernel_manager.shutting_down = True
+        try:
+            self.kernel_manager.shutdown_kernel()
+        except Exception:
+            # kernel was externally killed
+            pass
 
-        self.shutdown_thread = QThread()
-        self.shutdown_thread.run = self.kernel_manager.shutdown_kernel
-        if self.kernel_client is not None:
-            self.shutdown_thread.finished.connect(
-                self.kernel_client.stop_channels)
-        self.shutdown_thread.start()
-        super(ShellWidget, self).shutdown()
-
-    def will_close(self, externally_managed):
-        """
-        Close communication channels with the kernel if shutdown was not
-        called. If the kernel is not externally managed, shutdown the kernel
-        as well.
-        """
-        if not self.shutdown_called and not externally_managed:
-            # Make sure the channels are stopped
+    def shutdown(self, shutdown_kernel=True):
+        """Shutdown connection and kernel."""
+        if self.shutting_down:
+            return
+        self.shutting_down = True
+        if shutdown_kernel:
+            self.interrupt_kernel()
             self.spyder_kernel_comm.close()
             self.kernel_manager.stop_restarter()
-            self.kernel_manager.shutdown_kernel(now=True)
+
+            shutdown_thread = QThread()
+            shutdown_thread.kernel_manager = self.kernel_manager
+            shutdown_thread.run = self.shutdown_kernel
             if self.kernel_client is not None:
-                self.kernel_client.stop_channels()
-        if externally_managed:
+                shutdown_thread.finished.connect(
+                    self.kernel_client.stop_channels)
+            shutdown_thread.start()
+            self.shutdown_thread_list.append(shutdown_thread)
+        else:
             self.spyder_kernel_comm.close(shutdown_channel=False)
             if self.kernel_client is not None:
                 self.kernel_client.stop_channels()
-        super(ShellWidget, self).will_close(externally_managed)
+
+        self.prune_shutdown_thread_list()
+        super(ShellWidget, self).shutdown()
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None, display_error=False):

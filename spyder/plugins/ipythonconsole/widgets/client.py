@@ -95,7 +95,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  context_menu_actions=(),
-                 menu_actions=None, slave=False,
+                 menu_actions=None,
                  is_external_kernel=False,
                  is_spyder_kernel=True,
                  given_name=None,
@@ -108,7 +108,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  ask_before_closing=False,
                  css_path=None,
                  configuration=None,
-                 handlers={}):
+                 handlers={},
+                 std_dir=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -118,7 +119,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.connection_file = connection_file
         self.hostname = hostname
         self.menu_actions = menu_actions
-        self.slave = slave
+        self.is_external_kernel = is_external_kernel
         self.given_name = given_name
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
@@ -131,7 +132,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
-        self.stderr_dir = None
+        self.std_dir = std_dir
         self.is_error_shown = False
         self.restart_thread = None
         self.give_focus = give_focus
@@ -185,7 +186,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.stderr_timer.start()
 
     def __del__(self):
-        """Close threads to avoid segfault"""
+        """Close threads to avoid segfault."""
         if (self.restart_thread is not None
                 and self.restart_thread.isRunning()):
             self.restart_thread.wait()
@@ -556,16 +557,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except AttributeError:
             pass
 
-    def shutdown(self):
-        """Shutdown kernel"""
-        if self.get_kernel() is not None and not self.slave:
-            self.shellwidget.shutdown()
-
-    def close(self):
-        """Close client"""
-        self.shellwidget.will_close(
-            self.get_kernel() is None or self.slave)
-        super(ClientWidget, self).close()
+    def shutdown(self, is_last_client):
+        """Shutdown connection and kernel if needed."""
+        self.dialog_manager.close_all()
+        self.remove_std_files(is_last_client)
+        shutdown_kernel = is_last_client and not self.is_external_kernel
+        self.shellwidget.shutdown(shutdown_kernel)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
