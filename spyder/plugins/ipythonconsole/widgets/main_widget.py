@@ -1774,7 +1774,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             client.shutdown(last_client)
             client.close()
             open_clients.remove(client)
-        # close all closing shellwidgets
+        # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()
         return True
 

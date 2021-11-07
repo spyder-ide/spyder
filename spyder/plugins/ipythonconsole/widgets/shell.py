@@ -83,7 +83,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     @classmethod
     def prune_shutdown_thread_list(cls):
-        """Remove  shutdown threads."""
+        """Remove shutdown threads."""
         cls.shutdown_thread_list = [
             t for t in cls.shutdown_thread_list if t.isRunning()]
 
