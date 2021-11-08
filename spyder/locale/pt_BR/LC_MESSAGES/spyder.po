@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 21:17\n"
+"PO-Revision-Date: 2021-11-08 21:26\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "Aqui você pode ativar/desativar qualquer plugin interno ou externo do Spyder para desativar funcionalidades que não são desejadas ou para ter uma experiência mais leve. Plugins desmarcados nesta página serão desativados imediatamente e não serão carregados na próxima vez que o Spyder iniciar."
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
@@ -938,7 +938,7 @@ msgstr "O padrão é 300 milissegundos"
 
 #: spyder/plugins/completion/confpage.py:77
 msgid "Show completion details after keyboard idle (ms):"
-msgstr ""
+msgstr "Mostrar detalhes de preenchimento de código após o teclado ocioso (ms):"
 
 #: spyder/plugins/completion/confpage.py:79
 msgid "Default is 500 milliseconds"
@@ -3356,7 +3356,7 @@ msgstr "Erro na expressão regular"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:156
 msgid "Write text to search"
-msgstr ""
+msgstr "Escrever texto para busca"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:158
 msgid "Search in:"
@@ -3376,7 +3376,7 @@ msgstr "Expressão regular"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:222 spyder/plugins/findinfiles/widgets/main_widget.py:248
 msgid "Use regular expressions"
-msgstr ""
+msgstr "Use expressão regular"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:230
 msgid "Case sensitive"
@@ -4028,7 +4028,7 @@ msgstr "Conectar a um kernel já existente"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
-msgstr ""
+msgstr "<p>Selecione o arquivo de conexão JSON (<i>por exemplo,</i> <tt>kernel-1234.json</tt>) do kernel existente e insira as informações do SSH se estiver conectando a uma máquina remota. Para saber mais sobre como iniciar kernels externos e conectar-se a eles, consulte <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\"> nossa documentação </a >.</p>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:50
 msgid "Connection file:"
@@ -4140,11 +4140,11 @@ msgstr "Limpar console"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:478
 msgid "Enter array table"
-msgstr ""
+msgstr "Insira matriz/vetor em tabela"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:484
 msgid "Enter array inline"
-msgstr ""
+msgstr "Insira a matriz/vetor em linha"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:503
 msgid "Special consoles"
