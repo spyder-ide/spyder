@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 21:04\n"
+"PO-Revision-Date: 2021-11-08 21:17\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -810,11 +810,11 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:417
 msgid "Which debug mode do you want Spyder to restart in?"
-msgstr ""
+msgstr "Em qual modo de depuração você quer que o Spyder seja reiniciado?"
 
 #: spyder/plugins/application/container.py:420
 msgid "Verbose"
-msgstr ""
+msgstr "Detalhado"
 
 #: spyder/plugins/application/container.py:421
 msgid "Minimal"
@@ -934,7 +934,7 @@ msgstr "Mostrar preenchimento automático de código após o teclado inativo (ms
 
 #: spyder/plugins/completion/confpage.py:75
 msgid "Default is 300 milliseconds"
-msgstr ""
+msgstr "O padrão é 300 milissegundos"
 
 #: spyder/plugins/completion/confpage.py:77
 msgid "Show completion details after keyboard idle (ms):"
@@ -942,7 +942,7 @@ msgstr ""
 
 #: spyder/plugins/completion/confpage.py:79
 msgid "Default is 500 milliseconds"
-msgstr ""
+msgstr "O padrão é 500 milissegundos"
 
 #: spyder/plugins/completion/confpage.py:82
 msgid "Completions"
@@ -3384,7 +3384,7 @@ msgstr "Distinção entre maiúsculas e minúsculas"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:231
 msgid "Case sensitive search"
-msgstr ""
+msgstr "Pesquisa sensível a caixa"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:239
 msgid "&Find in files"
@@ -3412,7 +3412,7 @@ msgstr "Esconder opções avançadas"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:627
 msgid "Max results"
-msgstr ""
+msgstr "Máximo de resultados"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:628
 msgid "Set maximum number of results: "
@@ -4148,7 +4148,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:503
 msgid "Special consoles"
-msgstr ""
+msgstr "Consoles especiais"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:538
 msgid "New Pylab console (data plotting)"
@@ -4164,7 +4164,7 @@ msgstr "Novo console Cython (Python com extensões C)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:569
 msgid "Remove all variables from kernel namespace"
-msgstr ""
+msgstr "Remover todas as variáveis do namespace do kernel"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:590
 msgid "IPython documentation"
