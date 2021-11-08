@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 19:50\n"
+"PO-Revision-Date: 2021-11-08 21:04\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -23,15 +23,15 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
-msgstr ""
+msgstr "Plugins internos"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
-msgstr ""
+msgstr "Plugins externos"
 
 #: spyder/api/plugin_registration/registry.py:656
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 #: spyder/api/widgets/main_widget.py:241
 msgid "Main widget toolbar"
@@ -75,7 +75,7 @@ msgstr "Fechar o painel"
 
 #: spyder/api/widgets/toolbars.py:123
 msgid "More"
-msgstr ""
+msgstr "Mais"
 
 #: spyder/app/mainwindow.py:197
 msgid "Compatibility Check"
@@ -762,15 +762,15 @@ msgstr "Reiniciar"
 
 #: spyder/plugins/application/container.py:187
 msgid "&Restart in debug mode"
-msgstr ""
+msgstr "&Reiniciar no modo de depuração"
 
 #: spyder/plugins/application/container.py:188
 msgid "Restart in debug mode"
-msgstr ""
+msgstr "Reiniciar no modo de depuração"
 
 #: spyder/plugins/application/container.py:198
 msgid "Debug logs"
-msgstr ""
+msgstr "Registros de depuração"
 
 #: spyder/plugins/application/container.py:253
 msgid "New Spyder version"
@@ -818,7 +818,7 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:421
 msgid "Minimal"
-msgstr ""
+msgstr "Minimalista"
 
 #: spyder/plugins/application/container.py:532 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:463
 msgid "Don't show again."
@@ -930,7 +930,7 @@ msgstr "Notifique-me quando o Kite puder fornecer sugestões de código ausentes
 
 #: spyder/plugins/completion/confpage.py:73
 msgid "Show automatic completions after keyboard idle (ms):"
-msgstr ""
+msgstr "Mostrar preenchimento automático de código após o teclado inativo (ms):"
 
 #: spyder/plugins/completion/confpage.py:75
 msgid "Default is 300 milliseconds"
@@ -3392,7 +3392,7 @@ msgstr "Procurar em arqui&vos"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:240
 msgid "Search text"
-msgstr ""
+msgstr "Pesquisar texto"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:256 spyder/plugins/findinfiles/widgets/main_widget.py:257
 msgid "Exclude case sensitive"
