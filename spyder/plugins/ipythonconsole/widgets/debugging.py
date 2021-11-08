@@ -584,10 +584,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def pdb_input(self, prompt, password=None):
         """Get input for a command."""
-        if self._hidden:
-            raise RuntimeError(
-                'Request for pdb input during hidden execution.')
-
         # Replace with numbered prompt
         prompt = self._current_prompt()
         self._update_pdb_prompt(prompt, password)
