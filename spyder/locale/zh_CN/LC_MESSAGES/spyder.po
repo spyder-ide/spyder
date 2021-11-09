@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-09 10:42\n"
+"PO-Revision-Date: 2021-11-09 11:09\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "您可以在这里打开或关闭Spyder插件，以期禁用不需要的功能或取得较轻量的体验。在此页面取消选择的插件将立即停用，并且不会在下次Spyder启动时加载。"
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
@@ -75,7 +75,7 @@ msgstr "关闭窗格"
 
 #: spyder/api/widgets/toolbars.py:123
 msgid "More"
-msgstr ""
+msgstr "更多"
 
 #: spyder/app/mainwindow.py:197
 msgid "Compatibility Check"
@@ -374,7 +374,7 @@ msgstr "Python 语言服务器的主后端"
 
 #: spyder/dependencies.py:133
 msgid "Optimize algorithms for folding"
-msgstr ""
+msgstr "用于折叠的优化算法"
 
 #: spyder/dependencies.py:137
 msgid "Verify if snippets files are valid"
@@ -760,15 +760,15 @@ msgstr "重启"
 
 #: spyder/plugins/application/container.py:187
 msgid "&Restart in debug mode"
-msgstr ""
+msgstr "在调试模式下重启"
 
 #: spyder/plugins/application/container.py:188
 msgid "Restart in debug mode"
-msgstr ""
+msgstr "在调试模式下重启"
 
 #: spyder/plugins/application/container.py:198
 msgid "Debug logs"
-msgstr ""
+msgstr "调试日志"
 
 #: spyder/plugins/application/container.py:253
 msgid "New Spyder version"
@@ -804,19 +804,19 @@ msgstr "<b>还有未满足的依赖项！</b><br><br><tt>%s</tt><br><b>请安装
 
 #: spyder/plugins/application/container.py:414
 msgid "Question"
-msgstr ""
+msgstr "问题"
 
 #: spyder/plugins/application/container.py:417
 msgid "Which debug mode do you want Spyder to restart in?"
-msgstr ""
+msgstr "你想要重新启动Spyder到哪个调试模式？"
 
 #: spyder/plugins/application/container.py:420
 msgid "Verbose"
-msgstr ""
+msgstr "详细"
 
 #: spyder/plugins/application/container.py:421
 msgid "Minimal"
-msgstr ""
+msgstr "最小"
 
 #: spyder/plugins/application/container.py:532 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:463
 msgid "Don't show again."
@@ -928,19 +928,19 @@ msgstr "若 Kite 能提供缺失的补全选项（但是暂时不可用），请
 
 #: spyder/plugins/completion/confpage.py:73
 msgid "Show automatic completions after keyboard idle (ms):"
-msgstr ""
+msgstr "键盘空闲多久后显示自动补全(毫秒)："
 
 #: spyder/plugins/completion/confpage.py:75
 msgid "Default is 300 milliseconds"
-msgstr ""
+msgstr "默认为 300 毫秒"
 
 #: spyder/plugins/completion/confpage.py:77
 msgid "Show completion details after keyboard idle (ms):"
-msgstr ""
+msgstr "键盘空闲多久后显示自动补全详情(毫秒)："
 
 #: spyder/plugins/completion/confpage.py:79
 msgid "Default is 500 milliseconds"
-msgstr ""
+msgstr "默认为 500 毫秒"
 
 #: spyder/plugins/completion/confpage.py:82
 msgid "Completions"
@@ -3348,7 +3348,7 @@ msgstr "正则表达式错误"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:156
 msgid "Write text to search"
-msgstr ""
+msgstr "输入文本以搜索"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:158
 msgid "Search in:"
@@ -3368,7 +3368,7 @@ msgstr "正则表达式"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:222 spyder/plugins/findinfiles/widgets/main_widget.py:248
 msgid "Use regular expressions"
-msgstr ""
+msgstr "使用正则表达式"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:230
 msgid "Case sensitive"
@@ -3376,7 +3376,7 @@ msgstr "大小写敏感"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:231
 msgid "Case sensitive search"
-msgstr ""
+msgstr "查找时区分大小写"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:239
 msgid "&Find in files"
@@ -3384,7 +3384,7 @@ msgstr "在文件中查找(&F)"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:240
 msgid "Search text"
-msgstr ""
+msgstr "搜索文本"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:256 spyder/plugins/findinfiles/widgets/main_widget.py:257
 msgid "Exclude case sensitive"
@@ -3404,7 +3404,7 @@ msgstr "隐藏高级选项"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:627
 msgid "Max results"
-msgstr ""
+msgstr "最大结果数"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:628
 msgid "Set maximum number of results: "
@@ -4012,7 +4012,7 @@ msgstr "连接到现有 IPython 内核"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
-msgstr ""
+msgstr "<p>请选择现有内核的 JSON 连接文件（<i>例如 </i> <tt>kernel-1234.json</tt>），如果连接到远程服务器，则还需要输入SSH连接信息。要了解更多关于启动并连接到外部内核的信息，请阅读<a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">文档</a>。</p>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:50
 msgid "Connection file:"
@@ -4148,7 +4148,7 @@ msgstr "新建 Cython 控制台（启用 C 语言扩展的 Python）"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:569
 msgid "Remove all variables from kernel namespace"
-msgstr ""
+msgstr "从内核命名空间删除所有变量"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:590
 msgid "IPython documentation"
@@ -4188,7 +4188,7 @@ msgstr "无法打开SSH隧道。错误信息为：\n\n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1515
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 2.0.1 and < 2.2.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels=2.1</tt><br><br>or<br><br><tt>pip install spyder-kernels==2.1.*</tt>"
-msgstr ""
+msgstr "你的 Python 环境或安装版没有 <tt>spyder-kernels</tt> 模块或者安装的该模块版本不正确 (>= 2.0.1 且 < 2.2.0)。 若没有此模块则 Spyder 无法为你创建控制台。<br><br>你可以通过在系统终端中运行以下命令来安装它:<br><br><tt>conda install spyder-kernels=2.1</tt><br><br>或者<br><br><tt>pip install spyder-kernels==2.1.*</tt>"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1730
 msgid "Do you want to close this console?"
