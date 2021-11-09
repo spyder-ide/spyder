@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 19:50\n"
+"PO-Revision-Date: 2021-11-09 10:42\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -23,15 +23,15 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
-msgstr ""
+msgstr "内部插件"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
-msgstr ""
+msgstr "外部插件"
 
 #: spyder/api/plugin_registration/registry.py:656
 msgid "Plugins"
-msgstr ""
+msgstr "插件"
 
 #: spyder/api/widgets/main_widget.py:241
 msgid "Main widget toolbar"
