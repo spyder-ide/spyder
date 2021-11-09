@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 19:50\n"
+"PO-Revision-Date: 2021-11-09 14:42\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -772,7 +772,7 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:198
 msgid "Debug logs"
-msgstr ""
+msgstr "Debug-Protokolle"
 
 #: spyder/plugins/application/container.py:253
 msgid "New Spyder version"
@@ -808,7 +808,7 @@ msgstr "<b>Sie haben fehlende Abhängigkeiten!</b><br><br><tt>%s</tt><br><b>Bitt
 
 #: spyder/plugins/application/container.py:414
 msgid "Question"
-msgstr ""
+msgstr "Frage"
 
 #: spyder/plugins/application/container.py:417
 msgid "Which debug mode do you want Spyder to restart in?"
@@ -820,7 +820,7 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:421
 msgid "Minimal"
-msgstr ""
+msgstr "Minimal"
 
 #: spyder/plugins/application/container.py:532 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:463
 msgid "Don't show again."
@@ -3380,7 +3380,7 @@ msgstr "Regulärer Ausdruck"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:222 spyder/plugins/findinfiles/widgets/main_widget.py:248
 msgid "Use regular expressions"
-msgstr ""
+msgstr "Reguläre Ausdrücke verwenden"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:230
 msgid "Case sensitive"
