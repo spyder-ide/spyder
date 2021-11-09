@@ -32,12 +32,6 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 
 ## Help support Spyder, the community-developed scientific IDE!
 
-Thanks to your continuing support, we are on track for a
-Spyder 4 release in early 2019 with all of your most-requested features
-(a new debugger and completion architecture, better Projects, new Editor
-functionality, full Variable Explorer object support, a built-in dark theme
-and [much more](https://github.com/spyder-ide/spyder/wiki/Roadmap))!
-
 Spyder development is made possible by contributions from our global user
 community, along with organizations like [NumFOCUS](https://www.numfocus.org)
 and [Quansight](https://www.quansight.com).
