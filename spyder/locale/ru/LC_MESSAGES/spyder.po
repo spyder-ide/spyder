@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-09 05:50\n"
+"PO-Revision-Date: 2021-11-09 06:17\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -762,7 +762,7 @@ msgstr "Перезапуск"
 
 #: spyder/plugins/application/container.py:187
 msgid "&Restart in debug mode"
-msgstr ""
+msgstr "&Перезапустить в отладочном режиме"
 
 #: spyder/plugins/application/container.py:188
 msgid "Restart in debug mode"
@@ -794,7 +794,7 @@ msgstr "<b>Важное примечание:</b> Если вы установи
 
 #: spyder/plugins/application/container.py:290
 msgid "Click <a href=\"{}\">this link</a> to download it.<br><br>"
-msgstr ""
+msgstr "Нажмите на <a href=\"{}\">ссылку</a> для загрузки.<br><br>"
 
 #: spyder/plugins/application/container.py:300
 msgid "Spyder is up to date."
@@ -930,19 +930,19 @@ msgstr "Сообщать, если Kite может предоставить от
 
 #: spyder/plugins/completion/confpage.py:73
 msgid "Show automatic completions after keyboard idle (ms):"
-msgstr ""
+msgstr "Показывать автодополнение после паузы при наборе (мс):"
 
 #: spyder/plugins/completion/confpage.py:75
 msgid "Default is 300 milliseconds"
-msgstr ""
+msgstr "По умолчанию - 300 миллисекунд"
 
 #: spyder/plugins/completion/confpage.py:77
 msgid "Show completion details after keyboard idle (ms):"
-msgstr ""
+msgstr "Показывать подробное автодополнение после паузы при наборе (мс):"
 
 #: spyder/plugins/completion/confpage.py:79
 msgid "Default is 500 milliseconds"
-msgstr ""
+msgstr "По умолчанию 500 миллисекунд"
 
 #: spyder/plugins/completion/confpage.py:82
 msgid "Completions"
