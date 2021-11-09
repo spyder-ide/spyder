@@ -284,7 +284,7 @@ class ApplicationContainer(PluginMainContainer):
                         "Instead, run the following commands in a "
                         "terminal:<br>"
                         "<code>conda update anaconda</code><br>"
-                        "<code>conda install spyder={}</code><br><br>"
+                        "<code>conda install \"spyder>={}\"</code><br><br>"
                     ).format(latest_release)
                 else:
                     content = _(
