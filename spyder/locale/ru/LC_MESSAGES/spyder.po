@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 19:50\n"
+"PO-Revision-Date: 2021-11-09 05:50\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -19,19 +19,19 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "Здесь вы можете включить/выключить любой внутренний или внешний плагин Spyder, чтобы отключить функциональность, которая не нужна, или для облегчения работы. Не отмеченные плагины на этой странице будут выгружены немедленно и не будут загружены при следующем запуске Spyder."
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
-msgstr ""
+msgstr "Внутренние плагины"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
-msgstr ""
+msgstr "Внешние плагины"
 
 #: spyder/api/plugin_registration/registry.py:656
 msgid "Plugins"
-msgstr ""
+msgstr "Плагины"
 
 #: spyder/api/widgets/main_widget.py:241
 msgid "Main widget toolbar"
@@ -75,7 +75,7 @@ msgstr "Закрыть эту панель"
 
 #: spyder/api/widgets/toolbars.py:123
 msgid "More"
-msgstr ""
+msgstr "Ещё"
 
 #: spyder/app/mainwindow.py:197
 msgid "Compatibility Check"
@@ -376,7 +376,7 @@ msgstr "Главный бэкенд для сервера языков для Py
 
 #: spyder/dependencies.py:133
 msgid "Optimize algorithms for folding"
-msgstr ""
+msgstr "Оптимизировать алгоритмы сворачивания"
 
 #: spyder/dependencies.py:137
 msgid "Verify if snippets files are valid"
@@ -766,11 +766,11 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:188
 msgid "Restart in debug mode"
-msgstr ""
+msgstr "Перезапустить в отладочном режиме"
 
 #: spyder/plugins/application/container.py:198
 msgid "Debug logs"
-msgstr ""
+msgstr "Логи отладки"
 
 #: spyder/plugins/application/container.py:253
 msgid "New Spyder version"
@@ -806,19 +806,19 @@ msgstr "<b>У Вас есть недостающие зависимости!</b>
 
 #: spyder/plugins/application/container.py:414
 msgid "Question"
-msgstr ""
+msgstr "Вопрос"
 
 #: spyder/plugins/application/container.py:417
 msgid "Which debug mode do you want Spyder to restart in?"
-msgstr ""
+msgstr "В каком режиме отладки вы хотите перезапустить Spyder?"
 
 #: spyder/plugins/application/container.py:420
 msgid "Verbose"
-msgstr ""
+msgstr "Подробный"
 
 #: spyder/plugins/application/container.py:421
 msgid "Minimal"
-msgstr ""
+msgstr "Минимальный"
 
 #: spyder/plugins/application/container.py:532 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:463
 msgid "Don't show again."
