@@ -21,6 +21,7 @@ from __future__ import absolute_import
 import codecs
 import os
 import os.path as osp
+import re
 from string import Template
 import time
 
@@ -71,6 +72,81 @@ except AttributeError:
     time.monotonic = time.time
 
 
+class Std_File():
+    def __init__(self, filename):
+        self.filename = filename
+        self._mtime = 0
+        self._cursor = 0
+        self._handle = None
+
+    @property
+    def handle(self):
+        """Get handle to file."""
+        if self._handle is None and self.filename is not None:
+            # Needed to prevent any error that could appear.
+            # See spyder-ide/spyder#6267.
+            try:
+                self._handle = codecs.open(
+                    self.filename, 'w', encoding='utf-8')
+            except Exception:
+                pass
+        return self._handle
+
+    def remove(self):
+        """Remove file associated with the client."""
+        try:
+            # Defer closing the handle until the client
+            # is closed because jupyter_client needs it open
+            # while it tries to restart the kernel
+            if self._handle is not None:
+                self._handle.close()
+            os.remove(self.filename)
+            self._handle = None
+        except Exception:
+            pass
+
+    def get_contents(self):
+        """Get the contents of the std kernel file."""
+        try:
+            with open(self.filename, 'rb') as f:
+                # We need to read the file as bytes to be able to
+                # detect its encoding with chardet
+                text = f.read()
+
+                # This is needed to avoid showing an empty error message
+                # when the kernel takes too much time to start.
+                # See spyder-ide/spyder#8581.
+                if not text:
+                    return ''
+
+                # This is needed since the file could be encoded
+                # in something different to utf-8.
+                # See spyder-ide/spyder#4191.
+                encoding = get_coding(text)
+                text = to_text_string(text, encoding)
+                return text
+        except Exception:
+            return None
+
+    def poll_file_change(self):
+        """Check if the stdout file just changed"""
+        if self._handle is not None and not self._handle.closed:
+            self._handle.flush()
+        try:
+            mtime = os.stat(self.filename).st_mtime
+        except Exception:
+            return
+
+        if mtime == self._mtime:
+            return
+        self._mtime = mtime
+        text = self.get_contents()
+        if text:
+            ret_text = text[self._cursor:]
+            self._cursor = len(text)
+            return ret_text
+
+
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
@@ -108,7 +184,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  ask_before_closing=False,
                  css_path=None,
                  configuration=None,
-                 handlers={}):
+                 handlers={},
+                 std_dir=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -131,8 +208,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
-        self.stderr_dir = None
+        self.std_dir = std_dir
         self.is_error_shown = False
+        self.error_text = None
         self.restart_thread = None
         self.give_focus = give_focus
 
@@ -177,12 +255,22 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-        # Poll for stderr changes
-        self.stderr_mtime = 0
-        self.stderr_timer = QTimer(self)
-        self.stderr_timer.timeout.connect(self.poll_stderr_file_change)
-        self.stderr_timer.setInterval(1000)
-        self.stderr_timer.start()
+        self.stderr_obj = None
+        self.stdout_obj = None
+        self.fault_obj = None
+        self.std_poll_timer = None
+        if not self.is_external_kernel:
+            # Can not connect for external kernels
+            self.stderr_obj = Std_File(self.std_filename('.stderr'))
+            self.stdout_obj = Std_File(self.std_filename('.stdout'))
+            self.std_poll_timer = QTimer(self)
+            self.std_poll_timer.timeout.connect(self.poll_std_file_change)
+            self.std_poll_timer.setInterval(1000)
+            self.std_poll_timer.start()
+            self.shellwidget.executed.connect(self.poll_std_file_change)
+        if self.hostname is None:
+            # Can not read file that is not on this computer
+            self.fault_obj = Std_File(self.std_filename('.fault'))
 
     def __del__(self):
         """Close threads to avoid segfault."""
@@ -310,11 +398,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         We also ignore errors about comms, which are irrelevant.
         """
-        stderr = self.get_stderr_contents()
-        if stderr and 'No such comm' not in stderr:
-            return True
-        else:
+        stderr = self.stderr_obj.get_contents()
+        if not stderr:
             return False
+        # There is an error. If it is only about comms, ignore.
+        for line in stderr.splitlines():
+            if line and 'No such comm' not in line:
+                return True
+        return False
 
     def _connect_control_signals(self):
         """Connect signals of control widgets."""
@@ -332,78 +423,62 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         page_control.sig_show_find_widget_requested.connect(
             self.container.find_widget.show)
 
-    # ---- Public methods -----------------------------------------------------
+    # ----- Public API --------------------------------------------------------
+    def std_filename(self, extension):
+        """Filename to save kernel output."""
+        file = None
+        if self.connection_file is not None:
+            file = self.kernel_id + extension
+            if self.std_dir is not None:
+                file = osp.join(self.std_dir, file)
+            else:
+                try:
+                    file = osp.join(get_temp_dir(), file)
+                except (IOError, OSError):
+                    file = None
+        return file
+
     @property
     def kernel_id(self):
-        """Get kernel id"""
+        """Get kernel id."""
         if self.connection_file is not None:
             json_file = osp.basename(self.connection_file)
             return json_file.split('.json')[0]
 
-    @property
-    def stderr_file(self):
-        """Filename to save kernel stderr output."""
-        stderr_file = None
-        if self.connection_file is not None:
-            stderr_file = self.kernel_id + '.stderr'
-            if self.stderr_dir is not None:
-                stderr_file = osp.join(self.stderr_dir, stderr_file)
-            else:
-                try:
-                    stderr_file = osp.join(get_temp_dir(), stderr_file)
-                except (IOError, OSError):
-                    stderr_file = None
-        return stderr_file
-
-    @property
-    def stderr_handle(self):
-        """Get handle to stderr_file."""
-        if self.stderr_file is not None:
-            # Needed to prevent any error that could appear.
-            # See spyder-ide/spyder#6267.
-            try:
-                handle = codecs.open(self.stderr_file, 'w', encoding='utf-8')
-            except Exception:
-                handle = None
-        else:
-            handle = None
-
-        return handle
-
-    def remove_stderr_file(self):
+    def remove_std_files(self, is_last_client=True):
         """Remove stderr_file associated with the client."""
         try:
-            # Defer closing the stderr_handle until the client
-            # is closed because jupyter_client needs it open
-            # while it tries to restart the kernel
-            self.stderr_handle.close()
-            os.remove(self.stderr_file)
-        except Exception:
+            self.shellwidget.executed.disconnect(self.poll_std_file_change)
+        except TypeError:
             pass
-
-    def get_stderr_contents(self):
-        """Get the contents of the stderr kernel file."""
-        try:
-            stderr = self._read_stderr()
-        except Exception:
-            stderr = None
-        return stderr
+        if self.std_poll_timer is not None:
+            self.std_poll_timer.stop()
+        if is_last_client:
+            if self.stderr_obj is not None:
+                self.stderr_obj.remove()
+            if self.stdout_obj is not None:
+                self.stdout_obj.remove()
+            if self.fault_obj is not None:
+                self.fault_obj.remove()
 
     @Slot()
-    def poll_stderr_file_change(self):
-        """Check if the stderr file just changed"""
-        try:
-            mtime = os.stat(self.stderr_file).st_mtime
-        except Exception:
-            return
-
-        if mtime == self.stderr_mtime:
-            return
-        self.stderr_mtime = mtime
-        stderr = self.get_stderr_contents()
+    def poll_std_file_change(self):
+        """Check if the stderr or stdout file just changed."""
+        self.shellwidget.call_kernel().flush_std()
+        stderr = self.stderr_obj.poll_file_change()
         if stderr:
+            if self.shellwidget.isHidden():
+                # Avoid printing the same thing again
+                if self.error_text != '<tt>%s</tt>' % stderr:
+                    full_stderr = self.stderr_obj.get_contents()
+                    self.show_kernel_error('<tt>%s</tt>' % full_stderr)
+            else:
+                self.shellwidget._append_plain_text(
+                    '\n' + stderr, before_prompt=True)
+        stdout = self.stdout_obj.poll_file_change()
+        if stdout:
             self.shellwidget._append_plain_text(
-                '\n' + stderr, before_prompt=True)
+                '\n' + stdout, before_prompt=True)
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
@@ -457,6 +532,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
+        if self.fault_obj is not None:
+            # To display faulthandler
+            self.shellwidget.call_kernel().enable_faulthandler(
+                self.fault_obj.filename)
+
     def add_to_history(self, command):
         """Add command to history"""
         if self.shellwidget.is_debugging():
@@ -478,7 +558,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
-        InstallerIPythonKernelError(error)
+        self.error_text = error
+        if "issue1666807" not in error:
+            # The installer has some strange relative python
+            InstallerIPythonKernelError(error)
 
         # Replace end of line chars with <br>
         eol = sourcecode.get_eol_chars(error)
@@ -559,8 +642,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
-        if is_last_client:
-            self.remove_stderr_file()
+        self.remove_std_files(is_last_client)
         shutdown_kernel = is_last_client and not self.is_external_kernel
         self.shellwidget.shutdown(shutdown_kernel)
 
@@ -635,7 +717,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Restart the kernel in a thread."""
         try:
             self.shellwidget.kernel_manager.restart_kernel(
-                stderr=self.stderr_handle)
+                stderr=self.stderr_obj.handle,
+                stdout=self.stdout_obj.handle)
         except RuntimeError as e:
             self.restart_thread.error = e
 
@@ -653,6 +736,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 before_prompt=True
             )
         else:
+            if self.fault_obj is not None:
+                fault = self.fault_obj.get_contents()
+                if fault:
+                    fault = self.filter_fault(fault)
+                    self.shellwidget._append_plain_text(
+                        '\n' + fault, before_prompt=True)
+
             # Reset Pdb state and reopen comm
             sw._pdb_in_loop = False
             sw.spyder_kernel_comm.remove()
@@ -669,24 +759,69 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw._append_html(_("<br>Restarting kernel...<br>"),
                             before_prompt=True)
             sw.insert_horizontal_ruler()
+            if self.fault_obj is not None:
+                self.shellwidget.call_kernel().enable_faulthandler(
+                    self.fault_obj.filename)
 
         self._hide_loading_page()
         self.restart_thread = None
         self.sig_execution_state_changed.emit()
 
+    def filter_fault(self, fault):
+        """Get a fault from a previous session."""
+        thread_regex = (
+            r"(Current thread|Thread) "
+            r"(0x[\da-f]+) \(most recent call first\):"
+            r"(?:.|\r\n|\r|\n)+?(?=Current thread|Thread|\Z)")
+        # Keep line for future improvments
+        # files_regex = r"File \"([^\"]+)\", line (\d+) in (\S+)"
+
+        main_re = "Main thread id:(?:\r\n|\r|\n)(0x[0-9a-f]+)"
+        main_id = 0
+        for match in re.finditer(main_re, fault):
+            main_id = int(match.group(1), base=16)
+
+        system_re = ("System threads ids:"
+                     "(?:\r\n|\r|\n)(0x[0-9a-f]+(?: 0x[0-9a-f]+)+)")
+        ignore_ids = []
+        start_idx = 0
+        for match in re.finditer(system_re, fault):
+            ignore_ids = [int(i, base=16) for i in match.group(1).split()]
+            start_idx = match.span()[1]
+        text = ""
+        for idx, match in enumerate(re.finditer(thread_regex, fault)):
+            if idx == 0:
+                text += fault[start_idx:match.span()[0]]
+            thread_id = int(match.group(2), base=16)
+            if thread_id != main_id:
+                if thread_id in ignore_ids:
+                    continue
+                if "wurlitzer.py" in match.group(0):
+                    # Wurlitzer threads are launched later
+                    continue
+                text += "\n" + match.group(0) + "\n"
+            else:
+                try:
+                    pattern = (r".*(?:/IPython/core/interactiveshell\.py|"
+                               r"\\IPython\\core\\interactiveshell\.py).*")
+                    match_internal = next(re.finditer(pattern, match.group(0)))
+                    end_idx = match_internal.span()[0]
+                except StopIteration:
+                    end_idx = None
+                text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
+        return text
+
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        if not self.is_error_shown:
+        if self.stderr_obj is not None:
             # If there are kernel creation errors, jupyter_client will
             # try to restart the kernel and qtconsole prints a
             # message about it.
             # So we read the kernel's stderr_file and display its
             # contents in the client instead of the usual message shown
             # by qtconsole.
-            stderr = self.get_stderr_contents()
-            if stderr:
-                self.show_kernel_error('<tt>%s</tt>' % stderr)
+            self.poll_std_file_change()
         else:
             self.shellwidget._append_html("<br>%s<hr><br>" % msg,
                                           before_prompt=False)

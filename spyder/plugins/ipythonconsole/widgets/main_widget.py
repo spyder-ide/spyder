@@ -1081,11 +1081,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_restart=ask_before_restart,
                               css_path=self.css_path,
                               configuration=self.CONFIGURATION,
-                              handlers=self.registered_spyder_kernel_handlers)
-
-        # Change stderr_dir if requested
-        if self._test_dir:
-            client.stderr_dir = self._test_dir
+                              handlers=self.registered_spyder_kernel_handlers,
+                              std_dir=self._test_dir)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
@@ -1488,11 +1485,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_closing=ask_before_closing,
                               css_path=self.css_path,
                               configuration=self.CONFIGURATION,
-                              handlers=self.registered_spyder_kernel_handlers)
-
-        # Change stderr_dir if requested
-        if self._test_dir:
-            client.stderr_dir = self._test_dir
+                              handlers=self.registered_spyder_kernel_handlers,
+                              std_dir=self._test_dir)
 
         self.add_tab(
             client, name=client.get_name(), filename=filename,
@@ -1559,10 +1553,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                                  is_pylab=False, is_sympy=False):
         """Connect a client to its kernel."""
         connection_file = client.connection_file
-        stderr_handle = None if self._test_no_stderr else client.stderr_handle
+        stderr_handle = (
+            None if self._test_no_stderr else client.stderr_obj.handle)
+        stdout_handle = (
+            None if self._test_no_stderr else client.stdout_obj.handle)
         km, kc = self.create_kernel_manager_and_kernel_client(
             connection_file,
             stderr_handle,
+            stdout_handle,
             is_cython=is_cython,
             is_pylab=is_pylab,
             is_sympy=is_sympy,
@@ -1925,6 +1923,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_handle,
+                                                stdout_handle,
                                                 is_cython=False,
                                                 is_pylab=False,
                                                 is_sympy=False):
@@ -1951,6 +1950,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # See spyder-ide/spyder#7302.
         try:
             kernel_manager.start_kernel(stderr=stderr_handle,
+                                        stdout=stdout_handle,
                                         env=kernel_spec.env)
         except Exception:
             error_msg = _("The error is:<br><br>"
