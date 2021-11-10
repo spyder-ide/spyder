@@ -205,7 +205,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self.ipyclient.t0 = time.monotonic()
 
         # Handle silent execution of kernel methods
-        if info and info.kind == 'silent_exec_method' and not self._hidden:
+        if info and info.kind == 'silent_exec_method':
             self.handle_exec_method(msg)
             self._request_info['execute'].pop(msg_id)
         else:

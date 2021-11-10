@@ -659,7 +659,8 @@ the sympy module (e.g. plot)
         self._kernel_methods[local_uuid] = code
         self._request_info['execute'][msg_id] = self._ExecutionRequest(
             msg_id,
-            'silent_exec_method')
+            'silent_exec_method',
+            False)
 
     def handle_exec_method(self, msg):
         """
