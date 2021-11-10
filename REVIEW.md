@@ -3,6 +3,27 @@
 Reviewing pull requests (PRs) can take many forms and be reflected across many styles.
 To help make PR review more clear for contributors, the following guidelines are designed to scope review and specify what areas of feedback block PRs from merging.
 
+## Contents
+
+[Feedback](#feedback)
+
+[Expected reviewer behavior](#expected-reviewer-behavior)
+
+[For code-focused review](#for-code-focused-review])
+- [Required review](#required-review)
+- [Optional review](#optional-review)
+
+[For documentation-focused review](#for-documentation-focused-review)
+- [Required review](#required-review-1)
+- [Optional review](#optional-review-1)
+- [Followup-only items](#followup-only-items)
+- [Rebasing and merging](#rebasing-and-merging)
+
+[Communication Guidelines](#communication-guidelines)
+
+[References](#references)
+
+
 
 ## Feedback!
 
