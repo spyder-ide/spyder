@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-09 11:09\n"
+"PO-Revision-Date: 2021-11-11 01:32\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4124,15 +4124,15 @@ msgstr "清空控制台"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:478
 msgid "Enter array table"
-msgstr ""
+msgstr "输入数组表"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:484
 msgid "Enter array inline"
-msgstr ""
+msgstr "输入内联数组"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:503
 msgid "Special consoles"
-msgstr ""
+msgstr "特殊控制台"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:538
 msgid "New Pylab console (data plotting)"
