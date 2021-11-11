@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 19:50\n"
+"PO-Revision-Date: 2021-11-11 17:11\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4180,7 +4180,7 @@ msgstr "Nueva terminal de Cython (Python con extensiones de C)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:569
 msgid "Remove all variables from kernel namespace"
-msgstr ""
+msgstr "Eliminar todas las variables del espacio de nombres del kernel"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:590
 msgid "IPython documentation"
