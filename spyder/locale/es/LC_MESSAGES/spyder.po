@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-11 17:11\n"
+"PO-Revision-Date: 2021-11-11 17:22\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -937,7 +937,7 @@ msgstr ""
 
 #: spyder/plugins/completion/confpage.py:75
 msgid "Default is 300 milliseconds"
-msgstr ""
+msgstr "El valor predeterminado es 300 milisegundos"
 
 #: spyder/plugins/completion/confpage.py:77
 msgid "Show completion details after keyboard idle (ms):"
@@ -3369,7 +3369,7 @@ msgstr "Error en la expresión regular"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:156
 msgid "Write text to search"
-msgstr ""
+msgstr "Introduzca el texto que desea buscar"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:158
 msgid "Search in:"
@@ -4220,7 +4220,7 @@ msgstr "No fue posible crear un túnel ssh. El error fue:\n\n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1515
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 2.0.1 and < 2.2.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels=2.1</tt><br><br>or<br><br><tt>pip install spyder-kernels==2.1.*</tt>"
-msgstr ""
+msgstr "Su entorno o instalación de Python no cuenta con el módulo <tt>spyder-kernels</tt> o la versión correcta instalada (>= 2.0.1 y < 2.2.0). Sin este módulo no es posible para Spyder crear una terminal.<br><br>Puede instalarlo ejecutándo lo siguiente desde la terminal del sistema:<br><br><tt>conda install spyder-kernels=2.0</tt><br><br>o<br><br><tt>pip install spyder-kernels==2.1.*</tt>"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1730
 msgid "Do you want to close this console?"
