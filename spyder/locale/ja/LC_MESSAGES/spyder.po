@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-11 11:13\n"
+"PO-Revision-Date: 2021-11-11 11:53\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -3383,7 +3383,7 @@ msgstr "大文字と小文字を区別"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:231
 msgid "Case sensitive search"
-msgstr "大文字と小文字を区別する"
+msgstr "検索時に大文字と小文字を区別する"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:239
 msgid "&Find in files"
@@ -3391,7 +3391,7 @@ msgstr "ファイル内を検索 (&F)"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:240
 msgid "Search text"
-msgstr ""
+msgstr "検索テキスト"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:256 spyder/plugins/findinfiles/widgets/main_widget.py:257
 msgid "Exclude case sensitive"
@@ -3411,7 +3411,7 @@ msgstr "詳細オプションを隠す"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:627
 msgid "Max results"
-msgstr ""
+msgstr "最大結果数"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:628
 msgid "Set maximum number of results: "
@@ -4027,7 +4027,7 @@ msgstr "既存のカーネルに接続"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
-msgstr ""
+msgstr "<p>リモートのマシンに接続する場合、カーネルのJSON接続ファイル (<i>例</i> <tt>kernel-1234.json</tt>) を選んで、SSH接続情報を入力して下さい。外部カーネルの起動と接続について詳しく知りたい場合、 <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">ドキュメント</a>を参照して下さい。</p>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:50
 msgid "Connection file:"
@@ -4139,15 +4139,15 @@ msgstr "コンソールをクリアする"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:478
 msgid "Enter array table"
-msgstr ""
+msgstr "配列テーブルを入力"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:484
 msgid "Enter array inline"
-msgstr ""
+msgstr "配列をインラインで入力"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:503
 msgid "Special consoles"
-msgstr ""
+msgstr "特別なコンソール"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:538
 msgid "New Pylab console (data plotting)"
@@ -4163,7 +4163,7 @@ msgstr "新規Cythonコンソール (PythonのC言語拡張)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:569
 msgid "Remove all variables from kernel namespace"
-msgstr ""
+msgstr "カーネル名前空間からすべての変数を削除"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:590
 msgid "IPython documentation"
@@ -4203,7 +4203,7 @@ msgstr "sshトンネルを開けませんでした。エラー:\n\n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1515
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 2.0.1 and < 2.2.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels=2.1</tt><br><br>or<br><br><tt>pip install spyder-kernels==2.1.*</tt>"
-msgstr ""
+msgstr "Python環境に<tt>spyder-kernels</tt>モジュールが無いか、あるいは正しいバージョン(>= 2.0.1 かつ < 2.2.0) のものがインストールされておりません。このモジュールがない場合Spyderでコンソールを開くことができません。<br><br>システムのターミナルで以下のコマンドを入力することによってインストールできます:<br><br><tt>conda install spyder-kernels=2.1</tt><br><br>or<br><br><tt>pip install spyder-kernels==2.1.*</tt>"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1730
 msgid "Do you want to close this console?"
