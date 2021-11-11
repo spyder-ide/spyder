@@ -67,6 +67,8 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder import __version__
 from spyder import dependencies
+from spyder.app.find_plugins import (
+    find_external_plugins, find_internal_plugins)
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window, ORIGINAL_SYS_EXIT,
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
@@ -90,7 +92,6 @@ from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
                                     qapplication, start_file)
 from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.app.find_plugins import find_external_plugins, find_internal_plugins
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
@@ -176,7 +177,7 @@ class MainWindow(QMainWindow):
         return PLUGIN_REGISTRY.is_plugin_enabled(plugin_name)
 
     def is_plugin_available(self, plugin_name):
-        """Determine if a given plugin is going to be loaded."""
+        """Determine if a given plugin is available."""
         return PLUGIN_REGISTRY.is_plugin_available(plugin_name)
 
     def show_status_message(self, message, timeout):
@@ -511,8 +512,9 @@ class MainWindow(QMainWindow):
         The `label` and `steps` keys allow customizing the content of the
         error dialog.
         """
-        if self.console:
-            self.console.handle_exception(error_data)
+        console = self.get_plugin(Plugins.Console, error=False)
+        if console:
+            console.handle_exception(error_data)
 
     def __init__(self, splash=None, options=None):
         QMainWindow.__init__(self)
@@ -599,7 +601,7 @@ class MainWindow(QMainWindow):
             'projects': Plugins.Projects,
             'findinfiles': Plugins.Find,
             'layouts': Plugins.Layout,
-            }
+        }
 
         self.thirdparty_plugins = []
 
@@ -998,7 +1000,10 @@ class MainWindow(QMainWindow):
         self.edit_menu_actions += [self.undo_action, self.redo_action,
                                    None, self.cut_action, self.copy_action,
                                    self.paste_action, self.selectall_action,
-                                   None] + self.editor.edit_menu_actions
+                                   None]
+        if self.get_plugin(Plugins.Editor, error=False):
+            self.edit_menu_actions += self.editor.edit_menu_actions
+
         switcher_actions = [
             self.file_switcher_action,
             self.symbol_finder_action
@@ -1148,6 +1153,13 @@ class MainWindow(QMainWindow):
         Actions to be performed only after the main window's `show` method
         is triggered.
         """
+        # Required plugins
+        help_plugin = self.get_plugin(Plugins.Help, error=False)
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole, error=False)
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        console = self.get_plugin(Plugins.Console, error=False)
+
         # Process pending events and hide splash before loading the
         # previous session.
         QApplication.processEvents()
@@ -1187,14 +1199,16 @@ class MainWindow(QMainWindow):
 
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
-        if self.console.dockwidget.isVisible() and DEV is None:
-            self.console.toggle_view_action.setChecked(False)
-            self.console.dockwidget.hide()
+        if console and console.dockwidget.isVisible() and DEV is None:
+            console.toggle_view_action.setChecked(False)
+            console.dockwidget.hide()
 
-        # Show Help and Consoles by default
-        plugins_to_show = [self.ipyconsole]
-        if hasattr(self, 'help'):
-            plugins_to_show.append(self.help)
+        # Show Help and IPython consoles by default
+        plugins_to_show = []
+        if help_plugin:
+            plugins_to_show.append(help_plugin)
+        if ipyconsole:
+            plugins_to_show.append(ipyconsole)
         for plugin in plugins_to_show:
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
@@ -1207,17 +1221,20 @@ class MainWindow(QMainWindow):
         # line options to the plugins.
         if self.open_project:
             if not running_in_mac_app():
-                self.projects.open_project(
-                    self.open_project, workdir=self.init_workdir
-                )
+                if projects:
+                    projects.open_project(
+                        self.open_project, workdir=self.init_workdir
+                    )
         else:
             # Load last project if a project was active when Spyder
             # was closed
-            self.projects.reopen_last_project()
+            if projects:
+                projects.reopen_last_project()
 
             # If no project is active, load last session
-            if self.projects.get_active_project() is None:
-                self.editor.setup_open_files(close_previous_files=False)
+            if projects and projects.get_active_project() is None:
+                if editor:
+                    editor.setup_open_files(close_previous_files=False)
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1253,8 +1270,9 @@ class MainWindow(QMainWindow):
 
         # TODO: Remove self.projects reference once there's an API for setting
         # window title.
-        if self.projects is not None:
-            path = self.projects.get_active_project_path()
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        if projects:
+            path = projects.get_active_project_path()
             if path:
                 path = path.replace(get_home_dir(), u'~')
                 title = u'{0} - {1}'.format(path, title)
@@ -1266,13 +1284,15 @@ class MainWindow(QMainWindow):
     # plugins
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_shortcut_to_tip=True, plugin_name=None):
-        self.shortcuts.register_shortcut(
-            qaction_or_qshortcut,
-            context,
-            name,
-            add_shortcut_to_tip=add_shortcut_to_tip,
-            plugin_name=plugin_name,
-        )
+        shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
+        if shortcuts:
+            shortcuts.register_shortcut(
+                qaction_or_qshortcut,
+                context,
+                name,
+                add_shortcut_to_tip=add_shortcut_to_tip,
+                plugin_name=plugin_name,
+            )
 
     # --- Other
     def update_source_menu(self):
@@ -1280,7 +1300,9 @@ class MainWindow(QMainWindow):
         # This is necessary to avoid an error at startup.
         # Fixes spyder-ide/spyder#14901
         try:
-            self.editor.refresh_formatter_name()
+            editor = self.get_plugin(Plugins.Editor, error=False)
+            if editor:
+                editor.refresh_formatter_name()
         except AttributeError:
             pass
 
@@ -1389,7 +1411,7 @@ class MainWindow(QMainWindow):
         # Comment, uncomment, indent, unindent...
         if not console and not_readonly:
             # This is the editor and current file is writable
-            if hasattr(self, 'editor'):
+            if self.get_plugin(Plugins.Editor, error=False):
                 for action in self.editor.edit_menu_actions:
                     action.setEnabled(True)
 
@@ -1552,10 +1574,12 @@ class MainWindow(QMainWindow):
             return
 
     def redirect_internalshell_stdio(self, state):
-        if state:
-            self.console.redirect_stds()
-        else:
-            self.console.restore_stds()
+        console = self.get_plugin(Plugins.Console, error=False)
+        if console:
+            if state:
+                console.redirect_stds()
+            else:
+                console.restore_stds()
 
     def open_external_console(self, fname, wdir, args, interact, debug, python,
                               python_args, systerm, post_mortem=False):
@@ -1584,10 +1608,15 @@ class MainWindow(QMainWindow):
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        variableexplorer = self.get_plugin(
+            Plugins.VariableExplorer, error=False)
+
         if encoding.is_text_file(fname):
-            self.editor.load(fname)
-        elif self.variableexplorer is not None and ext in IMPORT_EXT:
-            self.variableexplorer.get_widget().import_data(fname)
+            if editor:
+                editor.load(fname)
+        elif variableexplorer is not None and ext in IMPORT_EXT:
+            variableexplorer.get_widget().import_data(fname)
         elif not external:
             fname = file_uri(fname)
             start_file(fname)
@@ -1713,7 +1742,12 @@ class MainWindow(QMainWindow):
     def show_path_manager(self):
         """Show path manager dialog."""
         from spyder.widgets.pathmanager import PathManager
-        read_only_path = tuple(self.projects.get_pythonpath())
+        projects = self.get_plugin(Plugins.Projects, error=False)
+
+        read_only_path = ()
+        if projects:
+            read_only_path = tuple(projects.get_pythonpath())
+
         dialog = PathManager(self, self.path, read_only_path,
                              self.not_active_path, sync=True)
         self._path_manager = dialog
@@ -1723,7 +1757,11 @@ class MainWindow(QMainWindow):
 
     def pythonpath_changed(self):
         """Project's PYTHONPATH contribution has changed."""
-        self.project_path = tuple(self.projects.get_pythonpath())
+        projects = self.get_plugin(Plugins.Projects, error=False)
+
+        self.project_path = ()
+        if projects:
+            self.project_path = tuple(projects.get_pythonpath())
         path_dict = self.get_spyder_pythonpath_dict()
         self.update_python_path(path_dict)
 
