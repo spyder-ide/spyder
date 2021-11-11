@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2021-11-08 13:50-0500\n"
-"PO-Revision-Date: 2021-11-08 19:50\n"
+"PO-Revision-Date: 2021-11-11 11:13\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -19,19 +19,19 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "ここでは望まない機能を無効化や、動作の軽くするために任意のスパイダープラグインをオン/オフにすることができます。 このページでチェックされていないプラグインはただちにアンロードされ、次回スパイダーの起動時に読み込まれません。"
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
-msgstr ""
+msgstr "内部プラグイン"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
-msgstr ""
+msgstr "外部プラグイン"
 
 #: spyder/api/plugin_registration/registry.py:656
 msgid "Plugins"
-msgstr ""
+msgstr "プラグイン"
 
 #: spyder/api/widgets/main_widget.py:241
 msgid "Main widget toolbar"
@@ -75,7 +75,7 @@ msgstr "ペインを閉じる"
 
 #: spyder/api/widgets/toolbars.py:123
 msgid "More"
-msgstr ""
+msgstr "さらに表示"
 
 #: spyder/app/mainwindow.py:197
 msgid "Compatibility Check"
@@ -375,7 +375,7 @@ msgstr "Python言語サーバーのメインバックエンド"
 
 #: spyder/dependencies.py:133
 msgid "Optimize algorithms for folding"
-msgstr ""
+msgstr "折りたたみアルゴリズムの最適化"
 
 #: spyder/dependencies.py:137
 msgid "Verify if snippets files are valid"
@@ -761,15 +761,15 @@ msgstr "再起動"
 
 #: spyder/plugins/application/container.py:187
 msgid "&Restart in debug mode"
-msgstr ""
+msgstr "デバッグモードで再起動(&R)"
 
 #: spyder/plugins/application/container.py:188
 msgid "Restart in debug mode"
-msgstr ""
+msgstr "デバッグモードで再起動"
 
 #: spyder/plugins/application/container.py:198
 msgid "Debug logs"
-msgstr ""
+msgstr "デバッグログ"
 
 #: spyder/plugins/application/container.py:253
 msgid "New Spyder version"
@@ -805,19 +805,19 @@ msgstr "<b>依存パッケージが見つかりません!</b><br><br><tt>%s</tt>
 
 #: spyder/plugins/application/container.py:414
 msgid "Question"
-msgstr ""
+msgstr "質問"
 
 #: spyder/plugins/application/container.py:417
 msgid "Which debug mode do you want Spyder to restart in?"
-msgstr ""
+msgstr "どのデバッグモードでSpyderを再起動しますか？"
 
 #: spyder/plugins/application/container.py:420
 msgid "Verbose"
-msgstr ""
+msgstr "冗長"
 
 #: spyder/plugins/application/container.py:421
 msgid "Minimal"
-msgstr ""
+msgstr "最小限"
 
 #: spyder/plugins/application/container.py:532 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:463
 msgid "Don't show again."
@@ -929,19 +929,19 @@ msgstr "(使用不可でない限り) Kiteが補完の欠落を検出した場�
 
 #: spyder/plugins/completion/confpage.py:73
 msgid "Show automatic completions after keyboard idle (ms):"
-msgstr ""
+msgstr "自動補完を表示するまでのキーボードアイドル時間 (ms):"
 
 #: spyder/plugins/completion/confpage.py:75
 msgid "Default is 300 milliseconds"
-msgstr ""
+msgstr "デフォルトは300ミリ秒です"
 
 #: spyder/plugins/completion/confpage.py:77
 msgid "Show completion details after keyboard idle (ms):"
-msgstr ""
+msgstr "補完の詳細を表示するまでのキーボードアイドル時間 (ms):"
 
 #: spyder/plugins/completion/confpage.py:79
 msgid "Default is 500 milliseconds"
-msgstr ""
+msgstr "デフォルトは500ミリ秒です"
 
 #: spyder/plugins/completion/confpage.py:82
 msgid "Completions"
@@ -3355,7 +3355,7 @@ msgstr "正規表現エラー"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:156
 msgid "Write text to search"
-msgstr ""
+msgstr "検索するテキストを書く"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:158
 msgid "Search in:"
@@ -3375,7 +3375,7 @@ msgstr "正規表現"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:222 spyder/plugins/findinfiles/widgets/main_widget.py:248
 msgid "Use regular expressions"
-msgstr ""
+msgstr "正規表現を使う"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:230
 msgid "Case sensitive"
@@ -3383,7 +3383,7 @@ msgstr "大文字と小文字を区別"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:231
 msgid "Case sensitive search"
-msgstr ""
+msgstr "大文字と小文字を区別する"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:239
 msgid "&Find in files"
