@@ -63,7 +63,8 @@ class ShortcutsConfigPage(PluginConfigPage):
 
         # Signals
         self.table.proxy_model.dataChanged.connect(
-            lambda i1, i2, roles, opt='': self.has_been_modified(opt))
+            lambda i1, i2, roles, opt='', sect='': self.has_been_modified(
+                sect, opt))
         self.reset_btn.clicked.connect(self.reset_to_default)
 
     def check_settings(self):
