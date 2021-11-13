@@ -327,7 +327,7 @@ def main_window(request, tmpdir):
 
         window.switcher.close()
         for client in window.ipyconsole.get_clients():
-            window.ipyconsole.close_client(client=client, force=True)
+            window.ipyconsole.close_client(client=client, ask_recursive=False)
         window.outlineexplorer.stop_symbol_services('python')
         # Reset cwd
         window.explorer.chdir(get_home_dir())
@@ -820,23 +820,18 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     assert "1--> 10 arr = np.array(li)" in control.toPlainText()
 
     # Exit debugging
-    shell.pdb_execute("!exit")
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!exit")
 
     # Set breakpoint on first line with code
     code_editor.debugger.toogle_breakpoint(line_number=2)
-    qtbot.wait(500)
 
     # Click the debug button
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # Verify that we are still on debugging
-    try:
-        assert shell.is_waiting_pdb_input()
-    except Exception:
-        print('Shell content: ', shell._control.toPlainText(), '\n\n')
-        raise
+    assert shell.is_waiting_pdb_input()
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1300,17 +1295,16 @@ def test_set_new_breakpoints(main_window, qtbot):
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
     code_editor.debugger.toogle_breakpoint(line_number=6)
-    qtbot.wait(500)
 
     # Verify that the breakpoint was set
-    shell.pdb_execute("!b")
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!b")
     assert "1   breakpoint   keep yes   at {}:6".format(test_file) in control.toPlainText()
 
     # Remove breakpoint and close test file
@@ -1779,18 +1773,18 @@ def test_stop_dbg(main_window, qtbot):
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # Move to the next line
-    shell.pdb_execute("!n")
-    qtbot.wait(1000)
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!n")
 
     # Stop debugging
     stop_debug_action = main_window.debug_toolbar_actions[5]
     stop_debug_button = main_window.debug_toolbar.widgetForAction(stop_debug_action)
-    qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
 
     # Assert there are only two ipdb prompts in the console
     assert shell._control.toPlainText().count('IPdb') == 2
@@ -4159,6 +4153,7 @@ def test_goto_find(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt',
     reason="test fails on windows.")
