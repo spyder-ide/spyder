@@ -89,6 +89,11 @@ def get_size(item):
                 isinstance(item.shape, (tuple, np.integer))):
             try:
                 if item.shape:
+                    # This is needed since values could return as
+                    # `shape` an instance of a `tuple` subclass.
+                    # See spyder-ide/spyder#16348
+                    if isinstance(item.shape, tuple):
+                        return tuple(item.shape)
                     return item.shape
                 else:
                     # Scalar value
