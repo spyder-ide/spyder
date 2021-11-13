@@ -3183,7 +3183,8 @@ def test_runcell_cache(main_window, qtbot, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Works reliably on Linux")
 def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     """Check that on path manager updates, consoles correctly update."""
     main_window.show_path_manager()
