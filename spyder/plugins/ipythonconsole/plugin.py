@@ -429,7 +429,7 @@ class IPythonConsole(SpyderDockablePlugin):
     # ---- For client widgets
     def get_clients(self):
         """Return clients list"""
-        return self.get_widget().get_clients()
+        return self.get_widget().clients
 
     def get_focus_client(self):
         """Return current client with focus, if any"""
@@ -514,9 +514,10 @@ class IPythonConsole(SpyderDockablePlugin):
         """
         self.get_widget().create_client_from_path(path)
 
-    def close_client(self, index=None, client=None, force=False):
+    def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or client (or close current tab)"""
-        self.get_widget().close_client(index=index, client=client, force=force)
+        self.get_widget().close_client(index=index, client=client,
+                                       ask_recursive=ask_recursive)
 
     # ---- For execution and debugging
     def run_script(self, filename, wdir, args, debug, post_mortem,
