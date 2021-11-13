@@ -286,8 +286,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     def stop_here(self, frame):
         """Check if pdb should stop here."""
         if (frame is not None
-                and frame.f_locals.get(
-                    "__tracebackhide__", False) == "__pdb_exit__"):
+                and "__tracebackhide__" in frame.f_locals
+                and frame.f_locals["__tracebackhide__"] == "__pdb_exit__"):
             self.onecmd('exit')
             return False
 
