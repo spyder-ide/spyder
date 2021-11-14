@@ -201,7 +201,7 @@ class IPythonConsole(SpyderDockablePlugin):
         The new working directory path.
     """
 
-    # --- SpyderDockablePlugin API
+    # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
@@ -387,7 +387,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)
 
-    # --- Private methods
+    # ---- Private methods
     # -------------------------------------------------------------------------
     def _load_file_in_editor(self, fname, lineno, word, processevents):
         editor = self.get_plugin(Plugins.Editor)
@@ -421,11 +421,10 @@ class IPythonConsole(SpyderDockablePlugin):
                     except Exception:
                         pass
 
-    # --- Public API
+    # ---- Public API
     # -------------------------------------------------------------------------
 
-    # ---- Spyder Kernels handlers registry functionality ---------------------
-    # -------------------------------------------------------------------------
+    # ---- Spyder Kernels handlers registry functionality
     def register_spyder_kernel_call_handler(self, handler_id, handler):
         """
         Register a callback for it to be available for the kernels of new
@@ -814,7 +813,7 @@ class IPythonConsole(SpyderDockablePlugin):
         """
         self.get_widget().restart_kernel()
 
-    # ---- For documentation and help -----------------------------------------
+    # ---- For documentation and help
     def show_intro(self):
         """Show intro to IPython help."""
         self.get_widget().show_intro()

@@ -1203,7 +1203,7 @@ class MainWindow(QMainWindow):
             console.toggle_view_action.setChecked(False)
             console.dockwidget.hide()
 
-        # Show Help and IPython consoles by default
+        # Show Help and IPython console by default
         plugins_to_show = []
         if help_plugin:
             plugins_to_show.append(help_plugin)
