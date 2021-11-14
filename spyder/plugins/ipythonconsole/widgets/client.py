@@ -41,8 +41,8 @@ from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import add_actions, DialogManager
-from spyder.utils.stdfile import StdFile
 from spyder.py3compat import to_text_string
+from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
