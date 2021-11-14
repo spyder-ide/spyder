@@ -18,7 +18,6 @@ This is the widget used on all its tabs.
 # Fix for spyder-ide/spyder#1356.
 from __future__ import absolute_import
 
-import codecs
 import os
 import os.path as osp
 import re
@@ -42,6 +41,7 @@ from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import add_actions, DialogManager
+from spyder.utils.stdfile import StdFile
 from spyder.py3compat import to_text_string
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
@@ -70,82 +70,6 @@ try:
     time.monotonic  # time.monotonic new in 3.3
 except AttributeError:
     time.monotonic = time.time
-
-
-class Std_File():
-    def __init__(self, filename):
-        self.filename = filename
-        self._mtime = 0
-        self._cursor = 0
-        self._handle = None
-
-    @property
-    def handle(self):
-        """Get handle to file."""
-        if self._handle is None and self.filename is not None:
-            # Needed to prevent any error that could appear.
-            # See spyder-ide/spyder#6267.
-            try:
-                self._handle = codecs.open(
-                    self.filename, 'w', encoding='utf-8')
-            except Exception:
-                pass
-        return self._handle
-
-    def remove(self):
-        """Remove file associated with the client."""
-        try:
-            # Defer closing the handle until the client
-            # is closed because jupyter_client needs it open
-            # while it tries to restart the kernel
-            if self._handle is not None:
-                self._handle.close()
-            os.remove(self.filename)
-            self._handle = None
-        except Exception:
-            pass
-
-    def get_contents(self):
-        """Get the contents of the std kernel file."""
-        try:
-            with open(self.filename, 'rb') as f:
-                # We need to read the file as bytes to be able to
-                # detect its encoding with chardet
-                text = f.read()
-
-                # This is needed to avoid showing an empty error message
-                # when the kernel takes too much time to start.
-                # See spyder-ide/spyder#8581.
-                if not text:
-                    return ''
-
-                # This is needed since the file could be encoded
-                # in something different to utf-8.
-                # See spyder-ide/spyder#4191.
-                encoding = get_coding(text)
-                text = to_text_string(text, encoding)
-                return text
-        except Exception:
-            return None
-
-    def poll_file_change(self):
-        """Check if the std kernel file just changed."""
-        if self._handle is not None and not self._handle.closed:
-            self._handle.flush()
-        try:
-            mtime = os.stat(self.filename).st_mtime
-        except Exception:
-            return
-
-        if mtime == self._mtime:
-            return
-        self._mtime = mtime
-        text = self.get_contents()
-        if text:
-            ret_text = text[self._cursor:]
-            self._cursor = len(text)
-            return ret_text
-
 
 # ----------------------------------------------------------------------------
 # Client widget
@@ -261,8 +185,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.std_poll_timer = None
         if not self.is_external_kernel:
             # Cannot create std files for external kernels
-            self.stderr_obj = Std_File(self.std_filename('.stderr'))
-            self.stdout_obj = Std_File(self.std_filename('.stdout'))
+            self.stderr_obj = StdFile(self.std_filename('.stderr'))
+            self.stdout_obj = StdFile(self.std_filename('.stdout'))
             self.std_poll_timer = QTimer(self)
             self.std_poll_timer.timeout.connect(self.poll_std_file_change)
             self.std_poll_timer.setInterval(1000)
@@ -270,7 +194,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.executed.connect(self.poll_std_file_change)
         if self.hostname is None:
             # Cannot read file that is not on this computer
-            self.fault_obj = Std_File(self.std_filename('.fault'))
+            self.fault_obj = StdFile(self.std_filename('.fault'))
 
     def __del__(self):
         """Close threads to avoid segfault."""
