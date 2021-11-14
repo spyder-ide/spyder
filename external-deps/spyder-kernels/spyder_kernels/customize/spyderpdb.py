@@ -205,13 +205,16 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     # 2. Any edit to that variable will be lost.
                     # 3. The globals will appear to contain all the locals
                     #    variables.
+                    # 4. Any new locals variable will be saved to globals
+                    #    instead
                     fake_globals = globals.copy()
                     fake_globals.update(locals)
                     locals_keys = locals.keys()
-                    exec(code, fake_globals, locals)
+                    # Don't pass locals, solves spyder-ide/spyder#16790
+                    exec(code, fake_globals)
                     # Avoid mixing locals and globals
                     for key in locals_keys:
-                        fake_globals.pop(key, None)
+                        locals[key] = fake_globals.pop(key, None)
                     globals.update(fake_globals)
                 else:
                     exec(code, globals, locals)
