@@ -4232,7 +4232,7 @@ def test_add_external_plugins_to_dependencies(main_window):
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_print_multiprocessing(main_window, qtbot, tmpdir):
-    """Test the runcell command."""
+    """Test print commands from multiprocessing."""
     # Write code with a cell to a file
     code = """
 import multiprocessing
@@ -4270,9 +4270,9 @@ if __name__ == "__main__":
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt',
-    reason="ctypes.string_at(0) doesn't segfaults on windows")
+    reason="ctypes.string_at(0) doesn't segfaults on Windows")
 def test_print_faulthandler(main_window, qtbot, tmpdir):
-    """Test the runcell command."""
+    """Test printing segfault info from kernel crashes."""
     # Write code with a cell to a file
     code = """
 def crash_func():

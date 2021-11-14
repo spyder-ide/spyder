@@ -129,7 +129,7 @@ class Std_File():
             return None
 
     def poll_file_change(self):
-        """Check if the stdout file just changed"""
+        """Check if the std kernel file just changed."""
         if self._handle is not None and not self._handle.closed:
             self._handle.flush()
         try:
@@ -260,7 +260,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.fault_obj = None
         self.std_poll_timer = None
         if not self.is_external_kernel:
-            # Can not connect for external kernels
+            # Cannot create std files for external kernels
             self.stderr_obj = Std_File(self.std_filename('.stderr'))
             self.stdout_obj = Std_File(self.std_filename('.stdout'))
             self.std_poll_timer = QTimer(self)
@@ -269,7 +269,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.std_poll_timer.start()
             self.shellwidget.executed.connect(self.poll_std_file_change)
         if self.hostname is None:
-            # Can not read file that is not on this computer
+            # Cannot read file that is not on this computer
             self.fault_obj = Std_File(self.std_filename('.fault'))
 
     def __del__(self):
@@ -475,6 +475,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             else:
                 self.shellwidget._append_plain_text(
                     '\n' + stderr, before_prompt=True)
+
         stdout = self.stdout_obj.poll_file_change()
         if stdout:
             self.shellwidget._append_plain_text(
