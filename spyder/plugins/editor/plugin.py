@@ -208,12 +208,13 @@ class Editor(SpyderPluginWidget):
         self.readwrite_status = ReadWriteStatus(self)
 
         # TODO: temporal fix while editor uses new API
-        statusbar = self.main.statusbar
-        statusbar.add_status_widget(self.readwrite_status)
-        statusbar.add_status_widget(self.eol_status)
-        statusbar.add_status_widget(self.encoding_status)
-        statusbar.add_status_widget(self.cursorpos_status)
-        statusbar.add_status_widget(self.vcs_status)
+        statusbar = self.main.get_plugin(Plugins.StatusBar, error=False)
+        if statusbar:
+            statusbar.add_status_widget(self.readwrite_status)
+            statusbar.add_status_widget(self.eol_status)
+            statusbar.add_status_widget(self.encoding_status)
+            statusbar.add_status_widget(self.cursorpos_status)
+            statusbar.add_status_widget(self.vcs_status)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -1226,11 +1227,13 @@ class Editor(SpyderPluginWidget):
         completions = self.main.get_plugin(Plugins.Completions, error=False)
         outlineexplorer = self.main.get_plugin(
             Plugins.OutlineExplorer, error=False)
-        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole)
+        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
+
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
         self.main.console.sig_edit_goto_requested.connect(self.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+
         if completions:
             self.main.completions.sig_language_completions_available.connect(
                 self.register_completion_capabilities)
