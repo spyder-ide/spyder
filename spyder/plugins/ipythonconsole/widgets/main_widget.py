@@ -315,7 +315,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             # a crash when the console is detached from the main window
             # Fixes spyder-ide/spyder#561.
             self.tabwidget.setDocumentMode(True)
-        self.tabwidget.currentChanged.connect(self.refresh_container)
+        self.tabwidget.currentChanged.connect(
+            lambda idx: self.refresh_container(give_focus=True))
         self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
         self.tabwidget.tabBar().sig_name_changed.connect(
             self.rename_tabs_after_change)
@@ -1164,7 +1165,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         for client in self.clients:
             client.set_font(font)
 
-    def refresh_container(self):
+    def refresh_container(self, give_focus=False):
         """
         Refresh interface depending on the current widget client available.
 
@@ -1192,9 +1193,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.infowidget.hide()
                 client.shellwidget.show()
 
-            # Give focus to the control widget of the selected tab
+            # Get reference for the control widget of the selected tab
+            # and give focus if needed
             control = client.get_control()
-            control.setFocus()
+            if give_focus:
+                control.setFocus()
 
             if isinstance(control, PageControlWidget):
                 self.pager_label.show()
