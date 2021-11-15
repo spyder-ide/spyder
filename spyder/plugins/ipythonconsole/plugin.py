@@ -17,12 +17,12 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.plugin_registration.decorators import on_plugin_available
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
-from spyder.config.base import get_conf_path
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
-    IPythonConsoleWidget)
+    IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.utils.programs import get_temp_dir
@@ -201,7 +201,7 @@ class IPythonConsole(SpyderDockablePlugin):
         The new working directory path.
     """
 
-    # --- SpyderDockablePlugin API
+    # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
@@ -319,13 +319,6 @@ class IPythonConsole(SpyderDockablePlugin):
         # Connect Console focus request with Editor
         self.sig_editor_focus_requested.connect(self._switch_to_editor)
 
-    @on_plugin_available(plugin=Plugins.History)
-    def on_history_available(self):
-        # Show history file if no console is visible
-        if not self.get_widget().is_visible:
-            history = self.get_plugin(Plugins.History)
-            history.add_history(get_conf_path('history.py'))
-
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
@@ -333,6 +326,52 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.projects_available = True
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        # Register conf page
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_application_menu(ApplicationMenus.Consoles)
+
+        # IPython documentation menu
+        mainmenu.remove_item_from_application_menu(
+            IPythonConsoleWidgetOptionsMenus.Documentation,
+            menu_id=ApplicationMenus.Help
+         )
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+        self.sig_edit_goto_requested.disconnect(editor.load)
+        self.sig_edit_goto_requested[str, int, str, bool].disconnect(
+            self._load_file_in_editor)
+        editor.breakpoints_saved.disconnect(self.set_spyder_breakpoints)
+        editor.run_in_current_ipyclient.disconnect(self.run_script)
+        editor.run_cell_in_ipyclient.disconnect(self.run_cell)
+        editor.debug_cell_in_ipyclient.disconnect(self.debug_cell)
+
+        # Connect Editor debug action with Console
+        self.sig_pdb_state_changed.disconnect(editor.update_pdb_state)
+        editor.exec_in_extconsole.disconnect(
+            self.execute_code_and_focus_editor)
+        editor.sig_file_debug_message_requested.disconnect(
+            self.print_debug_file_msg)
+
+        # Connect Console focus request with Editor
+        self.sig_editor_focus_requested.disconnect(self._switch_to_editor)
+
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardown(self):
+        projects = self.get_plugin(Plugins.Projects)
+        widget = self.get_widget()
+        widget.projects_available = False
+        projects.sig_project_loaded.disconnect(self._on_project_loaded)
+        projects.sig_project_closed.disconnect(self._on_project_closed)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -348,7 +387,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)
 
-    # --- Private methods
+    # ---- Private methods
     # -------------------------------------------------------------------------
     def _load_file_in_editor(self, fname, lineno, word, processevents):
         editor = self.get_plugin(Plugins.Editor)
@@ -382,11 +421,10 @@ class IPythonConsole(SpyderDockablePlugin):
                     except Exception:
                         pass
 
-    # --- Public API
+    # ---- Public API
     # -------------------------------------------------------------------------
 
-    # ---- Spyder Kernels handlers registry functionality ---------------------
-    # -------------------------------------------------------------------------
+    # ---- Spyder Kernels handlers registry functionality
     def register_spyder_kernel_call_handler(self, handler_id, handler):
         """
         Register a callback for it to be available for the kernels of new
@@ -775,7 +813,7 @@ class IPythonConsole(SpyderDockablePlugin):
         """
         self.get_widget().restart_kernel()
 
-    # ---- For documentation and help -----------------------------------------
+    # ---- For documentation and help
     def show_intro(self):
         """Show intro to IPython help."""
         self.get_widget().show_intro()
