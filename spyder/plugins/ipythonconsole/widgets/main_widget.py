@@ -777,9 +777,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         'pylab', 'pylab/backend', 'symbolic_math', 'hide_cmd_windows'])
     def change_possible_restart_conf(self, option, value):
         """Apply options that possibly require a kernel restart."""
-        if not self.get_current_client():
-            return
-
         restart_needed = False
         restart_options = []
         # Startup options (needs a restart)
