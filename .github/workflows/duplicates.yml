@@ -97,7 +97,7 @@ jobs:
              },
              {
                "pattern": "AttributeError: 'SpyderKernelManager' object has no attribute 'kernel'",
-               "reply": "Thanks for reporting. To fix this, please close Spyder, open the Anaconda Prompt and run there:<br><br>`conda install jupyter_client=6.1.12`",
+               "reply": "Thanks for reporting. To fix this, please close Spyder, open the Anaconda Prompt and run there:<br><br>`conda install jupyter_client=6.1.12 freetype=2.10.4`",
                "labels": ["resolution:Duplicate"],
                "close": true
              }
