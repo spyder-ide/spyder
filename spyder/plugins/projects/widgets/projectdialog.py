@@ -26,7 +26,6 @@ from qtpy.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QGridLayout,
 from spyder.config.base import _, get_home_dir
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
-from spyder.py3compat import to_text_string
 
 
 def is_writable(path):
@@ -68,15 +67,6 @@ class ProjectDialog(QDialog):
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
-        # Variables
-        current_python_version = '.'.join(
-            [to_text_string(sys.version_info[0]),
-             to_text_string(sys.version_info[1])])
-        python_versions = ['2.7', '3.4', '3.5']
-        if current_python_version not in python_versions:
-            python_versions.append(current_python_version)
-            python_versions = sorted(python_versions)
-
         self.project_name = None
         self.location = get_home_dir()
 
@@ -88,12 +78,10 @@ class ProjectDialog(QDialog):
         self.label_project_name = QLabel(_('Project name'))
         self.label_location = QLabel(_('Location'))
         self.label_project_type = QLabel(_('Project type'))
-        self.label_python_version = QLabel(_('Python version'))
 
         self.text_project_name = QLineEdit()
         self.text_location = QLineEdit(get_home_dir())
         self.combo_project_type = QComboBox()
-        self.combo_python_version = QComboBox()
 
         self.label_information = QLabel("")
         self.label_information.hide()
@@ -102,7 +90,8 @@ class ProjectDialog(QDialog):
             self,
             triggered=self.select_location,
             icon=ima.icon('DirOpenIcon'),
-            tip=_("Select directory"))
+            tip=_("Select directory")
+        )
         self.button_cancel = QPushButton(_('Cancel'))
         self.button_create = QPushButton(_('Create'))
 
@@ -111,7 +100,6 @@ class ProjectDialog(QDialog):
         self.bbox.addButton(self.button_create, QDialogButtonBox.ActionRole)
 
         # Widget setup
-        self.combo_python_version.addItems(python_versions)
         self.radio_new_dir.setChecked(True)
         self.text_location.setEnabled(True)
         self.text_location.setReadOnly(True)
@@ -122,11 +110,7 @@ class ProjectDialog(QDialog):
                             in project_types.items()]:
             self.combo_project_type.addItem(name, id_)
 
-        self.combo_python_version.setCurrentIndex(
-            python_versions.index(current_python_version))
         self.setWindowTitle(_('Create new project'))
-        self.label_python_version.setVisible(False)
-        self.combo_python_version.setVisible(False)
 
         # Layouts
         layout_top = QHBoxLayout()
@@ -144,9 +128,7 @@ class ProjectDialog(QDialog):
         layout_grid.addWidget(self.button_select_location, 1, 2)
         layout_grid.addWidget(self.label_project_type, 2, 0)
         layout_grid.addWidget(self.combo_project_type, 2, 1, 1, 2)
-        layout_grid.addWidget(self.label_python_version, 3, 0)
-        layout_grid.addWidget(self.combo_python_version, 3, 1, 1, 2)
-        layout_grid.addWidget(self.label_information, 4, 0, 1, 3)
+        layout_grid.addWidget(self.label_information, 3, 0, 1, 3)
 
         layout = QVBoxLayout()
         layout.addWidget(self.groupbox)
