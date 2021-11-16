@@ -16,6 +16,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
+from spyder.config.base import get_conf_path
 from spyder.plugins.history.confpage import HistoryConfigPage
 from spyder.plugins.history.widgets import HistoryWidget
 
@@ -43,6 +44,11 @@ class HistoryLog(SpyderDockablePlugin):
     This signal is emitted when the focus of the code editor storing history
     changes.
     """
+
+    def __init__(self, parent=None, configuration=None):
+        """Initialization."""
+        super().__init__(parent, configuration)
+        self.add_history(get_conf_path('history.py'))
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
