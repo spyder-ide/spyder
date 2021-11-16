@@ -11,7 +11,6 @@ from __future__ import print_function
 
 # Standard library imports
 import errno
-import os
 import os.path as osp
 import sys
 import tempfile
@@ -97,6 +96,7 @@ class ProjectDialog(QDialog):
         self.combo_python_version = QComboBox()
 
         self.label_information = QLabel("")
+        self.label_information.hide()
 
         self.button_select_location = create_toolbutton(
             self,
@@ -125,15 +125,15 @@ class ProjectDialog(QDialog):
         self.combo_python_version.setCurrentIndex(
             python_versions.index(current_python_version))
         self.setWindowTitle(_('Create new project'))
-        self.setFixedWidth(500)
         self.label_python_version.setVisible(False)
         self.combo_python_version.setVisible(False)
 
         # Layouts
         layout_top = QHBoxLayout()
         layout_top.addWidget(self.radio_new_dir)
+        layout_top.addSpacing(15)
         layout_top.addWidget(self.radio_from_dir)
-        layout_top.addStretch(1)
+        layout_top.addSpacing(200)
         self.groupbox.setLayout(layout_top)
 
         layout_grid = QGridLayout()
@@ -150,11 +150,11 @@ class ProjectDialog(QDialog):
 
         layout = QVBoxLayout()
         layout.addWidget(self.groupbox)
-        layout.addSpacing(10)
+        layout.addSpacing(8)
         layout.addLayout(layout_grid)
-        layout.addStretch()
-        layout.addSpacing(20)
+        layout.addSpacing(8)
         layout.addWidget(self.bbox)
+        layout.setSizeConstraint(layout.SetFixedSize)
 
         self.setLayout(layout)
 
@@ -190,6 +190,7 @@ class ProjectDialog(QDialog):
         # Setup
         self.text_project_name.setEnabled(self.radio_new_dir.isChecked())
         self.label_information.setText('')
+        self.label_information.hide()
 
         if name and self.radio_new_dir.isChecked():
             # Allow to create projects only on new directories.
@@ -221,6 +222,7 @@ class ProjectDialog(QDialog):
 
         # Set message
         if msg:
+            self.label_information.show()
             self.label_information.setText('\n' + msg)
 
         # Allow to create project if validation was successful
@@ -264,7 +266,6 @@ def test():
         @staticmethod
         def validate_name(path, name):
             return False, "BOOM!"
-
 
     app = qapplication()
     dlg = ProjectDialog(None, {"empty": MockProjectType})
