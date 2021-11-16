@@ -773,10 +773,18 @@ class IPythonConsoleWidget(PluginMainWidget):
                 value)
 
     @on_conf_change(option=[
+        'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend', 'symbolic_math', 'hide_cmd_windows'])
+        'pylab', 'pylab/backend', ])
     def change_possible_restart_conf(self, option, value):
         """Apply options that possibly require a kernel restart."""
+        # Check that we are not triggering validations in the initial
+        # notification sent when Spyder is starting or when another option
+        # already required a restart and the restart dialog was shown
+        if option in self.initial_conf_options:
+            self.initial_conf_options.remove(option)
+            return
+
         restart_needed = False
         restart_options = []
         # Startup options (needs a restart)
@@ -810,15 +818,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             pylab_restart = (
                 any(client_backend_not_inline) and
                 pylab_backend_o != inline_backend)
-
-        # Check that we are not triggering validations in the initial
-        # notification sent when Spyder is starting or when another option
-        # already required a restart and the restart dialog was shown
-        if option in self.initial_conf_options:
-            self.initial_conf_options.remove(option)
-            restart_needed = False
-        else:
-            restart_needed = option in restart_options
+        restart_needed = option in restart_options
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
             self.initial_conf_options = self.get_conf_options()
