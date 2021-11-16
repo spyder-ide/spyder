@@ -138,7 +138,7 @@ def global_config_dialog(qtbot):
 
 @pytest.fixture
 def config_dialog(qtbot, request, mocker):
-    mocker.patch.object(ima, 'icon', lambda x: QIcon())
+    mocker.patch.object(ima, 'icon', lambda x, *_: QIcon())
     main_ref = ConfigDialogTester(request.param)
     preferences = main_ref._main.get_plugin(Plugins.Preferences)
     preferences.open_dialog(None)

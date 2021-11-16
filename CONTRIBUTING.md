@@ -121,10 +121,10 @@ When you start to work on a new pull request (PR), you need to be sure that your
 
 To guide you, issues on Github are marked with a milestone that indicates the correct branch to use. If not, follow these guidelines:
 
-* Use the `4.x` branch for bugfixes only (*e.g.* milestones `v4.0.1` or `v4.1.2`)
-* Use `master` to introduce new features or break compatibility with previous Spyder versions (*e.g.* milestones `v5.0beta1` or `v5.0beta2`).
+* Use the `5.x` branch for bugfixes only (*e.g.* milestones `v5.0.1` or `v5.1.2`)
+* Use `master` to introduce new features or break compatibility with previous Spyder versions (*e.g.* milestones `v6.0beta1` or `v6.0beta2`).
 
-You should also submit bugfixes to `4.x` or `master` for errors that are only present in those respective branches.
+You should also submit bugfixes to `5.x` or `master` for errors that are only present in those respective branches.
 
 To start working on a new PR, you need to execute these commands, filling in the branch names where appropriate:
 
@@ -143,10 +143,10 @@ If you started your work in the wrong base branch, or want to backport it, you c
 $ git rebase --onto <NEW-BASE-BRANCH> <OLD-BASE-BRANCH> <YOUR-BRANCH>
 ```
 
-For example, backporting `my_branch` from `master` to `4.x`:
+For example, backporting `my_branch` from `master` to `5.x`:
 
 ```bash
-$ git rebase --onto 4.x master my_branch
+$ git rebase --onto 5.x master my_branch
 ```
 
 
@@ -203,7 +203,7 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
     $ git subrepo clone https://github.com/spyder-ide/spyder-kernels.git external-deps/spyder-kernels -b <branch> -f
     ```
 
-where `<branch>` needs to be `1.x` if your `fix_in_spyder` branch was done against Spyder's `4.x` branch; and `master`, if you did it against our `master` branch here.
+where `<branch>` needs to be `2.x` if your `fix_in_spyder` branch was done against Spyder's `5.x` branch; and `master`, if you did it against our `master` branch here.
 
 
 ## Making contributions that depend on pull requests in python-lsp-server
