@@ -1,7 +1,7 @@
 # Reviewer Guidelines
 
 Reviewing pull requests (PRs) can take many forms and be reflected across many styles.
-To help make PR review more clear for contributors, the following guidelines are designed to scope review and specify what areas of feedback block PRs from merging.
+To help make the process more clear for contributors, the following guidelines are designed to scope review and specify what areas of feedback block PRs from merging.
 
 These guidelines are new; feedback on them is appreciated and can be given via [issue to the main spyder repo](https://github.com/spyder-ide/spyder/issues).
 
@@ -30,16 +30,16 @@ Bad days occur to everyone, in that occasion you deserve a break: try to take yo
 ### Expected reviewer behavior
 
 Pull requests are a key space for community interaction, and reviewing PRs is a vital part of maintaining any project.
-Reviewing PRs is also a skill that can benefit from having a clear set of goals for the sake of the reviewer and the PR author.
+With that in mind, this is a process that can benefit from having a clear set of goals for the sake of both the reviewer and the PR author.
 
 All reviewers are expected to follow these guidelines and labels in their review.
 If a reviewer forgets, they may be reminded.
-If a reviewer refuses, they will be contacted about a violation of [Spyder’s Code of Conduct](https://github.com/spyder-ide/spyder/blob/b672a739d068005e384eddb92190831fea2f760a/CODE_OF_CONDUCT.md) under `Giving and gracefully accepting constructive feedback`.
+If a reviewer refuses, they will be contacted about a violation of [Spyder’s Code of Conduct](https://github.com/spyder-ide/spyder/blob/master/CODE_OF_CONDUCT.md) under `Giving and gracefully accepting constructive feedback`.
 As with all aspects of the Code of Conduct, this applies to everyone involved in the discussion (including members of the Spyder organization on GitHub).
 
 Other notes:
 - Unless the reviewer has explicit permission on the conversation for that PR, reviewers should not commit to the same branch as the PR being reviewed.
-- If more than roughly 20% of review comments fall in the `[optional]` section described below, then it is worth adding this feedback in an issue linked to the PR instead of on the PR directly.
+- If more than roughly 20% of review comments fall in the `[optional]` section described below, then it is worth adding this feedback in an issue referencing the PR instead of on the PR directly.
 - When possible, please add comments asking for a specific change as [GitHub suggestions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request).
 
 ## Reviewing process
@@ -49,14 +49,14 @@ Other notes:
 #### Required review
 
 The following are areas of review the community expects to be covered in the review of every PR.
-Not all of the following questions will be relevant for every PR (for example a bug fix may not need to answer the same questions as a proposal for a new feature), but these are the themes to be addressed.
+Not all of the following questions will be relevant for every PR (for example, a bug fix may not need to answer the same questions as a proposal for a new feature), but these are the themes to be addressed.
 
 Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
 PR authors are responsible for addressing required reviews for the PR to be eligible for merging.
 
 - [ ] Motivation
     - Do we want this?
-    - Would it help multiple users to have this accepted into Spyder?
+    - Would it benefit a meaningful number of users to have this accepted into Spyder?
     - Does it help to solve bugs?
     - Is it a necessary refactoring?
 
@@ -64,14 +64,13 @@ PR authors are responsible for addressing required reviews for the PR to be elig
     - Do the tests pass in the continuous integration build?
       If appropriate, help the contributor understand why tests failed.
     - Are regression tests needed?
-      If a reproducible bug is being fixed in this PR, it may be needed and reviewers can help the contributor design and implement them.
-      In case the contributor is unable to add the test, the reviewer should add it in a follow-up PR.
+      If a reproducible bug is being fixed in this PR, one may be needed, and reviewers should help the contributor design and implement them.
+      In case the contributor is unable to add the test, the reviewer should do so in a follow-up PR.
 
  - [ ] Sustainability and maintenance
     - Is the code easy to read and low on redundancy?
     - Should variable names be improved for clarity or consistency?
-    - Should comments or docstrings be added?
-    - Should comments be removed as unhelpful or extraneous?
+    - Should comments or docstrings be added or removed?
     - Will the cost of maintaining a new feature be worth its benefits?
     - Will the new code add any dependencies on other projects?
 
@@ -86,8 +85,8 @@ PR authors are responsible for addressing required reviews for the PR to be elig
 The following are themes that may be helpful to cover on a PR, but are optional.
 
 **Note**: The difference between an objective improvement and a subjective preference isn’t always clear.
-Reviewers should recall that code review is primarily about reducing risk in the project.
-When reviewing code, one should aim at preventing situations which may require a bug fix, a deprecation, or a retraction.
+Reviewers should recall that the review process is primarily about reducing risk to the project.
+When reviewing code, one should aim at preventing situations which may introduce a bug, deprecation or regression.
 
 - [ ] Improvements
     - Could the code easily be rewritten to run much more efficiently for relevant settings?
@@ -96,8 +95,7 @@ When reviewing code, one should aim at preventing situations which may require a
     - Is there feedback that would be helpful for solving future issues surrounding this change?
       Are there non-urgent concerns that the team should be made aware of?
     - If a bug is fixed, does the PR include a non-regression test?
-    - Are there images that should be added?
-      Are there images that should be resized or optimized in another way?
+    - Are there images that should be added, resized or optimized?
 
 - [ ] User-facing changes
     - Does the user interface or other visual elements match existing patterns in Spyder?
@@ -111,7 +109,7 @@ PR authors may address these reviews, but are not required to do so in order for
 
 #### Required review
 
-The following are areas of review the community expects to be covered in the review of a documentation-focused (sometimes abbreviated as docs) PR.
+The following are areas the community expects to be covered in the review of a documentation-focused PR.
 In general, reviewers need to consider whether the content is a good fit, accurate and generally clear to readers, and builds and renders with no simmediate user-visible issues.
 
 Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
@@ -120,40 +118,39 @@ PR authors are responsible for addressing required reviews for the PR to be elig
 **Motivation**
 
 - [ ] Does the change improve the documentation?
-- [ ] Would it help multiple users to have this as a part of the documentation?
+- [ ] Would it benefit a meaningful number of users to have this as a part of the documentation?
 - [ ] Is it appropriate for the documentation and the section it is placed in?
 
 **Content**
 
 - [ ] Is the information accurate?
-- [ ] Is the change complete, such that it won’t confuse users if it were to appear in the documentation as-is?
+- [ ] Is the change sufficiently complete, such that it won’t confuse users if it were to appear in the documentation as-is?
 - [ ] Is it clear what the text and images are trying to communicate?
 
 **Images/GIFs**
 
 - [ ] Are screenshots/GIFs reasonably legible and appropriate for the topic?
 - [ ] Are all images/GIFs scaled and optimized?
-If needed, reviewers should offer to help with this.
+      If needed, reviewers should offer to help with this.
 
 **Technical**
 
 - [ ] Do the tests pass in the continuous integration build?
-If appropriate, help the contributor understand why tests failed.
+      If appropriate, help the contributor understand why tests failed.
 - [ ] Does any added/changed content render correctly, without user-visible issues?
 - [ ] Is the content free from typos and unambiguous grammar errors (review the [Style Guide](https://github.com/spyder-ide/spyder-docs/blob/master/STYLEGUIDE.md) for more information)?
 
 #### Optional review
 
 Feedback asking for substantial, user-visible content additions and improvements to the text and images (rather than critical fixes) may be left as optional review comments, if it is appropriate and important enough to merit discussion on the original PR.
-As with all optional review, please primarily consider how a PR would impact documentation stability, clarity, and quality over aiming for subjective improvements.
+As with all reviews, please primarily consider how a PR would impact documentation stability, clarity, and quality over focusing on purely subjective improvements.
 This section should be used in limited amounts to avoid overtaxing contributors, but can be used judiciously with authors who’ve successfully contributed previous pull requests to documentation repositories.
 Otherwise, they can be handled in a followup by the reviewer, opened as an issue, or deferred entirely.
 
 Examples include:
 
-- [ ] Could the content or quality of GIFs and screenshots be improved?
-- [ ] Would this topic benefit from more detailed descriptions of specific issues or solutions?
-- [ ] Would this topic benefit from additional elaboration on directly related items within the PR’s scope?
+- [ ] Could GIFs or screenshots be added or improved?
+- [ ] Would this topic benefit from additional elaboration on specific items within the PR’s scope?
 - [ ] Could new content be restructured to read more clearly or logically for users?
 
 Review that addresses these topics on a PR will be prefixed with `[optional]` so that the PR author(s) are clear that this feedback is not a blocker.
