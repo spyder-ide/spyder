@@ -775,7 +775,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend', ])
+        'pylab', 'pylab/backend'])
     def change_possible_restart_conf(self, option, value):
         """Apply options that possibly require a kernel restart."""
         # Check that we are not triggering validations in the initial
@@ -784,6 +784,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         if option in self.initial_conf_options:
             self.initial_conf_options.remove(option)
             return
+
+        # Also check if an actual client is available
 
         restart_needed = False
         restart_options = []
@@ -803,22 +805,24 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         restart_options += [run_lines_n, use_run_file_n, run_file_n,
                             symbolic_math_n, hide_cmd_windows_n]
+        restart_needed = option in restart_options
 
         inline_backend = 0
         pylab_restart = False
         client_backend_not_inline = [False] * len(self.clients)
-        if pylab_o and pylab_backend_n == option:
+        current_client = self.get_current_client()
+        current_client_backend_not_inline = False
+        if pylab_o and pylab_backend_n == option and current_client:
             pylab_backend_o = self.get_conf(pylab_backend_n)
             client_backend_not_inline = [
                 client.shellwidget.get_matplotlib_backend() != inline_backend
                 for client in self.clients]
             current_client_backend_not_inline = (
-                self.get_current_client().shellwidget.get_matplotlib_backend()
+                current_client.shellwidget.get_matplotlib_backend()
                 != inline_backend)
             pylab_restart = (
                 any(client_backend_not_inline) and
                 pylab_backend_o != inline_backend)
-        restart_needed = option in restart_options
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
             self.initial_conf_options = self.get_conf_options()
@@ -857,7 +861,6 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         if (((pylab_restart and current_client_backend_not_inline)
              or restart_needed) and restart_current):
-            current_client = self.get_current_client()
             current_client_ask_before_restart = (
                 current_client.ask_before_restart)
             current_client.ask_before_restart = False
