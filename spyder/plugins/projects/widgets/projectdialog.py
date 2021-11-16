@@ -71,6 +71,15 @@ class ProjectDialog(QDialog):
         self.location = get_home_dir()
 
         # Widgets
+        projects_url = "http://docs.spyder-ide.org/current/panes/projects.html"
+        self.description_label = QLabel(
+            _(f"Select a new or existing directory to create a new Spyder "
+              f"project in it. To learn more about projects, take a look at "
+              f"our <a href=\"{projects_url}\">documentation</a>.")
+        )
+        self.description_label.setOpenExternalLinks(True)
+        self.description_label.setWordWrap(True)
+
         self.groupbox = QGroupBox()
         self.radio_new_dir = QRadioButton(_("New directory"))
         self.radio_from_dir = QRadioButton(_("Existing directory"))
@@ -131,6 +140,8 @@ class ProjectDialog(QDialog):
         layout_grid.addWidget(self.label_information, 3, 0, 1, 3)
 
         layout = QVBoxLayout()
+        layout.addWidget(self.description_label)
+        layout.addSpacing(3)
         layout.addWidget(self.groupbox)
         layout.addSpacing(8)
         layout.addLayout(layout_grid)
