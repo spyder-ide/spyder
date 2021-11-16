@@ -56,6 +56,11 @@ def get_temp_dir(suffix=None):
         username = encoding.to_unicode_from_fs(getuser())
         to_join.append('spyder-' + username)
 
+    tempdir = osp.join(*to_join)
+
+    if not osp.isdir(tempdir):
+        os.mkdir(tempdir)
+
     if suffix is not None:
         to_join.append(suffix)
 

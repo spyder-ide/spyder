@@ -20,7 +20,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Go to the integrations page on Crowdin:
 
-  https://crowdin.com/project/spyder/settings#integration-github
+  https://crowdin.com/project/spyder/apps/system/github
 
 * Press `Sync now` there to open a new translation PR.
 
@@ -75,12 +75,12 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update the `master` branch with
 
-      git checkout 4.x
+      git checkout 5.x
       git fetch upstream
-      git merge upstream/4.x
+      git merge upstream/5.x
       git checkout master
-      git merge 4.x
-      Merge from 4.x: PR #xxxxx
+      git merge 5.x
+      Merge from 5.x: PR #xxxxx
       git push upstream master
 
 ### Update core dependencies
@@ -90,12 +90,6 @@ To release a new version of Spyder you need to follow these steps:
 * Release a new version of `python-lsp-server`, if required.
 
 * Create a new branch in your fork with the name `update-core-deps`
-
-* In case a new version is not part of the `defaults` channel yet, you need to copy it to our channel with the following command:
-
-      anaconda copy conda-forge/pyls-spyder/0.3.2 --to-label dev --to-owner spyder-ide
-
-  *Note*: For this you need to install first the `anaconda-client` package in your `base` environment and open an account in https://anaconda.org/
 
 * Update the version of any packages required before the release in the following files:
 
@@ -197,5 +191,5 @@ To release a new version of Spyder you need to follow these steps:
 
   - Don't forget to add new dependencies and update constraints on the rest of them. For that, you need to compare line by line the contents of the `recipe/meta.yaml` file in the feedstock with
 
-    https://github.com/spyder-ide/spyder/blob/4.x/requirements/conda.txt
+    https://github.com/spyder-ide/spyder/blob/5.x/requirements/conda.txt
   - After merging, give a ping to `@anaconda-pkg-build` about the new release.

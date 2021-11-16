@@ -829,6 +829,30 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
 
+def test_comprehensions_with_locals_in_pdb_2(kernel):
+    """
+    Test that evaluating comprehensions with locals works in Pdb.
+
+    This is a regression test for spyder-ide/spyder#16790.
+    """
+    pdb_obj = SpyderPdb()
+    pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    kernel.shell.pdb_session = pdb_obj
+
+    # Create a local variable.
+    kernel.shell.pdb_session.default('aa = [1, 2]')
+    kernel.shell.pdb_session.default('bb = [3, 4]')
+    kernel.shell.pdb_session.default('res = []')
+
+    # Run a list comprehension with this variable.
+    kernel.shell.pdb_session.default(
+        "for c0 in aa: res.append([(c0, c1) for c1 in bb])")
+    assert kernel.get_value('res') == [[(1, 3), (1, 4)], [(2, 3), (2, 4)]]
+
+    pdb_obj.curframe = None
+    pdb_obj.curframe_locals = None
+
 
 def test_namespaces_in_pdb(kernel):
     """

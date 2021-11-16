@@ -40,7 +40,7 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget)
+    KernelConnectionDialog, PageControlWidget, ShellWidget)
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -1016,6 +1016,10 @@ class IPythonConsoleWidget(PluginMainWidget):
             cf_path = cf_path if cf_path else None
             connection_file = find_connection_file(filename=cf_filename,
                                                    path=cf_path)
+            if os.path.splitext(connection_file)[1] != ".json":
+                # There might be a file with the same id in the path.
+                connection_file = find_connection_file(
+                    filename=cf_filename + ".json", path=cf_path)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to "
@@ -1031,7 +1035,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         slave_ord = ord('A') - 1
         kernel_manager = None
 
-        for cl in self.get_clients():
+        for cl in self.clients:
             if connection_file in cl.connection_file:
                 if cl.get_kernel() is not None:
                     kernel_manager = cl.get_kernel()
@@ -1072,7 +1076,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               hostname=hostname,
                               is_external_kernel=is_external_kernel,
                               is_spyder_kernel=known_spyder_kernel,
-                              slave=True,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               ask_before_restart=ask_before_restart,
@@ -1217,16 +1220,18 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For tabs
     # -------------------------------------------------------------------------
-    def add_tab(self, widget, name, filename='', give_focus=True):
+    def add_tab(self, client, name, filename='', give_focus=True):
         """Add tab."""
-        self.clients.append(widget)
-        index = self.tabwidget.addTab(widget, name)
+        if not isinstance(client, ClientWidget):
+            return
+        self.clients.append(client)
+        index = self.tabwidget.addTab(client, name)
         self.filenames.insert(index, filename)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and give_focus:
             self.sig_switch_to_plugin_requested.emit()
         self.activateWindow()
-        widget.get_control().setFocus()
+        client.get_control().setFocus()
         self.update_tabs_text()
 
     def move_tab(self, index_from, index_to):
@@ -1276,7 +1281,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Prevent renames that want to assign the same name of
         # a previous tab
         repeated = False
-        for cl in self.get_clients():
+        for cl in self.clients:
             if id(client) != id(cl) and given_name == cl.given_name:
                 repeated = True
                 break
@@ -1429,14 +1434,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.timer.start(1000)
                 break
 
-    def get_clients(self):
-        """Return clients list"""
-        return [cl for cl in self.clients if isinstance(cl, ClientWidget)]
-
     def get_focus_client(self):
         """Return current client with focus, if any"""
         widget = QApplication.focusWidget()
-        for client in self.get_clients():
+        for client in self.clients:
             if widget is client or widget is client.get_control():
                 return client
 
@@ -1613,7 +1614,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
         client = None
-        for idx, cl in enumerate(self.get_clients()):
+        for idx, cl in enumerate(self.clients):
             if self.filenames[idx] == filename:
                 self.tabwidget.setCurrentIndex(idx)
                 client = cl
@@ -1688,7 +1689,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
 
-    def close_client(self, index=None, client=None, force=False):
+    def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
@@ -1721,7 +1722,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
-        if not self.mainwindow_close and not force:
+        if not self.mainwindow_close and ask_recursive:
             close_all = True
             if client.ask_before_closing:
                 close = QMessageBox.question(
@@ -1739,16 +1740,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                       "to the same kernel as this one?"),
                     QMessageBox.Yes | QMessageBox.No)
 
-            client.shutdown()
             if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
 
-        # if there aren't related clients we can remove stderr_file
-        related_clients = self.get_related_clients(client)
-        if len(related_clients) == 0:
-            client.remove_stderr_file()
-
-        client.dialog_manager.close_all()
+        last_client = len(self.get_related_clients(client)) == 0
+        client.shutdown(last_client)
         client.close()
 
         # Note: client index may have changed after closing related widgets
@@ -1777,11 +1773,15 @@ class IPythonConsoleWidget(PluginMainWidget):
         bool
             If the closing action was succesful.
         """
-        for client in self.get_clients():
-            client.shutdown()
-            client.remove_stderr_file()
-            client.dialog_manager.close_all()
+        open_clients = self.clients.copy()
+        for client in self.clients:
+            last_client = (
+                len(self.get_related_clients(client, open_clients)) == 0)
+            client.shutdown(last_client)
             client.close()
+            open_clients.remove(client)
+        # Close all closing shellwidgets.
+        ShellWidget.wait_all_shutdown()
         return True
 
     def get_client_index_from_id(self, client_id):
@@ -1790,12 +1790,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             if id(client) == client_id:
                 return index
 
-    def get_related_clients(self, client):
+    def get_related_clients(self, client, clients_list=None):
         """
         Get all other clients that are connected to the same kernel as `client`
         """
+        if clients_list is None:
+            clients_list = self.clients
         related_clients = []
-        for cl in self.get_clients():
+        for cl in clients_list:
             if (cl.connection_file == client.connection_file and
                     cl is not client):
                 related_clients.append(cl)
@@ -1804,8 +1806,8 @@ class IPythonConsoleWidget(PluginMainWidget):
     def close_related_clients(self, client):
         """Close all clients related to *client*, except itself"""
         related_clients = self.get_related_clients(client)
-        for cl in related_clients:
-            self.close_client(client=cl, force=True)
+        for client in related_clients:
+            self.close_client(client=client, ask_recursive=False)
 
     def restart(self):
         """
@@ -1818,16 +1820,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.create_new_client_if_empty = False
         for i in range(len(self.clients)):
             client = self.clients[-1]
-            try:
-                client.shutdown()
-            except Exception as e:
-                QMessageBox.warning(
-                    self,
-                    _('Warning'),
-                    _("It was not possible to restart the IPython console "
-                      "when switching to this project. The error was<br><br>"
-                      "<tt>{0}</tt>").format(e), QMessageBox.Ok)
-            self.close_client(client=client, force=True)
+            self.close_client(client=client, ask_recursive=False)
         self.create_new_client(give_focus=False)
         self.create_new_client_if_empty = True
 
@@ -2218,7 +2211,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""
-        for client in self.get_clients():
+        for client in self.clients:
             shell = client.shellwidget
             if shell is not None:
                 shell.update_syspath(path_dict, new_path_dict)

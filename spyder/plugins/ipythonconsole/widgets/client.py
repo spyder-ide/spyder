@@ -95,7 +95,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  context_menu_actions=(),
-                 menu_actions=None, slave=False,
+                 menu_actions=None,
                  is_external_kernel=False,
                  is_spyder_kernel=True,
                  given_name=None,
@@ -118,7 +118,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.connection_file = connection_file
         self.hostname = hostname
         self.menu_actions = menu_actions
-        self.slave = slave
+        self.is_external_kernel = is_external_kernel
         self.given_name = given_name
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
@@ -185,7 +185,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.stderr_timer.start()
 
     def __del__(self):
-        """Close threads to avoid segfault"""
+        """Close threads to avoid segfault."""
         if (self.restart_thread is not None
                 and self.restart_thread.isRunning()):
             self.restart_thread.wait()
@@ -556,16 +556,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except AttributeError:
             pass
 
-    def shutdown(self):
-        """Shutdown kernel"""
-        if self.get_kernel() is not None and not self.slave:
-            self.shellwidget.shutdown()
-
-    def close(self):
-        """Close client"""
-        self.shellwidget.will_close(
-            self.get_kernel() is None or self.slave)
-        super(ClientWidget, self).close()
+    def shutdown(self, is_last_client):
+        """Shutdown connection and kernel if needed."""
+        self.dialog_manager.close_all()
+        if is_last_client:
+            self.remove_stderr_file()
+        shutdown_kernel = is_last_client and not self.is_external_kernel
+        self.shellwidget.shutdown(shutdown_kernel)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

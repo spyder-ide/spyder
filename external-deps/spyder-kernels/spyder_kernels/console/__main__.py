@@ -20,4 +20,12 @@ if __name__ == '__main__':
             sys.path.remove(cwd)
 
     from spyder_kernels.console import start
-    start.main()
+    try:
+        start.main()
+    except Exception:
+        # We have to explicitely write to __stderr__ as stderr might already
+        # have been replaced.
+        import traceback
+        traceback.print_exc(file=sys.__stderr__)
+        sys.__stderr__.flush()
+        raise
