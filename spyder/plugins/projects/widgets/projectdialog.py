@@ -7,8 +7,6 @@
 # -----------------------------------------------------------------------------
 """Project creation dialog."""
 
-from __future__ import print_function
-
 # Standard library imports
 import errno
 import os.path as osp
@@ -171,6 +169,7 @@ class ProjectDialog(QDialog):
         if location and location != '.':
             if is_writable(location):
                 self.location = location
+                self.text_project_name.setText(osp.basename(location))
                 self.update_location()
 
     def update_location(self, text=''):
