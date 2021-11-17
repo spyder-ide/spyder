@@ -179,6 +179,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
+        # --- Standard files handling
         self.stderr_obj = None
         self.stdout_obj = None
         self.fault_obj = None
