@@ -785,8 +785,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             self.initial_conf_options.remove(option)
             return
 
-        # Also check if an actual client is available
-
         restart_needed = False
         restart_options = []
         # Startup options (needs a restart)
@@ -860,7 +858,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.ask_before_restart = current_ask_before_restart
 
         if (((pylab_restart and current_client_backend_not_inline)
-             or restart_needed) and restart_current):
+             or restart_needed) and restart_current and current_client):
             current_client_ask_before_restart = (
                 current_client.ask_before_restart)
             current_client.ask_before_restart = False
