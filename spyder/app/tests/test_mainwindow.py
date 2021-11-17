@@ -4233,5 +4233,74 @@ def test_add_external_plugins_to_dependencies(main_window):
     assert 'spyder-boilerplate' in external_names
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_print_multiprocessing(main_window, qtbot, tmpdir):
+    """Test print commands from multiprocessing."""
+    # Write code with a cell to a file
+    code = """
+import multiprocessing
+import sys
+def test_func():
+    print("Test stdout")
+    print("Test stderr", file=sys.stderr)
+
+if __name__ == "__main__":
+    p = multiprocessing.Process(target=test_func)
+    p.start()
+    p.join()
+"""
+
+    p = tmpdir.join("print-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+
+    # Click the run button
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    assert 'Test stdout' in control.toPlainText()
+    assert 'Test stderr' in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="ctypes.string_at(0) doesn't segfaults on Windows")
+def test_print_faulthandler(main_window, qtbot, tmpdir):
+    """Test printing segfault info from kernel crashes."""
+    # Write code with a cell to a file
+    code = """
+def crash_func():
+    import ctypes; ctypes.string_at(0)
+crash_func()
+"""
+
+    p = tmpdir.join("print-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+
+    # Click the run button
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.wait(5000)
+
+    assert 'Segmentation fault' in control.toPlainText()
+    assert 'in crash_func' in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()
