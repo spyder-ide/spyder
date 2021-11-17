@@ -51,6 +51,7 @@ class Shortcuts(SpyderPluginV2):
     CONF_WIDGET_CLASS = ShortcutsConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False
+    CAN_BE_DISABLED = False
 
     # --- Signals
     # ------------------------------------------------------------------------

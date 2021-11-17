@@ -57,6 +57,7 @@ class Preferences(SpyderPluginV2):
     OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
+    CAN_BE_DISABLED = False
 
     NEW_API = 'new'
     OLD_API = 'old'
