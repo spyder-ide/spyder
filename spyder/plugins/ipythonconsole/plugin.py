@@ -244,7 +244,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.main.sig_pythonpath_changed.connect(self.update_path)
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
-        self._remove_old_stderr_files()
+        self._remove_old_std_files()
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -405,17 +405,17 @@ class IPythonConsole(SpyderDockablePlugin):
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
 
-    def _remove_old_stderr_files(self):
+    def _remove_old_std_files(self):
         """
-        Remove stderr files left by previous Spyder instances.
+        Remove std files left by previous Spyder instances.
 
         This is only required on Windows because we can't
-        clean up stderr files while Spyder is running on it.
+        clean up std files while Spyder is running on it.
         """
         if os.name == 'nt':
             tmpdir = get_temp_dir()
             for fname in os.listdir(tmpdir):
-                if osp.splitext(fname)[1] == '.stderr':
+                if osp.splitext(fname)[1] in ('.stderr', '.stdout', '.fault'):
                     try:
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
