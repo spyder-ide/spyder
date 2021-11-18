@@ -71,9 +71,9 @@ class ProjectDialog(QDialog):
         # Widgets
         projects_url = "http://docs.spyder-ide.org/current/panes/projects.html"
         self.description_label = QLabel(
-            _(f"Select a new or existing directory to create a new Spyder "
-              f"project in it. To learn more about projects, take a look at "
-              f"our <a href=\"{projects_url}\">documentation</a>.")
+            _("Select a new or existing directory to create a new Spyder "
+              "project in it. To learn more about projects, take a look at "
+              "our <a href=\"{0}\">documentation</a>.").format(projects_url)
         )
         self.description_label.setOpenExternalLinks(True)
         self.description_label.setWordWrap(True)
