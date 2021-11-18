@@ -485,9 +485,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
         self.error_text = error
-        if "issue1666807" not in error:
-            # TODO: remove the above if, see spyder-ide/spyder#16828
-            InstallerIPythonKernelError(error)
+
+        # Filter out benign errors
+        if "http://bugs.python.org/issue1666807" in error:
+            # See spyder-ide/spyder#16828
+            return
+
+        InstallerIPythonKernelError(error)
 
         # Replace end of line chars with <br>
         eol = sourcecode.get_eol_chars(error)

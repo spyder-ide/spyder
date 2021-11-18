@@ -2,4 +2,3 @@
 py2app==0.22
 dmgbuild>=1.4.2
 jupyter-core<4.9  # remove after py2app update
-ipython<7.28.0  # remove after py2app update
