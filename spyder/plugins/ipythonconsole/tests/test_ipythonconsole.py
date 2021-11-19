@@ -240,6 +240,10 @@ def test_banners(ipyconsole, qtbot):
 
     # Long banner
     text = control.toPlainText().splitlines()
+    if "Update LANGUAGE_CODES" in text[0]:
+        text = text[1:]
+        while not text[0].strip():
+            text = text[1:]
     py_ver = sys.version.splitlines()[0].strip()
     assert py_ver in text[0]  # Python version in first line
     assert 'license' in text[1]  # 'license' mention in second line
