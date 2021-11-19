@@ -391,20 +391,28 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Check if the stderr or stdout file just changed."""
         self.shellwidget.call_kernel().flush_std()
         stderr = self.stderr_obj.poll_file_change()
+        starting = self.shellwidget._starting
         if stderr:
             if self.shellwidget.isHidden():
                 # Avoid printing the same thing again
                 if self.error_text != '<tt>%s</tt>' % stderr:
                     full_stderr = self.stderr_obj.get_contents()
                     self.show_kernel_error('<tt>%s</tt>' % full_stderr)
+            if starting:
+                self.shellwidget.banner = (
+                    stderr + '\n' + self.shellwidget.banner)
             else:
                 self.shellwidget._append_plain_text(
                     '\n' + stderr, before_prompt=True)
 
         stdout = self.stdout_obj.poll_file_change()
         if stdout:
-            self.shellwidget._append_plain_text(
-                '\n' + stdout, before_prompt=True)
+            if starting:
+                self.shellwidget.banner = (
+                    stdout + '\n' + self.shellwidget.banner)
+            else:
+                self.shellwidget._append_plain_text(
+                    '\n' + stdout, before_prompt=True)
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
