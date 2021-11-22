@@ -260,6 +260,9 @@ class CodeEditor(TextEditBaseWidget):
     # Used to start the status spinner in the editor
     sig_stop_operation_in_progress = Signal()
 
+    # Used to signal font change
+    sig_font_changed = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -2747,6 +2750,7 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
+        self.sig_font_changed.emit()
         self.panels.refresh()
         self.apply_highlighter_settings(color_scheme)
 

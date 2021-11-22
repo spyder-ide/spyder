@@ -10,6 +10,7 @@ This module contains the Line Number panel
 
 # Standard library imports
 from math import ceil
+import math
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt
@@ -49,6 +50,9 @@ class LineNumberArea(Panel):
         self._margin = True
         self._pressed = -1
         self._released = -1
+
+        # Caching
+        self._width_cache = None
 
     def sizeHint(self):
         """Override Qt method."""
@@ -177,16 +181,32 @@ class LineNumberArea(Panel):
         """Compute and return line number area width"""
         if not self._enabled:
             return 0
-        digits = 1
-        maxb = max(1, self.editor.blockCount())
-        while maxb >= 10:
-            maxb /= 10
-            digits += 1
+        number_lines = self.editor.blockCount()
+        if (self._width_cache is not None and
+                self._width_cache[0] == number_lines):
+            return self._width_cache[1]
+
+        number_digits = max(1, math.ceil(math.log10(
+             number_lines + 1)))
+
         if self._margin:
-            margin = 3+self.editor.fontMetrics().width('9'*digits)
+            margin = 3 + self.editor.fontMetrics().width('9' * number_digits)
         else:
             margin = 0
-        return margin+self.get_markers_margin()
+        width = margin + self.get_markers_margin()
+        self._width_cache = (number_lines, width)
+        return width
+
+    def _clear_width_cache(self):
+        self._width_cache = None
+
+    def on_install(self, editor):
+        super(LineNumberArea, self).on_install(editor)
+        editor.sig_font_changed.connect(self._clear_width_cache)
+
+    def on_uninstall(self):
+        self.editor.sig_font_changed.disconnect(self._clear_width_cache)
+        super(LineNumberArea, self).on_uninstall()
 
     def get_markers_margin(self):
         if self._markers_margin:
@@ -200,6 +220,7 @@ class LineNumberArea(Panel):
         Setup margin settings
         (except font, now set in editor.set_font)
         """
+        self._width_cache = None
         self._margin = linenumbers
         self._markers_margin = markers
         self.set_enabled(linenumbers or markers)
