@@ -614,7 +614,7 @@ class Projects(SpyderDockablePlugin):
         if (current_project_path and
                 self.is_valid_project(current_project_path)):
             self.open_project(path=current_project_path,
-                              restart_consoles=False,
+                              restart_consoles=True,
                               save_previous_files=False)
             self.load_config()
 

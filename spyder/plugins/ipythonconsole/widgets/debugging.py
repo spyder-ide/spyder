@@ -75,14 +75,6 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         super(DebuggingHistoryWidget, self).__init__(*args, **kwargs)
 
     # --- Public API --------------------------------------------------
-    def shutdown(self):
-        """Shutdown the widget"""
-        try:
-            self._pdb_history_file.save_thread.stop()
-            self._pdb_history_file.db.close()
-        except AttributeError:
-            pass
-
     def new_history_session(self):
         """Start a new history session."""
         self._pdb_history_input_number = 0
@@ -195,6 +187,11 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # Temporary flags
         self._tmp_reading = False
         # super init
+        # Needed to handle other configuration objects than the default CONF.
+        # Useful for changing preferences when testing while using the
+        # `ipyconsole` fixture.
+        configuration = kwargs.pop('configuration', self.CONFIGURATION)
+        self.CONFIGURATION = configuration
         super(DebuggingWidget, self).__init__(*args, **kwargs)
 
         # Adapted from qtconsole/frontend_widget.py
@@ -204,10 +201,9 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             r'[ \t]*\(*IPdb \[\d+\]\)*: |' +
             r'[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )')
 
-
     # --- Public API --------------------------------------------------
 
-    def will_close(self, externally_managed):
+    def shutdown(self):
         """
         Close the save thread and database file.
         """
@@ -579,9 +575,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def pdb_input(self, prompt, password=None):
         """Get input for a command."""
-        if self._hidden:
-            raise RuntimeError(
-                'Request for pdb input during hidden execution.')
 
         # Replace with numbered prompt
         prompt = self._current_prompt()

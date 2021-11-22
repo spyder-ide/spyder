@@ -34,6 +34,10 @@ class SpyderKernelManager(QtKernelManager):
     kill the started kernels by using psutil.
     """
 
+    def __init__(self, *args, **kwargs):
+        self.shutting_down = False
+        return QtKernelManager.__init__(self, *args, **kwargs)
+
     @staticmethod
     def kill_proc_tree(pid, sig=signal.SIGTERM, include_parent=True,
                        timeout=None, on_terminate=None):

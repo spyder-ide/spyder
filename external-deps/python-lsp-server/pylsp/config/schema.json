@@ -104,18 +104,18 @@
       "default": false,
       "description": "Resolve documentation and detail eagerly."
     },
-    "pylsp.plugins.jedi_completion.resolve_at_most_labels": {
+    "pylsp.plugins.jedi_completion.resolve_at_most": {
       "type": "number",
       "default": 25,
-      "description": "How many labels (at most) should be resolved?"
+      "description": "How many labels and snippets (at most) should be resolved?"
     },
-    "pylsp.plugins.jedi_completion.cache_labels_for": {
+    "pylsp.plugins.jedi_completion.cache_for": {
       "type": "array",
       "items": {
         "type": "string"
       },
       "default": ["pandas", "numpy", "tensorflow", "matplotlib"],
-      "description": "Modules for which the labels should be cached."
+      "description": "Modules for which labels and snippets should be cached."
     },
     "pylsp.plugins.jedi_definition.enabled": {
       "type": "boolean",
