@@ -1496,11 +1496,17 @@ class EditorStack(QWidget):
             The self.data index for the filename.  Returns None
             if the filename is not found in self.data.
         """
-        fixpath = lambda path: osp.normcase(osp.realpath(path))
-        for index, finfo in enumerate(self.data):
-            if fixpath(filename) == fixpath(finfo.filename):
-                return index
-        return None
+        data_filenames = self.get_filenames()
+        try:
+            # Try finding without calling the slow realpath
+            return data_filenames.index(filename)
+        except ValueError:
+            fixpath = lambda path: osp.normcase(osp.realpath(path))
+            filename = fixpath(filename)
+            for index, fn in enumerate(data_filenames):
+                if filename == fixpath(fn):
+                    return index
+            return None
 
     def set_current_filename(self, filename, focus=True):
         """Set current filename and return the associated editor instance."""
