@@ -330,8 +330,7 @@ class BaseSH(QSyntaxHighlighter):
 
     def highlight_patterns(self, text, offset=0):
         """Highlight URI and mailto: patterns."""
-        match = self.patterns.search(text, offset)
-        while match:
+        for match in self.patterns.finditer(text, offset):
             for __, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match)
@@ -340,8 +339,6 @@ class BaseSH(QSyntaxHighlighter):
                     font = self.format(start)
                     font.setUnderlineStyle(QTextCharFormat.SingleUnderline)
                     self.setFormat(start, end - start, font)
-
-            match = self.patterns.search(text, match.end())
 
     def highlight_spaces(self, text, offset=0):
         """
@@ -353,8 +350,8 @@ class BaseSH(QSyntaxHighlighter):
         if show_blanks:
             format_leading = self.formats.get("leading", None)
             format_trailing = self.formats.get("trailing", None)
-            match = self.BLANKPROG.search(text, offset)
-            while match:
+            text = text[offset:]
+            for match in self.BLANKPROG.finditer(text):
                 start, end = get_span(match)
                 start = max([0, start+offset])
                 end = max([0, end+offset])
@@ -369,7 +366,6 @@ class BaseSH(QSyntaxHighlighter):
                 alpha_new = self.BLANK_ALPHA_FACTOR * color_foreground.alphaF()
                 color_foreground.setAlphaF(alpha_new)
                 self.setFormat(start, end - start, color_foreground)
-                match = self.BLANKPROG.search(text, match.end())
 
     def highlight_extras(self, text, offset=0):
         """
@@ -407,16 +403,13 @@ class GenericSH(BaseSH):
         text = to_text_string(text)
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
-        match = self.PROG.search(text)
         index = 0
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match, key)
                     index += end-start
                     self.setFormat(start, end-start, self.formats[key])
-
-            match = self.PROG.search(text, match.end())
 
         self.highlight_extras(text)
 
@@ -646,15 +639,12 @@ class PythonSH(BaseSH):
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         state = self.NORMAL
-        match = self.PROG.search(text)
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     state, import_stmt, oedata = self.highlight_match(
                         text, match, key, value, offset,
                         state, import_stmt, oedata)
-
-            match = self.PROG.search(text, match.end())
 
         tbh.set_state(self.currentBlock(), state)
 
@@ -802,9 +792,8 @@ class CppSH(BaseSH):
         self.setFormat(0, qstring_length(text),
                        self.formats["comment" if inside_comment else "normal"])
 
-        match = self.PROG.search(text)
         index = 0
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match, key)
@@ -825,8 +814,6 @@ class CppSH(BaseSH):
                                        self.formats["number"])
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-
-            match = self.PROG.search(text, match.end())
 
         self.highlight_extras(text)
 
@@ -888,9 +875,8 @@ class FortranSH(BaseSH):
         text = to_text_string(text)
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
-        match = self.PROG.search(text)
         index = 0
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match, key)
@@ -902,8 +888,6 @@ class FortranSH(BaseSH):
                             start1, end1 = get_span(match1, 1)
                             self.setFormat(start1, end1-start1,
                                            self.formats["definition"])
-
-            match = self.PROG.search(text, match.end())
 
         self.highlight_extras(text)
 
@@ -1067,12 +1051,11 @@ class BaseWebSH(BaseSH):
             self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         tbh.set_state(self.currentBlock(), previous_state)
-        match = self.PROG.search(text)
 
         match_count = 0
         n_characters = qstring_length(text)
         # There should never be more matches than characters in the text.
-        while match and match_count < n_characters:
+        for match in self.PROG.finditer(text):
             match_dict = match.groupdict()
             for key, value in list(match_dict.items()):
                 if value:
@@ -1100,9 +1083,9 @@ class BaseWebSH(BaseSH):
                                 # Happens with unmatched end-of-comment.
                                 # See spyder-ide/spyder#1462.
                                 pass
-
-            match = self.PROG.search(text, match.end())
             match_count += 1
+            if match_count >= n_characters:
+                break
 
         self.highlight_extras(text)
 
@@ -1191,11 +1174,9 @@ class MarkdownSH(BaseSH):
 
         self.setCurrentBlockState(previous_state)
 
-        match = self.PROG.search(text)
         match_count = 0
         n_characters = qstring_length(text)
-
-        while match and match_count< n_characters:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 start, end = get_span(match, key)
 
@@ -1220,8 +1201,9 @@ class MarkdownSH(BaseSH):
 
                     self.setFormat(start, end - start, self.formats[key])
 
-            match = self.PROG.search(text, match.end())
             match_count += 1
+            if match_count >= n_characters:
+                break
 
         self.highlight_extras(text)
 

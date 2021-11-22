@@ -4808,9 +4808,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Check if the pattern is in line
         line = self.get_line_at(coordinates)
-        match = pattern.search(line)
 
-        while match:
+        for match in pattern.finditer(line):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = sh.get_span(match)
@@ -4838,8 +4837,6 @@ class CodeEditor(TextEditBaseWidget):
 
             if break_loop:
                 break
-
-            match = pattern.search(line, end)
 
         return key, text, cursor
 
