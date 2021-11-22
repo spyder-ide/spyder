@@ -17,6 +17,12 @@ import sys
 from qtconsole.manager import QtKernelManager
 import psutil
 
+# qtconsole and spyder-kernels depend on jupyter_client
+if hasattr(QtKernelManager, 'provisioner'):
+    JUPYTER_CLIENT_GE_7 = True
+    from jupyter_client.utils import run_sync
+else:
+    JUPYTER_CLIENT_GE_7 = False
 
 class SpyderKernelManager(QtKernelManager):
     """
@@ -76,12 +82,13 @@ class SpyderKernelManager(QtKernelManager):
 
         return (gone, alive)
 
-    def _kill_kernel(self):
+    def _kill_kernel_5(self):
         """
         Kill the running kernel.
 
-        Override private method to be able to correctly close kernel that was
-        started via a batch/bash script for correct conda env activation.
+        Override private method of jupyter_client 5 to be able to correctly
+        close kernel that was started via a batch/bash script for correct conda
+        env activation.
         """
         if self.has_kernel:
 
@@ -114,3 +121,40 @@ class SpyderKernelManager(QtKernelManager):
             self.kernel = None
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
+
+    async def _async_kill_kernel(self, restart: bool = False) -> None:
+        """Kill the running kernel.
+
+        Override private method of jupyter_client 7 to be able to correctly
+        close kernel that was started via a batch/bash script for correct conda
+        env activation.
+        """
+        if self.has_kernel:
+            assert self.provisioner is not None
+
+            # This is the additional line that was added to properly
+            # kill the kernel started by Spyder.
+            self.kill_proc_tree(self.provisioner.process.pid)
+
+            await self.provisioner.kill(restart=restart)
+
+            # Wait until the kernel terminates.
+            import asyncio
+            try:
+                await asyncio.wait_for(self._async_wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                # Wait timed out, just log warning but continue
+                #  - not much more we can do.
+                self.log.warning("Wait for final termination of kernel timed"
+                                 " out - continuing...")
+                pass
+            else:
+                # Process is no longer alive, wait and clear
+                if self.has_kernel:
+                    await self.provisioner.wait()
+
+    # override alias for jupyter_client < 7
+    if JUPYTER_CLIENT_GE_7:
+        _kill_kernel = run_sync(_async_kill_kernel)
+    else:
+        _kill_kernel = _kill_kernel_5

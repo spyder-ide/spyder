@@ -11,6 +11,7 @@ Spyder shell for Jupyter kernels.
 """
 
 # Standard library imports
+import bdb
 import sys
 
 # Third-party imports
@@ -25,12 +26,25 @@ class SpyderShell(ZMQInteractiveShell):
         self._pdb_obj = None
         super(SpyderShell, self).__init__(*args, **kwargs)
 
+    # ---- Methods overriden by us.
     def ask_exit(self):
         """Engage the exit actions."""
         self.kernel.frontend_comm.close_thread()
         return super(SpyderShell, self).ask_exit()
 
-    # --- For Pdb namespace integration
+    def _showtraceback(self, etype, evalue, stb):
+        """
+        Don't show a traceback when exiting our debugger after entering
+        it through a `breakpoint()` call.
+
+        This is because calling `!exit` after `breakpoint()` raises
+        BdbQuit, which throws a long and useless traceback.
+        """
+        if etype is bdb.BdbQuit:
+            stb = ['']
+        super(SpyderShell, self)._showtraceback(etype, evalue, stb)
+
+    # ---- For Pdb namespace integration
     def get_local_scope(self, stack_depth):
         """Get local scope at given frame depth."""
         frame = sys._getframe(stack_depth + 1)
