@@ -2097,7 +2097,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 line = code.strip()
 
             try:
-                self.execute_code(line)
+                self.execute_code(line, set_focus=False)
             except AttributeError:
                 pass
             self.sig_switch_to_plugin_requested.emit()
@@ -2167,15 +2167,17 @@ class IPythonConsoleWidget(PluginMainWidget):
                     # Fixes spyder-ide/spyder#7293.
                     pass
                 elif current_client:
-                    self.execute_code(line, current_client, clear_variables)
+                    self.execute_code(line, current_client, clear_variables,
+                                      set_focus=False)
                 else:
                     if is_new_client:
                         client.shellwidget.silent_execute('%clear')
                     else:
                         client.shellwidget.execute('%clear')
                     client.shellwidget.sig_prompt_ready.connect(
-                            lambda: self.execute_code(line, current_client,
-                                                      clear_variables))
+                            lambda: self.execute_code(
+                                line, current_client, clear_variables,
+                                set_focus=False))
             except AttributeError:
                 pass
             self.sig_switch_to_plugin_requested.emit()
@@ -2235,7 +2237,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.active_project_path = active_project_path
 
     # ---- For execution
-    def execute_code(self, lines, current_client=True, clear_variables=False):
+    def execute_code(self, lines, current_client=True, clear_variables=False,
+                     set_focus=True):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
@@ -2257,7 +2260,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             except AttributeError:
                 pass
             self.activateWindow()
-            self.get_current_client().get_control().setFocus()
+            if set_focus:
+                self.get_current_client().get_control().setFocus()
 
     # ---- For error handling
     def go_to_error(self, text):

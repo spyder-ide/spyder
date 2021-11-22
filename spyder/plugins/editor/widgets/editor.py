@@ -2800,11 +2800,8 @@ class EditorStack(QWidget):
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        if self.focus_to_editor:
+        if self.focus_to_editor and not editor.hasFocus():
             editor.setFocus()
-        else:
-            console = QApplication.focusWidget()
-            console.setFocus()
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):
