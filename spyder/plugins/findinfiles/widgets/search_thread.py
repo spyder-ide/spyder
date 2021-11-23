@@ -372,8 +372,8 @@ class SearchThread(QThread):
 
         match_color = SpyderPalette.COLOR_OCCURRENCE_4
         trunc_line = dict(
-            text = ''.join([left, match, right]),
-            formatted_text = (
+            text=''.join([left, match, right]),
+            formatted_text=(
                 f'<span style="color:{self.text_color}">'
                 f'{html_escape(left)}'
                 f'<span style="background-color:{match_color}">'
