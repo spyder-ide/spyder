@@ -144,7 +144,7 @@ PR authors are responsible for addressing required reviews for the PR to be elig
 
 Feedback asking for substantial, user-visible content additions and improvements to the text and images (rather than critical fixes) may be left as optional review comments, if it is appropriate and important enough to merit discussion on the original PR.
 As with all reviews, please primarily consider how a PR would impact documentation stability, clarity, and quality over focusing on purely subjective improvements.
-This section should be used in limited amounts to avoid overtaxing contributors, but can be used judiciously with authors who’ve successfully contributed previous pull requests to documentation repositories.
+Comments under this section should be used in limited amounts to avoid overloading authors, particularly to those newer to contributing to open source and the repository in question, and keep the pull request focused and in scope.
 Otherwise, they can be handled in a followup by the reviewer, opened as an issue, or deferred entirely.
 
 Examples include:
