@@ -9,21 +9,17 @@ Projects Plugin API.
 """
 
 # Standard library imports
-import os
 import os.path as osp
 from collections import OrderedDict
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
 from spyder.config.base import get_project_config_folder
 from spyder.plugins.projects.utils.config import (ProjectMultiConfig,
                                                   PROJECT_NAME_MAP,
                                                   PROJECT_DEFAULTS,
                                                   PROJECT_CONF_VERSION,
-                                                  WORKSPACE, CODESTYLE,
-                                                  ENCODING, VCS)
-
+                                                  WORKSPACE)
 
 # Localization
 _ = get_translation("spyder")
@@ -43,7 +39,7 @@ class BaseProjectType:
         self.root_path = root_path
         self.open_project_files = []
         self.open_non_project_files = []
-        path = os.path.join(root_path, get_project_config_folder(), 'config')
+        path = osp.join(root_path, get_project_config_folder(), 'config')
         self.config = ProjectMultiConfig(
             PROJECT_NAME_MAP,
             path=path,
@@ -72,9 +68,9 @@ class BaseProjectType:
         """Set a list of files opened by the project."""
         processed_recent_files = []
         for recent_file in recent_files:
-            if os.path.isfile(recent_file):
+            if osp.isfile(recent_file):
                 try:
-                    relative_recent_file = os.path.relpath(
+                    relative_recent_file = osp.relpath(
                         recent_file, self.root_path)
                     processed_recent_files.append(relative_recent_file)
                 except ValueError:
@@ -95,11 +91,11 @@ class BaseProjectType:
         else:
             recent_files = self.get_option("recent_files", default=[])
 
-        recent_files = [recent_file if os.path.isabs(recent_file)
-                        else os.path.join(self.root_path, recent_file)
+        recent_files = [recent_file if osp.isabs(recent_file)
+                        else osp.join(self.root_path, recent_file)
                         for recent_file in recent_files]
         for recent_file in recent_files[:]:
-            if not os.path.isfile(recent_file):
+            if not osp.isfile(recent_file):
                 recent_files.remove(recent_file)
 
         return list(OrderedDict.fromkeys(recent_files))

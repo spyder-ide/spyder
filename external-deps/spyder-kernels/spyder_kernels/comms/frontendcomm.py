@@ -15,7 +15,6 @@ import sys
 import threading
 import time
 
-import ipykernel
 from IPython.core.getipython import get_ipython
 from jupyter_client.localinterfaces import localhost
 from tornado import ioloop
@@ -146,38 +145,35 @@ class FrontendComm(CommBase):
             return
 
         handler = self.kernel.shell_handlers.get(msg_type, None)
-        if handler is None:
-            self.kernel.log.warning("Unknown message type: %r", msg_type)
-        else:
-            try:
-                if not PY2:
-                    import asyncio
-                    if (not getattr(asyncio, 'run', False) or
-                            ipykernel.__version__[0] < '6'):
-                        # This is required for Python 3.6, which doesn't have
-                        # asyncio.run or ipykernel versions less than 6. The
-                        # nice thing is that ipykernel 6, which requires
-                        # asyncio, doesn't support Python 3.6.
-                        handler(out_stream, ident, msg)
-                    else:
-                        # This is needed for ipykernel 6+
-                        asyncio.run(handler(out_stream, ident, msg))
-                else:
-                    handler(out_stream, ident, msg)
-            except ValueError as e:
-                # This avoids showing an unnecessary message about expected
-                # coroutines.
+        try:
+            if handler is None:
+                self.kernel.log.warning("Unknown message type: %r", msg_type)
                 return
-            except Exception:
-                self.kernel.log.error("Exception in message handler:",
-                                      exc_info=True)
+            if PY2:
+                handler(out_stream, ident, msg)
                 return
 
-        sys.stdout.flush()
-        sys.stderr.flush()
-        # Flush to ensure reply is sent
-        if out_stream:
-            out_stream.flush(zmq.POLLOUT)
+            import asyncio
+
+            if (getattr(asyncio, 'run', False) and
+                    asyncio.iscoroutinefunction(handler)):
+                # This is needed for ipykernel 6+
+                asyncio.run(handler(out_stream, ident, msg))
+            else:
+                # This is required for Python 3.6, which doesn't have
+                # asyncio.run or ipykernel versions less than 6. The
+                # nice thing is that ipykernel 6, which requires
+                # asyncio, doesn't support Python 3.6.
+                handler(out_stream, ident, msg)
+        except Exception:
+            self.kernel.log.error(
+                "Exception in message handler:", exc_info=True)
+        finally:
+            sys.stdout.flush()
+            sys.stderr.flush()
+            # Flush to ensure reply is sent
+            if out_stream:
+                out_stream.flush(zmq.POLLOUT)
 
     def remote_call(self, comm_id=None, blocking=False, callback=None,
                     timeout=None):
