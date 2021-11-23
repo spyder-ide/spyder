@@ -3,11 +3,31 @@
 Reviewing pull requests (PRs) can take many forms and be reflected across many styles.
 To help make PR review more clear for contributors, the following guidelines are designed to scope review and specify what areas of feedback block PRs from merging.
 
-## Feedback!
-
 These guidelines are new; feedback on them is appreciated and can be given via [issue to the main spyder repo](https://github.com/spyder-ide/spyder/issues).
 
-## Expected reviewer behavior
+## Etiquette Guidelines
+
+### Communication principles
+
+Reviewing open pull requests (PRs) helps move the project forward.
+It is a great way to get familiar with the codebase and should motivate the contributor to keep involved in the project.
+
+- Every PR is an act of generosity.
+  Opening with a positive comment will help the author feel rewarded, and your subsequent remarks may be heard more clearly.
+  You may feel good also.
+- Begin if possible with the large issues, so the author knows they’ve been understood.
+Resist the temptation to immediately go line by line, or to open with small pervasive issues.
+- Do not let perfect be the enemy of the good.
+
+If you find yourself making many small suggestions that don’t fall into the Review Guidelines, consider the following approaches:
+    - Refrain from submitting these.
+    - Follow up in a subsequent PR, out of courtesy, you may want to let the original contributor know.
+    - Do not rush, take the time to make your comments clear and justify your suggestions in a small number of words (ideally a small paragraph or a short sentence should be enough)
+    - You are the face of the project.
+
+Bad days occur to everyone, in that occasion you deserve a break: try to take your time and stay offline.
+
+### Expected reviewer behavior
 
 Pull requests are a key space for community interaction, and reviewing PRs is a vital part of maintaining any project.
 Reviewing PRs is also a skill that can benefit from having a clear set of goals for the sake of the reviewer and the PR author.
@@ -22,10 +42,11 @@ Other notes:
 - If more than roughly 20% of review comments fall in the `[optional]` section described below, then it is worth adding this feedback in an issue linked to the PR instead of on the PR directly.
 - When possible, please add comments asking for a specific change as [GitHub suggestions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request).
 
+## Reviewing process
 
-## For code-focused review
+### For code-focused review
 
-### Required review
+#### Required review
 
 The following are areas of review the community expects to be covered in the review of every PR.
 Not all of the following questions will be relevant for every PR (for example a bug fix may not need to answer the same questions as a proposal for a new feature), but these are the themes to be addressed.
@@ -60,7 +81,7 @@ PR authors are responsible for addressing required reviews for the PR to be elig
       If it does not, why was the choice made?
     - Is in-interface text (new or modified) appropriately descriptive and free of spelling or grammar issues that would make its meaning unclear?
 
-### Optional review
+#### Optional review
 
 The following are themes that may be helpful to cover on a PR, but are optional.
 
@@ -86,10 +107,9 @@ Review that addresses these questions on a PR will be prefixed with `[optional]`
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
 
+### For documentation/website-focused review
 
-## For documentation/website-focused review
-
-### Required review
+#### Required review
 
 The following are areas of review the community expects to be covered in the review of a documentation-focused (sometimes abbreviated as docs) PR.
 In general, reviewers need to consider whether the content is a good fit, accurate and generally clear to readers, and builds and renders with no simmediate user-visible issues.
@@ -122,7 +142,7 @@ If appropriate, help the contributor understand why tests failed.
 - [ ] Does any added/changed content render correctly, without user-visible issues?
 - [ ] Is the content free from typos and unambiguous grammar errors (review the [Style Guide](https://github.com/spyder-ide/spyder-docs/blob/master/STYLEGUIDE.md) for more information)?
 
-### Optional review
+#### Optional review
 
 Feedback asking for substantial, user-visible content additions and improvements to the text and images (rather than critical fixes) may be left as optional review comments, if it is appropriate and important enough to merit discussion on the original PR.
 As with all optional review, please primarily consider how a PR would impact documentation stability, clarity, and quality over aiming for subjective improvements.
@@ -140,7 +160,7 @@ Review that addresses these topics on a PR will be prefixed with `[optional]` so
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
 
-### Followup-only items
+#### Followup-only items
 
 On all documentation PRs that modify more than a few lines, changes that are less critical/unambiguous, optimization-focused, or those that are not user-visible, should not be suggested on contributor PRs (even with an `[Optional]` tag) unless the author explicitly requests this level of review.
 
@@ -152,7 +172,7 @@ The specifics are covered in detail in the [Style Guide](https://github.com/spyd
 - [ ] reST/Markdown style (roles, directives, markup, etc)
 - [ ] Style guide issues (consistency, precise label text, other nits)
 
-### Rebasing and merging
+## Rebasing and merging process
 
 If a contributor’s pull request has issues with their own commits (too many, trivial, etc), messages (incorrect format, not descriptive, stock, etc) or images (resized, optimized, modified, etc.), the committer should merge the PR using the squash option in GitHub’s interface with an appropriately descriptive message, and neither require that they rebase/amend their commits or do so for them directly on their branch (unless explicitly requested unsolicited by the contributor).
 Before performing the squash merge, the reviewer should add a message with a short explanation to the contributor to avoid confusion.
@@ -165,28 +185,6 @@ This just means that all the changes of this PR will be condensed in just one co
 Hope to see your future contributions to the project!
 
 If a contributor’s PR has an intractable Git issue involving more than just the contributor’s proposed new commits that would not be fixed by a squash, or might otherwise cause future serious difficulties for them/their repository (e.g. wrong base branch, unrelated commits, spurious merges, etc), reviewers/maintainers should kindly and compassionately explain the issue, provide step by step instructions (i.e. specific Git commands) to solve it, and offer assistance in doing so if the user desires it.
-
-
-## Communication Guidelines
-
-Reviewing open pull requests (PRs) helps move the project forward.
-It is a great way to get familiar with the codebase and should motivate the contributor to keep involved in the project.
-
-- Every PR is an act of generosity.
-  Opening with a positive comment will help the author feel rewarded, and your subsequent remarks may be heard more clearly.
-  You may feel good also.
-- Begin if possible with the large issues, so the author knows they’ve been understood.
-Resist the temptation to immediately go line by line, or to open with small pervasive issues.
-- Do not let perfect be the enemy of the good.
-
-If you find yourself making many small suggestions that don’t fall into the Review Guidelines, consider the following approaches:
-    - Refrain from submitting these.
-    - Follow up in a subsequent PR, out of courtesy, you may want to let the original contributor know.
-    - Do not rush, take the time to make your comments clear and justify your suggestions in a small number of words (ideally a small paragraph or a short sentence should be enough)
-    - You are the face of the project.
-
-Bad days occur to everyone, in that occasion you deserve a break: try to take your time and stay offline.
-
 
 ## References
 
