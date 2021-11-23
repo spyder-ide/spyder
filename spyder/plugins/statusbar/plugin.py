@@ -41,7 +41,6 @@ class StatusBar(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
     CONF_WIDGET_CLASS = StatusBarConfigPage
-    CAN_BE_DISABLED = False
 
     STATUS_WIDGETS = {}
     EXTERNAL_RIGHT_WIDGETS = {}
