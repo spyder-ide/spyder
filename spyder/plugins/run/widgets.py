@@ -364,8 +364,6 @@ class BaseRunConfigDialog(QDialog):
         bbox = QDialogButtonBox(stdbtns)
         run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
         run_btn.clicked.connect(self.run_btn_clicked)
-        remove_btn = bbox.addButton(_("Remove"), QDialogButtonBox.ResetRole)
-        remove_btn.clicked.connect(self.remove_btn_clicked)
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         btnlayout = QHBoxLayout()
@@ -383,10 +381,6 @@ class BaseRunConfigDialog(QDialog):
 
     def run_btn_clicked(self):
         """Run button was just clicked"""
-        pass
-
-    def remove_btn_clicked(self):
-        """Reset button was just clicked"""
         pass
 
     def setup(self, fname):
@@ -443,12 +437,6 @@ class RunConfigDialog(BaseRunConfigDialog):
     def run_btn_clicked(self):
         """Run button was just clicked"""
         self.file_to_run = str(self.combo.currentText())
-
-    def remove_btn_clicked(self):
-        """Reset button was just clicked"""
-        index = self.combo.currentIndex()
-        self.stack.removeWidget(self.stack.currentWidget())
-        self.combo.removeItem(index)
 
     def setup(self, fname):
         """Setup Run Configuration dialog with filename *fname*"""
