@@ -3,28 +3,6 @@
 Reviewing pull requests (PRs) can take many forms and be reflected across many styles.
 To help make PR review more clear for contributors, the following guidelines are designed to scope review and specify what areas of feedback block PRs from merging.
 
-## Contents
-
-[Feedback](#feedback)
-
-[Expected reviewer behavior](#expected-reviewer-behavior)
-
-[For code-focused review](#for-code-focused-review])
-- [Required review](#required-review)
-- [Optional review](#optional-review)
-
-[For documentation-focused review](#for-documentation-focused-review)
-- [Required review](#required-review-1)
-- [Optional review](#optional-review-1)
-- [Followup-only items](#followup-only-items)
-- [Rebasing and merging](#rebasing-and-merging)
-
-[Communication Guidelines](#communication-guidelines)
-
-[References](#references)
-
-
-
 ## Feedback!
 
 These guidelines are new; feedback on them is appreciated and can be given via [issue to the main spyder repo](https://github.com/spyder-ide/spyder/issues).
@@ -42,6 +20,7 @@ As with all aspects of the Code of Conduct, this applies to everyone involved in
 Other notes:
 - Unless the reviewer has explicit permission on the conversation for that PR, reviewers should not commit to the same branch as the PR being reviewed.
 - If more than roughly 20% of review comments fall in the `[optional]` section described below, then it is worth adding this feedback in an issue linked to the PR instead of on the PR directly.
+- When possible, please add comments asking for a specific change as [GitHub suggestions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request).
 
 
 ## For code-focused review
@@ -50,6 +29,9 @@ Other notes:
 
 The following are areas of review the community expects to be covered in the review of every PR.
 Not all of the following questions will be relevant for every PR (for example a bug fix may not need to answer the same questions as a proposal for a new feature), but these are the themes to be addressed.
+
+Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
+PR authors are responsible for addressing required reviews for the PR to be eligible for merging.
 
 - [ ] Motivation
     - Do we want this?
@@ -78,9 +60,6 @@ Not all of the following questions will be relevant for every PR (for example a 
       If it does not, why was the choice made?
     - Is in-interface text (new or modified) appropriately descriptive and free of spelling or grammar issues that would make its meaning unclear?
 
-Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
-PR authors are responsible for addressing these reviews if prompted by the reviewer in order for that PR to be eligible for merging.
-
 ### Optional review
 
 The following are themes that may be helpful to cover on a PR, but are optional.
@@ -108,12 +87,15 @@ Addressing this feedback is considered above-and-beyond, and may be more relevan
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
 
 
-## For documentation-focused review
+## For documentation/website-focused review
 
 ### Required review
 
 The following are areas of review the community expects to be covered in the review of a documentation-focused (sometimes abbreviated as docs) PR.
 In general, reviewers need to consider whether the content is a good fit, accurate and generally clear to readers, and builds and renders with no simmediate user-visible issues.
+
+Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
+PR authors are responsible for addressing required reviews for the PR to be eligible for merging.
 
 **Motivation**
 
@@ -140,13 +122,9 @@ If appropriate, help the contributor understand why tests failed.
 - [ ] Does any added/changed content render correctly, without user-visible issues?
 - [ ] Is the content free from typos and unambiguous grammar errors (review the [Style Guide](https://github.com/spyder-ide/spyder-docs/blob/master/STYLEGUIDE.md) for more information)?
 
-Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
-PR authors are responsible for addressing these reviews if prompted by the reviewer in order for that PR to be eligible for merging.
-
 ### Optional review
 
-The following are themes that may be helpful to cover on a documentation-focused PR, but are optional.
-This may include feedback about non-blocking, substantive, user-visible content improvements to the text and images.
+Feedback asking for substantial, user-visible content additions and improvements to the text and images (rather than critical fixes) may be left as optional review comments, if it is appropriate and important enough to merit discussion on the original PR.
 As with all optional review, please primarily consider how a PR would impact documentation stability, clarity, and quality over aiming for subjective improvements.
 This section should be used in limited amounts to avoid overtaxing contributors, but can be used judiciously with authors who’ve successfully contributed previous pull requests to documentation repositories.
 Otherwise, they can be handled in a followup by the reviewer, opened as an issue, or deferred entirely.
