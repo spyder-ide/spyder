@@ -42,6 +42,7 @@ class WorkingDirectory(SpyderPluginV2):
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
+    CAN_BE_DISABLED = False
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
 
