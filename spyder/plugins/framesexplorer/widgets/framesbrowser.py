@@ -126,6 +126,9 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             command = "up " + str(delta_index)
         elif delta_index < 0:
             command = "down " + str(-delta_index)
+        else:
+            # Don't move
+            return
         self.shellwidget.pdb_execute_command(command)
 
     def set_from_pdb(self, pdb_stack, curindex):
