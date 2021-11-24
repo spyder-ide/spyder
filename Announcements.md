@@ -1,5 +1,46 @@
 # Minor release to list
 
+**Subject**: [ANN] Spyder 5.2.0 is released!
+
+
+Hi all,
+
+On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce that Spyder **5.2.0** has been released and is available for
+Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
+
+This release comes more than 8 weeks after version 5.1.5 and it contains the
+following new features and important fixes:
+
+* Add new entry in preferences to turn off plugins
+* Add experimental support for PySide2
+* Show standard streams when running code in the IPython Console
+* Speed up search in the Find plugin
+* Migrate the IPython Console to the new API
+* Add new mechanism for plugin teardowm
+* Add a way to create stacked widgets connected to the IPython Console
+  like Plots and the Variable explorer
+
+In this release we fixed 34 issue and merged 61 pull requests that amount
+to more than 390 commits. For a full list of fixes, please see our
+[Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
+
+Don't forget to follow Spyder updates/news on the project's
+[website](https://www.spyder-ide.org).
+
+Last, but not least, we welcome any contribution that helps making Spyder an
+efficient scientific development and computing environment. Join us to help
+creating your favorite environment!
+
+Enjoy!
+Daniel and Carlos
+
+
+----
+
+
+# Minor release to list
+
 **Subject**: [ANN] Spyder 5.1.5 is released!
 
 
