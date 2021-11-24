@@ -1379,6 +1379,7 @@ def test_remove_old_std_files(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
+@pytest.mark.skipif(os.name == 'nt', reason="Too flaky on Windows")
 def test_console_working_directory(ipyconsole, qtbot):
     """Test for checking the working directory."""
     shell = ipyconsole.get_current_shellwidget()
