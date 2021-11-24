@@ -22,18 +22,6 @@ class CompletionConfigPage(PluginConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # -------------------- Plugin status group -----------------------------
-        plugin_state_group = QGroupBox(_('Plugin status'))
-        plugin_state_layout = QVBoxLayout()
-        self.completion_box = newcb(
-            _("Enable code completion and linting in the editor"),
-            'enable'
-        )
-        plugin_state_layout.addWidget(self.completion_box)
-        plugin_state_group.setLayout(plugin_state_layout)
-
-        self.completion_box.toggled.connect(self.enable_disable_plugin)
-
         # ------------------- Providers status group ---------------------------
         self.provider_checkboxes = []
         providers_layout = QGridLayout()
@@ -104,7 +92,6 @@ class CompletionConfigPage(PluginConfigPage):
             disable_completion_after_characters)
 
         layout = QVBoxLayout()
-        layout.addWidget(plugin_state_group)
         layout.addWidget(self.completions_group)
         layout.addWidget(self.providers_group)
         layout.addStretch(1)

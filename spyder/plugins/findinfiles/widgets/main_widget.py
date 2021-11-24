@@ -446,6 +446,7 @@ class FindInFilesWidget(PluginMainWidget):
         Current search thread has finished.
         """
         self.result_browser.set_sorting(ON)
+        self.result_browser.set_width()
         self.result_browser.expandAll()
         if self.search_thread is None:
             return
@@ -580,8 +581,10 @@ class FindInFilesWidget(PluginMainWidget):
         # Update and set options
         self._update_options()
 
-        # Set path in result_browser
+        # Setup result_browser
         self.result_browser.set_path(options[0])
+        self.result_browser.longest_file_item = ''
+        self.result_browser.longest_line_item = ''
 
         # Start
         self.running = True

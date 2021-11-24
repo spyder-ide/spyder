@@ -26,6 +26,15 @@ from spyder.utils.palette import SpyderPalette
 _ = get_translation('spyder')
 
 
+# ---- Constants
+# ----------------------------------------------------------------------------
+ELLIPSIS = '...'
+MAX_RESULT_LENGTH = 80
+MAX_NUM_CHAR_FRAGMENT = 40
+
+
+# ---- Thread
+# ----------------------------------------------------------------------------
 class SearchThread(QThread):
     """Find in files search thread."""
     PYTHON_EXTENSIONS = ['.py', '.pyw', '.pyx', '.ipy', '.pyi', '.pyt']
@@ -307,10 +316,6 @@ class SearchThread(QThread):
         """
         Shorten text on line to display the match within `max_line_length`.
         """
-        ellipsis = '...'
-        max_line_length = 80
-        max_num_char_fragment = 40
-
         html_escape_table = {
             "&": "&amp;",
             '"': "&quot;",
@@ -326,7 +331,7 @@ class SearchThread(QThread):
         line = str(line)
         left, match, right = line[:start], line[start:end], line[end:]
 
-        if len(line) > max_line_length:
+        if len(line) > MAX_RESULT_LENGTH:
             offset = (len(line) - len(match)) // 2
 
             left = left.split(' ')
@@ -334,8 +339,8 @@ class SearchThread(QThread):
 
             if num_left_words == 1:
                 left = left[0]
-                if len(left) > max_num_char_fragment:
-                    left = ellipsis + left[-offset:]
+                if len(left) > MAX_NUM_CHAR_FRAGMENT:
+                    left = ELLIPSIS + left[-offset:]
                 left = [left]
 
             right = right.split(' ')
@@ -343,39 +348,40 @@ class SearchThread(QThread):
 
             if num_right_words == 1:
                 right = right[0]
-                if len(right) > max_num_char_fragment:
-                    right = right[:offset] + ellipsis
+                if len(right) > MAX_NUM_CHAR_FRAGMENT:
+                    right = right[:offset] + ELLIPSIS
                 right = [right]
 
             left = left[-4:]
             right = right[:4]
 
             if len(left) < num_left_words:
-                left = [ellipsis] + left
+                left = [ELLIPSIS] + left
 
             if len(right) < num_right_words:
-                right = right + [ellipsis]
+                right = right + [ELLIPSIS]
 
             left = ' '.join(left)
             right = ' '.join(right)
 
-            if len(left) > max_num_char_fragment:
-                left = ellipsis + left[-30:]
+            if len(left) > MAX_NUM_CHAR_FRAGMENT:
+                left = ELLIPSIS + left[-30:]
 
-            if len(right) > max_num_char_fragment:
-                right = right[:30] + ellipsis
-
-        left = html_escape(left)
-        right = html_escape(right)
-        match = html_escape(match)
+            if len(right) > MAX_NUM_CHAR_FRAGMENT:
+                right = right[:30] + ELLIPSIS
 
         match_color = SpyderPalette.COLOR_OCCURRENCE_4
-        trunc_line = (
-            f'<span style="color:{self.text_color}">'
-            f'{left}'
-            f'<span style="background-color:{match_color}">{match}</span>'
-            f'{right}'
-            f'</span>'
+        trunc_line = dict(
+            text=''.join([left, match, right]),
+            formatted_text=(
+                f'<span style="color:{self.text_color}">'
+                f'{html_escape(left)}'
+                f'<span style="background-color:{match_color}">'
+                f'{html_escape(match)}'
+                f'</span>'
+                f'{html_escape(right)}'
+                f'</span>'
+            )
         )
 
         return trunc_line
