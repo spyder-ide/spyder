@@ -426,6 +426,13 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
             # Remove the plugin from the main window (if graphical)
             if isinstance(plugin_instance, SpyderDockablePlugin):
+                # Save if plugin was undocked to restore it the next time.
+                if plugin_instance.get_widget().windowwidget:
+                    plugin_instance.set_conf('undocked_on_window_close', True)
+                else:
+                    plugin_instance.set_conf('undocked_on_window_close', False)
+
+                # Close undocked plugins.
                 plugin_instance.close_window()
 
             # Perform plugin closure tasks
@@ -434,6 +441,15 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             # Disconnect depending plugins from the plugin to delete
             self._notify_plugin_teardown(plugin_name)
             if isinstance(plugin_instance, SpyderPluginWidget):
+                # Save if plugin was undocked to restore it the next time.
+                if plugin_instance._undocked_window:
+                    plugin_instance.set_option(
+                        'undocked_on_window_close', True)
+                else:
+                    plugin_instance.set_option(
+                        'undocked_on_window_close', False)
+
+                # Close undocked plugins.
                 plugin_instance._close_window()
 
         # Delete plugin from the registry and auxiliary structures

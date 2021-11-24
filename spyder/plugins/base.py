@@ -14,17 +14,17 @@ import os
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, Slot
+from qtpy.QtCore import QByteArray, Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
 from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
                             QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
+from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import configparser, is_text_string
+from spyder.py3compat import configparser, is_text_string, qbytearray_to_str
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
@@ -141,7 +141,15 @@ class PluginWindow(QMainWindow):
         self.plugin.dockwidget.setWidget(self.plugin)
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
+
+        # Save window geometry to restore it when undocking the plugin
+        # again.
+        geometry = self.saveGeometry()
+        self.plugin.set_option('window_geometry', qbytearray_to_str(geometry))
+
+        # Close window
         QMainWindow.closeEvent(self, event)
+
         # Qt might want to do something with this soon,
         # So it should not be deleted by python yet.
         # Fixes spyder-ide/spyder#10704
@@ -333,6 +341,11 @@ class BasePluginWidgetMixin(object):
     def _close_window(self):
         """Close QMainWindow instance that contains this plugin."""
         if self._undocked_window is not None:
+            # Save window geometry to restore it when undocking the plugin
+            # again.
+            geometry = self._undocked_window.saveGeometry()
+            self.set_option('window_geometry', qbytearray_to_str(geometry))
+
             self._undocked_window.close()
             self._undocked_window = None
 
@@ -349,10 +362,22 @@ class BasePluginWidgetMixin(object):
         icon = self.get_plugin_icon()
         if is_text_string(icon):
             icon = self.get_icon(icon)
+
         window.setWindowIcon(icon)
         window.setWindowTitle(self.get_plugin_title())
         window.setCentralWidget(self)
         window.resize(self.size())
+
+        # Restore window geometry
+        geometry = self.get_option('window_geometry', default='')
+        if geometry:
+            try:
+                window.restoreGeometry(
+                    QByteArray().fromHex(str(geometry).encode('utf-8'))
+                )
+            except Exception:
+                pass
+
         self.refresh_plugin()
         self.set_ancestor(window)
         self.dockwidget.setFloating(False)
