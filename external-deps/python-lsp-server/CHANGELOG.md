@@ -1,5 +1,43 @@
 # History of changes
 
+## Version 1.3.1 (2021-11-22)
+
+### Pull Requests Merged
+
+* [PR 118](https://github.com/python-lsp/python-lsp-server/pull/118) - Fix tests for Jedi 0.18.1, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 1.3.0 (2021-11-22)
+
+### New features
+
+* Create a cache for code snippets to speed up completions.
+
+### Important changes
+
+* Option `jedi_completion.resolve_at_most_labels` was renamed to `jedi_completion.resolve_at_most`
+  because now it controls how many labels and snippets will be resolved per request.
+* Option `jedi_completion.cache_labels_for` was renamed to `jedi_completion.cache_for` because now
+  it controls the modules for which labels and snippets should be cached.
+* Update requirements on Pylint, flake8, pycodestyle, pyflakes and autopep8.
+
+### Pull Requests Merged
+
+* [PR 112](https://github.com/python-lsp/python-lsp-server/pull/112) - Fix another test with Python 3.10, by [@jspricke](https://github.com/jspricke)
+* [PR 111](https://github.com/python-lsp/python-lsp-server/pull/111) - Use sys.executable in flake8 plugin to make tests pass on systems that don't provide a python link, by [@0-wiz-0](https://github.com/0-wiz-0)
+* [PR 108](https://github.com/python-lsp/python-lsp-server/pull/108) - Fix test with Python 3.10, by [@jspricke](https://github.com/jspricke)
+* [PR 102](https://github.com/python-lsp/python-lsp-server/pull/102) - Update requirements on flake8 and its dependencies, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 99](https://github.com/python-lsp/python-lsp-server/pull/99) - Adjust readme to pylsp-mypy rename, by [@chaoflow](https://github.com/chaoflow)
+* [PR 94](https://github.com/python-lsp/python-lsp-server/pull/94) - Unpin Pylint, by [@bnavigator](https://github.com/bnavigator)
+* [PR 83](https://github.com/python-lsp/python-lsp-server/pull/83) - Create a cache for snippets, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 7 pull requests were closed.
+
+----
+
 ## Version 1.2.4 (2021-10-11)
 
 ### Pull Requests Merged
