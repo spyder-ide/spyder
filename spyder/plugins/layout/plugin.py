@@ -71,6 +71,7 @@ class Layout(SpyderPluginV2):
     REQUIRES = [Plugins.All]  # Uses wildcard to require all the plugins
     CONF_FILE = False
     CONTAINER_CLASS = LayoutContainer
+    CAN_BE_DISABLED = False
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------

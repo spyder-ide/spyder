@@ -39,6 +39,7 @@ class Toolbar(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
     CONTAINER_CLASS = ToolbarContainer
+    CAN_BE_DISABLED = False
 
     # --- SpyderDocakblePlugin API
     #  -----------------------------------------------------------------------
