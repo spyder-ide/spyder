@@ -87,7 +87,54 @@ class PylintWidgetToolbarItems:
     Stretcher2 = 'stretcher_2'
 
 
-# --- Widgets
+# ---- Items
+class CategoryItem(QTreeWidgetItem):
+    """
+    Category item for results.
+
+    Notes
+    -----
+    Possible categories are Convention, Refactor, Warning and Error.
+    """
+
+    CATEGORIES = {
+        "Convention": {
+            'translation_string': _("Convention"),
+            'icon': ima.icon("convention")
+        },
+        "Refactor": {
+            'translation_string': _("Refactor"),
+            'icon': ima.icon("refactor")
+        },
+        "Warning": {
+            'translation_string': _("Warning"),
+            'icon': ima.icon("warning")
+        },
+        "Error": {
+            'translation_string': _("Error"),
+            'icon': ima.icon("error")
+        }
+    }
+
+    def __init__(self, parent, category, number_of_messages):
+        # Messages string to append to category.
+        if number_of_messages > 1 or number_of_messages == 0:
+            messages = _('messages')
+        else:
+            messages = _('message')
+
+        # Category title.
+        title = self.CATEGORIES[category]['translation_string']
+        title += f" ({number_of_messages} {messages})"
+
+        super().__init__(parent, [title], QTreeWidgetItem.Type)
+
+        # Set icon
+        icon = self.CATEGORIES[category]['icon']
+        self.setIcon(0, icon)
+
+
+# ---- Widgets
 # ----------------------------------------------------------------------------
 # TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
@@ -122,8 +169,14 @@ class ResultsTree(OneColumnTree):
             self.sig_edit_goto_requested.emit(fname, lineno, "")
 
     def clicked(self, item):
-        """Click event"""
-        self.activated(item)
+        """Click event."""
+        if isinstance(item, CategoryItem):
+            if item.isExpanded():
+                self.collapseItem(item)
+            else:
+                self.expandItem(item)
+        else:
+            self.activated(item)
 
     def clear_results(self):
         self.clear()
@@ -135,23 +188,21 @@ class ResultsTree(OneColumnTree):
         self.refresh()
 
     def refresh(self):
-        title = _("Results for ")+self.filename
+        title = _("Results for ") + self.filename
         self.set_title(title)
         self.clear()
         self.data = {}
 
         # Populating tree
         results = (
-            (_("Convention"), ima.icon("convention"), self.results["C:"]),
-            (_("Refactor"), ima.icon("refactor"), self.results["R:"]),
-            (_("Warning"), ima.icon("warning"), self.results["W:"]),
-            (_("Error"), ima.icon("error"), self.results["E:"]),
+            ("Convention", self.results["C:"]),
+            ("Refactor", self.results["R:"]),
+            ("Warning", self.results["W:"]),
+            ("Error", self.results["E:"]),
         )
-        for title, icon, messages in results:
-            title += " (%d message%s)" % (len(messages),
-                                          "s" if len(messages) > 1 else "")
-            title_item = QTreeWidgetItem(self, [title], QTreeWidgetItem.Type)
-            title_item.setIcon(0, icon)
+
+        for category, messages in results:
+            title_item = CategoryItem(self, category, len(messages))
             if not messages:
                 title_item.setDisabled(True)
 

@@ -257,7 +257,7 @@ def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
     truncated_line = thread.truncate_result(line_input, slice_start,
                                             slice_end)
     # then
-    assert truncated_line == expected_result
+    assert truncated_line['formatted_text'] == expected_result
 
 
 @pytest.mark.parametrize('findinfiles',
