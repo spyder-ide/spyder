@@ -30,7 +30,6 @@ PY2 = sys.version[0] == '2'
 IPYKERNEL_6 = ipykernel.__version__[0] >= '6'
 
 
-
 def import_spydercustomize():
     """Import our customizations into the kernel."""
     here = osp.dirname(__file__)
@@ -236,6 +235,11 @@ def kernel_config():
     if sympy_o and is_module_installed('sympy'):
         lines = sympy_config(mpl_backend)
         spy_cfg.IPKernelApp.exec_lines.append(lines)
+
+    # Disable the new mechanism to capture and forward low-level output
+    # in IPykernel 6. For that we have Wurlitzer.
+    if LooseVersion(ipykernel.__version__) >= LooseVersion('6.3.0'):
+        spy_cfg.IPKernelApp.capture_fd_output = False
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
