@@ -35,4 +35,6 @@ jobs:
           architecture: 'x64'
       - run: python -m pip install --upgrade pip setuptools
       - run: pip install -e .[all,test]
+      - name: Show test environment
+        run: pip list
       - run: pytest -v test/
