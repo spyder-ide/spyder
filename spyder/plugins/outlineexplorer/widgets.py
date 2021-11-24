@@ -794,7 +794,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         root_item = editor_root.node
         text = ''
         if isinstance(item, FileRootItem):
-            line = 1
+            line = None
             if id(root_item) != id(item):
                 root_item = item
         else:
