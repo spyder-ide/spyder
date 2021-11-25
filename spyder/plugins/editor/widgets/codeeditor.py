@@ -496,7 +496,8 @@ class CodeEditor(TextEditBaseWidget):
         self._mouse_left_button_pressed = False
         self.ctrl_click_color = QColor(Qt.blue)
 
-        self.bookmarks = self.get_bookmarks()
+        self._bookmarks_blocks = {}
+        self.bookmarks = []
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -2635,18 +2636,23 @@ class CodeEditor(TextEditBaseWidget):
         if slot_num not in data.bookmarks:
             data.bookmarks.append((slot_num, column))
         block.setUserData(data)
+        self._bookmarks_blocks[id(block)] = block
         self.sig_bookmarks_changed.emit()
 
     def get_bookmarks(self):
         """Get bookmarks by going over all blocks."""
         bookmarks = {}
-        block = self.document().firstBlock()
-        for line_number in range(0, self.document().blockCount()):
-            data = block.userData()
-            if data and data.bookmarks:
-                for slot_num, column in data.bookmarks:
-                    bookmarks[slot_num] = [line_number, column]
-            block = block.next()
+        pruned_bookmarks_blocks = {}
+        for block_id in self._bookmarks_blocks:
+            block = self._bookmarks_blocks[block_id]
+            if block.isValid():
+                data = block.userData()
+                if data and data.bookmarks:
+                    pruned_bookmarks_blocks[block_id] = block
+                    line_number = block.blockNumber() + 1
+                    for slot_num, column in data.bookmarks:
+                        bookmarks[slot_num] = [line_number, column]
+        self._bookmarks_blocks = pruned_bookmarks_blocks
         return bookmarks
 
     def clear_bookmarks(self):
@@ -2654,6 +2660,7 @@ class CodeEditor(TextEditBaseWidget):
         self.bookmarks = {}
         for data in self.blockuserdata_list():
             data.bookmarks = []
+        self._bookmarks_blocks = {}
 
     def set_bookmarks(self, bookmarks):
         """Set bookmarks when opening file."""
