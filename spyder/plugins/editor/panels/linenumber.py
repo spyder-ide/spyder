@@ -182,19 +182,18 @@ class LineNumberArea(Panel):
         if not self._enabled:
             return 0
         number_lines = self.editor.blockCount()
-        if (self._width_cache is not None and
-                self._width_cache[0] == number_lines):
-            return self._width_cache[1]
-
         number_digits = max(1, math.ceil(math.log10(
              number_lines + 1)))
+        if (self._width_cache is not None and
+                self._width_cache[0] == number_digits):
+            return self._width_cache[1]
 
         if self._margin:
             margin = 3 + self.editor.fontMetrics().width('9' * number_digits)
         else:
             margin = 0
         width = margin + self.get_markers_margin()
-        self._width_cache = (number_lines, width)
+        self._width_cache = (number_digits, width)
         return width
 
     def _clear_width_cache(self):
