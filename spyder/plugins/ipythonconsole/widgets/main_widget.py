@@ -57,6 +57,9 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
+SPYDER_KERNELS_VERSION = '>=2.2.0;<2.3.0'
+SPYDER_KERNELS_CONDA = 'conda install spyder-kernels=2.2'
+SPYDER_KERNELS_PIP = 'pip install spyder-kernels==2.2.*'
 
 
 class IPythonConsoleWidgetActions:
@@ -1505,19 +1508,23 @@ class IPythonConsoleWidget(PluginMainWidget):
             has_spyder_kernels = programs.is_module_installed(
                 'spyder_kernels',
                 interpreter=pyexec,
-                version='>=2.2.0;<2.3.0')
+                version=SPYDER_KERNELS_VERSION)
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed (>= 2.2.0 and < 2.3.0). "
+                      "version of it installed ({0}). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
                       "<br><br>"
-                      "<tt>conda install spyder-kernels=2.1</tt>"
+                      "<tt>{1}</tt>"
                       "<br><br>or<br><br>"
-                      "<tt>pip install spyder-kernels==2.1.*</tt>")
+                      "<tt>{2}</tt>".format(
+                          SPYDER_KERNELS_VERSION,
+                          SPYDER_KERNELS_CONDA,
+                          SPYDER_KERNELS_PIP
+                      ))
                 )
                 return
 
