@@ -113,6 +113,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.textChanged.connect(reset_current_cell)
 
+        # Cache
+        self._current_cell_cursor = None
+        self._current_line_block = None
+
+
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()
@@ -246,7 +251,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     # ------Highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
-        selection = TextDecoration(self.textCursor())
+        cursor = self.textCursor()
+        block = cursor.block()
+        if self._current_line_block == block:
+            return
+        self._current_line_block = block
+        selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
         selection.format.setBackground(self.currentline_color)
@@ -256,6 +266,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def unhighlight_current_line(self):
         """Unhighlight current line"""
+        self._current_line_block = None
         self.clear_extra_selections('current_line')
 
     # ------Highlight current cell
@@ -263,8 +274,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Highlight current cell"""
         if (not self.has_cell_separators or
                 not self.highlight_current_cell_enabled):
+            self._current_cell_cursor = None
             return
         cursor, whole_file_selected = self.select_current_cell()
+        if self._current_cell_cursor == cursor:
+            # Already correct
+            return
+        self._current_cell_cursor = cursor
         selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
@@ -278,6 +294,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def unhighlight_current_cell(self):
         """Unhighlight current cell"""
+        self._current_cell_cursor = None
         self.clear_extra_selections('current_cell')
 
     def in_comment(self, cursor=None, position=None):
