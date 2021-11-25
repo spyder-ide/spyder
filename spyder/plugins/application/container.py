@@ -342,13 +342,28 @@ class ApplicationContainer(PluginMainContainer):
     @Slot()
     def show_dependencies(self):
         """Show Spyder Dependencies dialog."""
+        # This is here in case the user tries to display the dialog before
+        # dependencies_thread has finished.
+        if not dependencies.DEPENDENCIES:
+            dependencies.declare_dependencies()
+
         dlg = DependenciesDialog(self)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.show()
 
+    def _compute_dependencies(self):
+        """Compute dependencies without errors."""
+        # Skip error when trying to register dependencies several times.
+        # This can happen if the user tries to display the dependencies
+        # dialog before dependencies_thread has finished.
+        try:
+            dependencies.declare_dependencies()
+        except ValueError:
+            pass
+
     def compute_dependencies(self):
-        """Compute dependencies"""
-        self.dependencies_thread.run = dependencies.declare_dependencies
+        """Compute dependencies."""
+        self.dependencies_thread.run = self._compute_dependencies
         self.dependencies_thread.finished.connect(
             self.report_missing_dependencies)
 
