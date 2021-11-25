@@ -2658,7 +2658,7 @@ class CodeEditor(TextEditBaseWidget):
                 data = block.userData()
                 if data and data.bookmarks:
                     pruned_bookmarks_blocks[block_id] = block
-                    line_number = block.blockNumber() + 1
+                    line_number = block.blockNumber()
                     for slot_num, column in data.bookmarks:
                         bookmarks[slot_num] = [line_number, column]
         self._bookmarks_blocks = pruned_bookmarks_blocks
