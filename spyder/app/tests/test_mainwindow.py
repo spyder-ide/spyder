@@ -18,7 +18,7 @@ import shutil
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 import uuid
 
 # Third party imports
@@ -34,8 +34,8 @@ import pkg_resources
 from pkg_resources import parse_version
 import pylint
 import pytest
-from qtpy import PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QUrl
+from qtpy import PYQT_VERSION
+from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
@@ -43,23 +43,21 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
 from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
-from spyder import __trouble_url__, __project_url__
+from spyder import __trouble_url__
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app import start
-from spyder.app.mainwindow import MainWindow
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
-from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
@@ -450,7 +448,8 @@ def test_lock_action(main_window):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason="Fails on win and py2")
+@pytest.mark.skipif(sys.platform.startswith('linux') and not running_in_ci(),
+                    reason='Fails on Linux when run locally')
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Use a particular plugin
@@ -460,6 +459,7 @@ def test_default_plugin_actions(main_window, qtbot):
     # Undock action
     main_widget.undock_action.triggered.emit(True)
     qtbot.wait(500)
+    main_widget.windowwidget.move(200, 200)
     assert not file_explorer.dockwidget.isVisible()
     assert main_widget.undock_action is not None
     assert isinstance(main_widget.windowwidget, SpyderWindowWidget)
@@ -470,6 +470,19 @@ def test_default_plugin_actions(main_window, qtbot):
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
     assert main_widget.windowwidget is None
+
+    # Test geometry was saved on close
+    geometry = file_explorer.get_conf('window_geometry')
+    assert geometry != ''
+
+    # Test restoring undocked plugin with the right geometry
+    file_explorer.set_conf('undocked_on_window_close', True)
+    main_window.restore_undocked_plugins()
+    assert main_widget.windowwidget is not None
+    assert (
+        geometry == qbytearray_to_str(main_widget.windowwidget.saveGeometry())
+    )
+    main_widget.windowwidget.close()
 
     # Close action
     main_widget.close_action.triggered.emit(True)

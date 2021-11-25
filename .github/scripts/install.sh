@@ -26,18 +26,9 @@ if [ "$USE_CONDA" = "true" ]; then
     conda remove spyder-kernels --force -q -y
     conda remove python-lsp-server --force -q -y
     conda remove qdarkstyle --force -q -y
-
-    # Force jupyter_client=7 even if we could work with older versions
-    mamba install jupyter_client=7
-
-    # Note: Remove this when PyLSP 1.3.0 is released
-    mamba install 'pylint >=2.10' -c conda-forge -q -y
 else
     # Update pip and setuptools
     pip install -U pip setuptools
-
-    # Note: Remove this when PyLSP 1.3.0 is released
-    pip install pylint==2.9.6
 
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
@@ -64,12 +55,6 @@ else
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y
-
-    # Force jupyter_client=7 even if we could work with older versions
-    pip install jupyter-client~=7.0
-
-    # Note: Remove this when PyLSP 1.3.0 is released
-    pip install -U pylint
 fi
 
 # Install subrepos in development mode

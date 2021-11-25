@@ -1,5 +1,40 @@
 # History of changes
 
+## Version 2.2.0 (2021-11-22)
+
+### New features
+
+* Add the ability to capture segfaults and flush standard streams from
+  Spyder.
+* Add support for jupyter_client 7.
+
+### Issues Closed
+
+* [Issue 326](https://github.com/spyder-ide/spyder-kernels/issues/326) - Setting variables in recursive debugging namespaces is broken ([PR 327](https://github.com/spyder-ide/spyder-kernels/pull/327) by [@impact27](https://github.com/impact27))
+* [Issue 325](https://github.com/spyder-ide/spyder-kernels/issues/325) - %timeit has issues with the namespace ([PR 327](https://github.com/spyder-ide/spyder-kernels/pull/327) by [@impact27](https://github.com/impact27))
+* [Issue 316](https://github.com/spyder-ide/spyder-kernels/issues/316) - Disable capture_fd_output in IPykernel 6+ in favor of Wurlitzer ([PR 337](https://github.com/spyder-ide/spyder-kernels/pull/337) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 337](https://github.com/spyder-ide/spyder-kernels/pull/337) - PR: Disable the new mechanism to forward low-level output in IPykernel 6, by [@ccordoba12](https://github.com/ccordoba12) ([316](https://github.com/spyder-ide/spyder-kernels/issues/316))
+* [PR 336](https://github.com/spyder-ide/spyder-kernels/pull/336) - PR: Don't show traceback when exiting debugger after breakpoint call, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 335](https://github.com/spyder-ide/spyder-kernels/pull/335) - PR: Remove locals from exec in comprehensions (debugger), by [@impact27](https://github.com/impact27)
+* [PR 334](https://github.com/spyder-ide/spyder-kernels/pull/334) - PR: Fix missing stderr when the kernel crashes, by [@impact27](https://github.com/impact27)
+* [PR 333](https://github.com/spyder-ide/spyder-kernels/pull/333) - PR: Add cast for shape tuple subclass instances when getting values size, by [@dalthviz](https://github.com/dalthviz)
+* [PR 332](https://github.com/spyder-ide/spyder-kernels/pull/332) - PR: Remove usage of f_locals.get, by [@impact27](https://github.com/impact27)
+* [PR 328](https://github.com/spyder-ide/spyder-kernels/pull/328) - PR: Remove upper constraint on jupyter_client, by [@bnavigator](https://github.com/bnavigator)
+* [PR 327](https://github.com/spyder-ide/spyder-kernels/pull/327) - PR: Fix timeit in Pdb and other namespace issues, by [@impact27](https://github.com/impact27) ([326](https://github.com/spyder-ide/spyder-kernels/issues/326), [325](https://github.com/spyder-ide/spyder-kernels/issues/325))
+* [PR 317](https://github.com/spyder-ide/spyder-kernels/pull/317) - PR: Run asyncio and normal handlers, by [@impact27](https://github.com/impact27) ([16183](https://github.com/spyder-ide/spyder/issues/16183))
+* [PR 254](https://github.com/spyder-ide/spyder-kernels/pull/254) - PR: Enable faulthandler from the frontend, by [@impact27](https://github.com/impact27)
+
+In this release 10 pull requests were closed.
+
+
+----
+
+
 ## Version 2.1.3 (2021-10-02)
 
 ### Pull Requests Merged

@@ -1246,9 +1246,26 @@ class MainWindow(QMainWindow):
             assert 'pandas' not in sys.modules
             assert 'matplotlib' not in sys.modules
 
+        # Restore undocked plugins
+        self.restore_undocked_plugins()
+
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
         self.sig_setup_finished.emit()
+
+    def restore_undocked_plugins(self):
+        """Restore plugins that were undocked in the previous session."""
+        logger.info("Restoring undocked plugins from the previous session")
+
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+            if isinstance(plugin, SpyderDockablePlugin):
+                if plugin.get_conf('undocked_on_window_close', default=False):
+                    plugin.get_widget().create_window()
+            elif isinstance(plugin, SpyderPluginWidget):
+                if plugin.get_option('undocked_on_window_close',
+                                     default=False):
+                    plugin._create_window()
 
     def set_window_title(self):
         """Set window title."""

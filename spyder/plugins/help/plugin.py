@@ -12,20 +12,18 @@ Help Plugin.
 import os
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Signal
 
 # Local imports
-from spyder import __docs_url__, __forum_url__, __trouble_url__
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
-from spyder.utils.qthelpers import start_file
 
 # Localization
 _ = get_translation('spyder')
@@ -203,8 +201,11 @@ class Help(SpyderDockablePlugin):
             widget.set_plain_text_color_scheme(self.get_color_scheme())
 
         # To make auto-connection changes take place instantly
-        editor = self.get_plugin(Plugins.Editor)
-        editor.apply_plugin_settings({'connect_to_oi'})
+        try:
+            editor = self.get_plugin(Plugins.Editor)
+            editor.apply_plugin_settings({'connect_to_oi'})
+        except SpyderAPIError:
+            pass
 
     # --- Private API
     # ------------------------------------------------------------------------

@@ -53,4 +53,4 @@ jobs:
         run: echo "::set-env name=PYTHONIOENCODING::cp1252"
       - name: Run tests
         shell: bash -l {0}
-        run: pytest spyder_kernels --cov=spyder_kernels -x -vv
+        run: pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv
