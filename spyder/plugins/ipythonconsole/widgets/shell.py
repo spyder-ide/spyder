@@ -252,7 +252,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         input.
         """
         # Needed for cases where there is no kernel initialized but
-        # an execution is trigger like when setting initial configs.
+        # an execution is triggered like when setting initial configs.
         # See spyder-ide/spyder#16896
         if self.kernel_client is None:
             return
