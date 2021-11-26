@@ -350,8 +350,8 @@ def add(modname, package_name, features, required_version,
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
-            raise ValueError("Dependency has already been registered: %s"\
-                             % modname)
+            raise ValueError(
+                f"Dependency has already been registered: {modname}")
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
                                 installed_version, kind)]
@@ -396,9 +396,9 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
         text += '{title}:  {version}{linesep}'.format(
             title=title.ljust(maxwidth), version=version, linesep=linesep)
 
-    # Remove spurious linesep when reporting deps to Github
+    # Remove spurious linesep's when reporting deps to Github
     if not linesep == '<br>':
-        text = text[:-1]
+        text = text[1:-1]
 
     return text
 
