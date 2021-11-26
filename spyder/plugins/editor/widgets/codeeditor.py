@@ -4472,7 +4472,10 @@ class CodeEditor(TextEditBaseWidget):
             return super(CodeEditor, self).event(event)
 
     def _start_completion_timer(self):
-        """Helper to start timer or complete."""
+        """Helper to start timer for automatic completions or handle them."""
+        if not self.automatic_completions:
+            return
+
         if self.automatic_completions_after_ms > 0:
             self._timer_autocomplete.start(
                 self.automatic_completions_after_ms)
@@ -4711,6 +4714,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def _handle_completions(self):
         """Handle on the fly completions after delay."""
+        if not self.automatic_completions:
+            return
+
         cursor = self.textCursor()
         pos = cursor.position()
         cursor.select(QTextCursor.WordUnderCursor)
@@ -4758,7 +4764,7 @@ class CodeEditor(TextEditBaseWidget):
         if (len(text) >= self.automatic_completions_after_chars
                 and self._last_key_pressed_text or is_backspace):
             # Perform completion on the fly
-            if self.automatic_completions and not self.in_comment_or_string():
+            if not self.in_comment_or_string():
                 # Variables can include numbers and underscores
                 if (text.isalpha() or text.isalnum() or '_' in text
                         or '.' in text):
