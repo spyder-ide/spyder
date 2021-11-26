@@ -183,10 +183,10 @@ To release a new version of Spyder you need to follow these steps:
 ## After the release
 
 * Publish release in our Github Releases page:
-      * Copy the contents of the previous release description (updating the relevant information and links to point to the new Spyder version and changelog entry).
-      * Edit the previous release description to only have the changelog line.
+  - Copy the contents of the previous release description (updating the relevant information and links to point to the new Spyder version and changelog entry).
+  - Edit the previous release description to only have the changelog line.
 
-* Publish release announcements to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been build.
+* Publish release announcement to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been built.
 
 * Merge PR on Conda-forge for Spyder. For that you can go to
 
