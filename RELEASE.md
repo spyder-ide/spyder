@@ -98,10 +98,6 @@ To release a new version of Spyder you need to follow these steps:
   **Notes**:
 
   - Review carefully the release notes of those packages to see if it's necessary to add new dependencies or update the constraints on the current ones (e.g. `jedi >=0.17.2`).
-  - After merging each of those PRs, give a ping to the Anaconda team telling them that these packages are required for the new Spyder version. You need to use the handle `@anaconda-pkg-build` for that. Here is an example of this kind of messages:
-
-    https://github.com/conda-forge/spyder-kernels-feedstock/pull/58#issuecomment-725664085
-
 
 * Create a new branch in your fork with the name `update-core-deps`
 

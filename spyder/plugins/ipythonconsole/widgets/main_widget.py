@@ -57,9 +57,17 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_VERSION = '>=2.2.0;<2.3.0'
-SPYDER_KERNELS_CONDA = 'conda install spyder-kernels=2.2'
-SPYDER_KERNELS_PIP = 'pip install spyder-kernels==2.2.*'
+SPYDER_KERNELS_MIN_VERSION = '2.2.0'
+SPYDER_KERNELS_MAX_VERSION = '2.3.0'
+SPYDER_KERNELS_VERSION = (
+    f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
+SPYDER_KERNELS_VERSION_MSG = _(
+    '>= {0} and < {1}'.format(
+        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION))
+SPYDER_KERNELS_CONDA = (
+    f'conda install spyder-kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
+SPYDER_KERNELS_PIP = (
+    f'pip install spyder-kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 
 class IPythonConsoleWidgetActions:
@@ -1521,7 +1529,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                       "<tt>{1}</tt>"
                       "<br><br>or<br><br>"
                       "<tt>{2}</tt>".format(
-                          SPYDER_KERNELS_VERSION,
+                          SPYDER_KERNELS_VERSION_MSG,
                           SPYDER_KERNELS_CONDA,
                           SPYDER_KERNELS_PIP
                       ))

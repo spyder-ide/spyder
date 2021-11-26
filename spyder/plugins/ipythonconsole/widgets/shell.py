@@ -251,6 +251,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         Executes source or the input buffer, possibly prompting for more
         input.
         """
+        # Needed for cases where there is no kernel initialized but
+        # an execution is trigger like when setting initial configs.
+        # See spyder-ide/spyder#16896
+        if self.kernel_client is None:
+            return
         if self._executing:
             self._execute_queue.append((source, hidden, interactive))
             return
