@@ -107,7 +107,7 @@ To release a new version of Spyder you need to follow these steps:
   - `spyder/dependencies.py`
   - `requirements/conda.txt`
   - `binder/environment.yml`
-  - `spyder/plugins/ipythonconsole/plugin.py`
+  - `spyder/plugins/ipythonconsole/widgets/main_widget.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
 * Commit with
 
