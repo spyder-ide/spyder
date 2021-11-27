@@ -28,6 +28,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.config.base import _, get_conf_path, running_under_pytest
@@ -64,7 +66,7 @@ from spyder.plugins.mainmenu.api import ApplicationMenus
 logger = logging.getLogger(__name__)
 
 
-class Editor(SpyderPluginWidget):
+class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     """
     Multi-file Editor widget
     """
@@ -1454,7 +1456,6 @@ class Editor(SpyderPluginWidget):
             ('set_scrollpastend_enabled',           'scroll_past_end'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
-            ('set_edgeline_columns',                'edge_line_columns'),
             ('set_indent_guides',                   'indent_guides'),
             ('set_code_folding_enabled',            'code_folding'),
             ('set_focus_to_editor',                 'focus_to_editor'),
@@ -1509,8 +1510,16 @@ class Editor(SpyderPluginWidget):
             False
         )
 
+        edge_line_columns = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values',
+             'pycodestyle/max_line_length'),
+            79
+        )
+
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)
+        editorstack.set_edgeline_columns(edge_line_columns)
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 
@@ -1629,12 +1638,6 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
-
-    def call_all_editorstacks(self, method, args, **kwargs):
-        """Call a method with arguments on all editorstacks."""
-        for editorstack in self.editorstacks:
-            method = getattr(editorstack, method)
-            method(*args, **kwargs)
 
     #------ Handling editor windows
     def setup_other_windows(self):
@@ -3050,10 +3053,6 @@ class Editor(SpyderPluginWidget):
             blanks_o = self.get_option(blanks_n)
             scrollpastend_n = 'scroll_past_end'
             scrollpastend_o = self.get_option(scrollpastend_n)
-            edgeline_n = 'edge_line'
-            edgeline_o = self.get_option(edgeline_n)
-            edgelinecols_n = 'edge_line_columns'
-            edgelinecols_o = self.get_option(edgelinecols_n)
             wrap_n = 'wrap'
             wrap_o = self.get_option(wrap_n)
             indentguides_n = 'indent_guides'
@@ -3066,10 +3065,6 @@ class Editor(SpyderPluginWidget):
             stripindent_o = self.get_option(stripindent_n)
             ibackspace_n = 'intelligent_backspace'
             ibackspace_o = self.get_option(ibackspace_n)
-            autocompletions_n = 'automatic_completions'
-            autocompletions_o = self.get_option(autocompletions_n)
-            completionshint_n = 'completions_hint'
-            completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
             add_newline_n = 'add_newline'
@@ -3101,7 +3096,6 @@ class Editor(SpyderPluginWidget):
 
             finfo = self.get_current_finfo()
 
-
             for editorstack in self.editorstacks:
                 # Checkable options
                 if blanks_n in options:
@@ -3115,21 +3109,11 @@ class Editor(SpyderPluginWidget):
                 if classfuncdropdown_n in options:
                     editorstack.set_classfunc_dropdown_visible(
                         classfuncdropdown_o)
-
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
-                if autocompletions_n in options:
-                    editorstack.set_automatic_completions_enabled(
-                        autocompletions_o)
-                if completionshint_n in options:
-                    editorstack.set_completions_hint_enabled(completionshint_o)
-                if edgeline_n in options:
-                    editorstack.set_edgeline_enabled(edgeline_o)
-                if edgelinecols_n in options:
-                    editorstack.set_edgeline_columns(edgelinecols_o)
                 if wrap_n in options:
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
@@ -3189,6 +3173,94 @@ class Editor(SpyderPluginWidget):
             if finfo is not None:
                 if todo_n in options and todo_o:
                     finfo.run_todo_finder()
+
+    @on_conf_change(option='edge_line')
+    def set_edgeline_enabled(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set edge line to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_edgeline_enabled(value)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values',
+                'pycodestyle/max_line_length'),
+        section='completions'
+    )
+    def set_edgeline_columns(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set edge line columns to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_edgeline_columns(value)
+
+    @on_conf_change(option='enable_code_snippets', section='completions')
+    def set_code_snippets_enabled(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set code snippets to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_code_snippets_enabled(value)
+
+    @on_conf_change(option='automatic_completions')
+    def set_automatic_completions_enabled(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set automatic completions to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_automatic_completions_enabled(value)
+
+    @on_conf_change(option='automatic_completions_after_chars')
+    def set_automatic_completions_after_chars(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set chars for automatic completions to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_automatic_completions_after_chars(value)
+
+    @on_conf_change(option='automatic_completions_after_ms')
+    def set_automatic_completions_after_ms(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set automatic completions after {value} ms")
+            for editorstack in self.editorstacks:
+                editorstack.set_automatic_completions_after_ms(value)
+
+    @on_conf_change(option='completions_hint')
+    def set_completions_hint_enabled(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set completions hint to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_completions_hint_enabled(value)
+
+    @on_conf_change(option='completions_hint_after_ms')
+    def set_completions_hint_after_ms(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set completions hint after {value} ms")
+            for editorstack in self.editorstacks:
+                editorstack.set_completions_hint_after_ms(value)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values',
+                'enable_hover_hints'),
+        section='completions'
+    )
+    def set_hover_hints_enabled(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set hover hints to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_hover_hints_enabled(value)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
+        section='completions'
+    )
+    def set_format_on_save(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set format on save to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_format_on_save(value)
+
+    @on_conf_change(option='underline_errors')
+    def set_underline_errors_enabled(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set underline errors to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_underline_errors_enabled(value)
 
     # --- Open files
     def get_open_filenames(self):

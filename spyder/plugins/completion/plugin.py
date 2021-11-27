@@ -386,8 +386,11 @@ class CompletionPlugin(SpyderPluginV2):
         provider tabs.
         """
         providers_to_update = set({})
-        options = [x[1] if isinstance(x, tuple) and
-                   len(x) == 2 and x[0] is None else x for x in options]
+        options = [
+            x[1] if isinstance(x, tuple) and
+            len(x) == 2 and x[0] is None or 'editor'
+            else x for x in options
+        ]
         for option in options:
             if option == 'completions_wait_for_ms':
                 self.wait_for_ms = self.get_conf(
@@ -405,49 +408,6 @@ class CompletionPlugin(SpyderPluginV2):
                         self.unregister_statusbar(provider_name)
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
-
-        # FIXME: Remove this after migrating the ConfManager to an observer
-        # pattern.
-        editor_method_sec_opts = {
-            'set_code_snippets_enabled': (self.CONF_SECTION,
-                                          'enable_code_snippets'),
-            'set_hover_hints_enabled':  (self.CONF_SECTION,
-                                         'provider_configuration',
-                                         'lsp',
-                                         'values',
-                                         'enable_hover_hints'),
-            'set_format_on_save': (self.CONF_SECTION,
-                                   'provider_configuration',
-                                   'lsp',
-                                   'values',
-                                   'format_on_save'),
-            'set_automatic_completions_enabled': ('editor',
-                                                  'automatic_completions'),
-            'set_completions_hint_enabled': ('editor', 'completions_hint'),
-            'set_completions_hint_after_ms': ('editor',
-                                              'completions_hint_after_ms'),
-            'set_underline_errors_enabled': ('editor', 'underline_errors'),
-            'set_automatic_completions_after_chars': (
-                'editor', 'automatic_completions_after_chars'),
-            'set_automatic_completions_after_ms': (
-                'editor', 'automatic_completions_after_ms'),
-            'set_edgeline_columns': (self.CONF_SECTION,
-                                     'provider_configuration',
-                                     'lsp',
-                                     'values',
-                                     'pycodestyle/max_line_length'),
-            'set_edgeline_enabled': ('editor', 'edge_line'),
-        }
-
-        for method_name, (sec, *opt) in editor_method_sec_opts.items():
-            opt = tuple(opt)
-            if len(opt) == 1:
-                opt = opt[0]
-            if opt in options:
-                opt_value = self.get_conf(opt, section=sec)
-                self.sig_editor_rpc.emit('call_all_editorstacks',
-                                         (method_name, (opt_value,),),
-                                         {})
 
         # Update entries in the source menu
         # FIXME: Delete this after CONF is moved to an observer pattern.
