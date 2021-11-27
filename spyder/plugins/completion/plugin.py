@@ -12,17 +12,15 @@ introspection providers.
 """
 
 # Standard library imports
-from collections import defaultdict
 import functools
 import inspect
 import logging
 import os
 from pkg_resources import parse_version, iter_entry_points
-from typing import List, Any, Union, Optional, Tuple
+from typing import List, Union
 
 # Third-party imports
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
-from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.manager import CONF
