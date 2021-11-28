@@ -63,8 +63,8 @@ def is_in_scope_forward(text):
     s = scopes[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
     ls = len(s)
-    if s in text[p+ls:]:
-        text = text[:p] + text[p+ls:][text[p+ls:].index(s)+ls:]
+    if s in text[p + ls:]:
+        text = text[:p] + text[p + ls:][text[p + ls:].index(s) + ls:]
         return is_in_scope_forward(text)
     elif ls == 3:
         text = text[:p]
@@ -75,27 +75,27 @@ def is_in_scope_forward(text):
         return False
 
 
-def is_touple_brackets(text):
+def is_tuple_brackets(text):
     """Check if the return type is a tuple."""
     scopes = ["(", "[", "{"]
-    compliments = [")", "]", "}"]
+    complements = [")", "]", "}"]
     indices = [10**6] * 4  # Limits return type length to 10**6
     for i in range(len(scopes)):
         if scopes[i] in text:
             indices[i] = text.index(scopes[i])
     if min(indices) == 10**6:
         return "," in text
-    s = compliments[indices.index(min(indices))]
+    s = complements[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
-    if s in text[p+1:]:
-        text = text[:p] + text[p+1:][text[p+1:].index(s)+1:]
-        return is_touple_brackets(text)
+    if s in text[p + 1:]:
+        text = text[:p] + text[p + 1:][text[p + 1:].index(s) + 1:]
+        return is_tuple_brackets(text)
     else:
         return False
 
 
-def is_touple_strings(text):
-    """Check if the return type is a tuple."""
+def is_tuple_strings(text):
+    """Check if the return type is a string."""
     text = text.replace(r"\"", "").replace(r"\'", "")
     scopes = ["'''", '"""', "'", '"']
     indices = [10**6] * 4  # Limits return type length to 10**6
@@ -103,13 +103,13 @@ def is_touple_strings(text):
         if scopes[i] in text:
             indices[i] = text.index(scopes[i])
     if min(indices) == 10**6:
-        return is_touple_brackets(text)
+        return is_tuple_brackets(text)
     s = scopes[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
     ls = len(s)
-    if s in text[p+ls:]:
-        text = text[:p] + text[p+ls:][text[p+ls:].index(s)+ls:]
-        return is_touple_strings(text)
+    if s in text[p + ls:]:
+        text = text[:p] + text[p + ls:][text[p + ls:].index(s) + ls:]
+        return is_tuple_strings(text)
     else:
         return False
 
@@ -142,10 +142,12 @@ class DocstringWriterExtension(object):
     def is_end_of_function_definition(self, text, line_number):
         """Return True if text is the end of the function definition."""
         text_without_whitespace = "".join(text.split())
-        if (text_without_whitespace.endswith("):") or
+        if (
+            text_without_whitespace.endswith("):") or
             text_without_whitespace.endswith("]:") or
             (text_without_whitespace.endswith(":") and
-             "->" in text_without_whitespace)):
+             "->" in text_without_whitespace)
+        ):
             return True
         elif text_without_whitespace.endswith(":") and line_number > 1:
             complete_text = text_without_whitespace
@@ -153,8 +155,8 @@ class DocstringWriterExtension(object):
             cursor = QTextCursor(
                 document.findBlockByNumber(line_number - 2))  # previous line
             for i in range(line_number - 2, -1, -1):
-                txt = "".join(to_text_string(cursor.block().text()).split())
-                if (txt.endswith("\\") or is_in_scope_backward(complete_text)):
+                txt = "".join(str(cursor.block().text()).split())
+                if txt.endswith("\\") or is_in_scope_backward(complete_text):
                     if txt.endswith("\\"):
                         txt = txt[:-1]
                     complete_text = txt + complete_text
@@ -163,10 +165,12 @@ class DocstringWriterExtension(object):
                 if i != 0:
                     cursor.movePosition(QTextCursor.PreviousBlock)
             if is_start_of_function(complete_text):
-                return (complete_text.endswith("):") or
-                        complete_text.endswith("]:") or
-                        (complete_text.endswith(":") and
-                         "->" in complete_text))
+                return (
+                    complete_text.endswith("):") or
+                    complete_text.endswith("]:") or
+                    (complete_text.endswith(":") and
+                     "->" in complete_text)
+                )
             else:
                 return False
         else:
@@ -936,10 +940,10 @@ class FunctionInfo(object):
             r'->[ ]*([\"\'a-zA-Z0-9_,()\[\] ]*):$', text)
         if return_type_re:
             self.return_type_annotated = return_type_re.group(1).strip(" ()\\")
-            if is_touple_strings(self.return_type_annotated):
-                self.return_type_annotated = ("("
-                                              + self.return_type_annotated
-                                              + ")")
+            if is_tuple_strings(self.return_type_annotated):
+                self.return_type_annotated = (
+                    "(" + self.return_type_annotated + ")"
+                )
             text_end = text.rfind(return_type_re.group(0))
         else:
             self.return_type_annotated = None
