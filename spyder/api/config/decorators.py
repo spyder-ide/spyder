@@ -10,8 +10,7 @@ Spyder API helper decorators.
 
 # Standard library imports
 import functools
-from typing import Callable, Type, Any, Optional, Union, List
-import inspect
+from typing import Callable, Optional, Union, List
 
 # Local imports
 from spyder.config.types import ConfigurationKey
