@@ -581,7 +581,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
         self.remove_std_files(is_last_client)
-        shutdown_kernel = is_last_client and not self.is_external_kernel
+        shutdown_kernel = (
+            is_last_client and not self.is_external_kernel
+            and not self.is_error_shown)
         self.shellwidget.shutdown(shutdown_kernel)
 
     def interrupt_kernel(self):
