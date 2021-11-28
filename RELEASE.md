@@ -89,6 +89,16 @@ To release a new version of Spyder you need to follow these steps:
 
 * Release a new version of `python-lsp-server`, if required.
 
+* Merge PRs on Conda-forge that update the `spyder-kernels` and `python-lsp-server` feedstocks (usually an automatic PR will appear that can be either merged as it is or be use as boilerplate):
+
+  - `spyder-kernels`: https://github.com/conda-forge/spyder-kernels-feedstock
+
+  - `python-lsp-server`: https://github.com/conda-forge/python-lsp-server-feedstock
+
+  **Notes**:
+
+  - Review carefully the release notes of those packages to see if it's necessary to add new dependencies or update the constraints on the current ones (e.g. `jedi >=0.17.2`).
+
 * Create a new branch in your fork with the name `update-core-deps`
 
 * Update the version of any packages required before the release in the following files:
@@ -97,7 +107,7 @@ To release a new version of Spyder you need to follow these steps:
   - `spyder/dependencies.py`
   - `requirements/conda.txt`
   - `binder/environment.yml`
-  - `spyder/plugins/ipythonconsole/plugin.py`
+  - `spyder/plugins/ipythonconsole/widgets/main_widget.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
 * Commit with
 
@@ -109,7 +119,7 @@ To release a new version of Spyder you need to follow these steps:
       git subrepo pull external-deps/spyder-kernels
       git subrepo pull external-deps/python-lsp-server
 
-* Merge this PR following the procedure mentioned on `MAINTENANCE.md`
+* Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
 
 ## To do the release
 
@@ -119,7 +129,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update CHANGELOG.md with `loghub spyder-ide/spyder -m vX.X.X`
 
-* Add sections for `New features` and `Important fixes` in CHANGELOG.md. For this take a look at closed issues and PRs for the current milestone.
+* Add sections for `New features`, `Important fixes` and `New API features` in CHANGELOG.md. For this take a look at closed issues and PRs for the current milestone.
 
 * `git add .` and `git commit -m "Update Changelog"`
 
@@ -139,7 +149,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * pip install -U pip setuptools twine wheel
 
-* python3 setup.py bdist_wheel
+* python setup.py bdist_wheel
 
 * twine check dist/*
 
@@ -168,24 +178,17 @@ To release a new version of Spyder you need to follow these steps:
 
 ## After the release
 
-* Publish release in our Github Releases page.
+* Publish release in our Github Releases page:
+  - Copy the contents of the previous release description (updating the relevant information and links to point to the new Spyder version and changelog entry).
+  - Edit the previous release description to only have the changelog line.
 
-* Publish release announcements to our list.
+* Publish release announcement to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been built.
 
-* Merge PRs on Conda-forge that update the `spyder-kernels` and `python-lsp-server` feedstocks.
-
-  **Notes**:
-
-  - Review carefully the release notes of those packages to see if it's necessary to add new dependencies or update the constraints on the current ones (e.g. `jedi >=0.17.2`).
-  - After merging each of those PRs, give a ping to the Anaconda team telling them that these packages are required for the new Spyder version. You need to use the handle `@anaconda-pkg-build` for that. Here is an example of this kinf of messages:
-
-    https://github.com/conda-forge/spyder-kernels-feedstock/pull/58#issuecomment-725664085
-
-* After those PRs are merged, go to
+* Merge PR on Conda-forge for Spyder. For that you can go to
 
   https://github.com/conda-forge/spyder-feedstock
 
-  and merge the corresponding PR for the new release.
+  and merge the corresponding PR for the new release (usually an automatic PR will appear that can be either merged as it is or be use as boilerplate).
 
   **Notes**:
 
