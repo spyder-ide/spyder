@@ -10,25 +10,22 @@ Preferences plugin public facing API
 
 # Standard library imports
 import ast
-import functools
 import os.path as osp
 
 # Third party imports
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import QSize, Qt, Signal, Slot, QRegExp
+from qtpy.QtCore import Qt, Signal, Slot, QRegExp
 from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
-from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
-                            QDialogButtonBox, QDoubleSpinBox, QFontComboBox,
-                            QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QLineEdit, QListView, QListWidget, QListWidgetItem,
-                            QMessageBox, QPushButton, QRadioButton,
-                            QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QVBoxLayout, QWidget, QPlainTextEdit, QTabWidget)
+from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
+                            QFontComboBox, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QRadioButton, QSpinBox, QVBoxLayout, QWidget,
+                            QPlainTextEdit, QTabWidget)
 
 # Local imports
-from spyder.config.base import _, load_lang_conf
+from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
