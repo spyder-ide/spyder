@@ -589,3 +589,79 @@ def test_editor_docstring_with_body_googledoc(qtbot, editor_auto_docstring,
     writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def test(self) -> Annotated[str, int("2")]:
+      ''',
+         '''  def test(self) -> Annotated[str, int("2")]:
+      """\n      \n
+      Returns
+      -------
+      Annotated[str, int("2")]
+          DESCRIPTION.
+
+      """
+      ''',)
+    ])
+def test_docstring_annotated_call(editor_auto_docstring, text, expected):
+    """
+    Test auto docstring with annotated function call.
+
+    This is a regression tests for issue spyder-ide/spyder#14520
+    """
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+
+    editor.writer_docstring.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def test(v:
+           int):
+      ''',
+         '''  def test(v:
+           int):
+      """\n      \n
+      Parameters
+      ----------
+      v : int
+          DESCRIPTION.
+
+      Returns
+      -------
+      None.
+
+      """
+      ''',)
+    ])
+def test_docstring_line_break(editor_auto_docstring, text, expected):
+    """
+    Test auto docstring with function call with line breaks.
+
+    This is a regression tests for issue spyder-ide/spyder#14521
+    """
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+
+    editor.writer_docstring.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
