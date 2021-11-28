@@ -18,7 +18,6 @@ import uuid
 # Third-party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
-from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -35,7 +34,8 @@ from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_conf_path, get_home_dir, running_under_pytest)
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
+from spyder.plugins.ipythonconsole.utils.manager import (
+    SpyderKernelManager, SpyderKernelClient)
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
@@ -1095,7 +1095,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               std_dir=self._test_dir)
 
         # Create kernel client
-        kernel_client = QtKernelClient(connection_file=connection_file)
+        kernel_client = SpyderKernelClient(connection_file=connection_file)
 
         # This is needed for issue spyder-ide/spyder#9304.
         try:

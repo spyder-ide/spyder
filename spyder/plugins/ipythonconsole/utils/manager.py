@@ -15,7 +15,15 @@ import sys
 
 # Third party imports
 from qtconsole.manager import QtKernelManager
+from qtconsole.client import QtKernelClient, QtZMQSocketChannel
 import psutil
+from traitlets import Type, DottedObjectName
+
+
+class SpyderKernelClient(QtKernelClient):
+    # Enable recieving messages on control channel
+    # Useful for pdb completion
+    control_channel_class = Type(QtZMQSocketChannel)
 
 # qtconsole and spyder-kernels depend on jupyter_client
 if hasattr(QtKernelManager, 'provisioner'):
@@ -33,6 +41,9 @@ class SpyderKernelManager(QtKernelManager):
     started so this subclass overrides the `_kill_kernel` method to properly
     kill the started kernels by using psutil.
     """
+
+    client_class = DottedObjectName(
+        'spyder.plugins.ipythonconsole.utils.manager.SpyderKernelClient')
 
     def __init__(self, *args, **kwargs):
         self.shutting_down = False
