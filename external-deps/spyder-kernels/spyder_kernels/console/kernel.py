@@ -94,6 +94,10 @@ class SpyderKernel(IPythonKernel):
         self._pdb_input_line = None
         self.faulthandler_handle = None
 
+        self.control_handlers['comm_msg'] = self.control_comm_msg
+        self.control_handlers['complete_request'] = self.shell_handlers[
+            'complete_request']
+
     # -- Public API -----------------------------------------------------------
     def do_shutdown(self, restart):
         """Disable faulthandler if enabled before proceeding."""
@@ -829,3 +833,21 @@ class SpyderKernel(IPythonKernel):
             return self.comm_manager.comms[comm_id]
         except KeyError:
             pass
+
+    def control_comm_msg(self, stream, ident, msg):
+        """
+        Handler for comm_msg messages from control channel.
+
+        If comm is not open yet, cache message.
+        """
+        content = msg['content']
+        comm_id = content['comm_id']
+        comm = self.comm_manager.get_comm(comm_id)
+        if comm is None:
+            self.frontend_comm.cache_message(comm_id, msg)
+            return
+        try:
+            comm.handle_msg(msg)
+        except Exception:
+            self.comm_manager.log.error(
+                'Exception in comm_msg for %s', comm_id, exc_info=True)

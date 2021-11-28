@@ -332,9 +332,7 @@ def cmd_input(prompt=''):
 
 pdb.Pdb = SpyderPdb
 
-if PY2:
-    cmd.raw_input = cmd_input
-else:
+if not PY2:
     cmd.input = cmd_input
 
 
