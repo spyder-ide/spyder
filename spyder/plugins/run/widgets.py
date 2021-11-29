@@ -192,7 +192,8 @@ class RunConfigOptions(QWidget):
         interpreter_group = QGroupBox(_("Console"))
         interpreter_group.setDisabled(True)
 
-        self.run_custom_config_radio.toggled.connect(interpreter_group.setEnabled)
+        self.run_custom_config_radio.toggled.connect(
+            interpreter_group.setEnabled)
 
         interpreter_layout = QVBoxLayout(interpreter_group)
 
@@ -263,8 +264,10 @@ class RunConfigOptions(QWidget):
         external_group = QGroupBox(_("External system terminal"))
         external_group.setDisabled(True)
 
-        self.run_custom_config_radio.toggled.connect(lambda x:
-            external_group.setEnabled(x and self.systerm_radio.isChecked()))
+        self.run_custom_config_radio.toggled.connect(
+            lambda x: external_group.setEnabled(
+                x and self.systerm_radio.isChecked())
+            )
         self.systerm_radio.toggled.connect(external_group.setEnabled)
 
         external_layout = QGridLayout()
