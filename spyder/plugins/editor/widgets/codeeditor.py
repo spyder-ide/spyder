@@ -151,6 +151,7 @@ class CodeEditor(TextEditBaseWidget):
     indent_guides = None
 
     sig_breakpoints_changed = Signal()
+    sig_repaint_breakpoints = Signal()
     sig_debug_stop = Signal((int,), ())
     sig_debug_start = Signal()
     sig_breakpoints_saved = Signal()
@@ -347,7 +348,7 @@ class CodeEditor(TextEditBaseWidget):
         self.debugger = DebuggerManager(self)
         self.panels.register(DebuggerPanel())
         # Update breakpoints if the number of lines in the file changes
-        self.blockCountChanged.connect(self.debugger.update_breakpoints)
+        self.blockCountChanged.connect(self.sig_breakpoints_changed)
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
@@ -2428,7 +2429,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.unhighlight_current_line()
         if self.occurrence_highlighting:
-            self.occurrence_timer.stop()
             self.occurrence_timer.start()
 
         # Strip if needed

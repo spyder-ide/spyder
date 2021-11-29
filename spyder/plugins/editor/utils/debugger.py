@@ -155,16 +155,13 @@ class DebuggerManager(Manager):
             self.toogle_breakpoint(line_number, condition)
         self.breakpoints = self.get_breakpoints()
 
-    def update_breakpoints(self):
-        """Update breakpoints"""
-        self.editor.sig_breakpoints_changed.emit()
-
     def breakpoints_changed(self):
         """Breakpoint list has changed"""
         breakpoints = self.get_breakpoints()
         if self.breakpoints != breakpoints:
             self.breakpoints = breakpoints
             self.save_breakpoints()
+            self.editor.sig_repaint_breakpoints.emit()
 
     def save_breakpoints(self):
         breakpoints = repr(self.breakpoints)
