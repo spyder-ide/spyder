@@ -582,6 +582,7 @@ class CodeEditor(TextEditBaseWidget):
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
+        self.ancestor_text = ''
         self.patch = []
         self.leading_whitespaces = {}
 
@@ -1178,13 +1179,23 @@ class CodeEditor(TextEditBaseWidget):
         method=CompletionRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self):
         """Send textDocument/didChange request to the server."""
-        self.text_version += 1
         # Cancel formatting
         self.formatting_in_progress = False
         text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP
             text = self.ipython_to_python(text)
+
+        if (len(self._pending_server_requests) > 0  and
+                self._pending_server_requests[-1][0] ==
+                CompletionRequestTypes.DOCUMENT_DID_CHANGE):
+            # Replace last call
+            self._pending_server_requests.pop(-1)
+            self.previous_text = self.ancestor_text
+        else:
+            self.text_version += 1
+            self.ancestor_text = self.previous_text
+
         self.patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
         cursor = self.textCursor()
