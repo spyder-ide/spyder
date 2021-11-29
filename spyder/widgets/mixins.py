@@ -675,7 +675,6 @@ class BaseEditMixin(object):
             self.document().setModified(True)
             if self.sig_eol_chars_changed is not None:
                 self.sig_eol_chars_changed.emit(eol_chars)
-            self.document_did_change(text)
 
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
@@ -928,7 +927,6 @@ class BaseEditMixin(object):
             self.textCursor().insertText(text)
             if self.sig_text_was_inserted is not None:
                 self.sig_text_was_inserted.emit()
-            self.document_did_change()
 
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
@@ -941,7 +939,6 @@ class BaseEditMixin(object):
         cursor.insertText(text)
         if self.sig_text_was_inserted is not None:
             self.sig_text_was_inserted.emit()
-        self.document_did_change()
 
     def remove_text(self, position_from, position_to):
         cursor = self.__select_text(position_from, position_to)
@@ -949,7 +946,6 @@ class BaseEditMixin(object):
             start, end = self.get_selection_start_end(cursor)
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
-        self.document_did_change()
 
     def get_current_object(self):
         """
@@ -1171,7 +1167,6 @@ class BaseEditMixin(object):
         cursor = self.textCursor()
         cursor.setPosition(cursor.position())
         self.setTextCursor(cursor)
-        self.document_did_change()
 
     def replace(self, text, pattern=None):
         """Replace selected text by *text*.
@@ -1195,7 +1190,6 @@ class BaseEditMixin(object):
         if self.sig_text_was_inserted is not None:
             self.sig_text_was_inserted.emit()
         cursor.endEditBlock()
-        self.document_did_change()
 
 
     #------Find/replace
@@ -1380,7 +1374,6 @@ class BaseEditMixin(object):
                 if self.sig_text_was_inserted is not None:
                     self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
-                self.document_did_change()
 
 
 class TracebackLinksMixin(object):
