@@ -70,7 +70,7 @@ from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.panels.utils import (
     merge_folding, collect_folding_regions)
 from spyder.plugins.completion.decorators import (
-    handles, class_register)
+    request, handles, class_register)
 from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
@@ -1127,7 +1127,8 @@ class CodeEditor(TextEditBaseWidget):
         logger.debug('Stopping completion services for %s' % self.filename)
         self.completions_available = False
 
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
+    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN,
+                      requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
         cursor = self.textCursor()
@@ -1186,7 +1187,7 @@ class CodeEditor(TextEditBaseWidget):
             # Send valid python text to LSP
             text = self.ipython_to_python(text)
 
-        if (len(self._pending_server_requests) > 0  and
+        if (len(self._pending_server_requests) > 0 and
                 self._pending_server_requests[-1][0] ==
                 CompletionRequestTypes.DOCUMENT_DID_CHANGE):
             # Replace last call
@@ -1982,10 +1983,12 @@ class CodeEditor(TextEditBaseWidget):
             params['text'] = self.get_text_with_eol()
         return params
 
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
     def notify_close(self):
         """Send close request."""
+        self._pending_server_requests = []
+        self.server_requests_timer.stop()
         if self.completions_available:
             params = {
                 'file': self.filename,
