@@ -117,7 +117,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self._current_cell_cursor = None
         self._current_line_block = None
 
-
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()

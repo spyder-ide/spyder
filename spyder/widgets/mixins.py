@@ -54,7 +54,7 @@ EOL_SYMBOLS = [
     "\x85",   # Next Line (C1 Control Code)
     "\u2028",   # Line Separator
     "\u2029",   # Paragraph Separator
-    ]
+]
 
 
 class BaseEditMixin(object):

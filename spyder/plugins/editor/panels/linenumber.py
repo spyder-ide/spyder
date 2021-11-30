@@ -51,7 +51,7 @@ class LineNumberArea(Panel):
         self._pressed = -1
         self._released = -1
 
-        # Caching
+        # This is a tuple composed of (number of digits, current width)
         self._width_cache = None
 
     def sizeHint(self):

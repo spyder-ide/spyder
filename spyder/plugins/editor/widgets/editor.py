@@ -1501,7 +1501,6 @@ class EditorStack(QWidget):
             # Try finding without calling the slow realpath
             return data_filenames.index(filename)
         except ValueError:
-
             def fixpath(path):
                 return osp.normcase(osp.realpath(path))
 
