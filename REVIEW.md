@@ -41,6 +41,7 @@ Other notes:
 - Unless the reviewer has explicit permission on the conversation for that PR, reviewers should not commit to the same branch as the PR being reviewed.
 - If more than roughly 20% of review comments fall in the `[optional]` section described below, then it is worth adding this feedback in an issue referencing the PR instead of on the PR directly.
 - Whenever practical, reviewers should add comments asking for a specific change as [GitHub suggestions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request).
+- If after discussion, an author and a reviewer still don't agree on a change and can't come up with a solution that addresses the concerns of both parties, another maintainer of the repository in question (or if not available, another Spyder core developer) should be pinged to give a second opinion and mediate the disagreement.
 
 ## Reviewing process
 
@@ -76,8 +77,6 @@ PR authors are responsible for addressing required reviews for the PR to be elig
 
 - [ ] User-facing changes
     - What use cases might this change influence?
-    - Does the user experience match existing patterns in Spyder?
-      If it does not, why was the choice made?
     - Is in-interface text (new or modified) appropriately descriptive and free of spelling or grammar issues that would make its meaning unclear?
 
 #### Optional items
