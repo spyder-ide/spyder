@@ -575,9 +575,9 @@ class CodeEditor(TextEditBaseWidget):
         self.is_redoing = False
 
         # Timer to Avoid too many calls to rehighlight.
-        self.rehighlight_timer = QTimer(self)
-        self.rehighlight_timer.setSingleShot(True)
-        self.rehighlight_timer.setInterval(150)
+        self._rehighlight_timer = QTimer(self)
+        self._rehighlight_timer.setSingleShot(True)
+        self._rehighlight_timer.setInterval(150)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -736,7 +736,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
-        self.rehighlight_timer.timeout.connect(
+        self._rehighlight_timer.timeout.connect(
             self.highlighter.rehighlight)
         self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
@@ -2171,7 +2171,7 @@ class CodeEditor(TextEditBaseWidget):
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
-        self.rehighlight_timer.timeout.connect(
+        self._rehighlight_timer.timeout.connect(
             self.highlighter.rehighlight)
 
     def add_to_cell_list(self, oedata):
@@ -2756,7 +2756,7 @@ class CodeEditor(TextEditBaseWidget):
             if color_scheme is not None:
                 self.set_color_scheme(color_scheme)
             else:
-                self.rehighlight_timer.start()
+                self._rehighlight_timer.start()
 
     def set_font(self, font, color_scheme=None):
         """Set font"""
