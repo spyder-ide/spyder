@@ -75,7 +75,8 @@ class PluginsConfigPage(PluginConfigPage):
             cb = newcb(plugin_loc_name, 'enable', default=True,
                        section=conf_section_name, restart=True)
             external_layout.addWidget(cb, i // 2, i % 2)
-            self.plugins_checkboxes[plugin_name] = cb
+            plugin_state = CONF.get(conf_section_name, 'enable', True)
+            self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
             i += 1
 
         self.external_plugins_group.setLayout(external_layout)
