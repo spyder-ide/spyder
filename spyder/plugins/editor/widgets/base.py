@@ -494,11 +494,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
         # spyder-ide/spyder#1546).
-        text = super(TextEditBaseWidget, self).toPlainText()
         if os.name == 'nt' and PY3:
+            text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
                        .replace('\u0085', '\n')
-        return text
+        return super(TextEditBaseWidget, self).toPlainText()
 
     def keyPressEvent(self, event):
         key = event.key()
