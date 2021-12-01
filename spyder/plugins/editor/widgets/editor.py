@@ -47,6 +47,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
@@ -1501,9 +1502,6 @@ class EditorStack(QWidget):
             # Try finding without calling the slow realpath
             return data_filenames.index(filename)
         except ValueError:
-            def fixpath(path):
-                return osp.normcase(osp.realpath(path))
-
             filename = fixpath(filename)
             for index, editor_filename in enumerate(data_filenames):
                 if filename == fixpath(editor_filename):
