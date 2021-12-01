@@ -225,7 +225,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.last_edit_cursor_pos = None
         self.cursor_pos_history = []
-        self.cursor_pos_index = None
+        self.cursor_pos_redo_history = []
         self.__ignore_cursor_position = True
 
         # Completions setup
@@ -2536,36 +2536,34 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     #------ Cursor position history management
     def update_cursorpos_actions(self):
         self.previous_edit_cursor_action.setEnabled(
-                                        self.last_edit_cursor_pos is not None)
+            self.last_edit_cursor_pos is not None)
         self.previous_cursor_action.setEnabled(
-               self.cursor_pos_index is not None and self.cursor_pos_index > 0)
-        self.next_cursor_action.setEnabled(self.cursor_pos_index is not None \
-                    and self.cursor_pos_index < len(self.cursor_pos_history)-1)
+            len(self.cursor_pos_history) > 0)
+        self.next_cursor_action.setEnabled(
+            len(self.cursor_pos_redo_history) > 0)
 
-    def add_cursor_position_to_history(self, filename, position, line, column,
-                                       fc=False):
+    def add_cursor_position_to_history(self, filename, position, line, column):
         if self.__ignore_cursor_position:
             return
-        for index, (fname, pos, c_line, c_col) in enumerate(
-                self.cursor_pos_history):
+
+        replace_last_entry = False
+        if len(self.cursor_pos_history) > 0:
+            fname, pos, c_line, c_col = self.cursor_pos_history[-1]
             if fname == filename:
-                if pos == position or pos == 0 or line == c_line:
-                    if fc:
-                        self.cursor_pos_history[index] = (filename, position,
-                                                          line, column)
-                        self.cursor_pos_index = index
-                        self.update_cursorpos_actions()
-                        return
-                    else:
-                        if self.cursor_pos_index >= index:
-                            self.cursor_pos_index -= 1
-                        self.cursor_pos_history.pop(index)
-                        break
-        if self.cursor_pos_index is not None:
-            self.cursor_pos_history = \
-                        self.cursor_pos_history[:self.cursor_pos_index+1]
+                if line == c_line:
+                    # Only save one cursor position per line
+                    replace_last_entry = True
+                elif abs(pos - position) < 2:
+                    # No need to save when moving a single position
+                    replace_last_entry = True
+
+        if replace_last_entry:
+            self.cursor_pos_history.pop()
+        else:
+            # Drop redo stack as we moved
+            self.cursor_pos_redo_history = []
+
         self.cursor_pos_history.append((filename, position, line, column))
-        self.cursor_pos_index = len(self.cursor_pos_history)-1
         self.update_cursorpos_actions()
 
     def text_changed_at(self, filename, position):
@@ -2573,7 +2571,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def current_file_changed(self, filename, position, line, column):
         self.add_cursor_position_to_history(to_text_string(filename), position,
-                                            line, column, fc=True)
+                                            line, column)
 
         # Hide any open tooltips
         current_stack = self.get_current_editorstack()
@@ -2594,19 +2592,23 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         position = code_editor.get_position('cursor')
         line, column = code_editor.get_cursor_line_column()
         self.add_cursor_position_to_history(
-            to_text_string(filename), position, line, column, fc=True)
+            to_text_string(filename), position, line, column)
 
     def remove_file_cursor_history(self, id, filename):
         """Remove the cursor history of a file if the file is closed."""
         new_history = []
         for i, (cur_filename, pos, line, column) in enumerate(
                 self.cursor_pos_history):
-            if cur_filename == filename:
-                if i < self.cursor_pos_index:
-                    self.cursor_pos_index = self.cursor_pos_index - 1
-            else:
+            if cur_filename != filename:
                 new_history.append((cur_filename, pos, line, column))
         self.cursor_pos_history = new_history
+
+        new_redo_history = []
+        for i, (cur_filename, pos, line, column) in enumerate(
+                self.cursor_pos_redo_history):
+            if cur_filename != filename:
+                new_redo_history.append((cur_filename, pos, line, column))
+        self.cursor_pos_redo_history = new_redo_history
 
     @Slot()
     def go_to_last_edit_location(self):
@@ -2626,26 +2628,32 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         Move the cursor position forward or backward in the cursor
         position history by the specified index increment.
         """
-        if self.cursor_pos_index is None:
-            return
-        filename, _position, _line, _column = (
-            self.cursor_pos_history[self.cursor_pos_index])
+        # Update last position on the line
+        filename = self.get_current_filename()
+        position = self.get_current_editor().get_position('cursor')
         cur_line, cur_col = self.get_current_editor().get_cursor_line_column()
-        self.cursor_pos_history[self.cursor_pos_index] = (
-            filename, self.get_current_editor().get_position('cursor'),
-            cur_line, cur_col)
+        self.cursor_pos_history[-1] = (
+            filename, position, cur_line, cur_col)
         self.__ignore_cursor_position = True
-        old_index = self.cursor_pos_index
-        self.cursor_pos_index = min(len(self.cursor_pos_history) - 1,
-                                    max(0, self.cursor_pos_index + index_move))
+
+        if index_move < 0:
+            if len(self.cursor_pos_history) > -index_move:
+                for i in range(-index_move):
+                    # Put in the redo array
+                    self.cursor_pos_redo_history.append(
+                        self.cursor_pos_history.pop())
+        else:
+            if len(self.cursor_pos_redo_history) >= index_move:
+                for i in range(index_move):
+                    # Remove from  the redo array
+                    self.cursor_pos_history.append(
+                        self.cursor_pos_redo_history.pop())
+
         filename, position, line, col = (
-            self.cursor_pos_history[self.cursor_pos_index])
+            self.cursor_pos_history[-1])
         filenames = self.get_current_editorstack().get_filenames()
         if not osp.isfile(filename) and filename not in filenames:
-            self.cursor_pos_history.pop(self.cursor_pos_index)
-            if self.cursor_pos_index <= old_index:
-                old_index -= 1
-            self.cursor_pos_index = old_index
+            self.cursor_pos_history.pop()
         else:
             self.load(filename)
             editor = self.get_current_editor()
@@ -2656,11 +2664,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot()
     def go_to_previous_cursor_position(self):
+        self.__ignore_cursor_position = True
         self.switch_to_plugin()
         self.__move_cursor_position(-1)
 
     @Slot()
     def go_to_next_cursor_position(self):
+        self.__ignore_cursor_position = True
         self.switch_to_plugin()
         self.__move_cursor_position(1)
 

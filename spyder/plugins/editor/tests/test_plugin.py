@@ -263,15 +263,16 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
             editor_plugin.go_to_previous_cursor_position()
         elif move == 1:
             editor_plugin.go_to_next_cursor_position()
-
-        assert editor_plugin.cursor_pos_index == index
+        assert len(editor_plugin.cursor_pos_history) - 1 == index
         cur_line, cur_col = (
             editorstack.get_current_editor().get_cursor_line_column())
         assert (editor_plugin.get_current_filename(),
                 editor_plugin.get_current_editor().get_position('cursor'),
                 cur_line, cur_col
                 ) == expected_cursor_pos_history[index]
-    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history[:1]
+    assert (editor_plugin.cursor_pos_redo_history
+            == expected_cursor_pos_history[:0:-1])
 
     # So we are now expected to be at index 0 in the cursor position history.
     # From there, we go to the fourth file.
@@ -283,6 +284,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_pos_history = expected_cursor_pos_history[:1]
     expected_cursor_pos_history.append((filenames[3], 0, 0, 0))
     assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+    assert editor_plugin.cursor_pos_redo_history == []
 
 
 def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
