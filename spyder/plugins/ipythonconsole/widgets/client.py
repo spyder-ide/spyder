@@ -498,6 +498,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if "http://bugs.python.org/issue1666807" in error:
             # See spyder-ide/spyder#16828
             return
+        if "https://bugs.python.org/issue1180193" in error:
+            # See spyder-ide/spyder#16927
+            return
 
         InstallerIPythonKernelError(error)
 
