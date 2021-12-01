@@ -1505,8 +1505,8 @@ class EditorStack(QWidget):
                 return osp.normcase(osp.realpath(path))
 
             filename = fixpath(filename)
-            for index, fn in enumerate(data_filenames):
-                if filename == fixpath(fn):
+            for index, editor_filename in enumerate(data_filenames):
+                if filename == fixpath(editor_filename):
                     return index
             return None
 
