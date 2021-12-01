@@ -112,7 +112,7 @@ def schedule_request(req=None, method=None, requires_response=True):
         if params is not None and self.completions_available:
             self._pending_server_requests.append(
                 (method, params, requires_response))
-            self.server_requests_timer.start()
+            self._server_requests_timer.start()
     return wrapper
 
 
@@ -464,12 +464,12 @@ class CodeEditor(TextEditBaseWidget):
             lambda value: self.update_decorations_timer.start())
 
         # LSP
-        self.textChanged.connect(self.document_did_change)
+        self.textChanged.connect(self.schedule_document_did_change)
         self._pending_server_requests = []
-        self.server_requests_timer = QTimer(self)
-        self.server_requests_timer.setSingleShot(True)
-        self.server_requests_timer.setInterval(100)
-        self.server_requests_timer.timeout.connect(
+        self._server_requests_timer = QTimer(self)
+        self._server_requests_timer.setSingleShot(True)
+        self._server_requests_timer.setInterval(100)
+        self._server_requests_timer.timeout.connect(
             self.process_server_requests)
 
         # Mark found results
@@ -582,7 +582,6 @@ class CodeEditor(TextEditBaseWidget):
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
-        self.ancestor_text = ''
         self.patch = []
         self.leading_whitespaces = {}
 
@@ -598,6 +597,11 @@ class CodeEditor(TextEditBaseWidget):
     # --- Helper private methods
     # ------------------------------------------------------------------------
     def process_server_requests(self):
+        """Process server requests."""
+        # Check if document needs to be updated:
+        if self._document_server_needs_update:
+            self.document_did_change()
+            self._document_server_needs_update = False
         for method, params, requires_response in self._pending_server_requests:
             self.emit_request(method, params, requires_response)
         self._pending_server_requests = []
@@ -1176,8 +1180,14 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing symbols")
 
     # ------------- LSP: Linting ---------------------------------------
-    @schedule_request(
-        method=CompletionRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
+    def schedule_document_did_change(self):
+        """Schedule a document update."""
+        self._document_server_needs_update = True
+        self._server_requests_timer.start()
+
+    @request(
+        method=CompletionRequestTypes.DOCUMENT_DID_CHANGE,
+        requires_response=False)
     def document_did_change(self):
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
@@ -1187,15 +1197,7 @@ class CodeEditor(TextEditBaseWidget):
             # Send valid python text to LSP
             text = self.ipython_to_python(text)
 
-        if (len(self._pending_server_requests) > 0 and
-                self._pending_server_requests[-1][0] ==
-                CompletionRequestTypes.DOCUMENT_DID_CHANGE):
-            # Replace last call
-            self._pending_server_requests.pop(-1)
-            self.previous_text = self.ancestor_text
-        else:
-            self.text_version += 1
-            self.ancestor_text = self.previous_text
+        self.text_version += 1
 
         self.patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
@@ -1988,7 +1990,7 @@ class CodeEditor(TextEditBaseWidget):
     def notify_close(self):
         """Send close request."""
         self._pending_server_requests = []
-        self.server_requests_timer.stop()
+        self._server_requests_timer.stop()
         if self.completions_available:
             params = {
                 'file': self.filename,
