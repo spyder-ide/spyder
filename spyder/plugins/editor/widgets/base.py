@@ -65,7 +65,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Code snippets
         self.code_snippets = True
 
-        self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
 
         self.indent_chars = " "*4
@@ -213,10 +212,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.decorations.remove(decoration)
         self.extra_selections_dict[key] = []
         self.update()
-
-    def changed(self):
-        """Emit changed signal"""
-        self.modificationChanged.emit(self.document().isModified())
 
     def get_visible_block_numbers(self):
         """Get the first and last visible block numbers."""
