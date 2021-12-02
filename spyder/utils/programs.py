@@ -852,12 +852,8 @@ def check_version(actver, version, cmp_op):
 
 def get_module_version(module_name):
     """Return module version or None if version can't be retrieved."""
-    ver = None
-    try:
-        mod = __import__(module_name)
-        ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
-    except ModuleNotFoundError:
-        pass
+    mod = __import__(module_name)
+    ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
     if not ver:
         ver = get_package_version(module_name)
     return ver
