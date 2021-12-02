@@ -966,6 +966,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
     # --- Use cwd for this file ---
     rc = RunConfiguration().get()
+    rc['default'] = False
     rc['file_dir'] = False
     rc['cw_dir'] = True
     config_entry = (test_file, rc)
@@ -1022,8 +1023,8 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # --- Set run options for this file ---
     rc = RunConfiguration().get()
-    # A dedicated console is used when these two options are False
-    rc['current'] = rc['systerm'] = False
+    # A dedicated console is used when these three options are False
+    rc['default'] = rc['current'] = rc['systerm'] = False
     config_entry = (test_file, rc)
     CONF.set('run', 'configurations', [config_entry])
 
