@@ -35,12 +35,12 @@ SPYLINK = os.path.join(THISDIR, 'spyder')
 
 sys.path.append(SPYREPO)
 
+from spyder import __version__ as SPYVER
+from spyder.config.base import MAC_APP_NAME
+
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
          sys.version_info.micro]
-
-from spyder import __version__ as SPYVER
-from spyder.config.base import MAC_APP_NAME
 
 
 def make_app_bundle(dist_dir, make_lite=False):
@@ -327,7 +327,8 @@ if __name__ == '__main__':
                         default=False, help='Create disk image')
     parser.add_argument('-d', '--dist-dir', dest='dist_dir', default='dist',
                         help='Distribution directory; passed to py2app')
-    parser.add_argument('-b', '--bdist-base', dest='build_dir', default='build',
+    parser.add_argument('-b', '--bdist-base', dest='build_dir',
+                        default='build',
                         help='Build directory; passed to py2app')
 
     args, rem = parser.parse_known_args()
