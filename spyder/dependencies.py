@@ -307,9 +307,23 @@ class Dependency(object):
         self.required_version = required_version
         self.kind = kind
 
+        # Although this is not necessarily the case, it's customary that a
+        # package's distribution name be it's name on PyPI with hyphens
+        # replaced by underscores.
+        # Example:
+        # * Package name: python-lsp-black.
+        # * Distribution name: python_lsp_black
+        self.distribution_name = self.package_name.replace('-', '_')
+
         if installed_version is None:
             try:
                 self.installed_version = programs.get_module_version(modname)
+                if not self.installed_version:
+                    # Use get_package_version and the distribution name
+                    # because there are cases for which the version can't
+                    # be obtained from the module (e.g. pylsp_black).
+                    self.installed_version = programs.get_package_version(
+                        self.distribution_name)
             except Exception:
                 # NOTE: Don't add any exception type here!
                 # Modules can fail to import in several ways besides
@@ -321,8 +335,12 @@ class Dependency(object):
     def check(self):
         """Check if dependency is installed"""
         if self.required_version:
-            return programs.is_module_installed(self.modname,
-                                                self.required_version)
+            installed = programs.is_module_installed(
+                self.modname,
+                self.required_version,
+                distribution_name=self.distribution_name
+            )
+            return installed
         else:
             return True
 
@@ -386,19 +404,21 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
     maxwidth += 1
     text = ""
     prev_order = '-1'
-    for order, title, version in sorted(data,
-                                        key=lambda x: x[0] + x[1].lower()):
+    for order, title, version in sorted(
+            data, key=lambda x: x[0] + x[1].lower()):
         if order != prev_order:
-            text += '{sep}# {name}:{sep}'.format(
-                sep=linesep, name=order_dep[order].capitalize())
+            name = order_dep[order]
+            if name == MANDATORY:
+                text += f'# {name.capitalize()}:{linesep}'
+            else:
+                text += f'{linesep}# {name.capitalize()}:{linesep}'
             prev_order = order
 
-        text += '{title}:  {version}{linesep}'.format(
-            title=title.ljust(maxwidth), version=version, linesep=linesep)
+        text += f'{title.ljust(maxwidth)}:  {version}{linesep}'
 
-    # Remove spurious linesep's when reporting deps to Github
+    # Remove spurious linesep when reporting deps to Github
     if not linesep == '<br>':
-        text = text[1:-1]
+        text = text[:-1]
 
     return text
 
