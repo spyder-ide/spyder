@@ -155,6 +155,7 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'textdistance', 'debugpy',
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()
+                'jellyfish',
                 # required for sphinx
                 'sphinxcontrib.applehelp', 'sphinxcontrib.devhelp',
                 'sphinxcontrib.htmlhelp', 'sphinxcontrib.jsmath',
@@ -254,7 +255,7 @@ def copy_egg_info(dist_dir):
         try:
             dist = pkg_resources.get_distribution(top)
             egg = dist.egg_info
-        except (pkg_resources.DistributionNotFound, AttributeError):
+        except Exception:
             egg = egg_map.get(top, None)
 
         if egg is not None:
