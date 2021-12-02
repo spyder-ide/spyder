@@ -188,6 +188,8 @@ def test_is_module_installed():
     assert is_module_installed('qtconsole', '>=4.5')
     assert not is_module_installed('IPython', '>=1.0;<3.0')
     assert is_module_installed('jedi', '>=0.7.0')
+    assert not is_module_installed('foo')
+    assert not is_module_installed('foo1', '>=1.2.0')
 
 
 def test_is_module_installed_with_custom_interpreter():
