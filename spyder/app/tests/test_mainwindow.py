@@ -843,6 +843,9 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
+    # Wait until continue and stop on the breakpoint
+    qtbot.waitUntil(lambda: "IPdb [2]:" in control.toPlainText())
+
     # Verify that we are still on debugging
     assert shell.is_waiting_pdb_input()
 

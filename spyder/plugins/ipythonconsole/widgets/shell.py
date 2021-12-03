@@ -303,8 +303,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def remote_set_cwd(self, cwd):
         """Get current working directory from kernel."""
-        self._cwd = cwd
-        self.sig_working_directory_changed.emit(self._cwd)
+        if cwd != self._cwd:
+            self._cwd = cwd
+            self.sig_working_directory_changed.emit(self._cwd)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""

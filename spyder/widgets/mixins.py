@@ -38,6 +38,25 @@ from spyder.utils.palette import QStylePalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 
+# List of possible EOL symbols
+EOL_SYMBOLS = [
+    # Put first as it correspond to a single line return
+    "\r\n"  # Carriage Return + Line Feed
+    "\n",  # Line Feed
+    "\r",  # Carriage Return
+    "\v",  # Line Tabulation
+    "\x0b",  # Line Tabulation
+    "\f",  # Form Feed
+    "\x0c",   # Form Feed
+    "\x1c",   # File Separator
+    "\x1d",   # Group Separator
+    "\x1e",   # Record Separator
+    "\x85",   # Next Line (C1 Control Code)
+    "\u2028",   # Line Separator
+    "\u2029",   # Paragraph Separator
+]
+
+
 class BaseEditMixin(object):
 
     _PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
@@ -690,12 +709,10 @@ class BaseEditMixin(object):
         characters.
         """
         text = self.toPlainText()
-        lines = text.splitlines()
         linesep = self.get_line_separator()
-        text_with_eol = linesep.join(lines)
-        if text.endswith('\n'):
-            text_with_eol += linesep
-        return text_with_eol
+        for symbol in EOL_SYMBOLS:
+            text = text.replace(symbol, linesep)
+        return text
 
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
@@ -901,9 +918,7 @@ class BaseEditMixin(object):
         if remove_newlines:
             remove_newlines = position_from != 'sof' or position_to != 'eof'
         if text and remove_newlines:
-            while text.endswith("\n"):
-                text = text[:-1]
-            while text.endswith(u"\u2029"):
+            while text and text[-1] in EOL_SYMBOLS:
                 text = text[:-1]
         return text
 
