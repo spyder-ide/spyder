@@ -953,9 +953,9 @@ the sympy module (e.g. plot)
         """
         color_scheme = get_color_scheme(self.syntax_style)
         return dict(
-            bgcolor = color_scheme['background'],
-            select = color_scheme['background'],
-            fgcolor = color_scheme['normal'][0])[color]
+            bgcolor=color_scheme['background'],
+            select=color_scheme['background'],
+            fgcolor=color_scheme['normal'][0])[color]
 
     def _prompt_started_hook(self):
         """Emit a signal when the prompt is ready."""
