@@ -23,6 +23,7 @@ from qtpy import QtCore, QtWidgets, QtGui
 # Local imports
 from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
+from spyder.config.gui import get_color_scheme
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils import encoding
@@ -944,6 +945,17 @@ the sympy module (e.g. plot)
             self._highlighter._clear_caches()
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
+
+    def _get_colors(self, color):
+        """
+        Get a color as qtconsole.styles.get_colors() would return from
+        a builtin Pygments style
+        """
+        color_scheme = get_color_scheme(self.syntax_style)
+        return dict(
+            bgcolor = color_scheme['background'],
+            select = color_scheme['background'],
+            fgcolor = color_scheme['normal'][0])[color]
 
     def _prompt_started_hook(self):
         """Emit a signal when the prompt is ready."""
