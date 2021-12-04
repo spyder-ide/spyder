@@ -21,8 +21,8 @@ from typing import Optional
 from qtpy import PYQT5
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
+                            QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -417,6 +417,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         Actions to perform when a plugin is undocked to be moved.
         """
         self.undock_action.setDisabled(top_level)
+
+        # Change the cursor shape when dragging
+        if top_level:
+            QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+        else:
+            QApplication.restoreOverrideCursor()
 
     # --- Public Qt overriden methods
     # ------------------------------------------------------------------------

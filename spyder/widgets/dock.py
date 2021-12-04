@@ -113,9 +113,6 @@ class DragButton(QToolButton):
     def mousePressEvent(self, event):
         self.parent.mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        self.parent.mouseMoveEvent(event)
-
     @property
     def _stylesheet(self):
         css = qstylizer.style.StyleSheet()
@@ -132,11 +129,11 @@ class CloseButton(QToolButton):
 
     def __init__(self, parent, button_size):
         super().__init__(parent)
+        self.parent = parent
 
         # Style
         self.setMaximumSize(button_size)
         self.setAutoRaise(True)
-        self.setCursor(Qt.ArrowCursor)
         self.setStyleSheet(self._stylesheet)
 
     @property
@@ -148,6 +145,12 @@ class CloseButton(QToolButton):
             backgroundColor=QStylePalette.COLOR_BACKGROUND_3
         )
         return css.toString()
+
+    def mouseReleaseEvent(self, event):
+        self.parent.mouseReleaseEvent(event)
+
+    def mousePressEvent(self, event):
+        self.parent.mousePressEvent(event)
 
 
 class DockTitleBar(QWidget):
@@ -188,20 +191,18 @@ class DockTitleBar(QWidget):
         hlayout.addWidget(right_spacer)
         hlayout.addWidget(close_button)
 
-        # To signal that dock widgets can be dragged from here
-        self.setCursor(Qt.SizeAllCursor)
-
     def mouseReleaseEvent(self, event):
-        self.setCursor(Qt.SizeAllCursor)
+        self.setCursor(Qt.OpenHandCursor)
         QWidget.mouseReleaseEvent(self, event)
 
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
         QWidget.mousePressEvent(self, event)
 
-    def mouseMoveEvent(self, event):
-        QWidget.mouseMoveEvent(self, event)
-        self.setCursor(Qt.SizeAllCursor)
+    def enterEvent(self, event):
+        # To signal that dock widgets can be dragged from here
+        self.setCursor(Qt.OpenHandCursor)
+        super().enterEvent(event)
 
 
 class SpyderDockWidget(QDockWidget):
@@ -217,8 +218,9 @@ class SpyderDockWidget(QDockWidget):
 
     def __init__(self, title, parent):
         super(SpyderDockWidget, self).__init__(title, parent)
-
         self.title = title
+
+        self.setFeatures(self.FEATURES)
 
         # Widgets
         self.main = parent
