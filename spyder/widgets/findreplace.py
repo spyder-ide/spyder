@@ -185,7 +185,7 @@ class FindReplace(QWidget):
 
         self.highlight_timer = QTimer(self)
         self.highlight_timer.setSingleShot(True)
-        self.highlight_timer.setInterval(1000)
+        self.highlight_timer.setInterval(300)
         self.highlight_timer.timeout.connect(self.highlight_matches)
         self.search_text.installEventFilter(self)
 
@@ -440,6 +440,7 @@ class FindReplace(QWidget):
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
             self.change_number_matches()
+            self.clear_matches()
             return None
         else:
             case = self.case_button.isChecked()
