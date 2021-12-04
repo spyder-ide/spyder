@@ -12,6 +12,7 @@ from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
 from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
                             QSizePolicy, QStyle, QTabBar, QToolButton,
                             QWidget)
+import qstylizer.style
 
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
@@ -104,12 +105,7 @@ class DragButton(QToolButton):
         self.setMaximumSize(button_size)
         self.setAutoRaise(True)
         self.setIcon(ima.icon('drag-horizontal'))
-        self.setStyleSheet((
-            "QToolButton {{"
-            "border-radius: 0px;"
-            "border: 0px;"
-            "background-color: {color};}}").format(
-                color=QStylePalette.COLOR_BACKGROUND_3))
+        self.setStyleSheet(self._stylesheet)
 
     def mouseReleaseEvent(self, event):
         self.parent.mouseReleaseEvent(event)
@@ -119,6 +115,16 @@ class DragButton(QToolButton):
 
     def mouseMoveEvent(self, event):
         self.parent.mouseMoveEvent(event)
+
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+        css.QToolButton.setValues(
+            borderRadius='0px',
+            border='0px',
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_3
+        )
+        return css.toString()
 
 
 class CloseButton(QToolButton):
@@ -131,15 +137,17 @@ class CloseButton(QToolButton):
         self.setMaximumSize(button_size)
         self.setAutoRaise(True)
         self.setCursor(Qt.ArrowCursor)
-        self.setStyleSheet((
-            "QToolButton {{"
-            "border-radius: 0px;"
-            "border: 0px;"
-            "image: url(:/qss_icons/rc/close.png);"
-            "background-color: {color};}}"
-            "QToolButton:hover {{"
-            "image: url(:/qss_icons/rc/close-hover.png);}}").format(
-                color=QStylePalette.COLOR_BACKGROUND_3))
+        self.setStyleSheet(self._stylesheet)
+
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+        css.QToolButton.setValues(
+            borderRadius='0px',
+            border='0px',
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_3
+        )
+        return css.toString()
 
 
 class DockTitleBar(QWidget):
