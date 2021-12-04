@@ -9,9 +9,8 @@ Dock widgets for plugins
 """
 
 from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
-from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
-                            QSizePolicy, QStyle, QTabBar, QToolButton,
-                            QWidget)
+from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
+                            QToolButton, QWidget)
 import qstylizer.style
 
 from spyder.utils.icon_manager import ima
@@ -102,7 +101,7 @@ class DragButton(QToolButton):
         self.parent = parent
 
         # Style
-        self.setMaximumSize(button_size)
+        self.setIconSize(button_size)
         self.setAutoRaise(True)
         self.setIcon(ima.icon('drag-horizontal'))
         self.setStyleSheet(self._stylesheet)
@@ -118,8 +117,7 @@ class DragButton(QToolButton):
         css = qstylizer.style.StyleSheet()
         css.QToolButton.setValues(
             borderRadius='0px',
-            border='0px',
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3
+            border='0px'
         )
         return css.toString()
 
@@ -132,7 +130,7 @@ class CloseButton(QToolButton):
         self.parent = parent
 
         # Style
-        self.setMaximumSize(button_size)
+        self.setIconSize(button_size)
         self.setAutoRaise(True)
         self.setStyleSheet(self._stylesheet)
 
@@ -141,8 +139,7 @@ class CloseButton(QToolButton):
         css = qstylizer.style.StyleSheet()
         css.QToolButton.setValues(
             borderRadius='0px',
-            border='0px',
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3
+            border='0px'
         )
         return css.toString()
 
@@ -164,21 +161,15 @@ class DockTitleBar(QWidget):
     def __init__(self, parent):
         super(DockTitleBar, self).__init__(parent)
 
-        icon_size = QApplication.style().standardIcon(
-            QStyle.SP_TitleBarNormalButton).actualSize(QSize(100, 100))
-        button_size = icon_size + QSize(8, 8)
+        button_size = QSize(20, 20)
 
         left_spacer = QWidget(self)
         left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        left_spacer.setStyleSheet(
-            f"background-color: {QStylePalette.COLOR_BACKGROUND_3}")
 
         drag_button = DragButton(self, button_size)
 
         right_spacer = QWidget(self)
         right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        right_spacer.setStyleSheet(
-            f"background-color: {QStylePalette.COLOR_BACKGROUND_3}")
 
         close_button = CloseButton(self, button_size)
         close_button.clicked.connect(parent.sig_plugin_closed.emit)
@@ -191,18 +182,34 @@ class DockTitleBar(QWidget):
         hlayout.addWidget(right_spacer)
         hlayout.addWidget(close_button)
 
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.OpenHandCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
         QWidget.mouseReleaseEvent(self, event)
 
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6)
         QWidget.mousePressEvent(self, event)
 
     def enterEvent(self, event):
         # To signal that dock widgets can be dragged from here
         self.setCursor(Qt.OpenHandCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
         super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Remove customizations when leaving widget."""
+        self.unsetCursor()
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        super().leaveEvent(event)
+
+    def _apply_stylesheet(self, bgcolor):
+        css = qstylizer.style.StyleSheet()
+        css.QWidget.setValues(backgroundColor=bgcolor)
+        self.setStyleSheet(css.toString())
 
 
 class SpyderDockWidget(QDockWidget):
