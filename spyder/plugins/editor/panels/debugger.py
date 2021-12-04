@@ -144,12 +144,12 @@ class DebuggerPanel(Panel):
             state (bool): Activate/deactivate.
         """
         if state:
-            self.editor.sig_breakpoints_changed.connect(self.repaint)
+            self.editor.sig_repaint_breakpoints.connect(self.repaint)
             self.editor.sig_debug_stop.connect(self.set_current_line_arrow)
             self.editor.sig_debug_stop[()].connect(self.stop_clean)
             self.editor.sig_debug_start.connect(self.start_clean)
         else:
-            self.editor.sig_breakpoints_changed.disconnect(self.repaint)
+            self.editor.sig_repaint_breakpoints.disconnect(self.repaint)
             self.editor.sig_debug_stop.disconnect(self.set_current_line_arrow)
             self.editor.sig_debug_stop[()].disconnect(self.stop_clean)
             self.editor.sig_debug_start.disconnect(self.start_clean)

@@ -47,6 +47,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
@@ -1496,11 +1497,16 @@ class EditorStack(QWidget):
             The self.data index for the filename.  Returns None
             if the filename is not found in self.data.
         """
-        fixpath = lambda path: osp.normcase(osp.realpath(path))
-        for index, finfo in enumerate(self.data):
-            if fixpath(filename) == fixpath(finfo.filename):
-                return index
-        return None
+        data_filenames = self.get_filenames()
+        try:
+            # Try finding without calling the slow realpath
+            return data_filenames.index(filename)
+        except ValueError:
+            filename = fixpath(filename)
+            for index, editor_filename in enumerate(data_filenames):
+                if filename == fixpath(editor_filename):
+                    return index
+            return None
 
     def set_current_filename(self, filename, focus=True):
         """Set current filename and return the associated editor instance."""
@@ -2794,11 +2800,8 @@ class EditorStack(QWidget):
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        if self.focus_to_editor:
+        if self.focus_to_editor and not editor.hasFocus():
             editor.setFocus()
-        else:
-            console = QApplication.focusWidget()
-            console.setFocus()
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):

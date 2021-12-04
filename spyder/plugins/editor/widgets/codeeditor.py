@@ -151,6 +151,7 @@ class CodeEditor(TextEditBaseWidget):
     indent_guides = None
 
     sig_breakpoints_changed = Signal()
+    sig_repaint_breakpoints = Signal()
     sig_debug_stop = Signal((int,), ())
     sig_debug_start = Signal()
     sig_breakpoints_saved = Signal()
@@ -260,6 +261,9 @@ class CodeEditor(TextEditBaseWidget):
     # Used to start the status spinner in the editor
     sig_stop_operation_in_progress = Signal()
 
+    # Used to signal font change
+    sig_font_changed = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -344,7 +348,7 @@ class CodeEditor(TextEditBaseWidget):
         self.debugger = DebuggerManager(self)
         self.panels.register(DebuggerPanel())
         # Update breakpoints if the number of lines in the file changes
-        self.blockCountChanged.connect(self.debugger.update_breakpoints)
+        self.blockCountChanged.connect(self.sig_breakpoints_changed)
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
@@ -493,7 +497,8 @@ class CodeEditor(TextEditBaseWidget):
         self._mouse_left_button_pressed = False
         self.ctrl_click_color = QColor(Qt.blue)
 
-        self.bookmarks = self.get_bookmarks()
+        self._bookmarks_blocks = {}
+        self.bookmarks = []
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -568,6 +573,11 @@ class CodeEditor(TextEditBaseWidget):
         # such as line stripping
         self.is_undoing = False
         self.is_redoing = False
+
+        # Timer to Avoid too many calls to rehighlight.
+        self._rehighlight_timer = QTimer(self)
+        self._rehighlight_timer.setSingleShot(True)
+        self._rehighlight_timer.setInterval(150)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -726,6 +736,8 @@ class CodeEditor(TextEditBaseWidget):
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
+        self._rehighlight_timer.timeout.connect(
+            self.highlighter.rehighlight)
         self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
 
@@ -2159,6 +2171,8 @@ class CodeEditor(TextEditBaseWidget):
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
+        self._rehighlight_timer.timeout.connect(
+            self.highlighter.rehighlight)
 
     def add_to_cell_list(self, oedata):
         """Add new cell to cell list."""
@@ -2415,7 +2429,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.unhighlight_current_line()
         if self.occurrence_highlighting:
-            self.occurrence_timer.stop()
             self.occurrence_timer.start()
 
         # Strip if needed
@@ -2632,18 +2645,23 @@ class CodeEditor(TextEditBaseWidget):
         if slot_num not in data.bookmarks:
             data.bookmarks.append((slot_num, column))
         block.setUserData(data)
+        self._bookmarks_blocks[id(block)] = block
         self.sig_bookmarks_changed.emit()
 
     def get_bookmarks(self):
         """Get bookmarks by going over all blocks."""
         bookmarks = {}
-        block = self.document().firstBlock()
-        for line_number in range(0, self.document().blockCount()):
-            data = block.userData()
-            if data and data.bookmarks:
-                for slot_num, column in data.bookmarks:
-                    bookmarks[slot_num] = [line_number, column]
-            block = block.next()
+        pruned_bookmarks_blocks = {}
+        for block_id in self._bookmarks_blocks:
+            block = self._bookmarks_blocks[block_id]
+            if block.isValid():
+                data = block.userData()
+                if data and data.bookmarks:
+                    pruned_bookmarks_blocks[block_id] = block
+                    line_number = block.blockNumber()
+                    for slot_num, column in data.bookmarks:
+                        bookmarks[slot_num] = [line_number, column]
+        self._bookmarks_blocks = pruned_bookmarks_blocks
         return bookmarks
 
     def clear_bookmarks(self):
@@ -2651,6 +2669,7 @@ class CodeEditor(TextEditBaseWidget):
         self.bookmarks = {}
         for data in self.blockuserdata_list():
             data.bookmarks = []
+        self._bookmarks_blocks = {}
 
     def set_bookmarks(self, bookmarks):
         """Set bookmarks when opening file."""
@@ -2737,7 +2756,7 @@ class CodeEditor(TextEditBaseWidget):
             if color_scheme is not None:
                 self.set_color_scheme(color_scheme)
             else:
-                self.highlighter.rehighlight()
+                self._rehighlight_timer.start()
 
     def set_font(self, font, color_scheme=None):
         """Set font"""
@@ -2747,6 +2766,7 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
+        self.sig_font_changed.emit()
         self.panels.refresh()
         self.apply_highlighter_settings(color_scheme)
 
@@ -4815,9 +4835,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Check if the pattern is in line
         line = self.get_line_at(coordinates)
-        match = pattern.search(line)
 
-        while match:
+        for match in pattern.finditer(line):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = sh.get_span(match)
@@ -4845,8 +4864,6 @@ class CodeEditor(TextEditBaseWidget):
 
             if break_loop:
                 break
-
-            match = pattern.search(line, end)
 
         return key, text, cursor
 

@@ -224,6 +224,8 @@ class PanelsManager(Manager):
         """Updates panels."""
         if not self:
             return
+        line, col = self.editor.get_cursor_line_column()
+        oline, ocol = self._cached_cursor_pos
         for zones_id, zone in self._panels.items():
             if zones_id == Panel.Position.TOP or \
                zones_id == Panel.Position.BOTTOM:
@@ -232,11 +234,9 @@ class PanelsManager(Manager):
             for panel in panels:
                 if panel.scrollable and delta_y:
                     panel.scroll(0, delta_y)
-                line, col = self.editor.get_cursor_line_column()
-                oline, ocol = self._cached_cursor_pos
                 if line != oline or col != ocol or panel.scrollable:
                     panel.update(0, rect.y(), panel.width(), rect.height())
-                self._cached_cursor_pos = self.editor.get_cursor_line_column()
+        self._cached_cursor_pos = line, col
         if (rect.contains(self.editor.viewport().rect()) or
                 force_update_margins):
             self._update_viewport_margins()
@@ -264,8 +264,10 @@ class PanelsManager(Manager):
             if panel.isVisible():
                 height = panel.sizeHint().height()
                 bottom += height
-        self._margin_sizes = (top, left, right, bottom)
-        self.editor.setViewportMargins(left, top, right, bottom)
+        new_size = (top, left, right, bottom)
+        if new_size != self._margin_sizes:
+            self._margin_sizes = new_size
+            self.editor.setViewportMargins(left, top, right, bottom)
 
     def margin_size(self, position=Panel.Position.LEFT):
         """

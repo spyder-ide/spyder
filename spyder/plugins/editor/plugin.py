@@ -383,7 +383,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # This is required to start workspace before completion
         # services when Spyder starts with an open project.
         # TODO: Find a better solution for it in the future!!
-        self.main.projects.start_workspace_services()
+        projects = self.main.get_plugin(Plugins.Projects, error=False)
+        if projects:
+            projects.start_workspace_services()
 
         self.completion_capabilities[language] = dict(capabilities)
         for editorstack in self.editorstacks:
@@ -1882,7 +1884,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if self.main.get_plugin(Plugins.Completions, error=False):
             self.main.completions.update_client_status(languages)
 
-
     # ------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):
         """Receive bookmark changes and save them."""
@@ -2015,8 +2016,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     break
             basedir = getcwd_or_home()
 
-            if self.main.projects.get_active_project() is not None:
-                basedir = self.main.projects.get_active_project_path()
+            projects = self.main.get_plugin(Plugins.Projects, error=False)
+            if projects and projects.get_active_project() is not None:
+                basedir = projects.get_active_project_path()
             else:
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
@@ -2249,12 +2251,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             else:
                 # processevents is false only when calling from debugging
                 current_editor.sig_debug_stop.emit(goto[index])
-                current_sw = self.main.ipyconsole.get_current_shellwidget()
-                current_sw.sig_prompt_ready.connect(
-                    current_editor.sig_debug_stop[()].emit)
-                current_pdb_state = self.main.ipyconsole.get_pdb_state()
-                pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
-                self.update_pdb_state(current_pdb_state, pdb_last_step)
+
+                ipyconsole = self.main.get_plugin(
+                    Plugins.IPythonConsole, error=False)
+                if ipyconsole:
+                    current_sw = ipyconsole.get_current_shellwidget()
+                    current_sw.sig_prompt_ready.connect(
+                        current_editor.sig_debug_stop[()].emit)
+                    current_pdb_state = ipyconsole.get_pdb_state()
+                    pdb_last_step = ipyconsole.get_pdb_last_step()
+                    self.update_pdb_state(current_pdb_state, pdb_last_step)
+
         self.__ignore_cursor_history = False
         self.add_cursor_to_history()
 
@@ -2298,8 +2305,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         if not CONF.get('ipython_console', 'pdb_prevent_closing'):
             return True
-        debugging = self.main.ipyconsole.get_pdb_state()
-        last_pdb_step = self.main.ipyconsole.get_pdb_last_step()
+        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
+
+        debugging = False
+        last_pdb_step = {}
+        if ipyconsole:
+            debugging = ipyconsole.get_pdb_state()
+            last_pdb_step = ipyconsole.get_pdb_last_step()
+
         can_close = True
         if debugging and 'fname' in last_pdb_step and filename:
             if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
@@ -2583,7 +2596,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             current_stack.hide_tooltip()
 
         # Update debugging state
-        ipyconsole = getattr(self.main, 'ipyconsole', None)
+        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
         if ipyconsole is not None:
             pdb_state = ipyconsole.get_pdb_state()
             pdb_last_step = ipyconsole.get_pdb_last_step()
@@ -2763,13 +2776,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def stop_debugging(self):
         """Stop debugging"""
-        self.main.ipyconsole.stop_debugging()
+        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
+        if ipyconsole:
+            ipyconsole.stop_debugging()
 
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.pdb_execute_command(command)
-        self.main.ipyconsole.switch_to_plugin()
+        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
+        if ipyconsole:
+            ipyconsole.pdb_execute_command(command)
+            ipyconsole.switch_to_plugin()
 
     # ----- Handlers for the IPython Console kernels
     def _get_editorstack(self):
