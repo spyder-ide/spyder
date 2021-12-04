@@ -103,7 +103,7 @@ class DragButton(QToolButton):
         # Style
         self.setIconSize(button_size)
         self.setAutoRaise(True)
-        self.setIcon(ima.icon('drag-horizontal'))
+        self.setIcon(ima.icon('drag_dock_widget'))
         self.setStyleSheet(self._stylesheet)
 
     def mouseReleaseEvent(self, event):
