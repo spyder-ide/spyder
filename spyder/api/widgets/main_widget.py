@@ -60,6 +60,7 @@ class PluginMainWidgetActions:
     ClosePane = 'close_pane'
     DockPane = 'dock_pane'
     UndockPane = 'undock_pane'
+    ChangePanePosition = 'change_pane_position'
 
 
 class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
@@ -352,6 +353,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             icon=self.create_icon('close_pane'),
             triggered=self.close_dock,
         )
+        self.change_position_action = self.create_action(
+            name=PluginMainWidgetActions.ChangePanePosition,
+            text=_("Change position"),
+            tip=_("Move the pane in another location"),
+            icon=self.create_icon('drag_dock_widget'),
+            triggered=self.change_position,
+        )
         # We use this instead of the QDockWidget.toggleViewAction
         self.toggle_view_action = self.create_action(
             name='switch to ' + self._name,
@@ -361,12 +369,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             shortcut_context='_',
         )
 
-        bottom_section = OptionsMenuSections.Bottom
-        for item in [self.undock_action, self.close_action, self.dock_action]:
+        for item in [self.change_position_action, self.undock_action,
+                     self.close_action, self.dock_action]:
             self.add_item_to_menu(
                 item,
                 self._options_menu,
-                section=bottom_section,
+                section=OptionsMenuSections.Bottom,
             )
 
         self._options_button.setMenu(self._options_menu)
@@ -397,6 +405,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         show_dock_actions = self.windowwidget is None
         self.undock_action.setVisible(show_dock_actions)
         self.close_action.setVisible(show_dock_actions)
+        self.change_position_action.setVisible(show_dock_actions)
         self.dock_action.setVisible(not show_dock_actions)
 
         if sys.platform == 'darwin':
@@ -869,6 +878,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         Close the dockwidget.
         """
         self.toggle_view(False)
+
+    def change_position(self):
+        self.dockwidget.set_title_bar()
 
     # --- API: methods to define or override
     # ------------------------------------------------------------------------
