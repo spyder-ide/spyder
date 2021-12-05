@@ -251,6 +251,7 @@ class SpyderDockWidget(QDockWidget):
 
         # Setup
         self.set_title_bar()
+        self.remove_title_bar()
 
         # Signals
         # To track dockwidget changes the filter is installed when dockwidget
