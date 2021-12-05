@@ -132,6 +132,7 @@ class CloseButton(QToolButton):
         # Style
         self.setIconSize(button_size)
         self.setAutoRaise(True)
+        self.setIcon(ima.icon('DialogCloseButton'))
         self.setStyleSheet(self._stylesheet)
 
     @property
@@ -143,11 +144,14 @@ class CloseButton(QToolButton):
         )
         return css.toString()
 
-    def mouseReleaseEvent(self, event):
-        self.parent.mouseReleaseEvent(event)
+    def enterEvent(self, event):
+        self.setCursor(Qt.ArrowCursor)
+        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        super().enterEvent(event)
 
-    def mousePressEvent(self, event):
-        self.parent.mousePressEvent(event)
+    def leaveEvent(self, event):
+        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        super().leaveEvent(event)
 
 
 class DockTitleBar(QWidget):
@@ -172,7 +176,7 @@ class DockTitleBar(QWidget):
         right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         close_button = CloseButton(self, button_size)
-        close_button.clicked.connect(parent.sig_plugin_closed.emit)
+        close_button.clicked.connect(parent.remove_title_bar)
 
         hlayout = QHBoxLayout(self)
         hlayout.setSpacing(0)
