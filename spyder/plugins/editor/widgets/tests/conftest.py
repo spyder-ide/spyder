@@ -217,7 +217,7 @@ def search_codeeditor(completions_codeeditor, qtbot_module, request):
 
 
 @pytest.fixture
-def editorbot(qtbot):
+def codeeditor(qtbot):
     widget = CodeEditor(None)
     widget.setup_editor(linenumbers=True,
                         markers=True,

@@ -19,8 +19,8 @@ HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
 
 
-def test_editor_upper_to_lower(editorbot):
-    widget = editorbot
+def test_editor_upper_to_lower(codeeditor):
+    widget = codeeditor
     text = 'UPPERCASE'
     widget.set_text(text)
     cursor = widget.textCursor()
@@ -32,8 +32,8 @@ def test_editor_upper_to_lower(editorbot):
     assert text != new_text
 
 
-def test_editor_lower_to_upper(editorbot):
-    widget = editorbot
+def test_editor_lower_to_upper(codeeditor):
+    widget = codeeditor
     text = 'uppercase'
     widget.set_text(text)
     cursor = widget.textCursor()
@@ -117,12 +117,12 @@ def test_editor_lower_to_upper(editorbot):
          [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Backspace],
          True),
     ])
-def test_editor_rstrip_keypress(editorbot, qtbot, input_text, expected_text,
+def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
                                 keys, strip_all):
     """
     Test that whitespace is removed when leaving a line.
     """
-    widget = editorbot
+    widget = codeeditor
     widget.strip_trailing_spaces_on_modify = strip_all
     widget.set_text(input_text)
     cursor = widget.textCursor()
@@ -171,11 +171,11 @@ def test_editor_rstrip_keypress(editorbot, qtbot, input_text, expected_text,
         ("'''string \"\"\" ", [True, True]),
         ('"""string \'\'\' ', [True, True]),
     ])
-def test_in_string(editorbot, input_text, expected_state):
+def test_in_string(codeeditor, input_text, expected_state):
     """
     Test that in_string works correctly.
     """
-    widget = editorbot
+    widget = codeeditor
     widget.set_text(input_text + '\n  ')
     cursor = widget.textCursor()
 
@@ -190,11 +190,11 @@ def test_in_string(editorbot, input_text, expected_state):
         assert widget.in_string(cursor) == expected_state[1]
 
 
-def test_comment(editorbot):
+def test_comment(codeeditor):
     """
     Test that in_string works correctly.
     """
-    widget = editorbot
+    widget = codeeditor
     widget.set_text("import numpy")
     cursor = widget.textCursor()
     cursor.setPosition(8)
@@ -206,9 +206,9 @@ def test_comment(editorbot):
     assert widget.toPlainText() == "import numpy"
 
 
-def test_undo_return(editorbot, qtbot):
+def test_undo_return(codeeditor, qtbot):
     """Test that we can undo a return."""
-    editor = editorbot
+    editor = codeeditor
     text = "if True:\n    0"
     returned_text = "if True:\n    0\n    "
     editor.set_text(text)
@@ -221,7 +221,7 @@ def test_undo_return(editorbot, qtbot):
     assert editor.toPlainText() == text
 
 
-def test_brace_match(editorbot):
+def test_brace_match(codeeditor):
     """Tests for the highlighting of matching parenthesis, braces and brackets.
 
     Specifically provides regression tests for issues
@@ -242,7 +242,7 @@ def test_brace_match(editorbot):
      * CodeEditor.in_string
     """
     # Create editor with contents loaded from assets/brackets.py
-    editor = editorbot
+    editor = codeeditor
     with open(osp.join(ASSETS, 'braces.py'), 'r') as file:
         editor.set_text(file.read())
 
@@ -316,9 +316,9 @@ def test_brace_match(editorbot):
         assert editor.bracepos == expected
 
 
-def test_editor_backspace_char(editorbot, qtbot):
+def test_editor_backspace_char(codeeditor, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    editor = editorbot
+    editor = codeeditor
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 7
@@ -340,9 +340,9 @@ def test_editor_backspace_char(editorbot, qtbot):
         assert editor.textCursor().columnNumber() == expected_column
 
 
-def test_editor_backspace_selection(editorbot, qtbot):
+def test_editor_backspace_selection(codeeditor, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    editor = editorbot
+    editor = codeeditor
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 5
@@ -368,9 +368,9 @@ def test_editor_backspace_selection(editorbot, qtbot):
     assert editor.textCursor().columnNumber() == expected_column
 
 
-def test_editor_delete_char(editorbot, qtbot):
+def test_editor_delete_char(codeeditor, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    editor = editorbot
+    editor = codeeditor
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 2
@@ -392,9 +392,9 @@ def test_editor_delete_char(editorbot, qtbot):
 
 # Fails in CI Linux tests, but not necessarily on all Linux installations
 @pytest.mark.skipif(sys.platform.startswith('linux'), reason='Fail on Linux')
-def test_editor_delete_selection(editorbot, qtbot):
+def test_editor_delete_selection(codeeditor, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    editor = editorbot
+    editor = codeeditor
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 5
@@ -465,22 +465,22 @@ def test_qtbug35861(qtbot):
         "def foo(x):\r    return x\r"       # CR
     ]
 )
-def test_get_text_with_eol(editorbot, text):
+def test_get_text_with_eol(codeeditor, text):
     """
     Test that get_text_with_eol returns the right text with the most
     common line endings.
     """
-    editor = editorbot
+    editor = codeeditor
     editor.set_text(text)
     assert editor.get_text_with_eol() == text
 
 
-def test_format_signature(editorbot):
+def test_format_signature(codeeditor):
     """Test signature format method."""
     signature = """
     concatenate((a1, a2, a...), [b1, b2, b...], axis={}, index=[],
                 *args, **kargs)"""
-    editor = editorbot
+    editor = codeeditor
 
     format_signature = editor._format_signature(signature, parameter="(a1")
 
@@ -515,9 +515,9 @@ def test_format_signature(editorbot):
     assert "color:#259AE9'><b>**kargs</b></span>" in format_signature
 
 
-def test_delete(editorbot):
+def test_delete(codeeditor):
     """Test CodeEditor.delete()."""
-    editor = editorbot
+    editor = codeeditor
     text = ('def f1(a, b):\n')
     editor.set_text(text)
 
@@ -543,9 +543,9 @@ def test_delete(editorbot):
     assert editor.get_text_line(0) == ' f1(a, b):'
 
 
-def test_paste_files(editorbot, copy_files_clipboard):
+def test_paste_files(codeeditor, copy_files_clipboard):
     """Test pasting files/folders into the editor."""
-    editor = editorbot
+    editor = codeeditor
     file_paths = copy_files_clipboard
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.Start)
@@ -562,9 +562,9 @@ def test_paste_files(editorbot, copy_files_clipboard):
 @pytest.mark.parametrize('line_ending_char', ['\n', '\r\n', '\r'])
 @pytest.mark.parametrize('text', ['def fun(a, b):\n\treturn a + b',
                                   'https://www.spyder-ide.org'])
-def test_paste_text(editorbot, text, line_ending_char):
+def test_paste_text(codeeditor, text, line_ending_char):
     """Test pasting text into the editor."""
-    editor = editorbot
+    editor = codeeditor
     text = text.replace(osp.os.linesep, line_ending_char)
     cb = QApplication.clipboard()
     cb.setText(text, mode=cb.Clipboard)

@@ -461,9 +461,9 @@ def test_simple_indentation():
         assert text == text_expected, comment
 
 
-def test_copy_paste_autoindent(editorbot):
+def test_copy_paste_autoindent(codeeditor):
     """Test copy pasting text into the editor at different indent."""
-    editor = editorbot
+    editor = codeeditor
     text = ("if a:\n    b\n    if c:\n        d\n    if e:\n        f\n")
     editor.set_text(text)
     # Copy
