@@ -10,6 +10,7 @@ Tests for the autoindent features
 
 # Third party imports
 from qtpy.QtGui import QTextCursor
+from qtpy.QtWidgets import QApplication
 import pytest
 
 # Local imports
@@ -458,6 +459,62 @@ def test_simple_indentation():
     for text_input, text_expected, comment in text_input_expected_comment:
         text = get_indent_fix(text_input, language=None)
         assert text == text_expected, comment
+
+
+def test_copy_paste_autoindent(editorbot):
+    """Test copy pasting text into the editor at different indent."""
+    editor = editorbot
+    text = ("if a:\n    b\n    if c:\n        d\n    if e:\n        f\n")
+    editor.set_text(text)
+    # Copy
+    cursor = editor.textCursor()
+    cursor.setPosition(30)
+    cursor.setPosition(59, QTextCursor.KeepAnchor)
+    editor.setTextCursor(cursor)
+    cb = QApplication.clipboard()
+    cb.setText("d\n    if e:\n        f", mode=cb.Clipboard)
+    editor.copy()
+
+    d = {
+        0: "if a:\n    b\nd\nif e:\n    f\n    if c:\n        d\n    if e:\n        f\n",
+        4: "if a:\n    b\n    d\nif e:\n    f\n    if c:\n        d\n    if e:\n        f\n",
+        8: "if a:\n    b\n        d\n    if e:\n        f\n    if c:\n        d\n    if e:\n        f\n",
+        }
+    # Paste
+    for indent in d.keys():
+        editor.set_text(text)
+        cursor = editor.textCursor()
+        cursor.setPosition(11)
+        cursor.insertText("\n" + indent * ' ')
+        editor.setTextCursor(cursor)
+        editor.paste()
+        assert editor.toPlainText() == d[indent]
+
+    # Same thing but with copying the spaces
+    editor.set_text(text)
+    # Copy
+    cursor = editor.textCursor()
+    cursor.setPosition(30-4)
+    cursor.setPosition(59, QTextCursor.KeepAnchor)
+    editor.setTextCursor(cursor)
+    cb = QApplication.clipboard()
+    cb.setText("    d\n    if e:\n        f", mode=cb.Clipboard)
+    editor.copy()
+
+    d = {
+        0: "if a:\n    b\n    d\nif e:\n    f\n    if c:\n        d\n    if e:\n        f\n",
+        4: "if a:\n    b\n    d\nif e:\n    f\n    if c:\n        d\n    if e:\n        f\n",
+        8: "if a:\n    b\n        d\n    if e:\n        f\n    if c:\n        d\n    if e:\n        f\n",
+        }
+    # Paste
+    for indent in d.keys():
+        editor.set_text(text)
+        cursor = editor.textCursor()
+        cursor.setPosition(11)
+        cursor.insertText("\n" + indent * ' ')
+        editor.setTextCursor(cursor)
+        editor.paste()
+        assert editor.toPlainText() == d[indent]
 
 
 if __name__ == "__main__":

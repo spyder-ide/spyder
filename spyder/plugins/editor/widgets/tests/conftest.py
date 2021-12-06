@@ -15,6 +15,8 @@ from unittest.mock import Mock
 # Third party imports
 import pytest
 from qtpy.QtGui import QFont
+from qtpy.QtCore import QMimeData, QUrl
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.config.manager import CONF
@@ -228,3 +230,14 @@ def editorbot(qtbot):
     qtbot.addWidget(widget)
     widget.show()
     return widget
+
+
+@pytest.fixture
+def copy_files_clipboard(create_folders_files):
+    """Fixture to copy files/folders into the clipboard"""
+    file_paths = create_folders_files[0]
+    file_content = QMimeData()
+    file_content.setUrls([QUrl.fromLocalFile(fname) for fname in file_paths])
+    cb = QApplication.clipboard()
+    cb.setMimeData(file_content, mode=cb.Clipboard)
+    return file_paths

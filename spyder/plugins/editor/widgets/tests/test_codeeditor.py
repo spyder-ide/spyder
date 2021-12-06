@@ -11,7 +11,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
-from qtpy.QtWidgets import QTextEdit
+from qtpy.QtWidgets import QApplication, QTextEdit
 import pytest
 
 
@@ -473,6 +473,107 @@ def test_get_text_with_eol(editorbot, text):
     editor = editorbot
     editor.set_text(text)
     assert editor.get_text_with_eol() == text
+
+
+def test_format_signature(editorbot):
+    """Test signature format method."""
+    signature = """
+    concatenate((a1, a2, a...), [b1, b2, b...], axis={}, index=[],
+                *args, **kargs)"""
+    editor = editorbot
+
+    format_signature = editor._format_signature(signature, parameter="(a1")
+
+    assert "color:#259AE9'><b>a1</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="a2")
+    assert "color:#259AE9'><b>a2</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="a...")
+    print(format_signature)
+    assert "color:#259AE9'><b>a...</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="[b1")
+    assert "color:#259AE9'><b>b1</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="b2")
+    assert "color:#259AE9'><b>b2</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="b...")
+    assert "color:#259AE9'><b>b...</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="axis")
+    assert "color:#259AE9'><b>axis</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="index")
+    assert "color:#259AE9'><b>index</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="*args")
+    assert "color:#259AE9'><b>*args</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="**kargs")
+    assert "color:#259AE9'><b>**kargs</b></span>" in format_signature
+
+
+def test_delete(editorbot):
+    """Test CodeEditor.delete()."""
+    editor = editorbot
+    text = ('def f1(a, b):\n')
+    editor.set_text(text)
+
+    # Move to start and delete next character without selection.
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.delete()
+    assert editor.get_text_line(0) == 'ef f1(a, b):'
+
+    # Delete selection.
+    cursor = editor.textCursor()
+    cursor.select(QTextCursor.WordUnderCursor)
+    editor.setTextCursor(cursor)
+    editor.delete()
+    assert editor.get_text_line(0) == ' f1(a, b):'
+
+    # Move to end of document - nothing to delete after cursor.
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    editor.setTextCursor(cursor)
+    editor.delete()
+    assert editor.get_text_line(0) == ' f1(a, b):'
+
+
+def test_paste_files(editorbot, copy_files_clipboard):
+    """Test pasting files/folders into the editor."""
+    editor = editorbot
+    file_paths = copy_files_clipboard
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.paste()
+    editor.selectAll()
+    text = editor.toPlainText()
+    path_list_in_editor = [path.strip(',"') for path in text.splitlines()]
+    assert len(file_paths) == len(path_list_in_editor)
+    for path, expected_path in zip(path_list_in_editor, file_paths):
+        assert osp.normpath(path) == osp.normpath(expected_path)
+
+
+@pytest.mark.parametrize('line_ending_char', ['\n', '\r\n', '\r'])
+@pytest.mark.parametrize('text', ['def fun(a, b):\n\treturn a + b',
+                                  'https://www.spyder-ide.org'])
+def test_paste_text(editorbot, text, line_ending_char):
+    """Test pasting text into the editor."""
+    editor = editorbot
+    text = text.replace(osp.os.linesep, line_ending_char)
+    cb = QApplication.clipboard()
+    cb.setText(text, mode=cb.Clipboard)
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.paste()
+    for line_no, txt in enumerate(text.splitlines()):
+        assert editor.get_text_line(line_no) == txt
 
 
 if __name__ == '__main__':
