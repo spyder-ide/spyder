@@ -41,9 +41,9 @@ from spyder.widgets.arraybuilder import ArrayBuilderDialog
 # List of possible EOL symbols
 EOL_SYMBOLS = [
     # Put first as it correspond to a single line return
-    "\r\n"  # Carriage Return + Line Feed
-    "\n",  # Line Feed
+    "\r\n",  # Carriage Return + Line Feed
     "\r",  # Carriage Return
+    "\n",  # Line Feed
     "\v",  # Line Tabulation
     "\x0b",  # Line Tabulation
     "\f",  # Form Feed
