@@ -35,14 +35,14 @@ def editorbot(qtbot):
     widget.setup_editor(language='Python')
     qtbot.addWidget(widget)
     widget.show()
-    return qtbot, widget
+    return widget
 
 # --- Tests
 # -----------------------------------------------------------------------------
 # testing lowercase transformation functionality
 
 def test_editor_upper_to_lower(editorbot):
-    qtbot, widget = editorbot
+    widget = editorbot
     text = 'UPPERCASE'
     widget.set_text(text)
     cursor = widget.textCursor()
@@ -55,7 +55,7 @@ def test_editor_upper_to_lower(editorbot):
 
 
 def test_editor_lower_to_upper(editorbot):
-    qtbot, widget = editorbot
+    widget = editorbot
     text = 'uppercase'
     widget.set_text(text)
     cursor = widget.textCursor()
@@ -70,7 +70,7 @@ def test_editor_lower_to_upper(editorbot):
 @pytest.mark.skipif(PY3, reason='Test only makes sense on Python 2.')
 def test_editor_log_lsp_handle_errors(editorbot, capsys):
     """Test the lsp error handling / dialog report Python 2."""
-    qtbot, widget = editorbot
+    widget = editorbot
     params = {
         'params': {
             'activeParameter': 'boo',
@@ -167,12 +167,12 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Backspace],
          True),
     ])
-def test_editor_rstrip_keypress(editorbot, input_text, expected_text, keys,
-                                strip_all):
+def test_editor_rstrip_keypress(editorbot, qtbot, input_text, expected_text,
+                                keys, strip_all):
     """
     Test that whitespace is removed when leaving a line.
     """
-    qtbot, widget = editorbot
+    widget = editorbot
     widget.strip_trailing_spaces_on_modify = strip_all
     widget.set_text(input_text)
     cursor = widget.textCursor()
@@ -225,7 +225,7 @@ def test_in_string(editorbot, input_text, expected_state):
     """
     Test that in_string works correctly.
     """
-    qtbot, widget = editorbot
+    widget = editorbot
     widget.set_text(input_text + '\n  ')
     cursor = widget.textCursor()
 
@@ -245,7 +245,7 @@ def test_comment(editorbot):
     """
     Test that in_string works correctly.
     """
-    qtbot, widget = editorbot
+    widget = editorbot
     widget.set_text("import numpy")
     cursor = widget.textCursor()
     cursor.setPosition(8)
@@ -257,9 +257,9 @@ def test_comment(editorbot):
     assert widget.toPlainText() == "import numpy"
 
 
-def test_undo_return(editorbot):
+def test_undo_return(editorbot, qtbot):
     """Test that we can undo a return."""
-    qtbot, editor = editorbot
+    editor = editorbot
     text = "if True:\n    0"
     returned_text = "if True:\n    0\n    "
     editor.set_text(text)
@@ -293,7 +293,7 @@ def test_brace_match(editorbot):
      * CodeEditor.in_string
     """
     # Create editor with contents loaded from assets/brackets.py
-    qtbot, editor = editorbot
+    editor = editorbot
     with open(osp.join(ASSETS, 'braces.py'), 'r') as file:
         editor.set_text(file.read())
 
@@ -367,9 +367,9 @@ def test_brace_match(editorbot):
         assert editor.bracepos == expected
 
 
-def test_editor_backspace_char(editorbot):
+def test_editor_backspace_char(editorbot, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    qtbot, editor = editorbot
+    editor = editorbot
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 7
@@ -391,9 +391,9 @@ def test_editor_backspace_char(editorbot):
         assert editor.textCursor().columnNumber() == expected_column
 
 
-def test_editor_backspace_selection(editorbot):
+def test_editor_backspace_selection(editorbot, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    qtbot, editor = editorbot
+    editor = editorbot
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 5
@@ -419,9 +419,9 @@ def test_editor_backspace_selection(editorbot):
     assert editor.textCursor().columnNumber() == expected_column
 
 
-def test_editor_delete_char(editorbot):
+def test_editor_delete_char(editorbot, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    qtbot, editor = editorbot
+    editor = editorbot
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 2
@@ -443,9 +443,9 @@ def test_editor_delete_char(editorbot):
 
 # Fails in CI Linux tests, but not necessarily on all Linux installations
 @pytest.mark.skipif(sys.platform.startswith('linux'), reason='Fail on Linux')
-def test_editor_delete_selection(editorbot):
+def test_editor_delete_selection(editorbot, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
-    qtbot, editor = editorbot
+    editor = editorbot
     text = "0123456789\nabcdefghij\n9876543210\njihgfedcba\n"
     editor.set_text(text)
     expected_column = 5
