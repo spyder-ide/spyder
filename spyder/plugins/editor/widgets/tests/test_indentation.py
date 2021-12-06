@@ -41,25 +41,20 @@ def make_unindent(editor, single_line=True, start_line=1):
 # --- Fixtures
 # -----------------------------------------------------------------------------
 @pytest.fixture
-def code_editor_indent_bot(qtbot):
+def codeeditor_indent(codeeditor):
     """
     Setup CodeEditor with some text useful for folding related tests.
     """
-    editor = CodeEditor(parent=None)
-    indent_chars = " " * 2
-    tab_stop_width_spaces = 4
-    language = "Python"
-    editor.setup_editor(language=language, indent_chars=indent_chars,
-                        tab_stop_width_spaces=tab_stop_width_spaces)
-
-    return editor, qtbot
+    editor = codeeditor
+    editor.set_indent_chars(" " * 2)
+    return editor
 
 
 # --- Tests
 # -----------------------------------------------------------------------------
-def test_single_line_indent(code_editor_indent_bot):
+def test_single_line_indent(codeeditor_indent):
     """Test indentation in a single line."""
-    editor, qtbot = code_editor_indent_bot
+    editor = codeeditor_indent
     text = ("class a():\n"
             "self.b = 1\n"
             "print(self.b)\n"
@@ -76,9 +71,9 @@ def test_single_line_indent(code_editor_indent_bot):
     assert new_text == expected
 
 
-def test_selection_indent(code_editor_indent_bot):
+def test_selection_indent(codeeditor_indent):
     """Test indentation with selection of more than one line."""
-    editor, qtbot = code_editor_indent_bot
+    editor = codeeditor_indent
     text = ("class a():\n"
             "self.b = 1\n"
             "print(self.b)\n"
@@ -96,9 +91,9 @@ def test_selection_indent(code_editor_indent_bot):
     assert new_text == expected
 
 
-def test_fix_indentation(code_editor_indent_bot):
+def test_fix_indentation(codeeditor_indent):
     """Test fix_indentation() method."""
-    editor, qtbot = code_editor_indent_bot
+    editor = codeeditor_indent
     # Contains tabs.
     original = ("\t\n"
                 "class a():\t\n"
@@ -126,9 +121,9 @@ def test_fix_indentation(code_editor_indent_bot):
     assert editor.document().isModified()
 
 
-def test_single_line_unindent(code_editor_indent_bot):
+def test_single_line_unindent(codeeditor_indent):
     """Test unindentation in a single line."""
-    editor, qtbot = code_editor_indent_bot
+    editor = codeeditor_indent
     text = ("class a():\n"
             "  self.b = 1\n"
             "print(self.b)\n"
@@ -145,9 +140,9 @@ def test_single_line_unindent(code_editor_indent_bot):
     assert new_text == expected
 
 
-def test_selection_unindent(code_editor_indent_bot):
+def test_selection_unindent(codeeditor_indent):
     """Test unindentation with selection of more than one line."""
-    editor, qtbot = code_editor_indent_bot
+    editor = codeeditor_indent
     text = ("class a():\n"
             "  self.b = 1\n"
             "  print(self.b)\n"
@@ -164,9 +159,9 @@ def test_selection_unindent(code_editor_indent_bot):
     assert new_text == expected
 
 
-def test_single_line_unindent_to_grid(code_editor_indent_bot):
+def test_single_line_unindent_to_grid(codeeditor_indent):
     """Test unindentation in a single line."""
-    editor, qtbot = code_editor_indent_bot
+    editor = codeeditor_indent
     text = ("class a():\n"
             "   self.b = 1\n"
             "print(self.b)\n"
@@ -191,9 +186,9 @@ def test_single_line_unindent_to_grid(code_editor_indent_bot):
     assert new_text2 == expected2
 
 
-def test_selection_unindent_to_grid(code_editor_indent_bot):
+def test_selection_unindent_to_grid(codeeditor_indent):
     """Test unindentation with selection of more than one line."""
-    editor, qtbot = code_editor_indent_bot
+    editor = codeeditor_indent
     text = ("class a():\n"
             "   self.b = 1\n"
             "   print(self.b)\n"
