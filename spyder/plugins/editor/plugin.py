@@ -2104,6 +2104,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         (So that the end position is start_column + end_column)
         Alternatively, the first match of word is used as a position.
         """
+        cursor_history_state = self.__ignore_cursor_history
         self.__ignore_cursor_history = True
         # Switch to editor before trying to load a file
         try:
@@ -2177,7 +2178,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
             else:
-                self.__ignore_cursor_history = False
+                self.__ignore_cursor_history = cursor_history_state
                 return
 
         focus_widget = QApplication.focusWidget()
@@ -2262,7 +2263,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     pdb_last_step = ipyconsole.get_pdb_last_step()
                     self.update_pdb_state(current_pdb_state, pdb_last_step)
 
-        self.__ignore_cursor_history = False
+        self.__ignore_cursor_history = cursor_history_state
         self.add_cursor_to_history()
 
     @Slot()
