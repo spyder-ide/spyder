@@ -12,7 +12,6 @@ import sys
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QTextEdit
-from pytestqt import qtbot
 import pytest
 
 # Local imports
@@ -29,7 +28,7 @@ def editorbot(qtbot):
     widget = codeeditor.CodeEditor(None)
     widget.setup_editor(linenumbers=True, markers=True, tab_mode=False,
                         font=QFont("Courier New", 10),
-                        show_blanks=True, color_scheme='Zenburn',
+                        show_blanks=True, color_scheme='spyder/dark',
                         scroll_past_end=True)
     widget.setup_editor(language='Python')
     qtbot.addWidget(widget)
@@ -38,8 +37,6 @@ def editorbot(qtbot):
 
 # --- Tests
 # -----------------------------------------------------------------------------
-# testing lowercase transformation functionality
-
 def test_editor_upper_to_lower(editorbot):
     widget = editorbot
     text = 'UPPERCASE'
@@ -476,6 +473,24 @@ def test_qtbug35861(qtbot):
         assert widget.textCursor().columnNumber() == (expected_column - 1)
         qtbot.keyClick(widget, Qt.Key_Up)
         assert widget.textCursor().columnNumber() == expected_column
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "def foo(x):\n    return x\n",      # LF
+        "def foo(x):\r\n    return x\r\n",  # CRLF
+        "def foo(x):\r    return x\r"       # CR
+    ]
+)
+def test_get_text_with_eol(editorbot, text):
+    """
+    Test that get_text_with_eol returns the right text with the most
+    common line endings.
+    """
+    editor = editorbot
+    editor.set_text(text)
+    assert editor.get_text_with_eol() == text
 
 
 if __name__ == '__main__':
