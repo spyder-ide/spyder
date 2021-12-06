@@ -18,7 +18,6 @@ import pytest
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.editor import codeeditor
-from spyder.py3compat import PY2, PY3
 
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
@@ -67,34 +66,6 @@ def test_editor_lower_to_upper(editorbot):
     assert text != new_text
 
 
-@pytest.mark.skipif(PY3, reason='Test only makes sense on Python 2.')
-def test_editor_log_lsp_handle_errors(editorbot, capsys):
-    """Test the lsp error handling / dialog report Python 2."""
-    widget = editorbot
-    params = {
-        'params': {
-            'activeParameter': 'boo',
-            'signatures': {
-                'documentation': b'\x81',
-                'label': 'foo',
-                'parameters': {
-                    'boo': {
-                        'documentation': b'\x81',
-                        'label': 'foo',
-                    },
-                }
-            }
-        }
-    }
-
-    widget.process_signatures(params)
-    captured = capsys.readouterr()
-    test_1 = "Error when processing signature" in captured.err
-    test_2 = "codec can't decode byte 0x81" in captured.err
-    assert test_1 or test_2
-
-
-@pytest.mark.skipif(PY2, reason="Python 2 strings don't have attached encoding.")
 @pytest.mark.parametrize(
     "input_text, expected_text, keys, strip_all",
     [
@@ -240,7 +211,6 @@ def test_in_string(editorbot, input_text, expected_state):
         assert widget.in_string(cursor) == expected_state[1]
 
 
-@pytest.mark.skipif(PY2, reason="Doesn't work with python 2 on travis.")
 def test_comment(editorbot):
     """
     Test that in_string works correctly.
