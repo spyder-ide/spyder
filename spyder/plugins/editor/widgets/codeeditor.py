@@ -2506,7 +2506,7 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections = self.get_extra_selections('occurrences')
         first_occurrence = None
         while cursor:
-            self.occurrences.append(cursor.blockNumber())
+            self.occurrences.append(cursor.block())
             selection = self.get_selection(cursor)
             if len(selection.cursor.selectedText()) > 0:
                 extra_selections.append(selection)
@@ -2550,7 +2550,7 @@ class CodeEditor(TextEditBaseWidget):
             selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
             selection.cursor.setPosition(pos1)
-            self.found_results.append(selection.cursor.blockNumber())
+            self.found_results.append(selection.cursor.block())
             selection.cursor.setPosition(pos2, QTextCursor.KeepAnchor)
             extra_selections.append(selection)
         self.set_extra_selections('find', extra_selections)
