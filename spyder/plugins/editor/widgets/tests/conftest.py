@@ -212,3 +212,19 @@ def search_codeeditor(completions_codeeditor, qtbot_module, request):
     request.addfinalizer(teardown)
 
     return code_editor, find_replace
+
+
+@pytest.fixture
+def editorbot(qtbot):
+    widget = CodeEditor(None)
+    widget.setup_editor(linenumbers=True,
+                        markers=True,
+                        tab_mode=False,
+                        font=QFont("Courier New", 10),
+                        show_blanks=True, color_scheme='spyder/dark',
+                        scroll_past_end=True)
+    widget.setup_editor(language='Python')
+    widget.resize(640, 480)
+    qtbot.addWidget(widget)
+    widget.show()
+    return widget

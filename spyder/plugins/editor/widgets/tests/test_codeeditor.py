@@ -14,29 +14,11 @@ from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QTextEdit
 import pytest
 
-# Local imports
-from spyder.utils.qthelpers import qapplication
-from spyder.plugins.editor.widgets.editor import codeeditor
 
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
 
-# --- Fixtures
-# -----------------------------------------------------------------------------
-@pytest.fixture
-def editorbot(qtbot):
-    widget = codeeditor.CodeEditor(None)
-    widget.setup_editor(linenumbers=True, markers=True, tab_mode=False,
-                        font=QFont("Courier New", 10),
-                        show_blanks=True, color_scheme='spyder/dark',
-                        scroll_past_end=True)
-    widget.setup_editor(language='Python')
-    qtbot.addWidget(widget)
-    widget.show()
-    return widget
 
-# --- Tests
-# -----------------------------------------------------------------------------
 def test_editor_upper_to_lower(editorbot):
     widget = editorbot
     text = 'UPPERCASE'
