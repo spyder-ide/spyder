@@ -85,8 +85,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     # Signals
     run_in_current_ipyclient = Signal(str, str, str,
                                       bool, bool, bool, bool, bool)
-    run_cell_in_ipyclient = Signal(str, object, str, bool)
-    debug_cell_in_ipyclient = Signal(str, object, str, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
 
@@ -1535,14 +1535,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.exec_in_extconsole.connect(
                                     lambda text, option:
                                     self.exec_in_extconsole.emit(text, option))
-        editorstack.run_cell_in_ipyclient.connect(
-            lambda code, cell_name, filename, run_cell_copy:
-            self.run_cell_in_ipyclient.emit(code, cell_name, filename,
-                                            run_cell_copy))
+        editorstack.run_cell_in_ipyclient.connect(self.run_cell_in_ipyclient)
         editorstack.debug_cell_in_ipyclient.connect(
-            lambda code, cell_name, filename, run_cell_copy:
-            self.debug_cell_in_ipyclient.emit(code, cell_name, filename,
-                                              run_cell_copy))
+            self.debug_cell_in_ipyclient)
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)

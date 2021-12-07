@@ -2085,7 +2085,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 function='runcell'):
+                 focus_to_editor, function='runcell'):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -2112,7 +2112,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 line = code.strip()
 
             try:
-                self.execute_code(line, set_focus=False)
+                self.execute_code(line, set_focus=not focus_to_editor)
             except AttributeError:
                 pass
             self.sig_switch_to_plugin_requested.emit()
@@ -2127,9 +2127,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                 QMessageBox.Ok
             )
 
-    def debug_cell(self, code, cell_name, filename, run_cell_copy):
+    def debug_cell(self, code, cell_name, filename, run_cell_copy,
+                   focus_to_editor):
         """Debug current cell."""
-        self.run_cell(code, cell_name, filename, run_cell_copy, 'debugcell')
+        self.run_cell(code, cell_name, filename, run_cell_copy,
+                      focus_to_editor, 'debugcell')
 
     # ---- For scripts
     def run_script(self, filename, wdir, args, debug, post_mortem,

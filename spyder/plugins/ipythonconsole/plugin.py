@@ -602,7 +602,7 @@ class IPythonConsole(SpyderDockablePlugin):
             console_namespace)
 
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 function='runcell'):
+                 focus_to_editor, function='runcell'):
         """
         Run cell in current or dedicated client.
 
@@ -618,6 +618,9 @@ class IPythonConsole(SpyderDockablePlugin):
         run_cell_copy : bool
             True if the cell should be executed line by line,
             False if the provided `function` should be used.
+        focus_to_editor: bool
+            Whether to give focus to the editor after running the cell. If
+            False, focus is given to the console.
         function : str, optional
             Name handler of the kernel function to be used to execute the cell
             in case `run_cell_copy` is False.
@@ -629,9 +632,11 @@ class IPythonConsole(SpyderDockablePlugin):
 
         """
         self.get_widget().run_cell(
-            code, cell_name, filename, run_cell_copy, function=function)
+            code, cell_name, filename, run_cell_copy, focus_to_editor,
+            function=function)
 
-    def debug_cell(self, code, cell_name, filename, run_cell_copy):
+    def debug_cell(self, code, cell_name, filename, run_cell_copy,
+                   focus_to_editor):
         """
         Debug current cell.
 
@@ -647,13 +652,17 @@ class IPythonConsole(SpyderDockablePlugin):
         run_cell_copy : bool
             True if the cell should be executed line by line,
             False if the `debugcell` kernel function should be used.
+        focus_to_editor: bool
+            Whether to give focus to the editor after debugging the cell. If
+            False, focus is given to the console.
 
         Returns
         -------
         None.
 
         """
-        self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy)
+        self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy,
+                                     focus_to_editor)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """
