@@ -14,8 +14,6 @@ from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 
-# Local imports
-from spyder.widgets.findreplace import FindReplace
 
 # ---Fixtures-----------------------------------------------------------------
 text = """
