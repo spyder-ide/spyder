@@ -27,6 +27,10 @@ If you find yourself making many small suggestions that don’t fall into the Re
 
 Bad days occur to everyone, in that occasion you deserve a break: try to take your time and stay offline.
 
+Consider focusing on the most important reviews first (the things that will block the PR from being merged) to avoid overloading authors.
+
+Be mindful that every contributor has different experiences and skills; new contributors may have things to learn about Spyder, but the reviewer can often learn from working with them as well.
+
 ### Expected reviewer behavior
 
 Pull requests are a key space for community interaction, and reviewing PRs is a vital part of maintaining any project.
@@ -142,7 +146,8 @@ PR authors are responsible for addressing required reviews for the PR to be elig
 #### Optional items
 
 Feedback asking for substantial, user-visible content additions and improvements to the text and images (rather than critical fixes) may be left as optional review comments, if it is appropriate and important enough to merit discussion on the original PR.
-As with all reviews, please primarily consider how a PR would impact documentation stability, clarity, and quality over focusing on purely subjective improvements.
+As with all reviews, please primarily consider how a PR would impact documentation stability, clarity and quality over focusing on purely subjective improvements.
+Comments under this section should be used in limited amounts to avoid overloading authors and keep the pull request focused and in scope.
 Otherwise, they can be handled in a followup by the reviewer, opened as an issue, or deferred entirely.
 
 Examples include:
