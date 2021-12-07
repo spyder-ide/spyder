@@ -51,13 +51,13 @@ Other notes:
 
 ### For code-focused review
 
-#### Required items
+#### Requested items
 
 The following are areas the community expects to be covered in the review of the code on each PR.
 Not all of the following individual questions will be relevant for every PR (for example, a bug fix may not need to answer the same questions as a proposal for a new feature), but these are the themes to be addressed.
 
-Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
-PR authors are responsible for addressing required reviews for the PR to be eligible for merging.
+Review that addresses these questions on a PR will be prefixed with `[requested]` so that the PR author(s) are clear that they are blockers.
+PR authors are responsible for addressing requested reviews for the PR to be eligible for merging.
 
 - [ ] Motivation
     - Do we want this?
@@ -110,13 +110,13 @@ PR authors may address these reviews, but are not required to do so in order for
 
 ### For documentation/website-focused review
 
-#### Required items
+#### Requested items
 
 The following are areas the community expects to be covered in the review of a documentation-focused PR.
 In general, reviewers need to consider whether the content is a good fit, accurate and generally clear to readers, and builds and renders with no simmediate user-visible issues.
 
-Review that addresses these questions on a PR will be prefixed with `[required]` so that the PR author(s) are clear that they are blockers.
-PR authors are responsible for addressing required reviews for the PR to be eligible for merging.
+Review that addresses these questions on a PR will be prefixed with `[requested]` so that the PR author(s) are clear that they are blockers.
+PR authors are responsible for addressing requested reviews for the PR to be eligible for merging.
 
 **Motivation**
 
