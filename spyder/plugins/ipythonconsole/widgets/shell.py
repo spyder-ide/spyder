@@ -949,7 +949,7 @@ the sympy module (e.g. plot)
     def _get_colors(self, color):
         """
         Get a color as qtconsole.styles.get_colors() would return from
-        a builtin Pygments style
+        a builtin Pygments style.
         """
         color_scheme = get_color_scheme(self.syntax_style)
         return dict(
