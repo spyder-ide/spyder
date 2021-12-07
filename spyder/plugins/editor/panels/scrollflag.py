@@ -198,7 +198,10 @@ class ScrollFlagArea(Panel):
 
         # Compute the height of a line and of a flag in lines.
         line_height = last_y_pos - first_y_pos
-        flag_height_lines = rect_h * last_line / line_height
+        if line_height > 0:
+            flag_height_lines = rect_h * last_line / line_height
+        else:
+            flag_height_lines = 0
 
         # All the lists of block numbers for flags
         dict_flag_lists = {
