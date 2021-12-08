@@ -8,16 +8,13 @@
 
 from qtconsole.styles import dark_color
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import (QApplication, QDialog, QFontComboBox,
-                            QGridLayout, QGroupBox, QMessageBox,
-                            QPushButton, QStackedWidget, QStyleFactory,
-                            QVBoxLayout)
+from qtpy.QtWidgets import (QFontComboBox, QGridLayout, QGroupBox, QMessageBox,
+                            QPushButton, QStackedWidget, QVBoxLayout)
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
 from spyder.config.gui import get_font, is_dark_font_color, set_font
 from spyder.config.manager import CONF
-from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
 from spyder.utils.palette import QStylePalette
