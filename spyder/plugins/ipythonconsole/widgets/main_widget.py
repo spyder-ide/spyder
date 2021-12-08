@@ -62,8 +62,8 @@ SPYDER_KERNELS_MAX_VERSION = '2.3.0'
 SPYDER_KERNELS_VERSION = (
     f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
 SPYDER_KERNELS_VERSION_MSG = _(
-    '>= {0} and < {1}'.format(
-        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION))
+    '>= {0} and < {1}').format(
+        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
 SPYDER_KERNELS_CONDA = (
     f'conda install spyder-kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
 SPYDER_KERNELS_PIP = (
@@ -1528,11 +1528,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                       "<br><br>"
                       "<tt>{1}</tt>"
                       "<br><br>or<br><br>"
-                      "<tt>{2}</tt>".format(
+                      "<tt>{2}</tt>").format(
                           SPYDER_KERNELS_VERSION_MSG,
                           SPYDER_KERNELS_CONDA,
                           SPYDER_KERNELS_PIP
-                      ))
+                      )
                 )
                 return
 
