@@ -57,6 +57,7 @@ The following are areas the community expects to be covered in the review of the
 Not all of the following individual questions will be relevant for every PR (for example, a bug fix may not need to answer the same questions as a proposal for a new feature), but these are the themes to be addressed.
 
 Review that addresses these questions on a PR will be prefixed with `[requested]` so that the PR author(s) are clear that they are blockers.
+Reviews may be tagged per comment or through the primary comment of a GitHub review.
 PR authors are responsible for addressing requested reviews for the PR to be eligible for merging.
 
 - [ ] Motivation
@@ -105,6 +106,7 @@ When reviewing code, one should aim at preventing situations which may introduce
       If it does not, is there a reason?
 
 Review that addresses these questions on a PR will be prefixed with `[optional]` so that the PR author(s) are clear that this feedback is not a blocker.
+Reviews may be tagged per comment or through the primary comment of a GitHub review.
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
 
@@ -116,6 +118,7 @@ The following are areas the community expects to be covered in the review of a d
 In general, reviewers need to consider whether the content is a good fit, accurate and generally clear to readers, and builds and renders with no simmediate user-visible issues.
 
 Review that addresses these questions on a PR will be prefixed with `[requested]` so that the PR author(s) are clear that they are blockers.
+Reviews may be tagged per comment or through the primary comment of a GitHub review.
 PR authors are responsible for addressing requested reviews for the PR to be eligible for merging.
 
 **Motivation**
@@ -157,6 +160,7 @@ Examples include:
 - [ ] Could new content be restructured to read more clearly or logically for users?
 
 Review that addresses these topics on a PR will be prefixed with `[optional]` so that the PR author(s) are clear that this feedback is not a blocker.
+Reviews may be tagged per comment or through the primary comment of a GitHub review.
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
 
