@@ -180,8 +180,8 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, object, str, bool)
-    debug_cell_in_ipyclient = Signal(str, object, str, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -2752,15 +2752,7 @@ class EditorStack(QWidget):
         else:
             move_func = self.get_current_editor().go_to_previous_cell
 
-        if self.focus_to_editor:
-            move_func()
-        else:
-            term = QApplication.focusWidget()
-            move_func()
-            term.setFocus()
-            term = QApplication.focusWidget()
-            move_func()
-            term.setFocus()
+        move_func()
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
@@ -2795,13 +2787,12 @@ class EditorStack(QWidget):
         """
         (filename, cell_name) = cell_id
         if editor.is_python_or_ipython():
-            args = (text, cell_name, filename, self.run_cell_copy)
+            args = (text, cell_name, filename, self.run_cell_copy,
+                    self.focus_to_editor)
             if debug:
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        if self.focus_to_editor and not editor.hasFocus():
-            editor.setFocus()
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):
