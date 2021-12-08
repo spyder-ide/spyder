@@ -4311,5 +4311,74 @@ crash_func()
     assert 'in crash_func' in control.toPlainText()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.parametrize("focus_to_editor", [True, False])
+def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
+    """Test that the focus_to_editor option works as expected."""
+    # Write code with cells to a file
+    code = """# %%
+def foo(x):
+    return 2 * x
+
+# %%
+foo(1)
+"""
+    p = tmpdir.join("test.py")
+    p.write(code)
+
+    # Load code in the editor
+    main_window.editor.load(to_text_string(p))
+
+    # Change focus_to_editor option
+    main_window.editor.set_option('focus_to_editor', focus_to_editor)
+    main_window.editor.apply_plugin_settings({(None, 'focus_to_editor')})
+    code_editor = main_window.editor.get_current_editor()
+
+    # Wait for the console to be up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+
+    # Be sure the focus is on the editor before proceeding
+    code_editor.setFocus()
+
+    # Click the run cell button
+    run_cell_action = main_window.run_toolbar_actions[1]
+    run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
+    qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    focus_widget = QApplication.focusWidget()
+    if focus_to_editor:
+        assert focus_widget is code_editor
+    else:
+        assert focus_widget is control
+
+    # Give focus back to the editor before running the next test
+    if not focus_to_editor:
+        code_editor.setFocus()
+
+    # Move cursor to last line to run it
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.PreviousBlock, QTextCursor.KeepAnchor)
+    code_editor.setTextCursor(cursor)
+
+    # Click the run selection button
+    run_selection_action = main_window.run_toolbar_actions[3]
+    run_selection_button = main_window.run_toolbar.widgetForAction(
+        run_selection_action)
+    qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    focus_widget = QApplication.focusWidget()
+    if focus_to_editor:
+        assert focus_widget is code_editor
+    else:
+        assert focus_widget is control
+
+
 if __name__ == "__main__":
     pytest.main()
