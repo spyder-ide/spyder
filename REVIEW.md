@@ -116,6 +116,10 @@ Reviews may be tagged per comment or through the primary comment of a GitHub rev
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
 
+#### Discussion items
+
+I am not sure what people want for the discussion items tag, so this is a placeholder to make space for collaboration.
+
 ### For documentation/website-focused review
 
 #### Requested items
