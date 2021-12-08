@@ -47,6 +47,12 @@ Other notes:
 - Whenever practical, reviewers should add comments asking for a specific change as [GitHub suggestions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request).
 - If after discussion, an author and a reviewer still don't agree on a change and can't come up with a solution that addresses the concerns of both parties, another maintainer of the repository in question (or if not available, another Spyder core developer) should be pinged to give a second opinion and mediate the disagreement.
 
+Reviewers may give context for the review to make sure the PR author is familiar with the style and this guide. 
+
+For example,
+
+> In Spyder projects, we review pull requests by labelling which feedback needs to be addressed versus which feedback is optional. For more information, refer to the Review Guidelines in `REVIEW.md`.
+
 ## Reviewing process
 
 ### For code-focused review
