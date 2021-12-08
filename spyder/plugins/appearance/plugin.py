@@ -37,8 +37,8 @@ class Appearance(SpyderPluginV2):
     CONF_FILE = False
     CAN_BE_DISABLED = False
 
-    # --- SpyderPluginV2 API
-    # ------------------------------------------------------------------------
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Appearance")
