@@ -2538,8 +2538,12 @@ class CodeEditor(TextEditBaseWidget):
             return
         extra_selections = []
         self.found_results = []
+        has_unicode = len(text) != qstring_length(text)
         for match in regobj.finditer(text):
-            pos1, pos2 = sh.get_span(match)
+            if has_unicode:
+                pos1, pos2 = sh.get_span(match)
+            else:
+                pos1, pos2 = match.span()
             selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
             selection.cursor.setPosition(pos1)

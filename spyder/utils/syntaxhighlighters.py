@@ -129,7 +129,7 @@ def get_span(match, key=None):
     else:
         start, end = match.span()
     start = qstring_length(match.string[:start])
-    end = qstring_length(match.string[:end])
+    end = start + qstring_length(match.string[start:end])
     return start, end
 
 
