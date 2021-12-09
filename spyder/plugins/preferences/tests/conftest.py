@@ -10,7 +10,6 @@ Testing utilities to be used with pytest.
 """
 
 import types
-
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
