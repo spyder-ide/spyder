@@ -1348,9 +1348,6 @@ class CodeEditor(TextEditBaseWidget):
                     data.selection_start = start
                     data.selection_end = end
 
-                    # Don't call highlight_selection with `update=True` so that
-                    # all underline selections are updated in bulk in
-                    # underline_errors.
                     self.highlight_selection('code_analysis_underline',
                                              data._selection(),
                                              underline_color=block.color)
@@ -2465,8 +2462,7 @@ class CodeEditor(TextEditBaseWidget):
     def highlight_selection(self, key, cursor, foreground_color=None,
                             background_color=None, underline_color=None,
                             outline_color=None,
-                            underline_style=QTextCharFormat.SingleUnderline,
-                            update=False):
+                            underline_style=QTextCharFormat.SingleUnderline):
 
         selection = self.get_selection(
             cursor, foreground_color, background_color, underline_color,
@@ -2476,8 +2472,6 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections = self.get_extra_selections(key)
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
-        if update:
-            self.update_extra_selections()
 
     def __mark_occurrences(self):
         """Marking occurrences of the currently selected word"""
@@ -2518,7 +2512,6 @@ class CodeEditor(TextEditBaseWidget):
                         self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.set_extra_selections('occurrences', extra_selections)
-        self.update_extra_selections()
 
         if len(self.occurrences) > 1 and self.occurrences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
@@ -2554,7 +2547,6 @@ class CodeEditor(TextEditBaseWidget):
             selection.cursor.setPosition(pos2, QTextCursor.KeepAnchor)
             extra_selections.append(selection)
         self.set_extra_selections('find', extra_selections)
-        self.update_extra_selections()
 
     def clear_found_results(self):
         """Clear found results highlighting"""
@@ -3154,8 +3146,7 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('code_analysis_highlight')
         self.highlight_selection('code_analysis_highlight',
                                  block_data._selection(),
-                                 background_color=block_data.color,
-                                 update=True)
+                                 background_color=block_data.color)
         self.linenumberarea.update()
 
     def get_current_warnings(self):
@@ -4904,7 +4895,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             self.clear_extra_selections('ctrl_click')
             self.highlight_selection(
-                'ctrl_click', cursor, update=True,
+                'ctrl_click', cursor,
                 foreground_color=self.ctrl_click_color,
                 underline_color=self.ctrl_click_color,
                 underline_style=QTextCharFormat.SingleUnderline)
@@ -4928,7 +4919,7 @@ class CodeEditor(TextEditBaseWidget):
 
             self.clear_extra_selections('ctrl_click')
             self.highlight_selection(
-                'ctrl_click', cursor, update=True,
+                'ctrl_click', cursor,
                 foreground_color=color,
                 underline_color=color,
                 underline_style=QTextCharFormat.SingleUnderline)

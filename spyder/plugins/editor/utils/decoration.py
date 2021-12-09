@@ -29,6 +29,12 @@ from spyder.api.manager import Manager
 UPDATE_TIMEOUT = 15  # milliseconds
 
 
+def order_function(sel):
+    end = sel.cursor.selectionEnd()
+    start = sel.cursor.selectionStart()
+    return sel.draw_order, -(end - start)
+
+
 class TextDecorationsManager(Manager, QObject):
     """
     Manages the collection of TextDecoration that have been set on the editor
@@ -37,7 +43,7 @@ class TextDecorationsManager(Manager, QObject):
     def __init__(self, editor):
         super(TextDecorationsManager, self).__init__(editor)
         QObject.__init__(self, None)
-        self._decorations = []
+        self._decorations = {"misc": []}
 
         # Timer to not constantly update decorations.
         self.update_timer = QTimer(self)
@@ -58,19 +64,25 @@ class TextDecorationsManager(Manager, QObject):
         Returns:
             int: Amount of decorations added.
         """
+        current_decorations = self._decorations["misc"]
         added = 0
         if isinstance(decorations, list):
-            not_repeated = set(decorations) - set(self._decorations)
-            self._decorations.extend(list(not_repeated))
+            not_repeated = set(decorations) - set(current_decorations)
+            current_decorations.extend(list(not_repeated))
+            self._decorations["misc"] = current_decorations
             added = len(not_repeated)
-        elif decorations not in self._decorations:
-            self._decorations.append(decorations)
+        elif decorations not in current_decorations:
+            self._decorations["misc"].append(decorations)
             added = 1
 
         if added > 0:
-            self._order_decorations()
             self.update()
         return added
+
+    def add_key(self, key, decorations):
+        """Add decorations to key."""
+        self._decorations[key] = decorations
+        self.update()
 
     def remove(self, decoration):
         """
@@ -83,15 +95,23 @@ class TextDecorationsManager(Manager, QObject):
             several decorations
         """
         try:
-            self._decorations.remove(decoration)
+            self._decorations["misc"].remove(decoration)
             self.update()
             return True
         except ValueError:
             return False
 
+    def remove_key(self, key):
+        """Remove key"""
+        try:
+            del self._decorations[key]
+            self.update()
+        except KeyError:
+            pass
+
     def clear(self):
         """Removes all text decoration from the editor."""
-        self._decorations[:] = []
+        self._decorations = {"misc": []}
         self.update()
 
     def update(self):
@@ -119,7 +139,7 @@ class TextDecorationsManager(Manager, QObject):
 
             # Update visible decorations
             visible_decorations = []
-            for decoration in self._decorations:
+            for decoration in self._sorted_decorations():
                 need_update_sel = False
                 cursor = decoration.cursor
                 sel_start = cursor.selectionStart()
@@ -153,18 +173,9 @@ class TextDecorationsManager(Manager, QObject):
     def __len__(self):
         return len(self._decorations)
 
-    def _order_decorations(self):
-        """Order decorations according draw_order and size of selection.
-
-        Highest draw_order will appear on top of the lowest values.
-
-        If draw_order is equal,smaller selections are draw in top of
-        bigger selections.
-        """
-        def order_function(sel):
-            end = sel.cursor.selectionEnd()
-            start = sel.cursor.selectionStart()
-            return sel.draw_order, -(end - start)
-
-        self._decorations = sorted(self._decorations,
-                                   key=order_function)
+    def _sorted_decorations(self):
+        """Get all sorted decorations."""
+        return sorted(
+            [v for key in self._decorations
+             for v in self._decorations[key]],
+            key=order_function)
