@@ -859,7 +859,6 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.MoveAnchor)
 
-
     #------Selection
     def extend_selection_to_next(self, what='word', direction='left'):
         """
@@ -868,9 +867,10 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
 
-
     #------Text: get, set, ...
+
     def _select_text(self, position_from, position_to):
+        """Select text and return cursor."""
         position_from = self.get_position(position_from)
         position_to = self.get_position(position_to)
         cursor = self.textCursor()

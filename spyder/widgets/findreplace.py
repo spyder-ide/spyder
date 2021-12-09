@@ -527,23 +527,23 @@ class FindReplace(QWidget):
         if do_replace:
             cursor = self.editor.textCursor()
             cursor.beginEditBlock()
-    
+
             if re_pattern is None:
                 cursor.removeSelectedText()
                 cursor.insertText(replace_text)
             else:
                 seltxt = to_text_string(cursor.selectedText())
-    
+
                 # Note: If the selection obtained from an editor spans a line
                 # break, the text will contain a Unicode U+2029 paragraph
                 # separator character instead of a newline \n character.
                 # See: spyder-ide/spyder#2675
                 eol_char = get_eol_chars(self.editor.toPlainText())
                 seltxt = seltxt.replace(u'\u2029', eol_char)
-    
+
                 cursor.removeSelectedText()
                 cursor.insertText(re_pattern.sub(replace_text, seltxt))
-    
+
             if self.find_next(set_focus=False):
                 found_cursor = self.editor.textCursor()
                 cursor.setPosition(found_cursor.selectionStart(),
