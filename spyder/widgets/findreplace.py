@@ -588,8 +588,7 @@ class FindReplace(QWidget):
             re_pattern = re.compile(re.escape(search_text), flags=re_flags)
 
         cursor = self.editor._select_text("sof", "eof")
-        text = cursor.selectedText()
-
+        text = self.editor.toPlainText()
         cursor.beginEditBlock()
         cursor.removeSelectedText()
         cursor.insertText(re_pattern.sub(replace_text, text))
