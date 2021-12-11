@@ -45,6 +45,7 @@ class AppearanceConfigPage(PluginConfigPage):
                                               ui_theme_choices,
                                               'ui_theme',
                                               restart=True)
+        self.ui_combobox = ui_theme_combo.combobox
 
         themes = ['Spyder 2', 'Spyder 3']
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
