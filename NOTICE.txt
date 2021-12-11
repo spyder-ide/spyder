@@ -489,7 +489,7 @@ spyder/utils/external/github.py
 
 
 
-Sphinixfy (from the Sage Project)
+Sphinxify (from the Sage Project)
 ---------------------------------
 
 
@@ -502,7 +502,7 @@ Site: https://www.sagemath.org/
 Source: https://github.com/sagemath/sagenb
 License: BSD (3-clause) License | https://opensource.org/licenses/BSD-3-Clause
 
-Modifications made to each file adapt Sphinixfy to Spyder and fix bugs.
+Modifications made to each file adapt Sphinxify to Spyder and fix bugs.
 
 
 Distributed under the terms of the BSD License.
