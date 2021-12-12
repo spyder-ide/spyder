@@ -1296,7 +1296,6 @@ spyder/images/not_found.png
 spyder/images/options.svg
 spyder/images/splash.png
 spyder/images/spyder.svg
-spyder/images/spyder_light.svg
 spyder/images/whole_words.png
 spyder/images/win_env.png
 spyder/images/actions/hist.png
