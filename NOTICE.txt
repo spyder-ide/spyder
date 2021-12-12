@@ -573,10 +573,10 @@ IPython frontend components were developed into Jupyter QtConsole; see below.
 
 In addition to the list below, modified IPython code snippits included in:
 
-spyder/plugins/ipythonconsole/plugin.py
 setup.py
-spyder/utils/programs.py
 spyder/plugins/editor/extensions/closequotes.py
+spyder/plugins/ipythonconsole/plugin.py
+spyder/utils/programs.py
 
 See below for the full text of the Modified BSD (3-clause) License.
 
@@ -1286,13 +1286,8 @@ https://github.com/spyder-ide/spyder/blob/master/LICENSE.txt
 
 Files covered:
 
-spyder/images/spyder2_icon_theme/dictedit.png
-spyder/images/spyder2_icon_theme/not_found.png
-spyder/images/old_svg/options.svg
-spyder/images/spyder.svg
-spyder/images/spyder2_icon_theme/whole_words.png
-spyder/images/spyder2_icon_theme/win_env.png
 spyder/images/actions/hist.png
+spyder/images/actions/window_nofullscreen.png
 spyder/images/console/ipython_console.png
 spyder/images/editor/attribute.png
 spyder/images/editor/blockcomment.png
@@ -1305,7 +1300,12 @@ spyder/images/editor/no_match.png
 spyder/images/editor/private1.png
 spyder/images/editor/private2.png
 spyder/images/editor/refactor.png
-spyder/images/actions/window_nofullscreen.png
+spyder/images/old_svg/options.svg
+spyder/images/spyder.svg
+spyder/images/spyder2_icon_theme/dictedit.png
+spyder/images/spyder2_icon_theme/not_found.png
+spyder/images/spyder2_icon_theme/whole_words.png
+spyder/images/spyder2_icon_theme/win_env.png
 
 
 -------------------------------------------------------------------------------
@@ -1345,11 +1345,6 @@ https://www.gnu.org/licenses/lgpl.html
 
 Files covered:
 
-spyder/images/spyder2_icon_theme/advanced.png
-spyder/images/spyder2_icon_theme/help.png
-spyder/images/spyder2_icon_theme/italic.png
-spyder/images/spyder2_icon_theme/vcs_browse.png
-spyder/images/spyder2_icon_theme/vcs_commit.png
 spyder/images/actions/1downarrow.png
 spyder/images/actions/1uparrow.png
 spyder/images/actions/2downarrow.png
@@ -1361,11 +1356,11 @@ spyder/images/actions/copywop.png
 spyder/images/actions/delete.png
 spyder/images/actions/edit.png
 spyder/images/actions/edit24.png
+spyder/images/actions/edit_add.png
+spyder/images/actions/edit_remove.png
 spyder/images/actions/editcopy.png
 spyder/images/actions/editcut.png
 spyder/images/actions/editpaste.png
-spyder/images/actions/edit_add.png
-spyder/images/actions/edit_remove.png
 spyder/images/actions/eraser.png
 spyder/images/actions/exit.png
 spyder/images/actions/filter.png
@@ -1439,6 +1434,11 @@ spyder/images/projects/project_closed.png
 spyder/images/projects/pythonpath.png
 spyder/images/projects/remove_from_path.png
 spyder/images/projects/show_all.png
+spyder/images/spyder2_icon_theme/advanced.png
+spyder/images/spyder2_icon_theme/help.png
+spyder/images/spyder2_icon_theme/italic.png
+spyder/images/spyder2_icon_theme/vcs_browse.png
+spyder/images/spyder2_icon_theme/vcs_commit.png
 
 
 -------------------------------------------------------------------------------
@@ -1638,8 +1638,8 @@ img_src/edit-undo.svgz
 
 Files covered:
 
-spyder/images/editor/run.png
 spyder/images/console/run_small.png
+spyder/images/editor/run.png
 
 
 -------------------------------------------------------------------------------
@@ -1755,10 +1755,10 @@ https://github.com/vscode-icons/vscode-icons/blob/master/icons
 
 Files covered:
 
-spyder/images/dark/file_type_tex.svg
-spyder/images/light/file_type_tex.svg
 spyder/images/dark/binary.svg
+spyder/images/dark/file_type_tex.svg
 spyder/images/light/binary.svg
+spyder/images/light/file_type_tex.svg
 
 
 -------------------------------------------------------------------------------
@@ -1787,8 +1787,8 @@ See below for the full text of the Creative Commons Attribution International 4.
 Files covered:
 
 spyder/images/dark/kite.svg
-spyder/images/light/kite.svg
 spyder/images/kite/kite_copilot.png
+spyder/images/light/kite.svg
 
 
 ===============================================================================
@@ -1826,8 +1826,8 @@ https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/LICENSE.md
 Files covered:
 
 spyder/plugins/help/utils/static/images/down_arrow.png
-spyder/plugins/help/utils/static/images/up_arrow.png
 spyder/plugins/help/utils/static/images/down_arrow_disabled.png
+spyder/plugins/help/utils/static/images/up_arrow.png
 spyder/plugins/help/utils/static/images/up_arrow_disabled.png
 
 
