@@ -1356,7 +1356,6 @@ spyder/images/advanced.png
 spyder/images/arrow.png
 spyder/images/bold.png
 spyder/images/browser.png
-spyder/images/ext_tools.png
 spyder/images/genprefs.png
 spyder/images/help.png
 spyder/images/italic.png
