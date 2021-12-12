@@ -1346,7 +1346,6 @@ https://www.gnu.org/licenses/lgpl.html
 Files covered:
 
 spyder/images/spyder2_icon_theme/advanced.png
-spyder/images/genprefs.png
 spyder/images/spyder2_icon_theme/help.png
 spyder/images/spyder2_icon_theme/italic.png
 spyder/images/spyder2_icon_theme/vcs_browse.png
@@ -1364,7 +1363,6 @@ spyder/images/actions/edit.png
 spyder/images/actions/edit24.png
 spyder/images/actions/editcopy.png
 spyder/images/actions/editcut.png
-spyder/images/actions/editdelete.png
 spyder/images/actions/editpaste.png
 spyder/images/actions/edit_add.png
 spyder/images/actions/edit_remove.png
@@ -1373,8 +1371,6 @@ spyder/images/actions/exit.png
 spyder/images/actions/filter.png
 spyder/images/actions/find.png
 spyder/images/actions/findf.png
-spyder/images/actions/findnext.png
-spyder/images/actions/findprevious.png
 spyder/images/actions/folder_new.png
 spyder/images/actions/hide.png
 spyder/images/actions/home.png
@@ -1400,12 +1396,10 @@ spyder/images/actions/up.png
 spyder/images/actions/zoom_in.png
 spyder/images/actions/zoom_out.png
 spyder/images/console/console.png
-spyder/images/console/environ.png
 spyder/images/console/history.png
 spyder/images/console/kill.png
 spyder/images/console/prompt.png
 spyder/images/console/restart.png
-spyder/images/console/syspath.png
 spyder/images/editor/bug.png
 spyder/images/editor/close_panel.png
 spyder/images/editor/comment.png
@@ -1414,9 +1408,7 @@ spyder/images/editor/file.png
 spyder/images/editor/fromcursor.png
 spyder/images/editor/gotoline.png
 spyder/images/editor/highlight.png
-spyder/images/editor/horsplit.png
 spyder/images/editor/indent.png
-spyder/images/editor/last_edit_location.png
 spyder/images/editor/newwindow.png
 spyder/images/editor/next_cursor.png
 spyder/images/editor/next_wng.png
@@ -1429,10 +1421,8 @@ spyder/images/editor/selectall.png
 spyder/images/editor/todo_list.png
 spyder/images/editor/uncomment.png
 spyder/images/editor/unindent.png
-spyder/images/editor/versplit.png
 spyder/images/editor/wng_list.png
 spyder/images/file/fileclose.png
-spyder/images/file/filecloseall.png
 spyder/images/file/fileimport.png
 spyder/images/file/filenew.png
 spyder/images/file/fileopen.png
@@ -1497,7 +1487,6 @@ spyder/images/actions/arrow-continue.png
 spyder/images/actions/arrow-step-in.png
 spyder/images/actions/arrow-step-out.png
 spyder/images/actions/arrow-step-over.png
-spyder/images/actions/maximize.png
 spyder/images/actions/stop.png
 spyder/images/actions/stop_debug.png
 spyder/images/actions/unmaximize.png
@@ -1652,11 +1641,6 @@ img_src/edit-undo.svgz
 Files covered:
 
 spyder/images/editor/run.png
-spyder/images/editor/run_again.png
-spyder/images/editor/run_cell.png
-spyder/images/editor/run_cell_advance.png
-spyder/images/editor/run_selection.png
-spyder/images/editor/run_settings.png
 spyder/images/console/run_small.png
 
 
