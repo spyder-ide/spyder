@@ -196,8 +196,8 @@ spyder/app/utils.py
 
 
 
-MathJax 2.0
------------
+MathJax 2.7.5
+-------------
 
 
 Copyright (c) 2009-2012 Design Science, Inc.
