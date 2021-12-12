@@ -405,13 +405,11 @@ spyder/api/manager.py
 spyder/api/panel.py
 spyder/api/widgets/mixins.py
 spyder/plugins/editor/api/decoration.py
-spyder/plugins/editor/api/foldings.py
 spyder/plugins/editor/extensions/manager.py
 spyder/plugins/editor/panels/codefolding.py
 spyder/plugins/editor/panels/manager.py
-spyder/plugins/editor/utils/decorations.py
+spyder/plugins/editor/utils/decoration.py
 spyder/plugins/editor/utils/editor.py
-spyder/plugins/editor/utils/folding.py
 
 
 -------------------------------------------------------------------------------
