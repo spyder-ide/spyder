@@ -1393,8 +1393,6 @@ spyder/images/actions/synchronize.png
 spyder/images/actions/tooloptions.png
 spyder/images/actions/undo.png
 spyder/images/actions/up.png
-spyder/images/actions/zoom_in.png
-spyder/images/actions/zoom_out.png
 spyder/images/console/console.png
 spyder/images/console/history.png
 spyder/images/console/kill.png
