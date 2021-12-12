@@ -1079,7 +1079,7 @@ spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py
 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py
 spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py
 spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py
-spyder/plugins/variableexplorer/widgets/objectexplorerr/tree_model.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py
 spyder/plugins/variableexplorer/widgets/objectexplorer/utils.py
 
 
