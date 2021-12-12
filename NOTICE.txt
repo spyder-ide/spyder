@@ -1286,15 +1286,12 @@ https://github.com/spyder-ide/spyder/blob/master/LICENSE.txt
 
 Files covered:
 
-spyder/images/arredit.png
-spyder/images/dictedit.png
-spyder/images/matplotlib.png
-spyder/images/none.png
-spyder/images/not_found.png
-spyder/images/options.svg
+spyder/images/spyder2_icon_theme/dictedit.png
+spyder/images/spyder2_icon_theme/not_found.png
+spyder/images/old_svg/options.svg
 spyder/images/spyder.svg
-spyder/images/whole_words.png
-spyder/images/win_env.png
+spyder/images/spyder2_icon_theme/whole_words.png
+spyder/images/spyder2_icon_theme/win_env.png
 spyder/images/actions/hist.png
 spyder/images/console/ipython_console.png
 spyder/images/editor/attribute.png
@@ -1348,15 +1345,12 @@ https://www.gnu.org/licenses/lgpl.html
 
 Files covered:
 
-spyder/images/advanced.png
-spyder/images/arrow.png
-spyder/images/bold.png
-spyder/images/browser.png
+spyder/images/spyder2_icon_theme/advanced.png
 spyder/images/genprefs.png
-spyder/images/help.png
-spyder/images/italic.png
-spyder/images/vcs_browse.png
-spyder/images/vcs_commit.png
+spyder/images/spyder2_icon_theme/help.png
+spyder/images/spyder2_icon_theme/italic.png
+spyder/images/spyder2_icon_theme/vcs_browse.png
+spyder/images/spyder2_icon_theme/vcs_commit.png
 spyder/images/actions/1downarrow.png
 spyder/images/actions/1uparrow.png
 spyder/images/actions/2downarrow.png
@@ -1719,39 +1713,6 @@ spyder/images/console/python.png
 
 
 
-WinPython Logo
---------------
-
-
-Copyright (c) 2013 Pierre Raybaut and the WinPython Development Team
-
-
-Author: Pierre Raybaut and the WinPython Development Team
-Site: https://winpython.github.io/
-Source/Download: https://github.com/winpython/
-License: MIT (Expat) License | https://opensource.org/licenses/MIT
-
-No modifications made.
-
-
-Licensed under the terms of the MIT License.
-
-
-See below for the full text of the MIT (Expat) License.
-
-The current WinPython repo license can be viewed at:
-https://github.com/winpython/winpython/blob/master/LICENSE
-
-
-Files covered:
-
-spyder/images/winpython.svg
-
-
--------------------------------------------------------------------------------
-
-
-
 Notebook Logo
 -------------
 
@@ -1779,8 +1740,8 @@ https://github.com/jupyterlab/jupyterlab/blob/0.35.x/packages/theme-light-extens
 
 Files covered:
 
-spyder/images/notebook_light.svg
-spyder/images/notebook_dark.svg
+spyder/images/dark/notebook.svg
+spyder/images/light/notebook.svg
 
 
 -------------------------------------------------------------------------------
@@ -1812,10 +1773,10 @@ https://github.com/vscode-icons/vscode-icons/blob/master/icons
 
 Files covered:
 
-spyder/images/file_type_tex_light.svg
-spyder/images/file_type_tex_dark.svg
-spyder/images/binary_light.svg
-spyder/images/binary_dark.svg
+spyder/images/dark/file_type_tex.svg
+spyder/images/light/file_type_tex.svg
+spyder/images/dark/binary.svg
+spyder/images/light/binary.svg
 
 
 -------------------------------------------------------------------------------
@@ -1843,9 +1804,9 @@ See below for the full text of the Creative Commons Attribution International 4.
 
 Files covered:
 
-spyder/images/kite_light.svg
-spyder/images/kite_dark.svg
-spyder/images/kite_copilot.png
+spyder/images/dark/kite.svg
+spyder/images/light/kite.svg
+spyder/images/kite/kite_copilot.png
 
 
 ===============================================================================
