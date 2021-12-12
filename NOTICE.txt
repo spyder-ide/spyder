@@ -1294,7 +1294,6 @@ spyder/images/matplotlib.png
 spyder/images/none.png
 spyder/images/not_found.png
 spyder/images/options.svg
-spyder/images/splash.png
 spyder/images/spyder.svg
 spyder/images/whole_words.png
 spyder/images/win_env.png
