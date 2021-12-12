@@ -1933,7 +1933,6 @@ https://github.com/kiteco/pyqt-bloomfilter
 
 Files covered:
 
-spyder/utils/external/pybloom_pyqt
 spyder/utils/external/pybloom_pyqt/__init__.py
 spyder/utils/external/pybloom_pyqt/pybloom.py
 spyder/utils/external/pybloom_pyqt/utils.py
