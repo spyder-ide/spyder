@@ -1357,7 +1357,6 @@ spyder/images/browser.png
 spyder/images/genprefs.png
 spyder/images/help.png
 spyder/images/italic.png
-spyder/images/pythonpath_mgr.png
 spyder/images/vcs_browse.png
 spyder/images/vcs_commit.png
 spyder/images/actions/1downarrow.png
@@ -1408,7 +1407,6 @@ spyder/images/actions/undo.png
 spyder/images/actions/up.png
 spyder/images/actions/zoom_in.png
 spyder/images/actions/zoom_out.png
-spyder/images/console/clear.png
 spyder/images/console/console.png
 spyder/images/console/environ.png
 spyder/images/console/history.png
