@@ -403,6 +403,7 @@ Files covered:
 spyder/api/editorextension.py
 spyder/api/manager.py
 spyder/api/panel.py
+spyder/api/widgets/mixins.py
 spyder/plugins/editor/api/decoration.py
 spyder/plugins/editor/api/foldings.py
 spyder/plugins/editor/extensions/manager.py
