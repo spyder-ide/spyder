@@ -575,7 +575,6 @@ IPython frontend components were developed into Jupyter QtConsole; see below.
 
 In addition to the list below, modified IPython code snippits included in:
 
-create_app.py
 spyder/plugins/ipythonconsole/plugin.py
 setup.py
 spyder/utils/programs.py
