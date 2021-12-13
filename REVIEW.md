@@ -51,7 +51,7 @@ Reviewers may give context for the review to make sure the PR author is familiar
 
 For example,
 
-> In Spyder projects, we review pull requests by labelling which feedback needs to be addressed versus which feedback is optional. For more information, refer to the Review Guidelines in `REVIEW.md`.
+> In Spyder projects, we review pull requests by labeling which feedback needs to be addressed versus which feedback is optional. For more information, refer to the [Review Guidelines](https://github.com/spyder-ide/spyder/blob/master/REVIEW.md).
 
 ## Reviewing process
 
