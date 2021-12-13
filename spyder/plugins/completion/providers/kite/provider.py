@@ -140,8 +140,6 @@ class KiteProvider(SpyderCompletionProvider):
             self.kite_process.kill()
 
     def on_mainwindow_visible(self):
-        self.sig_call_statusbar.emit(
-            KiteStatusWidget.ID, 'mainwindow_setup_finished', tuple(), {})
         self.client.sig_response_ready.connect(self._kite_onboarding)
         self.client.sig_status_response_ready.connect(self._kite_onboarding)
         self.client.sig_onboarding_response_ready.connect(
