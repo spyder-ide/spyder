@@ -547,6 +547,10 @@ class HelpWidget(PluginMainWidget):
         else:
             self.force_refresh()
 
+    @on_conf_change(section='appearance', option='selected')
+    def change_color_scheme(self, value):
+        self.set_plain_text_color_scheme(value)
+
     def update_actions(self):
         for __, action in self.get_actions().items():
             # IMPORTANT: Since we are defining the main actions in here
