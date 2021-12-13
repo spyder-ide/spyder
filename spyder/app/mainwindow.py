@@ -39,7 +39,6 @@ import traceback
 from spyder import requirements
 requirements.check_path()
 requirements.check_qt()
-requirements.check_spyder_kernels()
 
 #==============================================================================
 # Third-party imports
