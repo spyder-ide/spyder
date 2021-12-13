@@ -156,7 +156,7 @@ class HistoryWidget(PluginMainWidget):
     @on_conf_change(option='selected', section='appearance')
     def on_color_scheme_change(self, value):
         for editor in self.editors:
-            editor.set_font(self.font)
+            editor.set_color_scheme(value)
 
     # --- Public API
     # ------------------------------------------------------------------------

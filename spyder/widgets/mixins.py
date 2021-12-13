@@ -24,7 +24,6 @@ import textwrap
 from qtpy.QtCore import QPoint, QRegularExpression, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
-from qtpy import QT_VERSION
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 

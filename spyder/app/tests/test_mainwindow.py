@@ -4332,7 +4332,7 @@ foo(1)
 
     # Change focus_to_editor option
     main_window.editor.set_option('focus_to_editor', focus_to_editor)
-    main_window.editor.apply_plugin_settings({(None, 'focus_to_editor')})
+    main_window.editor.apply_plugin_settings({'focus_to_editor'})
     code_editor = main_window.editor.get_current_editor()
 
     # Wait for the console to be up

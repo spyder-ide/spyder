@@ -10,7 +10,6 @@ Testing utilities to be used with pytest.
 """
 
 import types
-
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
@@ -102,6 +101,7 @@ class ConfigDialogTester:
         setattr(self._main, 'set_prefs_size',
                 types.MethodType(set_prefs_size, self._main))
 
+        PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self._main.register_plugin)
         PLUGIN_REGISTRY.register_plugin(self._main, Preferences)
 

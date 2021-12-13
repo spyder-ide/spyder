@@ -3019,12 +3019,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         if self.editorstacks is not None:
-            # Get option names from the tuples sent by Preferences
-            options = list({option[1] for option in options})
-
             # --- syntax highlight and text rendering settings
-            color_scheme_n = 'color_scheme_name'
-            color_scheme_o = self.get_color_scheme()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
             currentcell_n = 'highlight_current_cell'
@@ -3037,8 +3032,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             focus_to_editor_o = self.get_option(focus_to_editor_n)
 
             for editorstack in self.editorstacks:
-                if color_scheme_n in options:
-                    editorstack.set_color_scheme(color_scheme_o)
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(
                                                                 currentline_o)
@@ -3272,6 +3265,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             logger.debug(f"Set underline errors to {value}")
             for editorstack in self.editorstacks:
                 editorstack.set_underline_errors_enabled(value)
+
+    @on_conf_change(option='selected', section='appearance')
+    def set_color_scheme(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set color scheme to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_color_scheme(value)
 
     # --- Open files
     def get_open_filenames(self):
