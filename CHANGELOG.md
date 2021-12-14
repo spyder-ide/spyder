@@ -1,5 +1,72 @@
 # History of changes
 
+## Version 5.2.1 (2021-12-14)
+
+### Important fixes
+
+* Prevent Spyder from crashing when selecting an interpreter with an incorrect `spyder-kernels` version
+* Optimize several operations in the Editor and IPython Console
+
+### Issues Closed
+
+* [Issue 17005](https://github.com/spyder-ide/spyder/issues/17005) - Bump/remove outdated `spyder-kernerls` `requirements.py` version validation and Spyder crashing ([PR 17009](https://github.com/spyder-ide/spyder/pull/17009) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16995](https://github.com/spyder-ide/spyder/issues/16995) - Some SVG images have unnecessary executable permissions ([PR 17000](https://github.com/spyder-ide/spyder/pull/17000) by [@juliangilbey](https://github.com/juliangilbey))
+* [Issue 16964](https://github.com/spyder-ide/spyder/issues/16964) - No possibility to select yapf as auto-formatter in preferences ([PR 16972](https://github.com/spyder-ide/spyder/pull/16972) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16960](https://github.com/spyder-ide/spyder/issues/16960) - TypeError when pressing Ctrl+Shift+Tab in the Editor ([PR 16973](https://github.com/spyder-ide/spyder/pull/16973) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16948](https://github.com/spyder-ide/spyder/issues/16948) - Clearing Find textbox in Editor does not trigger update to clear highlighted matches until Editor text changed ([PR 16950](https://github.com/spyder-ide/spyder/pull/16950) by [@impact27](https://github.com/impact27))
+* [Issue 16935](https://github.com/spyder-ide/spyder/issues/16935) - Missing mandatory packages does not raise error ([PR 16943](https://github.com/spyder-ide/spyder/pull/16943) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16931](https://github.com/spyder-ide/spyder/issues/16931) - Disabling the Projects pluging crashes spyder ([PR 16945](https://github.com/spyder-ide/spyder/pull/16945) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16927](https://github.com/spyder-ide/spyder/issues/16927) - Debugger message bug gets printed in the IPython Console ([PR 16928](https://github.com/spyder-ide/spyder/pull/16928) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16910](https://github.com/spyder-ide/spyder/issues/16910) - Spyder Mac app laggy in 5.2.0 ([PR 16933](https://github.com/spyder-ide/spyder/pull/16933) by [@mrclary](https://github.com/mrclary))
+* [Issue 16898](https://github.com/spyder-ide/spyder/issues/16898) - Mac app crashes when openning Spyder version 5.2.0 ([PR 16895](https://github.com/spyder-ide/spyder/pull/16895) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16896](https://github.com/spyder-ide/spyder/issues/16896) - Spyder 5.2 Windows installer crashes during launch ([PR 16895](https://github.com/spyder-ide/spyder/pull/16895) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16865](https://github.com/spyder-ide/spyder/issues/16865) - Spyder freezes when zooming in and out in a large file ([PR 16864](https://github.com/spyder-ide/spyder/pull/16864) by [@impact27](https://github.com/impact27))
+* [Issue 16744](https://github.com/spyder-ide/spyder/issues/16744) - Remove Kite startup splash screen when Spyder starts ([PR 17013](https://github.com/spyder-ide/spyder/pull/17013) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16439](https://github.com/spyder-ide/spyder/issues/16439) - Internal problem when toggling max allowed line length ([PR 16906](https://github.com/spyder-ide/spyder/pull/16906) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16390](https://github.com/spyder-ide/spyder/issues/16390) - Modal dialog post resolution rescale locks up Spyder ([PR 16941](https://github.com/spyder-ide/spyder/pull/16941) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 14521](https://github.com/spyder-ide/spyder/issues/14521) - Line break before type hint breaks docstring generation ([PR 14567](https://github.com/spyder-ide/spyder/pull/14567) by [@Richardk2n](https://github.com/Richardk2n))
+* [Issue 14520](https://github.com/spyder-ide/spyder/issues/14520) - Docstring generation not working if the return type is an Annotated containing a function call ([PR 14567](https://github.com/spyder-ide/spyder/pull/14567) by [@Richardk2n](https://github.com/Richardk2n))
+* [Issue 14188](https://github.com/spyder-ide/spyder/issues/14188) - Show vertical line at maximum allowed line length does not respect max allowed line length at startup ([PR 16906](https://github.com/spyder-ide/spyder/pull/16906) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 18 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 17015](https://github.com/spyder-ide/spyder/pull/17015) - PR: Update CI workflows to use macOS 10.15, by [@dalthviz](https://github.com/dalthviz)
+* [PR 17013](https://github.com/spyder-ide/spyder/pull/17013) - PR: Don't show Kite dialog the third time Spyder starts, by [@ccordoba12](https://github.com/ccordoba12) ([16744](https://github.com/spyder-ide/spyder/issues/16744))
+* [PR 17012](https://github.com/spyder-ide/spyder/pull/17012) - PR: Update Quansight logo in Readme, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 17010](https://github.com/spyder-ide/spyder/pull/17010) - PR: Update core dependencies for 5.2.1, by [@dalthviz](https://github.com/dalthviz)
+* [PR 17009](https://github.com/spyder-ide/spyder/pull/17009) - PR: Remove `check_spyder_kernels`, by [@dalthviz](https://github.com/dalthviz) ([17005](https://github.com/spyder-ide/spyder/issues/17005))
+* [PR 17000](https://github.com/spyder-ide/spyder/pull/17000) - PR: Remove execute bit permissions from images and data files, by [@juliangilbey](https://github.com/juliangilbey) ([16995](https://github.com/spyder-ide/spyder/issues/16995), [16995](https://github.com/spyder-ide/spyder/issues/16995))
+* [PR 16991](https://github.com/spyder-ide/spyder/pull/16991) - PR: Fix changing color scheme and UI theme (Appearance), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16984](https://github.com/spyder-ide/spyder/pull/16984) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 16983](https://github.com/spyder-ide/spyder/pull/16983) - PR: Update translations for 5.2.1, by [@dalthviz](https://github.com/dalthviz)
+* [PR 16977](https://github.com/spyder-ide/spyder/pull/16977) - PR: Fix option to maintain focus on editor after running cells or selections, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16973](https://github.com/spyder-ide/spyder/pull/16973) - PR: Cast floats to ints in tab switcher (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([16960](https://github.com/spyder-ide/spyder/issues/16960))
+* [PR 16972](https://github.com/spyder-ide/spyder/pull/16972) - PR: Remove mention to Yapf in style and formatting preferences tab (Completions), by [@ccordoba12](https://github.com/ccordoba12) ([16964](https://github.com/spyder-ide/spyder/issues/16964))
+* [PR 16970](https://github.com/spyder-ide/spyder/pull/16970) - PR: Clean tests for CodeEditor, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16968](https://github.com/spyder-ide/spyder/pull/16968) - PR: Fix get_text_with_eol for files with CRLF line endings, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16950](https://github.com/spyder-ide/spyder/pull/16950) - PR: Clear highlighted matches after clearing text in find widget (Editor), by [@impact27](https://github.com/impact27) ([16948](https://github.com/spyder-ide/spyder/issues/16948))
+* [PR 16945](https://github.com/spyder-ide/spyder/pull/16945) - PR: Fix errors when other plugins are not available (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([16931](https://github.com/spyder-ide/spyder/issues/16931))
+* [PR 16943](https://github.com/spyder-ide/spyder/pull/16943) - PR: Fix detection of non-installed modules (Dependencies), by [@ccordoba12](https://github.com/ccordoba12) ([16935](https://github.com/spyder-ide/spyder/issues/16935))
+* [PR 16941](https://github.com/spyder-ide/spyder/pull/16941) - PR: Move DPI change message dialog to the primaryScreen center, by [@dalthviz](https://github.com/dalthviz) ([16390](https://github.com/spyder-ide/spyder/issues/16390))
+* [PR 16933](https://github.com/spyder-ide/spyder/pull/16933) - PR: Ensure jellyfish is packaged with macOS installer, by [@mrclary](https://github.com/mrclary) ([16910](https://github.com/spyder-ide/spyder/issues/16910))
+* [PR 16928](https://github.com/spyder-ide/spyder/pull/16928) - PR: Add validation to filter "Python bug https://bugs.python.org/issue1180193" message, by [@dalthviz](https://github.com/dalthviz) ([16927](https://github.com/spyder-ide/spyder/issues/16927))
+* [PR 16925](https://github.com/spyder-ide/spyder/pull/16925) - PR: Do not check for change on every keystroke, by [@impact27](https://github.com/impact27)
+* [PR 16915](https://github.com/spyder-ide/spyder/pull/16915) - PR: Fix error when updating the plugin checkboxes state, by [@steff456](https://github.com/steff456)
+* [PR 16907](https://github.com/spyder-ide/spyder/pull/16907) - PR: Some improvements to the docstring extension (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16906](https://github.com/spyder-ide/spyder/pull/16906) - PR: Fix applying configuration options to the editor, by [@ccordoba12](https://github.com/ccordoba12) ([16439](https://github.com/spyder-ide/spyder/issues/16439), [14188](https://github.com/spyder-ide/spyder/issues/14188))
+* [PR 16899](https://github.com/spyder-ide/spyder/pull/16899) - PR: Fix some issues with dependencies, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 16895](https://github.com/spyder-ide/spyder/pull/16895) - PR: Update RELEASE and MAINTENANCE files and fix some IPython Console issues, by [@dalthviz](https://github.com/dalthviz) ([16898](https://github.com/spyder-ide/spyder/issues/16898), [16896](https://github.com/spyder-ide/spyder/issues/16896))
+* [PR 16864](https://github.com/spyder-ide/spyder/pull/16864) - PR: Optimize several operations in the editor and IPython console, by [@impact27](https://github.com/impact27) ([16865](https://github.com/spyder-ide/spyder/issues/16865))
+* [PR 14567](https://github.com/spyder-ide/spyder/pull/14567) - PR: Fix issues with docstring generation, by [@Richardk2n](https://github.com/Richardk2n) ([14521](https://github.com/spyder-ide/spyder/issues/14521), [14520](https://github.com/spyder-ide/spyder/issues/14520))
+
+In this release 28 pull requests were closed.
+
+
+----
+
+
 ## Version 5.2.0 (2021-11-24)
 
 ### New features
