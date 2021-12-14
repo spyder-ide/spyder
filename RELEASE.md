@@ -133,7 +133,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * `git add .` and `git commit -m "Update Changelog"`
 
-* Update Announcements.md (this goes to our Google group)
+* Update Announcements.md (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
 
 * `git add .` and `git commit -m "Update Announcements"`
 
