@@ -55,19 +55,3 @@ def check_qt():
                      "%s %s+\n\n"
                      "are required to run Spyder."
                      % (qt_infos['pyqt5']))
-
-
-def check_spyder_kernels():
-    """Check spyder-kernel requirement."""
-    try:
-        import spyder_kernels
-        required_ver = '2.0.0'
-        actual_ver = spyder_kernels.__version__
-        if parse_version(actual_ver) < parse_version(required_ver):
-            show_warning("Please check Spyder installation requirements:\n"
-                         "spyder-kernels >= 2.0 is required (found %s)."
-                         % actual_ver)
-    except ImportError:
-        show_warning("Failed to import spyder-kernels.\n"
-                     "Please check Spyder installation requirements:\n\n"
-                     "spyder-kernels >= 2.0 is required")
