@@ -2565,6 +2565,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             filename = self.get_current_filename()
         if cursor is None:
             editor = self._get_editor(filename)
+            if editor is None:
+                return
             cursor = editor.textCursor()
 
         replace_last_entry = False
