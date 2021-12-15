@@ -48,6 +48,26 @@ def test_HtmlSH_unclosed_commend():
     compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
 
+def test_PythonSH_UTF16_number():
+    """UTF16 string"""
+    txt = '𨭎𨭎𨭎𨭎 = 100000000'
+    doc = QTextDocument(txt)
+    sh = PythonSH(doc, color_scheme='Spyder')
+    sh.rehighlightBlock(doc.firstBlock())
+    res = [(0, 11, 'normal'), (11, 9, 'number')]
+    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+
+
+def test_PythonSH_UTF16_string():
+    """UTF16 string"""
+    txt = '𨭎𨭎𨭎𨭎 = "𨭎𨭎𨭎𨭎"'
+    doc = QTextDocument(txt)
+    sh = PythonSH(doc, color_scheme='Spyder')
+    sh.rehighlightBlock(doc.firstBlock())
+    res = [(0, 11, 'normal'), (11, 10, 'string')]
+    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+
+
 def test_python_string_prefix():
     if PY3:
         prefixes = ("r", "u", "R", "U", "f", "F", "fr", "Fr", "fR", "FR",
