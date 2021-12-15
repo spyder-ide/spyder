@@ -272,7 +272,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 return False
             return (
                 c1.selectionStart() == c2.selectionStart() and
-                c1.selectionEnd() == c2.selectionEnd())
+                c1.selectionEnd() == c2.selectionEnd()
+            )
 
         if same_selection(self._current_cell_cursor, cursor):
             # Already correct
@@ -507,7 +508,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if (ctrl or meta) and key == Qt.Key_C:
             self.copy()
         else:
-            if to_text_string(event.text()):
+            if str(event.text()):
                 # Reset cell before processing
                 self.current_cell = None
             super(TextEditBaseWidget, self).keyPressEvent(event)
