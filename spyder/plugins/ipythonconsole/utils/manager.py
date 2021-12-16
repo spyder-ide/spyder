@@ -17,12 +17,13 @@ import sys
 from qtconsole.manager import QtKernelManager
 import psutil
 
-# qtconsole and spyder-kernels depend on jupyter_client
+
 if hasattr(QtKernelManager, 'provisioner'):
     JUPYTER_CLIENT_GE_7 = True
     from jupyter_client.utils import run_sync
 else:
     JUPYTER_CLIENT_GE_7 = False
+
 
 class SpyderKernelManager(QtKernelManager):
     """
@@ -153,7 +154,7 @@ class SpyderKernelManager(QtKernelManager):
                 if self.has_kernel:
                     await self.provisioner.wait()
 
-    # override alias for jupyter_client < 7
+    # Override alias for jupyter_client < 7
     if JUPYTER_CLIENT_GE_7:
         _kill_kernel = run_sync(_async_kill_kernel)
     else:
