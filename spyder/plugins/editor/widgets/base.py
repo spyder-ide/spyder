@@ -107,6 +107,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Useful to avoid recomputing while scrolling.
         self.current_cell = None
 
+        def reset_current_cell():
+            self.current_cell = None
+            self.highlight_current_cell()
+
+        self.textChanged.connect(reset_current_cell)
+
         # Cache
         self._current_cell_cursor = None
         self._current_line_block = None
@@ -508,9 +514,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if (ctrl or meta) and key == Qt.Key_C:
             self.copy()
         else:
-            if str(event.text()):
-                # Reset cell before processing
-                self.current_cell = None
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
     # ------Text: get, set, ...

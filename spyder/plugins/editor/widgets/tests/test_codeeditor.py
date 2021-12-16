@@ -605,6 +605,22 @@ def test_cell_highlight(codeeditor, qtbot):
     assert editor.current_cell[0].selectionStart() == 3
     assert editor.current_cell[0].selectionEnd() == 9
 
+    # Test delete
+    cursor = editor.textCursor()
+    cursor.setPosition(5)
+    editor.setTextCursor(cursor)
+    qtbot.keyPress(editor, Qt.Key_Delete)
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
+
+    # Test undo
+    editor.undo()
+    assert editor.current_cell[0].selectionStart() == 3
+    assert editor.current_cell[0].selectionEnd() == 9
+    editor.redo()
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
+
 
 if __name__ == '__main__':
     pytest.main(['test_codeeditor.py'])
