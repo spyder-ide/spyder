@@ -109,6 +109,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         def reset_current_cell():
             self.current_cell = None
+            self.highlight_current_cell()
 
         self.textChanged.connect(reset_current_cell)
 
@@ -271,7 +272,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self._current_cell_cursor = None
             return
         cursor, whole_file_selected = self.select_current_cell()
-        if self._current_cell_cursor == cursor:
+
+        def same_selection(c1, c2):
+            if c1 is None or c2 is None:
+                return False
+            return (
+                c1.selectionStart() == c2.selectionStart() and
+                c1.selectionEnd() == c2.selectionEnd()
+            )
+
+        if same_selection(self._current_cell_cursor, cursor):
             # Already correct
             return
         self._current_cell_cursor = cursor

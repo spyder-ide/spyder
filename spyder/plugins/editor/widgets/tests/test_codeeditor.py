@@ -576,5 +576,51 @@ def test_paste_text(codeeditor, text, line_ending_char):
         assert editor.get_text_line(line_no) == txt
 
 
+def test_cell_highlight(codeeditor, qtbot):
+    """Test cells are properly highlighted."""
+    editor = codeeditor
+    text = ('\n\n\n#%%\n\n\n')
+    editor.set_text(text)
+    # Set cursor to start of file
+    cursor = editor.textCursor()
+    cursor.setPosition(0)
+    editor.setTextCursor(cursor)
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 3
+
+    # Set cursor to start second cell
+    cursor = editor.textCursor()
+    cursor.setPosition(6)
+    editor.setTextCursor(cursor)
+    assert editor.current_cell[0].selectionStart() == 3
+    assert editor.current_cell[0].selectionEnd() == 9
+
+    # Delete cell
+    qtbot.keyPress(editor, Qt.Key_Backspace)
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
+
+    # Create cell
+    qtbot.keyPress(editor, "%")
+    assert editor.current_cell[0].selectionStart() == 3
+    assert editor.current_cell[0].selectionEnd() == 9
+
+    # Test delete
+    cursor = editor.textCursor()
+    cursor.setPosition(5)
+    editor.setTextCursor(cursor)
+    qtbot.keyPress(editor, Qt.Key_Delete)
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
+
+    # Test undo
+    editor.undo()
+    assert editor.current_cell[0].selectionStart() == 3
+    assert editor.current_cell[0].selectionEnd() == 9
+    editor.redo()
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
+
+
 if __name__ == '__main__':
     pytest.main(['test_codeeditor.py'])
