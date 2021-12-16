@@ -614,6 +614,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setSectionsMovable(True)
         self.adjust_columns()
         # Sorting columns
         self.setSortingEnabled(True)
