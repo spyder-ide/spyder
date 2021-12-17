@@ -1519,16 +1519,25 @@ class IPythonConsoleWidget(PluginMainWidget):
                 version=SPYDER_KERNELS_VERSION)
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
-                    _("Your Python environment or installation doesn't have "
-                      "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed ({0}). "
+                    _("The Python environment or installation whose "
+                      "interpreter is located at"
+                      "<pre>"
+                      "    <tt>{0}</tt>"
+                      "</pre>"
+                      "doesn't have the <tt>spyder-kernels</tt> module or the "
+                      "right version of it installed ({1}). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
-                      "You can install it by running in a system terminal:"
-                      "<br><br>"
-                      "<tt>{1}</tt>"
-                      "<br><br>or<br><br>"
-                      "<tt>{2}</tt>").format(
+                      "You can install it by activating your environment (if "
+                      "necessary) and then running in a system terminal:"
+                      "<pre>"
+                      "    <tt>{2}</tt>"
+                      "</pre>"
+                      "or"
+                      "<pre>"
+                      "    <tt>{3}</tt>"
+                      "</pre>").format(
+                          pyexec,
                           SPYDER_KERNELS_VERSION_MSG,
                           SPYDER_KERNELS_CONDA,
                           SPYDER_KERNELS_PIP
