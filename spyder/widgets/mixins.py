@@ -682,13 +682,31 @@ class BaseEditMixin(object):
         pass
 
     #------EOL characters
-    def set_eol_chars(self, text):
-        """Set widget end-of-line (EOL) characters from text (analyzes text)"""
-        if not is_text_string(text): # testing for QString (PyQt API#1)
-            text = to_text_string(text)
-        eol_chars = sourcecode.get_eol_chars(text)
-        is_document_modified = eol_chars is not None and self.eol_chars is not None
-        self.eol_chars = eol_chars
+    def set_eol_chars(self, text=None, eol_chars=None):
+        """
+        Set widget end-of-line (EOL) characters.
+
+        Parameters
+        ----------
+        text: str
+            Text to detect EOL characters from.
+        eol_chars: str
+            EOL characters to set.
+
+        Notes
+        -----
+        If `text` is passed, then `eol_chars` has no effect.
+        """
+        if text is not None:
+            detected_eol_chars = sourcecode.get_eol_chars(text)
+            is_document_modified = (
+                detected_eol_chars is not None and self.eol_chars is not None
+            )
+            self.eol_chars = detected_eol_chars
+        elif eol_chars is not None:
+            is_document_modified = eol_chars != self.eol_chars
+            self.eol_chars = eol_chars
+
         if is_document_modified:
             self.document().setModified(True)
             if self.sig_eol_chars_changed is not None:

@@ -2520,7 +2520,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             editor = self.get_current_editor()
             if self.__set_eol_chars:
                 self.switch_to_plugin()
-                editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
+                editor.set_eol_chars(
+                    eol_chars=sourcecode.get_eol_chars_from_os_name(os_name)
+                )
 
     @Slot()
     def remove_trailing_spaces(self):
