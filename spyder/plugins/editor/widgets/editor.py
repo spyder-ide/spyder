@@ -813,6 +813,9 @@ class EditorStack(QWidget):
                 lambda: self,
                 section=self.get_plugin_title())
 
+        if isinstance(initial_text, bool):
+            initial_text = ''
+
         self.switcher_dlg.set_search_text(initial_text)
         self.switcher_dlg.setup()
         self.switcher_dlg.show()
