@@ -29,7 +29,7 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
