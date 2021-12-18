@@ -393,6 +393,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         stderr = self.stderr_obj.poll_file_change()
         starting = self.shellwidget._starting
         if stderr:
+            if self.is_bening_error(stderr):
+                return
             if self.shellwidget.isHidden():
                 # Avoid printing the same thing again
                 if self.error_text != '<tt>%s</tt>' % stderr:
@@ -494,12 +496,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Show kernel initialization errors in infowidget."""
         self.error_text = error
 
-        # Filter out benign errors
-        if "http://bugs.python.org/issue1666807" in error:
-            # See spyder-ide/spyder#16828
-            return
-        if "https://bugs.python.org/issue1180193" in error:
-            # See spyder-ide/spyder#16927
+        if self.is_bening_error(error):
             return
 
         InstallerIPythonKernelError(error)
@@ -528,6 +525,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         # Tell the client we're in error mode
         self.is_error_shown = True
+
+    def is_bening_error(self, error):
+        """Decide if an error is benign in order to filter it."""
+        if "http://bugs.python.org/issue1666807" in error:
+            # See spyder-ide/spyder#16828
+            return True
+
+        if "https://bugs.python.org/issue1180193" in error:
+            # See spyder-ide/spyder#16927
+            return True
+
+        return False
 
     def get_name(self):
         """Return client name"""
