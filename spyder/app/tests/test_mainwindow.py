@@ -4344,12 +4344,21 @@ foo(1)
     # Be sure the focus is on the editor before proceeding
     code_editor.setFocus()
 
-    # Click the run cell button
+    # Select the run cell button to click it
     run_cell_action = main_window.run_toolbar_actions[1]
     run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
-    qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-    qtbot.wait(1000)
 
+    # Make sure we don't switch to the console after pressing the button
+    if focus_to_editor:
+        with qtbot.assertNotEmitted(
+            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
+        ):
+            qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+    else:
+        qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+        qtbot.wait(1000)
+
+    # Check the right widget has focus
     focus_widget = QApplication.focusWidget()
     if focus_to_editor:
         assert focus_widget is code_editor
@@ -4366,13 +4375,22 @@ foo(1)
     cursor.movePosition(QTextCursor.PreviousBlock, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
 
-    # Click the run selection button
+    # Select the run selection button to click it
     run_selection_action = main_window.run_toolbar_actions[3]
     run_selection_button = main_window.run_toolbar.widgetForAction(
         run_selection_action)
-    qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-    qtbot.wait(1000)
 
+    # Make sure we don't switch to the console after pressing the button
+    if focus_to_editor:
+        with qtbot.assertNotEmitted(
+            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
+        ):
+            qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+    else:
+        qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+        qtbot.wait(1000)
+
+    # Check the right widget has focus
     focus_widget = QApplication.focusWidget()
     if focus_to_editor:
         assert focus_widget is code_editor

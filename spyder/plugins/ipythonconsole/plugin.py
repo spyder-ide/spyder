@@ -683,11 +683,11 @@ class IPythonConsole(SpyderDockablePlugin):
         Execute lines in IPython console and eventually set focus
         to the Editor.
         """
-        console = self
-        console.switch_to_plugin()
-        console.execute_code(lines)
+        self.execute_code(lines)
         if focus_to_editor and self.get_plugin(Plugins.Editor):
             self._switch_to_editor()
+        else:
+            self.switch_to_plugin()
 
     def stop_debugging(self):
         """Stop debugging in the current console."""
