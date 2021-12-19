@@ -43,6 +43,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
+from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.conda import is_conda_env
 
@@ -1126,10 +1127,13 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-def test_restart_kernel(ipyconsole, qtbot):
+def test_restart_kernel(ipyconsole, mocker, qtbot):
     """
     Test that kernel is restarted correctly
     """
+    # Mock method we want to check
+    mocker.patch.object(ClientWidget, "_show_mpl_backend_errors")
+
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
@@ -1144,6 +1148,10 @@ def test_restart_kernel(ipyconsole, qtbot):
 
     assert 'Restarting kernel...' in shell._control.toPlainText()
     assert not shell.is_defined('a')
+
+    # Check that we try to show Matplotlib backend errors at the beginning and
+    # after the restart.
+    assert ClientWidget._show_mpl_backend_errors.call_count == 2
 
 
 @flaky(max_runs=3)

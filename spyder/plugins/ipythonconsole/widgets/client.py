@@ -204,9 +204,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.restart_thread.wait()
 
     # ----- Private methods ---------------------------------------------------
-    def _before_prompt_is_ready(self):
-        """Configure shellwidget before kernel is connected."""
-        self._show_loading_page()
+    def _before_prompt_is_ready(self, show_loading_page=True):
+        """Configuration before kernel is connected."""
+        if show_loading_page:
+            self._show_loading_page()
         self.shellwidget.sig_prompt_ready.connect(
             self._when_prompt_is_ready)
         # If remote execution, the loading page should be hidden as well
@@ -635,6 +636,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 # Stop autorestart mechanism
                 sw.kernel_manager.stop_restarter()
                 sw.kernel_manager.autorestart = False
+
+                # Reconfigure client before the new kernel is connected again.
+                self._before_prompt_is_ready(show_loading_page=False)
 
                 # Create and run restarting thread
                 if (self.restart_thread is not None
