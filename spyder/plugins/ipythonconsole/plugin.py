@@ -48,6 +48,7 @@ class IPythonConsole(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = IPythonConsoleConfigPage
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    RAISE_AND_FOCUS = True
 
     # Signals
     sig_append_to_history_requested = Signal(str, str)

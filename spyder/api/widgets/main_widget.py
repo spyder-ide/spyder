@@ -772,11 +772,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 self._update_actions()
 
     def change_visibility(self, enable, force_focus=None):
-        """
-        Dock widget visibility has changed.
-        """
-        is_visible = not self.is_visible
-
+        """Dock widget visibility has changed."""
         if self.dockwidget is None:
             return
 
@@ -789,7 +785,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         raise_and_focus = getattr(self, 'RAISE_AND_FOCUS', None)
 
         if force_focus is None:
-            if raise_and_focus or not is_visible:
+            if raise_and_focus and enable:
                 focus_widget = self.get_focus_widget()
                 if focus_widget:
                     focus_widget.setFocus()
