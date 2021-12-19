@@ -41,7 +41,7 @@ import yarg
 ASSETS_URL = os.environ.get(
     'ASSETS_URL',
     'https://github.com/spyder-ide/windows-installer-assets/'
-    'releases/download/0.0.1/assets.zip')
+    'releases/download/0.0.4/assets.zip')
 
 # Packages to remove from the requirements for example pip or
 # external direct dependencies (python-lsp-server spyder-kernels)
@@ -208,12 +208,17 @@ def pypi_wheels_in(requirements, skip_packages):
     return wheels
 
 
-def package_name(requirement):
+def package_name(requirement, make_module=False):
     """
     Return the name component of a `name==version` formatted requirement.
+
+    If make_module is True, replace - with _ as - is not allowed in
+    module names.
     """
-    requirement_name = requirement.partition("==")[0].split("@")[0].strip()
-    return requirement_name
+    name = requirement.partition("==")[0].split("@")[0].strip()
+    if make_module:
+        name = name.replace("-", "_")
+    return name
 
 
 def packages_from(requirements, wheels, skip_packages):
@@ -223,9 +228,11 @@ def packages_from(requirements, wheels, skip_packages):
     Both assumed to be lists/iterables of strings formatted like
     "name==version".
     """
-    packages = set(requirements) - set(wheels) - set(skip_packages)
-    packages = packages | set(ADD_PACKAGES)
-    return [package_name(p) for p in packages]
+    packages = (set(package_name(p, make_module=True) for p in requirements) -
+                set(package_name(p, make_module=True) for p in wheels) -
+                set(package_name(p, make_module=True) for p in skip_packages))
+    packages = packages | set(package_name(p, make_module=True) for p in ADD_PACKAGES)
+    return list(packages)
 
 
 def create_pynsist_cfg(
@@ -257,10 +264,9 @@ def create_pynsist_cfg(
         package_name(line) not in UNWANTED_PACKAGES and \
         '-e git' not in line
     ]
-    skip_wheels = [package] + SKIP_PACKAGES
-    wheels = pypi_wheels_in(requirements, skip_wheels)
-    skip_packages = [package]
-    packages = packages_from(requirements, wheels, skip_packages)
+    skip = [package] + SKIP_PACKAGES
+    wheels = pypi_wheels_in(requirements, skip)
+    packages = packages_from(requirements, wheels, skip)
 
     if suffix:
         installer_name = "{}_{}bit_{}.exe"
