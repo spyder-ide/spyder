@@ -281,9 +281,14 @@ class WriteWrapper():
 
     def __call__(self, string):
         """Print warning once."""
-        if not self._warning_shown:
-            self._warning_shown = True
-            self._write(
-                "\nOutput from spyder call "
-                + repr(self._name) + ":\n")
-        return self._write(string)
+        # Don't print DeprecationWarning's because they unnecessarily pollute
+        # the console.
+        # Fixes spyder-ide/spyder#14928
+        # Fixes spyder-ide/spyder-kernels#343
+        if 'DeprecationWarning' not in string:
+            if not self._warning_shown:
+                self._warning_shown = True
+                self._write(
+                    "\nOutput from spyder call "
+                    + repr(self._name) + ":\n")
+            return self._write(string)
