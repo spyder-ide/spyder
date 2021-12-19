@@ -19,6 +19,7 @@ import time
 from subprocess import Popen, PIPE
 import sys
 import inspect
+from collections import namedtuple
 
 # Test imports
 import ipykernel
@@ -424,6 +425,8 @@ def test_cwd_in_sys_path():
         msg_id = client.execute("import sys; sys_path = sys.path",
                                 user_expressions={'output':'sys_path'})
         reply = client.get_shell_msg(timeout=TIMEOUT)
+        while 'user_expressions' not in reply['content']:
+            reply = client.get_shell_msg(timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -470,6 +473,8 @@ if __name__ == '__main__':
         # Verify that the `result` variable is defined
         client.inspect('result')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -512,6 +517,8 @@ if __name__=='__main__':
         # Verify that the `x` variable is defined
         client.inspect('x')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -552,6 +559,8 @@ def test_runfile(tmpdir):
         # Verify that `result` is defined in the current namespace
         client.inspect('result')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -563,6 +572,8 @@ def test_runfile(tmpdir):
         # Verify that the variable `result2` is defined
         client.inspect('result2')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -575,12 +586,16 @@ def test_runfile(tmpdir):
         # Verify that the variable `result3` is defined
         client.inspect('result3')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
         # Verify that the variable `__file__` is undefined
         client.inspect('__file__')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert not content['found']
 
@@ -622,24 +637,32 @@ f = np.get_printoptions()['formatter']
         # Check correct decimal format
         client.inspect('a')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "data" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "123412341234.12" in content
 
         # Check threshold value
         client.inspect('t')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "data" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "inf" in content
 
         # Check suppress value
         client.inspect('s')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "data" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "True" in content
 
         # Check formatter
         client.inspect('f')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "data" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
         assert "{'float_kind': <built-in method format of str object" in content
 
@@ -697,6 +720,8 @@ turtle.bye()
         # Verify that the `tess` variable is defined
         client.inspect('tess')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -713,6 +738,8 @@ turtle.bye()
         # Verify that the `a` variable is defined
         client.inspect('a')
         msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
 
@@ -728,6 +755,8 @@ def test_matplotlib_inline(kernel):
         code = "import matplotlib; backend = matplotlib.get_backend()"
         client.execute(code, user_expressions={'output': 'backend'})
         reply = client.get_shell_msg(timeout=TIMEOUT)
+        while 'user_expressions' not in reply['content']:
+            reply = client.get_shell_msg(timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -898,6 +927,76 @@ def test_namespaces_in_pdb(kernel):
     # Test user namespace is not visible
     pdb_obj.default("%timeit test")
     assert pdb_obj._error_occured
+
+    pdb_obj.curframe = None
+    pdb_obj.curframe_locals = None
+
+
+def test_functions_with_locals_in_pdb(kernel):
+    """
+    Test that functions with locals work in Pdb.
+
+    This is a regression test for spyder-ide/spyder-kernels#345
+    """
+    pdb_obj = SpyderPdb()
+    Frame = namedtuple("Frame", ["f_globals"])
+    pdb_obj.curframe = Frame(f_globals=kernel.shell.user_ns)
+    pdb_obj.curframe_locals = kernel.shell.user_ns
+    kernel.shell.pdb_session = pdb_obj
+
+    # Create a local function.
+    kernel.shell.pdb_session.default(
+        'def fun_a(): return [i for i in range(1)]')
+    kernel.shell.pdb_session.default(
+        'zz = fun_a()')
+    assert kernel.get_value('zz') == [0]
+
+    kernel.shell.pdb_session.default(
+        'a = 1')
+    kernel.shell.pdb_session.default(
+        'def fun_a(): return a')
+    kernel.shell.pdb_session.default(
+        'zz = fun_a()')
+    assert kernel.get_value('zz') == 1
+
+
+    pdb_obj.curframe = None
+    pdb_obj.curframe_locals = None
+
+def test_functions_with_locals_in_pdb_2(kernel):
+    """
+    Test that functions with locals work in Pdb.
+
+    This is another regression test for spyder-ide/spyder-kernels#345
+    """
+    baba = 1
+    pdb_obj = SpyderPdb()
+    pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    kernel.shell.pdb_session = pdb_obj
+
+    # Create a local function.
+    kernel.shell.pdb_session.default(
+        'def fun_a(): return [i for i in range(1)]')
+    kernel.shell.pdb_session.default(
+        'zz = fun_a()')
+    assert kernel.get_value('zz') == [0]
+
+    kernel.shell.pdb_session.default(
+        'a = 1')
+    kernel.shell.pdb_session.default(
+        'def fun_a(): return a')
+    kernel.shell.pdb_session.default(
+        'zz = fun_a()')
+    assert kernel.get_value('zz') == 1
+
+    # Check baba is in locals and not globals
+    kernel.shell.pdb_session.default(
+        'll = locals().keys()')
+    assert "baba" in kernel.get_value('ll')
+    kernel.shell.pdb_session.default(
+        'gg = globals().keys()')
+    assert "baba" not in kernel.get_value('gg')
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
