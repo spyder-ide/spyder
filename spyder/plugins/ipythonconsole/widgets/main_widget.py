@@ -162,11 +162,6 @@ class IPythonConsoleWidget(PluginMainWidget):
     This signal will request to change the focus to the plugin.
     """
 
-    sig_editor_focus_requested = Signal()
-    """
-    This signal will request to change the focus to the editor if available.
-    """
-
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column

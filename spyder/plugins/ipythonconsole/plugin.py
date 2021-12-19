@@ -79,11 +79,6 @@ class IPythonConsole(SpyderDockablePlugin):
     This signal is emitted when the plugin focus changes.
     """
 
-    sig_editor_focus_requested = Signal()
-    """
-    This signal will request to change the focus to the editor if available.
-    """
-
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
@@ -219,8 +214,6 @@ class IPythonConsole(SpyderDockablePlugin):
             self.sig_append_to_history_requested)
         widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
-        widget.sig_editor_focus_requested.connect(
-            self.sig_editor_focus_requested)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_edit_goto_requested[str, int, str, bool].connect(
@@ -316,9 +309,6 @@ class IPythonConsole(SpyderDockablePlugin):
         editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
-        # Connect Console focus request with Editor
-        self.sig_editor_focus_requested.connect(self._switch_to_editor)
-
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
@@ -361,9 +351,6 @@ class IPythonConsole(SpyderDockablePlugin):
             self.execute_code_and_focus_editor)
         editor.sig_file_debug_message_requested.disconnect(
             self.print_debug_file_msg)
-
-        # Connect Console focus request with Editor
-        self.sig_editor_focus_requested.disconnect(self._switch_to_editor)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
