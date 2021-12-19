@@ -25,7 +25,6 @@ from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
-from spyder.utils import encoding
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
