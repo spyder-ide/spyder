@@ -2121,7 +2121,13 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.execute_code(line, set_focus=not focus_to_editor)
             except AttributeError:
                 pass
-            self.sig_switch_to_plugin_requested.emit()
+
+            # This is necessary to prevent raising the console if the editor
+            # and console are tabified next to each other and the 'Maintain
+            # focus in the editor' option is activated.
+            # Fixes spyder-ide/spyder#17028
+            if not focus_to_editor:
+                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
