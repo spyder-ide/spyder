@@ -9,15 +9,19 @@
 """Tests for the Editor plugin."""
 
 # Standard library imports
+import os
 import os.path as osp
 import shutil
 
 # Third party imports
+from qtpy.QtCore import Qt
 import pytest
 
 # Local imports
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.widgets import editor as editor_module
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.utils.sourcecode import get_eol_chars, get_eol_chars_from_os_name
 
 
 # =============================================================================
@@ -326,6 +330,85 @@ def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
     # Close cloned editorstack to verify that notify_close is not called
     editorstack.close_split()
     assert CodeEditor.notify_close.call_count == 2
+
+
+@pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])
+def test_toggle_eol_chars(editor_plugin, python_files, qtbot, os_name):
+    """
+    Check that changing eol chars from the 'Convert end-of-line characters'
+    menu works as expected.
+    """
+    filenames, tmpdir = python_files
+    editorstack = editor_plugin.get_current_editorstack()
+
+    # Load a test file
+    fname = filenames[0]
+    editor_plugin.load(fname)
+    qtbot.wait(500)
+    codeeditor = editor_plugin.get_current_editor()
+
+    # Change to a different eol, save and check that file has the right eol.
+    editor_plugin.toggle_eol_chars(os_name, True)
+    assert codeeditor.document().isModified()
+    editorstack.save()
+    with open(fname, mode='r', newline='') as f:
+        text = f.read()
+    assert get_eol_chars(text) == get_eol_chars_from_os_name(os_name)
+
+
+@pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])
+def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
+                                       os_name):
+    """Check that saving files with preferred eol chars works as expected."""
+    filenames, tmpdir = python_files
+    editorstack = editor_plugin.get_current_editorstack()
+    eol_lookup = {'posix': 'LF', 'nt': 'CRLF', 'mac': 'CR'}
+
+    # Set options
+    editor_plugin.set_option('convert_eol_on_save', True)
+    editor_plugin.set_option('convert_eol_on_save_to', eol_lookup[os_name])
+    editor_plugin.apply_plugin_settings(
+        {'convert_eol_on_save', 'convert_eol_on_save_to'}
+    )
+
+    # Load a test file
+    fname = filenames[0]
+    editor_plugin.load(fname)
+    qtbot.wait(500)
+    codeeditor = editor_plugin.get_current_editor()
+
+    # Set file as dirty, save it and check that it has the right eol.
+    codeeditor.document().setModified(True)
+    editorstack.save()
+    with open(fname, mode='r', newline='') as f:
+        text = f.read()
+    assert get_eol_chars(text) == get_eol_chars_from_os_name(os_name)
+
+
+def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
+    """Check that saving new files uses eol chars according to OS."""
+    editorstack = editor_plugin.get_current_editorstack()
+
+    # Mock output of save file dialog.
+    fname = osp.join(tmpdir, 'test_eol_chars.py')
+    mocker.patch.object(editor_module, 'getsavefilename')
+    editor_module.getsavefilename.return_value = (fname, '')
+
+    # Load new, empty file
+    editor_plugin.new()
+    qtbot.wait(500)
+    codeeditor = editor_plugin.get_current_editor()
+
+    # Write some blank lines on it.
+    for __ in range(3):
+        qtbot.keyClick(codeeditor, Qt.Key_Return)
+
+    # Save file and check that it has the right eol.
+    editorstack.save()
+    with open(fname, mode='r', newline='') as f:
+        text = f.read()
+
+    assert get_eol_chars(text) == os.linesep
 
 
 if __name__ == "__main__":
