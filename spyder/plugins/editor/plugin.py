@@ -862,20 +862,27 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="transform to lowercase")
         # ----------------------------------------------------------------------
 
-        self.win_eol_action = create_action(self,
-                           _("Carriage return and line feed (Windows)"),
-                           toggled=lambda checked: self.toggle_eol_chars('nt', checked))
-        self.linux_eol_action = create_action(self,
-                           _("Line feed (UNIX)"),
-                           toggled=lambda checked: self.toggle_eol_chars('posix', checked))
-        self.mac_eol_action = create_action(self,
-                           _("Carriage return (Mac)"),
-                           toggled=lambda checked: self.toggle_eol_chars('mac', checked))
+        self.win_eol_action = create_action(
+            self,
+            _("Carriage return and line feed (Windows)"),
+            toggled=lambda checked: self.toggle_eol_chars('nt', checked)
+        )
+        self.linux_eol_action = create_action(
+            self,
+            _("Line feed (UNIX)"),
+            toggled=lambda checked: self.toggle_eol_chars('posix', checked)
+        )
+        self.mac_eol_action = create_action(
+            self,
+            _("Carriage return (Mac)"),
+            toggled=lambda checked: self.toggle_eol_chars('mac', checked)
+        )
         eol_action_group = QActionGroup(self)
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
         eol_menu = QMenu(_("Convert end-of-line characters"), self)
+        eol_menu.setObjectName('checkbox-padding')
         add_actions(eol_menu, eol_actions)
 
         trailingspaces_action = create_action(
@@ -2520,7 +2527,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             editor = self.get_current_editor()
             if self.__set_eol_chars:
                 self.switch_to_plugin()
-                editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
+                editor.set_eol_chars(
+                    eol_chars=sourcecode.get_eol_chars_from_os_name(os_name)
+                )
 
     @Slot()
     def remove_trailing_spaces(self):

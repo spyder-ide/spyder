@@ -6,7 +6,6 @@
 
 """Editor config page."""
 
-from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout, QWidget)
 
@@ -280,18 +279,21 @@ class EditorConfigPage(PluginConfigPage):
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
                               'check_eol_chars', default=True)
-        convert_eol_on_save_box = newcb(_("On Save: convert EOL characters"
-                                          " to"),
-                                        'convert_eol_on_save', default=False)
-        eol_combo_choices = ((_("LF (UNIX)"), 'LF'),
-                             (_("CRLF (Windows)"), 'CRLF'),
-                             (_("CR (Mac)"), 'CR'),
-                             )
-        convert_eol_on_save_combo = self.create_combobox("",
-                                                         eol_combo_choices,
-                                                         ('convert_eol_on_'
-                                                          'save_to'),
-                                                         )
+        convert_eol_on_save_box = newcb(
+            _("Convert end-of-line characters to the following on save:"),
+            'convert_eol_on_save',
+            default=False
+        )
+        eol_combo_choices = (
+            (_("LF (Unix)"), 'LF'),
+            (_("CRLF (Windows)"), 'CRLF'),
+            (_("CR (macOS)"), 'CR'),
+        )
+        convert_eol_on_save_combo = self.create_combobox(
+            "",
+            eol_combo_choices,
+            'convert_eol_on_save_to',
+        )
         convert_eol_on_save_box.toggled.connect(
                 convert_eol_on_save_combo.setEnabled)
         convert_eol_on_save_combo.setEnabled(

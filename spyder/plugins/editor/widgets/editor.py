@@ -2642,22 +2642,29 @@ class EditorStack(QWidget):
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
-        """Sets the EOL character(s) based on the operating system.
+        """
+        Sets the EOL character(s) based on the operating system.
 
         If `osname` is None, then the default line endings for the current
-        operating system (`os.name` value) will be used.
+        operating system will be used.
 
-        `osname` can be one of:
-            ('posix', 'nt', 'java')
+        `osname` can be one of: 'posix', 'nt', 'mac'.
         """
         if osname is None:
-            osname = os.name
+            if os.name == 'nt':
+                osname = 'nt'
+            elif sys.platform == 'darwin':
+                osname = 'mac'
+            else:
+                osname = 'posix'
+
         if index is None:
             index = self.get_stack_index()
+
         finfo = self.data[index]
         eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
         logger.debug(f"Set OS eol chars {eol_chars} for file {finfo.filename}")
-        finfo.editor.set_eol_chars(eol_chars)
+        finfo.editor.set_eol_chars(eol_chars=eol_chars)
         finfo.editor.document().setModified(True)
 
     def remove_trailing_spaces(self, index=None):

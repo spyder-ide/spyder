@@ -2789,7 +2789,7 @@ class CodeEditor(TextEditBaseWidget):
     def set_text(self, text):
         """Set the text of the editor"""
         self.setPlainText(text)
-        self.set_eol_chars(text)
+        self.set_eol_chars(text=text)
         self.document_did_change(text)
 
         if (isinstance(self.highlighter, sh.PygmentsSH)
