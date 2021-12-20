@@ -451,8 +451,11 @@ class CompletionPlugin(SpyderPluginV2):
             provider.STATUS_BAR_CLASSES, provider_name)
         if plugin_loaded:
             for id_ in widgets_ids:
-                currrent_widget = container.statusbar_widgets[id_]
-                self.statusbar.add_status_widget(currrent_widget)
+                # Validation to check for status bar registration before
+                # addition. See spyder-ide/spyder#16977
+                if id_ not in container.statusbar_widgets:
+                    current_widget = container.statusbar_widgets[id_]
+                    self.statusbar.add_status_widget(current_widget)
 
     def unregister_statusbar(self, provider_name):
         """
@@ -463,11 +466,15 @@ class CompletionPlugin(SpyderPluginV2):
         provider_name: str
             Name of the provider that is going to delete statusbar widgets.
         """
+        container = self.get_container()
         provider_keys = self.get_container().get_provider_statusbar_keys(
             provider_name)
         for id_ in provider_keys:
-            self.get_container().remove_statusbar_widget(id_)
-            self.statusbar.remove_status_widget(id_)
+            # Validation to check for status bar registration before trying
+            # to removal. See spyder-ide/spyder#16977
+            if id_ in container.statusbar_widgets[id_]:
+                self.get_container().remove_statusbar_widget(id_)
+                self.statusbar.remove_status_widget(id_)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):

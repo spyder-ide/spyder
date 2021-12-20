@@ -55,7 +55,7 @@ class CompletionContainer(PluginMainContainer):
 
     def get_provider_statusbar_keys(self, provider_name):
         """Get the list of statusbar keys for the given provider."""
-        return self.provider_statusbars[provider_name]
+        return self.provider_statusbars.get(provider_name, [])
 
     def statusbar_rpc(self, status_key: str, method: str, args: tuple,
                       kwargs: dict):
