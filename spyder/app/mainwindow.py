@@ -1730,7 +1730,8 @@ class MainWindow(QMainWindow):
 
         for path, active in reversed(new_path_dict_p.items()):
             if active:
-                sys.path.insert(1, path)
+                # TODO: should cwd ('') always be at front?
+                sys.path.insert(0, path)
 
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
