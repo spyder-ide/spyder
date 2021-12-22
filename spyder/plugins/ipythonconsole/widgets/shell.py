@@ -19,6 +19,7 @@ from threading import Lock
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
+from traitlets import observe
 
 # Local imports
 from spyder.config.base import (
@@ -933,7 +934,8 @@ the sympy module (e.g. plot)
         super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
         self.sig_kernel_restarted.emit()
 
-    def _syntax_style_changed(self):
+    @observe('syntax_style')
+    def _syntax_style_changed(self, changed=None):
         """Refresh the highlighting with the current syntax style by class."""
         if self._highlighter is None:
             # ignore premature calls

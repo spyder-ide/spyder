@@ -241,6 +241,7 @@ install_requires = [
     'spyder-kernels>=2.2.0,<2.3.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
+    'traitlets>=4.1',
     'watchdog>=0.10.3'
 ]
 
