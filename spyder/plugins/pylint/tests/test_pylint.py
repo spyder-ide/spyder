@@ -15,7 +15,15 @@ from unittest.mock import Mock, MagicMock
 # Third party imports
 import pytest
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QMainWindow
+from qtpy.QtWidgets import QApplication, QMainWindow
+
+# This is necessary to run these tests independently from the rest in our
+# test suite.
+# NOTE: Don't move it to another place; it needs to be before importing the
+# Pylint plugin below.
+# Fixes spyder-ide/spyder#17071
+if QApplication.instance() is None:
+    app = QApplication([])
 
 # Local imports
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
@@ -52,12 +60,11 @@ bad-names={bad_names}
 good-names=e
 """
 
-
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
 
     def __init__(self):
-        super(MainWindowMock, self).__init__(None)
+        super().__init__(None)
         self.editor = Mock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
         self.projects = MagicMock()
@@ -74,15 +81,22 @@ class MainWindowMock(QMainWindow):
 @pytest.fixture
 def pylint_plugin(mocker, qtbot):
     main_window = MainWindowMock()
+    main_window.resize(640, 480)
     main_window.projects.get_active_project_path = mocker.MagicMock(
         return_value=None)
+    main_window.show()
+
     plugin = Pylint(parent=main_window, configuration=CONF)
     plugin._register()
     plugin.set_conf("history_filenames", [])
+
     widget = plugin.get_widget()
+    widget.resize(640, 480)
     widget.filecombo.clear()
-    qtbot.addWidget(widget)
-    yield plugin
+    widget.show()
+
+    qtbot.addWidget(main_window)
+    return plugin
 
 
 @pytest.fixture
