@@ -31,7 +31,10 @@ def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
     elif os.name == 'nt':
-        subprocess.call(["explorer", "/select,", filename])
+        if os.path.exists(filename):
+            subprocess.call(["explorer", "/select,", filename])
+        else:
+            subprocess.call(["explorer", os.path.dirname(filename)])
     else:
         filename = os.path.dirname(filename)
         subprocess.call(["xdg-open", filename])
