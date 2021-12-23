@@ -237,6 +237,8 @@ class ScrollFlagArea(Panel):
                     # If the file is too long, do not freeze the editor
                     next_line = 0
                     for block in dict_flag_lists[flag_type]:
+                        if not block.isValid():
+                            continue
                         block_line = block.firstLineNumber()
                         # block_line = -1 if invalid
                         if block_line < next_line:
