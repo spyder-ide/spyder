@@ -106,14 +106,14 @@ def test_objectexplorer(objectexplorer):
 
 
 @pytest.mark.parametrize('params', [
-            # variable to show, rowCount for python 3 and 2
-            ('kjkj kj k j j kj k jkj', [71, 78]),
-            ([1, 3, 4, 'kjkj', None], [45, 46]),
-            ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 55]),
-            (1.2233, [57, 58]),
-            (np.random.rand(10, 10), [166, 162]),
-            (datetime.date(1945, 5, 8), [43, 46])
-        ])
+    # variable to show, rowCount for different Python 3 versions
+    ('kjkj kj k j j kj k jkj', [71, 80]),
+    ([1, 3, 4, 'kjkj', None], [45, 47]),
+    ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 56]),
+    (1.2233, [57, 59]),
+    (np.random.rand(10, 10), [166, 162]),
+    (datetime.date(1945, 5, 8), [43, 47])
+])
 def test_objectexplorer_collection_types(objectexplorer, params):
     """Test to validate proper handling of collection data types."""
     test, row_count = params
