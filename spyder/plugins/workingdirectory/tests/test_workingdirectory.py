@@ -19,7 +19,7 @@ NEW_DIR = 'new_workingdir'
 
 
 @pytest.fixture
-def setup_workingdirectory(request):
+def setup_workingdirectory(qtbot, request):
     """Setup working directory plugin."""
     CONF.reset_to_defaults()
     use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
