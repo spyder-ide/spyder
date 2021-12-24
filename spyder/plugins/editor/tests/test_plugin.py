@@ -227,16 +227,13 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     filenames, tmpdir = python_files
     editorstack = editor_plugin.get_current_editorstack()
 
-    expected_cursor_pos_history = []
-    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
-
+    expected_cursor_undo_history = []
+    assert editor_plugin.cursor_undo_history == expected_cursor_undo_history
     # Load the Python test files (4).
     editor_plugin.load(filenames)
     # Open a new file.
     editor_plugin.new()
     # Go to the third file.
-    cur_editor = editorstack.get_current_editor()
-    cur_line, cur_col = cur_editor.get_cursor_line_column()
     editorstack.set_stack_index(2)
     # Move the cursor within the third file. Note that this new position is
     # not added to the cursor position history.
@@ -245,20 +242,22 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     # results because those returned by the python_files fixture are
     # normalized, so this would cause issues when assessing the results.
     filenames = editor_plugin.get_filenames()
-    expected_cursor_pos_history = [
-        (filenames[0], 0, 0, 0),
-        (filenames[-1], len(editorstack.data[-1].get_source_code()),
-         cur_line, cur_col),
-        (filenames[2], 5, 0, 5)
+    expected_cursor_undo_history = [
+        (filenames[0], 0),
+        (filenames[-1], len(editorstack.data[-1].get_source_code())),
+        (filenames[2], 5)
         ]
-    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+    for history, expected_history in zip(editor_plugin.cursor_undo_history,
+                                         expected_cursor_undo_history):
+        assert history[0] == expected_history[0]
+        assert history[1].position() == expected_history[1]
 
     # Navigate to previous and next cursor positions.
 
     # The last entry in the cursor position history is overridden by the
     # current cursor position when going to previous or next cursor position,
-    # so we need to update the last item of the expected_cursor_pos_history.
-    expected_cursor_pos_history[-1] = (filenames[2], 5, 0, 5)
+    # so we need to update the last item of the expected_cursor_undo_history.
+    expected_cursor_undo_history[-1] = (filenames[2], 5)
 
     cursor_index_moves = [-1, 1, 1, -1, -1, -1, 1, -1]
     expected_cursor_pos_indexes = [1, 2, 2, 1, 0, 0, 1, 0]
@@ -267,15 +266,19 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
             editor_plugin.go_to_previous_cursor_position()
         elif move == 1:
             editor_plugin.go_to_next_cursor_position()
-
-        assert editor_plugin.cursor_pos_index == index
-        cur_line, cur_col = (
-            editorstack.get_current_editor().get_cursor_line_column())
+        assert len(editor_plugin.cursor_undo_history) - 1 == index
         assert (editor_plugin.get_current_filename(),
-                editor_plugin.get_current_editor().get_position('cursor'),
-                cur_line, cur_col
-                ) == expected_cursor_pos_history[index]
-    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+                editor_plugin.get_current_editor().get_position('cursor')
+                ) == expected_cursor_undo_history[index]
+
+    for history, expected_history in zip(editor_plugin.cursor_undo_history,
+                                         expected_cursor_undo_history[:1]):
+        assert history[0] == expected_history[0]
+        assert history[1].position() == expected_history[1]
+    for history, expected_history in zip(editor_plugin.cursor_redo_history,
+                                         expected_cursor_undo_history[:0:-1]):
+        assert history[0] == expected_history[0]
+        assert history[1].position() == expected_history[1]
 
     # So we are now expected to be at index 0 in the cursor position history.
     # From there, we go to the fourth file.
@@ -284,9 +287,14 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     # We expect that our last action caused the cursor position history to
     # be stripped from the current cursor position index and that the
     # new cursor position is added at the end of the cursor position history.
-    expected_cursor_pos_history = expected_cursor_pos_history[:1]
-    expected_cursor_pos_history.append((filenames[3], 0, 0, 0))
-    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+    expected_cursor_undo_history = expected_cursor_undo_history[:1]
+    expected_cursor_undo_history.append((filenames[3], 0))
+
+    for history, expected_history in zip(editor_plugin.cursor_undo_history,
+                                         expected_cursor_undo_history):
+        assert history[0] == expected_history[0]
+        assert history[1].position() == expected_history[1]
+    assert editor_plugin.cursor_redo_history == []
 
 
 def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
