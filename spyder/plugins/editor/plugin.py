@@ -2683,6 +2683,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot()
     def go_to_line(self, line=None):
         """Open 'go to line' dialog"""
+        if isinstance(line, bool):
+            line = None
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.go_to_line(line)
