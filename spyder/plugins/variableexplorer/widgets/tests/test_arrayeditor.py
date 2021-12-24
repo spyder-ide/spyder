@@ -16,14 +16,16 @@ import sys
 from unittest.mock import Mock, ANY
 
 # Third party imports
+from flaky import flaky
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy.QtCore import Qt
-from flaky import flaky
+from scipy.io import loadmat
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor, ArrayModel
+from spyder.plugins.variableexplorer.widgets.arrayeditor import (
+    ArrayEditor, ArrayModel)
 
 
 # =============================================================================
@@ -44,12 +46,16 @@ def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
     return dlg.get_value()
 
 
-def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
+# =============================================================================
+# Fixtures
+# =============================================================================
+@pytest.fixture
+def setup_arrayeditor(qtbot, data):
     """Setups an arrayeditor."""
     dlg = ArrayEditor()
-    dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)
+    dlg.setup_and_check(data)
     dlg.show()
-    qbot.addWidget(dlg)
+    qtbot.addWidget(dlg)
     return dlg
 
 
@@ -62,49 +68,61 @@ def test_object_arrays(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "object array"))
 
 
-def test_object_arrays_display(qtbot):
+@pytest.mark.parametrize(
+    'data',
+    [np.array([[np.array([1, 2])], 2], dtype=object)],
+)
+def test_object_arrays_display(setup_arrayeditor):
     """
     Test that value_to_display is being used to display the values of
     object arrays.
     """
-    arr = np.array([[np.array([1, 2])], 2], dtype=object)
-    dlg = setup_arrayeditor(qtbot, arr)
+    dlg = setup_arrayeditor
     idx = dlg.arraywidget.model.index(0, 0)
     assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="Segfaults on Windows")
-def test_attribute_errors(qtbot):
+@pytest.mark.parametrize(
+    'data',
+    [loadmat(os.path.join(HERE, 'issue_11216.mat'))['S']],
+)
+def test_attribute_errors(setup_arrayeditor):
     """
     Verify that we don't get a AttributeError for certain structured arrays.
 
     Fixes spyder-ide/spyder#11216 .
     """
-    from scipy.io import loadmat
+    dlg = setup_arrayeditor
     data = loadmat(os.path.join(HERE, 'issue_11216.mat'))
-    dlg = setup_arrayeditor(qtbot, data['S'])
     contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
     assert_array_equal(contents, data['S'][0][0][0])
 
 
-def test_type_errors(qtbot):
+@pytest.mark.parametrize(
+    'data',
+    [np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])],
+)
+def test_type_errors(setup_arrayeditor, qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.
 
     Fixes spyder-ide/spyder#5254.
     """
-    arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
-    dlg = setup_arrayeditor(qtbot, arr)
+    dlg = setup_arrayeditor
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
     assert_array_equal(contents, np.ones(10))
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
-def test_arrayeditor_format(qtbot):
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
+@pytest.mark.parametrize(
+    'data',
+    [np.array([1, 2, 3], dtype=np.float32)],
+)
+def test_arrayeditor_format(setup_arrayeditor, qtbot):
     """Changes the format of the array and validates its selected content."""
-    arr = np.array([1, 2, 3], dtype=np.float32)
-    dlg = setup_arrayeditor(qtbot, arr, "test array float32")
+    dlg = setup_arrayeditor
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
