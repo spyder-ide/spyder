@@ -175,6 +175,8 @@ class SearchThread(QThread):
             except re.error:
                 self.error_flag = _("invalid regular expression")
                 return False
+            except FileNotFoundError:
+                return False
 
         # Process any pending results
         if self.partial_results:
