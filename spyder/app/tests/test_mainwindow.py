@@ -4398,5 +4398,35 @@ foo(1)
         assert focus_widget is control
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_focus_to_consoles(main_window, qtbot):
+    """
+    Check that we give focus to the text widget of our consoles after focus
+    is given to their dockwidgets.
+    """
+    # Wait for the console to be up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+
+    # Show internal console
+    console = main_window.get_plugin(Plugins.Console)
+    console.toggle_view_action.setChecked(True)
+
+    # Change to the IPython console and assert focus is given to its focus
+    # widget
+    main_window.ipyconsole.dockwidget.raise_()
+    focus_widget = QApplication.focusWidget()
+    assert focus_widget is control
+
+    # Change to the Internal console and assert focus is given to its focus
+    # widget
+    console.dockwidget.raise_()
+    focus_widget = QApplication.focusWidget()
+    assert focus_widget is console.get_widget().get_focus_widget()
+
+
 if __name__ == "__main__":
     pytest.main()
