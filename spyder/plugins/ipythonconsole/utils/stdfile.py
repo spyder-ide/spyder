@@ -5,9 +5,11 @@
 # Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
+
 """
 Class to control a file where stanbdard output can be written.
 """
+
 # Standard library imports.
 import codecs
 import os
@@ -17,7 +19,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils.encoding import get_coding
 
 
-class StdFile():
+class StdFile:
     def __init__(self, filename):
         self.filename = filename
         self._mtime = 0

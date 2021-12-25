@@ -12,6 +12,7 @@ Tests for the IPython console plugin.
 
 # Standard library imports
 import codecs
+import glob
 import os
 import os.path as osp
 import shutil
@@ -162,7 +163,8 @@ def ipyconsole(qtbot, request, tmpdir):
     is_cython = True if cython_client else False
 
     # Use an external interpreter if requested
-    external_interpreter = request.node.get_closest_marker('external_interpreter')
+    external_interpreter = request.node.get_closest_marker(
+        'external_interpreter')
     if external_interpreter:
         configuration.set('main_interpreter', 'default', False)
         configuration.set('main_interpreter', 'executable', sys.executable)
@@ -173,7 +175,6 @@ def ipyconsole(qtbot, request, tmpdir):
     # Use the test environment interpreter if requested
     test_environment_interpreter = request.node.get_closest_marker(
         'test_environment_interpreter')
-
     if test_environment_interpreter:
         configuration.set('main_interpreter', 'default', False)
         configuration.set(
@@ -1372,17 +1373,31 @@ def test_kernel_crash(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
+@pytest.mark.skipif(not os.name == 'nt', reason="Only necessary on Windows")
 def test_remove_old_std_files(ipyconsole, qtbot):
     """Test that we are removing old std files."""
-    # Create empty stderr file in our temp dir to see
-    # if it's removed correctly.
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create empty std files in our temp dir to see if they are removed
+    # correctly.
     tmpdir = get_temp_dir()
     open(osp.join(tmpdir, 'foo.stderr'), 'a').close()
+    open(osp.join(tmpdir, 'foo.stdout'), 'a').close()
 
-    # Assert that only that file is removed
+    # Assert that only old std files are removed
     ipyconsole._remove_old_std_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
+    assert not osp.isfile(osp.join(tmpdir, 'foo.stdout'))
+
+    # The current kernel std files should be present
+    for fname in glob.glob(osp.join(tmpdir, '*')):
+        assert osp.basename(fname).startswith('kernel')
+        assert any(
+            [osp.basename(fname).endswith(ext)
+             for ext in ('.stderr', '.stdout', '.fault')]
+        )
 
 
 @flaky(max_runs=10)

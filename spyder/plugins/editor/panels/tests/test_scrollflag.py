@@ -73,7 +73,6 @@ line6: Found Results
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
-
 def test_enabled(editor_bot):
     """"Test that enabling and disabling the srollflagarea panel make
     it visible or invisible depending on the case."""
@@ -148,7 +147,6 @@ def test_flag_painting(editor_bot, qtbot):
         editor.setTextCursor(cursor)
 
 
-@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
@@ -185,6 +183,7 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     x = int(sfa.width()/2)
     y = int(sfa.height()/2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
+    qtbot.wait(500)
 
     assert sfa._range_indicator_is_visible is True
 
@@ -196,7 +195,6 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible)
 
 
-@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     """Test that the slider range indicator is visible while the alt key is
     held down while the cursor is over the editor, but outside of the
@@ -213,8 +211,8 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
 
     # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
-    editor.resize(600, 150)
     qtbot.waitUntil(lambda: sfa.slider)
+    qtbot.wait(500)
 
     # Set the cursor position to the center of the editor.
     w = editor.width()
@@ -269,4 +267,3 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
 
 if __name__ == "__main__":  # pragma: no cover
     pytest.main([os.path.basename(__file__)])
-    # pytest.main()

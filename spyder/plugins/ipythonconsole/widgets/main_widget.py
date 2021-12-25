@@ -1073,6 +1073,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         show_elapsed_time = self.get_conf('show_elapsed_time')
         reset_warning = self.get_conf('show_reset_namespace_warning')
         ask_before_restart = self.get_conf('ask_before_restart')
+        std_dir = self._test_dir if self._test_dir else None
         client = ClientWidget(self,
                               id_=client_id,
                               given_name=given_name,
@@ -1092,7 +1093,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               css_path=self.css_path,
                               configuration=self.CONFIGURATION,
                               handlers=self.registered_spyder_kernel_handlers,
-                              std_dir=self._test_dir)
+                              std_dir=std_dir)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
@@ -1479,6 +1480,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         reset_warning = self.get_conf('show_reset_namespace_warning')
         ask_before_restart = self.get_conf('ask_before_restart')
         ask_before_closing = self.get_conf('ask_before_closing')
+        std_dir = self._test_dir if self._test_dir else None
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
@@ -1498,7 +1500,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               css_path=self.css_path,
                               configuration=self.CONFIGURATION,
                               handlers=self.registered_spyder_kernel_handlers,
-                              std_dir=self._test_dir)
+                              std_dir=std_dir)
 
         self.add_tab(
             client, name=client.get_name(), filename=filename,
