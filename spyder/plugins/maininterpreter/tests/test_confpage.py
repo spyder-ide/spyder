@@ -9,6 +9,9 @@
 # Standard library imports
 import time
 
+# Third-party imports
+import pytest
+
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
@@ -23,11 +26,15 @@ from spyder.utils.pyenv import get_list_pyenv_envs
 # We're also recording the time needed to get them to compare it with the
 # loading time of that config page.
 t0 = time.time()
-get_list_conda_envs()
-get_list_pyenv_envs()
+conda_envs = get_list_conda_envs()
+pyenv_envs = get_list_pyenv_envs()
 GET_ENVS_TIME = time.time() - t0
 
 
+@pytest.mark.skipif(
+    len(conda_envs) == 0 and len(pyenv_envs) == 0,
+    reason="Makes no sense if conda and pyenv are not installed"
+)
 def test_load_time(qtbot):
     # Create Preferences dialog
     main = MainWindowMock()

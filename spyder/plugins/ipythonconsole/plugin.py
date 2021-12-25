@@ -410,7 +410,8 @@ class IPythonConsole(SpyderDockablePlugin):
         Remove std files left by previous Spyder instances.
 
         This is only required on Windows because we can't
-        clean up std files while Spyder is running on it.
+        clean up std files while Spyder is running on that
+        platform.
         """
         if os.name == 'nt':
             tmpdir = get_temp_dir()
