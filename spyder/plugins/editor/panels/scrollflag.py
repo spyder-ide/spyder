@@ -23,6 +23,7 @@ from spyder.plugins.completion.api import DiagnosticSeverity
 
 
 REFRESH_RATE = 1000
+
 # Maximum number of flags to print in a file
 MAX_FLAGS = 1000
 
@@ -220,10 +221,11 @@ class ScrollFlagArea(Panel):
                         continue
                     geometry = editor.blockBoundingGeometry(block)
                     rect_y = ceil(
-                        geometry.y()
-                        + geometry.height() / 2 + rect_h / 2)
+                        geometry.y() +
+                        geometry.height() / 2 +
+                        rect_h / 2
+                    )
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
             elif last_line == 0:
                 # Only one line
                 for block in dict_flag_lists[flag_type]:
