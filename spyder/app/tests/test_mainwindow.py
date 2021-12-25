@@ -4344,12 +4344,21 @@ foo(1)
     # Be sure the focus is on the editor before proceeding
     code_editor.setFocus()
 
-    # Click the run cell button
+    # Select the run cell button to click it
     run_cell_action = main_window.run_toolbar_actions[1]
     run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
-    qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-    qtbot.wait(1000)
 
+    # Make sure we don't switch to the console after pressing the button
+    if focus_to_editor:
+        with qtbot.assertNotEmitted(
+            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
+        ):
+            qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+    else:
+        qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+        qtbot.wait(1000)
+
+    # Check the right widget has focus
     focus_widget = QApplication.focusWidget()
     if focus_to_editor:
         assert focus_widget is code_editor
@@ -4366,18 +4375,57 @@ foo(1)
     cursor.movePosition(QTextCursor.PreviousBlock, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
 
-    # Click the run selection button
+    # Select the run selection button to click it
     run_selection_action = main_window.run_toolbar_actions[3]
     run_selection_button = main_window.run_toolbar.widgetForAction(
         run_selection_action)
-    qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-    qtbot.wait(1000)
 
+    # Make sure we don't switch to the console after pressing the button
+    if focus_to_editor:
+        with qtbot.assertNotEmitted(
+            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
+        ):
+            qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+    else:
+        qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+        qtbot.wait(1000)
+
+    # Check the right widget has focus
     focus_widget = QApplication.focusWidget()
     if focus_to_editor:
         assert focus_widget is code_editor
     else:
         assert focus_widget is control
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_focus_to_consoles(main_window, qtbot):
+    """
+    Check that we give focus to the text widget of our consoles after focus
+    is given to their dockwidgets.
+    """
+    # Wait for the console to be up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+
+    # Show internal console
+    console = main_window.get_plugin(Plugins.Console)
+    console.toggle_view_action.setChecked(True)
+
+    # Change to the IPython console and assert focus is given to its focus
+    # widget
+    main_window.ipyconsole.dockwidget.raise_()
+    focus_widget = QApplication.focusWidget()
+    assert focus_widget is control
+
+    # Change to the Internal console and assert focus is given to its focus
+    # widget
+    console.dockwidget.raise_()
+    focus_widget = QApplication.focusWidget()
+    assert focus_widget is console.get_widget().get_focus_widget()
 
 
 if __name__ == "__main__":

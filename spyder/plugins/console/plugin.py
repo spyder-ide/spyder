@@ -42,6 +42,7 @@ class Console(SpyderDockablePlugin):
     CONF_FILE = False
     TABIFY = [Plugins.IPythonConsole, Plugins.History]
     CAN_BE_DISABLED = False
+    RAISE_AND_FOCUS = True
 
     # --- Signals
     # ------------------------------------------------------------------------

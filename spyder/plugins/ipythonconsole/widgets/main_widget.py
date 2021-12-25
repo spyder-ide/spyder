@@ -162,11 +162,6 @@ class IPythonConsoleWidget(PluginMainWidget):
     This signal will request to change the focus to the plugin.
     """
 
-    sig_editor_focus_requested = Signal()
-    """
-    This signal will request to change the focus to the editor if available.
-    """
-
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
@@ -2126,7 +2121,13 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.execute_code(line, set_focus=not focus_to_editor)
             except AttributeError:
                 pass
-            self.sig_switch_to_plugin_requested.emit()
+
+            # This is necessary to prevent raising the console if the editor
+            # and console are tabified next to each other and the 'Maintain
+            # focus in the editor' option is activated.
+            # Fixes spyder-ide/spyder#17028
+            if not focus_to_editor:
+                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
