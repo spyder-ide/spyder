@@ -900,8 +900,15 @@ class Projects(SpyderDockablePlugin):
         if osp.isfile(fpath):
             config = configparser.ConfigParser()
             config.read(fpath, encoding='utf-8')
-            project_type_id = config[WORKSPACE].get(
-                "project_type", EmptyProject.ID)
+
+            # This is necessary to catch an error for projects created in
+            # Spyder 4 or older versions.
+            # Fixes spyder-ide/spyder17097
+            try:
+                project_type_id = config[WORKSPACE].get(
+                    "project_type", EmptyProject.ID)
+            except KeyError:
+                pass
 
         EmptyProject._PARENT_PLUGIN = self
         project_types = self.get_project_types()
