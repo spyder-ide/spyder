@@ -160,7 +160,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 return
             self.kernel_manager.shutting_down = True
         try:
-            self.kernel_manager.shutdown_kernel(now=True)
+            self.kernel_manager.shutdown_kernel()
         except Exception:
             # kernel was externally killed
             pass

@@ -2089,8 +2089,8 @@ def test_shutdown_kernel(ipyconsole, qtbot, tmpdir):
     # Close current tab
     ipyconsole.get_widget().close_client()
 
-    # Wait until new client is created
-    qtbot.wait(500)
+    # Wait until new client is created and previous kernel is shutdown
+    qtbot.wait(5000)
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
