@@ -2,3 +2,4 @@ cloudpickle
 ipykernel
 # Pin pip version since we are getting 9.x and it causes IPython 6.1.0 to be installed
 pip>=19.3.1
+ipython<8
