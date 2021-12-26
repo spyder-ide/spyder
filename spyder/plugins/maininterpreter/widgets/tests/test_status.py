@@ -25,7 +25,7 @@ from spyder.utils.conda import get_list_conda_envs
 CONDA_MISSING = (len(get_list_conda_envs()) == 0)
 
 
-@pytest.mark.skipif(CONDA_MISSING, reason="Makes no sense if conda is not installed")
+@pytest.mark.skipif(CONDA_MISSING, reason="Requires conda to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_status_bar_conda_interpreter_status(status_bar, qtbot):
     """Test status bar message with conda interpreter."""
