@@ -12,7 +12,12 @@ import time
 import pytest
 
 from spyder.config.base import running_in_ci
+from spyder.utils.programs import find_program
 from spyder.utils.pyenv import get_list_pyenv_envs, get_list_pyenv_envs_cache
+
+
+if not find_program('pyenv'):
+    pytest.skip("Requires pyenv to be installed", allow_module_level=True)
 
 
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")

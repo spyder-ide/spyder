@@ -195,10 +195,6 @@ class Help(SpyderDockablePlugin):
 
     def apply_conf(self, options_set, notify=False):
         super().apply_conf(options_set)
-        widget = self.get_widget()
-
-        if 'color_scheme_name' in options_set:
-            widget.set_plain_text_color_scheme(self.get_color_scheme())
 
         # To make auto-connection changes take place instantly
         try:

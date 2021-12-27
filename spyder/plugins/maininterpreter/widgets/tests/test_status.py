@@ -17,10 +17,12 @@ import pytest
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.config.utils import is_anaconda
 from spyder.plugins.statusbar.widgets.tests.test_status import status_bar
 from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 
 
+@pytest.mark.skipif(not is_anaconda(), reason="Requires conda to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_status_bar_conda_interpreter_status(status_bar, qtbot):
     """Test status bar message with conda interpreter."""

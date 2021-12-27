@@ -90,6 +90,7 @@ def test_completions(console_plugin, qtbot):
     assert u'import' in shell.toPlainText()
 
 
+@flaky(max_runs=20)
 def test_handle_exception(console_plugin, mocker):
     """Test that error dialog is called."""
     widget = console_plugin.get_widget()

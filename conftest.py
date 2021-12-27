@@ -16,7 +16,6 @@ import os.path as osp
 import shutil
 import subprocess
 import sys
-import warnings
 
 
 # ---- To activate/deactivate certain things for pytest's only

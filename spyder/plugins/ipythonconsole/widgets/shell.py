@@ -19,13 +19,13 @@ from threading import Lock
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
+from traitlets import observe
 
 # Local imports
 from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
-from spyder.utils import encoding
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
@@ -303,8 +303,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def remote_set_cwd(self, cwd):
         """Get current working directory from kernel."""
-        self._cwd = cwd
-        self.sig_working_directory_changed.emit(self._cwd)
+        if cwd != self._cwd:
+            self._cwd = cwd
+            self.sig_working_directory_changed.emit(self._cwd)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
@@ -933,7 +934,8 @@ the sympy module (e.g. plot)
         super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
         self.sig_kernel_restarted.emit()
 
-    def _syntax_style_changed(self):
+    @observe('syntax_style')
+    def _syntax_style_changed(self, changed=None):
         """Refresh the highlighting with the current syntax style by class."""
         if self._highlighter is None:
             # ignore premature calls

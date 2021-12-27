@@ -204,9 +204,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.restart_thread.wait()
 
     # ----- Private methods ---------------------------------------------------
-    def _before_prompt_is_ready(self):
-        """Configure shellwidget before kernel is connected."""
-        self._show_loading_page()
+    def _before_prompt_is_ready(self, show_loading_page=True):
+        """Configuration before kernel is connected."""
+        if show_loading_page:
+            self._show_loading_page()
         self.shellwidget.sig_prompt_ready.connect(
             self._when_prompt_is_ready)
         # If remote execution, the loading page should be hidden as well
@@ -393,6 +394,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         stderr = self.stderr_obj.poll_file_change()
         starting = self.shellwidget._starting
         if stderr:
+            if self.is_bening_error(stderr):
+                return
             if self.shellwidget.isHidden():
                 # Avoid printing the same thing again
                 if self.error_text != '<tt>%s</tt>' % stderr:
@@ -494,9 +497,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Show kernel initialization errors in infowidget."""
         self.error_text = error
 
-        # Filter out benign errors
-        if "http://bugs.python.org/issue1666807" in error:
-            # See spyder-ide/spyder#16828
+        if self.is_bening_error(error):
             return
 
         InstallerIPythonKernelError(error)
@@ -525,6 +526,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         # Tell the client we're in error mode
         self.is_error_shown = True
+
+    def is_bening_error(self, error):
+        """Decide if an error is benign in order to filter it."""
+        if "http://bugs.python.org/issue1666807" in error:
+            # See spyder-ide/spyder#16828
+            return True
+
+        if "https://bugs.python.org/issue1180193" in error:
+            # See spyder-ide/spyder#16927
+            return True
+
+        return False
 
     def get_name(self):
         """Return client name"""
@@ -632,6 +645,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 # Stop autorestart mechanism
                 sw.kernel_manager.stop_restarter()
                 sw.kernel_manager.autorestart = False
+
+                # Reconfigure client before the new kernel is connected again.
+                self._before_prompt_is_ready(show_loading_page=False)
 
                 # Create and run restarting thread
                 if (self.restart_thread is not None

@@ -48,6 +48,7 @@ class IPythonConsole(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = IPythonConsoleConfigPage
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    RAISE_AND_FOCUS = True
 
     # Signals
     sig_append_to_history_requested = Signal(str, str)
@@ -77,11 +78,6 @@ class IPythonConsole(SpyderDockablePlugin):
     sig_focus_changed = Signal()
     """
     This signal is emitted when the plugin focus changes.
-    """
-
-    sig_editor_focus_requested = Signal()
-    """
-    This signal will request to change the focus to the editor if available.
     """
 
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
@@ -219,8 +215,6 @@ class IPythonConsole(SpyderDockablePlugin):
             self.sig_append_to_history_requested)
         widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
-        widget.sig_editor_focus_requested.connect(
-            self.sig_editor_focus_requested)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_edit_goto_requested[str, int, str, bool].connect(
@@ -316,9 +310,6 @@ class IPythonConsole(SpyderDockablePlugin):
         editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
-        # Connect Console focus request with Editor
-        self.sig_editor_focus_requested.connect(self._switch_to_editor)
-
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
@@ -361,9 +352,6 @@ class IPythonConsole(SpyderDockablePlugin):
             self.execute_code_and_focus_editor)
         editor.sig_file_debug_message_requested.disconnect(
             self.print_debug_file_msg)
-
-        # Connect Console focus request with Editor
-        self.sig_editor_focus_requested.disconnect(self._switch_to_editor)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
@@ -410,7 +398,8 @@ class IPythonConsole(SpyderDockablePlugin):
         Remove std files left by previous Spyder instances.
 
         This is only required on Windows because we can't
-        clean up std files while Spyder is running on it.
+        clean up std files while Spyder is running on that
+        platform.
         """
         if os.name == 'nt':
             tmpdir = get_temp_dir()
@@ -602,7 +591,7 @@ class IPythonConsole(SpyderDockablePlugin):
             console_namespace)
 
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 function='runcell'):
+                 focus_to_editor, function='runcell'):
         """
         Run cell in current or dedicated client.
 
@@ -618,6 +607,9 @@ class IPythonConsole(SpyderDockablePlugin):
         run_cell_copy : bool
             True if the cell should be executed line by line,
             False if the provided `function` should be used.
+        focus_to_editor: bool
+            Whether to give focus to the editor after running the cell. If
+            False, focus is given to the console.
         function : str, optional
             Name handler of the kernel function to be used to execute the cell
             in case `run_cell_copy` is False.
@@ -629,9 +621,11 @@ class IPythonConsole(SpyderDockablePlugin):
 
         """
         self.get_widget().run_cell(
-            code, cell_name, filename, run_cell_copy, function=function)
+            code, cell_name, filename, run_cell_copy, focus_to_editor,
+            function=function)
 
-    def debug_cell(self, code, cell_name, filename, run_cell_copy):
+    def debug_cell(self, code, cell_name, filename, run_cell_copy,
+                   focus_to_editor):
         """
         Debug current cell.
 
@@ -647,13 +641,17 @@ class IPythonConsole(SpyderDockablePlugin):
         run_cell_copy : bool
             True if the cell should be executed line by line,
             False if the `debugcell` kernel function should be used.
+        focus_to_editor: bool
+            Whether to give focus to the editor after debugging the cell. If
+            False, focus is given to the console.
 
         Returns
         -------
         None.
 
         """
-        self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy)
+        self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy,
+                                     focus_to_editor)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """
@@ -685,11 +683,11 @@ class IPythonConsole(SpyderDockablePlugin):
         Execute lines in IPython console and eventually set focus
         to the Editor.
         """
-        console = self
-        console.switch_to_plugin()
-        console.execute_code(lines)
+        self.execute_code(lines)
         if focus_to_editor and self.get_plugin(Plugins.Editor):
             self._switch_to_editor()
+        else:
+            self.switch_to_plugin()
 
     def stop_debugging(self):
         """Stop debugging in the current console."""

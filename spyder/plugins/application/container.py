@@ -17,6 +17,7 @@ import glob
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
+from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
@@ -566,3 +567,12 @@ class ApplicationContainer(PluginMainContainer):
             self.dpi_messagebox.finished.connect(
                 lambda result: self.handle_dpi_change_response(result, dpi))
             self.dpi_messagebox.open()
+            # Show dialog always in the primary screen to prevent not being
+            # able to see it if a screen gets disconnected while
+            # in suspended state. See spyder-ide/spyder#16390
+            dpi_messagebox_width = self.dpi_messagebox.rect().width()
+            dpi_messagebox_height = self.dpi_messagebox.rect().height()
+            screen_geometry = QGuiApplication.primaryScreen().geometry()
+            x = (screen_geometry.width() - dpi_messagebox_width) / 2
+            y = (screen_geometry.height() - dpi_messagebox_height) / 2
+            self.dpi_messagebox.move(x, y)

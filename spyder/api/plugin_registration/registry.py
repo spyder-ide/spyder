@@ -19,7 +19,6 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.plugin_registration._confpage import PluginsConfigPage
-from spyder.api.plugins.enum import Plugins
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import (
     Plugins, SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,

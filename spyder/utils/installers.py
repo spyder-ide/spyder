@@ -64,6 +64,8 @@ class InstallerInternalError(SpyderInstallerError):
     def _msg(self, msg):
         msg = 'Spyder internal error\n' + textwrap.indent(msg, '  ')
 
+        return msg
+
 
 class InstallerPylspError(SpyderInstallerError):
     """Error for PyLSP issues"""
