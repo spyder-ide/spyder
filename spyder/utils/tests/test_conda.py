@@ -16,12 +16,14 @@ import pytest
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.config.utils import is_anaconda
 from spyder.utils.conda import (
     add_quotes, find_conda, get_conda_activation_script, get_conda_env_path,
     get_conda_root_prefix, get_list_conda_envs, get_list_conda_envs_cache)
 
 
-CONDA_MISSING = (len(get_list_conda_envs()) == 0)
+if not is_anaconda():
+    pytest.skip("Requires conda to be installed", allow_module_level=True)
 
 if os.name == 'nt':
     TEST_PYEXEC = 'c:/miniconda/envs/foobar/python.exe'
@@ -37,7 +39,6 @@ def test_add_quotes():
     assert output == '/some-path/with-no-spaces'
 
 
-@pytest.mark.skipif(CONDA_MISSING, reason="Requires conda to be installed")
 def test_get_conda_activation_script():
     output = get_conda_activation_script(TEST_PYEXEC)
     if os.name == 'nt':
@@ -46,7 +47,6 @@ def test_get_conda_activation_script():
         assert output == '/miniconda/bin/activate'
 
 
-@pytest.mark.skipif(CONDA_MISSING, reason="Requires conda to be installed")
 def test_get_conda_env_path():
     output = get_conda_env_path(TEST_PYEXEC)
     if os.name == 'nt':
@@ -55,7 +55,6 @@ def test_get_conda_env_path():
         assert output == '/miniconda/envs/foobar'
 
 
-@pytest.mark.skipif(CONDA_MISSING, reason="Requires conda to be installed")
 def test_get_conda_root_prefix():
     output = get_conda_root_prefix(TEST_PYEXEC)
     if os.name == 'nt':
@@ -66,13 +65,11 @@ def test_get_conda_root_prefix():
     assert 'envs' not in get_conda_root_prefix(sys.executable)
 
 
-@pytest.mark.skipif(CONDA_MISSING, reason="Requires conda to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_find_conda():
     assert find_conda()
 
 
-@pytest.mark.skipif(CONDA_MISSING, reason="Requires conda to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_get_list_conda_envs():
     output = get_list_conda_envs()
@@ -82,7 +79,6 @@ def test_get_list_conda_envs():
     assert set(expected_envs) == set(output.keys())
 
 
-@pytest.mark.skipif(CONDA_MISSING, reason="Requires conda to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_get_list_conda_envs_cache():
     time0 = time.time()

@@ -12,13 +12,14 @@ import time
 import pytest
 
 from spyder.config.base import running_in_ci
+from spyder.utils.programs import find_program
 from spyder.utils.pyenv import get_list_pyenv_envs, get_list_pyenv_envs_cache
 
 
-PYENV_MISSING = (len(get_list_pyenv_envs()) == 0)
+if not find_program('pyenv'):
+    pytest.skip("Requires pyenv to be installed", allow_module_level=True)
 
 
-@pytest.mark.skipif(PYENV_MISSING, reason="Requires pyenv to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Only runs on Linux")
@@ -28,7 +29,6 @@ def test_get_list_pyenv_envs():
     assert set(expected_envs) == set(output.keys())
 
 
-@pytest.mark.skipif(PYENV_MISSING, reason="Requires pyenv to be installed")
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Only runs on Linux")
