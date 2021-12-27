@@ -16,10 +16,14 @@ import pytest
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.config.utils import is_anaconda
 from spyder.utils.conda import (
     add_quotes, find_conda, get_conda_activation_script, get_conda_env_path,
     get_conda_root_prefix, get_list_conda_envs, get_list_conda_envs_cache)
 
+
+if not is_anaconda():
+    pytest.skip("Requires conda to be installed", allow_module_level=True)
 
 if os.name == 'nt':
     TEST_PYEXEC = 'c:/miniconda/envs/foobar/python.exe'
