@@ -127,6 +127,9 @@ class QWaitingSpinner(QWidget):
         self.show()
 
     def stop(self):
+        if not self._isSpinning:
+            # No need to repaint everything if it is already stopped
+            return
         self._isSpinning = False
 
         if self.parentWidget() and self._disableParentWhenSpinning:

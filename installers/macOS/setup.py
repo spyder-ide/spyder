@@ -13,6 +13,8 @@ $ python setup.py
 
 import os
 import sys
+import shutil
+import pkg_resources
 from logging import getLogger, StreamHandler, Formatter
 from setuptools import setup
 
@@ -32,6 +34,9 @@ ICONFILE = os.path.join(SPYREPO, 'img_src', 'spyder.icns')
 SPYLINK = os.path.join(THISDIR, 'spyder')
 
 sys.path.append(SPYREPO)
+
+from spyder import __version__ as SPYVER
+from spyder.config.base import MAC_APP_NAME
 
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
@@ -125,12 +130,7 @@ def make_app_bundle(dist_dir, make_lite=False):
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python39.zip/textdistance/libraries.json'
     """
-    import shutil
-    import pkg_resources
-
-    from spyder import __version__ as SPYVER
     from spyder.config.utils import EDIT_FILETYPES, _get_extensions
-    from spyder.config.base import MAC_APP_NAME
 
     # Patch py2app for IPython help()
     py2app_file = pkg_resources.pkgutil.get_loader('py2app').get_filename()
@@ -155,6 +155,7 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'textdistance', 'debugpy',
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()
+                'jellyfish',
                 # required for sphinx
                 'sphinxcontrib.applehelp', 'sphinxcontrib.devhelp',
                 'sphinxcontrib.htmlhelp', 'sphinxcontrib.jsmath',
@@ -214,24 +215,57 @@ def make_app_bundle(dist_dir, make_lite=False):
         os.remove(app_script_path)
         os.remove(SPYLINK)
 
-    # Copy egg info from site-packages: fixes several pkg_resources issues
-    dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
-                            'lib', f'python{PYVER[0]}.{PYVER[1]}')
-    pkg_resources.working_set.add_entry(SPYREPO)
-    for dist in pkg_resources.working_set:
-        if (dist.egg_info is None or dist.key.startswith('pyobjc')
-                or dist.key in EXCLUDE_EGG):
-            logger.info(f'Skipping egg {dist.key}')
-            continue
-        egg = os.path.basename(dist.egg_info)
-        dest = os.path.join(dest_dir, egg)
-        shutil.copytree(dist.egg_info, dest)
-        logger.info(f'Copied {egg}')
-
-    logger.info('App bundle complete.')
+    # Copy egg info: fixes several pkg_resources issues
+    copy_egg_info(dist_dir)
 
     return
 
+
+def copy_egg_info(dist_dir):
+    from zipfile import ZipFile
+
+    pkg_resources.working_set.add_entry(SPYREPO)
+    egg_map = {}
+    for dist in pkg_resources.working_set:
+        if dist.egg_info is None:
+            continue
+
+        try:
+            tops = dist.get_metadata('top_level.txt').strip().split('\n')
+            for top in tops:
+                egg_map.update({top: dist.egg_info})
+        except FileNotFoundError:
+            egg_map.update({dist.project_name: dist.egg_info})
+
+    base_dir = os.path.join(dist_dir, MAC_APP_NAME,
+                            'Contents', 'Resources', 'lib')
+    pkg_dir = os.path.join(base_dir, 'python{}.{}'.format(*PYVER))
+    lib_dir = os.path.join(pkg_dir, 'lib-dynload')
+    zip_dir = os.path.join(base_dir, 'python{}{}.zip'.format(*PYVER))
+
+    pkgs = set(f.name for f in os.scandir(pkg_dir))
+    pkgs.update(f.name for f in os.scandir(lib_dir))
+    pkgs.update(item.split(os.sep)[0] for item in ZipFile(zip_dir).namelist())
+
+    eggs = set()
+    for pkg in pkgs:
+        top = pkg.split('.')[0]
+
+        egg = None
+        try:
+            dist = pkg_resources.get_distribution(top)
+            egg = dist.egg_info
+        except Exception:
+            egg = egg_map.get(top, None)
+
+        if egg is not None:
+            eggs.add(egg)
+
+    for egg in eggs:
+        egg_name = os.path.basename(egg)
+        dest = os.path.join(pkg_dir, egg_name)
+        shutil.copytree(egg, dest)
+        logger.info(f'Copied {egg_name}')
 
 def make_disk_image(dist_dir, make_lite=False):
     """
@@ -250,8 +284,6 @@ def make_disk_image(dist_dir, make_lite=False):
 
     from dmgbuild import build_dmg
     from dmgbuild.core import DMGError
-    from spyder import __version__ as SPYVER
-    from spyder.config.base import MAC_APP_NAME
 
     volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)
     dmgfile = os.path.join(dist_dir, 'Spyder')
@@ -295,6 +327,9 @@ if __name__ == '__main__':
                         default=False, help='Create disk image')
     parser.add_argument('-d', '--dist-dir', dest='dist_dir', default='dist',
                         help='Distribution directory; passed to py2app')
+    parser.add_argument('-b', '--bdist-base', dest='build_dir',
+                        default='build',
+                        help='Build directory; passed to py2app')
 
     args, rem = parser.parse_known_args()
 
@@ -302,8 +337,10 @@ if __name__ == '__main__':
     sys.argv = sys.argv[:1] + ['py2app'] + rem
 
     dist_dir = os.path.abspath(args.dist_dir)
+    build_dir = os.path.abspath(args.build_dir)
 
     if args.make_app:
+        shutil.rmtree(build_dir, ignore_errors=True)
         make_app_bundle(dist_dir, make_lite=args.make_lite)
     else:
         logger.info('Skipping app bundle.')

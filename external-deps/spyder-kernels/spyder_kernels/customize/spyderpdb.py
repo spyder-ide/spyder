@@ -34,18 +34,6 @@ else:
 logger = logging.getLogger(__name__)
 
 
-def uses_comprehension(code):
-    """Check if given code uses comprehensions."""
-    comprehension_statements = (
-        ast.ListComp,
-        ast.SetComp,
-        ast.GeneratorExp,
-        ast.DictComp
-    )
-    nodes = ast.walk(ast.parse(code))
-    return any(isinstance(node, comprehension_statements) for node in nodes)
-
-
 class DebugWrapper(object):
     """
     Notifies the frontend when debugging starts/stops
@@ -177,11 +165,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                         self.print_exclamation_warning()
         try:
             line = TransformerManager().transform_cell(line)
-            try:
-                code = compile(line + '\n', '<stdin>', 'single')
-            except SyntaxError:
-                # support multiline statments
-                code = compile(line + '\n', '<stdin>', 'exec')
             save_stdout = sys.stdout
             save_stdin = sys.stdin
             save_displayhook = sys.displayhook
@@ -192,36 +175,69 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 if execute_events:
                      get_ipython().events.trigger('pre_execute')
 
-                 # Mitigates a CPython bug (https://bugs.python.org/issue41918)
-                 # that prevents running comprehensions with the frame locals
-                 # in Pdb.
-                 # See https://bugs.python.org/issue21161 and
-                 # spyder-ide/spyder#13909.
-                if uses_comprehension(line):
-                    # There are three potential problems with this approach:
-                    # 1. If the code access a globals variable that is
-                    #    masked by a locals variable, it will get the locals
-                    #    one.
-                    # 2. Any edit to that variable will be lost.
-                    # 3. The globals will appear to contain all the locals
-                    #    variables.
-                    # 4. Any new locals variable will be saved to globals
-                    #    instead
-                    fake_globals = globals.copy()
-                    fake_globals.update(locals)
-                    locals_keys = locals.keys()
-                    # Don't pass locals, solves spyder-ide/spyder#16790
-                    exec(code, fake_globals)
-                    # Avoid mixing locals and globals
-                    for key in locals_keys:
-                        locals[key] = fake_globals.pop(key, None)
-                    globals.update(fake_globals)
-                else:
-                    exec(code, globals, locals)
+                if locals is not globals:
+                    # Mitigates a behaviour of CPython that makes it difficult
+                    # to work with exec and the local namespace
+                    # See:
+                    #  - https://bugs.python.org/issue41918
+                    #  - https://bugs.python.org/issue46153
+                    #  - https://bugs.python.org/issue21161
+                    #  - spyder-ide/spyder#13909
+                    #  - spyder-ide/spyder-kernels#345
+                    #
+                    # The idea here is that the best way to emulate being in a
+                    # function is to actually execute the code in a function.
+                    # A function called `_spyderpdb_code` is created and
+                    # called. It will first load the locals, execute the code,
+                    # and then update the locals.
+                    #
+                    # One limitation of this approach is that locals() is only
+                    # a copy of the curframe locals. This means that closures
+                    # for example are early binding instead of late binding.
 
+                    # Check if line is an expression to print
+                    print_ret = False
+                    try:
+                        code = ast.parse(line + '\n', '<stdin>', 'single')
+                        if len(code.body) == 1:
+                            print_ret = isinstance(code.body[0], ast.Expr)
+                    except SyntaxError:
+                        pass
+
+                    # Create a function and load the locals
+                    globals["_spyderpdb_locals"] = locals
+                    indent = "    "
+                    code = ["def _spyderpdb_code():"]
+                    code += [indent + "{k} = _spyderpdb_locals['{k}']".format(
+                        k=k) for k in locals]
+
+                    # Run the code
+                    if print_ret:
+                        code += [indent + 'print(' + line.strip() + ")"]
+                    else:
+                        code += [indent + l for l in line.splitlines()]
+
+                    # Update the locals
+                    code += [indent + "_spyderpdb_locals.update(locals())"]
+
+                    # Run the function
+                    code += ["_spyderpdb_code()"]
+                    code = compile('\n'.join(code) + '\n', '<stdin>', 'exec')
+                    try:
+                        exec(code, globals)
+                    finally:
+                        globals.pop("_spyderpdb_locals", None)
+                        globals.pop("_spyderpdb_code", None)
+                else:
+                    try:
+                        code = compile(line + '\n', '<stdin>', 'single')
+                    except SyntaxError:
+                        # Support multiline statments
+                        code = compile(line + '\n', '<stdin>', 'exec')
+                    exec(code, globals)
+            finally:
                 if execute_events:
                      get_ipython().events.trigger('post_execute')
-            finally:
                 sys.stdout = save_stdout
                 sys.stdin = save_stdin
                 sys.displayhook = save_displayhook

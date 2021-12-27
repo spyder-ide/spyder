@@ -10,8 +10,16 @@ from unittest.mock import MagicMock
 
 # Third party imports
 from qtpy.QtCore import Signal, QObject
-from qtpy.QtWidgets import QMainWindow
+from qtpy.QtWidgets import QApplication, QMainWindow
 import pytest
+
+# This is necessary to run these tests independently from the rest in our
+# test suite.
+# NOTE: Don't move it to another place; it needs to be before importing the
+# Pylint plugin below.
+# Fixes spyder-ide/spyder#17071
+if QApplication.instance() is None:
+    app = QApplication([])
 
 # Local imports
 from spyder.plugins.pylint.plugin import Pylint

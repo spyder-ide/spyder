@@ -47,6 +47,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
@@ -129,9 +130,9 @@ class TabSwitcherWidget(QListWidget):
 
     def set_dialog_position(self):
         """Positions the tab switcher in the top-center of the editor."""
-        left = self.editor.geometry().width()/2 - self.width()/2
-        top = (self.editor.tabs.tabBar().geometry().height() +
-               self.editor.fname_label.geometry().height())
+        left = int(self.editor.geometry().width()/2 - self.width()/2)
+        top = int(self.editor.tabs.tabBar().geometry().height() +
+                  self.editor.fname_label.geometry().height())
 
         self.move(self.editor.mapToGlobal(QPoint(left, top)))
 
@@ -179,8 +180,8 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, object, str, bool)
-    debug_cell_in_ipyclient = Signal(str, object, str, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -811,6 +812,9 @@ class EditorStack(QWidget):
                 lambda: self.get_current_editor(),
                 lambda: self,
                 section=self.get_plugin_title())
+
+        if isinstance(initial_text, bool):
+            initial_text = ''
 
         self.switcher_dlg.set_search_text(initial_text)
         self.switcher_dlg.setup()
@@ -1496,11 +1500,16 @@ class EditorStack(QWidget):
             The self.data index for the filename.  Returns None
             if the filename is not found in self.data.
         """
-        fixpath = lambda path: osp.normcase(osp.realpath(path))
-        for index, finfo in enumerate(self.data):
-            if fixpath(filename) == fixpath(finfo.filename):
-                return index
-        return None
+        data_filenames = self.get_filenames()
+        try:
+            # Try finding without calling the slow realpath
+            return data_filenames.index(filename)
+        except ValueError:
+            filename = fixpath(filename)
+            for index, editor_filename in enumerate(data_filenames):
+                if filename == fixpath(editor_filename):
+                    return index
+            return None
 
     def set_current_filename(self, filename, focus=True):
         """Set current filename and return the associated editor instance."""
@@ -2636,22 +2645,29 @@ class EditorStack(QWidget):
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
-        """Sets the EOL character(s) based on the operating system.
+        """
+        Sets the EOL character(s) based on the operating system.
 
         If `osname` is None, then the default line endings for the current
-        operating system (`os.name` value) will be used.
+        operating system will be used.
 
-        `osname` can be one of:
-            ('posix', 'nt', 'java')
+        `osname` can be one of: 'posix', 'nt', 'mac'.
         """
         if osname is None:
-            osname = os.name
+            if os.name == 'nt':
+                osname = 'nt'
+            elif sys.platform == 'darwin':
+                osname = 'mac'
+            else:
+                osname = 'posix'
+
         if index is None:
             index = self.get_stack_index()
+
         finfo = self.data[index]
         eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
         logger.debug(f"Set OS eol chars {eol_chars} for file {finfo.filename}")
-        finfo.editor.set_eol_chars(eol_chars)
+        finfo.editor.set_eol_chars(eol_chars=eol_chars)
         finfo.editor.document().setModified(True)
 
     def remove_trailing_spaces(self, index=None):
@@ -2746,15 +2762,7 @@ class EditorStack(QWidget):
         else:
             move_func = self.get_current_editor().go_to_previous_cell
 
-        if self.focus_to_editor:
-            move_func()
-        else:
-            term = QApplication.focusWidget()
-            move_func()
-            term.setFocus()
-            term = QApplication.focusWidget()
-            move_func()
-            term.setFocus()
+        move_func()
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
@@ -2789,16 +2797,12 @@ class EditorStack(QWidget):
         """
         (filename, cell_name) = cell_id
         if editor.is_python_or_ipython():
-            args = (text, cell_name, filename, self.run_cell_copy)
+            args = (text, cell_name, filename, self.run_cell_copy,
+                    self.focus_to_editor)
             if debug:
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        if self.focus_to_editor:
-            editor.setFocus()
-        else:
-            console = QApplication.focusWidget()
-            console.setFocus()
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):

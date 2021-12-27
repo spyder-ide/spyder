@@ -12,6 +12,7 @@ Tests for the IPython console plugin.
 
 # Standard library imports
 import codecs
+import glob
 import os
 import os.path as osp
 import shutil
@@ -43,6 +44,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
+from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.conda import is_conda_env
 
@@ -161,7 +163,8 @@ def ipyconsole(qtbot, request, tmpdir):
     is_cython = True if cython_client else False
 
     # Use an external interpreter if requested
-    external_interpreter = request.node.get_closest_marker('external_interpreter')
+    external_interpreter = request.node.get_closest_marker(
+        'external_interpreter')
     if external_interpreter:
         configuration.set('main_interpreter', 'default', False)
         configuration.set('main_interpreter', 'executable', sys.executable)
@@ -172,7 +175,6 @@ def ipyconsole(qtbot, request, tmpdir):
     # Use the test environment interpreter if requested
     test_environment_interpreter = request.node.get_closest_marker(
         'test_environment_interpreter')
-
     if test_environment_interpreter:
         configuration.set('main_interpreter', 'default', False)
         configuration.set(
@@ -1126,10 +1128,13 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-def test_restart_kernel(ipyconsole, qtbot):
+def test_restart_kernel(ipyconsole, mocker, qtbot):
     """
     Test that kernel is restarted correctly
     """
+    # Mock method we want to check
+    mocker.patch.object(ClientWidget, "_show_mpl_backend_errors")
+
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
@@ -1144,6 +1149,10 @@ def test_restart_kernel(ipyconsole, qtbot):
 
     assert 'Restarting kernel...' in shell._control.toPlainText()
     assert not shell.is_defined('a')
+
+    # Check that we try to show Matplotlib backend errors at the beginning and
+    # after the restart.
+    assert ClientWidget._show_mpl_backend_errors.call_count == 2
 
 
 @flaky(max_runs=3)
@@ -1364,17 +1373,31 @@ def test_kernel_crash(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
+@pytest.mark.skipif(not os.name == 'nt', reason="Only necessary on Windows")
 def test_remove_old_std_files(ipyconsole, qtbot):
     """Test that we are removing old std files."""
-    # Create empty stderr file in our temp dir to see
-    # if it's removed correctly.
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create empty std files in our temp dir to see if they are removed
+    # correctly.
     tmpdir = get_temp_dir()
     open(osp.join(tmpdir, 'foo.stderr'), 'a').close()
+    open(osp.join(tmpdir, 'foo.stdout'), 'a').close()
 
-    # Assert that only that file is removed
+    # Assert that only old std files are removed
     ipyconsole._remove_old_std_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
+    assert not osp.isfile(osp.join(tmpdir, 'foo.stdout'))
+
+    # The current kernel std files should be present
+    for fname in glob.glob(osp.join(tmpdir, '*')):
+        assert osp.basename(fname).startswith('kernel')
+        assert any(
+            [osp.basename(fname).endswith(ext)
+             for ext in ('.stderr', '.stdout', '.fault')]
+        )
 
 
 @flaky(max_runs=10)
@@ -2035,10 +2058,50 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute(f"runfile(filename=r'{str(file)}')")
 
-    qtbot.wait(5000)
     # Assert we entered debugging after the print statement
+    qtbot.wait(5000)
     assert 'foo' in control.toPlainText()
     assert 'IPdb [1]:' in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.auto_backend
+def test_shutdown_kernel(ipyconsole, qtbot, tmpdir):
+    """
+    Check that the kernel is shutdown after creating plots with the
+    automatic backend.
+
+    This is a regression test for issue spyder-ide/spyder#17011
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create a Matplotlib plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import matplotlib.pyplot as plt; plt.plot(range(10))")
+
+    # Get kernel pid
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; pid = os.getpid()")
+    kernel_pid = shell.get_value('pid')
+
+    # Close current tab
+    ipyconsole.get_widget().close_client()
+
+    # Wait until new client is created and previous kernel is shutdown
+    qtbot.wait(5000)
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Detect if previous kernel was killed
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            f"import psutil; kernel_exists = psutil.pid_exists({kernel_pid})"
+        )
+
+    assert not shell.get_value('kernel_exists')
 
 
 if __name__ == "__main__":
