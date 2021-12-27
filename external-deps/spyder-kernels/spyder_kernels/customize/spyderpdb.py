@@ -175,6 +175,26 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 if execute_events:
                      get_ipython().events.trigger('pre_execute')
 
+                code_ast = ast.parse(line)
+                # Modify ast code to capture the last expression
+                capture_last_expression = False
+                if (
+                    len(code_ast.body)
+                    and isinstance(code_ast.body[-1], ast.Expr)
+                    and line.rstrip()[-1] != ";"
+                ):
+                    capture_last_expression = True
+                    expr_node = code_ast.body[-1]
+                    # Create new assign node
+                    assign_node = ast.parse(
+                        'globals()["_spyderpdb_out"] = None').body[0]
+                    # Replace None by the value
+                    assign_node.value = expr_node.value
+                    # Fix line number and column offset
+                    assign_node.lineno = expr_node.lineno
+                    assign_node.col_offset = expr_node.col_offset
+                    code_ast.body[-1] = assign_node
+
                 if locals is not globals:
                     # Mitigates a behaviour of CPython that makes it difficult
                     # to work with exec and the local namespace
@@ -195,46 +215,43 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     # a copy of the curframe locals. This means that closures
                     # for example are early binding instead of late binding.
 
-                    # Check if line is an expression to print
-                    print_ret = False
-                    try:
-                        code = ast.parse(line + '\n', '<stdin>', 'single')
-                        if len(code.body) == 1:
-                            print_ret = isinstance(code.body[0], ast.Expr)
-                    except SyntaxError:
-                        pass
-
-                    # Create a function and load the locals
-                    globals["_spyderpdb_locals"] = locals
+                    # Create a function
                     indent = "    "
                     code = ["def _spyderpdb_code():"]
+                    # Load the locals
+                    globals["_spyderpdb_locals"] = locals
                     code += [indent + "{k} = _spyderpdb_locals['{k}']".format(
                         k=k) for k in locals]
-
-                    # Run the code
-                    if print_ret:
-                        code += [indent + 'print(' + line.strip() + ")"]
-                    else:
-                        code += [indent + l for l in line.splitlines()]
-
                     # Update the locals
                     code += [indent + "_spyderpdb_locals.update(locals())"]
-
                     # Run the function
                     code += ["_spyderpdb_code()"]
-                    code = compile('\n'.join(code) + '\n', '<stdin>', 'exec')
-                    try:
-                        exec(code, globals)
-                    finally:
-                        globals.pop("_spyderpdb_locals", None)
-                        globals.pop("_spyderpdb_code", None)
-                else:
-                    try:
-                        code = compile(line + '\n', '<stdin>', 'single')
-                    except SyntaxError:
-                        # Support multiline statments
-                        code = compile(line + '\n', '<stdin>', 'exec')
-                    exec(code, globals)
+                    # Cleanup
+                    code += [
+                        "del _spyderpdb_code",
+                        "del _spyderpdb_locals"
+                    ]
+                    # Parse the function
+                    fun_ast = ast.parse('\n'.join(code) + '\n')
+
+                    # Inject code_ast in the function before the locals update
+                    fun_ast.body[0].body = (
+                        fun_ast.body[0].body[:-1]  # The locals
+                        + code_ast.body  # Code to run
+                        + fun_ast.body[0].body[-1:]  # Locals update
+                    )
+                    code_ast = fun_ast
+
+                exec(compile(code_ast, "<stdin>", "exec"), globals)
+
+                if capture_last_expression:
+                    out = globals.pop("_spyderpdb_out", None)
+                    if out is not None:
+                        sys.stdout.flush()
+                        sys.stderr.flush()
+                        frontend_request(blocking=False).show_pdb_output(
+                            repr(out))
+
             finally:
                 if execute_events:
                      get_ipython().events.trigger('post_execute')
