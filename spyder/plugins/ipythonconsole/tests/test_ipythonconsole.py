@@ -2058,10 +2058,50 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute(f"runfile(filename=r'{str(file)}')")
 
-    qtbot.wait(5000)
     # Assert we entered debugging after the print statement
+    qtbot.wait(5000)
     assert 'foo' in control.toPlainText()
     assert 'IPdb [1]:' in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.auto_backend
+def test_shutdown_kernel(ipyconsole, qtbot, tmpdir):
+    """
+    Check that the kernel is shutdown after creating plots with the
+    automatic backend.
+
+    This is a regression test for issue spyder-ide/spyder#17011
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create a Matplotlib plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import matplotlib.pyplot as plt; plt.plot(range(10))")
+
+    # Get kernel pid
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; pid = os.getpid()")
+    kernel_pid = shell.get_value('pid')
+
+    # Close current tab
+    ipyconsole.get_widget().close_client()
+
+    # Wait until new client is created and previous kernel is shutdown
+    qtbot.wait(5000)
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Detect if previous kernel was killed
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            f"import psutil; kernel_exists = psutil.pid_exists({kernel_pid})"
+        )
+
+    assert not shell.get_value('kernel_exists')
 
 
 if __name__ == "__main__":
