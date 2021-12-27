@@ -23,6 +23,7 @@ from rtree import index
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.providers.kite.providers.document import (
@@ -1166,6 +1167,7 @@ def spam():
 
 @pytest.mark.slow
 @pytest.mark.order(1)
+@pytest.mark.skipif(not is_anaconda(), reason='Requires conda to be installed')
 @pytest.mark.skipif(not running_in_ci(), reason='Run tests only on CI.')
 @flaky(max_runs=5)
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
