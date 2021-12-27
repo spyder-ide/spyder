@@ -12,6 +12,7 @@ import os.path as osp
 
 # Third party imports
 import pytest
+import yapf
 
 # Qt imports
 from qtpy.QtGui import QTextCursor
@@ -28,6 +29,14 @@ autopep8 = pytest.param(
     marks=pytest.mark.skipif(
         os.name == 'nt',
         reason='autopep8 produces a different output on Windows'
+    )
+)
+
+yapf = pytest.param(
+    'yapf',
+    marks=pytest.mark.skipif(
+        yapf.__version__ < '0.32.0',
+        reason='Older versions produce different outputs'
     )
 )
 
@@ -48,7 +57,7 @@ def get_formatter_values(formatter, range_fmt=False):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, 'yapf', 'black'])
+@pytest.mark.parametrize('formatter', [autopep8, yapf, 'black'])
 def test_document_formatting(formatter, completions_codeeditor, qtbot):
     """Validate text autoformatting via autopep8, yapf or black."""
     code_editor, completion_plugin = completions_codeeditor
@@ -82,7 +91,7 @@ def test_document_formatting(formatter, completions_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
-    'formatter', [autopep8, 'yapf', 'black'])
+    'formatter', [autopep8, yapf, 'black'])
 def test_document_range_formatting(formatter, completions_codeeditor, qtbot):
     """Validate text range autoformatting."""
     code_editor, completion_plugin = completions_codeeditor
