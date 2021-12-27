@@ -19,7 +19,7 @@ from IPython.core.debugger import Pdb as ipyPdb
 from IPython.core.getipython import get_ipython
 
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
-from spyder_kernels.customize.utils import path_is_library
+from spyder_kernels.customize.utils import path_is_library, capture_last_Expr
 from spyder_kernels.py3compat import TimeoutError, PY2, _print, isidentifier
 
 if not PY2:
@@ -175,25 +175,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 if execute_events:
                      get_ipython().events.trigger('pre_execute')
 
-                code_ast = ast.parse(line)
-                # Modify ast code to capture the last expression
-                capture_last_expression = False
-                if (
-                    len(code_ast.body)
-                    and isinstance(code_ast.body[-1], ast.Expr)
-                    and line.rstrip()[-1] != ";"
-                ):
-                    capture_last_expression = True
-                    expr_node = code_ast.body[-1]
-                    # Create new assign node
-                    assign_node = ast.parse(
-                        'globals()["_spyderpdb_out"] = None').body[0]
-                    # Replace None by the value
-                    assign_node.value = expr_node.value
-                    # Fix line number and column offset
-                    assign_node.lineno = expr_node.lineno
-                    assign_node.col_offset = expr_node.col_offset
-                    code_ast.body[-1] = assign_node
+                code_ast, capture_last_expression = capture_last_Expr(
+                    line, "_spyderpdb_out")
 
                 if locals is not globals:
                     # Mitigates a behaviour of CPython that makes it difficult

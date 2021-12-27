@@ -11,6 +11,7 @@
 # Spyder consoles sitecustomize
 #
 
+import ast
 import bdb
 import cmd
 import io
@@ -30,6 +31,7 @@ from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb, enter_debugger
 from spyder_kernels.customize.umr import UserModuleReloader
 from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
+from spyder_kernels.customize.utils import capture_last_Expr
 
 if not PY2:
     from IPython.core.inputtransformer2 import (
@@ -439,11 +441,12 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
             # TODO: remove the try-except and let the SyntaxError raise
             # Because there should not be ipython code in a python file
             try:
-                compiled = compile(
-                    transform_cell(code, indent_only=True), filename, 'exec')
+                code_ast, capture_last_expression = capture_last_Expr(
+                    transform_cell(code, indent_only=True), "_spyder_out")
             except SyntaxError as e:
                 try:
-                    compiled = compile(transform_cell(code), filename, 'exec')
+                    code_ast, capture_last_expression = capture_last_Expr(
+                        transform_cell(code), "_spyder_out")
                 except SyntaxError:
                     if PY2:
                         raise e
@@ -461,8 +464,16 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
                             ".ipy extension.\n")
                         SHOW_INVALID_SYNTAX_MSG = False
         else:
-            compiled = compile(transform_cell(code), filename, 'exec')
-        exec(compiled, ns_globals, ns_locals)
+            code_ast, capture_last_expression = capture_last_Expr(
+                transform_cell(code), "_spyder_out")
+
+        exec(compile(code_ast, filename, 'exec'), ns_globals, ns_locals)
+
+        if capture_last_expression:
+            out = ns_globals.pop("_spyder_out", None)
+            if out is not None:
+                return out
+
     except SystemExit as status:
         # ignore exit(0)
         if status.code:
@@ -478,7 +489,8 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
-    __tracebackhide__ = "__pdb_exit__"
+    finally:
+        __tracebackhide__ = "__pdb_exit__"
 
 
 def get_file_code(filename, save_all=True):
@@ -569,15 +581,17 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
             else:
                 _print("Working directory {} doesn't exist.\n".format(wdir))
 
-        if __umr__.has_cython:
-            # Cython files
-            with io.open(filename, encoding='utf-8') as f:
-                ipython_shell.run_cell_magic('cython', '', f.read())
-        else:
-            exec_code(file_code, filename, ns_globals, ns_locals,
-                      post_mortem=post_mortem)
-
-        sys.argv = ['']
+        try:
+            if __umr__.has_cython:
+                # Cython files
+                with io.open(filename, encoding='utf-8') as f:
+                    ipython_shell.run_cell_magic('cython', '', f.read())
+            else:
+                return exec_code(
+                    file_code, filename, ns_globals, ns_locals,
+                    post_mortem=post_mortem)
+        finally:
+            sys.argv = ['']
 
 
 # IPykernel 6.3.0+ shadows our runfile because it depends on the Pydev
@@ -670,8 +684,8 @@ def runcell(cellname, filename=None, post_mortem=False):
         file_code = None
     with NamespaceManager(filename, current_namespace=True,
                           file_code=file_code) as (ns_globals, ns_locals):
-        exec_code(cell_code, filename, ns_globals, ns_locals,
-                  post_mortem=post_mortem)
+        return exec_code(cell_code, filename, ns_globals, ns_locals,
+                         post_mortem=post_mortem)
 
 
 builtins.runcell = runcell
