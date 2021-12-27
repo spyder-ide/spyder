@@ -756,8 +756,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Autoformatting configuration
         formatter = self.get_conf('formatting')
-        formatter = 'pyls_black' if formatter == 'black' else formatter
-        formatters = ['autopep8', 'yapf', 'pyls_black']
+        formatter = 'pylsp_black' if formatter == 'black' else formatter
+        formatters = ['autopep8', 'yapf', 'pylsp_black']
         formatter_options = {
             fmt: {
                 'enabled': fmt == formatter
@@ -765,8 +765,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
             for fmt in formatters
         }
 
-        if formatter == 'pyls_black':
-            formatter_options['pyls_black']['line_length'] = cs_max_line_length
+        if formatter == 'pylsp_black':
+            formatter_options['pylsp_black']['line_length'] = cs_max_line_length
 
         # PyLS-Spyder configuration
         group_cells = self.get_conf(
