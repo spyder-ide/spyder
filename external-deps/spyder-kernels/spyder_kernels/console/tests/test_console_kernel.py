@@ -963,6 +963,7 @@ def test_functions_with_locals_in_pdb(kernel):
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
 
+
 def test_functions_with_locals_in_pdb_2(kernel):
     """
     Test that functions with locals work in Pdb.
@@ -997,6 +998,48 @@ def test_functions_with_locals_in_pdb_2(kernel):
     kernel.shell.pdb_session.default(
         'gg = globals().keys()')
     assert "baba" not in kernel.get_value('gg')
+
+    pdb_obj.curframe = None
+    pdb_obj.curframe_locals = None
+
+
+def test_locals_globals_in_pdb(kernel):
+    """
+    Test thal locals and globals work properly in Pdb.
+    """
+    a = 1
+    pdb_obj = SpyderPdb()
+    pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    kernel.shell.pdb_session = pdb_obj
+
+    assert kernel.get_value('a') == 1
+
+    kernel.shell.pdb_session.default(
+        'test = "a" in globals()')
+    assert kernel.get_value('test') == False
+
+    kernel.shell.pdb_session.default(
+        'test = "a" in locals()')
+    assert kernel.get_value('test') == True
+
+    kernel.shell.pdb_session.default(
+        'def f(): return a')
+    kernel.shell.pdb_session.default(
+        'test = f()')
+    assert kernel.get_value('test') == 1
+
+    kernel.shell.pdb_session.default(
+        'a = 2')
+    assert kernel.get_value('a') == 2
+
+    kernel.shell.pdb_session.default(
+        'test = "a" in globals()')
+    assert kernel.get_value('test') == False
+
+    kernel.shell.pdb_session.default(
+        'test = "a" in locals()')
+    assert kernel.get_value('test') == True
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
