@@ -1850,7 +1850,7 @@ def test_change_cwd_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It times out sometimes")
+@pytest.mark.skipif(os.name == 'nt', reason="Times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
     """Test that %varexp is working while debugging."""
     nsb = main_window.variableexplorer.current_widget()
@@ -1874,7 +1874,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # Get to an object that can be plotted
-    for _ in range(2):
+    for _ in range(3):
         with qtbot.waitSignal(shell.executed):
             qtbot.keyClicks(control, '!n')
             qtbot.keyClick(control, Qt.Key_Enter)

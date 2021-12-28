@@ -367,9 +367,14 @@ def add(modname, package_name, features, required_version,
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
+        # Avoid showing an unnecessary error when running our tests.
+        if running_in_ci() and 'spyder_boilerplate' in modname:
+            continue
+
         if dependency.modname == modname:
             raise ValueError(
                 f"Dependency has already been registered: {modname}")
+
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
                                 installed_version, kind)]
