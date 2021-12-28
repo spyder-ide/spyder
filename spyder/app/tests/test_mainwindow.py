@@ -4432,7 +4432,7 @@ def test_focus_to_consoles(main_window, qtbot):
 @pytest.mark.parametrize("function", ["run_file", "run_cell"])
 def test_out_runfile_runcell(main_window, qtbot, function):
     """
-    Test that runcell and runfile return values if last statment 
+    Test that runcell and runfile return values if last statment
     is expression.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()

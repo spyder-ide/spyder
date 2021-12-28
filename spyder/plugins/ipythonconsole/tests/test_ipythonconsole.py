@@ -2063,6 +2063,7 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     assert 'foo' in control.toPlainText()
     assert 'IPdb [1]:' in control.toPlainText()
 
+
 def test_pdb_out(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
