@@ -587,7 +587,7 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
                 with io.open(filename, encoding='utf-8') as f:
                     ipython_shell.run_cell_magic('cython', '', f.read())
             else:
-                return exec_code(
+                exec_code(
                     file_code, filename, ns_globals, ns_locals,
                     post_mortem=post_mortem)
         finally:
