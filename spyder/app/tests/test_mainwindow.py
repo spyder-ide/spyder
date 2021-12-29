@@ -4429,8 +4429,7 @@ def test_focus_to_consoles(main_window, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("function", ["run_file", "run_cell"])
-def test_out_runfile_runcell(main_window, qtbot, function):
+def test_out_runfile_runcell(main_window, qtbot):
     """
     Test that runcell and runfile return values if last statment
     is expression.
@@ -4452,7 +4451,7 @@ def test_out_runfile_runcell(main_window, qtbot, function):
         code_editor = main_window.editor.get_focus_widget()
         code_editor.set_text(code)
         with qtbot.waitSignal(shell.executed):
-            getattr(main_window.editor, function)()
+            main_window.editor.run_cell()
         if shown:
             assert "]: " + str(num) in control.toPlainText()
         else:
