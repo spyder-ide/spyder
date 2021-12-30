@@ -30,7 +30,8 @@ from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb, get_new_debugger
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
+from spyder_kernels.py3compat import (
+    TimeoutError, PY2, _print, encode, compat_exec)
 from spyder_kernels.customize.utils import capture_last_Expr
 
 if not PY2:
@@ -446,7 +447,8 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
         code = encode(code)
 
     if exec_fun is None:
-        exec_fun = exec
+        # Replace by exec when dropping Python 2
+        exec_fun = compat_exec
 
     ipython_shell = get_ipython()
     is_ipython = os.path.splitext(filename)[1] == '.ipy'
@@ -539,6 +541,8 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
 def _exec_file(filename=None, args=None, wdir=None, namespace=None,
                post_mortem=False, current_namespace=False, stack_depth=0,
                exec_fun=None):
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     ipython_shell = get_ipython()
     if filename is None:
         filename = get_current_file_name()

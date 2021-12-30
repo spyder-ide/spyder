@@ -348,5 +348,11 @@ else:
         """Encoding is not a problem in python 3."""
         return u
 
+
+def compat_exec(code, globals, locals):
+    # Wrap exec in a function
+    exec(code, globals, locals)
+
+
 if __name__ == '__main__':
     pass
