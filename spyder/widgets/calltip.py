@@ -188,8 +188,7 @@ class ToolTipWidget(QLabel):
                 padding = -7
             else:
                 padding = -4.5
-
-            point.setY(adjusted_point.y() - tip_height - padding)
+            point.setY(int(adjusted_point.y() - tip_height - padding))
 
         if horizontal == 'Left':
             point.setX(adjusted_point.x() - tip_width - padding)
