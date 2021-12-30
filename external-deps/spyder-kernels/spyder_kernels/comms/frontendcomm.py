@@ -34,7 +34,7 @@ def get_free_port():
     return port
 
 
-def frontend_request(blocking=True, timeout=None):
+def frontend_request(blocking, timeout=None):
     """
     Send a request to the frontend.
 
