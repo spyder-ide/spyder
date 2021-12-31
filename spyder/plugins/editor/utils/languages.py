@@ -23,7 +23,7 @@ ALL_LANGUAGES = {
     'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
     'OpenCL': ('cl',),
     'Yaml': ('yaml', 'yml'),
-    'Markdown': ('md', 'mdw'),
+    'Markdown': ('md', 'mdw', 'pyz'),
     # Every other language
     'None': ('', ),
 }
