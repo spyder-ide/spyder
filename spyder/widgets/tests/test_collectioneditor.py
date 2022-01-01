@@ -228,8 +228,8 @@ def test_filter_rows(qtbot):
              'view': 'Column names: 0'}}
     )
     editor = RemoteCollectionsEditorTableView(None, data)
-    editor.finder = NamespacesBrowserFinder(editor,
-                                            editor.set_regex)
+    editor.finder = NamespacesBrowserFinder(
+        editor, editor.set_regex)
     qtbot.addWidget(editor)
 
     # Initially two rows
@@ -252,7 +252,7 @@ def test_filter_rows(qtbot):
     assert editor.model.rowCount() == 0
 
 
-def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
+def test_create_dataframeeditor_with_correct_format(qtbot):
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
@@ -261,6 +261,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
     dataframe_editor.dataModel._format == '%10d'
+
 
 def test_collectionsmodel_with_two_ints():
     coll = {'x': 1, 'y': 2}
@@ -285,6 +286,7 @@ def test_collectionsmodel_with_two_ints():
     assert data(cm, row_with_y, 2) == 1
     assert data(cm, row_with_y, 3) == '2'
 
+
 def test_collectionsmodel_with_index():
     # Regression test for spyder-ide/spyder#3380,
     # modified for spyder-ide/spyder#3758.
@@ -300,8 +302,8 @@ def test_collectionsmodel_with_index():
         assert data(cm, 0, 3) == rng.summary()
 
 
-def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
-    for rng_name, rng in generate_pandas_indexes().items():
+def test_shows_dataframeeditor_when_editing_index(monkeypatch):
+    for __, rng in generate_pandas_indexes().items():
         MockDataFrameEditor = Mock()
         mockDataFrameEditor_instance = MockDataFrameEditor()
         attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
@@ -594,6 +596,7 @@ def test_view_module_in_coledit():
     editor.setup(os, "module_test", readonly=False)
     assert editor.widget.editor.readonly
 
+
 def test_notimplementederror_multiindex():
     """
     Test that the NotImplementedError when scrolling a MultiIndex is handled.
@@ -807,6 +810,7 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     li = [1] * 10000
     editor = CollectionsEditor()
     editor.setup(li)
+    editor.show()
 
     # Perform the sorting. It should be done quite quickly because
     # there's a very small number of rows in display.
@@ -817,6 +821,8 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
 
     # Assert data was sorted correctly.
     assert data(view.model, 0, 0) == 9999
+
+    editor.accept()
 
 
 def test_dicts_with_mixed_types_as_key(qtbot):
