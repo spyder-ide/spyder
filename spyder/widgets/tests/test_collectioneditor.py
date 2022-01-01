@@ -807,6 +807,7 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     li = [1] * 10000
     editor = CollectionsEditor()
     editor.setup(li)
+    editor.show()
 
     # Perform the sorting. It should be done quite quickly because
     # there's a very small number of rows in display.
@@ -817,6 +818,8 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
 
     # Assert data was sorted correctly.
     assert data(view.model, 0, 0) == 9999
+
+    editor.accept()
 
 
 def test_dicts_with_mixed_types_as_key(qtbot):
