@@ -228,8 +228,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     Parameters
     ----------
-    path: str
-        Folder to remove.
+    old_path: str
+        Old path for renamed folder.
+    new_path: str
+        New path for renamed folder.
     """
 
     sig_open_file_requested = Signal(str)
