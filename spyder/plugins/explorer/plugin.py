@@ -110,14 +110,16 @@ class Explorer(SpyderDockablePlugin):
         Folder to remove.
     """
 
-    sig_folder_renamed = Signal(str)
+    sig_folder_renamed = Signal(str, str)
     """
     This signal is emitted when a folder is renamed.
 
     Parameters
     ----------
-    path: str
-        Folder to remove.
+    old_path: str
+        Old path for renamed folder.
+    new_path: str
+        New path for renamed folder.
     """
 
     sig_interpreter_opened = Signal(str)
