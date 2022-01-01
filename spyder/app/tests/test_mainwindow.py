@@ -38,8 +38,8 @@ from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage, QTextCursor
-from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
-                            QTabBar, QWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QInputDialog,
+                            QLineEdit, QTabBar, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
@@ -4426,6 +4426,49 @@ def test_focus_to_consoles(main_window, qtbot):
     console.dockwidget.raise_()
     focus_widget = QApplication.focusWidget()
     assert focus_widget is console.get_widget().get_focus_widget()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_rename_files_in_editor_after_folder_rename(main_window, mocker,
+                                                    tmpdir):
+    """
+    Check that we rename files in the editor after the directory that
+    contains them was renamed in Files.
+    """
+    old_path = 'test_rename_old'
+    new_path = 'test_rename_new'
+    fname = 'foo.py'
+
+    # Mock output of QInputDialog to set new path after rename
+    mocker.patch.object(QInputDialog, 'getText',
+                        return_value=(new_path, True))
+
+    # Create temp folder and simple file on it
+    file = tmpdir.mkdir(old_path).join(fname)
+    file.write("print('Hello world!')")
+
+    # Load file in editor
+    editor = main_window.get_plugin(Plugins.Editor)
+    editor.load(str(file))
+
+    # Switch to temp dir and give focus to Files
+    explorer = main_window.get_plugin(Plugins.Explorer)
+    explorer.chdir(str(tmpdir))
+    explorer.switch_to_plugin()
+    explorer.get_widget().get_focus_widget().setFocus()
+
+    # Select directory in widget
+    treewidget = explorer.get_widget().treewidget
+    idx = treewidget.get_index(old_path)
+    treewidget.setCurrentIndex(idx)
+
+    # Rename directory
+    treewidget.rename()
+
+    # Check file was renamed in editor
+    codeeditor = editor.get_current_editor()
+    assert codeeditor.filename == osp.join(str(tmpdir), new_path, fname)
 
 
 if __name__ == "__main__":
