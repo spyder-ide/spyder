@@ -283,6 +283,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.setSelectionMode(self.ExtendedSelection)
         header.setContextMenuPolicy(Qt.CustomContextMenu)
 
+        # Track mouse movements. This activates the mouseMoveEvent declared
+        # below.
+        self.setMouseTracking(True)
+
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
     def setup(self):
@@ -787,17 +791,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
             self.clicked(index=self.indexAt(event.pos()))
 
     def mouseMoveEvent(self, event):
-        """Change cursor shape when using single_click_to_open option."""
+        """Actions to take with mouse movements."""
         index = self.indexAt(event.pos())
         if index.isValid():
-            vrect = self.visualRect(index)
-            item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
-            if event.pos().x() > item_identation:
-                # When hovering over directories or files
-                self.setCursor(Qt.PointingHandCursor)
-            else:
-                # On every other element
-                self.setCursor(Qt.ArrowCursor)
+            if self.get_conf('single_click_to_open'):
+                vrect = self.visualRect(index)
+                item_identation = (
+                    vrect.x() - self.visualRect(self.rootIndex()).x()
+                )
+
+                if event.pos().x() > item_identation:
+                    # When hovering over directories or files
+                    self.setCursor(Qt.PointingHandCursor)
+                else:
+                    # On every other element
+                    self.setCursor(Qt.ArrowCursor)
 
         super().mouseMoveEvent(event)
 
@@ -1603,12 +1611,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
     # ------------------------------------------------------------------------
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
-        # Track mouse movements to change cursor shape when the option is
-        # True. This activates the mouseMoveEvent declared above.
-        if value:
-            self.setMouseTracking(True)
-        else:
-            self.setMouseTracking(False)
+        # Reset cursor shape
+        if not value:
             self.unsetCursor()
 
     def set_file_associations(self, value):
