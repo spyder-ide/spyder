@@ -27,7 +27,8 @@ from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QFileSystemModel, QInputDialog, QLabel, QLineEdit,
-                            QMessageBox, QTextEdit, QTreeView, QVBoxLayout)
+                            QMessageBox, QProxyStyle, QStyle, QTextEdit,
+                            QToolTip, QTreeView, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -132,6 +133,25 @@ class ExplorerTreeWidgetActions:
     Next = 'next_action'
     Parent = 'parent_action'
     Previous = 'previous_action'
+
+
+# ---- Styles
+# ----------------------------------------------------------------------------
+class DirViewStyle(QProxyStyle):
+
+    def styleHint(self, hint, option=None, widget=None, return_data=None):
+        """
+        To show tooltips with longer delays.
+
+        From https://stackoverflow.com/a/59059919/438386
+        """
+        if hint == QStyle.SH_ToolTip_WakeUpDelay:
+            return 1000  # 1 sec
+        elif hint == QStyle.SH_ToolTip_FallAsleepDelay:
+            # This removes some flickering when showing tooltips
+            return 0
+
+        return super().styleHint(hint, option, widget, return_data)
 
 
 # ---- Widgets
@@ -277,6 +297,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         # Signals
         header.customContextMenuRequested.connect(self.show_header_menu)
+
+        # Style adjustments
+        self.setStyle(DirViewStyle(None))
 
         # Setup
         self.setup_fs_model()
@@ -792,6 +815,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def mouseMoveEvent(self, event):
         """Actions to take with mouse movements."""
+        # To hide previous tooltip
+        QToolTip.hideText()
+
         index = self.indexAt(event.pos())
         if index.isValid():
             if self.get_conf('single_click_to_open'):
@@ -806,6 +832,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 else:
                     # On every other element
                     self.setCursor(Qt.ArrowCursor)
+
+            self.setToolTip(self.get_filename(index))
 
         super().mouseMoveEvent(event)
 
