@@ -4430,6 +4430,7 @@ def test_focus_to_consoles(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Hangs sometimes on Windows")
 def test_rename_files_in_editor_after_folder_rename(main_window, mocker,
                                                     tmpdir):
     """
