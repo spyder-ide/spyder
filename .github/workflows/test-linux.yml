@@ -46,7 +46,7 @@ jobs:
         INSTALL_TYPE: ['conda', 'pip']
         PYTHON_VERSION: ['3.7']
         TEST_TYPE: ['fast', 'slow']
-
+    timeout-minutes: 120
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'

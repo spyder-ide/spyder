@@ -42,6 +42,7 @@ jobs:
       fail-fast: false
       matrix:
         PYTHON_VERSION: ['3.7']
+    timeout-minutes: 30
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
