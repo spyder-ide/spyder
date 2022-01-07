@@ -56,6 +56,8 @@ class LineNumberArea(Panel):
         # cache line numbers
         self._static_line_numbers = None
         self._static_active_line = None
+        # Static text must be flushed when dpi changes (qt bug?)
+        self._static_text_dpi = None
 
     def sizeHint(self):
         """Override Qt method."""
@@ -135,12 +137,18 @@ class LineNumberArea(Panel):
         painter.setFont(font)
         painter.setPen(self.linenumbers_color)
 
+        if self.logicalDpiX() != self._static_text_dpi:
+            self._static_text_dpi = None
+            self._static_line_numbers = None
+            self._static_active_line = None
+
         if self._static_line_numbers:
             if lines != self._static_line_numbers.text():
                 self._static_line_numbers.setText(lines)
         else:
             self._static_line_numbers = QStaticText(lines)
             self._static_line_numbers.prepare(font=font)
+            self._static_text_dpi = self.logicalDpiX()
 
         left = width - self._static_line_numbers.size().width()
         painter.drawStaticText(left, top, self._static_line_numbers)
