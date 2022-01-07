@@ -14,10 +14,9 @@ import math
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt
-from qtpy.QtGui import QPainter, QColor
+from qtpy.QtGui import QPainter, QColor, QStaticText
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
@@ -54,6 +53,10 @@ class LineNumberArea(Panel):
         # This is a tuple composed of (number of digits, current width)
         self._width_cache = None
 
+        # cache line numbers
+        self._static_line_numbers = None
+        self._static_active_line = None
+
     def sizeHint(self):
         """Override Qt method."""
         return QSize(self.compute_width(), 0)
@@ -65,14 +68,7 @@ class LineNumberArea(Panel):
         """
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
-        # This is needed to make that the font size of line numbers
-        # be the same as the text one when zooming
-        # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
-        font = self.editor.font()
         font_height = self.editor.fontMetrics().height()
-
-        active_block = self.editor.textCursor().block()
-        active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(xleft, ytop, pixmap):
             # Scale pixmap height to device independent pixels
@@ -83,25 +79,12 @@ class LineNumberArea(Panel):
                 pixmap
             )
 
+        size = self.get_markers_margin() - 2
+        icon_size = QSize(size, size)
+
+        if self._margin:
+            self.draw_linenumbers(painter)
         for top, line_number, block in self.editor.visible_blocks:
-            if self._margin:
-                if line_number == active_line_number:
-                    font.setWeight(font.Bold)
-                    painter.setFont(font)
-                    painter.setPen(self.editor.normal_color)
-                else:
-                    font.setWeight(font.Normal)
-                    painter.setFont(font)
-                    painter.setPen(self.linenumbers_color)
-
-                painter.drawText(0, top, self.width(),
-                                 font_height,
-                                 int(Qt.AlignRight | Qt.AlignBottom),
-                                 to_text_string(line_number))
-
-            size = self.get_markers_margin() - 2
-            icon_size = QSize(size, size)
-
             data = block.userData()
             if self._markers_margin and data:
                 if data.code_analysis:
@@ -127,6 +110,55 @@ class LineNumberArea(Panel):
 
                 if data.todo:
                     draw_pixmap(1, top, self.todo_icon.pixmap(icon_size))
+
+    def draw_linenumbers(self, painter):
+        """Draw line numbers."""
+        if len(self.editor.visible_blocks) == 0:
+            return
+        active_line_number = self.editor.textCursor().blockNumber() + 1
+        number_digits = self.compute_width_digits()
+        lines = ""
+        active_top = None
+        width = self.width()
+        for top, line_number, block in self.editor.visible_blocks:
+            lines += f"{line_number:{number_digits}d}" + "<br>"
+            if line_number == active_line_number:
+                active_top = top
+        # Use non-breaking spaces
+        lines = lines.replace(" ", "&nbsp;")
+        top = self.editor.visible_blocks[0][0]
+        # This is needed to make that the font size of line numbers
+        # be the same as the text one when zooming
+        # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
+        font = self.editor.font()
+        font.setWeight(font.Normal)
+        painter.setFont(font)
+        painter.setPen(self.linenumbers_color)
+
+        if self._static_line_numbers:
+            if lines != self._static_line_numbers.text():
+                self._static_line_numbers.setText(lines)
+        else:
+            self._static_line_numbers = QStaticText(lines)
+
+        left = width - self._static_line_numbers.size().width()
+        painter.drawStaticText(left, top, self._static_line_numbers)
+
+        if active_top is not None:
+            font.setWeight(font.Bold)
+            painter.setFont(font)
+            painter.setPen(self.editor.normal_color)
+
+            text = str(active_line_number)
+            if self._static_active_line:
+                if text != self._static_active_line.text():
+                    self._static_active_line.setText(text)
+            else:
+                self._static_active_line = QStaticText(text)
+                self._static_active_line.setTextFormat(Qt.PlainText)
+
+            left = width - self._static_active_line.size().width()
+            painter.drawStaticText(left, active_top, self._static_active_line)
 
     def leaveEvent(self, event):
         """Override Qt method."""
@@ -177,13 +209,17 @@ class LineNumberArea(Panel):
     # --- Other methods
     # -----------------------------------------------------------------
 
+    def compute_width_digits(self):
+        """Compute and return line number area width in digits."""
+        number_lines = self.editor.blockCount()
+        return max(1, math.ceil(math.log10(
+             number_lines + 1)))
+
     def compute_width(self):
-        """Compute and return line number area width"""
+        """Compute and return line number area width."""
         if not self._enabled:
             return 0
-        number_lines = self.editor.blockCount()
-        number_digits = max(1, math.ceil(math.log10(
-             number_lines + 1)))
+        number_digits = self.compute_width_digits()
         if (self._width_cache is not None and
                 self._width_cache[0] == number_digits):
             return self._width_cache[1]
