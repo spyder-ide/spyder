@@ -119,16 +119,21 @@ class LineNumberArea(Panel):
             return
         active_line_number = self.editor.textCursor().blockNumber() + 1
         number_digits = self.compute_width_digits()
-        lines = ""
-        active_top = None
         width = self.width()
-        for top, line_number, block in self.editor.visible_blocks:
-            lines += f"{line_number:{number_digits}d}" + "<br>"
-            if line_number == active_line_number:
-                active_top = top
-        # Use non-breaking spaces
-        lines = lines.replace(" ", "&nbsp;")
-        top = self.editor.visible_blocks[0][0]
+
+        visible_lines =  [ln for _, ln, _ in self.editor.visible_blocks]
+
+        try:
+            idx = visible_lines.index(active_line_number)
+            active_top = self.editor.visible_blocks[idx][0]
+        except ValueError:
+            active_top = None
+
+        # Right align
+        line_numbers = [f"{ln:{number_digits}d}" for ln in visible_lines]
+        # Use non-breaking spaces and <br> returns
+        lines = "<br>".join(line_numbers).replace(" ", "&nbsp;")
+
         # This is needed to make that the font size of line numbers
         # be the same as the text one when zooming
         # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
@@ -150,6 +155,7 @@ class LineNumberArea(Panel):
             self._static_line_numbers.prepare(font=font)
             self._static_text_dpi = self.logicalDpiX()
 
+        top = self.editor.visible_blocks[0][0]
         left = width - self._static_line_numbers.size().width()
         painter.drawStaticText(left, top, self._static_line_numbers)
 
