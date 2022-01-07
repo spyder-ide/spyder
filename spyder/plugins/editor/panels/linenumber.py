@@ -140,6 +140,7 @@ class LineNumberArea(Panel):
                 self._static_line_numbers.setText(lines)
         else:
             self._static_line_numbers = QStaticText(lines)
+            self._static_line_numbers.prepare(font=font)
 
         left = width - self._static_line_numbers.size().width()
         painter.drawStaticText(left, top, self._static_line_numbers)
@@ -156,6 +157,7 @@ class LineNumberArea(Panel):
             else:
                 self._static_active_line = QStaticText(text)
                 self._static_active_line.setTextFormat(Qt.PlainText)
+                self._static_active_line.prepare(font=font)
 
             left = width - self._static_active_line.size().width()
             painter.drawStaticText(left, active_top, self._static_active_line)
