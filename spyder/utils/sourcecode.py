@@ -22,24 +22,35 @@ if PY2:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 
 
-def get_eol_chars(text):
+def get_eol_chars(text, use_os=True):
     """
     Get text EOL characters.
 
-    If None is found, return the eol based on the operatin system.
+    Parameters
+    ----------
+    use_os: bool
+        If no eol is found, return the eol based on the operating system.
+
+    Returns
+    -------
+    eol: str or None
+        Eol found in ``text``.
     """
     for eol_chars, _os_name in EOL_CHARS:
         if text.find(eol_chars) > -1:
             break
     else:
-        if os.name == 'nt':
-            eol_chars = "\r\n"
-        elif sys.platform.startswith('linux'):
-            eol_chars = "\n"
-        elif sys.platform == 'darwin':
-            eol_chars = "\r"
+        if use_os:
+            if os.name == 'nt':
+                eol_chars = "\r\n"
+            elif sys.platform.startswith('linux'):
+                eol_chars = "\n"
+            elif sys.platform == 'darwin':
+                eol_chars = "\r"
+            else:
+                eol_chars = "\n"
         else:
-            eol_chars = "\n"
+            return None
 
     return eol_chars
 

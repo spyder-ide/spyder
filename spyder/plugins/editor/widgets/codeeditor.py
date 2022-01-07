@@ -1861,9 +1861,12 @@ class CodeEditor(TextEditBaseWidget):
         if edits is None:
             return
 
-        # We need to use here toPlainText and not get_text_with_eol to
-        # to not mess up the code when applying formatting.
-        # See spyder-ide/spyder#16180
+        # We need to use here toPlainText (which returns text with '\n'
+        # for eols) and not get_text_with_eol, so that applying the
+        # text edits that come from the LSP in the way implemented below
+        # works as expected. That's because we assume eol chars of length
+        # one in our algorithm.
+        # Fixes spyder-ide/spyder#16180
         text = self.toPlainText()
 
         text_tokens = list(text)
@@ -1877,6 +1880,12 @@ class CodeEditor(TextEditBaseWidget):
 
             start_pos = self.get_position_line_number(start_line, start_col)
             end_pos = self.get_position_line_number(end_line, end_col)
+
+            # Replace repl_text eols for '\n' to match the ones used in
+            # `text`.
+            repl_eol = sourcecode.get_eol_chars(repl_text, use_os=False)
+            if repl_eol is not None and repl_eol != '\n':
+                repl_text = repl_text.replace(repl_eol, '\n')
 
             text_tokens = list(text_tokens)
             this_edit = list(repl_text)
@@ -1900,6 +1909,9 @@ class CodeEditor(TextEditBaseWidget):
                 merged_text = merge(text_edit, merged_text, text)
 
         if merged_text is not None:
+            # Restore eol chars after applying edits.
+            merged_text = merged_text.replace('\n', self.get_line_separator())
+
             cursor = self.textCursor()
             cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.Start)
