@@ -173,7 +173,14 @@ class LineNumberArea(Panel):
                 self._static_active_line.setTextFormat(Qt.PlainText)
                 self._static_active_line.prepare(font=font)
 
-            left = width - self._static_active_line.size().width()
+            size = self._static_active_line.size()
+            left = width - size.width()
+            # Hide non-bold number
+            painter.fillRect(
+                left, active_top, size.width(), size.height(),
+                self.editor.sideareas_color
+            )
+            # Paint bold number
             painter.drawStaticText(left, active_top, self._static_active_line)
 
     def leaveEvent(self, event):
