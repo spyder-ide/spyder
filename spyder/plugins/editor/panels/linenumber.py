@@ -121,7 +121,7 @@ class LineNumberArea(Panel):
         number_digits = self.compute_width_digits()
         width = self.width()
 
-        visible_lines =  [ln for _, ln, _ in self.editor.visible_blocks]
+        visible_lines = [ln for _, ln, _ in self.editor.visible_blocks]
 
         try:
             idx = visible_lines.index(active_line_number)
