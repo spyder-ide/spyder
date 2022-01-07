@@ -241,19 +241,25 @@ class DataFrameModel(QAbstractTableModel):
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
             return
         self.max_min_col = []
-        for dummy, col in self.df.iteritems():
-            if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
-                if col.dtype in REAL_NUMBER_TYPES:
-                    vmax = col.max(skipna=True)
-                    vmin = col.min(skipna=True)
+        for __, col in self.df.iteritems():
+            # This is necessary to catch an error in Pandas when computing
+            # the maximum of a column.
+            # Fixes spyder-ide/spyder#17145
+            try:
+                if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
+                    if col.dtype in REAL_NUMBER_TYPES:
+                        vmax = col.max(skipna=True)
+                        vmin = col.min(skipna=True)
+                    else:
+                        vmax = col.abs().max(skipna=True)
+                        vmin = col.abs().min(skipna=True)
+                    if vmax != vmin:
+                        max_min = [vmax, vmin]
+                    else:
+                        max_min = [vmax, vmin - 1]
                 else:
-                    vmax = col.abs().max(skipna=True)
-                    vmin = col.abs().min(skipna=True)
-                if vmax != vmin:
-                    max_min = [vmax, vmin]
-                else:
-                    max_min = [vmax, vmin - 1]
-            else:
+                    max_min = None
+            except TypeError:
                 max_min = None
             self.max_min_col.append(max_min)
 
