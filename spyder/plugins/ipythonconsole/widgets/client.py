@@ -327,9 +327,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         stderr = self.stderr_obj.get_contents()
         if not stderr:
             return False
-        # There is an error. If it is bening, ignore.
+        # There is an error. If it is benign, ignore.
         for line in stderr.splitlines():
-            if line and not self.is_bening_error(line):
+            if line and not self.is_benign_error(line):
                 return True
         return False
 
@@ -394,7 +394,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         stderr = self.stderr_obj.poll_file_change()
         starting = self.shellwidget._starting
         if stderr:
-            if self.is_bening_error(stderr):
+            if self.is_benign_error(stderr):
                 return
             if self.shellwidget.isHidden():
                 # Avoid printing the same thing again
@@ -497,7 +497,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Show kernel initialization errors in infowidget."""
         self.error_text = error
 
-        if self.is_bening_error(error):
+        if self.is_benign_error(error):
             return
 
         InstallerIPythonKernelError(error)
@@ -527,9 +527,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Tell the client we're in error mode
         self.is_error_shown = True
 
-    def is_bening_error(self, error):
+    def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
-        bening_errors = [
+        benign_errors = [
             # See spyder-ide/spyder#16828
             "This version of python seems to be incorrectly compiled",
             "internal generated filenames are not absolute",
@@ -542,7 +542,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "No such comm"
         ]
 
-        return any([err in error for err in bening_errors])
+        return any([err in error for err in benign_errors])
 
     def get_name(self):
         """Return client name"""
