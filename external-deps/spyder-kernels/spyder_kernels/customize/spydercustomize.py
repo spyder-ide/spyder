@@ -549,6 +549,14 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
         if args is not None:
             for arg in shlex.split(args):
                 sys.argv.append(arg)
+
+        if "multiprocessing" in sys.modules:
+            # See https://github.com/spyder-ide/spyder/issues/16696
+            try:
+                sys.modules['__mp_main__'] = sys.modules['__main__']
+            except Exception:
+                pass
+
         if wdir is not None:
             if PY2:
                 try:
