@@ -22,6 +22,7 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import get_translation
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
+from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 from spyder.utils.misc import get_python_executable
 
 # Localization
@@ -90,7 +91,12 @@ class MainInterpreter(SpyderPluginV2):
     def on_statusbar_available(self):
         # Add status widget
         statusbar = self.get_plugin(Plugins.StatusBar)
-        statusbar.add_status_widget(self.interpreter_status)
+        container = self.get_container()
+        interpreter = container.get_main_interpreter()
+        statusbar.add_status_widget_by_class(
+            InterpreterStatus, setup_callback=
+            container.setup_statusbar, interpreter=interpreter,
+            )
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
