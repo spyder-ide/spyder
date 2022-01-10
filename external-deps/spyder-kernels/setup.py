@@ -40,12 +40,13 @@ REQUIREMENTS = [
     'backports.functools-lru-cache; python_version<"3"',
     'cloudpickle',
     'ipykernel<5; python_version<"3"',
-    'ipykernel>=5.3.0; python_version>="3"',
+    'ipykernel>=6.6.1; python_version>="3"',
     'ipython<6; python_version<"3"',
     'ipython>=7.6.0,<8; python_version>="3"',
     'jupyter-client>=5.3.4,<6; python_version<"3"',
     'jupyter-client>=7.1.0; python_version>="3"',
-    'pyzmq>=17',
+    'pyzmq>=17,<20; python_version<"3"',
+    'pyzmq>=22.1.0; python_version>="3"',
     'wurlitzer>=1.0.3;platform_system!="Windows"',
 ]
 
