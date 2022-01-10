@@ -327,9 +327,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         stderr = self.stderr_obj.get_contents()
         if not stderr:
             return False
-        # There is an error. If it is only about comms, ignore.
+        # There is an error. If it is benign, ignore.
         for line in stderr.splitlines():
-            if line and 'No such comm' not in line:
+            if line and not self.is_benign_error(line):
                 return True
         return False
 
@@ -394,7 +394,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         stderr = self.stderr_obj.poll_file_change()
         starting = self.shellwidget._starting
         if stderr:
-            if self.is_bening_error(stderr):
+            if self.is_benign_error(stderr):
                 return
             if self.shellwidget.isHidden():
                 # Avoid printing the same thing again
@@ -497,7 +497,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Show kernel initialization errors in infowidget."""
         self.error_text = error
 
-        if self.is_bening_error(error):
+        if self.is_benign_error(error):
             return
 
         InstallerIPythonKernelError(error)
@@ -527,17 +527,22 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Tell the client we're in error mode
         self.is_error_shown = True
 
-    def is_bening_error(self, error):
+    def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
-        if "http://bugs.python.org/issue1666807" in error:
+        benign_errors = [
             # See spyder-ide/spyder#16828
-            return True
-
-        if "https://bugs.python.org/issue1180193" in error:
+            "This version of python seems to be incorrectly compiled",
+            "internal generated filenames are not absolute",
+            "This may make the debugger miss breakpoints",
+            "http://bugs.python.org/issue1666807",
             # See spyder-ide/spyder#16927
-            return True
+            "It seems the debugger cannot resolve",
+            "https://bugs.python.org/issue1180193",
+            # Old error
+            "No such comm"
+        ]
 
-        return False
+        return any([err in error for err in benign_errors])
 
     def get_name(self):
         """Return client name"""
