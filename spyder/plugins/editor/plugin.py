@@ -203,20 +203,28 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # Configuration dialog size
         self.dialog_size = None
 
-        self.vcs_status = VCSStatus(self)
-        self.cursorpos_status = CursorPositionStatus(self)
-        self.encoding_status = EncodingStatus(self)
-        self.eol_status = EOLStatus(self)
-        self.readwrite_status = ReadWriteStatus(self)
+        self.vcs_status = None
+        self.cursorpos_status = None
+        self.encoding_status = None
+        self.eol_status = None
+        self.readwrite_status = None
 
         # TODO: temporal fix while editor uses new API
         statusbar = self.main.get_plugin(Plugins.StatusBar, error=False)
         if statusbar:
-            statusbar.add_status_widget(self.readwrite_status)
-            statusbar.add_status_widget(self.eol_status)
-            statusbar.add_status_widget(self.encoding_status)
-            statusbar.add_status_widget(self.cursorpos_status)
-            statusbar.add_status_widget(self.vcs_status)
+            statusbar._add_status_widget_by_class(ReadWriteStatus)
+            statusbar.sig_status_widget_added.connect(
+                self.set_readwrite_statusbar)
+            statusbar._add_status_widget_by_class(EOLStatus)
+            statusbar.sig_status_widget_added.connect(self.set_eol_statusbar)
+            statusbar._add_status_widget_by_class(EncodingStatus)
+            statusbar.sig_status_widget_added.connect(
+                self.set_encoding_statusbar)
+            statusbar._add_status_widget_by_class(CursorPositionStatus)
+            statusbar.sig_status_widget_added.connect(
+                self.set_cursorpos_statusbar)
+            statusbar._add_status_widget_by_class(VCSStatus)
+            statusbar.sig_status_widget_added.connect(self.set_vcs_statusbar)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -295,6 +303,49 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.add_cursor_to_history(filename, cursor)
         self.update_cursorpos_actions()
         self.set_path()
+
+    def set_vcs_statusbar(self, statusbar_widget):
+        current_editorstack = self.get_current_editorstack()
+        if isinstance(statusbar_widget, VCSStatus):
+            self.vcs_status = statusbar_widget
+            current_editorstack.current_file_changed.connect(
+                self.vcs_status.update_vcs)
+            current_editorstack.file_saved.connect(
+                self.vcs_status.update_vcs_state)
+
+    def set_cursorpos_statusbar(self, statusbar_widget):
+        current_editorstack = self.get_current_editorstack()
+        if isinstance(statusbar_widget, CursorPositionStatus):
+            self.cursorpos_status = statusbar_widget
+            current_editorstack.reset_statusbar.connect(
+                self.cursorpos_status.hide)
+            current_editorstack.sig_editor_cursor_position_changed.connect(
+                self.cursorpos_status.update_cursor_position)
+
+    def set_encoding_statusbar(self, statusbar_widget):
+        current_editorstack = self.get_current_editorstack()
+        if isinstance(statusbar_widget, EncodingStatus):
+            self.encoding_status = statusbar_widget
+            current_editorstack.reset_statusbar.connect(
+                self.encoding_status.hide)
+            current_editorstack.encoding_changed.connect(
+                self.encoding_status.update_encoding)
+
+    def set_eol_statusbar(self, statusbar_widget):
+        current_editorstack = self.get_current_editorstack()
+        if isinstance(statusbar_widget, EOLStatus):
+            self.eol_status = statusbar_widget
+            current_editorstack.sig_refresh_eol_chars.connect(
+                self.eol_status.update_eol)
+
+    def set_readwrite_statusbar(self, statusbar_widget):
+        current_editorstack = self.get_current_editorstack()
+        if isinstance(statusbar_widget, ReadWriteStatus):
+            self.readwrite_status = statusbar_widget
+            current_editorstack.reset_statusbar.connect(
+                self.readwrite_status.hide)
+            current_editorstack.readonly_changed.connect(
+                self.readwrite_status.update_readonly)
 
     def set_projects(self, projects):
         self.projects = projects
@@ -1434,23 +1485,37 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 editorstack.set_outlineexplorer(
                     self.outlineexplorer.get_widget())
             editorstack.set_find_widget(self.find_widget)
-            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
-            editorstack.reset_statusbar.connect(self.encoding_status.hide)
-            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
-            editorstack.readonly_changed.connect(
-                                        self.readwrite_status.update_readonly)
-            editorstack.encoding_changed.connect(
-                                         self.encoding_status.update_encoding)
-            editorstack.sig_editor_cursor_position_changed.connect(
-                                 self.cursorpos_status.update_cursor_position)
+
+            # Connect signals to the statusbar widgets. A validation for
+            # existence is needed since the first editorstack is created
+            # before the creation of the widgets by the StatusBar plugin
+            if self.readwrite_status:
+                editorstack.reset_statusbar.connect(self.readwrite_status.hide)
+                editorstack.readonly_changed.connect(
+                    self.readwrite_status.update_readonly)
+
+            if self.encoding_status:
+                editorstack.reset_statusbar.connect(self.encoding_status.hide)
+                editorstack.encoding_changed.connect(
+                    self.encoding_status.update_encoding)
+
+            if self.cursorpos_status:
+                editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
+                editorstack.sig_editor_cursor_position_changed.connect(
+                    self.cursorpos_status.update_cursor_position)
+
             editorstack.sig_editor_cursor_position_changed.connect(
                 self.current_editor_cursor_changed)
-            editorstack.sig_refresh_eol_chars.connect(
-                self.eol_status.update_eol)
-            editorstack.current_file_changed.connect(
-                self.vcs_status.update_vcs)
-            editorstack.file_saved.connect(
-                self.vcs_status.update_vcs_state)
+
+            if self.eol_status:
+                editorstack.sig_refresh_eol_chars.connect(
+                    self.eol_status.update_eol)
+
+            if self.vcs_status:
+                editorstack.current_file_changed.connect(
+                    self.vcs_status.update_vcs)
+                editorstack.file_saved.connect(
+                    self.vcs_status.update_vcs_state)
 
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)

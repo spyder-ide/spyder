@@ -102,41 +102,6 @@ class StatusBar(SpyderPluginV2):
         )
 
     # ---- Public API
-    def add_status_widget_by_class(self, widget_class,
-                                   position=StatusBarWidgetPosition.Left,
-                                   **kwargs):
-        """
-        Add status widget to main application status bar.
-
-        Parameters
-        ----------
-        widget_class: StatusBarWidget
-            Widget class to be added to the status bar.
-        position: int
-            Position where the widget will be added given the members of the
-            StatusBarWidgetPosition enum.
-        """
-        # Check widget class
-        if not issubclass(widget_class, StatusBarWidget):
-            raise SpyderAPIError(
-                'Any status widget must subclass StatusBarWidget!'
-            )
-
-        # Check ID
-        id_ = widget_class.ID
-        if id_ is None:
-            raise SpyderAPIError(
-                f"Status widget class `{repr(widget_class)}` "
-                f"doesn't have an identifier!"
-            )
-
-        # Check it was not added before
-        if id_ in self.STATUS_WIDGETS_CLASSES and not running_under_pytest():
-            raise SpyderAPIError(f'Status widget class `{id_}` already added!')
-
-        # Add widget class and instance
-        self.STATUS_WIDGETS_CLASSES[id_] = (widget_class, position, kwargs)
-
     def add_status_widget(self, widget, position=StatusBarWidgetPosition.Left):
         """
         Add status widget to main application status bar.
@@ -257,6 +222,41 @@ class StatusBar(SpyderPluginV2):
     def _statusbar(self):
         """Reference to main window status bar."""
         return self._main.statusBar()
+
+    def _add_status_widget_by_class(self, widget_class,
+                                   position=StatusBarWidgetPosition.Left,
+                                   **kwargs):
+        """
+        Add status widget to main application status bar.
+
+        Parameters
+        ----------
+        widget_class: StatusBarWidget
+            Widget class to be added to the status bar.
+        position: int
+            Position where the widget will be added given the members of the
+            StatusBarWidgetPosition enum.
+        """
+        # Check widget class
+        if not issubclass(widget_class, StatusBarWidget):
+            raise SpyderAPIError(
+                'Any status widget must subclass StatusBarWidget!'
+            )
+
+        # Check ID
+        id_ = widget_class.ID
+        if id_ is None:
+            raise SpyderAPIError(
+                f"Status widget class `{repr(widget_class)}` "
+                f"doesn't have an identifier!"
+            )
+
+        # Check it was not added before
+        if id_ in self.STATUS_WIDGETS_CLASSES and not running_under_pytest():
+            raise SpyderAPIError(f'Status widget class `{id_}` already added!')
+
+        # Add widget class and instance
+        self.STATUS_WIDGETS_CLASSES[id_] = (widget_class, position, kwargs)
 
     def _organize_status_widgets(self):
         """
