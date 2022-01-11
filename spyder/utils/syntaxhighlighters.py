@@ -29,7 +29,7 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
+from spyder.py3compat import (builtins, is_text_string, to_text_string,
                               PY36_OR_MORE)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
@@ -437,10 +437,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                     r"\b[+-]?0[oO][0-7]+[lL]?\b",
                     r"\b[+-]?0[bB][01]+[lL]?\b",
                     r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"]
-    if PY3:
-        prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
-    else:
-        prefix = "r|u|ur|R|U|UR|Ur|uR|b|B|br|Br|bR|BR"
+    prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
     dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
     uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix

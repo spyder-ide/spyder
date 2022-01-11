@@ -255,7 +255,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             file_stat = os.stat(absolute_filename)
             original_mode = file_stat.st_mode
             creation = file_stat.st_atime
-        except OSError:  # Change to FileNotFoundError for PY3
+        except FileNotFoundError:
             # Creating a new file, emulate what os.open() does
             umask = os.umask(0)
             os.umask(umask)

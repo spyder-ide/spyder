@@ -49,7 +49,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
+from spyder.py3compat import (io, is_binary_string, to_text_string,
                               is_type_text_string, NUMERIC_TYPES)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
@@ -1099,10 +1099,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             # to copy the whole thing in a tab separated format
             if (isinstance(obj, (np.ndarray, np.ma.MaskedArray)) and
                     np.ndarray is not FakeObject):
-                if PY3:
-                    output = io.BytesIO()
-                else:
-                    output = io.StringIO()
+                output = io.BytesIO()
                 try:
                     np.savetxt(output, obj, delimiter='\t')
                 except Exception:
@@ -1122,10 +1119,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                                         _("It was not possible to copy "
                                           "this dataframe"))
                     return
-                if PY3:
-                    obj = output.getvalue()
-                else:
-                    obj = output.getvalue().decode('utf-8')
+                obj = output.getvalue()
                 output.close()
             elif is_binary_string(obj):
                 obj = to_text_string(obj, 'utf8')

@@ -30,7 +30,7 @@ from qtpy.QtWidgets import QApplication, QMenu, QToolTip
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
-                              PY3, str_lower, to_text_string)
+                              str_lower, to_text_string)
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -550,17 +550,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
         # Fix for spyder-ide/spyder#2452
-        if PY3:
-            try:
-                text = "".join(self.__buffer)
-            except TypeError:
-                text = b"".join(self.__buffer)
-                try:
-                    text = text.decode( locale.getdefaultlocale()[1] )
-                except:
-                    pass
-        else:
+        try:
             text = "".join(self.__buffer)
+        except TypeError:
+            text = b"".join(self.__buffer)
+            try:
+                text = text.decode( locale.getdefaultlocale()[1] )
+            except:
+                pass
 
         self.__buffer = []
         self.insert_text(text, at_end=True, error=error, prompt=prompt)

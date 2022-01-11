@@ -17,16 +17,13 @@ from qtpy.QtCore import QObject, Signal
 # Local imports
 from spyder import __version__
 from spyder.config.base import _, is_stable_version
-from spyder.py3compat import PY3, is_text_string
+from spyder.py3compat import is_text_string
 from spyder.config.utils import is_anaconda
 from spyder.utils.programs import check_version
 
 
-if PY3:
-    from urllib.request import urlopen
-    from urllib.error import URLError, HTTPError
-else:
-    from urllib2 import urlopen, URLError, HTTPError
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 
 
 class WorkerUpdates(QObject):
@@ -60,7 +57,7 @@ class WorkerUpdates(QObject):
         """
         # Don't perform any check for development versions
         if 'dev' in self.version:
-            return (False, latest_release)
+            return (False, self.latest_release)
 
         # Filter releases
         if is_stable_version(self.version):
