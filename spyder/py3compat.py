@@ -22,7 +22,6 @@ import operator
 import os
 import sys
 
-PY36_OR_MORE = sys.version_info[0] >= 3 and sys.version_info[1] >= 6
 PY38_OR_MORE = sys.version_info[0] >= 3 and sys.version_info[1] >= 8
 
 #==============================================================================
