@@ -21,6 +21,7 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # Standard library imports
 from __future__ import print_function
 import datetime
+import io
 import re
 import sys
 import warnings
@@ -49,8 +50,8 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_binary_string, to_text_string,
-                              is_type_text_string, NUMERIC_TYPES)
+from spyder.py3compat import (is_binary_string, to_text_string,
+                              is_string, NUMERIC_TYPES)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
@@ -405,7 +406,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
         else:
-            if is_type_text_string(value):
+            if is_string(value):
                 display = to_text_string(value, encoding="utf-8")
             elif not isinstance(
                 value, NUMERIC_TYPES + get_numeric_numpy_types()

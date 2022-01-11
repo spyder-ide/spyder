@@ -7,6 +7,7 @@
 """Tests for config/user.py."""
 
 # Standard library imports
+import configparser as cp
 import os
 
 # Third party imports
@@ -15,7 +16,6 @@ import pytest
 # Local imports
 from spyder.config.main import CONF_VERSION, DEFAULTS
 from spyder.config.user import NoDefault, UserConfig
-from spyder.py3compat import configparser as cp
 
 
 # --- Default config tests

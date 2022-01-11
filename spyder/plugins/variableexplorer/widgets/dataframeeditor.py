@@ -33,6 +33,8 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 """
 
 # Standard library imports
+import io
+from time import perf_counter
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -51,8 +53,8 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_text_string, is_type_text_string,
-                              to_text_string, perf_counter)
+from spyder.py3compat import (is_text_string, is_string,
+                              to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
@@ -346,7 +348,7 @@ class DataFrameModel(QAbstractTableModel):
                     # may happen if format = '%d' and value = NaN;
                     # see spyder-ide/spyder#4139.
                     return to_qvariant(DEFAULT_FORMAT % value)
-            elif is_type_text_string(value):
+            elif is_string(value):
                 # Don't perform any conversion on strings
                 # because it leads to differences between
                 # the data present in the dataframe and
@@ -769,7 +771,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
             # because it leads to differences between
             # the data present in the dataframe and
             # what is shown by Spyder
-            if not is_type_text_string(header):
+            if not is_string(header):
                 header = to_text_string(header)
 
         return header
@@ -797,7 +799,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
         # because it leads to differences between
         # the data present in the dataframe and
         # what is shown by Spyder
-        if not is_type_text_string(header):
+        if not is_string(header):
             header = to_text_string(header)
 
         return header

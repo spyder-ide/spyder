@@ -29,6 +29,7 @@ from pydoc import (
     Helper, HTMLRepr, _is_bound_method, ModuleScanner, locate, replace,
     visiblename, isdata, getdoc, deque, _split_list)
 
+
 class CustomHTMLDoc(Doc):
     """
     Formatter class for HTML documentation.
@@ -200,7 +201,7 @@ class CustomHTMLDoc(Doc):
         """
         result = ''
         for entry in tree:
-            if type(entry) is type(()):
+            if isinstance(entry, tuple):
                 c, bases = entry
                 result = result + '<dt>'
                 result = result + self.classlink(c, modname)
@@ -210,7 +211,7 @@ class CustomHTMLDoc(Doc):
                         parents.append(self.classlink(base, modname))
                     result = result + '(' + ', '.join(parents) + ')'
                 result = result + '\n</dt>'
-            elif type(entry) is type([]):
+            elif isinstance(entry, list):
                 result = result + '<dd>\n%s</dd>\n' % self.formattree(
                     entry, modname, c)
         return '<dl><dt></dt>\n%s<dd></dd></dl>\n' % result

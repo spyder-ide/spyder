@@ -11,6 +11,7 @@
 # and failure to read out buffers will most likely lock up Spyder.
 
 import os
+import pickle
 import socket
 import struct
 import threading
@@ -20,7 +21,6 @@ import traceback
 # Local imports
 from spyder.config.base import get_debug_level, STDERR
 DEBUG_EDITOR = get_debug_level() >= 3
-from spyder.py3compat import pickle
 PICKLE_HIGHEST_PROTOCOL = 2
 
 

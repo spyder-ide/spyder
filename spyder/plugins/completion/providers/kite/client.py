@@ -22,8 +22,7 @@ from spyder.plugins.completion.providers.kite.decorators import class_register
 from spyder.plugins.completion.providers.kite.providers import (
     KiteMethodProviderMixIn)
 from spyder.plugins.completion.providers.kite.utils.status import status
-from spyder.py3compat import (
-    ConnectionError, ConnectionRefusedError, TEXT_TYPES)
+from spyder.py3compat import TEXT_TYPES
 
 
 logger = logging.getLogger(__name__)

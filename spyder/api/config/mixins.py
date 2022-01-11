@@ -64,7 +64,7 @@ class SpyderConfigurationAccessor:
 
         Raises
         ------
-        spyder.py3compat.configparser.NoOptionError
+        configparser.NoOptionError
             If the section does not exist in the configuration.
         """
         section = self.CONF_SECTION if section is None else section
@@ -93,7 +93,7 @@ class SpyderConfigurationAccessor:
 
         Raises
         ------
-        spyder.py3compat.configparser.NoOptionError
+        configparser.NoOptionError
             If the section does not exist in the configuration.
         """
         section = self.CONF_SECTION if section is None else section
@@ -204,7 +204,7 @@ class SpyderConfigurationAccessor:
 
         Raises
         ------
-        spyder.py3compat.configparser.NoOptionError
+        configparser.NoOptionError
             If the section does not exist in the configuration.
         """
         context = self.CONF_SECTION if context is None else context

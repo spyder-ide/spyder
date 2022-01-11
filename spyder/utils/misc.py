@@ -15,7 +15,7 @@ import sys
 import stat
 import socket
 
-from spyder.py3compat import is_text_string, getcwd
+from spyder.py3compat import is_text_string
 from spyder.config.base import get_home_dir
 
 
@@ -287,7 +287,7 @@ def getcwd_or_home():
     was removed for an external program.
     """
     try:
-        return getcwd()
+        return os.getcwd()
     except OSError:
         logger.debug("WARNING: Current working directory was deleted, "
                      "falling back to home dirertory")

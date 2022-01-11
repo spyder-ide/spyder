@@ -28,7 +28,7 @@ from atomicwrites import atomic_write
 
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_unicode)
+                              is_text_string)
 from spyder.utils.external.binaryornot.check import is_binary
 
 import pathlib
@@ -87,7 +87,7 @@ def to_fs_from_unicode(unic):
     Return a byte string version of unic encoded using the file
     system encoding.
     """
-    if is_unicode(unic):
+    if is_text_string(unic):
         try:
             string = unic.encode(FS_ENCODING)
         except (UnicodeError, TypeError):
@@ -212,7 +212,7 @@ def encode(text, orig_coding):
 
 def to_unicode(string):
     """Convert a string to unicode"""
-    if not is_unicode(string):
+    if not is_text_string(string):
         for codec in CODECS:
             try:
                 unic = to_text_string(string, codec)

@@ -7,6 +7,7 @@
 """Qt utilities."""
 
 # Standard library imports
+import configparser
 import functools
 from math import pi
 import logging
@@ -30,14 +31,13 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
 # Local imports
 from spyder.config.base import MAC_APP_NAME
 from spyder.config.manager import CONF
-from spyder.py3compat import configparser, is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
-from spyder.config.manager import CONF
 
 # Third party imports
 if sys.platform == "darwin":

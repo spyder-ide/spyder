@@ -8,13 +8,14 @@
 Widget that handles communications between the IPython Console and
 the Plots plugin
 """
+# ---- Standard library imports
+from base64 import decodebytes
 
 # ---- Third party library imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 # ---- Local library imports
 from spyder.config.base import _
-from spyder.py3compat import decodebytes
 
 
 class FigureBrowserWidget(RichJupyterWidget):

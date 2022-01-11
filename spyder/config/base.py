@@ -25,7 +25,7 @@ import warnings
 
 # Local imports
 from spyder import __version__
-from spyder.py3compat import is_unicode, to_text_string, is_text_string
+from spyder.py3compat import to_text_string, is_text_string
 from spyder.utils import encoding
 
 #==============================================================================
@@ -479,7 +479,7 @@ def get_translation(modname, dirname=None):
 
     def translate_dumb(x):
         """Dumb function to not use translations."""
-        if not is_unicode(x):
+        if not is_text_string(x):
             return to_text_string(x, "utf-8")
         return x
 
