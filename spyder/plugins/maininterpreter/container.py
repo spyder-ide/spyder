@@ -16,6 +16,7 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets.main_container import PluginMainContainer
+from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 from spyder.utils.misc import get_python_executable
 
 
@@ -41,9 +42,10 @@ class MainInterpreterContainer(PluginMainContainer):
         self.interpreter_status = None
 
     def setup_statusbar(self, status_bar_widget):
-        self.interpreter_status = status_bar_widget
-        self.interpreter_status.sig_open_preferences_requested.connect(
-            self.sig_open_preferences_requested)
+        if isinstance(status_bar_widget, InterpreterStatus):
+            self.interpreter_status = status_bar_widget
+            self.interpreter_status.sig_open_preferences_requested.connect(
+                self.sig_open_preferences_requested)
 
     def update_actions(self):
         pass

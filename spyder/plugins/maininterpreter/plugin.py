@@ -93,9 +93,10 @@ class MainInterpreter(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         container = self.get_container()
         interpreter = container.get_main_interpreter()
+        statusbar.sig_status_widget_added.connect(container.setup_statusbar)
         statusbar.add_status_widget_by_class(
-            InterpreterStatus, setup_callback=
-            container.setup_statusbar, interpreter=interpreter,
+            InterpreterStatus,
+            interpreter=interpreter,
             )
 
     @on_plugin_teardown(plugin=Plugins.Preferences)

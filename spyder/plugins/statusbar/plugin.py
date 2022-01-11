@@ -9,7 +9,7 @@ Status bar plugin.
 """
 
 # Third-party imports
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -52,6 +52,18 @@ class StatusBar(SpyderPluginV2):
         'eol_status', 'encoding_status', 'cursor_position_status',
         'vcs_status', 'interpreter_status', 'lsp_status', 'kite_status'}
 
+    sig_status_widget_added = Signal(object)
+    """
+    This signal is emitted when a status bar widget is added to the main status
+    bar.
+
+    Parameters
+    ----------
+    status_widget:  spyder.api.widgets.status.StatusBarWidget (or subclass)
+        The added status widget instance.
+    """
+
+
     # ---- SpyderPluginV2 API
     @staticmethod
     def get_name():
@@ -90,9 +102,9 @@ class StatusBar(SpyderPluginV2):
         )
 
     # ---- Public API
-    def add_status_widget_by_class(
-            self, widget_class, position=StatusBarWidgetPosition.Left,
-            setup_callback=None, **kwargs):
+    def add_status_widget_by_class(self, widget_class,
+                                   position=StatusBarWidgetPosition.Left,
+                                   **kwargs):
         """
         Add status widget to main application status bar.
 
@@ -114,7 +126,8 @@ class StatusBar(SpyderPluginV2):
         id_ = widget_class.ID
         if id_ is None:
             raise SpyderAPIError(
-                f"Status widget class `{repr(widget_class)}` doesn't have an identifier!"
+                f"Status widget class `{repr(widget_class)}` "
+                f"doesn't have an identifier!"
             )
 
         # Check it was not added before
@@ -124,11 +137,9 @@ class StatusBar(SpyderPluginV2):
         # Add widget class and instance
         self.STATUS_WIDGETS_CLASSES[id_] = widget_class
         widget = widget_class(parent=self.get_container(), **kwargs)
-        self.add_status_widget(
-            widget, position=position, setup_callback=setup_callback)
+        self.add_status_widget(widget, position=position)
 
-    def add_status_widget(self, widget, position=StatusBarWidgetPosition.Left,
-                          setup_callback=None):
+    def add_status_widget(self, widget, position=StatusBarWidgetPosition.Left):
         """
         Add status widget to main application status bar.
 
@@ -175,8 +186,7 @@ class StatusBar(SpyderPluginV2):
         self._statusbar.layout().setContentsMargins(0, 0, 0, 0)
         self._statusbar.layout().setSpacing(0)
 
-        if setup_callback:
-            setup_callback(widget)
+        self.sig_status_widget_added.emit(widget)
 
     def remove_status_widget(self, id_):
         """
