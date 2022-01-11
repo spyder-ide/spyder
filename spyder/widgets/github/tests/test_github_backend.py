@@ -21,7 +21,6 @@ import pytest
 
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
-from spyder.py3compat import PY2
 from spyder.widgets.github import backend
 
 

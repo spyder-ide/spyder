@@ -23,7 +23,6 @@ from qtpy.QtWidgets import QMessageBox
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import _
-from spyder.py3compat import PY2, to_text_string, TimeoutError
 from spyder_kernels.comms.commbase import CommError
 
 

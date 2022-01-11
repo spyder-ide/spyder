@@ -12,19 +12,15 @@ from flaky import flaky
 import pytest
 
 from spyder.utils.encoding import is_text_file, get_coding, write
-from spyder.py3compat import to_text_string, PY2
+from spyder.py3compat import to_text_string
 
-if PY2:
-    import pathlib2 as pathlib
-else:
-    import pathlib
+import pathlib
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
 
 
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win!')
 def test_symlinks(tmpdir):
     """
     Check that modifying symlinks files changes source file and keeps symlinks.

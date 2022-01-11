@@ -57,7 +57,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
-from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
@@ -511,7 +511,7 @@ def test_opengl_implementation(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    np.__version__ < '1.14.0' or (os.name == 'nt' and PY2),
+    np.__version__ < '1.14.0',
     reason="This only happens in Numpy 1.14+"
 )
 @pytest.mark.parametrize('main_window', [{'spy_config': ('variable_explorer', 'minmax', True)}], indirect=True)
@@ -544,8 +544,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2 or not sys.platform == 'darwin',
-                    reason="Times out in PY2 and fails on other than macOS")
+@pytest.mark.skipif(not sys.platform == 'darwin',
+                    reason="Fails on other than macOS")
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help can display docstrings for names typed in its combobox.
@@ -598,7 +598,6 @@ def test_get_help_combo(main_window, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(PY2, reason="Invalid definition of function in Python 2.")
 def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     """
     Test that Help works when called from the IPython console
@@ -1889,7 +1888,6 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="It times out sometimes")
 @pytest.mark.parametrize(
     'main_window',
     [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},
@@ -2825,8 +2823,8 @@ def test_go_to_definition(main_window, qtbot, capsys):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin' and not PY2,
-                    reason="It times out on macOS/PY3")
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="It times out on macOS")
 def test_debug_unsaved_file(main_window, qtbot):
     """Test that we can debug an unsaved file."""
     # Wait until the window is fully up

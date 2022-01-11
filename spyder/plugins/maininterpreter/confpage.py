@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.preferences import PluginConfigPage
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
@@ -219,21 +219,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 fixed_namelist = []
                 non_ascii_namelist = []
                 for module_name in namelist:
-                    if PY2:
-                        if all(ord(c) < 128 for c in module_name):
-                            if programs.is_module_installed(module_name):
-                                fixed_namelist.append(module_name)
-                        else:
-                            QMessageBox.warning(
-                                self,
-                                _('Warning'),
-                                _("You are working with Python 2, this means "
-                                  "that you can not import a module that "
-                                  "contains non-ascii characters."),
-                                QMessageBox.Ok,
-                            )
-                            non_ascii_namelist.append(module_name)
-                    elif programs.is_module_installed(module_name):
+                    if programs.is_module_installed(module_name):
                         fixed_namelist.append(module_name)
 
                 invalid = ", ".join(set(namelist)-set(fixed_namelist)-

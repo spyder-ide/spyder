@@ -20,7 +20,6 @@ from spyder.plugins.editor.extensions.closebrackets import (
         CloseBracketsExtension)
 
 # Constants
-PY2 = sys.version[0] == '2'
 TEST_SIG = 'some_function(foo={}, hello=None)'
 TEST_DOCSTRING = "This is the test docstring."
 TEST_TEXT = """'''Testing something'''
@@ -33,8 +32,6 @@ some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
 
 @pytest.mark.slow
 @pytest.mark.order(2)
-@pytest.mark.skipif(sys.platform == 'darwin' and PY2,
-                    reason='Fails on Mac and Python 2')
 def test_hide_calltip(completions_codeeditor, qtbot):
     """Test that calltips are hidden when a matching ')' is found."""
     code_editor, _ = completions_codeeditor
@@ -65,10 +62,6 @@ def test_hide_calltip(completions_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(2)
-@pytest.mark.skipif(
-    os.name == 'nt' and PY2,
-    reason='Fails on Win',
-)
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
             ('dict', 'dict'),

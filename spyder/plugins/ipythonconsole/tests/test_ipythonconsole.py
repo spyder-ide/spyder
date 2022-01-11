@@ -39,7 +39,7 @@ import sympy
 from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import ConfigurationManager
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
@@ -552,8 +552,6 @@ def test_non_ascii_stderr_file(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2 and sys.platform == 'darwin',
-                    reason="It hangs frequently on Python 2.7 and macOS")
 def test_console_import_namespace(ipyconsole, qtbot):
     """Test an import of the form 'from foo import *'."""
     # Wait until the window is fully up
@@ -818,8 +816,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2 or IPython.version_info < (7, 17),
-                    reason="insert is not the same in py2")
+@pytest.mark.skipif(IPython.version_info < (7, 17))
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -850,7 +847,6 @@ def test_dbg_input(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="It doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):
     """
     Test that the Variable Explorer Works with unicode variables.
@@ -893,7 +889,6 @@ def test_read_stderr(ipyconsole, qtbot):
 @pytest.mark.no_xvfb
 @pytest.mark.skipif(running_in_ci() and os.name == 'nt',
                     reason="Times out on Windows")
-@pytest.mark.skipif(PY2, reason="It times out in Python 2.")
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -1033,7 +1028,7 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
+@pytest.mark.skipif(os.name == 'nt',
                     reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
@@ -1416,8 +1411,8 @@ def test_console_working_directory(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
-                    reason="It only works on Linux with python 3.")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux.")
 def test_console_complete(ipyconsole, qtbot, tmpdir):
     """Test code completions in the console."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1852,9 +1847,9 @@ def test_startup_code_pdb(ipyconsole, qtbot):
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
     """Check if pdb works with every backend. (only testing 3)."""
     # Skip failing tests
-    if backend == 'tk' and (os.name == 'nt' or PY2):
+    if backend == 'tk' and (os.name == 'nt'):
         return
-    if backend == 'osx' and (sys.platform != "darwin" or PY2):
+    if backend == 'osx' and (sys.platform != "darwin"):
         return
 
     shell = ipyconsole.get_current_shellwidget()
@@ -2006,7 +2001,6 @@ def test_code_cache(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="Doesn't work on Python 2.7")
 def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
     """Check commands and code are separted."""
     shell = ipyconsole.get_current_shellwidget()

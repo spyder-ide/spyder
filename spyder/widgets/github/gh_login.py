@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFormLayout, QLabel, QLineEdit,
                             QVBoxLayout, QWidget)
 
 from spyder.config.base import _
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 
 
 TOKEN_URL = "https://github.com/settings/tokens/new?scopes=public_repo"
@@ -73,10 +73,7 @@ class DlgGitHubLogin(QDialog):
         token_form_layout.setWidget(1, QFormLayout.FieldRole, self.le_token)
 
         self.cb_remember_token = None
-        # Check if we are not in Python 2 and Linux because
-        # there's no keyring backend there
-        valid_py_os = not (PY2 and sys.platform.startswith('linux'))
-        if self.is_keyring_available() and valid_py_os:
+        if self.is_keyring_available():
             self.cb_remember_token = QCheckBox(_("Remember token"))
             self.cb_remember_token.setToolTip(_("Spyder will save your "
                                                 "token safely"))

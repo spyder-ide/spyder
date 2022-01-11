@@ -9,20 +9,13 @@
 import re
 import os
 import os.path as osp
-from spyder.py3compat import PY2
 from spyder.utils.encoding import to_unicode
 
 
-if PY2:
-    import pathlib2 as pathlib
-    from urlparse import urlparse
-    from urllib import url2pathname
-    from urllib import quote as urlquote_from_bytes
-else:
-    import pathlib
-    from urllib.parse import urlparse
-    from urllib.parse import quote_from_bytes as urlquote_from_bytes
-    from urllib.request import url2pathname
+import pathlib
+from urllib.parse import urlparse
+from urllib.parse import quote_from_bytes as urlquote_from_bytes
+from urllib.request import url2pathname
 
 
 def as_posix(path_obj):
@@ -50,10 +43,7 @@ def make_as_uri(path):
 
 def path_as_uri(path):
     path_obj = pathlib.Path(osp.abspath(path))
-    if os.name == 'nt' and PY2:
-        return make_as_uri(path_obj)
-    else:
-        return path_obj.as_uri()
+    return path_obj.as_uri()
 
 
 def process_uri(uri):

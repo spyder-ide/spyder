@@ -33,7 +33,7 @@ import psutil
 from spyder.config.base import (is_stable_version, running_under_pytest,
                                 get_home_dir, running_in_mac_app)
 from spyder.config.utils import is_anaconda
-from spyder.py3compat import PY2, is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
@@ -747,14 +747,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         if wdir:
             cmd += 'cd ' + wdir + ' && '
         cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
-        # Command line and cwd have to be converted to the filesystem
-        # encoding before passing them to subprocess, but only for
-        # Python 2.
-        # See https://bugs.python.org/issue1759845#msg74142 and
-        # spyder-ide/spyder#1856.
-        if PY2:
-            cmd = encoding.to_fs_from_unicode(cmd)
-            wdir = encoding.to_fs_from_unicode(wdir)
         try:
             if wdir:
                 run_shell_command(cmd, cwd=wdir)

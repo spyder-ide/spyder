@@ -32,7 +32,6 @@ from qtpy.QtWidgets import QApplication, QMessageBox
 
 from spyder.config.manager import CONF
 from spyder.config.base import _, running_under_pytest
-from spyder.py3compat import PY2
 from spyder.utils.external import github
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
@@ -198,8 +197,7 @@ class GithubBackend(BaseBackend):
         """Get user credentials with the login dialog."""
         token = None
         remember_token = self._get_credentials_from_settings()
-        valid_py_os = not (PY2 and sys.platform.startswith('linux'))
-        if remember_token and valid_py_os:
+        if remember_token:
             # Get token from keyring
             try:
                 token = keyring.get_password('github', 'token')

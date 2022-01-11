@@ -15,9 +15,7 @@ import pytest
 # Local imports
 from spyder.config.main import CONF_VERSION, DEFAULTS
 from spyder.config.user import NoDefault, UserConfig
-from spyder.py3compat import PY2
 from spyder.py3compat import configparser as cp
-from spyder.utils.fixtures import tmpconfig
 
 
 # --- Default config tests
@@ -29,8 +27,7 @@ from spyder.utils.fixtures import tmpconfig
         (('sec', 'opt', 50), '[sec][opt] = 50\n'),
         (('sec', 'opt', [50]), '[sec][opt] = [50]\n'),
         (('sec', 'opt', (50, 2)), '[sec][opt] = (50, 2)\n'),
-        (('sec', 'opt', {50}), '[sec][opt] = {}\n'.format(
-            'set([50])' if PY2 else '{50}')),
+        (('sec', 'opt', {50}), '[sec][opt] = {50}\n'),
         (('sec', 'opt', {'k': 50}), "[sec][opt] = {'k': 50}\n"),
         (('sec', 'opt', False), '[sec][opt] = False\n'),
         (('sec', 'opt', True), '[sec][opt] = True\n'),
@@ -292,7 +289,7 @@ def test_userconfig_set_default(userconfig):
 
     userconfig.set_as_defaults()
     value = userconfig.get_default('section', 'option')
-    expected = "'value'" if PY2 else 'value'
+    expected = 'value'
     assert value == expected
     value = userconfig.set_default('section', 'option', default_value)
     value = userconfig.get_default('section', 'option')
@@ -349,10 +346,7 @@ class TestUserConfigSet:
             ini_contents = inifile.read()
 
         expected = '[main]\nversion = 1.0.0\n\n'
-        if PY2:
-            expected += "[section]\noption = 'new value'\n\n"
-        else:
-            expected += "[section]\noption = new value\n\n"
+        expected += "[section]\noption = new value\n\n"
 
         assert ini_contents == expected
 

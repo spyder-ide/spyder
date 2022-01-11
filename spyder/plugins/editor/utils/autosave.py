@@ -39,7 +39,6 @@ from qtpy.QtCore import QTimer
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
-from spyder.py3compat import PY2
 from spyder.utils.programs import is_spyder_process
 
 
@@ -286,10 +285,7 @@ class AutosaveForStack(object):
         pidfile_name = osp.join(autosave_dir, 'pid{}.txt'.format(my_pid))
         if self.name_mapping:
             with open(pidfile_name, 'w') as pidfile:
-                if PY2:
-                    pidfile.write(repr(self.name_mapping))
-                else:
-                    pidfile.write(ascii(self.name_mapping))
+                pidfile.write(ascii(self.name_mapping))
         else:
             try:
                 os.remove(pidfile_name)

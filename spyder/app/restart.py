@@ -34,7 +34,6 @@ from spyder.utils.qthelpers import qapplication
 from spyder.config.manager import CONF
 
 
-PY2 = sys.version[0] == '2'
 IS_WINDOWS = os.name == 'nt'
 SLEEP_TIME = 0.2  # Seconds for throttling control
 CLOSE_ERROR, RESET_ERROR, RESTART_ERROR = [1, 2, 3]  # Spyder error codes

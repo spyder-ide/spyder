@@ -20,7 +20,7 @@ from qtpy.QtCore import (QByteArray, QObject, QProcess, QThread, QTimer,
                          Signal)
 
 # Local imports
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 
 
 WIN = os.name == 'nt'
@@ -172,8 +172,6 @@ class ProcessWorker(QObject):
         stderr = handle_qbytearray(raw_stderr, enco)
         result = [stdout.encode(enco), stderr.encode(enco)]
 
-        if PY2:
-            stderr = stderr.decode()
         result[-1] = ''
 
         self._result = result

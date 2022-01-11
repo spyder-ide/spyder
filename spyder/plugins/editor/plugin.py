@@ -36,7 +36,7 @@ from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
@@ -166,7 +166,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if os.name == "nt":
                 shebang = []
             else:
-                shebang = ['#!/usr/bin/env python' + ('2' if PY2 else '3')]
+                shebang = ['#!/usr/bin/env python3']
             header = shebang + [
                 '# -*- coding: utf-8 -*-',
                 '"""', 'Created on %(date)s', '',

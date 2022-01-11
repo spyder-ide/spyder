@@ -23,7 +23,6 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import PY2
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
@@ -313,24 +312,6 @@ class PathManager(QDialog):
             directory = getexistingdirectory(self, _("Select directory"),
                                              self.last_path)
             self.redirect_stdio.emit(True)
-
-        if PY2:
-            is_unicode = False
-            try:
-                directory.decode('ascii')
-            except (UnicodeEncodeError, UnicodeDecodeError):
-                is_unicode = True
-
-            if is_unicode:
-                QMessageBox.warning(
-                    self,
-                    _("Add path"),
-                    _("You are using Python 2 and the selected path has "
-                      "Unicode characters."
-                      "<br> "
-                      "Therefore, this path will not be added."),
-                    QMessageBox.Ok)
-                return
 
         directory = osp.abspath(directory)
         self.last_path = directory

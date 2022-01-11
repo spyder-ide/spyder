@@ -38,13 +38,9 @@ from sphinx.application import Sphinx
 # Local imports
 from spyder.config.base import (_, get_module_data_path,
                                 get_module_source_path)
-from spyder.py3compat import PY2
 from spyder.utils import encoding
 
-if PY2:
-    import pathlib2 as pathlib
-else:
-    import pathlib
+import pathlib
 
 #-----------------------------------------------------------------------------
 # Globals and constants

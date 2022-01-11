@@ -51,7 +51,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
+from spyder.py3compat import (io, is_text_string, is_type_text_string,
                               to_text_string, perf_counter)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -650,10 +650,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 self,
                 _("Error"),
                 _("Text can't be copied."))
-        if not PY2:
-            contents = output.getvalue()
-        else:
-            contents = output.getvalue().decode('utf-8')
+        contents = output.getvalue()
         output.close()
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)

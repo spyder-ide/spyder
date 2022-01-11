@@ -28,13 +28,10 @@ from atomicwrites import atomic_write
 
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_unicode, PY2)
+                              is_unicode)
 from spyder.utils.external.binaryornot.check import is_binary
 
-if PY2:
-    import pathlib2 as pathlib
-else:
-    import pathlib
+import pathlib
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()

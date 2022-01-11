@@ -28,7 +28,7 @@ from spyder.plugins.completion.tests.conftest import (
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.widgets.findreplace import FindReplace
 
 
@@ -190,8 +190,6 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
         sys_stream = capsys.readouterr()
         sys_err = sys_stream.err
 
-        if PY2:
-            sys_err = to_text_string(sys_err).encode('utf-8')
         assert sys_err == ''
 
     request.addfinalizer(teardown)

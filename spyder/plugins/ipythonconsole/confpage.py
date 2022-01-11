@@ -17,7 +17,6 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.py3compat import PY2
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -117,8 +116,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         if sys.platform.startswith('linux'):
             backends.append(("Gtk3", 5))
             backends.append(("Gtk", 6))
-        if PY2:
-            backends.append(("Wx", 7))
+        backends.append(("Wx", 7))
         backends.append(("Tkinter", 8))
         backends = tuple(backends)
 
