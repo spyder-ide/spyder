@@ -3,7 +3,7 @@ backports.functools_lru_cache
 cloudpickle
 ipykernel<5
 jupyter_client>=5.3.4,<6
-pyzmq>=17
+pyzmq>=17,<20
 wurlitzer>=1.0.3
 # To avoid an error with conda
 click =7
