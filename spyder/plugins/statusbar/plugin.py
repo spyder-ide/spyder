@@ -135,9 +135,7 @@ class StatusBar(SpyderPluginV2):
             raise SpyderAPIError(f'Status widget class `{id_}` already added!')
 
         # Add widget class and instance
-        self.STATUS_WIDGETS_CLASSES[id_] = widget_class
-        widget = widget_class(parent=self.get_container(), **kwargs)
-        self.add_status_widget(widget, position=position)
+        self.STATUS_WIDGETS_CLASSES[id_] = (widget_class, position, kwargs)
 
     def add_status_widget(self, widget, position=StatusBarWidgetPosition.Left):
         """
@@ -296,4 +294,13 @@ class StatusBar(SpyderPluginV2):
         """Perform actions before the mainwindow is visible"""
         # Organize widgets in the expected order
         self._statusbar.setVisible(False)
+        self._organize_status_widgets()
+
+    def on_mainwindow_visible(self):
+        """Perform actions when the mainwindow is visible"""
+        # Add and organize widgets in the expected order
+        for (widget_class,
+             position, kwargs) in self.STATUS_WIDGETS_CLASSES.values():
+            widget = widget_class(parent=self.get_container(), **kwargs)
+            self.add_status_widget(widget, position=position)
         self._organize_status_widgets()
