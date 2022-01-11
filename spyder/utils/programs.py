@@ -6,8 +6,6 @@
 
 """Running programs utilities."""
 
-from __future__ import print_function
-
 # Standard library imports
 from ast import literal_eval
 from getpass import getuser
@@ -30,7 +28,7 @@ from pkg_resources import parse_version
 import psutil
 
 # Local imports
-from spyder.config.base import (is_stable_version, running_under_pytest,
+from spyder.config.base import (running_under_pytest,
                                 get_home_dir, running_in_mac_app)
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import is_text_string, to_text_string

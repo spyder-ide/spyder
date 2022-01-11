@@ -10,8 +10,6 @@ This module provides user configuration file management features for Spyder.
 It is based on the ConfigParser module present in the standard library.
 """
 
-from __future__ import print_function, unicode_literals
-
 # Standard library imports
 import ast
 import configparser as cp

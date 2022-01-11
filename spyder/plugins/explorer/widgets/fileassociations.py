@@ -8,8 +8,6 @@
 File associations widget for use in global and project preferences.
 """
 
-from __future__ import print_function
-
 # Standard library imports
 import os
 import re

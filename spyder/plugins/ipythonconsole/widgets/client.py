@@ -15,8 +15,6 @@ This is the widget used on all its tabs.
 
 
 # Standard library imports.
-# Fix for spyder-ide/spyder#1356.
-from __future__ import absolute_import
 
 import os
 import os.path as osp

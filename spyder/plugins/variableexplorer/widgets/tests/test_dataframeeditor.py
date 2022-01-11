@@ -10,8 +10,6 @@
 Tests for the dataframe editor.
 """
 
-from __future__ import division
-
 # Standard library imports
 import os
 import sys

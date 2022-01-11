@@ -10,15 +10,12 @@ the Help plugin
 """
 
 # Standard library imports
-from __future__ import absolute_import
-
 import re
 
 # Third party imports
 from pickle import UnpicklingError
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN, ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtpy.QtCore import QEventLoop
 
 # Local imports
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,

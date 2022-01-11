@@ -9,12 +9,11 @@ Text editor dialog
 """
 
 # Standard library imports
-from __future__ import print_function
 import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
+from qtpy.QtWidgets import (QHBoxLayout, QPushButton, QTextEdit,
                             QVBoxLayout)
 
 # Local import

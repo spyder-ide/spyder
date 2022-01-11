@@ -7,7 +7,6 @@
 """Spyder path manager."""
 
 # Standard library imports
-from __future__ import print_function
 from collections import OrderedDict
 import os
 import os.path as osp

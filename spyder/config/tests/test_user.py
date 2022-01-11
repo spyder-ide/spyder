@@ -16,6 +16,7 @@ import pytest
 # Local imports
 from spyder.config.main import CONF_VERSION, DEFAULTS
 from spyder.config.user import NoDefault, UserConfig
+from spyder.utils.fixtures import tmpconfig
 
 
 # --- Default config tests

@@ -8,7 +8,6 @@
 """Switcher widget interface."""
 
 # Standard library imports
-from __future__ import print_function
 import os
 import sys
 
@@ -22,7 +21,6 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.config.utils import is_ubuntu
 from spyder.py3compat import TEXT_TYPES, to_text_string
 from spyder.utils.icon_manager import ima

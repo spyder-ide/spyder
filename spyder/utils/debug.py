@@ -11,8 +11,6 @@ Debug utilities that are independent of Spyder code.
 See spyder.config.base for other helpers.
 """
 
-from __future__ import print_function
-
 import inspect
 import traceback
 import time

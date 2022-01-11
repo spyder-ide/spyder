@@ -19,7 +19,6 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
 import datetime
 import io
 import re
@@ -31,7 +30,7 @@ from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
+from qtpy.QtWidgets import (QApplication,
                             QHBoxLayout, QHeaderView, QInputDialog,
                             QLineEdit, QMenu, QMessageBox,
                             QPushButton, QTableView, QVBoxLayout,
