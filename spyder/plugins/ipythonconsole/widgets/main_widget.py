@@ -1314,6 +1314,10 @@ class IPythonConsoleWidget(PluginMainWidget):
     @Slot(object, object)
     def edit_file(self, filename, line):
         """Handle %edit magic petitions."""
+        if not osp.isfile(filename):
+            # Create new file
+            with open(filename, "w") as f:
+                f.write("")
         if encoding.is_text_file(filename):
             # The default line number sent by ipykernel is always the last
             # one, but we prefer to use the first.
