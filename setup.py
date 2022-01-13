@@ -238,6 +238,7 @@ install_requires = [
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
+    'sphinx-math-dollar>=1.2',
     'spyder-kernels>=2.2.0,<2.3.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',

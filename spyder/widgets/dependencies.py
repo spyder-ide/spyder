@@ -10,7 +10,6 @@
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
@@ -19,7 +18,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyder import __version__
 from spyder.config.base import _
-from spyder.dependencies import MANDATORY, OPTIONAL, PLUGIN
+from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 

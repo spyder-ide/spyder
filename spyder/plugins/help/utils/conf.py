@@ -21,6 +21,11 @@ from sphinx import __version__ as sphinx_version
 # Local imports
 from spyder.config.manager import CONF
 
+# Check if sphinx_math_dollar is installed
+try:
+    import sphinx_math_dollar
+except ModuleNotFoundError:
+    sphinx_math_dollar = None
 
 #==============================================================================
 # General configuration
@@ -41,6 +46,17 @@ if sphinx_version < "1.1" or not math:
     extensions = ['sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.mathjax']
+    if sphinx_math_dollar:
+        extensions.append('sphinx_math_dollar')
+
+        # Configure mathjax to not handle $
+        # See: https://www.sympy.org/sphinx-math-dollar/
+        mathjax_config = {
+            'tex2jax': {
+                'inlineMath': [["\\(", "\\)"]],
+                'displayMath': [["\\[", "\\]"]],
+            },
+        }
 
 # For scipy and matplotlib docstrings, which need this extension to
 # be rendered correctly. See spyder-ide/spyder#1138.

@@ -66,6 +66,7 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
+SPHINX_MATH_DOLLAR_REQVER = '>=1.2'
 SPYDER_KERNELS_REQVER = '>=2.2.0;<2.3.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
@@ -233,6 +234,10 @@ DESCRIPTIONS = [
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
      'required_version': SPHINX_REQVER},
+    {'modname': "sphinx_math_dollar",
+     'package_name': "sphinx-math-dollar",
+     'features': _("Format math in help text using dollar sign"),
+     'required_version': SPHINX_MATH_DOLLAR_REQVER},
     {'modname': "spyder_kernels",
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
