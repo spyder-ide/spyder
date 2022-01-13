@@ -1020,7 +1020,7 @@ msgid "Downloading"
 msgstr "Téléchargement en cours"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:213
-msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you throught the <br>rest of the setup process."
+msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you through the <br>rest of the setup process."
 msgstr "Kite est livré avec une application native appelée Copilot <br> qui vous fournit une documentation <br> en temps réel au fur et à mesure que vous codez. <br> <br> Une fois l'installation de Kite terminée, le Copilot sera automatiquement lancé et vous guidera à travers le reste du processus d'installation."
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:221

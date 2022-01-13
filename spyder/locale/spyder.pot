@@ -1016,7 +1016,7 @@ msgid "Downloading"
 msgstr ""
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:213
-msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you throught the <br>rest of the setup process."
+msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you through the <br>rest of the setup process."
 msgstr ""
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:221
