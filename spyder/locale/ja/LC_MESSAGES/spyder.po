@@ -1,22 +1,21 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-01-14 10:38-0500\n"
-"PO-Revision-Date: 2021-12-09 12:24\n"
+"PO-Revision-Date: 2022-01-17 13:57\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
-"Language: ja_JP\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Crowdin-File: /5.x/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 80\n"
-"X-Crowdin-Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
+"X-Crowdin-Language: ja\n"
+"X-Crowdin-File: /5.x/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 80\n"
+"Language: ja_JP\n"
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
@@ -95,26 +94,18 @@ msgid "Welcome to Spyder!"
 msgstr "Spyderへようこそ！"
 
 #: spyder/app/mainwindow.py:828
-msgid ""
-"Spyder Internal Console\n"
-"\n"
+msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Please don't use it to run your code\n"
-"\n"
-msgstr ""
-"Spyder 内部コンソール\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Please don't use it to run your code\n\n"
+msgstr "Spyder 内部コンソール\n\n"
 "このコンソールは下記コマンド\n"
 " spy.app, spy.window, dir (spy)\n"
 "により、アプリケーション内部エラーの報告と\n"
-"Spyder内部検査のために使われます。\n"
-"\n"
-"ユーザーのpythonコードを実行するために使わないでください。\n"
-"\n"
+"Spyder内部検査のために使われます。\n\n"
+"ユーザーのpythonコードを実行するために使わないでください。\n\n"
 
 #: spyder/app/mainwindow.py:908
 msgid "Loading old third-party plugins..."
@@ -197,27 +188,21 @@ msgid "Initializing..."
 msgstr "初期化中..."
 
 #: spyder/app/restart.py:139
-msgid ""
-"It was not possible to close the previous Spyder instance.\n"
+msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr ""
-"前回実行したSpyderを終了できませんでした。\n"
+msgstr "前回実行したSpyderを終了できませんでした。\n"
 "再起動を終了します。"
 
 #: spyder/app/restart.py:141
-msgid ""
-"Spyder could not reset to factory defaults.\n"
+msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr ""
-"デフォルト設定を適用できませんでした。\n"
+msgstr "デフォルト設定を適用できませんでした。\n"
 "再起動を終了します。"
 
 #: spyder/app/restart.py:143
-msgid ""
-"It was not possible to restart Spyder.\n"
+msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
-msgstr ""
-"再起動できませんでした。\n"
+msgstr "再起動できませんでした。\n"
 "オペレーションを終了します。"
 
 #: spyder/app/restart.py:145
@@ -705,11 +690,9 @@ msgid "Set this for high DPI displays when auto scaling does not work"
 msgstr "自動スケーリングが動作しない場合、高DPIディスプレイ用にこの設定を適用する"
 
 #: spyder/plugins/application/confpage.py:205
-msgid ""
-"Enter values for different screens separated by semicolons ';'.\n"
+msgid "Enter values for different screens separated by semicolons ';'.\n"
 "Float values are supported"
-msgstr ""
-"他のスクリーンの値をセミコロン';'で区切って入力して下さい。\n"
+msgstr "他のスクリーンの値をセミコロン';'で区切って入力して下さい。\n"
 "浮動小数点数も可"
 
 #: spyder/plugins/application/confpage.py:238 spyder/plugins/ipythonconsole/confpage.py:29 spyder/plugins/outlineexplorer/widgets.py:48
@@ -1037,9 +1020,8 @@ msgid "Downloading"
 msgstr "ダウンロード中"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:213
-#, fuzzy
 msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you through the <br>rest of the setup process."
-msgstr "Kite はCopilotというネイティブアプリケーションを含みます <br>このおかげであなたのコードを<br>リアルタイム文書化することができます。<br><br>Kiteインストール後、Copilotコードは <br> 自動的に起動され、以後のセットアッププロセスを <br>補助します。"
+msgstr "Kite はCopilotというネイティブアプリケーションを含みます <br>このおかげでコードを<br>リアルタイムで文書化することができます。<br><br>Kiteインストール後、Copilotコードは <br> 自動的に起動され、以後のセットアッププロセスを <br>補助します。"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:221
 msgid "OK"
@@ -1066,19 +1048,15 @@ msgid "not reachable"
 msgstr "到達できません"
 
 #: spyder/plugins/completion/providers/kite/widgets/status.py:70
-msgid ""
-"Kite installation will continue in the background.\n"
+msgid "Kite installation will continue in the background.\n"
 "Click here to show the installation dialog again"
-msgstr ""
-"Kiteインストーラーはバックグラウンドで実行されます。\n"
+msgstr "Kiteインストーラーはバックグラウンドで実行されます。\n"
 "再度インストールダイアログを表示する場合はここをクリックして下さい"
 
 #: spyder/plugins/completion/providers/kite/widgets/status.py:75
-msgid ""
-"Click here to show the\n"
+msgid "Click here to show the\n"
 "installation dialog again"
-msgstr ""
-"インストールダイアログを再表示するには\n"
+msgstr "インストールダイアログを再表示するには\n"
 "ここをクリックして下さい"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:28 spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:60 spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:268
@@ -1298,12 +1276,10 @@ msgid "Enable Go to definition"
 msgstr "定義への移動を有効化"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
-msgid ""
-"If enabled, left-clicking on an object name while \n"
+msgid "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
-msgstr ""
-"このオプションを有効にした場合、オブジェクト名の上で\n"
+msgstr "このオプションを有効にした場合、オブジェクト名の上で\n"
 "{}キーを押すと するとオブジェクトの定義へ\n"
 "(定義が解決できていれば) 移動する。"
 
@@ -1320,12 +1296,10 @@ msgid "Enable hover hints"
 msgstr "ホバーヒントを有効化"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
-msgid ""
-"If enabled, hovering the mouse pointer over an object\n"
+msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
-msgstr ""
-"有効化した場合、オブジェクト名の上ににマウスポインタを置くと\n"
+msgstr "有効化した場合、オブジェクト名の上ににマウスポインタを置くと\n"
 "オブジェクトのシグネチャーかdocstring、\n"
 "あるいはその両方を表示する (存在すれば)。"
 
@@ -1530,11 +1504,9 @@ msgid "down"
 msgstr "下"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:46
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
-msgstr ""
-"補完、静的解析、コードの\n"
+msgstr "補完、静的解析、コードの\n"
 "折りたたみ及びシンボルの状態。"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:74
@@ -1922,14 +1894,12 @@ msgid "Tab always indent"
 msgstr "常にインデントにタブを使う"
 
 #: spyder/plugins/editor/confpage.py:105
-msgid ""
-"If enabled, pressing Tab will always indent,\n"
+msgid "If enabled, pressing Tab will always indent,\n"
 "even when the cursor is not at the beginning\n"
 "of a line (when this option is enabled, code\n"
 "completion may be triggered using the alternate\n"
 "shortcut: Ctrl+Space)"
-msgstr ""
-"これを有効にすると、タブキーを押すとカーソルが\n"
+msgstr "これを有効にすると、タブキーを押すとカーソルが\n"
 "行頭になくても常にインデントされる。\n"
 "(このオプションを有効化した場合、コード補完\n"
 "のトリガーは別のショートカット\n"
@@ -1940,12 +1910,10 @@ msgid "Automatically strip trailing spaces on changed lines"
 msgstr "編集された行の行末空白を自動的に削除する"
 
 #: spyder/plugins/editor/confpage.py:113
-msgid ""
-"If enabled, modified lines of code (excluding strings)\n"
+msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have their trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
-msgstr ""
-"有効化されている場合、変更が加えられた行の\n"
+msgstr "有効化されている場合、変更が加えられた行の\n"
 "行末の空白は終了時に削除されます。\n"
 "無効化されている場合、Spyderによって追加された空白のみが削除されます。"
 
@@ -2090,23 +2058,20 @@ msgid "Fix automatically and show warning message box"
 msgstr "自動的に修正し、警告をメッセージボックスで表示する"
 
 #: spyder/plugins/editor/confpage.py:283
-#, fuzzy
 msgid "Convert end-of-line characters to the following on save:"
-msgstr "改行コードを変換する"
+msgstr "保存時に行末文字を次の文字に変換する:"
 
 #: spyder/plugins/editor/confpage.py:288
-#, fuzzy
 msgid "LF (Unix)"
-msgstr "LF  (UNIX)"
+msgstr "LF (Unix)"
 
 #: spyder/plugins/editor/confpage.py:289
 msgid "CRLF (Windows)"
 msgstr "CRLF (Windows)"
 
 #: spyder/plugins/editor/confpage.py:290
-#, fuzzy
 msgid "CR (macOS)"
-msgstr "CR (Mac)"
+msgstr "CR (macOS)"
 
 #: spyder/plugins/editor/confpage.py:314 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:422 spyder/plugins/statusbar/confpage.py:26 spyder/plugins/variableexplorer/confpage.py:31
 msgid "Display"
@@ -2325,11 +2290,9 @@ msgid "Run cell"
 msgstr " cellを実行"
 
 #: spyder/plugins/editor/plugin.py:705
-msgid ""
-"Run current cell \n"
+msgid "Run current cell \n"
 "[Use #%% to create cells]"
-msgstr ""
-"現在のcellを実行する\n"
+msgstr "現在のcellを実行する\n"
 "[新規セルの作成は #%% を使う]"
 
 #: spyder/plugins/editor/plugin.py:715 spyder/plugins/editor/widgets/codeeditor.py:4370
@@ -2697,24 +2660,16 @@ msgid "Removal error"
 msgstr "削除エラー"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3786
-msgid ""
-"It was not possible to remove outputs from this notebook. The error is:\n"
-"\n"
-msgstr ""
-" notebookからoutputを削除できませんでした。エラー:\n"
-"\n"
+msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
+msgstr " notebookからoutputを削除できませんでした。エラー:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3798 spyder/plugins/explorer/widgets/explorer.py:1645
 msgid "Conversion error"
 msgstr "変換エラー"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3799 spyder/plugins/explorer/widgets/explorer.py:1646
-msgid ""
-"It was not possible to convert this notebook. The error is:\n"
-"\n"
-msgstr ""
-" notebookが変換できませんでした。エラー:\n"
-"\n"
+msgid "It was not possible to convert this notebook. The error is:\n\n"
+msgstr " notebookが変換できませんでした。エラー:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4354
 msgid "Clear all ouput"
@@ -2873,13 +2828,9 @@ msgid "Recover from autosave"
 msgstr "自動保存データから復旧"
 
 #: spyder/plugins/editor/widgets/recover.py:129
-msgid ""
-"Autosave files found. What would you like to do?\n"
-"\n"
+msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
-msgstr ""
-"自動保存ファイルを発見しました。どうしますか？\n"
-"\n"
+msgstr "自動保存ファイルを発見しました。どうしますか？\n\n"
 "自動保存ファイルの移動、削除あるいは復旧を行わなければ、このダイアログは次回スタートアップ時に再度表示されます。"
 
 #: spyder/plugins/editor/widgets/recover.py:148
@@ -3175,24 +3126,16 @@ msgid "File/Folder copy error"
 msgstr "ファイル/フォルダコピーのエラー"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1331
-msgid ""
-"Cannot copy this type of file(s) or folder(s). The error was:\n"
-"\n"
-msgstr ""
-"この種類のファイル/フォルダはコピーできません。エラー:\n"
-"\n"
+msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
+msgstr "この種類のファイル/フォルダはコピーできません。エラー:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1378
 msgid "Error pasting file"
 msgstr "ファイル貼付けエラー"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1379 spyder/plugins/explorer/widgets/explorer.py:1407
-msgid ""
-"Unsupported copy operation. The error was:\n"
-"\n"
-msgstr ""
-"サポートされていないコピー操作です。エラー:\n"
-"\n"
+msgid "Unsupported copy operation. The error was:\n\n"
+msgstr "サポートされていないコピー操作です。エラー:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1398
 msgid "Recursive copy"
@@ -3647,11 +3590,9 @@ msgid "Display initial banner"
 msgstr "初期バナーの表示"
 
 #: spyder/plugins/ipythonconsole/confpage.py:31
-msgid ""
-"This option lets you hide the message shown at\n"
+msgid "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
-msgstr ""
-"このオプションによりコンソールを開いた時に表示される\n"
+msgstr "このオプションによりコンソールを開いた時に表示される\n"
 "一番上のメッセージを隠すことができます。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:35
@@ -3663,11 +3604,9 @@ msgid "Ask for confirmation before removing all user-defined variables"
 msgstr "全てのユーザー定義変数を削除する前に確認する"
 
 #: spyder/plugins/ipythonconsole/confpage.py:41
-msgid ""
-"This option lets you hide the warning message shown\n"
+msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
-msgstr ""
-"このオプションによりSpyderから名前空間をリセットするときの\n"
+msgstr "このオプションによりSpyderから名前空間をリセットするときの\n"
 "警告メッセージを隠すことができます。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:43 spyder/plugins/ipythonconsole/widgets/main_widget.py:450
@@ -3679,11 +3618,9 @@ msgid "Ask for confirmation before restarting"
 msgstr "再起動前に確認メッセージを出す"
 
 #: spyder/plugins/ipythonconsole/confpage.py:47
-msgid ""
-"This option lets you hide the warning message shown\n"
+msgid "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
-msgstr ""
-"このオプションによりカーネル再起動時の\n"
+msgstr "このオプションによりカーネル再起動時の\n"
 "警告メッセージを隠すことができます。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:59
@@ -3719,12 +3656,10 @@ msgid "Buffer:  "
 msgstr "バッファー: "
 
 #: spyder/plugins/ipythonconsole/confpage.py:75
-msgid ""
-"Set the maximum number of lines of text shown in the\n"
+msgid "Set the maximum number of lines of text shown in the\n"
 "console before truncation. Specifying -1 disables it\n"
 "(not recommended!)"
-msgstr ""
-"コンソール内で表示するテキストの最大行数を設定。\n"
+msgstr "コンソール内で表示するテキストの最大行数を設定。\n"
 "-1 を設定すると無効になります\n"
 "(非推奨です!)"
 
@@ -3741,13 +3676,11 @@ msgid "Automatically load Pylab and NumPy modules"
 msgstr "Pylab, NumPyモジュールを自動的にロード"
 
 #: spyder/plugins/ipythonconsole/confpage.py:89
-msgid ""
-"This lets you load graphics support without importing\n"
+msgid "This lets you load graphics support without importing\n"
 "the commands to do plots. Useful to work with other\n"
 "plotting libraries different to Matplotlib or to develop\n"
 "GUIs with Spyder."
-msgstr ""
-"プロットコマンドをインポートすることなしに画像サポートを\n"
+msgstr "プロットコマンドをインポートすることなしに画像サポートを\n"
 "有効にします。Matplotlib以外のプロットライブラリを利用\n"
 "している場合や、SpyderでGUIを開発している場合、\n"
 "有用です。"
@@ -3825,14 +3758,12 @@ msgid "Use a tight layout for inline plots"
 msgstr "インラインプロットのためにタイトなレイアウトを使う"
 
 #: spyder/plugins/ipythonconsole/confpage.py:164
-msgid ""
-"Sets bbox_inches to \"tight\" when\n"
+msgid "Sets bbox_inches to \"tight\" when\n"
 "plotting inline with matplotlib.\n"
 "When enabled, can cause discrepancies\n"
 "between the image displayed inline and\n"
 "that created using savefig."
-msgstr ""
-"matplotlibを使ってインラインプロット\n"
+msgstr "matplotlibを使ってインラインプロット\n"
 "するためにbbox_inchesに\"tight\"を設定します。\n"
 "これが有効化された場合、インライン表示された画像と\n"
 "savefigによって作成された画像の間に食い違いが\n"
@@ -4259,25 +4190,16 @@ msgid "Connection error"
 msgstr "接続エラー"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1101
-msgid ""
-"An error occurred while trying to load the kernel connection file. The error was:\n"
-"\n"
-msgstr ""
-"カーネル接続ファイルをロードする時にエラーが発生しました。エラー:\n"
-"\n"
+msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
+msgstr "カーネル接続ファイルをロードする時にエラーが発生しました。エラー:\n\n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1124
-msgid ""
-"Could not open ssh tunnel. The error was:\n"
-"\n"
-msgstr ""
-"sshトンネルを開けませんでした。エラー:\n"
-"\n"
+msgid "Could not open ssh tunnel. The error was:\n\n"
+msgstr "sshトンネルを開けませんでした。エラー:\n\n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1519
-#, fuzzy
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed ({1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr "Python環境に<tt>spyder-kernels</tt>モジュールが無い、あるいは正しいバージョン({0}) がインストールされておりません。このモジュールがない場合Spyderでコンソールを開くことができません。<br><br>システムのターミナルで以下のコマンドを入力することによってインストールできます:<br><br><tt>{1}</tt><br><br>あるいは<br><br><tt>{2}</tt>"
+msgstr "Python環境 (インタープリターのインストール先<pre>    <tt>{0}</tt></pre>) に <tt>spyder-kernels</tt> モジュールが存在しない、あるいは正しいバージョンがインストールされていません ({1}) 。このモジュールがない場合Spyderでコンソールを開くことができません。<br><br> (必要なら) 環境をアクティブにし、システムターミナルで以下のコマンドを実行することでインストールできます：<pre>    <tt>{2}</tt></pre>あるいは<pre>    <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1751
 msgid "Do you want to close this console?"
@@ -4444,11 +4366,9 @@ msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
 msgstr "レイアウト <b>{0}</b> は上書きされます。続行しますか？"
 
 #: spyder/plugins/layout/container.py:368
-msgid ""
-"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr ""
-"ウインドウレイアウトはデフォルト状態にリセットされます：ウインドウ位置、サイズ及びドックウィジェットが影響されます。\n"
+msgstr "ウインドウレイアウトはデフォルト状態にリセットされます：ウインドウ位置、サイズ及びドックウィジェットが影響されます。\n"
 "続行しますか？"
 
 #: spyder/plugins/layout/layouts.py:81
@@ -4584,11 +4504,9 @@ msgid "You are working with Python 2, this means that you can not import a modul
 msgstr "Python2で動作しています。この環境では非アスキー文字を含むモジュールをインポートできません。"
 
 #: spyder/plugins/maininterpreter/confpage.py:245
-msgid ""
-"The following modules are not installed on your machine:\n"
+msgid "The following modules are not installed on your machine:\n"
 "%s"
-msgstr ""
-"以下のモジュールがコンピュータにインストールされていません:\n"
+msgstr "以下のモジュールがコンピュータにインストールされていません:\n"
 "%s"
 
 #: spyder/plugins/maininterpreter/confpage.py:252
@@ -4932,11 +4850,9 @@ msgid "Results"
 msgstr "結果"
 
 #: spyder/plugins/profiler/confpage.py:20
-msgid ""
-"Profiler plugin results (the output of python's profile/cProfile)\n"
+msgid "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
-msgstr ""
-"プロファイラプラグインの結果 (Python profile/cProfile出力)\n"
+msgstr "プロファイラプラグインの結果 (Python profile/cProfile出力)\n"
 "はこちらに保存されます:"
 
 #: spyder/plugins/profiler/plugin.py:67 spyder/plugins/profiler/widgets/main_widget.py:201 spyder/plugins/tours/tours.py:187
@@ -5848,13 +5764,9 @@ msgid "Save and Close"
 msgstr "保存して閉じる"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:101 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:431
-msgid ""
-"Opening this variable can be slow\n"
-"\n"
+msgid "Opening this variable can be slow\n\n"
 "Do you want to continue anyway?"
-msgstr ""
-"この変数を開くには時間がかかる場合があります\n"
-"\n"
+msgstr "この変数を開くには時間がかかる場合があります\n\n"
 "続行しますか?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:119
@@ -5894,11 +5806,9 @@ msgid "Spyder was unable to retrieve the value of this variable from the console
 msgstr "Spyderはコンソールから変数の値を読み取ることができませんでした。<br><br>エラーメッセージ:<br><i>%s</i>"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:367
-msgid ""
-"It is not possible to display this value because\n"
+msgid "It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
-msgstr ""
-"実行中にエラーが発生したため\n"
+msgstr "実行中にエラーが発生したため\n"
 "値を表示することが出来ません"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:610
@@ -6466,8 +6376,7 @@ msgid "Legal"
 msgstr "法的情報"
 
 #: spyder/widgets/arraybuilder.py:200
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Type an array in Matlab    : <code>[1 2;3 4]</code><br>\n"
 "           or Spyder simplified syntax : <code>1 2;3 4</code>\n"
@@ -6477,8 +6386,7 @@ msgid ""
 "           <b>Hint:</b><br>\n"
 "           Use two spaces or two tabs to generate a ';'.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "           <b>Numpy 配列/行列 ヘルパー        </b><br>\n"
 "           以下の形式で入力 Matlab形式  : <code>[1 2;3 4]</code><br>\n"
 "                             あるいはSpyder構文 : <code>1 2;3 4</code>\n"
@@ -6490,8 +6398,7 @@ msgstr ""
 "           "
 
 #: spyder/widgets/arraybuilder.py:211
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Enter an array in the table. <br>\n"
 "           Use Tab to move between cells.\n"
@@ -6501,8 +6408,7 @@ msgid ""
 "           <b>Hint:</b><br>\n"
 "           Use two tabs at the end of a row to move to the next row.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "           <b>Numpy 配列/行列 ヘルパー</b><br>\n"
 "           テーブルに配列を入力してください。 <br>\n"
 "           cell間の移動にはタブを使います。\n"
@@ -7045,5 +6951,3 @@ msgstr "インターネットに接続できません。 <br><br>接続が正し
 msgid "Unable to check for updates."
 msgstr "更新をチェックできません。"
 
-#~ msgid "On Save: convert EOL characters to"
-#~ msgstr "セーブ時に改行文字を以下に変換する"
