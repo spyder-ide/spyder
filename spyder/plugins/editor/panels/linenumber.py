@@ -13,7 +13,7 @@ from math import ceil
 import math
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt
+from qtpy.QtCore import QSize, Qt, QPointF
 from qtpy.QtGui import QPainter, QColor, QStaticText
 
 # Local imports
@@ -157,7 +157,9 @@ class LineNumberArea(Panel):
 
         top = self.editor.visible_blocks[0][0]
         left = width - self._static_line_numbers.size().width()
-        painter.drawStaticText(left, top, self._static_line_numbers)
+
+        painter.drawStaticText(
+            QPointF(left, top), self._static_line_numbers)
 
         if active_top is not None:
             font.setWeight(font.Bold)
@@ -181,7 +183,8 @@ class LineNumberArea(Panel):
                 self.editor.sideareas_color
             )
             # Paint bold number
-            painter.drawStaticText(left, active_top, self._static_active_line)
+            painter.drawStaticText(
+                QPointF(left, active_top), self._static_active_line)
 
     def leaveEvent(self, event):
         """Override Qt method."""
