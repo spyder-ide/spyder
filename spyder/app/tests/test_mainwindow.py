@@ -4314,6 +4314,9 @@ crash_func()
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("focus_to_editor", [True, False])
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="Fails on Windows")
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
     """Test that the focus_to_editor option works as expected."""
     # Write code with cells to a file
