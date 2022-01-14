@@ -214,7 +214,7 @@ class KiteInstallation(QWidget):
               "which provides you with real time <br>"
               "documentation as you code.<br><br>"
               "When Kite is done installing, the Copilot will <br>"
-              "launch automatically and guide you throught the <br>"
+              "launch automatically and guide you through the <br>"
               "rest of the setup process."))
 
         button_layout = QHBoxLayout()
