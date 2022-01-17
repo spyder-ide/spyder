@@ -39,7 +39,7 @@ jobs:
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
           ${pythonLocation}/bin/python -m pip install -U pip setuptools
-          ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
+          ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
           ${pythonLocation}/bin/python -m pip uninstall -q -y spyder
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
