@@ -4472,5 +4472,30 @@ def test_rename_files_in_editor_after_folder_rename(main_window, mocker,
     assert codeeditor.filename == osp.join(str(tmpdir), new_path, fname)
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_history_from_ipyconsole(main_window, qtbot):
+    """
+    Check that we register commands introduced in the IPython console in
+    the History pane.
+    """
+    # Wait for the console to be up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Run some code in the console
+    code = '5 + 3'
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(code)
+
+    # Check that code is displayed in History
+    history = main_window.get_plugin(Plugins.History)
+    history.switch_to_plugin()
+    history_editor = history.get_widget().editors[0]
+    text = history_editor.toPlainText()
+    assert text.splitlines()[-1] == code
+
+
 if __name__ == "__main__":
     pytest.main()
