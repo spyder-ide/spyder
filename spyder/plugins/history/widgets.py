@@ -73,7 +73,6 @@ class HistoryWidget(PluginMainWidget):
         self.dockviewer = None
         self.wrap_action = None
         self.linenumbers_action = None
-        self.editors = []
         self.filenames = []
         self.font = None
 
