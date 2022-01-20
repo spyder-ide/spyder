@@ -125,8 +125,7 @@ class Help(SpyderDockablePlugin):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
 
         # See: spyder-ide/spyder#6992
-        self._show_intro_message = lambda: self.show_intro_message()
-        shortcuts.sig_shortcuts_updated.connect(self._show_intro_message)
+        shortcuts.sig_shortcuts_updated.connect(self.show_intro_message)
 
         if self.is_plugin_available(Plugins.MainMenu):
             self._setup_menus()
@@ -173,7 +172,7 @@ class Help(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Shortcuts)
     def on_shortcuts_teardown(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
-        shortcuts.sig_shortcuts_updated.disconnect(self._show_intro_message)
+        shortcuts.sig_shortcuts_updated.disconnect(self.show_intro_message)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
