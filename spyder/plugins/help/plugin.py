@@ -203,6 +203,12 @@ class Help(SpyderDockablePlugin):
         except SpyderAPIError:
             pass
 
+    def on_mainwindow_visible(self):
+        # Raise plugin the first time Spyder starts
+        if self.get_conf('show_first_time', default=True):
+            self.dockwidget.raise_()
+            self.set_conf('show_first_time', False)
+
     # --- Private API
     # ------------------------------------------------------------------------
     def _setup_menus(self):
@@ -279,7 +285,6 @@ class Help(SpyderDockablePlugin):
 
     def show_intro_message(self):
         """Show the IPython introduction message."""
-        self.switch_to_plugin()
         self.get_widget().show_intro_message()
 
     def show_rich_text(self, text, collapse=False, img_path=''):
