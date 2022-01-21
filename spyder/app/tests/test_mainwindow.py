@@ -13,11 +13,14 @@ Tests for the main window.
 # Standard library imports
 import os
 import os.path as osp
+import psutil
 import re
 import shutil
 import sys
 import tempfile
 from textwrap import dedent
+import threading
+import traceback
 from unittest.mock import Mock
 import uuid
 
@@ -191,7 +194,7 @@ def read_asset_file(filename):
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
-def main_window(request, tmpdir):
+def main_window(request, tmpdir, qtbot):
     """Main Window fixture"""
     if not running_in_ci():
         register_fake_entrypoints()
@@ -316,26 +319,27 @@ def main_window(request, tmpdir):
         main_window.window = window
     else:
         window = main_window.window
-        # Close everything we can think of
-        window.editor.close_file()
-        window.projects.close_project()
-
-        if window.console.error_dialog:
-            window.console.close_error_dialog()
-
-        window.switcher.close()
-        for client in window.ipyconsole.get_clients():
-            window.ipyconsole.close_client(client=client, ask_recursive=False)
-        window.outlineexplorer.stop_symbol_services('python')
-        # Reset cwd
-        window.explorer.chdir(get_home_dir())
-        spyder_boilerplate = window.get_plugin(
-            'spyder_boilerplate', error=False)
-        if spyder_boilerplate is not None:
-            window.unregister_plugin(spyder_boilerplate)
 
     # Remove Kite (In case it was registered via setup.py)
     window.completions.providers.pop('kite', None)
+
+    # Wait until console is up
+    shell = window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # _DummyThread are created if current_thread() is called from them.
+    # They will always leak (From python doc) so we ignore them.
+    init_threads = [
+        thread for thread in threading.enumerate()
+        if not isinstance(thread, threading._DummyThread)]
+    window._initial_number_threads = len(init_threads)
+    proc = psutil.Process()
+    window._initial_number_files = len(proc.open_files())
+    init_files = [repr(f) for f in proc.open_files()]
+    init_subprocesses = [repr(f) for f in proc.children()]
+    number_subprocesses = len(init_subprocesses)
+
     yield window
 
     # Print shell content if failed
@@ -352,6 +356,90 @@ def main_window(request, tmpdir):
                 print(client.info_page)
             window.close()
             del main_window.window
+        else:
+            # Close everything we can think of
+            window.editor.close_file()
+            window.projects.close_project()
+
+            if window.console.error_dialog:
+                window.console.close_error_dialog()
+
+            window.switcher.close()
+            for client in window.ipyconsole.get_clients():
+                window.ipyconsole.close_client(client=client, ask_recursive=False)
+            window.outlineexplorer.stop_symbol_services('python')
+
+            # Reset cwd
+            window.explorer.chdir(get_home_dir())
+
+            # Unregister boilerplate plugin
+            spyder_boilerplate = window.get_plugin(
+                'spyder_boilerplate', error=False)
+            if spyder_boilerplate is not None:
+                window.unregister_plugin(spyder_boilerplate)
+
+            known_leak = request.node.get_closest_marker(
+                'known_leak')
+            if known_leak:
+                # This test has a known leak
+                return
+
+            # The test is not allowed to open new files or threads.
+            try:
+                def threads_condition():
+                    threads = [
+                        thread for thread in threading.enumerate()
+                        if not isinstance(thread, threading._DummyThread)]
+                    return (window._initial_number_threads
+                            >= len(threads))
+
+                qtbot.waitUntil(threads_condition, timeout=SHELL_TIMEOUT)
+            except Exception:
+                # print for debug purposes
+                sys.stderr.write("Initial threads:\n")
+                for thread in init_threads:
+                    sys.stderr.write(repr(thread) + "\n")
+                sys.stderr.write("Running threads:" + "\n")
+                for thread in threading.enumerate():
+                    if not isinstance(thread, threading._DummyThread):
+                        sys.stderr.write(repr(thread) + "\n")
+                sys.stderr.write("Running Threads stacks:\n")
+                for threadId, frame in sys._current_frames().items():
+                    sys.stderr.write("\nThread " + str(threadId) + ":\n")
+                    traceback.print_stack(frame)
+                raise
+
+            try:
+                qtbot.waitUntil(lambda: (number_subprocesses >=
+                                         len(proc.children())),
+                                timeout=SHELL_TIMEOUT)
+            except Exception:
+                # print for debug purposes
+                sys.stderr.write("Initially open processes:" + "\n")
+                for process in init_subprocesses:
+                    sys.stderr.write(repr(process) + "\n")
+                sys.stderr.write("Open processes:" + "\n")
+                for process in proc.children():
+                    sys.stderr.write(repr(process) + "\n")
+                raise
+
+            if os.name == 'nt':
+                # kernel stderr file leaks on windows
+                return
+            try:
+                qtbot.waitUntil(
+                    lambda: (window._initial_number_files
+                             >= len(proc.open_files())),
+                    timeout=SHELL_TIMEOUT)
+            except Exception:
+                # print for debug purposes
+                sys.stderr.write("Initially open files:" + "\n")
+                for file in init_files:
+                    sys.stderr.write(repr(file) + "\n")
+                sys.stderr.write("Open files:" + "\n")
+                for file in proc.open_files():
+                    sys.stderr.write(repr(file) + "\n")
+                raise
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -383,7 +471,8 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
     shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     spy_dir = osp.dirname(get_module_path('spyder'))
     lock_code = (
@@ -546,6 +635,7 @@ def test_filter_numpy_warning(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(PY2 or not sys.platform == 'darwin',
                     reason="Times out in PY2 and fails on other than macOS")
+@pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help can display docstrings for names typed in its combobox.
@@ -599,6 +689,7 @@ def test_get_help_combo(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Invalid definition of function in Python 2.")
+@pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
 def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     """
     Test that Help works when called from the IPython console
@@ -3226,7 +3317,7 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
             control = shell._control
             # `shell.executed` signal was not working so we use waitUntil
             qtbot.waitUntil(lambda: 'In [2]:' in control.toPlainText(),
-                            timeout=EVAL_TIMEOUT)
+                            timeout=10000)
             assert test_folder in control.toPlainText()
             count += 1
     assert count >= 1
@@ -3877,16 +3968,19 @@ def test_update_outline(main_window, qtbot, tmpdir):
         if editor.get_language() == 'Python'
     ]
 
+    def editor_filled():
+        return all(
+            [
+                len(treewidget.editor_tree_cache[editor.get_id()]) == 4
+                for editor in editors_py
+            ]
+        )
+
     # Wait a bit for trees to be filled
-    qtbot.wait(25000)
+    qtbot.waitUntil(editor_filled, timeout=25000)
 
     # Assert all Python editors are filled
-    assert all(
-        [
-            len(treewidget.editor_tree_cache[editor.get_id()]) == 4
-            for editor in editors_py
-        ]
-    )
+    assert editor_filled()
 
     # Split editor
     editorstack = main_window.editor.get_current_editorstack()
@@ -3938,16 +4032,19 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # Show outline again
     outline_explorer.toggle_view_action.setChecked(True)
 
-    # Wait a bit for its tree to be filled
-    qtbot.wait(3000)
+    def editor_filled():
+        return all(
+            [
+                len(treewidget.editor_tree_cache[editor.get_id()]) == 4
+                for editor in treewidget.editor_ids.keys()
+            ]
+        )
 
-    # Assert the editors were filled
-    assert all(
-        [
-            len(treewidget.editor_tree_cache[editor.get_id()]) == 4
-            for editor in treewidget.editor_ids.keys()
-        ]
-    )
+    # Wait a bit for trees to be filled
+    qtbot.waitUntil(editor_filled, timeout=3000)
+
+    # Assert all Python editors are filled
+    assert editor_filled()
 
     # Remove test file from session
     CONF.set('editor', 'filenames', [])
@@ -4313,6 +4410,7 @@ crash_func()
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 @pytest.mark.parametrize("focus_to_editor", [True, False])
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
@@ -4344,6 +4442,7 @@ foo(1)
 
     # Be sure the focus is on the editor before proceeding
     code_editor.setFocus()
+    assert QApplication.focusWidget() is code_editor
 
     # Select the run cell button to click it
     run_cell_action = main_window.run_toolbar_actions[1]

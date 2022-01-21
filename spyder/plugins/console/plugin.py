@@ -193,7 +193,7 @@ class Console(SpyderDockablePlugin):
         return self.get_widget().get_sys_path()
 
     @Slot(dict)
-    def handle_exception(self, error_data):
+    def handle_exception(self, error_data, sender=None):
         """
         Handle any exception that occurs during Spyder usage.
 
@@ -221,9 +221,11 @@ class Console(SpyderDockablePlugin):
         The `label` and `steps` keys allow customizing the content of the
         error dialog.
         """
+        if sender is None:
+            sender = self.sender()
         self.get_widget().handle_exception(
             error_data,
-            sender=self.sender()
+            sender=sender
         )
 
     def quit(self):

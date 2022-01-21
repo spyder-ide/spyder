@@ -127,7 +127,8 @@ ZeroDivisionError: division by zero
             text=error,
             is_traceback=True,
             title='Internal Python Language Server error',
-        )
+        ),
+        sender=console_plugin
     )
 
     # Make sure the error dialog was generated.

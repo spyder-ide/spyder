@@ -1534,7 +1534,8 @@ class MainWindow(QMainWindow):
         # to show them in their previous locations in the next session.
         # Fixes spyder-ide/spyder#12139
         prefix = 'window' + '/'
-        self.layouts.save_current_window_settings(prefix)
+        if self.layouts is not None:
+            self.layouts.save_current_window_settings(prefix)
         PLUGIN_REGISTRY.delete_plugin(Plugins.Layout)
 
         self.already_closed = True
