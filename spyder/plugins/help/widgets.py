@@ -783,10 +783,10 @@ class HelpWidget(PluginMainWidget):
             "activate this behavior in %s.")
         prefs = _("Preferences > Help")
 
-        shortcut_editor = self.get_conf('editor/inspect current object',
-                                        section='shortcuts')
-        shortcut_console = self.get_conf('console/inspect current object',
-                                         section='shortcuts')
+        shortcut_editor = self.get_conf(
+            'editor/inspect current object', section='shortcuts')
+        shortcut_console = self.get_conf(
+            'ipython_console/inspect current object', section='shortcuts')
 
         if sys.platform == 'darwin':
             shortcut_editor = shortcut_editor.replace('Ctrl', 'Cmd')
