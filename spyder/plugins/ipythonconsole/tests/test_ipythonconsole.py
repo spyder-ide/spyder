@@ -1139,7 +1139,11 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     # Mock method we want to check
     mocker.patch.object(ClientWidget, "_show_mpl_backend_errors")
 
+    ipyconsole.create_new_client()
+
     shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
     # Do an assignment to verify that it's not there after restarting
     with qtbot.waitSignal(shell.executed):
@@ -1155,7 +1159,7 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
 
     # Check that we try to show Matplotlib backend errors at the beginning and
     # after the restart.
-    assert ClientWidget._show_mpl_backend_errors.call_count == 1
+    assert ClientWidget._show_mpl_backend_errors.call_count == 2
 
 
 @flaky(max_runs=3)
