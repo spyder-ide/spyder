@@ -208,6 +208,7 @@ def ipyconsole(qtbot, request, tmpdir):
         qtbot.addWidget(window)
     window.resize(640, 480)
     window.show()
+
     # Wait until the window is fully up
     shell = console.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -240,10 +241,12 @@ def ipyconsole(qtbot, request, tmpdir):
     os.environ.pop('IPYCONSOLE_TESTING')
     os.environ.pop('IPYCONSOLE_TEST_DIR')
     os.environ.pop('IPYCONSOLE_TEST_NO_STDERR')
+
     known_leak = request.node.get_closest_marker(
         'known_leak')
     if known_leak:
         return
+
     try:
         qtbot.waitUntil(
             lambda: threads_count >= threading.active_count(),
@@ -257,6 +260,7 @@ def ipyconsole(qtbot, request, tmpdir):
         for thread in threading.enumerate():
             sys.stderr.write(repr(thread) + "\n")
         raise
+
     try:
         qtbot.waitUntil(lambda: number_files >= len(proc.open_files()),
                         timeout=SHELL_TIMEOUT)
@@ -269,6 +273,7 @@ def ipyconsole(qtbot, request, tmpdir):
         for file in proc.open_files():
             sys.stderr.write(repr(file) + "\n")
         raise
+
     try:
         qtbot.waitUntil(lambda: (number_subprocesses >=
                                  len(proc.children())),
