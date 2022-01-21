@@ -735,6 +735,13 @@ def set_spyder_pythonpath():
     pypath = os.environ.get('SPY_PYTHONPATH')
     if pypath:
         pathlist = pypath.split(os.pathsep)
-        sys.path.extend(pathlist)
+
+        if '' in sys.path:
+            # put cwd at front
+            sys.path.remove('')
+            pathlist.insert(0, '')
+
+        # User provided paths should take priority
+        [sys.path.insert(0, p) for p in reversed(pathlist)]
 
 set_spyder_pythonpath()
