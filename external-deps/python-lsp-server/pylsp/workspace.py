@@ -263,12 +263,14 @@ class Document:
         env_vars.pop('PYTHONPATH', None)
 
         environment = self.get_enviroment(environment_path, env_vars=env_vars) if environment_path else None
-        sys_path = self.sys_path(environment_path, env_vars=env_vars) + extra_paths
         project_path = self._workspace.root_path
+
+        # User provided paths should take priority
+        sys_path = extra_paths + self.sys_path(environment_path, env_vars=env_vars)
 
         # Extend sys_path with document's path if requested
         if use_document_path:
-            sys_path += [os.path.normpath(os.path.dirname(self.path))]
+            sys_path.insert(0, os.path.normpath(os.path.dirname(self.path)))
 
         kwargs = {
             'code': self.source,
