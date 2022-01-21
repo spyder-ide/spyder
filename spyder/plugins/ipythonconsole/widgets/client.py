@@ -39,10 +39,8 @@ from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
-from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import add_actions, DialogManager
 from spyder.py3compat import to_text_string
-from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -109,7 +107,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  css_path=None,
                  configuration=None,
                  handlers={},
-                 std_dir=None):
+                 stderr_obj=None,
+                 stdout_obj=None,
+                 fault_obj=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -132,7 +132,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
-        self.std_dir = std_dir
         self.is_error_shown = False
         self.error_text = None
         self.restart_thread = None
@@ -180,22 +179,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.dialog_manager = DialogManager()
 
         # --- Standard files handling
-        self.stderr_obj = None
-        self.stdout_obj = None
-        self.fault_obj = None
+        self.stderr_obj = stderr_obj
+        self.stdout_obj = stdout_obj
+        self.fault_obj = fault_obj
         self.std_poll_timer = None
-        if not self.is_external_kernel:
-            # Cannot create std files for external kernels
-            self.stderr_obj = StdFile(self.std_filename('.stderr'))
-            self.stdout_obj = StdFile(self.std_filename('.stdout'))
+        if self.stderr_obj is not None or self.stdout_obj is not None:
             self.std_poll_timer = QTimer(self)
             self.std_poll_timer.timeout.connect(self.poll_std_file_change)
             self.std_poll_timer.setInterval(1000)
             self.std_poll_timer.start()
             self.shellwidget.executed.connect(self.poll_std_file_change)
-        if self.hostname is None:
-            # Cannot read file that is not on this computer
-            self.fault_obj = StdFile(self.std_filename('.fault'))
 
     def __del__(self):
         """Close threads to avoid segfault."""
@@ -350,20 +343,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.container.find_widget.show)
 
     # ----- Public API --------------------------------------------------------
-    def std_filename(self, extension):
-        """Filename to save kernel output."""
-        file = None
-        if self.connection_file is not None:
-            file = self.kernel_id + extension
-            if self.std_dir is not None:
-                file = osp.join(self.std_dir, file)
-            else:
-                try:
-                    file = osp.join(get_temp_dir(), file)
-                except (IOError, OSError):
-                    file = None
-        return file
-
     @property
     def kernel_id(self):
         """Get kernel id."""
@@ -391,31 +370,33 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def poll_std_file_change(self):
         """Check if the stderr or stdout file just changed."""
         self.shellwidget.call_kernel().flush_std()
-        stderr = self.stderr_obj.poll_file_change()
         starting = self.shellwidget._starting
-        if stderr:
-            if self.is_benign_error(stderr):
-                return
-            if self.shellwidget.isHidden():
-                # Avoid printing the same thing again
-                if self.error_text != '<tt>%s</tt>' % stderr:
-                    full_stderr = self.stderr_obj.get_contents()
-                    self.show_kernel_error('<tt>%s</tt>' % full_stderr)
-            if starting:
-                self.shellwidget.banner = (
-                    stderr + '\n' + self.shellwidget.banner)
-            else:
-                self.shellwidget._append_plain_text(
-                    '\n' + stderr, before_prompt=True)
+        if self.stderr_obj is not None:
+            stderr = self.stderr_obj.poll_file_change()
+            if stderr:
+                if self.is_benign_error(stderr):
+                    return
+                if self.shellwidget.isHidden():
+                    # Avoid printing the same thing again
+                    if self.error_text != '<tt>%s</tt>' % stderr:
+                        full_stderr = self.stderr_obj.get_contents()
+                        self.show_kernel_error('<tt>%s</tt>' % full_stderr)
+                if starting:
+                    self.shellwidget.banner = (
+                        stderr + '\n' + self.shellwidget.banner)
+                else:
+                    self.shellwidget._append_plain_text(
+                        '\n' + stderr, before_prompt=True)
 
-        stdout = self.stdout_obj.poll_file_change()
-        if stdout:
-            if starting:
-                self.shellwidget.banner = (
-                    stdout + '\n' + self.shellwidget.banner)
-            else:
-                self.shellwidget._append_plain_text(
-                    '\n' + stdout, before_prompt=True)
+        if self.stdout_obj is not None:
+            stdout = self.stdout_obj.poll_file_change()
+            if stdout:
+                if starting:
+                    self.shellwidget.banner = (
+                        stdout + '\n' + self.shellwidget.banner)
+                else:
+                    self.shellwidget._append_plain_text(
+                        '\n' + stdout, before_prompt=True)
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
