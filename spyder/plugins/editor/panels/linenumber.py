@@ -53,9 +53,10 @@ class LineNumberArea(Panel):
         # This is a tuple composed of (number of digits, current width)
         self._width_cache = None
 
-        # cache line numbers
+        # Cache line numbers
         self._static_line_numbers = None
         self._static_active_line = None
+
         # Static text must be flushed when dpi changes (qt bug?)
         self._static_text_dpi = None
 
@@ -131,6 +132,7 @@ class LineNumberArea(Panel):
 
         # Right align
         line_numbers = [f"{ln:{number_digits}d}" for ln in visible_lines]
+
         # Use non-breaking spaces and <br> returns
         lines = "<br>".join(line_numbers).replace(" ", "&nbsp;")
 
@@ -177,11 +179,13 @@ class LineNumberArea(Panel):
 
             size = self._static_active_line.size()
             left = width - size.width()
+
             # Hide non-bold number
             painter.fillRect(
                 left, active_top, size.width(), size.height(),
                 self.editor.sideareas_color
             )
+
             # Paint bold number
             painter.drawStaticText(
                 QPointF(left, active_top), self._static_active_line)
