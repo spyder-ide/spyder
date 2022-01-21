@@ -13,16 +13,16 @@ Tests for the main window.
 # Standard library imports
 import os
 import os.path as osp
+import psutil
 import re
 import shutil
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import Mock
-import uuid
-import psutil
 import threading
 import traceback
+from unittest.mock import Mock
+import uuid
 
 # Third party imports
 from flaky import flaky

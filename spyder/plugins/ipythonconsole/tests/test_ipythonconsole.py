@@ -11,16 +11,16 @@ Tests for the IPython console plugin.
 """
 
 # Standard library imports
-import threading
 import codecs
 import glob
 import os
 import os.path as osp
-import shutil
 import psutil
+import shutil
 import sys
 import tempfile
 from textwrap import dedent
+import threading
 from unittest.mock import Mock
 
 # Third party imports
