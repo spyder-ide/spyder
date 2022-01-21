@@ -20,6 +20,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
+from spyder.config.base import DEV
 from spyder.plugins.console.widgets.main_widget import (
     ConsoleWidget, ConsoleWidgetActions)
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
@@ -129,7 +130,6 @@ class Console(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
-        widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
             ConsoleWidgetActions.Quit,
@@ -145,6 +145,12 @@ class Console(SpyderDockablePlugin):
 
     def on_mainwindow_visible(self):
         self.set_exit_function(self.main.closing)
+
+        # Hide this plugin when not in development so that people don't
+        # use it instead of the IPython console
+        if DEV is None:
+            self.toggle_view_action.setChecked(False)
+            self.dockwidget.hide()
 
     # --- API
     # ------------------------------------------------------------------------
