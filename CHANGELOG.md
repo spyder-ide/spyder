@@ -1,5 +1,106 @@
 # History of changes
 
+## Version 5.2.2 (2022-01-21)
+
+### Important fixes
+
+* Fix using Tk backend on Windows with the IPython Console
+* Fix several issues regarding the IPython Console kernel restart, shutdown and bening errors handling
+
+### Issues Closed
+
+* [Issue 17184](https://github.com/spyder-ide/spyder/issues/17184) - In Spyder 5.2.1, History pane is not being updated after entering commands in the IPython console ([PR 17218](https://github.com/spyder-ide/spyder/pull/17218) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17159](https://github.com/spyder-ide/spyder/issues/17159) - TypeError when displaying indent guides in Python 3.10 ([PR 17169](https://github.com/spyder-ide/spyder/pull/17169) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17145](https://github.com/spyder-ide/spyder/issues/17145) - TypeError when computing max of a dataframe column ([PR 17147](https://github.com/spyder-ide/spyder/pull/17147) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17144](https://github.com/spyder-ide/spyder/issues/17144) - The ( bracket does not always appear from input in IPython console ([PR 17175](https://github.com/spyder-ide/spyder/pull/17175) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17129](https://github.com/spyder-ide/spyder/issues/17129) - Error while renaming directory in Files pane ([PR 17132](https://github.com/spyder-ide/spyder/pull/17132) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17120](https://github.com/spyder-ide/spyder/issues/17120) - TypeError in calltip widget ([PR 17121](https://github.com/spyder-ide/spyder/pull/17121) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17102](https://github.com/spyder-ide/spyder/issues/17102) - spyder/app/tests/test_mainwindow.py::test_varexp_magic_dbg fails with Python 3.10 ([PR 17106](https://github.com/spyder-ide/spyder/pull/17106) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17101](https://github.com/spyder-ide/spyder/issues/17101) - Some test failures in spyder/plugins/editor/widgets/tests/test_warnings.py for Python 3.10 ([PR 17106](https://github.com/spyder-ide/spyder/pull/17106) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17100](https://github.com/spyder-ide/spyder/issues/17100) - autopep8 formatting tests failing ([PR 17106](https://github.com/spyder-ide/spyder/pull/17106) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17097](https://github.com/spyder-ide/spyder/issues/17097) - `KeyError: 'workspace'` when opening a project ([PR 17098](https://github.com/spyder-ide/spyder/pull/17098) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17090](https://github.com/spyder-ide/spyder/issues/17090) - test_handle_exception sometimes fails ([PR 17092](https://github.com/spyder-ide/spyder/pull/17092) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17084](https://github.com/spyder-ide/spyder/issues/17084) - test_arrayeditor.py::test_object_arrays_display consistently segfaults ([PR 17092](https://github.com/spyder-ide/spyder/pull/17092) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17080](https://github.com/spyder-ide/spyder/issues/17080) - test_workingdirectory.py tests segfault ([PR 17092](https://github.com/spyder-ide/spyder/pull/17092) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17071](https://github.com/spyder-ide/spyder/issues/17071) - test_pylint.py has lots of failures because qtawesome says 'Invalid font prefix "mdi"' ([PR 17074](https://github.com/spyder-ide/spyder/pull/17074) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17069](https://github.com/spyder-ide/spyder/issues/17069) - test_attribute_errors raises a numpy DeprecationWarning ([PR 17092](https://github.com/spyder-ide/spyder/pull/17092) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17068](https://github.com/spyder-ide/spyder/issues/17068) - test_objectexplorer_collection_types gives lots of errors ([PR 17075](https://github.com/spyder-ide/spyder/pull/17075) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17067](https://github.com/spyder-ide/spyder/issues/17067) - test_load_time fails ([PR 17092](https://github.com/spyder-ide/spyder/pull/17092) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17059](https://github.com/spyder-ide/spyder/issues/17059) - test_range_indicator_visible_on_hover_only fails ([PR 17092](https://github.com/spyder-ide/spyder/pull/17092) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17058](https://github.com/spyder-ide/spyder/issues/17058) - test_pydocgui.py has a timeout failure on test_get_pydoc ([PR 17092](https://github.com/spyder-ide/spyder/pull/17092) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17045](https://github.com/spyder-ide/spyder/issues/17045) - Wrong EOL characters written to file when saving ([PR 17048](https://github.com/spyder-ide/spyder/pull/17048) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17042](https://github.com/spyder-ide/spyder/issues/17042) - Unable to restart kernel with the default interpreter with the standalone Windows installer  ([PR 17158](https://github.com/spyder-ide/spyder/pull/17158) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17028](https://github.com/spyder-ide/spyder/issues/17028) - "Maintain focus in the editor" option has no effect when running cells ([PR 17094](https://github.com/spyder-ide/spyder/pull/17094) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17027](https://github.com/spyder-ide/spyder/issues/17027) - "An error ocurred while starting the kernel" about wrong version of spyder-kernels is displayed despite being installed ([PR 17033](https://github.com/spyder-ide/spyder/pull/17033) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17026](https://github.com/spyder-ide/spyder/issues/17026) - IPython Console shows error message on the Windows installer ([PR 17050](https://github.com/spyder-ide/spyder/pull/17050) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17025](https://github.com/spyder-ide/spyder/issues/17025) - Code Analysis error in the Windows installer when overwriting installation with a new installer version ([PR 17209](https://github.com/spyder-ide/spyder/pull/17209) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 17024](https://github.com/spyder-ide/spyder/issues/17024) - Spyder 5.2.1 stuck connecting to kernel when using the Tk backend on Windows ([PR 17156](https://github.com/spyder-ide/spyder/pull/17156) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 17011](https://github.com/spyder-ide/spyder/issues/17011) - Kernel process lingers after closing tab when running different interpreter and Qt5 backend ([PR 17035](https://github.com/spyder-ide/spyder/pull/17035) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16997](https://github.com/spyder-ide/spyder/issues/16997) - Error while checking/unchecking completion providers preferences ([PR 17056](https://github.com/spyder-ide/spyder/pull/17056) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16696](https://github.com/spyder-ide/spyder/issues/16696) - multiprocessing failing when function contains a class on the same file ([PR 17170](https://github.com/spyder-ide/spyder/pull/17170) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16676](https://github.com/spyder-ide/spyder/issues/16676) - An extra window running on Windows 11 ([PR 17182](https://github.com/spyder-ide/spyder/pull/17182) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 16423](https://github.com/spyder-ide/spyder/issues/16423) - Make Variable Explorer column headers movable ([PR 17127](https://github.com/spyder-ide/spyder/pull/17127) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 15331](https://github.com/spyder-ide/spyder/issues/15331) - Help pane cannot be toggled persistently in Spyder 5 ([PR 17222](https://github.com/spyder-ide/spyder/pull/17222) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 14928](https://github.com/spyder-ide/spyder/issues/14928) - Get long message in Spyder when I use SymPy consoles ([PR 17051](https://github.com/spyder-ide/spyder/pull/17051) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 14739](https://github.com/spyder-ide/spyder/issues/14739) - ZMQError: Address already in use when restarting the kernel ([PR 17035](https://github.com/spyder-ide/spyder/pull/17035) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 14534](https://github.com/spyder-ide/spyder/issues/14534) - DeprecationWarning: ShellWidget._syntax_style_changed is deprecated in traitlets 4.1: use @observe and @unobserve instead ([PR 17076](https://github.com/spyder-ide/spyder/pull/17076) by [@juliangilbey](https://github.com/juliangilbey))
+
+In this release 35 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 17226](https://github.com/spyder-ide/spyder/pull/17226) - PR: Update core dependencies for 5.2.2, by [@dalthviz](https://github.com/dalthviz)
+* [PR 17222](https://github.com/spyder-ide/spyder/pull/17222) - PR: Raise Help and IPython console to be visible only the first time Spyder starts, by [@ccordoba12](https://github.com/ccordoba12) ([15331](https://github.com/spyder-ide/spyder/issues/15331))
+* [PR 17218](https://github.com/spyder-ide/spyder/pull/17218) - PR: Restore connection between the IPython console and History, by [@ccordoba12](https://github.com/ccordoba12) ([17184](https://github.com/spyder-ide/spyder/issues/17184))
+* [PR 17209](https://github.com/spyder-ide/spyder/pull/17209) - PR: Update Windows installer assets URL to add previous installation validation, by [@dalthviz](https://github.com/dalthviz) ([17025](https://github.com/spyder-ide/spyder/issues/17025))
+* [PR 17193](https://github.com/spyder-ide/spyder/pull/17193) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 17192](https://github.com/spyder-ide/spyder/pull/17192) - PR: Update translations for 5.2.2, by [@dalthviz](https://github.com/dalthviz)
+* [PR 17190](https://github.com/spyder-ide/spyder/pull/17190) - PR: Spelling correction in the Kite progress installation dialog, by [@samiam2013](https://github.com/samiam2013)
+* [PR 17182](https://github.com/spyder-ide/spyder/pull/17182) - PR: Add missing parent param to QObjects/QWidgets on the status bar base classes, by [@dalthviz](https://github.com/dalthviz) ([16676](https://github.com/spyder-ide/spyder/issues/16676))
+* [PR 17175](https://github.com/spyder-ide/spyder/pull/17175) - PR: Prevent an error when inserting left brackets in the IPython console, by [@ccordoba12](https://github.com/ccordoba12) ([17144](https://github.com/spyder-ide/spyder/issues/17144))
+* [PR 17170](https://github.com/spyder-ide/spyder/pull/17170) - PR: Fix error with multiprocessing when code contains classes (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([16696](https://github.com/spyder-ide/spyder/issues/16696))
+* [PR 17169](https://github.com/spyder-ide/spyder/pull/17169) - PR: Convert to int variable used to paint indent guides (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([17159](https://github.com/spyder-ide/spyder/issues/17159))
+* [PR 17158](https://github.com/spyder-ide/spyder/pull/17158) - PR: Fix kernel restart for the Windows app (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([17042](https://github.com/spyder-ide/spyder/issues/17042))
+* [PR 17157](https://github.com/spyder-ide/spyder/pull/17157) - PR: Fix error with PyNaCl (Windows installer), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 17156](https://github.com/spyder-ide/spyder/pull/17156) - PR: Fix hang when setting the Tk backend on Windows (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([17024](https://github.com/spyder-ide/spyder/issues/17024))
+* [PR 17147](https://github.com/spyder-ide/spyder/pull/17147) - PR: Catch error when computing the max of a dataframe column (Variable Explorer), by [@ccordoba12](https://github.com/ccordoba12) ([17145](https://github.com/spyder-ide/spyder/issues/17145))
+* [PR 17137](https://github.com/spyder-ide/spyder/pull/17137) - PR: Skip a test on Windows because it hangs sometimes, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 17132](https://github.com/spyder-ide/spyder/pull/17132) - PR: Fix renaming files in the editor after the folder that contains them was renamed in Files, by [@ccordoba12](https://github.com/ccordoba12) ([17129](https://github.com/spyder-ide/spyder/issues/17129))
+* [PR 17127](https://github.com/spyder-ide/spyder/pull/17127) - PR: Make Variable Explorer column headers movable, by [@ccordoba12](https://github.com/ccordoba12) ([16423](https://github.com/spyder-ide/spyder/issues/16423))
+* [PR 17121](https://github.com/spyder-ide/spyder/pull/17121) - PR: Fix an implicit float to int conversion, by [@ccordoba12](https://github.com/ccordoba12) ([17120](https://github.com/spyder-ide/spyder/issues/17120))
+* [PR 17118](https://github.com/spyder-ide/spyder/pull/17118) - PR: Add pyz file extension to be syntax-highlighted as markdown, by [@contactzen](https://github.com/contactzen)
+* [PR 17106](https://github.com/spyder-ide/spyder/pull/17106) - PR: Fix autopep8 formatting and more failing tests, by [@ccordoba12](https://github.com/ccordoba12) ([17102](https://github.com/spyder-ide/spyder/issues/17102), [17101](https://github.com/spyder-ide/spyder/issues/17101), [17100](https://github.com/spyder-ide/spyder/issues/17100))
+* [PR 17105](https://github.com/spyder-ide/spyder/pull/17105) - PR: Skip another conda test if this tool is not present, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 17098](https://github.com/spyder-ide/spyder/pull/17098) - PR: Catch error when trying to detect project type (Projects), by [@ccordoba12](https://github.com/ccordoba12) ([17097](https://github.com/spyder-ide/spyder/issues/17097))
+* [PR 17095](https://github.com/spyder-ide/spyder/pull/17095) - PR: Skip conda and pyenv tests if these tools are not present, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 17094](https://github.com/spyder-ide/spyder/pull/17094) - PR: Fix a couple of focus issues with the IPython console, by [@ccordoba12](https://github.com/ccordoba12) ([17028](https://github.com/spyder-ide/spyder/issues/17028))
+* [PR 17092](https://github.com/spyder-ide/spyder/pull/17092) - PR: Fix several small issues in our test suite, by [@ccordoba12](https://github.com/ccordoba12) ([17090](https://github.com/spyder-ide/spyder/issues/17090), [17084](https://github.com/spyder-ide/spyder/issues/17084), [17080](https://github.com/spyder-ide/spyder/issues/17080), [17069](https://github.com/spyder-ide/spyder/issues/17069), [17067](https://github.com/spyder-ide/spyder/issues/17067), [17059](https://github.com/spyder-ide/spyder/issues/17059), [17058](https://github.com/spyder-ide/spyder/issues/17058))
+* [PR 17087](https://github.com/spyder-ide/spyder/pull/17087) - PR: Make Pylint config page test run independently from the rest in our test suite, by [@juliangilbey](https://github.com/juliangilbey) ([17071](https://github.com/spyder-ide/spyder/issues/17071))
+* [PR 17079](https://github.com/spyder-ide/spyder/pull/17079) - PR: Fix FileNotFoundError in Find plugin, by [@impact27](https://github.com/impact27)
+* [PR 17076](https://github.com/spyder-ide/spyder/pull/17076) - PR: Fix traitlets deprecation warning, by [@juliangilbey](https://github.com/juliangilbey) ([14534](https://github.com/spyder-ide/spyder/issues/14534))
+* [PR 17075](https://github.com/spyder-ide/spyder/pull/17075) - PR: Fix test_objectexplorer_collection_types for Python 3.9+, by [@ccordoba12](https://github.com/ccordoba12) ([17068](https://github.com/spyder-ide/spyder/issues/17068))
+* [PR 17074](https://github.com/spyder-ide/spyder/pull/17074) - PR: Make Pylint plugin tests run independently from the rest in our test suite, by [@ccordoba12](https://github.com/ccordoba12) ([17071](https://github.com/spyder-ide/spyder/issues/17071))
+* [PR 17064](https://github.com/spyder-ide/spyder/pull/17064) - PR: Fix "Show in external file explorer" for non-existing file (Windows), by [@rear1019](https://github.com/rear1019)
+* [PR 17063](https://github.com/spyder-ide/spyder/pull/17063) - PR: Small fixes to improve compatibility with PySide, by [@rear1019](https://github.com/rear1019)
+* [PR 17056](https://github.com/spyder-ide/spyder/pull/17056) - PR: Add validation for registration/unregistration of completion provider status bar widgets, by [@dalthviz](https://github.com/dalthviz) ([16997](https://github.com/spyder-ide/spyder/issues/16997))
+* [PR 17052](https://github.com/spyder-ide/spyder/pull/17052) - PR: Reconfigure client before a kernel restart (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 17051](https://github.com/spyder-ide/spyder/pull/17051) - PR: Don't print DeprecationWarning's that come from comm handlers (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([14928](https://github.com/spyder-ide/spyder/issues/14928))
+* [PR 17050](https://github.com/spyder-ide/spyder/pull/17050) - PR: Avoid showing bening kernel errors in console banner (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([17026](https://github.com/spyder-ide/spyder/issues/17026))
+* [PR 17048](https://github.com/spyder-ide/spyder/pull/17048) - PR: Fix setting EOL characters when the user decides their preferred ones in Preferences, by [@ccordoba12](https://github.com/ccordoba12) ([17045](https://github.com/spyder-ide/spyder/issues/17045))
+* [PR 17035](https://github.com/spyder-ide/spyder/pull/17035) - PR: Fix shutdown kernels associated to conda envs (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([17011](https://github.com/spyder-ide/spyder/issues/17011), [14739](https://github.com/spyder-ide/spyder/issues/14739))
+* [PR 17033](https://github.com/spyder-ide/spyder/pull/17033) - PR: Improve message about missing spyder-kernels (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([17027](https://github.com/spyder-ide/spyder/issues/17027))
+* [PR 17020](https://github.com/spyder-ide/spyder/pull/17020) - PR: Clean Announcements.md and update RELEASE.md, by [@dalthviz](https://github.com/dalthviz)
+* [PR 17019](https://github.com/spyder-ide/spyder/pull/17019) - PR: Fix cell highlighting (Editor), by [@impact27](https://github.com/impact27)
+* [PR 17003](https://github.com/spyder-ide/spyder/pull/17003) - PR: Many updates to third party file lists in NOTICE.txt, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 16974](https://github.com/spyder-ide/spyder/pull/16974) - PR: Limit the number of flags in the editor, by [@impact27](https://github.com/impact27)
+* [PR 16921](https://github.com/spyder-ide/spyder/pull/16921) - PR: Improve cursor position history (Editor), by [@impact27](https://github.com/impact27)
+
+In this release 45 pull requests were closed.
+
+
+----
+
+
 ## Version 5.2.1 (2021-12-14)
 
 ### Important fixes
