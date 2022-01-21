@@ -1153,11 +1153,8 @@ class MainWindow(QMainWindow):
         is triggered.
         """
         # Required plugins
-        help_plugin = self.get_plugin(Plugins.Help, error=False)
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole, error=False)
         projects = self.get_plugin(Plugins.Projects, error=False)
         editor = self.get_plugin(Plugins.Editor, error=False)
-        console = self.get_plugin(Plugins.Console, error=False)
 
         # Process pending events and hide splash before loading the
         # previous session.
@@ -1195,22 +1192,6 @@ class MainWindow(QMainWindow):
             # Connect the window to the signal emitted by the previous server
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
-
-        # Hide Internal Console so that people don't use it instead of
-        # the External or IPython ones
-        if console and console.dockwidget.isVisible() and DEV is None:
-            console.toggle_view_action.setChecked(False)
-            console.dockwidget.hide()
-
-        # Show Help and IPython console by default
-        plugins_to_show = []
-        if help_plugin:
-            plugins_to_show.append(help_plugin)
-        if ipyconsole:
-            plugins_to_show.append(ipyconsole)
-        for plugin in plugins_to_show:
-            if plugin.dockwidget.isVisible():
-                plugin.dockwidget.raise_()
 
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
