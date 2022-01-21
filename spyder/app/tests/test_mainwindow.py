@@ -4314,9 +4314,7 @@ crash_func()
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("focus_to_editor", [True, False])
-@pytest.mark.skipif(
-    os.name == 'nt',
-    reason="Fails on Windows")
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
     """Test that the focus_to_editor option works as expected."""
     # Write code with cells to a file
@@ -4481,9 +4479,6 @@ def test_debug_unsaved_function(main_window, qtbot):
     Test that a breakpoint in an unsaved file is reached.
     """
     # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
 
     # Main variables
     control = shell._control
