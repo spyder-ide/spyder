@@ -322,11 +322,13 @@ def main_window(request, tmpdir, qtbot):
 
     # Remove Kite (In case it was registered via setup.py)
     window.completions.providers.pop('kite', None)
+
     # Wait until console is up
     shell = window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    # _DummyThread are created if current_thread() is called from them
+
+    # _DummyThread are created if current_thread() is called from them.
     # They will always leak (From python doc) so we ignore them.
     init_threads = [
         thread for thread in threading.enumerate()
@@ -366,8 +368,11 @@ def main_window(request, tmpdir, qtbot):
             for client in window.ipyconsole.get_clients():
                 window.ipyconsole.close_client(client=client, ask_recursive=False)
             window.outlineexplorer.stop_symbol_services('python')
+
             # Reset cwd
             window.explorer.chdir(get_home_dir())
+
+            # Unregister boilerplate plugin
             spyder_boilerplate = window.get_plugin(
                 'spyder_boilerplate', error=False)
             if spyder_boilerplate is not None:
@@ -376,12 +381,11 @@ def main_window(request, tmpdir, qtbot):
             known_leak = request.node.get_closest_marker(
                 'known_leak')
             if known_leak:
-                # This test has a known leaks
+                # This test has a known leak
                 return
 
             # The test is not allowed to open new files or threads.
             try:
-
                 def threads_condition():
                     threads = [
                         thread for thread in threading.enumerate()
@@ -404,6 +408,7 @@ def main_window(request, tmpdir, qtbot):
                     sys.stderr.write("\nThread " + str(threadId) + ":\n")
                     traceback.print_stack(frame)
                 raise
+
             try:
                 qtbot.waitUntil(lambda: (number_subprocesses >=
                                          len(proc.children())),
