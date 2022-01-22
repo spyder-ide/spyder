@@ -2075,5 +2075,40 @@ def test_shutdown_kernel(ipyconsole, qtbot, tmpdir):
     assert not shell.get_value('kernel_exists')
 
 
+def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
+    """Check that the debugger handles the namespace of a comprehension."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_widget().get_focus_widget()
+
+    # Code to run
+    code = "locals = 1\nx = [locals + i for i in range(2)]"
+
+    # Write code to file on disk
+    file = tmpdir.join('test_breakpoint.py')
+    file.write(code)
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"debugfile(filename=r'{str(file)}')")
+
+    # steps 4 times
+    for i in range(4):
+        with qtbot.waitSignal(shell.executed):
+            shell.pdb_execute("s")
+    assert "Error" not in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("print('test', locals + i + 10)")
+
+    assert "Error" not in control.toPlainText()
+    assert "test 11" in control.toPlainText()
+
+    namespace = shell.call_kernel(blocking=True).get_namespace_view()
+    for key in namespace:
+        assert "_spyderpdb" not in key
+
+
 if __name__ == "__main__":
     pytest.main()
