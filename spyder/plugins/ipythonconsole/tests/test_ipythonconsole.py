@@ -1254,6 +1254,7 @@ def test_sys_argv_clear(ipyconsole, qtbot):
 
 
 @flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason="Fails sometimes on Windows")
 def test_set_elapsed_time(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     client = ipyconsole.get_current_client()
