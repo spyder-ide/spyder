@@ -4602,9 +4602,8 @@ def test_debug_unsaved_function(main_window, qtbot):
     """
     Test that a breakpoint in an unsaved file is reached.
     """
-    # Wait until the window is fully up
-
     # Main variables
+    shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     run_action = main_window.run_toolbar_actions[0]
     run_button = main_window.run_toolbar.widgetForAction(run_action)
