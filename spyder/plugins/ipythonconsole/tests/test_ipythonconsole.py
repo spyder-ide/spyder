@@ -2105,6 +2105,21 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     assert "Error" not in control.toPlainText()
     assert "test 11" in control.toPlainText()
 
+    settings = {
+     'check_all': False,
+     'exclude_callables_and_modules': True,
+     'exclude_capitalized': False,
+     'exclude_private': True,
+     'exclude_unsupported': False,
+     'exclude_uppercase': True,
+     'excluded_names': [],
+     'minmax': False,
+     'show_callable_attributes': True,
+     'show_special_attributes': False}
+
+    shell.call_kernel(
+            interrupt=True
+        ).set_namespace_view_settings(settings)
     namespace = shell.call_kernel(blocking=True).get_namespace_view()
     for key in namespace:
         assert "_spyderpdb" not in key
