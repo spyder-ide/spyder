@@ -1623,11 +1623,13 @@ class IPythonConsoleWidget(PluginMainWidget):
                      and kernel_spec.env == cached_env)
             if not valid:
                 # Close the kernel
-                kernel_manager = cached_kernel[1]
+                _, kernel_manager, _, stderr_obj, stdout_obj = cached_kernel
                 kernel_manager.stop_restarter()
                 kernel_manager.shutdown_kernel(now=True)
                 self._cached_kernel_properties = None
                 cached_kernel = None
+                stderr_obj.remove()
+                stdout_obj.remove()
 
         # Cache the new kernel
         self._cached_kernel_properties = (
@@ -1884,10 +1886,12 @@ class IPythonConsoleWidget(PluginMainWidget):
         ShellWidget.wait_all_shutdown()
         # Close cached kernel
         cached_kernel = self._cached_kernel_properties[-1]
-        kernel_manager = cached_kernel[1]
+        _, kernel_manager, _, stderr_obj, stdout_obj = cached_kernel
         kernel_manager.stop_restarter()
         kernel_manager.shutdown_kernel(now=True)
         self._cached_kernel_properties = None
+        stderr_obj.remove()
+        stdout_obj.remove()
         return True
 
     def get_client_index_from_id(self, client_id):
