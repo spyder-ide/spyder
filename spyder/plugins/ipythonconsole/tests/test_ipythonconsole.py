@@ -21,6 +21,7 @@ import sys
 import tempfile
 from textwrap import dedent
 import threading
+import traceback
 from unittest.mock import Mock
 
 # Third party imports
@@ -214,13 +215,14 @@ def ipyconsole(qtbot, request, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    threads_count = threading.active_count()
-    init_threads = [repr(t) for t in threading.enumerate()]
+    # _DummyThread are created if current_thread() is called from them.
+    # They will always leak (From python doc) so we ignore them.
+    init_threads = [
+        repr(thread) for thread in threading.enumerate()
+        if not isinstance(thread, threading._DummyThread)]
     proc = psutil.Process()
-    init_subprocesses = [repr(f) for f in proc.children()]
-    number_subprocesses = len(init_subprocesses) - 1  # -1 from closed client
-    number_files = len(proc.open_files())
     init_files = [repr(f) for f in proc.open_files()]
+    init_subprocesses = [repr(f) for f in proc.children()]
 
     yield console
 
@@ -242,50 +244,66 @@ def ipyconsole(qtbot, request, tmpdir):
     os.environ.pop('IPYCONSOLE_TEST_DIR')
     os.environ.pop('IPYCONSOLE_TEST_NO_STDERR')
 
+
     known_leak = request.node.get_closest_marker(
         'known_leak')
     if known_leak:
         return
 
+    def show_diff(init_list, now_list, name):
+        sys.stderr.write(f"Extra {name} before test:\n")
+        for item in init_list:
+            if item in now_list:
+                now_list.remove(item)
+            else:
+                sys.stderr.write(item + "\n")
+        sys.stderr.write(f"Extra {name} after test:\n")
+        for item in now_list:
+            sys.stderr.write(item + "\n")
+
+    # The test is not allowed to open new files or threads.
     try:
-        qtbot.waitUntil(
-            lambda: threads_count >= threading.active_count(),
+        def threads_condition():
+            threads = [
+                thread for thread in threading.enumerate()
+                if not isinstance(thread, threading._DummyThread)]
+            return (len(init_threads) >= len(threads))
+
+        qtbot.waitUntil(threads_condition, timeout=SHELL_TIMEOUT)
+    except Exception:
+        now_threads = [
+            thread for thread in threading.enumerate()
+            if not isinstance(thread, threading._DummyThread)]
+        threads = [repr(t) for t in now_threads]
+        show_diff(init_threads, threads, "thread")
+        sys.stderr.write("Running Threads stacks:\n")
+        now_thread_ids = [t.ident for t in now_threads]
+        for threadId, frame in sys._current_frames().items():
+            if threadId in now_thread_ids:
+                sys.stderr.write("\nThread " + str(threads) + ":\n")
+                traceback.print_stack(frame)
+        raise
+
+    try:
+        # -1 from closed client
+        qtbot.waitUntil(lambda: (
+            len(init_subprocesses) - 1 >= len(proc.children())),
             timeout=SHELL_TIMEOUT)
     except Exception:
-        # print for debug purposes
-        sys.stderr.write("Initial threads:" + "\n")
-        for thread in init_threads:
-            sys.stderr.write(repr(thread) + "\n")
-        sys.stderr.write("Running threads:" + "\n")
-        for thread in threading.enumerate():
-            sys.stderr.write(repr(thread) + "\n")
+        subprocesses = [repr(f) for f in proc.children()]
+        show_diff(init_subprocesses, subprocesses, "processes")
         raise
 
+    if os.name == 'nt':
+        # kernel stderr file leaks on windows
+        return
     try:
-        qtbot.waitUntil(lambda: number_files >= len(proc.open_files()),
-                        timeout=SHELL_TIMEOUT)
+        qtbot.waitUntil(
+            lambda: (len(init_files) >= len(proc.open_files())),
+            timeout=SHELL_TIMEOUT)
     except Exception:
-        # print for debug purposes
-        sys.stderr.write("Initially open files:" + "\n")
-        for file in init_files:
-            sys.stderr.write(repr(file) + "\n")
-        sys.stderr.write("Open files:" + "\n")
-        for file in proc.open_files():
-            sys.stderr.write(repr(file) + "\n")
-        raise
-
-    try:
-        qtbot.waitUntil(lambda: (number_subprocesses >=
-                                 len(proc.children())),
-                        timeout=SHELL_TIMEOUT)
-    except Exception:
-        # print for debug purposes
-        sys.stderr.write("Initially open processes:" + "\n")
-        for process in init_subprocesses:
-            sys.stderr.write(repr(process) + "\n")
-        sys.stderr.write("Open processes" + "\n")
-        for process in proc.children():
-            sys.stderr.write(repr(process) + "\n")
+        files = [repr(f) for f in proc.open_files()]
+        show_diff(init_files, files, "files")
         raise
 
 
