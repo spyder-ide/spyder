@@ -1623,15 +1623,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                      and kernel_spec.env == cached_env)
             if not valid:
                 # Close the kernel
-                _, kernel_manager, _, stderr_obj, stdout_obj = cached_kernel
-                kernel_manager.stop_restarter()
-                kernel_manager.shutdown_kernel(now=True)
-                self._cached_kernel_properties = None
-                cached_kernel = None
-                if stderr_obj:
-                    stderr_obj.remove()
-                if stdout_obj:
-                    stdout_obj.remove()
+                self.close_cached_kernel()
 
         # Cache the new kernel
         self._cached_kernel_properties = (
@@ -1645,6 +1637,18 @@ class IPythonConsoleWidget(PluginMainWidget):
             return self.create_new_kernel(kernel_spec, std_dir)
 
         return cached_kernel
+
+    def close_cached_kernel(self):
+        """Close the cached kernel."""
+        cached_kernel = self._cached_kernel_properties[-1]
+        _, kernel_manager, _, stderr_obj, stdout_obj = cached_kernel
+        kernel_manager.stop_restarter()
+        kernel_manager.shutdown_kernel(now=True)
+        self._cached_kernel_properties = None
+        if stderr_obj:
+            stderr_obj.remove()
+        if stdout_obj:
+            stdout_obj.remove()
 
     def create_new_kernel(self, kernel_spec, std_dir=None):
         """Create a new kernel."""
@@ -1887,15 +1891,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()
         # Close cached kernel
-        cached_kernel = self._cached_kernel_properties[-1]
-        _, kernel_manager, _, stderr_obj, stdout_obj = cached_kernel
-        kernel_manager.stop_restarter()
-        kernel_manager.shutdown_kernel(now=True)
-        self._cached_kernel_properties = None
-        if stderr_obj:
-            stderr_obj.remove()
-        if stdout_obj:
-            stdout_obj.remove()
+        self.close_cached_kernel()
         return True
 
     def get_client_index_from_id(self, client_id):

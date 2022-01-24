@@ -1331,30 +1331,33 @@ def test_kernel_crash(ipyconsole, qtbot):
     # Create an IPython kernel config file with a bad config
     ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
                               'ipython_kernel_config.py')
-    with open(ipy_kernel_cfg, 'w') as f:
-        # This option must be a string, not an int
-        f.write("c.InteractiveShellApp.extra_extension = 1")
+    try:
+        with open(ipy_kernel_cfg, 'w') as f:
+            # This option must be a string, not an int
+            f.write("c.InteractiveShellApp.extra_extension = 1")
 
-    ipyconsole.create_new_client()
+        ipyconsole.get_widget().close_cached_kernel()
+        ipyconsole.create_new_client()
 
-    # Assert that the console is showing an error
-    qtbot.waitUntil(lambda: ipyconsole.get_clients()[-1].is_error_shown,
-                    timeout=6000)
-    error_client = ipyconsole.get_clients()[-1]
-    assert error_client.is_error_shown
+        # Assert that the console is showing an error
+        qtbot.waitUntil(lambda: ipyconsole.get_clients()[-1].is_error_shown,
+                        timeout=6000)
+        error_client = ipyconsole.get_clients()[-1]
+        assert error_client.is_error_shown
 
-    # Assert the error contains the text we expect
-    webview = error_client.infowidget
-    if WEBENGINE:
-        webpage = webview.page()
-    else:
-        webpage = webview.page().mainFrame()
-    qtbot.waitUntil(
-        lambda: check_text(webpage, "Bad config encountered"),
-        timeout=6000)
+        # Assert the error contains the text we expect
+        webview = error_client.infowidget
+        if WEBENGINE:
+            webpage = webview.page()
+        else:
+            webpage = webview.page().mainFrame()
 
-    # Remove bad kernel config file
-    os.remove(ipy_kernel_cfg)
+        qtbot.waitUntil(
+            lambda: check_text(webpage, "Bad config encountered"),
+            timeout=6000)
+    finally:
+        # Remove bad kernel config file
+        os.remove(ipy_kernel_cfg)
 
 
 @flaky(max_runs=3)
