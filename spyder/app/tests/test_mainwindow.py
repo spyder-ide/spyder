@@ -328,14 +328,15 @@ def main_window(request, tmpdir, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # _DummyThread are created if current_thread() is called from them.
-    # They will always leak (From python doc) so we ignore them.
-    init_threads = [
-        repr(thread) for thread in threading.enumerate()
-        if not isinstance(thread, threading._DummyThread)]
-    proc = psutil.Process()
-    init_files = [repr(f) for f in proc.open_files()]
-    init_subprocesses = [repr(f) for f in proc.children()]
+    if os.name != 'nt':
+        # _DummyThread are created if current_thread() is called from them.
+        # They will always leak (From python doc) so we ignore them.
+        init_threads = [
+            repr(thread) for thread in threading.enumerate()
+            if not isinstance(thread, threading._DummyThread)]
+        proc = psutil.Process()
+        init_files = [repr(f) for f in proc.open_files()]
+        init_subprocesses = [repr(f) for f in proc.children()]
 
     yield window
 
@@ -374,6 +375,10 @@ def main_window(request, tmpdir, qtbot):
                 'spyder_boilerplate', error=False)
             if spyder_boilerplate is not None:
                 window.unregister_plugin(spyder_boilerplate)
+
+            if os.name == 'nt':
+                # Do not test leaks on windows
+                return
 
             known_leak = request.node.get_closest_marker(
                 'known_leak')
@@ -424,9 +429,6 @@ def main_window(request, tmpdir, qtbot):
                 show_diff(init_subprocesses, subprocesses, "processes")
                 raise
 
-            if os.name == 'nt':
-                # kernel stderr file leaks on windows
-                return
             try:
                 qtbot.waitUntil(
                     lambda: (len(init_files) >= len(proc.open_files())),
