@@ -1628,8 +1628,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                 kernel_manager.shutdown_kernel(now=True)
                 self._cached_kernel_properties = None
                 cached_kernel = None
-                stderr_obj.remove()
-                stdout_obj.remove()
+                if stderr_obj:
+                    stderr_obj.remove()
+                if stdout_obj:
+                    stdout_obj.remove()
 
         # Cache the new kernel
         self._cached_kernel_properties = (
@@ -1890,8 +1892,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         kernel_manager.stop_restarter()
         kernel_manager.shutdown_kernel(now=True)
         self._cached_kernel_properties = None
-        stderr_obj.remove()
-        stdout_obj.remove()
+        if stderr_obj:
+            stderr_obj.remove()
+        if stdout_obj:
+            stdout_obj.remove()
         return True
 
     def get_client_index_from_id(self, client_id):
