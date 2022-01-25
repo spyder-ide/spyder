@@ -212,8 +212,18 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Wait until the window is fully up
     shell = console.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    try:
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
+    except Exception:
+        # Print content of shellwidget and close window
+        print(console.get_current_shellwidget(
+            )._control.toPlainText())
+        client = console.get_current_client()
+        if client.info_page != client.blank_page:
+            print('info_page')
+            print(client.info_page)
+        raise
 
     if os.name != 'nt':
         # _DummyThread are created if current_thread() is called from them.
