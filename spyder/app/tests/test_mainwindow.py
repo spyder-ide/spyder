@@ -328,17 +328,15 @@ def main_window(request, tmpdir, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # _DummyThread are created if current_thread() is called from them.
-    # They will always leak (From python doc) so we ignore them.
-    init_threads = [
-        thread for thread in threading.enumerate()
-        if not isinstance(thread, threading._DummyThread)]
-    window._initial_number_threads = len(init_threads)
-    proc = psutil.Process()
-    window._initial_number_files = len(proc.open_files())
-    init_files = [repr(f) for f in proc.open_files()]
-    init_subprocesses = [repr(f) for f in proc.children()]
-    number_subprocesses = len(init_subprocesses)
+    if os.name != 'nt':
+        # _DummyThread are created if current_thread() is called from them.
+        # They will always leak (From python doc) so we ignore them.
+        init_threads = [
+            repr(thread) for thread in threading.enumerate()
+            if not isinstance(thread, threading._DummyThread)]
+        proc = psutil.Process()
+        init_files = [repr(f) for f in proc.open_files()]
+        init_subprocesses = [repr(f) for f in proc.children()]
 
     yield window
 
@@ -378,11 +376,26 @@ def main_window(request, tmpdir, qtbot):
             if spyder_boilerplate is not None:
                 window.unregister_plugin(spyder_boilerplate)
 
+            if os.name == 'nt':
+                # Do not test leaks on windows
+                return
+
             known_leak = request.node.get_closest_marker(
                 'known_leak')
             if known_leak:
                 # This test has a known leak
                 return
+
+            def show_diff(init_list, now_list, name):
+                sys.stderr.write(f"Extra {name} before test:\n")
+                for item in init_list:
+                    if item in now_list:
+                        now_list.remove(item)
+                    else:
+                        sys.stderr.write(item + "\n")
+                sys.stderr.write(f"Extra {name} after test:\n")
+                for item in now_list:
+                    sys.stderr.write(item + "\n")
 
             # The test is not allowed to open new files or threads.
             try:
@@ -390,55 +403,39 @@ def main_window(request, tmpdir, qtbot):
                     threads = [
                         thread for thread in threading.enumerate()
                         if not isinstance(thread, threading._DummyThread)]
-                    return (window._initial_number_threads
-                            >= len(threads))
+                    return (len(init_threads) >= len(threads))
 
                 qtbot.waitUntil(threads_condition, timeout=SHELL_TIMEOUT)
             except Exception:
-                # print for debug purposes
-                sys.stderr.write("Initial threads:\n")
-                for thread in init_threads:
-                    sys.stderr.write(repr(thread) + "\n")
-                sys.stderr.write("Running threads:" + "\n")
-                for thread in threading.enumerate():
-                    if not isinstance(thread, threading._DummyThread):
-                        sys.stderr.write(repr(thread) + "\n")
+                now_threads = [
+                    thread for thread in threading.enumerate()
+                    if not isinstance(thread, threading._DummyThread)]
+                threads = [repr(t) for t in now_threads]
+                show_diff(init_threads, threads, "thread")
                 sys.stderr.write("Running Threads stacks:\n")
+                now_thread_ids = [t.ident for t in now_threads]
                 for threadId, frame in sys._current_frames().items():
-                    sys.stderr.write("\nThread " + str(threadId) + ":\n")
-                    traceback.print_stack(frame)
+                    if threadId in now_thread_ids:
+                        sys.stderr.write("\nThread " + str(threads) + ":\n")
+                        traceback.print_stack(frame)
                 raise
 
             try:
-                qtbot.waitUntil(lambda: (number_subprocesses >=
-                                         len(proc.children())),
-                                timeout=SHELL_TIMEOUT)
-            except Exception:
-                # print for debug purposes
-                sys.stderr.write("Initially open processes:" + "\n")
-                for process in init_subprocesses:
-                    sys.stderr.write(repr(process) + "\n")
-                sys.stderr.write("Open processes:" + "\n")
-                for process in proc.children():
-                    sys.stderr.write(repr(process) + "\n")
-                raise
-
-            if os.name == 'nt':
-                # kernel stderr file leaks on windows
-                return
-            try:
-                qtbot.waitUntil(
-                    lambda: (window._initial_number_files
-                             >= len(proc.open_files())),
+                qtbot.waitUntil(lambda: (
+                    len(init_subprocesses) >= len(proc.children())),
                     timeout=SHELL_TIMEOUT)
             except Exception:
-                # print for debug purposes
-                sys.stderr.write("Initially open files:" + "\n")
-                for file in init_files:
-                    sys.stderr.write(repr(file) + "\n")
-                sys.stderr.write("Open files:" + "\n")
-                for file in proc.open_files():
-                    sys.stderr.write(repr(file) + "\n")
+                subprocesses = [repr(f) for f in proc.children()]
+                show_diff(init_subprocesses, subprocesses, "processes")
+                raise
+
+            try:
+                qtbot.waitUntil(
+                    lambda: (len(init_files) >= len(proc.open_files())),
+                    timeout=SHELL_TIMEOUT)
+            except Exception:
+                files = [repr(f) for f in proc.open_files()]
+                show_diff(init_files, files, "files")
                 raise
 
 
@@ -4412,6 +4409,7 @@ crash_func()
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 @pytest.mark.parametrize("focus_to_editor", [True, False])
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
     """Test that the focus_to_editor option works as expected."""
     # Write code with cells to a file
@@ -4594,6 +4592,42 @@ def test_history_from_ipyconsole(main_window, qtbot):
     history_editor = history.get_widget().editors[0]
     text = history_editor.toPlainText()
     assert text.splitlines()[-1] == code
+
+
+@pytest.mark.slow
+def test_debug_unsaved_function(main_window, qtbot):
+    """
+    Test that a breakpoint in an unsaved file is reached.
+    """
+    # Main variables
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text('def foo():\n    print(1)')
+
+    # Set breakpoint
+    code_editor.debugger.toogle_breakpoint(line_number=2)
+
+    # run file
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(run_button, Qt.LeftButton)
+
+    # debug foo
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug foo()')
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('continue')
+
+    assert "1---> 2     print(1)" in control.toPlainText()
 
 
 if __name__ == "__main__":
