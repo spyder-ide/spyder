@@ -740,6 +740,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter.rehighlight)
         self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
+        self.highlighter.sig_font_changed.connect(self.sync_font)
 
     # ---- Widget setup and options
     def toggle_wrap_mode(self, enable):
@@ -2166,19 +2167,17 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter = self.highlighter_class(self.document(),
                                                   self.font(),
                                                   self.color_scheme)
-        self.highlighter._cell_list = []
-        self.highlighter.sig_new_cell.connect(self.add_to_cell_list)
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
+        self.highlighter.sig_font_changed.connect(self.sync_font)
         self._rehighlight_timer.timeout.connect(
             self.highlighter.rehighlight)
 
-    def add_to_cell_list(self, oedata):
-        """Add new cell to cell list."""
-        if self.highlighter is None:
-            return
-        self.highlighter._cell_list.append(oedata)
+    def sync_font(self):
+        """Highlighter changed font, update."""
+        self.setFont(self.highlighter.font)
+        self.sig_font_changed.emit()
 
     def get_cell_list(self):
         """Get all cells."""
@@ -2766,7 +2765,6 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
-        self.sig_font_changed.emit()
         self.panels.refresh()
         self.apply_highlighter_settings(color_scheme)
 
