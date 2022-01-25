@@ -4409,6 +4409,7 @@ crash_func()
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 @pytest.mark.parametrize("focus_to_editor", [True, False])
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
     """Test that the focus_to_editor option works as expected."""
     # Write code with cells to a file
@@ -4591,6 +4592,42 @@ def test_history_from_ipyconsole(main_window, qtbot):
     history_editor = history.get_widget().editors[0]
     text = history_editor.toPlainText()
     assert text.splitlines()[-1] == code
+
+
+@pytest.mark.slow
+def test_debug_unsaved_function(main_window, qtbot):
+    """
+    Test that a breakpoint in an unsaved file is reached.
+    """
+    # Main variables
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text('def foo():\n    print(1)')
+
+    # Set breakpoint
+    code_editor.debugger.toogle_breakpoint(line_number=2)
+
+    # run file
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(run_button, Qt.LeftButton)
+
+    # debug foo
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug foo()')
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('continue')
+
+    assert "1---> 2     print(1)" in control.toPlainText()
 
 
 if __name__ == "__main__":
