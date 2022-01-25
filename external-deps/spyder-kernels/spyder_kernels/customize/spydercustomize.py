@@ -543,6 +543,10 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
         _print("Could not get code from editor.\n")
         return
 
+    # Normalise the filename
+    filename = os.path.abspath(filename)
+    filename = os.path.normcase(filename)
+
     with NamespaceManager(filename, namespace, current_namespace,
                           file_code=file_code) as (ns_globals, ns_locals):
         sys.argv = [filename]
@@ -676,6 +680,11 @@ def runcell(cellname, filename=None, post_mortem=False):
         file_code = get_file_code(filename, save_all=False)
     except Exception:
         file_code = None
+
+    # Normalise the filename
+    filename = os.path.abspath(filename)
+    filename = os.path.normcase(filename)
+
     with NamespaceManager(filename, current_namespace=True,
                           file_code=file_code) as (ns_globals, ns_locals):
         exec_code(cell_code, filename, ns_globals, ns_locals,
