@@ -4505,6 +4505,7 @@ foo(1)
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 def test_focus_to_consoles(main_window, qtbot):
     """
     Check that we give focus to the text widget of our consoles after focus
