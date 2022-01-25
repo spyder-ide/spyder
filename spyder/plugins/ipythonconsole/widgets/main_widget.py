@@ -1605,6 +1605,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         new_kernel = self.create_new_kernel(kernel_spec, std_dir)
         if new_kernel[2] is None:
             # error
+            self.close_cached_kernel()
             return new_kernel
 
         # Check cached kernel has the same configuration as is being asked
@@ -1617,6 +1618,7 @@ class IPythonConsoleWidget(PluginMainWidget):
              cached_kernel) = self._cached_kernel_properties
             # Call interrupt_mode so the dict will be the same
             kernel_spec.interrupt_mode
+            cached_spec.interrupt_mode
             valid = (std_dir == cached_dir
                      and cached_spec.__dict__ == kernel_spec.__dict__
                      and kernel_spec.argv == cached_argv
@@ -1624,6 +1626,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             if not valid:
                 # Close the kernel
                 self.close_cached_kernel()
+                cached_kernel = None
 
         # Cache the new kernel
         self._cached_kernel_properties = (
@@ -1640,6 +1643,8 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def close_cached_kernel(self):
         """Close the cached kernel."""
+        if self._cached_kernel_properties is None:
+            return
         cached_kernel = self._cached_kernel_properties[-1]
         _, kernel_manager, _, stderr_obj, stdout_obj = cached_kernel
         kernel_manager.stop_restarter()
