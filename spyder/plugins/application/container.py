@@ -322,21 +322,21 @@ class ApplicationContainer(PluginMainContainer):
         if self.thread_updates is not None:
             self.thread_updates.terminate()
 
-        self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self, startup=startup)
-        self.worker_updates.sig_ready.connect(self._check_updates_ready)
-        self.worker_updates.sig_ready.connect(self.thread_updates.quit)
-        self.worker_updates.moveToThread(self.thread_updates)
-        self.thread_updates.started.connect(self.worker_updates.start)
+        # self.thread_updates = QThread(self)
+        # self.worker_updates = WorkerUpdates(self, startup=startup)
+        # self.worker_updates.sig_ready.connect(self._check_updates_ready)
+        # self.worker_updates.sig_ready.connect(self.thread_updates.quit)
+        # self.worker_updates.moveToThread(self.thread_updates)
+        # self.thread_updates.started.connect(self.worker_updates.start)
 
         # Delay starting this check to avoid blocking the main window
         # while loading.
         # Fixes spyder-ide/spyder#15839
-        updates_timer = QTimer(self)
-        updates_timer.setInterval(3000)
-        updates_timer.setSingleShot(True)
-        updates_timer.timeout.connect(self.thread_updates.start)
-        updates_timer.start()
+        # updates_timer = QTimer(self)
+        # updates_timer.setInterval(3000)
+        # updates_timer.setSingleShot(True)
+        # updates_timer.timeout.connect(self.thread_updates.start)
+        # updates_timer.start()
 
     # ---- Dependencies
     # -------------------------------------------------------------------------

@@ -109,7 +109,7 @@ class VCSStatus(StatusBarWidget):
             self._last_git_job = (fname, index)
             self._git_job_queue = None
             self._git_is_working = True
-            worker.start()
+            #worker.start()
 
     def get_git_refs(self, fname):
         """Get Git active branch, state, branches (plus tags)."""

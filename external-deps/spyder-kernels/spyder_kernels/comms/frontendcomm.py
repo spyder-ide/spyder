@@ -141,7 +141,10 @@ class FrontendComm(CommBase):
 
         if msg_type == 'shutdown_request':
             self.comm_thread_close.set()
-            self._comm_close(msg)
+            try:
+                self._comm_close(msg)
+            except KeyError:
+                pass
             return
 
         handler = self.kernel.shell_handlers.get(msg_type, None)

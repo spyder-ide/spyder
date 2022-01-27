@@ -545,6 +545,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPlugin):
+                    plugin_instance.close()
+                    plugin_instance.deleteLater()
                     can_close &= self.delete_plugin(plugin_name)
                     if not can_close and not close_immediately:
                         break

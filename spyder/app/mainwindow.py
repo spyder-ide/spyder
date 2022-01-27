@@ -1517,6 +1517,8 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+        #print('baz')
+        self.plugin_registry = PLUGIN_REGISTRY
 
         if cancelable and CONF.get('main', 'prompt_on_exit'):
             reply = QMessageBox.critical(self, 'Spyder',
@@ -1528,9 +1530,10 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
 
-        can_close = PLUGIN_REGISTRY.delete_all_plugins(
+        can_close = self.plugin_registry.delete_all_plugins(
             excluding={Plugins.Layout}, close_immediately=close_immediately)
 
+        #can_close = True
         if not can_close and not close_immediately:
             return False
 
@@ -1540,7 +1543,25 @@ class MainWindow(QMainWindow):
         prefix = 'window' + '/'
         if self.layouts is not None:
             self.layouts.save_current_window_settings(prefix)
-        PLUGIN_REGISTRY.delete_plugin(Plugins.Layout)
+        try:
+            self.plugin_registry.delete_plugin(Plugins.Layout)
+        except:
+            pass
+
+        #os._exit(0)
+        #app = qapplication()
+        #del app
+
+        # import time
+        # for __ in range(50):
+        #     QApplication.processEvents()
+        #     time.sleep(0.05)
+
+        def trace(frame, event, arg):
+            print("%s, %s:%d" % (event, frame.f_code.co_filename, frame.f_lineno))
+            return trace
+
+        #sys.settrace(trace)
 
         self.already_closed = True
         return True

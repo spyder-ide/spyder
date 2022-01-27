@@ -2928,7 +2928,7 @@ class EditorSplitter(QSplitter):
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
-        self.editorstack.destroyed.connect(lambda: self.editorstack_closed())
+        #self.editorstack.destroyed.connect(lambda: self.editorstack_closed())
         self.editorstack.sig_split_vertically.connect(
                      lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(

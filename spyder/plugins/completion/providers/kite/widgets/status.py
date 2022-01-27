@@ -43,9 +43,9 @@ class KiteStatusWidget(StatusBarWidget):
         self.setVisible(is_installed)
 
         # Installation dialog
-        self.installer = KiteInstallerDialog(
-            self,
-            self.installation_thread)
+        # self.installer = KiteInstallerDialog(
+        #     self,
+        #     self.installation_thread)
 
         self.installation_thread.sig_installation_status.connect(
             self.set_value)
