@@ -32,7 +32,7 @@ def pydocbrowser(qtbot):
     widget.resize(640, 480)
     widget.show()
 
-    with qtbot.waitSignal(widget.sig_load_finished, timeout=6000):
+    with qtbot.waitSignal(widget.sig_load_finished, timeout=20000):
         widget.initialize()
 
     qtbot.addWidget(widget)

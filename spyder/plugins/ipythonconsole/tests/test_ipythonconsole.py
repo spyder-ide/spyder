@@ -386,6 +386,9 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
+@pytest.mark.skipif(
+    running_in_ci() and not os.name == 'nt',
+    reason="Times out on Linux and macOS")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
@@ -1839,14 +1842,16 @@ def test_startup_code_pdb(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "backend",
-    ['inline', 'qt5', 'tk', 'osx', ]
+    ['inline', 'qt5', 'tk', 'osx']
 )
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
-    """Check if pdb works with every backend. (only testing 3)."""
+    """Check if setting an event loop while debugging works."""
     # Skip failing tests
-    if backend == 'tk' and (os.name == 'nt' or PY2):
+    if backend == 'tk' and os.name == 'nt':
         return
-    if backend == 'osx' and (sys.platform != "darwin" or PY2):
+    if backend == 'osx' and sys.platform != "darwin":
+        return
+    if backend == 'qt5' and not os.name == "nt" and running_in_ci():
         return
 
     shell = ipyconsole.get_current_shellwidget()
@@ -2057,7 +2062,10 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-def test_shutdown_kernel(ipyconsole, qtbot, tmpdir):
+@pytest.mark.skipif(
+    running_in_ci() and not os.name == 'nt',
+    reason="Times out on Linux and macOS")
+def test_shutdown_kernel(ipyconsole, qtbot):
     """
     Check that the kernel is shutdown after creating plots with the
     automatic backend.
