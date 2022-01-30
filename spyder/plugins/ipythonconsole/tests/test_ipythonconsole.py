@@ -407,6 +407,9 @@ def test_auto_backend(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.tk_backend
+@pytest.mark.skipif(
+    running_in_ci() and sys.platform == 'darwin',
+    reason="Times out on macOS")
 def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
