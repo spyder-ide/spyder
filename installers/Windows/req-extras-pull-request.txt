@@ -24,3 +24,7 @@ sympy
 
 # There are no wheels for version 3.3
 cryptography==3.2.1
+
+# Workaround for black 22 until we release a new version of
+# pylsp-black
+black==21.12b0

@@ -182,7 +182,7 @@ class LineNumberArea(Panel):
 
             # Hide non-bold number
             painter.fillRect(
-                left, active_top, size.width(), size.height(),
+                int(left), active_top, int(size.width()), int(size.height()),
                 self.editor.sideareas_color
             )
 
