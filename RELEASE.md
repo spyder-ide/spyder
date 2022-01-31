@@ -109,7 +109,7 @@ To release a new version of Spyder you need to follow these steps:
   - `binder/environment.yml`
   - *`spyder/plugins/ipythonconsole/widgets/main_widget.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
-_***Usually the version for the kernel validation on the IPython Console should only be updated for minor or major versions of `spyder-kernels`. Usually for `spyder-kernels` bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` (although this depends in the type of bugs resolved and if is worthy to reinforce the need of an update)**_
+**Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
 
 * Commit with
 
