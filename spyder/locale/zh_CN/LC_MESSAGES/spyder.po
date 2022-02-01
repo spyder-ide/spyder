@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-01-14 10:38-0500\n"
-"PO-Revision-Date: 2022-01-15 12:24\n"
+"PO-Revision-Date: 2022-02-01 15:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr "您可以在这里打开或关闭Spyder插件，以禁用不需要的功能或取得较轻量的体验。在此页面取消选择的插件将立即被停用，并且不会在下次Spyder启动时加载。"
+msgstr "您可以在这里打开或关闭任意内部或外部 Spyder 插件，以禁用不需要的功能或取得较轻量的体验。在此页面取消选择的插件将立即被停用，并且不会在下次 Spyder 启动时加载。"
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
@@ -91,7 +91,7 @@ msgstr "创建 Spyder 所需的套接字时出现错误。请尝试使用管理�
 
 #: spyder/app/mainwindow.py:822 spyder/plugins/tours/widgets.py:1087
 msgid "Welcome to Spyder!"
-msgstr "欢迎使用Spyder！"
+msgstr "欢迎使用 Spyder！"
 
 #: spyder/app/mainwindow.py:828
 msgid "Spyder Internal Console\n\n"
@@ -102,9 +102,9 @@ msgid "Spyder Internal Console\n\n"
 "Please don't use it to run your code\n\n"
 msgstr "Spyder 内部控制台\n\n"
 "该控制台用于报告应用程序的内部错误，\n"
-"并通过下列命令对 Spyder 的内部进行检查：\n"
-" spy.app, spy.window, dir(spy)\n\n"
-"请不要用它执行代码\n\n"
+"并通过下列命令对 Spyder 进行内部检查：\n"
+" spy.app、spy.window 和 dir(spy)\n\n"
+"请勿用其执行代码\n\n"
 
 #: spyder/app/mainwindow.py:908
 msgid "Loading old third-party plugins..."
