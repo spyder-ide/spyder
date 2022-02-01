@@ -197,6 +197,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Cannot read file that is not on this computer
             self.fault_obj = StdFile(self.std_filename('.fault'))
 
+        self.start_successful = False
+
     def __del__(self):
         """Close threads to avoid segfault."""
         if (self.restart_thread is not None
@@ -216,6 +218,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def _when_prompt_is_ready(self):
         """Configuration after the prompt is shown."""
+        self.start_successful = True
         # To hide the loading page
         self._hide_loading_page()
 
@@ -324,6 +327,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         We also ignore errors about comms, which are irrelevant.
         """
+        if self.start_successful:
+            return False
         stderr = self.stderr_obj.get_contents()
         if not stderr:
             return False

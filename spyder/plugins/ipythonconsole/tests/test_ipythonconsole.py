@@ -1174,12 +1174,21 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 10')
 
+    # Write something to stderr to verify that it's not there after restarting
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import sys; sys.__stderr__.write("HEL"+"LO")')
+
+    qtbot.waitUntil(
+        lambda: 'HELLO' in shell._control.toPlainText(), timeout=SHELL_TIMEOUT)
+
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
     ipyconsole.restart_kernel()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     assert 'Restarting kernel...' in shell._control.toPlainText()
+    assert 'HELLO' not in shell._control.toPlainText()
     assert not shell.is_defined('a')
 
     # Check that we try to show Matplotlib backend errors at the beginning and
