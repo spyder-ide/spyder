@@ -52,6 +52,7 @@ Reviewers may give context for the review to make sure the PR author is familiar
 For example,
 
 > In Spyder projects, we review pull requests by labeling which feedback needs to be addressed versus which feedback is optional. For more information, refer to the [Review Guidelines](https://github.com/spyder-ide/spyder/blob/master/REVIEW.md).
+- If after discussion, an author and a reviewer still don't agree on a change and can't come up with a solution that addresses the concerns of both parties, another maintainer of the repository in question (or if not available, another Spyder core developer) should be pinged to give a second opinion and mediate the disagreement.
 
 ## Reviewing process
 
@@ -89,6 +90,8 @@ PR authors are responsible for addressing requested reviews for the PR to be eli
 - [ ] User-facing changes
     - What use cases might this change influence?
     - Is in-interface text (new or modified) appropriately descriptive and free of spelling or grammar issues that would make its meaning unclear?
+
+In addition to requested changes, this category also includes questions that the reviewer has for the contributor that may relate to one of these areas, or otherwise need to be answered before the PR can be merged.
 
 #### Optional items
 
@@ -175,6 +178,10 @@ Review that addresses these topics on a PR will be prefixed with `[optional]` so
 Reviews may be tagged per comment or through the primary comment of a GitHub review.
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
+
+#### Comment items
+
+Reviewers can leave comments marked with the `[comment]` tag (preferably), or not marked with any tag, to highlight positive aspects of the contribution, ask a tangential question, suggest content that could be added in the future, or any other hint that could help the contributor or other reviewers to better understand the context of the proposed work. Contributors are not required to address such comments as part of the review process.
 
 #### Comment items
 
