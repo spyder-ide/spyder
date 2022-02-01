@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-01-14 10:38-0500\n"
-"PO-Revision-Date: 2022-02-01 15:58\n"
+"PO-Revision-Date: 2022-02-01 17:22\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -108,7 +108,7 @@ msgstr "Spyder 内部控制台\n\n"
 
 #: spyder/app/mainwindow.py:908
 msgid "Loading old third-party plugins..."
-msgstr "正在加载第三方插件..."
+msgstr "正在加载旧的第三方插件..."
 
 #: spyder/app/mainwindow.py:956 spyder/plugins/editor/widgets/editor.py:282
 msgid "File switcher..."
@@ -124,7 +124,7 @@ msgstr "搜索符号..."
 
 #: spyder/app/mainwindow.py:967
 msgid "Fast symbol search in file"
-msgstr "在文件内进行快速符号搜索"
+msgstr "在文件内快速搜索符号"
 
 #: spyder/app/mainwindow.py:985 spyder/plugins/editor/widgets/codeeditor.py:4330
 msgid "Undo"
@@ -152,7 +152,7 @@ msgstr "全选"
 
 #: spyder/app/mainwindow.py:1033 spyder/app/mainwindow.py:1036 spyder/widgets/pathmanager.py:71
 msgid "PYTHONPATH manager"
-msgstr "PYTHONPATH管理器"
+msgstr "PYTHONPATH 管理器"
 
 #: spyder/app/mainwindow.py:1060
 msgid "Setting up main window..."
