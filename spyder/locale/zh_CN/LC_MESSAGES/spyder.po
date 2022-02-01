@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-01-14 10:38-0500\n"
-"PO-Revision-Date: 2022-02-01 19:53\n"
+"PO-Revision-Date: 2022-02-01 20:01\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -172,7 +172,7 @@ msgstr "错误"
 
 #: spyder/app/mainwindow.py:1664
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr "要将 <code>{fpath}</code> 作为一个 Spyder 项目打开，请使用 <code>spyder -p \"{fname}\"</code>。"
+msgstr "要将 <code>{fpath}</code> 作为 Spyder 项目打开，请使用 <code>spyder -p \"{fname}\"</code> 命令。"
 
 #: spyder/app/mainwindow.py:1871 spyder/plugins/appearance/confpage.py:354 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:153 spyder/plugins/completion/providers/languageserver/provider.py:409 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:28 spyder/plugins/editor/widgets/editor.py:419 spyder/plugins/ipythonconsole/utils/ssh.py:71 spyder/plugins/ipythonconsole/widgets/main_widget.py:2135 spyder/plugins/ipythonconsole/widgets/main_widget.py:2217 spyder/plugins/ipythonconsole/widgets/shell.py:775 spyder/plugins/layout/container.py:309 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:372 spyder/plugins/layout/plugin.py:389 spyder/plugins/maininterpreter/confpage.py:192 spyder/plugins/maininterpreter/confpage.py:229 spyder/plugins/preferences/plugin.py:340 spyder/plugins/pylint/main_widget.py:110 spyder/plugins/variableexplorer/widgets/arrayeditor.py:568 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:100 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:430 spyder/utils/environ.py:90 spyder/utils/environ.py:141 spyder/utils/environ.py:154 spyder/widgets/collectionseditor.py:1109 spyder/widgets/collectionseditor.py:1121
 msgid "Warning"
@@ -180,7 +180,7 @@ msgstr "警告"
 
 #: spyder/app/mainwindow.py:1872 spyder/plugins/preferences/plugin.py:341
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
-msgstr "Spyder将重启和恢复默认设置：<br><br> 是否继续？"
+msgstr "Spyder 将重启并重置到默认设置：<br><br>确定要继续吗？"
 
 #: spyder/app/mainwindow.py:1989
 msgid "Initializing..."
@@ -189,24 +189,24 @@ msgstr "正在初始化..."
 #: spyder/app/restart.py:139
 msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr "无法关闭上一个Spyder实例。\n"
+msgstr "无法关闭上一个 Spyder 实例。\n"
 "重启已中止。"
 
 #: spyder/app/restart.py:141
 msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr "Spyder无法重置为出厂默认值。\n"
+msgstr "Spyder 无法重置为出厂默认设置。\n"
 "重启已中止。"
 
 #: spyder/app/restart.py:143
 msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
 msgstr "无法重启 Spyder。\n"
-"操作中止。"
+"操作已中止。"
 
 #: spyder/app/restart.py:145
 msgid "Spyder exit error"
-msgstr "Spyder 退出出现错误"
+msgstr "Spyder 退出时出现错误"
 
 #: spyder/app/restart.py:146
 msgid "Spyder reset error"
@@ -222,7 +222,7 @@ msgstr "正在关闭 Spyder"
 
 #: spyder/app/restart.py:266
 msgid "Resetting Spyder to defaults"
-msgstr "重置 Spyder 到默认配置"
+msgstr "重置 Spyder 到默认设置"
 
 #: spyder/app/restart.py:298
 msgid "Restarting"
