@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-01-14 10:38-0500\n"
-"PO-Revision-Date: 2022-02-01 17:22\n"
+"PO-Revision-Date: 2022-02-01 19:53\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -206,23 +206,23 @@ msgstr "无法重启 Spyder。\n"
 
 #: spyder/app/restart.py:145
 msgid "Spyder exit error"
-msgstr "Spyder退出错误"
+msgstr "Spyder 退出出现错误"
 
 #: spyder/app/restart.py:146
 msgid "Spyder reset error"
-msgstr "Spyder重置错误"
+msgstr "Spyder 重置时出现错误"
 
 #: spyder/app/restart.py:147
 msgid "Spyder restart error"
-msgstr "Spyder重启错误"
+msgstr "Spyder 重启时出现错误"
 
 #: spyder/app/restart.py:185
 msgid "Closing Spyder"
-msgstr "Spyder关闭中"
+msgstr "正在关闭 Spyder"
 
 #: spyder/app/restart.py:266
 msgid "Resetting Spyder to defaults"
-msgstr "重置Spyder到默认配置"
+msgstr "重置 Spyder 到默认配置"
 
 #: spyder/app/restart.py:298
 msgid "Restarting"
