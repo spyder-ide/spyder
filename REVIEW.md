@@ -116,9 +116,9 @@ Reviews may be tagged per comment or through the primary comment of a GitHub rev
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
 
-#### Discussion items
+#### Comment items
 
-I am not sure what people want for the discussion items tag, so this is a placeholder to make space for collaboration.
+Reviewers can leave comments marked with the `[comment]` tag (preferably), or not marked with any tag, to highlight positive aspects of the code, ask a tangential question, suggest that some details of the implementation could be improved in the future, indicate that a test would be nice to have, or any other hint that could help the contributor or other reviewers to better understand the context of the proposed work. Contributors are not required to address such comments as part of the review process.
 
 ### For documentation/website-focused review
 
@@ -156,6 +156,8 @@ PR authors are responsible for addressing requested reviews for the PR to be eli
 - [ ] Does any added/changed content render correctly, without user-visible issues?
 - [ ] Is the content free from typos and unambiguous grammar errors?
 
+In addition to requested changes, this category also includes questions that the reviewer has for the contributor that may relate to one of these areas, or otherwise need to be answered before the PR can be merged.
+
 #### Optional items
 
 Feedback asking for substantial, user-visible content additions and improvements to the text and images (rather than critical fixes) may be left as optional review comments, if it is appropriate and important enough to merit discussion on the original PR.
@@ -173,6 +175,10 @@ Review that addresses these topics on a PR will be prefixed with `[optional]` so
 Reviews may be tagged per comment or through the primary comment of a GitHub review.
 Addressing this feedback is considered above-and-beyond, and may be more relevant on some PRs than others.
 PR authors may address these reviews, but are not required to do so in order for the PR to be eligible for merging.
+
+#### Comment items
+
+Reviewers can leave comments marked with the `[comment]` tag (preferably), or not marked with any tag, to highlight positive aspects of the contribution, ask a tangential question, suggest content that could be added in the future, or any other hint that could help the contributor or other reviewers to better understand the context of the proposed work. Contributors are not required to address such comments as part of the review process.
 
 #### Followup-only items
 
