@@ -1359,7 +1359,7 @@ def test_kernel_crash(ipyconsole, qtbot):
                               'ipython_kernel_config.py')
     with open(ipy_kernel_cfg, 'w') as f:
         # This option must be a string, not an int
-        f.write("c.InteractiveShellApp.extra_extension = 1")
+        f.write("c.InteractiveShellApp.extra_extensions = [1]")
 
     ipyconsole.create_new_client()
 
