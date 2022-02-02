@@ -254,7 +254,7 @@ extras_require = {
         'matplotlib',
         'pandas',
         'pillow',
-        'pytest<6.0',
+        'pytest<7.0',
         'pytest-cov',
         'pytest-lazy-fixture',
         'pytest-mock',
