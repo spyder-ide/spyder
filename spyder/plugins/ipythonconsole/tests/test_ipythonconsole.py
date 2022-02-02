@@ -215,7 +215,10 @@ def ipyconsole(qtbot, request, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    if os.name != 'nt':
+    # Check for thread or open file leaks
+    known_leak = request.node.get_closest_marker('known_leak')
+
+    if os.name != 'nt' and not known_leak:
         # _DummyThread are created if current_thread() is called from them.
         # They will always leak (From python doc) so we ignore them.
         init_threads = [
@@ -245,13 +248,8 @@ def ipyconsole(qtbot, request, tmpdir):
     os.environ.pop('IPYCONSOLE_TEST_DIR')
     os.environ.pop('IPYCONSOLE_TEST_NO_STDERR')
 
-    if os.name == 'nt':
-        # Do not test for leaks on windows
-        return
-
-    known_leak = request.node.get_closest_marker(
-        'known_leak')
-    if known_leak:
+    if os.name == 'nt' or known_leak:
+        # Do not test for leaks
         return
 
     def show_diff(init_list, now_list, name):
@@ -408,8 +406,8 @@ def test_auto_backend(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.tk_backend
 @pytest.mark.skipif(
-    running_in_ci() and sys.platform == 'darwin',
-    reason="Times out on macOS")
+    running_in_ci() and not os.name == 'nt',
+    reason="Times out on Linux and macOS")
 def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
@@ -550,6 +548,9 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    running_in_ci() and sys.platform == 'darwin',
+    reason="Hangs sometimes on macOS")
 def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     """Test that tabs preserve their names after they are moved."""
     # Create a new client
@@ -929,7 +930,6 @@ def test_read_stderr(ipyconsole, qtbot):
 @pytest.mark.no_xvfb
 @pytest.mark.skipif(running_in_ci() and os.name == 'nt',
                     reason="Times out on Windows")
-@pytest.mark.skipif(PY2, reason="It times out in Python 2.")
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -1314,7 +1314,9 @@ def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Doesn't work on Windows and hangs sometimes on Mac")
 def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
     """Test that console removes stderr when client and related clients
     are closed."""
