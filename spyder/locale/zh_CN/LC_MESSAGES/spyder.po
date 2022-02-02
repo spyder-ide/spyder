@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-01-14 10:38-0500\n"
-"PO-Revision-Date: 2022-02-01 20:01\n"
+"PO-Revision-Date: 2022-02-02 18:35\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -474,7 +474,7 @@ msgstr "在专用窗格中显示编辑器和控制台中对象的帮助"
 
 #: spyder/dependencies.py:238
 msgid "Jupyter kernels for the Spyder console"
-msgstr "Spyder控制台的 Jupyter 内核"
+msgstr "Spyder 控制台的 Jupyter 内核"
 
 #: spyder/dependencies.py:242
 msgid "Compute distances between strings"
