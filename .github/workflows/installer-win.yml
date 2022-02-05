@@ -19,7 +19,7 @@ jobs:
       UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree QDarkStyle PyNaCl' || 'pip python-slugify Rtree PyNaCl' }}
       SKIP_PACKAGES: 'bcrypt slugify'
       ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle nacl' || 'blib2to3 _black_version blackd rtree nacl' }}
-      PYNSIST_REQ: pynsist==2.5.1
+      PYNSIST_REQ: pynsist==2.7
       EXTRA_FLAG: ${{ matrix.build_type == 'Full' && github.event_name == 'pull_request' && '-ep installers/Windows/req-extras-pull-request.txt' || matrix.build_type == 'Lite' && github.event_name == 'pull_request' && '-ep installers/Windows/req-pull-request.txt' || matrix.build_type == 'Full' && '-ep installers/Windows/req-extras-release.txt' || '-ep installers/Windows/req-release.txt' }}
       SUFFIX_FLAG: ${{ matrix.build_type == 'Lite' && '-s lite' || '-s full' }}
       TEMPLATE_FAG: '-t installers/Windows/assets/nsist/spyder.nsi'
@@ -32,7 +32,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7.9
+          python-version: 3.8.10
       - name: Install yarg
         shell: bash -l {0}
         run: |
@@ -40,7 +40,7 @@ jobs:
       - name: Run script
         shell: bash -l {0}
         run: |
-          python installers/Windows/installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt ${EXTRA_FLAG} ${SUFFIX_FLAG} ${TEMPLATE_FAG}
+          python installers/Windows/installer.py 3.8.10 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt ${EXTRA_FLAG} ${SUFFIX_FLAG} ${TEMPLATE_FAG}
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
