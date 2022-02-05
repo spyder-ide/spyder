@@ -8,7 +8,7 @@
 Tests for pydocgui.py
 """
 # Standard library imports
-import sys
+import os
 from unittest.mock import MagicMock
 
 # Test library imports
@@ -45,7 +45,7 @@ def pydocbrowser(qtbot):
     [('str', 'class str', [0, 1]), ('numpy.testing', 'numpy.testing', [5, 10])]
 )
 @pytest.mark.skipif(
-    (sys.platform == 'darwin' or
+    (not os.name == 'nt' or
      NumpyVersion(np.__version__) < NumpyVersion('1.21.0')),
     reason="Fails on Mac and older versions of Numpy"
 )
