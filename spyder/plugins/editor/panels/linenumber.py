@@ -14,7 +14,7 @@ import math
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, QPointF
-from qtpy.QtGui import QPainter, QColor, QStaticText
+from qtpy.QtGui import QPainter, QColor, QStaticText, QFontMetricsF
 
 # Local imports
 from spyder.utils.icon_manager import ima
@@ -86,7 +86,15 @@ class LineNumberArea(Panel):
         icon_size = QSize(size, size)
 
         if self._margin:
-            self.draw_linenumbers(painter)
+            font = self.editor.font()
+            fm = QFontMetricsF(font)
+            if fm.leading() == 0:
+                self.draw_linenumbers(painter)
+            else:
+                # The editor doesn't care about leading, so each line
+                # must be drawn indepedently
+                self.draw_linenumbers_slow(painter)
+
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()
             if self._markers_margin and data:
@@ -145,7 +153,7 @@ class LineNumberArea(Panel):
         painter.setPen(self.linenumbers_color)
 
         if self.logicalDpiX() != self._static_text_dpi:
-            self._static_text_dpi = None
+            self._static_text_dpi = self.logicalDpiX()
             self._static_line_numbers = None
             self._static_active_line = None
 
@@ -155,7 +163,6 @@ class LineNumberArea(Panel):
         else:
             self._static_line_numbers = QStaticText(lines)
             self._static_line_numbers.prepare(font=font)
-            self._static_text_dpi = self.logicalDpiX()
 
         top = self.editor.visible_blocks[0][0]
         left = width - self._static_line_numbers.size().width()
@@ -189,6 +196,28 @@ class LineNumberArea(Panel):
             # Paint bold number
             painter.drawStaticText(
                 QPointF(left, active_top), self._static_active_line)
+
+    def draw_linenumbers_slow(self, painter):
+        """Draw line numbers. 2x slower."""
+        font = self.editor.font()
+        font_height = self.editor.fontMetrics().height()
+        active_block = self.editor.textCursor().block()
+        active_line_number = active_block.blockNumber() + 1
+        for top, line_number, block in self.editor.visible_blocks:
+           if self._margin:
+               if line_number == active_line_number:
+                   font.setWeight(font.Bold)
+                   painter.setFont(font)
+                   painter.setPen(self.editor.normal_color)
+               else:
+                   font.setWeight(font.Normal)
+                   painter.setFont(font)
+                   painter.setPen(self.linenumbers_color)
+
+               painter.drawText(0, top, self.width(),
+                                font_height,
+                                int(Qt.AlignRight | Qt.AlignBottom),
+                                str(line_number))
 
     def leaveEvent(self, event):
         """Override Qt method."""
