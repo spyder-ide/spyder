@@ -208,20 +208,20 @@ class LineNumberArea(Panel):
         active_block = self.editor.textCursor().block()
         active_line_number = active_block.blockNumber() + 1
         for top, line_number, block in self.editor.visible_blocks:
-           if self._margin:
-               if line_number == active_line_number:
-                   font.setWeight(font.Bold)
-                   painter.setFont(font)
-                   painter.setPen(self.editor.normal_color)
-               else:
-                   font.setWeight(font.Normal)
-                   painter.setFont(font)
-                   painter.setPen(self.linenumbers_color)
+            if self._margin:
+                if line_number == active_line_number:
+                    font.setWeight(font.Bold)
+                    painter.setFont(font)
+                    painter.setPen(self.editor.normal_color)
+                else:
+                    font.setWeight(font.Normal)
+                    painter.setFont(font)
+                    painter.setPen(self.linenumbers_color)
 
-               painter.drawText(0, top, self.width(),
-                                font_height,
-                                int(Qt.AlignRight | Qt.AlignBottom),
-                                str(line_number))
+                painter.drawText(0, top, self.width(),
+                                 font_height,
+                                 int(Qt.AlignRight | Qt.AlignBottom),
+                                 str(line_number))
 
     def leaveEvent(self, event):
         """Override Qt method."""
