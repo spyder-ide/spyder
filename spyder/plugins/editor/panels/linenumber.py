@@ -92,7 +92,7 @@ class LineNumberArea(Panel):
                 self.draw_linenumbers(painter)
             else:
                 # The editor doesn't care about leading, so each line
-                # must be drawn indepedently
+                # must be drawn independently.
                 self.draw_linenumbers_slow(painter)
 
         for top, line_number, block in self.editor.visible_blocks:
@@ -198,7 +198,11 @@ class LineNumberArea(Panel):
                 QPointF(left, active_top), self._static_active_line)
 
     def draw_linenumbers_slow(self, painter):
-        """Draw line numbers. 2x slower."""
+        """
+        Slower way (2x) to draw line numbers.
+
+        This is necessary for some fonts.
+        """
         font = self.editor.font()
         font_height = self.editor.fontMetrics().height()
         active_block = self.editor.textCursor().block()
