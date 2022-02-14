@@ -1962,6 +1962,18 @@ class CodeEditor(TextEditBaseWidget):
     def notify_close(self):
         """Send close request."""
         if self.completions_available:
+            # This is necessary to prevent an error in our tests.
+            try:
+                # Servers can send an empty publishDiagnostics reply to clear
+                # diagnostics after they receive a didClose request. Since
+                # we also ask for symbols and folding when processing
+                # diagnostics, we need to prevent it from happening
+                # before sending that request here.
+                self._timer_sync_symbols_and_folding.timeout.disconnect(
+                    self.sync_symbols_and_folding)
+            except TypeError:
+                pass
+
             params = {
                 'file': self.filename,
                 'codeeditor': self
