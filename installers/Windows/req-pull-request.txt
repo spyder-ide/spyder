@@ -1,3 +1,6 @@
+# Spyder external plugins
+spyder-terminal>=1.2.1
+
 # Spyder external dependencies (spyder-kernels and qdarkstyle)
 ./external-deps/spyder-kernels
 ./external-deps/qdarkstyle
