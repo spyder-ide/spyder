@@ -946,9 +946,9 @@ the sympy module (e.g. plot)
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 
-    def _get_colors(self, color):
+    def _get_color(self, color):
         """
-        Get a color as qtconsole.styles.get_colors() would return from
+        Get a color as qtconsole.styles._get_color() would return from
         a builtin Pygments style.
         """
         color_scheme = get_color_scheme(self.syntax_style)
