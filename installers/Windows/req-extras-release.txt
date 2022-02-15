@@ -10,8 +10,7 @@ rope
 yapf
 
 # Scientific packages (for Same as Spyder)
-# Ping NumPy version to 1.19.3 do message error on Windows
-numpy==1.19.3
+numpy
 scipy
 pandas
 matplotlib
