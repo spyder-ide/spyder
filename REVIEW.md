@@ -3,7 +3,8 @@
 Reviewing pull requests (PRs) can take many forms and be reflected across many styles.
 To help make the process more clear for contributors, the following guidelines are designed to scope review and specify what areas of feedback block PRs from merging.
 
-**Note:** These guidelines have been merged contingent upon on a trial period until the end of May 2022 and cannot be enforced by the Code of Conduct until the next iteration of this document is posted; feedback on the guidelines is appreciated and can be given via [opening an issue on the main Spyder repo](https://github.com/spyder-ide/spyder/issues/new/choose).
+**Note:** These guidelines have been merged for a trial period until the end of May 2022, and will not be enforced by the Code of Conduct until the next iteration of this document is posted.
+Feedback on the guidelines is appreciated and can be given via [opening an issue on the main Spyder repo](https://github.com/spyder-ide/spyder/issues/new/choose).
 
 ## Etiquette Guidelines
 
