@@ -199,10 +199,8 @@ class Shortcuts(SpyderPluginV2):
 
                     if add_shortcut_to_tip:
                         add_shortcut_to_tooltip(qobject, context, name)
-
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
-
             except RuntimeError:
                 # Object has been deleted
                 toberemoved.append(index)

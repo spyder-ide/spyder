@@ -4,8 +4,9 @@
 # Licensed under the terms of the MIT License
 # (see spyder_kernels/__init__.py for details)
 
-import sys
 import linecache
+import os.path
+import sys
 
 from IPython.core.getipython import get_ipython
 
@@ -100,5 +101,5 @@ class NamespaceManager(object):
             sys.modules['__main__'] = self._previous_main
         elif '__main__' in sys.modules and self._reset_main:
             del sys.modules['__main__']
-        if self.filename in linecache.cache:
+        if self.filename in linecache.cache and os.path.exists(self.filename):
             linecache.cache.pop(self.filename)

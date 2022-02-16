@@ -11,6 +11,7 @@ import sys
 
 # %% functions
 def d():
+
     def inner():
         return 2
 
@@ -43,6 +44,7 @@ def c():
 
 # %% classes
 class Class1:
+
     def __init__(self):
         super(Class1, self).__init__()
         self.x = 2

@@ -579,6 +579,10 @@ def _exec_file(filename=None, args=None, wdir=None, namespace=None,
         _print("Could not get code from editor.\n")
         return
 
+    # Normalise the filename
+    filename = os.path.abspath(filename)
+    filename = os.path.normcase(filename)
+
     with NamespaceManager(filename, namespace, current_namespace,
                           file_code=file_code, stack_depth=stack_depth + 1
                           ) as (ns_globals, ns_locals):
@@ -586,6 +590,14 @@ def _exec_file(filename=None, args=None, wdir=None, namespace=None,
         if args is not None:
             for arg in shlex.split(args):
                 sys.argv.append(arg)
+
+        if "multiprocessing" in sys.modules:
+            # See https://github.com/spyder-ide/spyder/issues/16696
+            try:
+                sys.modules['__mp_main__'] = sys.modules['__main__']
+            except Exception:
+                pass
+
         if wdir is not None:
             if PY2:
                 try:
@@ -739,6 +751,11 @@ def _exec_cell(cellname, filename=None, post_mortem=False, stack_depth=0,
         file_code = get_file_code(filename, save_all=False)
     except Exception:
         file_code = None
+
+    # Normalise the filename
+    filename = os.path.abspath(filename)
+    filename = os.path.normcase(filename)
+
     with NamespaceManager(filename, current_namespace=True,
                           file_code=file_code, stack_depth=stack_depth + 1
                           ) as (ns_globals, ns_locals):

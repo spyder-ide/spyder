@@ -27,7 +27,8 @@ from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QFileSystemModel, QInputDialog, QLabel, QLineEdit,
-                            QMessageBox, QTextEdit, QTreeView, QVBoxLayout)
+                            QMessageBox, QProxyStyle, QStyle, QTextEdit,
+                            QToolTip, QTreeView, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -134,6 +135,25 @@ class ExplorerTreeWidgetActions:
     Previous = 'previous_action'
 
 
+# ---- Styles
+# ----------------------------------------------------------------------------
+class DirViewStyle(QProxyStyle):
+
+    def styleHint(self, hint, option=None, widget=None, return_data=None):
+        """
+        To show tooltips with longer delays.
+
+        From https://stackoverflow.com/a/59059919/438386
+        """
+        if hint == QStyle.SH_ToolTip_WakeUpDelay:
+            return 1000  # 1 sec
+        elif hint == QStyle.SH_ToolTip_FallAsleepDelay:
+            # This removes some flickering when showing tooltips
+            return 0
+
+        return super().styleHint(hint, option, widget, return_data)
+
+
 # ---- Widgets
 # ----------------------------------------------------------------------------
 class DirView(QTreeView, SpyderWidgetMixin):
@@ -228,8 +248,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     Parameters
     ----------
-    path: str
-        Folder to remove.
+    old_path: str
+        Old path for renamed folder.
+    new_path: str
+        New path for renamed folder.
     """
 
     sig_open_file_requested = Signal(str)
@@ -276,10 +298,17 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Signals
         header.customContextMenuRequested.connect(self.show_header_menu)
 
+        # Style adjustments
+        self.setStyle(DirViewStyle(None))
+
         # Setup
         self.setup_fs_model()
         self.setSelectionMode(self.ExtendedSelection)
         header.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        # Track mouse movements. This activates the mouseMoveEvent declared
+        # below.
+        self.setMouseTracking(True)
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
@@ -785,17 +814,26 @@ class DirView(QTreeView, SpyderWidgetMixin):
             self.clicked(index=self.indexAt(event.pos()))
 
     def mouseMoveEvent(self, event):
-        """Change cursor shape when using single_click_to_open option."""
+        """Actions to take with mouse movements."""
+        # To hide previous tooltip
+        QToolTip.hideText()
+
         index = self.indexAt(event.pos())
         if index.isValid():
-            vrect = self.visualRect(index)
-            item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
-            if event.pos().x() > item_identation:
-                # When hovering over directories or files
-                self.setCursor(Qt.PointingHandCursor)
-            else:
-                # On every other element
-                self.setCursor(Qt.ArrowCursor)
+            if self.get_conf('single_click_to_open'):
+                vrect = self.visualRect(index)
+                item_identation = (
+                    vrect.x() - self.visualRect(self.rootIndex()).x()
+                )
+
+                if event.pos().x() > item_identation:
+                    # When hovering over directories or files
+                    self.setCursor(Qt.PointingHandCursor)
+                else:
+                    # On every other element
+                    self.setCursor(Qt.ArrowCursor)
+
+            self.setToolTip(self.get_filename(index))
 
         super().mouseMoveEvent(event)
 
@@ -1601,12 +1639,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
     # ------------------------------------------------------------------------
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
-        # Track mouse movements to change cursor shape when the option is
-        # True. This activates the mouseMoveEvent declared above.
-        if value:
-            self.setMouseTracking(True)
-        else:
-            self.setMouseTracking(False)
+        # Reset cursor shape
+        if not value:
             self.unsetCursor()
 
     def set_file_associations(self, value):

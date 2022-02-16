@@ -1,5 +1,41 @@
 # History of changes
 
+## Version 2.2.1 (2022-01-13)
+
+### Issues Closed
+
+* [Issue 365](https://github.com/spyder-ide/spyder-kernels/issues/365) - `IOStream.flush timed out` message shown after every evaluation ([PR 367](https://github.com/spyder-ide/spyder-kernels/pull/367) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 347](https://github.com/spyder-ide/spyder-kernels/issues/347) - Issues handling Matplotlib backend settings ([PR 368](https://github.com/spyder-ide/spyder-kernels/pull/368) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 345](https://github.com/spyder-ide/spyder-kernels/issues/345) - Namespace issues ([PR 346](https://github.com/spyder-ide/spyder-kernels/pull/346) by [@impact27](https://github.com/impact27))
+* [Issue 343](https://github.com/spyder-ide/spyder-kernels/issues/343) - Shapely 1.8 and get_namespace_view spyder call raising deprecation warning ([PR 350](https://github.com/spyder-ide/spyder-kernels/pull/350) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 368](https://github.com/spyder-ide/spyder-kernels/pull/368) - PR: Improve error message when setting a Matplotlib backend whose module is not present, by [@ccordoba12](https://github.com/ccordoba12) ([347](https://github.com/spyder-ide/spyder-kernels/issues/347))
+* [PR 367](https://github.com/spyder-ide/spyder-kernels/pull/367) - PR: Filter another benign message coming from comm handlers, by [@ccordoba12](https://github.com/ccordoba12) ([365](https://github.com/spyder-ide/spyder-kernels/issues/365))
+* [PR 364](https://github.com/spyder-ide/spyder-kernels/pull/364) - PR: Catch error when validating if an object is defined in the namespace, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 363](https://github.com/spyder-ide/spyder-kernels/pull/363) - PR: Fix error when running multiprocessing code that contains classes, by [@impact27](https://github.com/impact27)
+* [PR 362](https://github.com/spyder-ide/spyder-kernels/pull/362) - PR: Catch KeyError when closing comm, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 361](https://github.com/spyder-ide/spyder-kernels/pull/361) - PR: Increase minimal required version of pyzmq for Python 3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 360](https://github.com/spyder-ide/spyder-kernels/pull/360) - PR: Increase minimal required version of ipykernel to 6.6.1, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 357](https://github.com/spyder-ide/spyder-kernels/pull/357) - PR: Require jupyter-client 7.1.0 to fix issues on Windows, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 356](https://github.com/spyder-ide/spyder-kernels/pull/356) - PR: Increase minimal required version of jupyter-client to 7.0+ for Python 3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 354](https://github.com/spyder-ide/spyder-kernels/pull/354) - PR: Constraint IPython version to avoid issues when its next major version is released, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 353](https://github.com/spyder-ide/spyder-kernels/pull/353) - PR: Implement a less hacky solution to fix namespace issues, by [@impact27](https://github.com/impact27)
+* [PR 351](https://github.com/spyder-ide/spyder-kernels/pull/351) - PR: More namespace fixes, by [@impact27](https://github.com/impact27)
+* [PR 350](https://github.com/spyder-ide/spyder-kernels/pull/350) - PR: Don't print DeprecationWarning's that come from comm handlers, by [@ccordoba12](https://github.com/ccordoba12) ([343](https://github.com/spyder-ide/spyder-kernels/issues/343))
+* [PR 349](https://github.com/spyder-ide/spyder-kernels/pull/349) - PR: Update Quansight logo in Readme, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 346](https://github.com/spyder-ide/spyder-kernels/pull/346) - PR: Fix some namespace issues, by [@impact27](https://github.com/impact27) ([345](https://github.com/spyder-ide/spyder-kernels/issues/345))
+* [PR 338](https://github.com/spyder-ide/spyder-kernels/pull/338) - PR: Fix misplaced section in changelog, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 16 pull requests were closed.
+
+
+----
+
+
 ## Version 2.2.0 (2021-11-22)
 
 ### New features

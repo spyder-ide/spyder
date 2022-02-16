@@ -274,7 +274,7 @@ class FrontendComm(CommBase):
             sys.stderr.write = saved_stderr_write
 
 
-class WriteWrapper():
+class WriteWrapper(object):
     """Wrapper to warn user when text is printed."""
 
     def __init__(self, write, name, thread_id):
@@ -282,6 +282,18 @@ class WriteWrapper():
         self._name = name
         self._thread_id = thread_id
         self._warning_shown = False
+
+    def is_benign_message(self, message):
+        """Determine if a message is benign in order to filter it."""
+        benign_messages = [
+            # Fixes spyder-ide/spyder#14928
+            # Fixes spyder-ide/spyder-kernels#343
+            'DeprecationWarning',
+            # Fixes spyder-ide/spyder-kernels#365
+            'IOStream.flush timed out'
+        ]
+
+        return any([msg in message for msg in benign_messages])
 
     def __call__(self, string):
         """Print warning once."""
@@ -295,7 +307,12 @@ class WriteWrapper():
         if 'DeprecationWarning' not in string:
             if not self._warning_shown:
                 self._warning_shown = True
-                self._write(
-                    "\nOutput from spyder call "
-                    + repr(self._name) + ":\n")
+
+                # Don't print handler name for `show_mpl_backend_errors`
+                # because we have a specific message for it.
+                if repr(self._name) != "'show_mpl_backend_errors'":
+                    self._write(
+                        "\nOutput from spyder call " + repr(self._name) + ":\n"
+                    )
+
             return self._write(string)

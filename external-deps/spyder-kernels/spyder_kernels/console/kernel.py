@@ -751,6 +751,15 @@ class SpyderKernel(IPythonKernel):
             # This covers other RuntimeError's
             else:
                 error = generic_error.format(traceback.format_exc())
+        except ImportError as err:
+            additional_info = (
+                "This is most likely caused by missing packages in the Python "
+                "environment\n"
+                "or installation whose interpreter is located at:\n\n"
+                "    {0}"
+            ).format(sys.executable)
+
+            error = generic_error.format(err) + '\n\n' + additional_info
         except Exception:
             error = generic_error.format(traceback.format_exc())
 
