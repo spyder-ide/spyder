@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 6):
-    error = "ERROR: Spyder requires Python version 3.6 and above."
+if v[0] >= 3 and v[:2] < (3, 7):
+    error = "ERROR: Spyder requires Python version 3.7 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -178,14 +178,13 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -238,7 +237,7 @@ install_requires = [
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=2.2.0,<2.3.0',
+    'spyder-kernels>=2.2.1,<2.3.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -254,7 +253,7 @@ extras_require = {
         'matplotlib',
         'pandas',
         'pillow',
-        'pytest<6.0',
+        'pytest<7.0',
         'pytest-cov',
         'pytest-lazy-fixture',
         'pytest-mock',

@@ -535,8 +535,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
         self.setVerticalScrollBar(vscroll)
-        self.setHorizontalScrollMode(1)
-        self.setVerticalScrollMode(1)
+        self.setHorizontalScrollMode(QTableView.ScrollPerPixel)
+        self.setVerticalScrollMode(QTableView.ScrollPerPixel)
 
         self.sort_old = [None]
         self.header_class = header

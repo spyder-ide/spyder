@@ -103,6 +103,10 @@ def make_app_bundle(dist_dir, make_lite=False):
     PIL :
         Library not loaded: @loader_path/.dylibs/libjpeg.9.dylib
         Note: only applicable to not-Lite build
+    pkg_resources:
+        ImportError: The 'more_itertools' package is required; normally this is
+        bundled with this package so if you get this warning, consult the
+        packager of your distribution.
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
     pylint :
@@ -152,7 +156,7 @@ def make_app_bundle(dist_dir, make_lite=False):
                 'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
                 'pylsp', 'pylsp_black', 'pyls_spyder', 'qtawesome',
                 'setuptools', 'sphinx', 'spyder', 'spyder_kernels',
-                'textdistance', 'debugpy',
+                'textdistance', 'debugpy', 'pkg_resources'
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()
                 'jellyfish',

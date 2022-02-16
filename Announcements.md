@@ -1,23 +1,22 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.2.1 is released!
+**Subject**: [ANN] Spyder 5.2.2 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.2.1** has been released and is available for
+I'm pleased to announce that Spyder **5.2.2** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes twenty days after version 5.2.0 and it contains the
+This release comes thirty-eight days after version 5.2.1 and it contains the
 following important fixes:
 
-* Prevent Spyder from crashing when selecting an interpreter with an incorrect `spyder-kernels` version.
-* Optimize several operations in the Editor and IPython Console.
+* Fix using Tk backend on Windows with the IPython Console.
+* Fix several issues regarding the IPython Console kernel restart, shutdown and bening errors handling.
 
-
-In this release we fixed 18 issues and merged 28 pull requests that amount
-to more than 115 commits. For a full list of fixes, please see our
+In this release we fixed 35 issues and merged 45 pull requests that amount
+to more than 164 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

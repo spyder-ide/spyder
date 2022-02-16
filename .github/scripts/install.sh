@@ -26,6 +26,10 @@ if [ "$USE_CONDA" = "true" ]; then
     conda remove spyder-kernels --force -q -y
     conda remove python-lsp-server --force -q -y
     conda remove qdarkstyle --force -q -y
+
+    # Install an older version of black until we fix pylsp-black to
+    # work with 22.1.0
+    mamba install black=21
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -55,6 +59,10 @@ else
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y
+
+    # Install an older version of black until we fix pylsp-black to
+    # work with 22.1.0
+    pip install black==21.12b0
 fi
 
 # Install subrepos in development mode

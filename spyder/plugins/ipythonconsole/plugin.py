@@ -375,6 +375,11 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)
 
+        # Raise plugin the first time Spyder starts
+        if self.get_conf('show_first_time', default=True):
+            self.dockwidget.raise_()
+            self.set_conf('show_first_time', False)
+
     # ---- Private methods
     # -------------------------------------------------------------------------
     def _load_file_in_editor(self, fname, lineno, word, processevents):

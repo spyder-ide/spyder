@@ -57,7 +57,7 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_MIN_VERSION = '2.2.0'
+SPYDER_KERNELS_MIN_VERSION = '2.2.1'
 SPYDER_KERNELS_MAX_VERSION = '2.3.0'
 SPYDER_KERNELS_VERSION = (
     f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')

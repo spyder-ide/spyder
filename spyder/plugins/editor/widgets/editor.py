@@ -1643,6 +1643,7 @@ class EditorStack(QWidget):
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
+            self.update_fname_label()
             return False
         self.__modify_stack_title()
         return is_ok

@@ -197,6 +197,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Cannot read file that is not on this computer
             self.fault_obj = StdFile(self.std_filename('.fault'))
 
+        self.start_successful = False
+
     def __del__(self):
         """Close threads to avoid segfault."""
         if (self.restart_thread is not None
@@ -216,6 +218,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def _when_prompt_is_ready(self):
         """Configuration after the prompt is shown."""
+        self.start_successful = True
         # To hide the loading page
         self._hide_loading_page()
 
@@ -324,6 +327,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         We also ignore errors about comms, which are irrelevant.
         """
+        if self.start_successful:
+            return False
         stderr = self.stderr_obj.get_contents()
         if not stderr:
             return False
@@ -527,6 +532,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Tell the client we're in error mode
         self.is_error_shown = True
 
+        # Stop shellwidget
+        self.shellwidget.shutdown()
+        self.remove_std_files()
+
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
         benign_errors = [
@@ -598,11 +607,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
-        self.remove_std_files(is_last_client)
         shutdown_kernel = (
             is_last_client and not self.is_external_kernel
             and not self.is_error_shown)
         self.shellwidget.shutdown(shutdown_kernel)
+        self.remove_std_files(shutdown_kernel)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

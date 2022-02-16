@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2021-12-08 11:19-0500\n"
-"PO-Revision-Date: 2021-12-09 02:25\n"
+"POT-Creation-Date: 2022-01-14 10:38-0500\n"
+"PO-Revision-Date: 2022-01-15 12:24\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr "您可以在这里打开或关闭Spyder插件，以期禁用不需要的功能或取得较轻量的体验。在此页面取消选择的插件将立即停用，并且不会在下次Spyder启动时加载。"
+msgstr "您可以在这里打开或关闭Spyder插件，以禁用不需要的功能或取得较轻量的体验。在此页面取消选择的插件将立即被停用，并且不会在下次Spyder启动时加载。"
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
@@ -29,7 +29,7 @@ msgstr "内部插件"
 msgid "External plugins"
 msgstr "外部插件"
 
-#: spyder/api/plugin_registration/registry.py:672
+#: spyder/api/plugin_registration/registry.py:671
 msgid "Plugins"
 msgstr "插件"
 
@@ -65,7 +65,7 @@ msgstr "取消停靠"
 msgid "Undock the pane"
 msgstr "取消窗格停靠"
 
-#: spyder/api/widgets/main_widget.py:353 spyder/plugins/base.py:211 spyder/plugins/variableexplorer/widgets/arrayeditor.py:825 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:993 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:303 spyder/plugins/variableexplorer/widgets/texteditor.py:73 spyder/widgets/collectionseditor.py:1391 spyder/widgets/reporterror.py:224
+#: spyder/api/widgets/main_widget.py:353 spyder/plugins/base.py:211 spyder/plugins/variableexplorer/widgets/arrayeditor.py:826 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:999 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:303 spyder/plugins/variableexplorer/widgets/texteditor.py:73 spyder/widgets/collectionseditor.py:1392 spyder/widgets/reporterror.py:224
 msgid "Close"
 msgstr "关闭"
 
@@ -77,23 +77,23 @@ msgstr "关闭窗格"
 msgid "More"
 msgstr "更多"
 
-#: spyder/app/mainwindow.py:198
+#: spyder/app/mainwindow.py:197
 msgid "Compatibility Check"
 msgstr "兼容性检查"
 
-#: spyder/app/mainwindow.py:209
+#: spyder/app/mainwindow.py:208
 msgid "Loading {}..."
 msgstr "正在加载 {}..."
 
-#: spyder/app/mainwindow.py:701
+#: spyder/app/mainwindow.py:700
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
 msgstr "创建 Spyder 所需的套接字时出现错误。请尝试使用管理员权限启动 cmd.exe，执行下述命令后重启电脑：<br><br><span style='color: {color}'><b>netsh winsock reset</b></span><br>"
 
-#: spyder/app/mainwindow.py:823 spyder/plugins/tours/widgets.py:1087
+#: spyder/app/mainwindow.py:822 spyder/plugins/tours/widgets.py:1087
 msgid "Welcome to Spyder!"
 msgstr "欢迎使用Spyder！"
 
-#: spyder/app/mainwindow.py:829
+#: spyder/app/mainwindow.py:828
 msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
@@ -106,83 +106,83 @@ msgstr "Spyder 内部控制台\n\n"
 " spy.app, spy.window, dir(spy)\n\n"
 "请不要用它执行代码\n\n"
 
-#: spyder/app/mainwindow.py:909
+#: spyder/app/mainwindow.py:908
 msgid "Loading old third-party plugins..."
 msgstr "正在加载第三方插件..."
 
-#: spyder/app/mainwindow.py:957 spyder/plugins/editor/widgets/editor.py:282
+#: spyder/app/mainwindow.py:956 spyder/plugins/editor/widgets/editor.py:282
 msgid "File switcher..."
 msgstr "文件切换器..."
 
-#: spyder/app/mainwindow.py:959
+#: spyder/app/mainwindow.py:958
 msgid "Fast switch between files"
 msgstr "在文件之间进行快速切换"
 
-#: spyder/app/mainwindow.py:966
+#: spyder/app/mainwindow.py:965
 msgid "Symbol finder..."
 msgstr "搜索符号..."
 
-#: spyder/app/mainwindow.py:968
+#: spyder/app/mainwindow.py:967
 msgid "Fast symbol search in file"
 msgstr "在文件内进行快速符号搜索"
 
-#: spyder/app/mainwindow.py:986 spyder/plugins/editor/widgets/codeeditor.py:4330
+#: spyder/app/mainwindow.py:985 spyder/plugins/editor/widgets/codeeditor.py:4330
 msgid "Undo"
 msgstr "撤销"
 
-#: spyder/app/mainwindow.py:988 spyder/plugins/editor/widgets/codeeditor.py:4333
+#: spyder/app/mainwindow.py:987 spyder/plugins/editor/widgets/codeeditor.py:4333
 msgid "Redo"
 msgstr "重做"
 
-#: spyder/app/mainwindow.py:990 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:4339 spyder/plugins/explorer/widgets/explorer.py:364 spyder/plugins/help/widgets.py:376 spyder/plugins/variableexplorer/widgets/arrayeditor.py:524 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:599 spyder/plugins/variableexplorer/widgets/main_widget.py:240 spyder/widgets/browser.py:155 spyder/widgets/collectionseditor.py:633
+#: spyder/app/mainwindow.py:989 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:4339 spyder/plugins/explorer/widgets/explorer.py:366 spyder/plugins/help/widgets.py:376 spyder/plugins/variableexplorer/widgets/arrayeditor.py:525 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:605 spyder/plugins/variableexplorer/widgets/main_widget.py:240 spyder/widgets/browser.py:155 spyder/widgets/collectionseditor.py:634
 msgid "Copy"
 msgstr "复制"
 
-#: spyder/app/mainwindow.py:992 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:4336
+#: spyder/app/mainwindow.py:991 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:4336
 msgid "Cut"
 msgstr "剪切"
 
-#: spyder/app/mainwindow.py:994 spyder/plugins/console/widgets/shell.py:135 spyder/plugins/editor/widgets/codeeditor.py:4342 spyder/plugins/explorer/widgets/explorer.py:371 spyder/plugins/variableexplorer/widgets/main_widget.py:233 spyder/widgets/collectionseditor.py:630
+#: spyder/app/mainwindow.py:993 spyder/plugins/console/widgets/shell.py:135 spyder/plugins/editor/widgets/codeeditor.py:4342 spyder/plugins/explorer/widgets/explorer.py:373 spyder/plugins/variableexplorer/widgets/main_widget.py:233 spyder/widgets/collectionseditor.py:631
 msgid "Paste"
 msgstr "粘贴"
 
-#: spyder/app/mainwindow.py:997 spyder/plugins/console/widgets/shell.py:148 spyder/plugins/editor/widgets/codeeditor.py:4346 spyder/plugins/help/widgets.py:382
+#: spyder/app/mainwindow.py:996 spyder/plugins/console/widgets/shell.py:148 spyder/plugins/editor/widgets/codeeditor.py:4346 spyder/plugins/help/widgets.py:382
 msgid "Select All"
 msgstr "全选"
 
-#: spyder/app/mainwindow.py:1034 spyder/app/mainwindow.py:1037 spyder/widgets/pathmanager.py:71
+#: spyder/app/mainwindow.py:1033 spyder/app/mainwindow.py:1036 spyder/widgets/pathmanager.py:71
 msgid "PYTHONPATH manager"
 msgstr "PYTHONPATH管理器"
 
-#: spyder/app/mainwindow.py:1061
+#: spyder/app/mainwindow.py:1060
 msgid "Setting up main window..."
 msgstr "正在设置主窗口…"
 
-#: spyder/app/mainwindow.py:1615 spyder/plugins/explorer/widgets/explorer.py:449 spyder/plugins/run/plugin.py:43 spyder/plugins/run/widgets.py:365 spyder/utils/programs.py:766
+#: spyder/app/mainwindow.py:1614 spyder/plugins/explorer/widgets/explorer.py:451 spyder/plugins/run/plugin.py:43 spyder/plugins/run/widgets.py:365 spyder/utils/programs.py:766
 msgid "Run"
 msgstr "运行"
 
-#: spyder/app/mainwindow.py:1616
+#: spyder/app/mainwindow.py:1615
 msgid "Running an external system terminal is not supported on platform %s."
 msgstr "不支持在当前平台 %s 上运行外部系统终端。"
 
-#: spyder/app/mainwindow.py:1664 spyder/plugins/application/confpage.py:259 spyder/plugins/application/confpage.py:284 spyder/plugins/application/container.py:414 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:205 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:223 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:168 spyder/plugins/explorer/widgets/explorer.py:1162 spyder/plugins/explorer/widgets/explorer.py:1512 spyder/plugins/ipythonconsole/widgets/shell.py:772 spyder/plugins/layout/container.py:300 spyder/plugins/profiler/widgets/main_widget.py:573 spyder/plugins/profiler/widgets/main_widget.py:729 spyder/plugins/projects/plugin.py:445 spyder/plugins/projects/plugin.py:464 spyder/plugins/projects/plugin.py:727 spyder/plugins/pylint/main_widget.py:114 spyder/plugins/pylint/main_widget.py:380 spyder/plugins/pylint/main_widget.py:412 spyder/plugins/variableexplorer/widgets/arrayeditor.py:628 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:129 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:149 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:446 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:645 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1297 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1301 spyder/widgets/collectionseditor.py:1503 spyder/widgets/reporterror.py:391
+#: spyder/app/mainwindow.py:1663 spyder/plugins/application/confpage.py:259 spyder/plugins/application/confpage.py:284 spyder/plugins/application/container.py:414 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:205 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:223 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:168 spyder/plugins/explorer/widgets/explorer.py:1164 spyder/plugins/explorer/widgets/explorer.py:1514 spyder/plugins/ipythonconsole/widgets/shell.py:772 spyder/plugins/layout/container.py:300 spyder/plugins/profiler/widgets/main_widget.py:573 spyder/plugins/profiler/widgets/main_widget.py:729 spyder/plugins/projects/plugin.py:445 spyder/plugins/projects/plugin.py:464 spyder/plugins/projects/plugin.py:727 spyder/plugins/pylint/main_widget.py:114 spyder/plugins/pylint/main_widget.py:380 spyder/plugins/pylint/main_widget.py:412 spyder/plugins/variableexplorer/widgets/arrayeditor.py:629 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:129 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:149 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:446 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:651 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1303 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1307 spyder/widgets/collectionseditor.py:1504 spyder/widgets/reporterror.py:391
 msgid "Error"
 msgstr "错误"
 
-#: spyder/app/mainwindow.py:1665
+#: spyder/app/mainwindow.py:1664
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
 msgstr "要将 <code>{fpath}</code> 作为一个 Spyder 项目打开，请使用 <code>spyder -p \"{fname}\"</code>。"
 
-#: spyder/app/mainwindow.py:1872 spyder/plugins/appearance/confpage.py:380 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:153 spyder/plugins/completion/providers/languageserver/provider.py:409 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:28 spyder/plugins/editor/widgets/editor.py:419 spyder/plugins/ipythonconsole/utils/ssh.py:71 spyder/plugins/ipythonconsole/widgets/main_widget.py:2123 spyder/plugins/ipythonconsole/widgets/main_widget.py:2205 spyder/plugins/ipythonconsole/widgets/shell.py:775 spyder/plugins/layout/container.py:309 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:372 spyder/plugins/layout/plugin.py:389 spyder/plugins/maininterpreter/confpage.py:192 spyder/plugins/maininterpreter/confpage.py:229 spyder/plugins/preferences/plugin.py:342 spyder/plugins/pylint/main_widget.py:110 spyder/plugins/variableexplorer/widgets/arrayeditor.py:567 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:100 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:430 spyder/utils/environ.py:90 spyder/utils/environ.py:141 spyder/utils/environ.py:154 spyder/widgets/collectionseditor.py:1108 spyder/widgets/collectionseditor.py:1120
+#: spyder/app/mainwindow.py:1871 spyder/plugins/appearance/confpage.py:354 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:153 spyder/plugins/completion/providers/languageserver/provider.py:409 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:28 spyder/plugins/editor/widgets/editor.py:419 spyder/plugins/ipythonconsole/utils/ssh.py:71 spyder/plugins/ipythonconsole/widgets/main_widget.py:2135 spyder/plugins/ipythonconsole/widgets/main_widget.py:2217 spyder/plugins/ipythonconsole/widgets/shell.py:775 spyder/plugins/layout/container.py:309 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:372 spyder/plugins/layout/plugin.py:389 spyder/plugins/maininterpreter/confpage.py:192 spyder/plugins/maininterpreter/confpage.py:229 spyder/plugins/preferences/plugin.py:340 spyder/plugins/pylint/main_widget.py:110 spyder/plugins/variableexplorer/widgets/arrayeditor.py:568 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:100 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:430 spyder/utils/environ.py:90 spyder/utils/environ.py:141 spyder/utils/environ.py:154 spyder/widgets/collectionseditor.py:1109 spyder/widgets/collectionseditor.py:1121
 msgid "Warning"
 msgstr "警告"
 
-#: spyder/app/mainwindow.py:1873 spyder/plugins/preferences/plugin.py:343
+#: spyder/app/mainwindow.py:1872 spyder/plugins/preferences/plugin.py:341
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
 msgstr "Spyder将重启和恢复默认设置：<br><br> 是否继续？"
 
-#: spyder/app/mainwindow.py:1990
+#: spyder/app/mainwindow.py:1989
 msgid "Initializing..."
 msgstr "正在初始化..."
 
@@ -214,7 +214,7 @@ msgstr "Spyder重置错误"
 
 #: spyder/app/restart.py:147
 msgid "Spyder restart error"
-msgstr "Spyder启动错误"
+msgstr "Spyder重启错误"
 
 #: spyder/app/restart.py:185
 msgid "Closing Spyder"
@@ -226,13 +226,13 @@ msgstr "重置Spyder到默认配置"
 
 #: spyder/app/restart.py:298
 msgid "Restarting"
-msgstr "重启中"
+msgstr "正在重启"
 
 #: spyder/config/manager.py:578
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr "快捷键的context必须匹配 '_' 或者插件的 `CONF_SECTION`!"
 
-#: spyder/config/utils.py:25 spyder/plugins/explorer/widgets/explorer.py:1674 spyder/plugins/pylint/main_widget.py:855
+#: spyder/config/utils.py:25 spyder/plugins/explorer/widgets/explorer.py:1676 spyder/plugins/pylint/main_widget.py:855
 msgid "Python files"
 msgstr "Python 文件"
 
@@ -328,7 +328,7 @@ msgstr "配置文件"
 msgid "Markdown files"
 msgstr "Markdown 文件"
 
-#: spyder/config/utils.py:54 spyder/plugins/explorer/widgets/explorer.py:1247
+#: spyder/config/utils.py:54 spyder/plugins/explorer/widgets/explorer.py:1249
 msgid "All files"
 msgstr "所有文件"
 
@@ -512,55 +512,55 @@ msgstr "在变量管理器中导入Matlab工作空间文件"
 msgid "Symbolic mathematics in the IPython Console"
 msgstr "在 IPython 控制台中进行符号运算"
 
-#: spyder/plugins/appearance/confpage.py:41
+#: spyder/plugins/appearance/confpage.py:38
 msgid "Main interface"
 msgstr "主界面"
 
-#: spyder/plugins/appearance/confpage.py:47
+#: spyder/plugins/appearance/confpage.py:44
 msgid "Interface theme"
 msgstr "界面主题"
 
-#: spyder/plugins/appearance/confpage.py:54
+#: spyder/plugins/appearance/confpage.py:52
 msgid "Icon theme"
 msgstr "图标主题"
 
-#: spyder/plugins/appearance/confpage.py:68
+#: spyder/plugins/appearance/confpage.py:66
 msgid "Syntax highlighting theme"
 msgstr "语法高亮主题"
 
-#: spyder/plugins/appearance/confpage.py:71
+#: spyder/plugins/appearance/confpage.py:69
 msgid "Edit selected scheme"
 msgstr "编辑选定的方案"
 
-#: spyder/plugins/appearance/confpage.py:72
+#: spyder/plugins/appearance/confpage.py:70
 msgid "Create new scheme"
 msgstr "创建新方案"
 
-#: spyder/plugins/appearance/confpage.py:73
+#: spyder/plugins/appearance/confpage.py:71
 msgid "Delete scheme"
 msgstr "删除方案"
 
-#: spyder/plugins/appearance/confpage.py:74 spyder/plugins/preferences/widgets/configdialog.py:35
+#: spyder/plugins/appearance/confpage.py:72 spyder/plugins/preferences/widgets/configdialog.py:35
 msgid "Reset to defaults"
 msgstr "重置为默认设置"
 
-#: spyder/plugins/appearance/confpage.py:98
+#: spyder/plugins/appearance/confpage.py:96
 msgid "Fonts"
 msgstr "字体"
 
-#: spyder/plugins/appearance/confpage.py:103
+#: spyder/plugins/appearance/confpage.py:101
 msgid "Plain text"
 msgstr "纯文本"
 
-#: spyder/plugins/appearance/confpage.py:109
+#: spyder/plugins/appearance/confpage.py:107
 msgid "Rich text"
 msgstr "富文本"
 
-#: spyder/plugins/appearance/confpage.py:131 spyder/plugins/variableexplorer/widgets/importwizard.py:507
+#: spyder/plugins/appearance/confpage.py:129 spyder/plugins/variableexplorer/widgets/importwizard.py:507
 msgid "Preview"
 msgstr "预览"
 
-#: spyder/plugins/appearance/confpage.py:381
+#: spyder/plugins/appearance/confpage.py:355
 msgid "Are you sure you want to delete this scheme?"
 msgstr "您确定删除该方案吗？"
 
@@ -698,7 +698,7 @@ msgstr "为不同显示器输入对应的值，以分号 ';' 分隔。\n"
 msgid "Interface"
 msgstr "界面"
 
-#: spyder/plugins/application/confpage.py:240 spyder/plugins/editor/confpage.py:318 spyder/plugins/ipythonconsole/confpage.py:432
+#: spyder/plugins/application/confpage.py:240 spyder/plugins/editor/confpage.py:320 spyder/plugins/ipythonconsole/confpage.py:432
 msgid "Advanced settings"
 msgstr "高级设置"
 
@@ -838,7 +838,7 @@ msgstr "应用程序"
 msgid "Provide main application base actions."
 msgstr "提供主应用程序的基础操作。"
 
-#: spyder/plugins/base.py:329 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:429 spyder/plugins/editor/plugin.py:2079 spyder/plugins/editor/utils/switcher.py:36 spyder/plugins/editor/widgets/codeeditor.py:5492 spyder/plugins/editor/widgets/codeeditor_widgets.py:61 spyder/plugins/editor/widgets/editor.py:325 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:337 spyder/plugins/tours/tours.py:83
+#: spyder/plugins/base.py:329 spyder/plugins/editor/confpage.py:25 spyder/plugins/editor/plugin.py:427 spyder/plugins/editor/plugin.py:2084 spyder/plugins/editor/utils/switcher.py:36 spyder/plugins/editor/widgets/codeeditor.py:5492 spyder/plugins/editor/widgets/codeeditor_widgets.py:61 spyder/plugins/editor/widgets/editor.py:325 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:337 spyder/plugins/tours/tours.py:83
 msgid "Editor"
 msgstr "编辑器"
 
@@ -866,7 +866,7 @@ msgstr "文件"
 msgid "Line"
 msgstr "行"
 
-#: spyder/plugins/breakpoints/widgets/main_widget.py:213 spyder/plugins/editor/plugin.py:616
+#: spyder/plugins/breakpoints/widgets/main_widget.py:213 spyder/plugins/editor/plugin.py:614
 msgid "Clear breakpoints in all files"
 msgstr "清除所有文件中的断点"
 
@@ -958,15 +958,15 @@ msgstr "<code>{error}</code><br><br>注意：如果您正在使用 VPN，请不�
 msgid "It seems that your Kite installation is faulty. If you want to use Kite, please remove the directory that appears bellow, and try a reinstallation:<br><br><code>{kite_dir}</code>"
 msgstr "您的 Kite 安装似乎有问题。 如果您想要使用 Kite，请移除下面出现的目录。 并尝试重新安装:<br><br><code>{kite_dir}</code>"
 
-#: spyder/plugins/completion/providers/kite/provider.py:219
+#: spyder/plugins/completion/providers/kite/provider.py:217
 msgid "The Kite completion engine returned an unexpected result for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Please make sure that your Kite installation is correct. In the meantime, Spyder will disable the Kite client to prevent further errors. For more information, please visit the <a href='https://help.kite.com/'>Kite help center</a>"
 msgstr "Kite 代码补全引擎对于请求 <tt>{0}</tt> 返回了非预期的结果: <br><br><tt>{1}</tt><br><br>请确保你的 Kite 安装正确无误。 在当前情况下，Spyder 将禁用 Kite 客户端以防止新的错误。 要了解更多信息，请访问 <a href='https://help.kite.com/'>Kite 帮助中心</a>"
 
-#: spyder/plugins/completion/providers/kite/provider.py:229
+#: spyder/plugins/completion/providers/kite/provider.py:227
 msgid "Kite error"
 msgstr "Kite 错误"
 
-#: spyder/plugins/completion/providers/kite/provider.py:249
+#: spyder/plugins/completion/providers/kite/provider.py:247
 msgid "Install Kite completion engine"
 msgstr "安装Kite补全引擎"
 
@@ -1019,8 +1019,8 @@ msgid "Downloading"
 msgstr "正在下载"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:213
-msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you throught the <br>rest of the setup process."
-msgstr "Kite 内建了 Copilot 应用，<br>该应用能为您在编写代码时提供实时文档辅助。<br><br>安装完 Kite 之后，Copilot将会自动运行，<br>并指导您完成剩余的设置步骤。"
+msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you through the <br>rest of the setup process."
+msgstr "Kite 内建了 Copilot 应用 <br>该应用能为您在编写代码时提供实时文档。<br><br>安装好 Kite 之后 Copilot 将会自动运行 <br>并指导您完成剩余的设置步骤。"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:221
 msgid "OK"
@@ -1316,7 +1316,7 @@ msgstr "作为可选项，Spyder 也可在编辑器中高亮显示语法错误�
 msgid "Enable basic linting"
 msgstr "启用基本语法检查"
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:37 spyder/plugins/editor/plugin.py:924
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:37 spyder/plugins/editor/plugin.py:929
 msgid "Underline errors and warnings"
 msgstr "对错误和警告添加下划线"
 
@@ -1646,19 +1646,19 @@ msgstr "触发文本"
 msgid "Description"
 msgstr "描述"
 
-#: spyder/plugins/console/plugin.py:82 spyder/plugins/console/widgets/main_widget.py:160
+#: spyder/plugins/console/plugin.py:83 spyder/plugins/console/widgets/main_widget.py:160
 msgid "Internal console"
 msgstr "内部控制台"
 
-#: spyder/plugins/console/plugin.py:88
+#: spyder/plugins/console/plugin.py:89
 msgid "Internal console running Spyder."
 msgstr "内部控制台运行 Spyder"
 
-#: spyder/plugins/console/plugin.py:112
+#: spyder/plugins/console/plugin.py:113
 msgid "<h3>Spyder crashed during last session</h3>"
 msgstr "<h3>在上次会话期间Spyder崩溃</h3>"
 
-#: spyder/plugins/console/plugin.py:113
+#: spyder/plugins/console/plugin.py:114
 msgid "Please provide any additional information you might have about the crash."
 msgstr "请提供您可能拥有的关于崩溃的任何额外信息。"
 
@@ -1666,7 +1666,7 @@ msgstr "请提供您可能拥有的关于崩溃的任何额外信息。"
 msgid "Help..."
 msgstr "帮助..."
 
-#: spyder/plugins/console/widgets/internalshell.py:278 spyder/plugins/help/plugin.py:66 spyder/plugins/help/widgets.py:364 spyder/plugins/help/widgets.py:603 spyder/plugins/tours/tours.py:136 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
+#: spyder/plugins/console/widgets/internalshell.py:278 spyder/plugins/help/plugin.py:66 spyder/plugins/help/widgets.py:364 spyder/plugins/help/widgets.py:607 spyder/plugins/tours/tours.py:136 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
 msgstr "帮助"
 
@@ -1706,7 +1706,7 @@ msgstr "GUI-based编辑器："
 msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with the multithread option (--multithread) from a system terminal"
 msgstr "为了使用像“raw_input”或“input”这样的命令，使用来自系统终端的多线程选项（--multithread）运行Spyder"
 
-#: spyder/plugins/console/widgets/main_widget.py:166 spyder/plugins/ipythonconsole/widgets/main_widget.py:483
+#: spyder/plugins/console/widgets/main_widget.py:166 spyder/plugins/ipythonconsole/widgets/main_widget.py:478
 msgid "&Quit"
 msgstr "退出(&Q)"
 
@@ -1754,7 +1754,7 @@ msgstr "外部编辑路径…"
 msgid "Set external editor executable path"
 msgstr "设置外部编辑器可执行文件路径"
 
-#: spyder/plugins/console/widgets/main_widget.py:211 spyder/plugins/editor/confpage.py:48 spyder/plugins/help/confpage.py:60 spyder/plugins/help/widgets.py:369 spyder/plugins/history/confpage.py:28 spyder/plugins/history/widgets.py:121
+#: spyder/plugins/console/widgets/main_widget.py:211 spyder/plugins/editor/confpage.py:47 spyder/plugins/help/confpage.py:60 spyder/plugins/help/widgets.py:369 spyder/plugins/history/confpage.py:28 spyder/plugins/history/widgets.py:121
 msgid "Wrap lines"
 msgstr "折行"
 
@@ -1798,7 +1798,7 @@ msgstr "保存历史记录…"
 msgid "Save current history log (i.e. all inputs and outputs) in a text file"
 msgstr "保存当前历史日志（即所有输入和输出）到一个文本文件"
 
-#: spyder/plugins/console/widgets/shell.py:144 spyder/plugins/explorer/widgets/explorer.py:1040 spyder/plugins/projects/plugin.py:564
+#: spyder/plugins/console/widgets/shell.py:144 spyder/plugins/explorer/widgets/explorer.py:1042 spyder/plugins/projects/plugin.py:564
 msgid "Delete"
 msgstr "删除"
 
@@ -1826,71 +1826,71 @@ msgstr "清除shell"
 msgid "Clear shell contents ('cls' command)"
 msgstr "清除终端内容（'cls'命令）"
 
-#: spyder/plugins/editor/confpage.py:35
+#: spyder/plugins/editor/confpage.py:34
 msgid "Show tab bar"
 msgstr "显示标签栏"
 
-#: spyder/plugins/editor/confpage.py:37 spyder/plugins/editor/plugin.py:914
+#: spyder/plugins/editor/confpage.py:36 spyder/plugins/editor/plugin.py:919
 msgid "Show selector for classes and functions"
 msgstr "显示类和函数选择器"
 
-#: spyder/plugins/editor/confpage.py:39 spyder/plugins/editor/plugin.py:908
+#: spyder/plugins/editor/confpage.py:38 spyder/plugins/editor/plugin.py:913
 msgid "Show indent guides"
 msgstr "显示缩进指导"
 
-#: spyder/plugins/editor/confpage.py:41 spyder/plugins/editor/plugin.py:911
+#: spyder/plugins/editor/confpage.py:40 spyder/plugins/editor/plugin.py:916
 msgid "Show code folding"
 msgstr "显示代码折叠功能"
 
-#: spyder/plugins/editor/confpage.py:42 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:128
+#: spyder/plugins/editor/confpage.py:41 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:128
 msgid "Show line numbers"
 msgstr "显示行号"
 
-#: spyder/plugins/editor/confpage.py:43 spyder/plugins/editor/plugin.py:901
+#: spyder/plugins/editor/confpage.py:42 spyder/plugins/editor/plugin.py:906
 msgid "Show blank spaces"
 msgstr "显示空格占位符"
 
-#: spyder/plugins/editor/confpage.py:44
+#: spyder/plugins/editor/confpage.py:43
 msgid "Highlight current line"
 msgstr "高亮显示当前行"
 
-#: spyder/plugins/editor/confpage.py:46
+#: spyder/plugins/editor/confpage.py:45
 msgid "Highlight current cell"
 msgstr "高亮显示当前Cell"
 
-#: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:904
+#: spyder/plugins/editor/confpage.py:48 spyder/plugins/editor/plugin.py:909
 msgid "Scroll past the end"
 msgstr "滚动到结尾"
 
-#: spyder/plugins/editor/confpage.py:52
+#: spyder/plugins/editor/confpage.py:51
 msgid "Highlight occurrences after"
 msgstr "高亮延迟时间"
 
-#: spyder/plugins/editor/confpage.py:55 spyder/plugins/statusbar/confpage.py:30 spyder/plugins/statusbar/confpage.py:37
+#: spyder/plugins/editor/confpage.py:54 spyder/plugins/statusbar/confpage.py:30 spyder/plugins/statusbar/confpage.py:37
 msgid " ms"
 msgstr " 毫秒"
 
-#: spyder/plugins/editor/confpage.py:92
+#: spyder/plugins/editor/confpage.py:91
 msgid "Automatic insertion of parentheses, braces and brackets"
 msgstr "自动插入圆括号、中括号、大括号"
 
-#: spyder/plugins/editor/confpage.py:95
+#: spyder/plugins/editor/confpage.py:94
 msgid "Automatic insertion of closing quotes"
 msgstr "自动插入成对的引号"
 
-#: spyder/plugins/editor/confpage.py:98
+#: spyder/plugins/editor/confpage.py:97
 msgid "Automatic insertion of colons after 'for', 'if', 'def', etc"
 msgstr "在'for', 'if', 'def'等关键字后面插入冒号"
 
-#: spyder/plugins/editor/confpage.py:101
+#: spyder/plugins/editor/confpage.py:100
 msgid "Automatic indentation after 'else', 'elif', etc."
 msgstr "在输入else、elif后自动缩进。"
 
-#: spyder/plugins/editor/confpage.py:104
+#: spyder/plugins/editor/confpage.py:103
 msgid "Tab always indent"
 msgstr "Tab键总是缩进"
 
-#: spyder/plugins/editor/confpage.py:106
+#: spyder/plugins/editor/confpage.py:105
 msgid "If enabled, pressing Tab will always indent,\n"
 "even when the cursor is not at the beginning\n"
 "of a line (when this option is enabled, code\n"
@@ -1899,182 +1899,182 @@ msgid "If enabled, pressing Tab will always indent,\n"
 msgstr "如果启用，按Tab键将始终缩进，即使光标不在行的开头\n"
 "（启用此选项时，可以使用备用快捷键触发代码完成：Ctrl + Space）"
 
-#: spyder/plugins/editor/confpage.py:112
+#: spyder/plugins/editor/confpage.py:111
 msgid "Automatically strip trailing spaces on changed lines"
 msgstr "行的内容更改时自动移除结尾空格"
 
-#: spyder/plugins/editor/confpage.py:114
+#: spyder/plugins/editor/confpage.py:113
 msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have their trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
 msgstr "若启用，将会移除已更改代码行中的结尾空格（字符除外）\n"
 "若禁用，则仅仅移除由 Spyder 添加的空格。"
 
-#: spyder/plugins/editor/confpage.py:118
+#: spyder/plugins/editor/confpage.py:117
 msgid "Intelligent backspace"
 msgstr "智能退格键"
 
-#: spyder/plugins/editor/confpage.py:122
+#: spyder/plugins/editor/confpage.py:121
 msgid "Automatically remove trailing spaces when saving files"
 msgstr "保存文件时自动移除尾随空格"
 
-#: spyder/plugins/editor/confpage.py:126
+#: spyder/plugins/editor/confpage.py:125
 msgid "Insert a newline at the end if one does not exist when saving a file"
 msgstr "当保存文件时，若文件结尾无换行符，则插入一个换行符"
 
-#: spyder/plugins/editor/confpage.py:131
+#: spyder/plugins/editor/confpage.py:130
 msgid "Trim all newlines after the final one when saving a file"
 msgstr "当保存文件时，移除最后一个换行符之后的所有额外换行符。"
 
-#: spyder/plugins/editor/confpage.py:136
+#: spyder/plugins/editor/confpage.py:135
 msgid "Indentation characters: "
 msgstr "缩进字符： "
 
-#: spyder/plugins/editor/confpage.py:137
+#: spyder/plugins/editor/confpage.py:136
 msgid "2 spaces"
 msgstr "2 个空格"
 
-#: spyder/plugins/editor/confpage.py:138
+#: spyder/plugins/editor/confpage.py:137
 msgid "3 spaces"
 msgstr "3 个空格"
 
-#: spyder/plugins/editor/confpage.py:139
+#: spyder/plugins/editor/confpage.py:138
 msgid "4 spaces"
 msgstr "4 个空格"
 
-#: spyder/plugins/editor/confpage.py:140
+#: spyder/plugins/editor/confpage.py:139
 msgid "5 spaces"
 msgstr "5 个空格"
 
-#: spyder/plugins/editor/confpage.py:141
+#: spyder/plugins/editor/confpage.py:140
 msgid "6 spaces"
 msgstr "6 个空格"
 
-#: spyder/plugins/editor/confpage.py:142
+#: spyder/plugins/editor/confpage.py:141
 msgid "7 spaces"
 msgstr "7 个空格"
 
-#: spyder/plugins/editor/confpage.py:143
+#: spyder/plugins/editor/confpage.py:142
 msgid "8 spaces"
 msgstr "8 个空格"
 
-#: spyder/plugins/editor/confpage.py:144
+#: spyder/plugins/editor/confpage.py:143
 msgid "Tabulations"
 msgstr "制表符"
 
-#: spyder/plugins/editor/confpage.py:147
+#: spyder/plugins/editor/confpage.py:146
 msgid "Tab stop width:"
 msgstr "制表符宽度："
 
-#: spyder/plugins/editor/confpage.py:148
+#: spyder/plugins/editor/confpage.py:147
 msgid "spaces"
 msgstr "空格"
 
-#: spyder/plugins/editor/confpage.py:191
+#: spyder/plugins/editor/confpage.py:190
 msgid "Save all files before running script"
 msgstr "在执行脚本前保存所有文件"
 
-#: spyder/plugins/editor/confpage.py:193
+#: spyder/plugins/editor/confpage.py:192
 msgid "Maintain focus in the Editor after running cells or selections"
 msgstr "运行单元格或运行选定的代码后，保持焦点在编辑器中"
 
-#: spyder/plugins/editor/confpage.py:195
+#: spyder/plugins/editor/confpage.py:194
 msgid "Copy full cell contents to the console when running code cells"
 msgstr "运行代码单元格时，将完整的单元格代码复制到控制台"
 
-#: spyder/plugins/editor/confpage.py:208
+#: spyder/plugins/editor/confpage.py:207
 msgid "Edit template for new files"
 msgstr "编辑用于新文件的模板"
 
-#: spyder/plugins/editor/confpage.py:212
+#: spyder/plugins/editor/confpage.py:211
 msgid "Autosave"
 msgstr "自动保存"
 
-#: spyder/plugins/editor/confpage.py:214
+#: spyder/plugins/editor/confpage.py:213
 msgid "Automatically save a copy of files with unsaved changes"
 msgstr "自动保存已更改但未保存文件的副本"
 
-#: spyder/plugins/editor/confpage.py:217
+#: spyder/plugins/editor/confpage.py:216
 msgid "Autosave interval: "
 msgstr "自动保存间隔: "
 
-#: spyder/plugins/editor/confpage.py:218
+#: spyder/plugins/editor/confpage.py:217
 msgid "seconds"
 msgstr "秒"
 
-#: spyder/plugins/editor/confpage.py:229
+#: spyder/plugins/editor/confpage.py:228
 msgid "Docstring type"
 msgstr "文档字符串类型"
 
-#: spyder/plugins/editor/confpage.py:234
+#: spyder/plugins/editor/confpage.py:233
 msgid "Here you can select the type of docstrings ({} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function/method/class declaration."
 msgstr "此处，您可以选择要在编辑器中提供输入建议的“文档字符串 (docstring)”类型 ({} 或 {})。该输入建议是在声明一个函数、方法或者类之后， 在您按下 <tt>{}</tt> 后提供的。"
 
-#: spyder/plugins/editor/confpage.py:242
+#: spyder/plugins/editor/confpage.py:241
 msgid "Numpy"
 msgstr "Numpy"
 
-#: spyder/plugins/editor/confpage.py:243
+#: spyder/plugins/editor/confpage.py:242
 msgid "Google"
 msgstr "谷歌"
 
-#: spyder/plugins/editor/confpage.py:244
+#: spyder/plugins/editor/confpage.py:243
 msgid "Sphinx"
 msgstr "Sphinx"
 
-#: spyder/plugins/editor/confpage.py:246
+#: spyder/plugins/editor/confpage.py:245
 msgid "Type:"
 msgstr "类型："
 
-#: spyder/plugins/editor/confpage.py:256
+#: spyder/plugins/editor/confpage.py:255
 msgid "Annotations"
 msgstr "注释"
 
-#: spyder/plugins/editor/confpage.py:258
+#: spyder/plugins/editor/confpage.py:257
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt>"
 msgstr "如果出现由以下内容开头的注释，则在行号前显示提示标记：<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt>"
 
-#: spyder/plugins/editor/confpage.py:264
+#: spyder/plugins/editor/confpage.py:263
 msgid "Display code annotations"
 msgstr "显示代码标记"
 
-#: spyder/plugins/editor/confpage.py:273
+#: spyder/plugins/editor/confpage.py:272
 msgid "End-of-line characters"
 msgstr "行结束符"
 
-#: spyder/plugins/editor/confpage.py:274
+#: spyder/plugins/editor/confpage.py:273
 msgid "When opening a text file containing mixed end-of-line characters (this may raise syntax errors in the consoles on Windows platforms), Spyder may fix the file automatically."
 msgstr "当打开含有混合结束字符的文本文件时（这可能会引发Window平台下控制台的语法错误），Spyder自动修复文件。"
 
-#: spyder/plugins/editor/confpage.py:280
+#: spyder/plugins/editor/confpage.py:279
 msgid "Fix automatically and show warning message box"
 msgstr "自动修复并显示警告对话框"
 
 #: spyder/plugins/editor/confpage.py:283
-msgid "On Save: convert EOL characters to"
-msgstr "保存时：将EOL字符转换为"
+msgid "Convert end-of-line characters to the following on save:"
+msgstr "保存时将行结束符转换为以下字符:"
 
-#: spyder/plugins/editor/confpage.py:286
-msgid "LF (UNIX)"
-msgstr "LF (UNIX)"
+#: spyder/plugins/editor/confpage.py:288
+msgid "LF (Unix)"
+msgstr "LF (Unix)"
 
-#: spyder/plugins/editor/confpage.py:287
+#: spyder/plugins/editor/confpage.py:289
 msgid "CRLF (Windows)"
 msgstr "CRLF (Windows)"
 
-#: spyder/plugins/editor/confpage.py:288
-msgid "CR (Mac)"
-msgstr "CR (Mac)"
+#: spyder/plugins/editor/confpage.py:290
+msgid "CR (macOS)"
+msgstr "CR (macOS)"
 
-#: spyder/plugins/editor/confpage.py:312 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:422 spyder/plugins/statusbar/confpage.py:26 spyder/plugins/variableexplorer/confpage.py:31
+#: spyder/plugins/editor/confpage.py:314 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:422 spyder/plugins/statusbar/confpage.py:26 spyder/plugins/variableexplorer/confpage.py:31
 msgid "Display"
 msgstr "显示"
 
-#: spyder/plugins/editor/confpage.py:313 spyder/plugins/help/confpage.py:59 spyder/plugins/ipythonconsole/confpage.py:71
+#: spyder/plugins/editor/confpage.py:315 spyder/plugins/help/confpage.py:59 spyder/plugins/ipythonconsole/confpage.py:71
 msgid "Source code"
 msgstr "源代码"
 
-#: spyder/plugins/editor/confpage.py:314 spyder/plugins/ipythonconsole/confpage.py:196 spyder/plugins/tours/widgets.py:334
+#: spyder/plugins/editor/confpage.py:316 spyder/plugins/ipythonconsole/confpage.py:196 spyder/plugins/tours/widgets.py:334
 msgid "Run code"
 msgstr "运行代码"
 
@@ -2082,485 +2082,485 @@ msgstr "运行代码"
 msgid "<None>"
 msgstr "<None>"
 
-#: spyder/plugins/editor/plugin.py:503
+#: spyder/plugins/editor/plugin.py:501
 msgid "&New file..."
 msgstr "新建文件(&N)..."
 
-#: spyder/plugins/editor/plugin.py:504 spyder/plugins/explorer/widgets/explorer.py:1235 spyder/plugins/explorer/widgets/explorer.py:1246
+#: spyder/plugins/editor/plugin.py:502 spyder/plugins/explorer/widgets/explorer.py:1237 spyder/plugins/explorer/widgets/explorer.py:1248
 msgid "New file"
 msgstr "新建文件"
 
-#: spyder/plugins/editor/plugin.py:513
+#: spyder/plugins/editor/plugin.py:511
 msgid "O&pen last closed"
 msgstr "打开最后关闭的文件(&P)"
 
-#: spyder/plugins/editor/plugin.py:514
+#: spyder/plugins/editor/plugin.py:512
 msgid "Open last closed"
 msgstr "打开最后关闭的文件"
 
-#: spyder/plugins/editor/plugin.py:520
+#: spyder/plugins/editor/plugin.py:518
 msgid "&Open..."
 msgstr "打开(&O)..."
 
-#: spyder/plugins/editor/plugin.py:521 spyder/plugins/editor/plugin.py:2144 spyder/plugins/editor/plugin.py:2158 spyder/plugins/editor/plugin.py:2166
+#: spyder/plugins/editor/plugin.py:519 spyder/plugins/editor/plugin.py:2151 spyder/plugins/editor/plugin.py:2165 spyder/plugins/editor/plugin.py:2173
 msgid "Open file"
 msgstr "打开文件"
 
-#: spyder/plugins/editor/plugin.py:527
+#: spyder/plugins/editor/plugin.py:525
 msgid "&Revert"
 msgstr "恢复(&R)"
 
-#: spyder/plugins/editor/plugin.py:528
+#: spyder/plugins/editor/plugin.py:526
 msgid "Revert file from disk"
 msgstr "从硬盘上的文件恢复"
 
-#: spyder/plugins/editor/plugin.py:531
+#: spyder/plugins/editor/plugin.py:529
 msgid "&Save"
 msgstr "保存(&S)"
 
-#: spyder/plugins/editor/plugin.py:532 spyder/plugins/editor/widgets/editor.py:1961
+#: spyder/plugins/editor/plugin.py:530 spyder/plugins/editor/widgets/editor.py:1964
 msgid "Save file"
 msgstr "保存文件"
 
-#: spyder/plugins/editor/plugin.py:538
+#: spyder/plugins/editor/plugin.py:536
 msgid "Sav&e all"
 msgstr "保存所有(&E)"
 
-#: spyder/plugins/editor/plugin.py:539
+#: spyder/plugins/editor/plugin.py:537
 msgid "Save all files"
 msgstr "保存所有文件"
 
-#: spyder/plugins/editor/plugin.py:545
+#: spyder/plugins/editor/plugin.py:543
 msgid "Save &as..."
 msgstr "另存为(&A)..."
 
-#: spyder/plugins/editor/plugin.py:546
+#: spyder/plugins/editor/plugin.py:544
 msgid "Save current file as..."
 msgstr "将当前文件另存为..."
 
-#: spyder/plugins/editor/plugin.py:551
+#: spyder/plugins/editor/plugin.py:549
 msgid "Save copy as..."
 msgstr "保存副本..."
 
-#: spyder/plugins/editor/plugin.py:552
+#: spyder/plugins/editor/plugin.py:550
 msgid "Save copy of current file as..."
 msgstr "将当前文件的一个副本保存为..."
 
-#: spyder/plugins/editor/plugin.py:555 spyder/plugins/editor/plugin.py:556
+#: spyder/plugins/editor/plugin.py:553 spyder/plugins/editor/plugin.py:554
 msgid "Print preview..."
 msgstr "打印预览..."
 
-#: spyder/plugins/editor/plugin.py:557
+#: spyder/plugins/editor/plugin.py:555
 msgid "&Print..."
 msgstr "打印(&P)"
 
-#: spyder/plugins/editor/plugin.py:558
+#: spyder/plugins/editor/plugin.py:556
 msgid "Print current file..."
 msgstr "打印当前文件…"
 
-#: spyder/plugins/editor/plugin.py:561
+#: spyder/plugins/editor/plugin.py:559
 msgid "&Close"
 msgstr "关闭(&C)"
 
-#: spyder/plugins/editor/plugin.py:562
+#: spyder/plugins/editor/plugin.py:560
 msgid "Close current file"
 msgstr "关闭当前文件"
 
-#: spyder/plugins/editor/plugin.py:565
+#: spyder/plugins/editor/plugin.py:563
 msgid "C&lose all"
 msgstr "关闭所有(&L)"
 
-#: spyder/plugins/editor/plugin.py:566
+#: spyder/plugins/editor/plugin.py:564
 msgid "Close all opened files"
 msgstr "关闭所有打开的文件"
 
-#: spyder/plugins/editor/plugin.py:573
+#: spyder/plugins/editor/plugin.py:571
 msgid "&Find text"
 msgstr "查找下一个(&F)"
 
-#: spyder/plugins/editor/plugin.py:579
+#: spyder/plugins/editor/plugin.py:577
 msgid "Find &next"
 msgstr "查找下一个(&N)"
 
-#: spyder/plugins/editor/plugin.py:585
+#: spyder/plugins/editor/plugin.py:583
 msgid "Find &previous"
 msgstr "查找上一个(&P)"
 
-#: spyder/plugins/editor/plugin.py:591
+#: spyder/plugins/editor/plugin.py:589
 msgid "&Replace text"
 msgstr "替换文本(&R)"
 
-#: spyder/plugins/editor/plugin.py:600
+#: spyder/plugins/editor/plugin.py:598
 msgid "Set/Clear breakpoint"
 msgstr "设置/清除断点"
 
-#: spyder/plugins/editor/plugin.py:608
+#: spyder/plugins/editor/plugin.py:606
 msgid "Set/Edit conditional breakpoint"
 msgstr "设置/编辑条件断点"
 
-#: spyder/plugins/editor/plugin.py:621 spyder/plugins/mainmenu/plugin.py:71
+#: spyder/plugins/editor/plugin.py:619 spyder/plugins/mainmenu/plugin.py:71
 msgid "&Debug"
 msgstr "调试(&D)"
 
-#: spyder/plugins/editor/plugin.py:623
+#: spyder/plugins/editor/plugin.py:621
 msgid "Debug file"
 msgstr "调试文件"
 
-#: spyder/plugins/editor/plugin.py:629
+#: spyder/plugins/editor/plugin.py:627
 msgid "Step"
 msgstr "步"
 
-#: spyder/plugins/editor/plugin.py:630
+#: spyder/plugins/editor/plugin.py:628
 msgid "Run current line"
 msgstr "运行当前行"
 
-#: spyder/plugins/editor/plugin.py:636
+#: spyder/plugins/editor/plugin.py:634
 msgid "Continue"
 msgstr "继续"
 
-#: spyder/plugins/editor/plugin.py:638
+#: spyder/plugins/editor/plugin.py:636
 msgid "Continue execution until next breakpoint"
 msgstr "继续运行直到下一个断点"
 
-#: spyder/plugins/editor/plugin.py:645
+#: spyder/plugins/editor/plugin.py:643
 msgid "Step Into"
 msgstr "步入"
 
-#: spyder/plugins/editor/plugin.py:647
+#: spyder/plugins/editor/plugin.py:645
 msgid "Step into function or method of current line"
 msgstr "步入当前行显示的函数或方法"
 
-#: spyder/plugins/editor/plugin.py:653
+#: spyder/plugins/editor/plugin.py:651
 msgid "Step Return"
 msgstr "步回"
 
-#: spyder/plugins/editor/plugin.py:655
+#: spyder/plugins/editor/plugin.py:653
 msgid "Run until current function or method returns"
 msgstr "执行直到当前函数或方法返回"
 
-#: spyder/plugins/editor/plugin.py:662 spyder/widgets/browser.py:197
+#: spyder/plugins/editor/plugin.py:660 spyder/widgets/browser.py:197
 msgid "Stop"
 msgstr "停止"
 
-#: spyder/plugins/editor/plugin.py:663
+#: spyder/plugins/editor/plugin.py:661
 msgid "Stop debugging"
 msgstr "停止调试"
 
-#: spyder/plugins/editor/plugin.py:669 spyder/plugins/editor/plugin.py:1662 spyder/plugins/mainmenu/plugin.py:70
+#: spyder/plugins/editor/plugin.py:667 spyder/plugins/editor/plugin.py:1667 spyder/plugins/mainmenu/plugin.py:70
 msgid "&Run"
 msgstr "运行(&R)"
 
-#: spyder/plugins/editor/plugin.py:670
+#: spyder/plugins/editor/plugin.py:668
 msgid "Run file"
 msgstr "运行文件"
 
-#: spyder/plugins/editor/plugin.py:677
+#: spyder/plugins/editor/plugin.py:675
 msgid "&Configuration per file..."
 msgstr "单文件配置 (&C)"
 
-#: spyder/plugins/editor/plugin.py:679
+#: spyder/plugins/editor/plugin.py:677
 msgid "Run settings"
 msgstr "运行设置"
 
-#: spyder/plugins/editor/plugin.py:686
+#: spyder/plugins/editor/plugin.py:684
 msgid "Re-run &last script"
 msgstr "重新运行最后一次执行的脚本 (&L)"
 
-#: spyder/plugins/editor/plugin.py:688
+#: spyder/plugins/editor/plugin.py:686
 msgid "Run again last file"
 msgstr "重新运行最后一次运行的文件"
 
-#: spyder/plugins/editor/plugin.py:694 spyder/plugins/editor/widgets/codeeditor.py:4378
+#: spyder/plugins/editor/plugin.py:692 spyder/plugins/editor/widgets/codeeditor.py:4378
 msgid "Run &selection or current line"
 msgstr "运行选定的代码或当前行 (&S)"
 
-#: spyder/plugins/editor/plugin.py:697
+#: spyder/plugins/editor/plugin.py:695
 msgid "Run selection or current line"
 msgstr "运行选定的代码或当前行"
 
-#: spyder/plugins/editor/plugin.py:705 spyder/plugins/editor/widgets/codeeditor.py:4366
+#: spyder/plugins/editor/plugin.py:703 spyder/plugins/editor/widgets/codeeditor.py:4366
 msgid "Run cell"
 msgstr "运行单元格"
 
-#: spyder/plugins/editor/plugin.py:707
+#: spyder/plugins/editor/plugin.py:705
 msgid "Run current cell \n"
 "[Use #%% to create cells]"
 msgstr "运行当前单元格（Ctrl+Enter）\n"
 "[用 #%% 创建单元格]"
 
-#: spyder/plugins/editor/plugin.py:717 spyder/plugins/editor/widgets/codeeditor.py:4370
+#: spyder/plugins/editor/plugin.py:715 spyder/plugins/editor/widgets/codeeditor.py:4370
 msgid "Run cell and advance"
 msgstr "运行单元格并继续"
 
-#: spyder/plugins/editor/plugin.py:719
+#: spyder/plugins/editor/plugin.py:717
 msgid "Run current cell and go to the next one "
 msgstr "运行当前单元格，并转到下一个单元格 "
 
-#: spyder/plugins/editor/plugin.py:729 spyder/plugins/editor/widgets/codeeditor.py:4384
+#: spyder/plugins/editor/plugin.py:727 spyder/plugins/editor/widgets/codeeditor.py:4384
 msgid "Debug cell"
 msgstr "调试单元格"
 
-#: spyder/plugins/editor/plugin.py:731
+#: spyder/plugins/editor/plugin.py:729
 msgid "Debug current cell (Alt+Shift+Enter)"
 msgstr "调试当前单元格 (Alt+Shift+Enter)"
 
-#: spyder/plugins/editor/plugin.py:741 spyder/plugins/editor/widgets/codeeditor.py:4374
+#: spyder/plugins/editor/plugin.py:739 spyder/plugins/editor/widgets/codeeditor.py:4374
 msgid "Re-run last cell"
 msgstr "重新运行上次的单元格"
 
-#: spyder/plugins/editor/plugin.py:742
+#: spyder/plugins/editor/plugin.py:740
 msgid "Re run last cell "
 msgstr "重新运行最后一个单元格 "
 
-#: spyder/plugins/editor/plugin.py:752
+#: spyder/plugins/editor/plugin.py:750
 msgid "Show todo list"
 msgstr "显示待办事项（TODO）清单"
 
-#: spyder/plugins/editor/plugin.py:753
+#: spyder/plugins/editor/plugin.py:751
 msgid "Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/OPTIMIZE/!!!/???)"
 msgstr "显示注释清单 (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/OPTIMIZE/!!!/???)"
 
-#: spyder/plugins/editor/plugin.py:762
+#: spyder/plugins/editor/plugin.py:760
 msgid "Show warning/error list"
 msgstr "显示警告及错误清单"
 
-#: spyder/plugins/editor/plugin.py:763
+#: spyder/plugins/editor/plugin.py:761
 msgid "Show code analysis warnings/errors"
 msgstr "显示代码分析警告或错误"
 
-#: spyder/plugins/editor/plugin.py:770
+#: spyder/plugins/editor/plugin.py:768
 msgid "Previous warning/error"
 msgstr "上一个警告或错误"
 
-#: spyder/plugins/editor/plugin.py:771
+#: spyder/plugins/editor/plugin.py:769
 msgid "Go to previous code analysis warning/error"
 msgstr "转到上一个代码分析警告或错误"
 
-#: spyder/plugins/editor/plugin.py:779
+#: spyder/plugins/editor/plugin.py:777
 msgid "Next warning/error"
 msgstr "下一个警告或错误"
 
-#: spyder/plugins/editor/plugin.py:780
+#: spyder/plugins/editor/plugin.py:778
 msgid "Go to next code analysis warning/error"
 msgstr "转到下一个代码分析警告或错误"
 
-#: spyder/plugins/editor/plugin.py:789
+#: spyder/plugins/editor/plugin.py:787
 msgid "Last edit location"
 msgstr "最后一次编辑的位置"
 
-#: spyder/plugins/editor/plugin.py:790
+#: spyder/plugins/editor/plugin.py:788
 msgid "Go to last edit location"
 msgstr "转到最后一次编辑的位置"
 
-#: spyder/plugins/editor/plugin.py:798
+#: spyder/plugins/editor/plugin.py:796
 msgid "Previous cursor position"
 msgstr "上一个光标位置"
 
-#: spyder/plugins/editor/plugin.py:799
+#: spyder/plugins/editor/plugin.py:797
 msgid "Go to previous cursor position"
 msgstr "转到上一个光标位置"
 
-#: spyder/plugins/editor/plugin.py:807
+#: spyder/plugins/editor/plugin.py:805
 msgid "Next cursor position"
 msgstr "下一个光标位置"
 
-#: spyder/plugins/editor/plugin.py:808
+#: spyder/plugins/editor/plugin.py:806
 msgid "Go to next cursor position"
 msgstr "转到下一个光标位置"
 
-#: spyder/plugins/editor/plugin.py:818 spyder/plugins/editor/widgets/codeeditor.py:4350
+#: spyder/plugins/editor/plugin.py:816 spyder/plugins/editor/widgets/codeeditor.py:4350
 msgid "Comment"
 msgstr "注释"
 
-#: spyder/plugins/editor/plugin.py:818 spyder/plugins/editor/widgets/codeeditor.py:4350
+#: spyder/plugins/editor/plugin.py:816 spyder/plugins/editor/widgets/codeeditor.py:4350
 msgid "Uncomment"
 msgstr "取消注释"
 
-#: spyder/plugins/editor/plugin.py:819
+#: spyder/plugins/editor/plugin.py:817
 msgid "Comment current line or selection"
 msgstr "注释当前行或选定的内容"
 
-#: spyder/plugins/editor/plugin.py:823
+#: spyder/plugins/editor/plugin.py:821
 msgid "Add &block comment"
 msgstr "添加块注释 (&B)"
 
-#: spyder/plugins/editor/plugin.py:824
+#: spyder/plugins/editor/plugin.py:822
 msgid "Add block comment around current line or selection"
 msgstr "在当前行或选定内容周围添加块注释"
 
-#: spyder/plugins/editor/plugin.py:830
+#: spyder/plugins/editor/plugin.py:828
 msgid "R&emove block comment"
 msgstr "移除块注释 (&E)"
 
-#: spyder/plugins/editor/plugin.py:831
+#: spyder/plugins/editor/plugin.py:829
 msgid "Remove comment block around current line or selection"
 msgstr "移除当前行或选定内容周围的块注释"
 
-#: spyder/plugins/editor/plugin.py:842
+#: spyder/plugins/editor/plugin.py:840
 msgid "Indent"
 msgstr "缩进"
 
-#: spyder/plugins/editor/plugin.py:843
+#: spyder/plugins/editor/plugin.py:841
 msgid "Indent current line or selection"
 msgstr "缩进当前行或选定的内容"
 
-#: spyder/plugins/editor/plugin.py:846
+#: spyder/plugins/editor/plugin.py:844
 msgid "Unindent"
 msgstr "取消缩进"
 
-#: spyder/plugins/editor/plugin.py:847
+#: spyder/plugins/editor/plugin.py:845
 msgid "Unindent current line or selection"
 msgstr "取消缩进当前行或选定的内容"
 
-#: spyder/plugins/editor/plugin.py:851
+#: spyder/plugins/editor/plugin.py:849
 msgid "Toggle Uppercase"
 msgstr "切换大写"
 
-#: spyder/plugins/editor/plugin.py:852
+#: spyder/plugins/editor/plugin.py:850
 msgid "Change to uppercase current line or selection"
 msgstr "将当前行或选定的内容转换为大写"
 
-#: spyder/plugins/editor/plugin.py:858
+#: spyder/plugins/editor/plugin.py:856
 msgid "Toggle Lowercase"
 msgstr "切换小写"
 
-#: spyder/plugins/editor/plugin.py:859
+#: spyder/plugins/editor/plugin.py:857
 msgid "Change to lowercase current line or selection"
 msgstr "将当前行或选定的内容转换为小写"
 
-#: spyder/plugins/editor/plugin.py:866
+#: spyder/plugins/editor/plugin.py:865
 msgid "Carriage return and line feed (Windows)"
 msgstr "回车与换行符 CRLF（Windows）"
 
-#: spyder/plugins/editor/plugin.py:869
+#: spyder/plugins/editor/plugin.py:870
 msgid "Line feed (UNIX)"
 msgstr "换行符 LF（UNIX）"
 
-#: spyder/plugins/editor/plugin.py:872
+#: spyder/plugins/editor/plugin.py:875
 msgid "Carriage return (Mac)"
 msgstr "回车符 CR（Mac）"
 
-#: spyder/plugins/editor/plugin.py:878
+#: spyder/plugins/editor/plugin.py:882
 msgid "Convert end-of-line characters"
 msgstr "转换行结束符"
 
-#: spyder/plugins/editor/plugin.py:883
+#: spyder/plugins/editor/plugin.py:888
 msgid "Remove trailing spaces"
 msgstr "删除尾部空格"
 
-#: spyder/plugins/editor/plugin.py:892 spyder/plugins/editor/plugin.py:1832 spyder/plugins/editor/widgets/codeeditor.py:4416 spyder/plugins/editor/widgets/codeeditor.py:5274
+#: spyder/plugins/editor/plugin.py:897 spyder/plugins/editor/plugin.py:1837 spyder/plugins/editor/widgets/codeeditor.py:4416 spyder/plugins/editor/widgets/codeeditor.py:5274
 msgid "Format file or selection with {0}"
 msgstr "格式化文件或选择 {0}"
 
-#: spyder/plugins/editor/plugin.py:918
+#: spyder/plugins/editor/plugin.py:923
 msgid "Show code style warnings"
 msgstr "显示代码风格警告"
 
-#: spyder/plugins/editor/plugin.py:921
+#: spyder/plugins/editor/plugin.py:926
 msgid "Show docstring style warnings"
 msgstr "显示“文档字符串”风格警告"
 
-#: spyder/plugins/editor/plugin.py:937
+#: spyder/plugins/editor/plugin.py:942
 msgid "Fix indentation"
 msgstr "修正缩进"
 
-#: spyder/plugins/editor/plugin.py:938
+#: spyder/plugins/editor/plugin.py:943
 msgid "Replace tab characters by space characters"
 msgstr "用空格代替tab缩进"
 
-#: spyder/plugins/editor/plugin.py:941
+#: spyder/plugins/editor/plugin.py:946
 msgid "Go to line..."
 msgstr "转到行…"
 
-#: spyder/plugins/editor/plugin.py:949
+#: spyder/plugins/editor/plugin.py:954
 msgid "Set console working directory"
 msgstr "设置控制台工作目录"
 
-#: spyder/plugins/editor/plugin.py:951
+#: spyder/plugins/editor/plugin.py:956
 msgid "Set current console (and file explorer) working directory to current script directory"
 msgstr "将当前控制台（和文件管理器）工作目录设置为当前脚本目录"
 
-#: spyder/plugins/editor/plugin.py:956
+#: spyder/plugins/editor/plugin.py:961
 msgid "Maximum number of recent files..."
 msgstr "最近文件的最大数量..."
 
-#: spyder/plugins/editor/plugin.py:959
+#: spyder/plugins/editor/plugin.py:964
 msgid "Clear recent files list"
 msgstr "清理最近的文件列表"
 
-#: spyder/plugins/editor/plugin.py:959 spyder/plugins/findinfiles/widgets/combobox.py:81 spyder/plugins/projects/plugin.py:328
+#: spyder/plugins/editor/plugin.py:964 spyder/plugins/findinfiles/widgets/combobox.py:81 spyder/plugins/projects/plugin.py:328
 msgid "Clear this list"
 msgstr "清理这个列表"
 
-#: spyder/plugins/editor/plugin.py:968
+#: spyder/plugins/editor/plugin.py:973
 msgid "Go to next file"
 msgstr "转到下一个文件"
 
-#: spyder/plugins/editor/plugin.py:974
+#: spyder/plugins/editor/plugin.py:979
 msgid "Go to previous file"
 msgstr "转到上一个文件"
 
-#: spyder/plugins/editor/plugin.py:995
+#: spyder/plugins/editor/plugin.py:1000
 msgid "Open &recent"
 msgstr "打开最近的文件 (&R)"
 
-#: spyder/plugins/editor/plugin.py:1651 spyder/plugins/toolbar/plugin.py:58
+#: spyder/plugins/editor/plugin.py:1656 spyder/plugins/toolbar/plugin.py:58
 msgid "File toolbar"
 msgstr "文件工具栏"
 
-#: spyder/plugins/editor/plugin.py:1653 spyder/plugins/toolbar/plugin.py:59
+#: spyder/plugins/editor/plugin.py:1658 spyder/plugins/toolbar/plugin.py:59
 msgid "Run toolbar"
 msgstr "运行工具栏"
 
-#: spyder/plugins/editor/plugin.py:1655 spyder/plugins/toolbar/plugin.py:60
+#: spyder/plugins/editor/plugin.py:1660 spyder/plugins/toolbar/plugin.py:60
 msgid "Debug toolbar"
 msgstr "调试工具栏"
 
-#: spyder/plugins/editor/plugin.py:1658 spyder/plugins/mainmenu/plugin.py:66
+#: spyder/plugins/editor/plugin.py:1663 spyder/plugins/mainmenu/plugin.py:66
 msgid "&File"
 msgstr "文件(&F)"
 
-#: spyder/plugins/editor/plugin.py:1659 spyder/plugins/mainmenu/plugin.py:67
+#: spyder/plugins/editor/plugin.py:1664 spyder/plugins/mainmenu/plugin.py:67
 msgid "&Edit"
 msgstr "编辑(&E)"
 
-#: spyder/plugins/editor/plugin.py:1660 spyder/plugins/mainmenu/plugin.py:68
+#: spyder/plugins/editor/plugin.py:1665 spyder/plugins/mainmenu/plugin.py:68
 msgid "&Search"
 msgstr "查找(&S)"
 
-#: spyder/plugins/editor/plugin.py:1661 spyder/plugins/mainmenu/plugin.py:69
+#: spyder/plugins/editor/plugin.py:1666 spyder/plugins/mainmenu/plugin.py:69
 msgid "Sour&ce"
 msgstr "源代码(&C)"
 
-#: spyder/plugins/editor/plugin.py:1663 spyder/plugins/mainmenu/plugin.py:74
+#: spyder/plugins/editor/plugin.py:1668 spyder/plugins/mainmenu/plugin.py:74
 msgid "&Tools"
 msgstr "工具(&T)"
 
-#: spyder/plugins/editor/plugin.py:1664 spyder/plugins/mainmenu/plugin.py:75
+#: spyder/plugins/editor/plugin.py:1669 spyder/plugins/mainmenu/plugin.py:75
 msgid "&View"
 msgstr "查看(&V)"
 
-#: spyder/plugins/editor/plugin.py:1665 spyder/plugins/mainmenu/plugin.py:76
+#: spyder/plugins/editor/plugin.py:1670 spyder/plugins/mainmenu/plugin.py:76
 msgid "&Help"
 msgstr "帮助(&H)"
 
-#: spyder/plugins/editor/plugin.py:1899
+#: spyder/plugins/editor/plugin.py:1904
 msgid "Spyder Editor"
 msgstr "Spyder 编辑器"
 
-#: spyder/plugins/editor/plugin.py:1900
+#: spyder/plugins/editor/plugin.py:1905
 msgid "This is a temporary script file."
 msgstr "这是一个临时脚本文件。"
 
-#: spyder/plugins/editor/plugin.py:1983 spyder/plugins/editor/plugin.py:1994 spyder/plugins/editor/plugin.py:2001 spyder/plugins/pylint/main_widget.py:466
+#: spyder/plugins/editor/plugin.py:1988 spyder/plugins/editor/plugin.py:1999 spyder/plugins/editor/plugin.py:2006 spyder/plugins/pylint/main_widget.py:466
 msgid "untitled"
 msgstr "未命名"
 
-#: spyder/plugins/editor/plugin.py:2080
+#: spyder/plugins/editor/plugin.py:2085
 msgid "Maximum number of recent files"
 msgstr "最多显示的最近文件数量"
 
-#: spyder/plugins/editor/plugin.py:2274
+#: spyder/plugins/editor/plugin.py:2285
 msgid "Printing..."
 msgstr "正在打印..."
 
@@ -2656,11 +2656,11 @@ msgstr "移除错误"
 msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
 msgstr "不能移除这个u出。错误：\n\n"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3798 spyder/plugins/explorer/widgets/explorer.py:1643
+#: spyder/plugins/editor/widgets/codeeditor.py:3798 spyder/plugins/explorer/widgets/explorer.py:1645
 msgid "Conversion error"
 msgstr "转换错误"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3799 spyder/plugins/explorer/widgets/explorer.py:1644
+#: spyder/plugins/editor/widgets/codeeditor.py:3799 spyder/plugins/explorer/widgets/explorer.py:1646
 msgid "It was not possible to convert this notebook. The error is:\n\n"
 msgstr "无法转换notebook，错误：\n\n\n"
 
@@ -2668,7 +2668,7 @@ msgstr "无法转换notebook，错误：\n\n\n"
 msgid "Clear all ouput"
 msgstr "清除所有输出"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4357 spyder/plugins/explorer/widgets/explorer.py:457
+#: spyder/plugins/editor/widgets/codeeditor.py:4357 spyder/plugins/explorer/widgets/explorer.py:459
 msgid "Convert to Python script"
 msgstr "转换为Python脚本"
 
@@ -2692,7 +2692,7 @@ msgstr "重置缩放"
 msgid "Generate docstring"
 msgstr "生成文档字符串 (docstring)"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4998 spyder/plugins/preferences/api.py:803
+#: spyder/plugins/editor/widgets/codeeditor.py:4998 spyder/plugins/preferences/api.py:829
 msgid "Information"
 msgstr "信息"
 
@@ -2732,7 +2732,7 @@ msgstr "除此以外关闭所有"
 msgid "Sort tabs alphabetically"
 msgstr "按字母顺序排列标签页"
 
-#: spyder/plugins/editor/widgets/editor.py:303 spyder/plugins/explorer/widgets/explorer.py:390
+#: spyder/plugins/editor/widgets/editor.py:303 spyder/plugins/explorer/widgets/explorer.py:392
 msgid "Show in Finder"
 msgstr "在文件资源管理器中显示"
 
@@ -2744,75 +2744,75 @@ msgstr "用外部文件管理器打开"
 msgid "Spyder can't show this file in the external file explorer because the <tt>xdg-utils</tt> package is not available on your system."
 msgstr "Spyder 无法在外部文件浏览器中显示此文件，因为 <tt>xdg-utils</tt> 软件包在您的系统上不可用。"
 
-#: spyder/plugins/editor/widgets/editor.py:1274
+#: spyder/plugins/editor/widgets/editor.py:1277
 msgid "Temporary file"
 msgstr "临时文件"
 
-#: spyder/plugins/editor/widgets/editor.py:1404
+#: spyder/plugins/editor/widgets/editor.py:1407
 msgid "New window"
 msgstr "新窗口"
 
-#: spyder/plugins/editor/widgets/editor.py:1406
+#: spyder/plugins/editor/widgets/editor.py:1409
 msgid "Create a new editor window"
 msgstr "创建一个新的编辑窗"
 
-#: spyder/plugins/editor/widgets/editor.py:1412
+#: spyder/plugins/editor/widgets/editor.py:1415
 msgid "Split vertically"
 msgstr "垂直分割"
 
-#: spyder/plugins/editor/widgets/editor.py:1414
+#: spyder/plugins/editor/widgets/editor.py:1417
 msgid "Split vertically this editor window"
 msgstr "垂直分割当前编辑窗口"
 
-#: spyder/plugins/editor/widgets/editor.py:1422
+#: spyder/plugins/editor/widgets/editor.py:1425
 msgid "Split horizontally"
 msgstr "水平分割"
 
-#: spyder/plugins/editor/widgets/editor.py:1424
+#: spyder/plugins/editor/widgets/editor.py:1427
 msgid "Split horizontally this editor window"
 msgstr "水平分割当前编辑窗口"
 
-#: spyder/plugins/editor/widgets/editor.py:1432
+#: spyder/plugins/editor/widgets/editor.py:1435
 msgid "Close this panel"
 msgstr "关闭当前窗格"
 
-#: spyder/plugins/editor/widgets/editor.py:1446 spyder/plugins/editor/widgets/editor.py:3242
+#: spyder/plugins/editor/widgets/editor.py:1449 spyder/plugins/editor/widgets/editor.py:3252
 msgid "Close window"
 msgstr "关闭窗口"
 
-#: spyder/plugins/editor/widgets/editor.py:1775
+#: spyder/plugins/editor/widgets/editor.py:1778
 msgid "<b>%s</b> has been modified.<br>Do you want to save changes?"
 msgstr "<b>%s</b> 已被修改。<br>是否保存?"
 
-#: spyder/plugins/editor/widgets/editor.py:1882 spyder/plugins/editor/widgets/editor.py:2070 spyder/plugins/explorer/widgets/utils.py:64
+#: spyder/plugins/editor/widgets/editor.py:1885 spyder/plugins/editor/widgets/editor.py:2073 spyder/plugins/explorer/widgets/utils.py:67
 msgid "Save Error"
 msgstr "保存时出错"
 
-#: spyder/plugins/editor/widgets/editor.py:1883 spyder/plugins/editor/widgets/editor.py:2071 spyder/plugins/explorer/widgets/utils.py:65
+#: spyder/plugins/editor/widgets/editor.py:1886 spyder/plugins/editor/widgets/editor.py:2074 spyder/plugins/explorer/widgets/utils.py:68
 msgid "<b>Unable to save file '%s'</b><br><br>Error message:<br>%s"
 msgstr "<b>无法保存文件 '%s'</b><br><br>错误信息:<br>%s"
 
-#: spyder/plugins/editor/widgets/editor.py:2280
+#: spyder/plugins/editor/widgets/editor.py:2283
 msgid "<b>%s</b> is unavailable (this file may have been removed, moved or renamed outside Spyder).<br>Do you want to close it?"
 msgstr "<b>%s</b> 不可用(该文件已被移除、移动或在Spyder之外被重命名).<br>您想关闭它吗?"
 
-#: spyder/plugins/editor/widgets/editor.py:2303
+#: spyder/plugins/editor/widgets/editor.py:2306
 msgid "<b>%s</b> has been modified outside Spyder.<br>Do you want to reload it and lose all your changes?"
 msgstr "<b>%s</b> 在Spyder之外被修改.<br>是否重新加载并丢弃当前所有更改?"
 
-#: spyder/plugins/editor/widgets/editor.py:2414
+#: spyder/plugins/editor/widgets/editor.py:2417
 msgid "All changes to <b>%s</b> will be lost.<br>Do you want to revert file from disk?"
 msgstr "<b>%s</b>所有更改 都将丢失！<br>是否从磁盘恢复文件?"
 
-#: spyder/plugins/editor/widgets/editor.py:2618
+#: spyder/plugins/editor/widgets/editor.py:2621
 msgid "Loading %s..."
 msgstr "正在加载 %s..."
 
-#: spyder/plugins/editor/widgets/editor.py:2632
+#: spyder/plugins/editor/widgets/editor.py:2635
 msgid "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this automatically."
 msgstr "<b>%s</b>包含多种换行符。<br>Spyder将会自动修复这个问题。"
 
-#: spyder/plugins/editor/widgets/editor.py:3244
+#: spyder/plugins/editor/widgets/editor.py:3254
 msgid "Close this window"
 msgstr "关闭该窗口"
 
@@ -2874,7 +2874,7 @@ msgstr "最近修改"
 msgid "bytes"
 msgstr "字节"
 
-#: spyder/plugins/editor/widgets/recover.py:213 spyder/plugins/explorer/widgets/explorer.py:465 spyder/plugins/preferences/api.py:736 spyder/widgets/collectionseditor.py:445
+#: spyder/plugins/editor/widgets/recover.py:213 spyder/plugins/explorer/widgets/explorer.py:467 spyder/plugins/preferences/api.py:762 spyder/widgets/collectionseditor.py:445
 msgid "Size"
 msgstr "大小"
 
@@ -2922,7 +2922,7 @@ msgstr "Git 分支"
 msgid "General options"
 msgstr "常规选项"
 
-#: spyder/plugins/explorer/confpage.py:35 spyder/plugins/explorer/widgets/explorer.py:417
+#: spyder/plugins/explorer/confpage.py:35 spyder/plugins/explorer/widgets/explorer.py:419
 msgid "Show hidden files"
 msgstr "显示隐藏文件"
 
@@ -2934,11 +2934,11 @@ msgstr "单击以打开文件"
 msgid "Filter settings"
 msgstr "过滤设置"
 
-#: spyder/plugins/explorer/confpage.py:46 spyder/plugins/explorer/widgets/explorer.py:936
+#: spyder/plugins/explorer/confpage.py:46 spyder/plugins/explorer/widgets/explorer.py:938
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
 msgstr "可以按文件名、扩展名或使用 <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob 模式</a> 来筛选文件。 请输入您想要显示的文件的 glob 模式，并以逗号分隔。"
 
-#: spyder/plugins/explorer/confpage.py:93 spyder/plugins/preferences/api.py:825
+#: spyder/plugins/explorer/confpage.py:93 spyder/plugins/preferences/api.py:851
 msgid "General"
 msgstr "通用"
 
@@ -2946,263 +2946,263 @@ msgstr "通用"
 msgid "File associations"
 msgstr "文件关联"
 
-#: spyder/plugins/explorer/plugin.py:159 spyder/plugins/explorer/widgets/main_widget.py:200 spyder/plugins/tours/tours.py:156
+#: spyder/plugins/explorer/plugin.py:161 spyder/plugins/explorer/widgets/main_widget.py:202 spyder/plugins/tours/tours.py:156
 msgid "Files"
 msgstr "文件"
 
-#: spyder/plugins/explorer/plugin.py:163
+#: spyder/plugins/explorer/plugin.py:165
 msgid "Explore files in the computer with a tree view."
 msgstr "用树形视图查看计算机中的文件。"
 
-#: spyder/plugins/explorer/widgets/explorer.py:292
+#: spyder/plugins/explorer/widgets/explorer.py:294
 msgid "File..."
 msgstr "文件..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:299
+#: spyder/plugins/explorer/widgets/explorer.py:301
 msgid "Python file..."
 msgstr "Python文件..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:306
+#: spyder/plugins/explorer/widgets/explorer.py:308
 msgid "Folder..."
 msgstr "文件夹..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:313
+#: spyder/plugins/explorer/widgets/explorer.py:315
 msgid "Python Package..."
 msgstr "Python 包..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:321
+#: spyder/plugins/explorer/widgets/explorer.py:323
 msgid "Open in Spyder"
 msgstr "在Spyder中打开"
 
-#: spyder/plugins/explorer/widgets/explorer.py:328
+#: spyder/plugins/explorer/widgets/explorer.py:330
 msgid "Open externally"
 msgstr "在内部打开"
 
-#: spyder/plugins/explorer/widgets/explorer.py:334
+#: spyder/plugins/explorer/widgets/explorer.py:336
 msgid "Default external application"
 msgstr "默认外部程序"
 
-#: spyder/plugins/explorer/widgets/explorer.py:342
+#: spyder/plugins/explorer/widgets/explorer.py:344
 msgid "Delete..."
 msgstr "删除..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:349
+#: spyder/plugins/explorer/widgets/explorer.py:351
 msgid "Rename..."
 msgstr "重命名..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:356
+#: spyder/plugins/explorer/widgets/explorer.py:358
 msgid "Move..."
 msgstr "移动..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:378
+#: spyder/plugins/explorer/widgets/explorer.py:380
 msgid "Copy Absolute Path"
 msgstr "复制绝对路径"
 
-#: spyder/plugins/explorer/widgets/explorer.py:384
+#: spyder/plugins/explorer/widgets/explorer.py:386
 msgid "Copy Relative Path"
 msgstr "复制相对路径"
 
-#: spyder/plugins/explorer/widgets/explorer.py:392
+#: spyder/plugins/explorer/widgets/explorer.py:394
 msgid "Show in Folder"
 msgstr "在文件夹中显示"
 
-#: spyder/plugins/explorer/widgets/explorer.py:403
+#: spyder/plugins/explorer/widgets/explorer.py:405
 msgid "Commit"
 msgstr "提交"
 
-#: spyder/plugins/explorer/widgets/explorer.py:409
+#: spyder/plugins/explorer/widgets/explorer.py:411
 msgid "Browse repository"
 msgstr "库浏览器"
 
-#: spyder/plugins/explorer/widgets/explorer.py:425
+#: spyder/plugins/explorer/widgets/explorer.py:427
 msgid "Edit filter settings..."
 msgstr "编辑过滤器设置..."
 
-#: spyder/plugins/explorer/widgets/explorer.py:432
+#: spyder/plugins/explorer/widgets/explorer.py:434
 msgid "Single click to open"
 msgstr "单击以打开"
 
-#: spyder/plugins/explorer/widgets/explorer.py:442
+#: spyder/plugins/explorer/widgets/explorer.py:444
 msgid "Open IPython console here"
 msgstr "在此打开IPython控制台"
 
-#: spyder/plugins/explorer/widgets/explorer.py:473 spyder/widgets/collectionseditor.py:445
+#: spyder/plugins/explorer/widgets/explorer.py:475 spyder/widgets/collectionseditor.py:445
 msgid "Type"
 msgstr "类型"
 
-#: spyder/plugins/explorer/widgets/explorer.py:481
+#: spyder/plugins/explorer/widgets/explorer.py:483
 msgid "Date modified"
 msgstr "修改日期"
 
-#: spyder/plugins/explorer/widgets/explorer.py:501
+#: spyder/plugins/explorer/widgets/explorer.py:503
 msgid "New"
 msgstr "新建"
 
-#: spyder/plugins/explorer/widgets/explorer.py:520
+#: spyder/plugins/explorer/widgets/explorer.py:522
 msgid "Open with"
 msgstr "打开方式"
 
-#: spyder/plugins/explorer/widgets/explorer.py:672 spyder/plugins/explorer/widgets/fileassociations.py:386
+#: spyder/plugins/explorer/widgets/explorer.py:674 spyder/plugins/explorer/widgets/fileassociations.py:386
 msgid " (Application not found!)"
 msgstr " (程序未找到！)"
 
-#: spyder/plugins/explorer/widgets/explorer.py:932
+#: spyder/plugins/explorer/widgets/explorer.py:934
 msgid "Edit filter settings"
 msgstr "编辑过滤器设置"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1041
+#: spyder/plugins/explorer/widgets/explorer.py:1043
 msgid "Do you really want to delete <b>%s</b>?"
 msgstr "您确定要删除<b>%s</b>?"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1058
+#: spyder/plugins/explorer/widgets/explorer.py:1060
 msgid "delete"
 msgstr "删除"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1060 spyder/plugins/projects/plugin.py:577 spyder/plugins/projects/widgets/projectexplorer.py:327
+#: spyder/plugins/explorer/widgets/explorer.py:1062 spyder/plugins/projects/plugin.py:577 spyder/plugins/projects/widgets/projectexplorer.py:327
 msgid "Project Explorer"
 msgstr "项目管理器"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1061 spyder/plugins/projects/widgets/projectexplorer.py:328
+#: spyder/plugins/explorer/widgets/explorer.py:1063 spyder/plugins/projects/widgets/projectexplorer.py:328
 msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>不能 %s <i>%s</i></b><br><br>错误信息:<br>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1076
+#: spyder/plugins/explorer/widgets/explorer.py:1078
 msgid "File Explorer"
 msgstr "文件管理器"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1077
+#: spyder/plugins/explorer/widgets/explorer.py:1079
 msgid "The current directory contains a project.<br><br>If you want to delete the project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
 msgstr "当前目录包含一个项目。<br> <br>如果要删除项目，请转到<b>项目</b>＆raquo; <b>删除项目</b>"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1089
+#: spyder/plugins/explorer/widgets/explorer.py:1091
 msgid "New name:"
 msgstr "新名称："
 
-#: spyder/plugins/explorer/widgets/explorer.py:1089 spyder/plugins/explorer/widgets/explorer.py:1098 spyder/plugins/explorer/widgets/explorer.py:1114 spyder/plugins/variableexplorer/widgets/main_widget.py:300 spyder/widgets/collectionseditor.py:673 spyder/widgets/collectionseditor.py:937
+#: spyder/plugins/explorer/widgets/explorer.py:1091 spyder/plugins/explorer/widgets/explorer.py:1100 spyder/plugins/explorer/widgets/explorer.py:1116 spyder/plugins/variableexplorer/widgets/main_widget.py:300 spyder/widgets/collectionseditor.py:674 spyder/widgets/collectionseditor.py:938
 msgid "Rename"
 msgstr "重命名"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1099
+#: spyder/plugins/explorer/widgets/explorer.py:1101
 msgid "Do you really want to rename <b>%s</b> and overwrite the existing file <b>%s</b>?"
 msgstr "您确实想要重命名<b>%s</b>并覆盖已存在的文件<b>%s</b>吗？"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1115
+#: spyder/plugins/explorer/widgets/explorer.py:1117
 msgid "<b>Unable to rename file <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>无法重命名文件<I>%s</I></b><br><br>错误信息：<br>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1146 spyder/plugins/findinfiles/widgets/combobox.py:178 spyder/plugins/preferences/api.py:503 spyder/plugins/preferences/api.py:518 spyder/plugins/projects/widgets/projectdialog.py:100 spyder/plugins/projects/widgets/projectdialog.py:164 spyder/plugins/run/widgets.py:230 spyder/plugins/run/widgets.py:274 spyder/plugins/workingdirectory/container.py:207 spyder/widgets/pathmanager.py:313
+#: spyder/plugins/explorer/widgets/explorer.py:1148 spyder/plugins/findinfiles/widgets/combobox.py:178 spyder/plugins/preferences/api.py:529 spyder/plugins/preferences/api.py:544 spyder/plugins/projects/widgets/projectdialog.py:100 spyder/plugins/projects/widgets/projectdialog.py:164 spyder/plugins/run/widgets.py:230 spyder/plugins/run/widgets.py:274 spyder/plugins/workingdirectory/container.py:207 spyder/widgets/pathmanager.py:313
 msgid "Select directory"
 msgstr "选择目录"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1163
+#: spyder/plugins/explorer/widgets/explorer.py:1165
 msgid "<b>Unable to move <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>无法移动</b><I>%s</I></b><br><br>错误信息：<br>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1182
+#: spyder/plugins/explorer/widgets/explorer.py:1184
 msgid "<b>Unable to create folder <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>无法创建目录<I>%s</I></b><br><br>错误信息：<br>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1195 spyder/plugins/explorer/widgets/explorer.py:1236
+#: spyder/plugins/explorer/widgets/explorer.py:1197 spyder/plugins/explorer/widgets/explorer.py:1238
 msgid "<b>Unable to create file <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>无法创建文件<I>%s</I></b><br><br>错误信息：<br>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1215
+#: spyder/plugins/explorer/widgets/explorer.py:1217
 msgid "New folder"
 msgstr "新文件夹"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1216
+#: spyder/plugins/explorer/widgets/explorer.py:1218
 msgid "Folder name:"
 msgstr "文件夹名："
 
-#: spyder/plugins/explorer/widgets/explorer.py:1328
+#: spyder/plugins/explorer/widgets/explorer.py:1330
 msgid "File/Folder copy error"
 msgstr "文件或文件夹复制错误"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1329
+#: spyder/plugins/explorer/widgets/explorer.py:1331
 msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
 msgstr "无法复制该种类型的文件或文件夹。错误信息为：\n\n"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1376
+#: spyder/plugins/explorer/widgets/explorer.py:1378
 msgid "Error pasting file"
 msgstr "粘贴文件文件错误"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1377 spyder/plugins/explorer/widgets/explorer.py:1405
+#: spyder/plugins/explorer/widgets/explorer.py:1379 spyder/plugins/explorer/widgets/explorer.py:1407
 msgid "Unsupported copy operation. The error was:\n\n"
 msgstr "不支持的复制操作。错误信息为：\n\n"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1396
+#: spyder/plugins/explorer/widgets/explorer.py:1398
 msgid "Recursive copy"
 msgstr "递归复制"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1397
+#: spyder/plugins/explorer/widgets/explorer.py:1399
 msgid "Source is an ancestor of destination folder."
 msgstr "源是目标文件夹的上级。"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1404
+#: spyder/plugins/explorer/widgets/explorer.py:1406
 msgid "Error pasting folder"
 msgstr "粘贴文件夹时出错"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1409
+#: spyder/plugins/explorer/widgets/explorer.py:1411
 msgid "No file in clipboard"
 msgstr "剪贴板中没有文件"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1410
+#: spyder/plugins/explorer/widgets/explorer.py:1412
 msgid "No file in the clipboard. Please copy a file to the clipboard first."
 msgstr "剪贴板中没有文件。请先将文件复制到剪贴板。"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1414
+#: spyder/plugins/explorer/widgets/explorer.py:1416
 msgid "Blank area"
 msgstr "空白的区域"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1415
+#: spyder/plugins/explorer/widgets/explorer.py:1417
 msgid "Cannot paste in the blank area."
 msgstr "无法粘贴到空白的区域。"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1475
+#: spyder/plugins/explorer/widgets/explorer.py:1477
 msgid "The following command did not launch successfully:"
 msgstr "下列命令无法成功启动："
 
-#: spyder/plugins/explorer/widgets/explorer.py:1477
+#: spyder/plugins/explorer/widgets/explorer.py:1479
 msgid "The following commands did not launch successfully:"
 msgstr "下列命令无法成功启动："
 
-#: spyder/plugins/explorer/widgets/explorer.py:1508
+#: spyder/plugins/explorer/widgets/explorer.py:1510
 msgid "For %s support, please install one of the<br/> following tools:<br/><br/>  %s"
 msgstr "需要安装下面的工具来支持%s功能：<br/>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1513
+#: spyder/plugins/explorer/widgets/explorer.py:1515
 msgid "<b>Unable to find external program.</b><br><br>%s"
 msgstr "<b>找不到外部程序。</b><br><br>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1663
+#: spyder/plugins/explorer/widgets/explorer.py:1665
 msgid "New package"
 msgstr "新的包"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1664
+#: spyder/plugins/explorer/widgets/explorer.py:1666
 msgid "Package name:"
 msgstr "包的名："
 
-#: spyder/plugins/explorer/widgets/explorer.py:1673
+#: spyder/plugins/explorer/widgets/explorer.py:1675
 msgid "New module"
 msgstr "新的模块"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1737 spyder/plugins/variableexplorer/widgets/importwizard.py:525
+#: spyder/plugins/explorer/widgets/explorer.py:1739 spyder/plugins/variableexplorer/widgets/importwizard.py:525
 msgid "Previous"
 msgstr "上一个"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1743 spyder/plugins/variableexplorer/widgets/importwizard.py:529 spyder/plugins/workingdirectory/container.py:125 spyder/plugins/workingdirectory/container.py:126
+#: spyder/plugins/explorer/widgets/explorer.py:1745 spyder/plugins/variableexplorer/widgets/importwizard.py:529 spyder/plugins/workingdirectory/container.py:125 spyder/plugins/workingdirectory/container.py:126
 msgid "Next"
 msgstr "下一个"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1749
+#: spyder/plugins/explorer/widgets/explorer.py:1751
 msgid "Parent"
 msgstr "父级"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1773
+#: spyder/plugins/explorer/widgets/explorer.py:1775
 msgid "Filter filenames"
 msgstr "过滤器文件名"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1897
+#: spyder/plugins/explorer/widgets/explorer.py:1899
 msgid "You don't have the right permissions to open this directory"
 msgstr "您没有权限打开此目录"
 
@@ -3250,11 +3250,11 @@ msgstr "文件类型："
 msgid "Add"
 msgstr "添加"
 
-#: spyder/plugins/explorer/widgets/fileassociations.py:299 spyder/plugins/explorer/widgets/fileassociations.py:305 spyder/plugins/variableexplorer/widgets/main_widget.py:293 spyder/widgets/collectionseditor.py:670 spyder/widgets/collectionseditor.py:910
+#: spyder/plugins/explorer/widgets/fileassociations.py:299 spyder/plugins/explorer/widgets/fileassociations.py:305 spyder/plugins/variableexplorer/widgets/main_widget.py:293 spyder/widgets/collectionseditor.py:671 spyder/widgets/collectionseditor.py:911
 msgid "Remove"
 msgstr "移除"
 
-#: spyder/plugins/explorer/widgets/fileassociations.py:300 spyder/plugins/variableexplorer/widgets/main_widget.py:247 spyder/widgets/collectionseditor.py:636
+#: spyder/plugins/explorer/widgets/fileassociations.py:300 spyder/plugins/variableexplorer/widgets/main_widget.py:247 spyder/widgets/collectionseditor.py:637
 msgid "Edit"
 msgstr "编辑"
 
@@ -3402,7 +3402,7 @@ msgstr "最大结果数"
 msgid "Set maximum number of results: "
 msgstr "设置最大的结果数： "
 
-#: spyder/plugins/findinfiles/widgets/results_browser.py:256 spyder/plugins/findinfiles/widgets/search_thread.py:302
+#: spyder/plugins/findinfiles/widgets/results_browser.py:256 spyder/plugins/findinfiles/widgets/search_thread.py:304
 msgid "String not found"
 msgstr "没有找到字符串"
 
@@ -3418,15 +3418,15 @@ msgstr "未预料到的错误：请查看内部控制台"
 msgid "invalid regular expression"
 msgstr "无效的正则表达式"
 
-#: spyder/plugins/findinfiles/widgets/search_thread.py:268
+#: spyder/plugins/findinfiles/widgets/search_thread.py:270
 msgid "permission denied errors were encountered"
 msgstr "遇到“权限拒绝”错误"
 
-#: spyder/plugins/findinfiles/widgets/search_thread.py:304
+#: spyder/plugins/findinfiles/widgets/search_thread.py:306
 msgid "matches in"
 msgstr "匹配于"
 
-#: spyder/plugins/findinfiles/widgets/search_thread.py:305
+#: spyder/plugins/findinfiles/widgets/search_thread.py:307
 msgid "file"
 msgstr "文件"
 
@@ -3438,7 +3438,7 @@ msgstr "自动连接"
 msgid "This pane can automatically show an object's help information after a left parenthesis is written next to it. Below you can decide to which plugin you want to connect it to turn on this feature."
 msgstr "此窗格可以在左圆括号后面自动显示对象的帮助信息。下面，您可以决定哪些插件能连接它启用此功能。"
 
-#: spyder/plugins/help/confpage.py:33 spyder/plugins/ipythonconsole/widgets/main_widget.py:384 spyder/plugins/tours/tours.py:101
+#: spyder/plugins/help/confpage.py:33 spyder/plugins/ipythonconsole/widgets/main_widget.py:379 spyder/plugins/tours/tours.py:101
 msgid "IPython Console"
 msgstr "IPython控制台"
 
@@ -3486,7 +3486,7 @@ msgstr "帮助来源于"
 msgid "Object"
 msgstr "对象"
 
-#: spyder/plugins/help/widgets.py:337 spyder/plugins/ipythonconsole/widgets/client.py:537 spyder/plugins/run/confpage.py:47 spyder/plugins/run/widgets.py:177
+#: spyder/plugins/help/widgets.py:337 spyder/plugins/ipythonconsole/widgets/client.py:552 spyder/plugins/run/confpage.py:47 spyder/plugins/run/widgets.py:177
 msgid "Console"
 msgstr "控制台"
 
@@ -3522,47 +3522,47 @@ msgstr "解除锁定"
 msgid "Lock"
 msgstr "锁定"
 
-#: spyder/plugins/help/widgets.py:604
+#: spyder/plugins/help/widgets.py:608
 msgid "The following error occurred when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
 msgstr "当调用 <b>Sphinx %s</b> 时发生了下述错误。 <br>不兼容的 Sphinx 版本或文档字符串解码失败。<br><br>错误消息:<br>%s"
 
-#: spyder/plugins/help/widgets.py:756
+#: spyder/plugins/help/widgets.py:760
 msgid "Retrieving documentation"
 msgstr "正在获取文档"
 
-#: spyder/plugins/help/widgets.py:768
+#: spyder/plugins/help/widgets.py:772
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
 msgstr "在这里你可以通过在编辑器或者终端中按 %s 来获得任何对象的帮助信息。%s"
 
-#: spyder/plugins/help/widgets.py:772
+#: spyder/plugins/help/widgets.py:776
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
 msgstr "在这里你可以通过在编辑器中按 %s，或者在终端中按 %s 来获得任何对象的帮助信息。 %s"
 
-#: spyder/plugins/help/widgets.py:776
+#: spyder/plugins/help/widgets.py:780
 msgid "Help can also be shown automatically after writing a left parenthesis next to an object. You can activate this behavior in %s."
 msgstr "帮助信息可以在一个对象之后加上一个左圆括号的时候自动显示。 你可以在 %s 中激活此行为。"
 
-#: spyder/plugins/help/widgets.py:780
+#: spyder/plugins/help/widgets.py:784
 msgid "Preferences > Help"
 msgstr "工具 > 偏好设置 > 帮助"
 
-#: spyder/plugins/help/widgets.py:792
+#: spyder/plugins/help/widgets.py:796
 msgid "Usage"
 msgstr "使用方法"
 
-#: spyder/plugins/help/widgets.py:793
+#: spyder/plugins/help/widgets.py:797
 msgid "New to Spyder? Read our"
 msgstr "第一次使用 Spyder? 请阅读"
 
-#: spyder/plugins/help/widgets.py:794
+#: spyder/plugins/help/widgets.py:798
 msgid "tutorial"
 msgstr "教程"
 
-#: spyder/plugins/help/widgets.py:810
+#: spyder/plugins/help/widgets.py:814
 msgid "Please consider installing Sphinx to get documentation rendered in rich text."
 msgstr "请考虑安装Sphinx 来获取以富文本呈现的文档。"
 
-#: spyder/plugins/help/widgets.py:1071
+#: spyder/plugins/help/widgets.py:1075
 msgid "No source code available."
 msgstr "没有可用的来源代码。"
 
@@ -3600,7 +3600,7 @@ msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
 msgstr "该选项使您能隐藏重置Spyder命名空间时的警告信息。"
 
-#: spyder/plugins/ipythonconsole/confpage.py:43 spyder/plugins/ipythonconsole/widgets/main_widget.py:455
+#: spyder/plugins/ipythonconsole/confpage.py:43 spyder/plugins/ipythonconsole/widgets/main_widget.py:450
 msgid "Show elapsed time"
 msgstr "显示耗时"
 
@@ -3942,7 +3942,7 @@ msgstr "启动"
 msgid "Debugger"
 msgstr "调试器"
 
-#: spyder/plugins/ipythonconsole/plugin.py:208 spyder/plugins/ipythonconsole/plugin.py:211
+#: spyder/plugins/ipythonconsole/plugin.py:204 spyder/plugins/ipythonconsole/plugin.py:207
 msgid "IPython console"
 msgstr "IPython控制台"
 
@@ -3962,35 +3962,35 @@ msgstr "隧道 '%s' 启动失败"
 msgid "Could not connect to remote host"
 msgstr "无法连接远程主机"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:245
+#: spyder/plugins/ipythonconsole/widgets/client.py:246
 msgid "Connecting to kernel..."
 msgstr "正在连接到 IPython 内核..."
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:310
+#: spyder/plugins/ipythonconsole/widgets/client.py:311
 msgid "Your Python environment or installation doesn't have the <tt>{missing_dependency}</tt> module installed or it occurred a problem importing it. Due to that, it is not possible for Spyder to create this special console for you."
 msgstr "您的 Python 环境或安装没有安装 <tt>{missing_dependency}</tt> 模块，或是导入时出现问题。 由于这个原因，Spyder无法为你创建此特殊控制台。"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:517
+#: spyder/plugins/ipythonconsole/widgets/client.py:515
 msgid "An error ocurred while starting the kernel"
 msgstr "启动 IPython 内核时发生错误"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:612
+#: spyder/plugins/ipythonconsole/widgets/client.py:627
 msgid "Are you sure you want to restart the kernel?"
 msgstr "您确定重启 IPython 内核吗？"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:614
+#: spyder/plugins/ipythonconsole/widgets/client.py:629
 msgid "Restart kernel?"
 msgstr "重启 IPython 内核？"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:654
+#: spyder/plugins/ipythonconsole/widgets/client.py:672
 msgid "Cannot restart a kernel not started by Spyder\n"
 msgstr "无法重启非由Spyder启动的 IPython 内核 \n"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:678
+#: spyder/plugins/ipythonconsole/widgets/client.py:696
 msgid "Error restarting kernel: %s\n"
 msgstr "重启 IPython 内核错误：%s\n"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:702
+#: spyder/plugins/ipythonconsole/widgets/client.py:720
 msgid "<br>Restarting kernel...<br>"
 msgstr "<br>正在重启内核...<br>"
 
@@ -3998,7 +3998,7 @@ msgstr "<br>正在重启内核...<br>"
 msgid "Figures now render in the Plots pane by default. To make them also appear inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane options menu."
 msgstr "现在图形默认会显示在绘图面板中。 若要使它们也在控制台中内联显示，请在绘图面板选项菜单中取消勾选 \"禁用内联绘图\"。"
 
-#: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:35 spyder/plugins/ipythonconsole/widgets/main_widget.py:422
+#: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:35 spyder/plugins/ipythonconsole/widgets/main_widget.py:417
 msgid "Connect to an existing kernel"
 msgstr "连接到现有 IPython 内核"
 
@@ -4066,147 +4066,147 @@ msgstr "选择SSH密钥文件"
 msgid ">= {0} and < {1}"
 msgstr ">= {0} 并 < {1}"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:285
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:280
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
 msgstr "目录{}不可写，如果您需要创建IPython控制台，请让它可写。"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:356
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:351
 msgid "Press <b>Q</b> to exit pager"
 msgstr "按 <b>Q</b> 退出分页器"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:395
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:390
 msgid "New console (default settings)"
 msgstr "新建控制台（默认设置）"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:402
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:397
 msgid "Restart kernel"
 msgstr "重启 IPython 内核"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:409 spyder/plugins/ipythonconsole/widgets/main_widget.py:580 spyder/plugins/ipythonconsole/widgets/shell.py:484 spyder/plugins/variableexplorer/widgets/main_widget.py:197
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:404 spyder/plugins/ipythonconsole/widgets/main_widget.py:575 spyder/plugins/ipythonconsole/widgets/shell.py:484 spyder/plugins/variableexplorer/widgets/main_widget.py:197
 msgid "Remove all variables"
 msgstr "删除所有变量"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:416 spyder/plugins/ipythonconsole/widgets/main_widget.py:587 spyder/plugins/ipythonconsole/widgets/main_widget.py:588
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:411 spyder/plugins/ipythonconsole/widgets/main_widget.py:582 spyder/plugins/ipythonconsole/widgets/main_widget.py:583
 msgid "Interrupt kernel"
 msgstr "中断内核"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:423
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:418
 msgid "Open a new IPython console connected to an existing kernel"
 msgstr "新建一个连接到现有 IPython 内核的 IPython 控制台"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:429
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:424
 msgid "Rename tab"
 msgstr "重命名标签"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:437
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:432
 msgid "Show environment variables"
 msgstr "显示环境变量"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:446
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:441
 msgid "Show sys.path contents"
 msgstr "显示 sys.path 内容"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:464
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:459
 msgid "Inspect current object"
 msgstr "检查当前对象"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:471
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:466
 msgid "Clear line or block"
 msgstr "清除行或代码块"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:477
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:472
 msgid "Clear console"
 msgstr "清空控制台"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:490
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:485
 msgid "Enter array table"
 msgstr "输入数组表"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:496
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:491
 msgid "Enter array inline"
 msgstr "输入内联数组"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:515
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:510
 msgid "Special consoles"
 msgstr "特殊控制台"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:550
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:545
 msgid "New Pylab console (data plotting)"
 msgstr "新建 Pylab 控制台（数据绘图）"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:556
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:551
 msgid "New SymPy console (symbolic math)"
 msgstr "新建 SymPy 控制台（符号运算）"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:562
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:557
 msgid "New Cython console (Python with C extensions)"
 msgstr "新建 Cython 控制台（启用 C 语言扩展的 Python）"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:581
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:576
 msgid "Remove all variables from kernel namespace"
 msgstr "从内核命名空间删除所有变量"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:602
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:597
 msgid "IPython documentation"
 msgstr "IPython文档"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:605
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:600
 msgid "Intro to IPython"
 msgstr "IPython介绍"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:610
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:605
 msgid "Quick reference"
 msgstr "快速参考"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:615
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:610
 msgid "Console help"
 msgstr "控制台帮助"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1034
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1029
 msgid "IPython"
 msgstr "IPython"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1035
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1030
 msgid "Unable to connect to <b>%s</b>"
 msgstr "无法连接到<b>%s</b>"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1104 spyder/plugins/ipythonconsole/widgets/main_widget.py:1127
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1100 spyder/plugins/ipythonconsole/widgets/main_widget.py:1123
 msgid "Connection error"
 msgstr "连接错误"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1105
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1101
 msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
 msgstr "加载内核连接文件时出错。错误信息为：\n\n"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1128
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1124
 msgid "Could not open ssh tunnel. The error was:\n\n"
 msgstr "无法打开SSH隧道。错误信息为：\n\n"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1522
-msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed ({0}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>{1}</tt><br><br>or<br><br><tt>{2}</tt>"
-msgstr "你的 Python 环境或安装版没有 <tt>spyder-kernels</tt> 模块或没有安装正确的版本 ({0})。 如果没有此模块则 Spyder 无法为你创建控制台。<br><br>你可以在系统终端输入以下命令来安装它:<br><br><tt>{1}</tt><br><br>or<br><br><tt>{2}</tt>"
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1519
+msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed ({1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
+msgstr "此 Python 环境或安装版的解释器位于<pre>    <tt>{0}</tt></pre> 它没有 <tt>spyder-kernels</tt> 模块或没有安装正确的版本 ({1})。没有此模块则 Spyder 无法为你创建控制台。<br><br>你可以在系统终端激活此环境 (如有必要的话) 并运行以下命令:<pre>    <tt>{2}</tt></pre>或<pre>    <tt>{3}</tt></pre>"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1745
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1751
 msgid "Do you want to close this console?"
 msgstr "您想关闭当前控制台吗？"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1753
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1759
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
 msgstr "是否要关闭连接到同一 IPython 内核的所有其他控制台？"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1960 spyder/plugins/ipythonconsole/widgets/main_widget.py:1972
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1966 spyder/plugins/ipythonconsole/widgets/main_widget.py:1978
 msgid "The error is:<br><br><tt>{}</tt>"
 msgstr "错误：<br><br><tt>{}</tt>"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2081
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2087
 msgid "The current file cannot be closed because it is in debug mode."
 msgstr "当前文件无法被关闭，因为它正处于调试模式。"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2124
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2136
 msgid "No IPython console is currently available to run <b>{}</b>.<br><br>Please open a new one and try again."
 msgstr "没有可用的IPython控制台用于运行 <b>{}</b>.<br><br>请新建一个然后重试。"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2206
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2218
 msgid "No IPython console is currently available to run <b>%s</b>.<br><br>Please open a new one and try again."
 msgstr "没有可用的IPython控制台用于运行 <b>%s</b>.<br><br>请新建一个然后重试。"
 
@@ -4298,7 +4298,7 @@ msgstr "IPython 内核已死亡，正在重启"
 msgid "Kernel restarting"
 msgstr "IPython 内核正在重启"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:970
+#: spyder/plugins/ipythonconsole/widgets/shell.py:971
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
 msgstr "看来你正在尝试使用某个未包括在我们的安装包中的模块。 请在我们的文档中查看 <a href='{}'>这个常见问题解答</a> 来了解如何做到这一点。"
 
@@ -4774,47 +4774,47 @@ msgstr "上一幅图"
 msgid "Next plot"
 msgstr "下一幅图"
 
-#: spyder/plugins/preferences/api.py:500
+#: spyder/plugins/preferences/api.py:526
 msgid "Invalid directory path"
 msgstr "目录无效"
 
-#: spyder/plugins/preferences/api.py:530 spyder/plugins/preferences/api.py:704
+#: spyder/plugins/preferences/api.py:556 spyder/plugins/preferences/api.py:730
 msgid "Invalid file path"
 msgstr "无效文件路径"
 
-#: spyder/plugins/preferences/api.py:533 spyder/plugins/preferences/api.py:550 spyder/plugins/preferences/api.py:709
+#: spyder/plugins/preferences/api.py:559 spyder/plugins/preferences/api.py:576 spyder/plugins/preferences/api.py:735
 msgid "Select file"
 msgstr "选择文件"
 
-#: spyder/plugins/preferences/api.py:549
+#: spyder/plugins/preferences/api.py:575
 msgid "All files (*)"
 msgstr "所有文件(*)"
 
-#: spyder/plugins/preferences/api.py:629
+#: spyder/plugins/preferences/api.py:655
 msgid "Bold"
 msgstr "粗体"
 
-#: spyder/plugins/preferences/api.py:632
+#: spyder/plugins/preferences/api.py:658
 msgid "Italic"
 msgstr "斜体"
 
-#: spyder/plugins/preferences/api.py:730
+#: spyder/plugins/preferences/api.py:756
 msgid "Font"
 msgstr "字体"
 
-#: spyder/plugins/preferences/api.py:755
+#: spyder/plugins/preferences/api.py:781
 msgid "Font style"
 msgstr "字体样式"
 
-#: spyder/plugins/preferences/api.py:792
+#: spyder/plugins/preferences/api.py:818
 msgid "Spyder needs to restart to change the following setting:"
 msgstr "Spyder需要重启以更改以下设置："
 
-#: spyder/plugins/preferences/api.py:795
+#: spyder/plugins/preferences/api.py:821
 msgid "Spyder needs to restart to change the following settings:"
 msgstr "Spyder需要重启以更改以下设置："
 
-#: spyder/plugins/preferences/api.py:797
+#: spyder/plugins/preferences/api.py:823
 msgid "Do you wish to restart now?"
 msgstr "您希望现在重启吗？"
 
@@ -5651,99 +5651,99 @@ msgstr "变量管理器"
 msgid "Display, explore load and save variables in the current namespace."
 msgstr "查看、加载和保存当前命名空间中的变量。"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:568
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:569
 msgid "It was not possible to copy values for this array"
 msgstr "无法复制此数组的值"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:620 spyder/plugins/variableexplorer/widgets/arrayeditor.py:799 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:964 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1287
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:621 spyder/plugins/variableexplorer/widgets/arrayeditor.py:800 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:970 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1293
 msgid "Format"
 msgstr "格式设置"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:621 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1288
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:622 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1294
 msgid "Float formatting"
 msgstr "浮点型格式设置"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:629
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:630
 msgid "Format (%s) is incorrect"
 msgstr "格式（%s）不正确"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:667
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:668
 msgid "Arrays with more than 3 dimensions are not supported"
 msgstr "不支持三维以上的数组"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:671
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:672
 msgid "The 'xlabels' argument length do no match array column number"
 msgstr "“xlabels”参数长度不匹配数组的列数"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:675
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:676
 msgid "The 'ylabels' argument length do no match array row number"
 msgstr "“ylabels”参数长度不匹配的数组的行数"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:683
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:684
 msgid "Object arrays without shape are not supported"
 msgstr "不支持不包含维度的对象数组"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:691
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:692
 msgid "%s arrays"
 msgstr "%s 阵列"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:692
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:693
 msgid "%s are currently not supported"
 msgstr "%s目前不支持"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:698
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:699
 msgid "NumPy object array"
 msgstr "NumPy 对象数组"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:700 spyder/plugins/variableexplorer/widgets/arrayeditor.py:928
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:701 spyder/plugins/variableexplorer/widgets/arrayeditor.py:929
 msgid "Array editor"
 msgstr "数组编辑器"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:702
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:703
 msgid "read only"
 msgstr "只读"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:747
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:748
 msgid "Record array fields:"
 msgstr "记录数组字段："
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:759
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:760
 msgid "Data"
 msgstr "数据"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:759
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:760
 msgid "Mask"
 msgstr "掩码 (Mask)"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:759
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:760
 msgid "Masked data"
 msgstr "掩码数据"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:769
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:770
 msgid "Axis:"
 msgstr "轴："
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:774
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:775
 msgid "Index:"
 msgstr "索引："
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:787
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:788
 msgid "<u>Warning</u>: Changes are applied separately"
 msgstr "<u>警告</u>：更改被分别应用"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:789
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:790
 msgid "For performance reasons, changes applied to masked arrays won't be reflected in array's data (and vice-versa)."
 msgstr "由于性能原因，应用于掩码数组的修改不会反映在数组的数据中（反之亦然）。"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:805 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:969
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:806 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:975
 msgid "Resize"
 msgstr "大小调整"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:810 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:973
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:811 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:979
 msgid "Background color"
 msgstr "背景颜色"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:820 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:988 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:298 spyder/plugins/variableexplorer/widgets/texteditor.py:68 spyder/widgets/collectionseditor.py:1386
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:821 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:994 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:298 spyder/plugins/variableexplorer/widgets/texteditor.py:68 spyder/widgets/collectionseditor.py:1387
 msgid "Save and Close"
 msgstr "保存并关闭"
 
@@ -5789,52 +5789,52 @@ msgstr "<b>无法将数据赋值给项目。</b><br><br>错误消息：<br>%s"
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br><i>%s</i>"
 msgstr "Spyder 无法从控制台获取该变量的值。<br><br>错误信息为：<br><i>%s</i>"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:361
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:367
 msgid "It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
 msgstr "发生错误，无法显示该值"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:604
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:610
 msgid "To bool"
 msgstr "转为布尔型"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:604
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:610
 msgid "To complex"
 msgstr "转为复数型"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:605
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:611
 msgid "To float"
 msgstr "转为浮点型"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:605
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:611
 msgid "To int"
 msgstr "转为整型"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:606
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:612
 msgid "To str"
 msgstr "转为字符串"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:646
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:652
 msgid "Text can't be copied."
 msgstr "无法复制文本。"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:852 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:857 spyder/widgets/collectionseditor.py:166
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:858 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:863 spyder/widgets/collectionseditor.py:166
 msgid "Index"
 msgstr "索引"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:918
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:924
 msgid "%s editor"
 msgstr "%s 编辑器"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:979
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:985
 msgid "Column min/max"
 msgstr "列宽最小/最大化"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1296
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1302
 msgid "Format ({}) is incorrect"
 msgstr "格式（{}）不正确"
 
-#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1300
+#: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1306
 msgid "Format ({}) should start with '%'"
 msgstr "格式（{}）应当以'%'开头"
 
@@ -5986,39 +5986,39 @@ msgstr "搜索变量名及类型"
 msgid "Refresh variables"
 msgstr "刷新变量"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:221 spyder/widgets/collectionseditor.py:624
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:221 spyder/widgets/collectionseditor.py:625
 msgid "Resize rows to contents"
 msgstr "根据内容调整行高"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:227 spyder/widgets/collectionseditor.py:628
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:227 spyder/widgets/collectionseditor.py:629
 msgid "Resize columns to contents"
 msgstr "根据内容调整列宽"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:254 spyder/widgets/collectionseditor.py:639 spyder/widgets/collectionseditor.py:1039 spyder/widgets/collectionseditor.py:1060
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:254 spyder/widgets/collectionseditor.py:640 spyder/widgets/collectionseditor.py:1040 spyder/widgets/collectionseditor.py:1061
 msgid "Plot"
 msgstr "绘图"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:262 spyder/widgets/collectionseditor.py:643
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:262 spyder/widgets/collectionseditor.py:644
 msgid "Histogram"
 msgstr "直方图"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:270 spyder/widgets/collectionseditor.py:647
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:270 spyder/widgets/collectionseditor.py:648
 msgid "Show image"
 msgstr "显示图像"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:278 spyder/widgets/collectionseditor.py:651 spyder/widgets/collectionseditor.py:1068
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:278 spyder/widgets/collectionseditor.py:652 spyder/widgets/collectionseditor.py:1069
 msgid "Save array"
 msgstr "保存数组"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:286 spyder/widgets/collectionseditor.py:656 spyder/widgets/collectionseditor.py:990 spyder/widgets/collectionseditor.py:998
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:286 spyder/widgets/collectionseditor.py:657 spyder/widgets/collectionseditor.py:991 spyder/widgets/collectionseditor.py:999
 msgid "Insert"
 msgstr "插入"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:307 spyder/widgets/collectionseditor.py:676 spyder/widgets/collectionseditor.py:940
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:307 spyder/widgets/collectionseditor.py:677 spyder/widgets/collectionseditor.py:941
 msgid "Duplicate"
 msgstr "复制"
 
-#: spyder/plugins/variableexplorer/widgets/main_widget.py:314 spyder/widgets/collectionseditor.py:681
+#: spyder/plugins/variableexplorer/widgets/main_widget.py:314 spyder/widgets/collectionseditor.py:682
 msgid "View with the Object Explorer"
 msgstr "在对象管理器中查看"
 
@@ -6458,83 +6458,83 @@ msgstr "元素"
 msgid "Value"
 msgstr "值"
 
-#: spyder/widgets/collectionseditor.py:661
+#: spyder/widgets/collectionseditor.py:662
 msgid "Insert above"
 msgstr "在上方插入"
 
-#: spyder/widgets/collectionseditor.py:666
+#: spyder/widgets/collectionseditor.py:667
 msgid "Insert below"
 msgstr "在下方插入"
 
-#: spyder/widgets/collectionseditor.py:908
+#: spyder/widgets/collectionseditor.py:909
 msgid "Do you want to remove the selected item?"
 msgstr "您确定要删除选定的条目吗？"
 
-#: spyder/widgets/collectionseditor.py:909
+#: spyder/widgets/collectionseditor.py:910
 msgid "Do you want to remove all selected items?"
 msgstr "您确定要删除所有选中的条目吗？"
 
-#: spyder/widgets/collectionseditor.py:938
+#: spyder/widgets/collectionseditor.py:939
 msgid "New variable name:"
 msgstr "新的变量名："
 
-#: spyder/widgets/collectionseditor.py:941
+#: spyder/widgets/collectionseditor.py:942
 msgid "Variable name:"
 msgstr "变量名："
 
-#: spyder/widgets/collectionseditor.py:990
+#: spyder/widgets/collectionseditor.py:991
 msgid "Key:"
 msgstr "键："
 
-#: spyder/widgets/collectionseditor.py:998
+#: spyder/widgets/collectionseditor.py:999
 msgid "Value:"
 msgstr "值："
 
-#: spyder/widgets/collectionseditor.py:1023
+#: spyder/widgets/collectionseditor.py:1024
 msgid "Import error"
 msgstr "导入错误"
 
-#: spyder/widgets/collectionseditor.py:1024
+#: spyder/widgets/collectionseditor.py:1025
 msgid "Please install <b>matplotlib</b> or <b>guiqwt</b>."
 msgstr "请安装<b>matplotlib</b>或<b>guiqwt</b>。"
 
-#: spyder/widgets/collectionseditor.py:1040
+#: spyder/widgets/collectionseditor.py:1041
 msgid "<b>Unable to plot data.</b><br><br>Error message:<br>%s"
 msgstr "<b>无法绘制数据。</b><br><br>错误信息：<br>%s"
 
-#: spyder/widgets/collectionseditor.py:1061
+#: spyder/widgets/collectionseditor.py:1062
 msgid "<b>Unable to show image.</b><br><br>Error message:<br>%s"
 msgstr "<b>无法显示图像。</b><br><br>错误信息：<br>%s"
 
-#: spyder/widgets/collectionseditor.py:1074
+#: spyder/widgets/collectionseditor.py:1075
 msgid "NumPy arrays"
 msgstr "NumPy 数组"
 
-#: spyder/widgets/collectionseditor.py:1084
+#: spyder/widgets/collectionseditor.py:1085
 msgid "<b>Unable to save array</b><br><br>Error message:<br>%s"
 msgstr "<b>无法保存数组</b><br><br>错误消息：<br>%s"
 
-#: spyder/widgets/collectionseditor.py:1109
+#: spyder/widgets/collectionseditor.py:1110
 msgid "It was not possible to copy this array"
 msgstr "无法复制这个数组"
 
-#: spyder/widgets/collectionseditor.py:1121
+#: spyder/widgets/collectionseditor.py:1122
 msgid "It was not possible to copy this dataframe"
 msgstr "无法复制这个数据框"
 
-#: spyder/widgets/collectionseditor.py:1143
+#: spyder/widgets/collectionseditor.py:1144
 msgid "Clipboard contents"
 msgstr "剪贴板内容"
 
-#: spyder/widgets/collectionseditor.py:1157
+#: spyder/widgets/collectionseditor.py:1158
 msgid "Import from clipboard"
 msgstr "从剪贴板导入"
 
-#: spyder/widgets/collectionseditor.py:1159
+#: spyder/widgets/collectionseditor.py:1160
 msgid "Empty clipboard"
 msgstr "空的剪切板"
 
-#: spyder/widgets/collectionseditor.py:1160
+#: spyder/widgets/collectionseditor.py:1161
 msgid "Nothing to be imported from clipboard."
 msgstr "没有从剪贴板导入任何内容。"
 
