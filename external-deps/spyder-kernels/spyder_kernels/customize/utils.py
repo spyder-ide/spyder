@@ -5,6 +5,7 @@
 
 """Utility functions."""
 
+import ast
 import os
 import re
 import sysconfig
@@ -92,3 +93,33 @@ def path_is_library(path, initial_pathlist=None):
             return False
     else:
         return False
+
+
+def capture_last_Expr(code_ast, out_varname):
+    """Parse line and modify code to capture in globals the last expression."""
+    # Modify ast code to capture the last expression
+    capture_last_expression = False
+    if (
+        len(code_ast.body)
+        and isinstance(code_ast.body[-1], ast.Expr)
+    ):
+        capture_last_expression = True
+        expr_node = code_ast.body[-1]
+        # Create new assign node
+        assign_node = ast.parse(
+            'globals()[{}] = None'.format(repr(out_varname))).body[0]
+        # Replace None by the value
+        assign_node.value = expr_node.value
+        # Fix line number and column offset
+        assign_node.lineno = expr_node.lineno
+        assign_node.col_offset = expr_node.col_offset
+        code_ast.body[-1] = assign_node
+    return code_ast, capture_last_expression
+
+
+def normalise_filename(filename):
+    """Normalise path for window."""
+    # Recursive
+    if os.name == 'nt':
+        return filename.replace('\\', '/')
+    return filename
