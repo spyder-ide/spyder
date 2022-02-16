@@ -180,6 +180,16 @@ class IPythonConsoleWidget(PluginMainWidget):
         requested file.
     """
 
+    sig_edit_new = Signal(str)
+    """
+    This signal will request to create a new file in a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    """
+
     sig_pdb_state_changed = Signal(bool, dict)
     """
     This signal is emitted when the debugging state changes.
@@ -1315,9 +1325,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     def edit_file(self, filename, line):
         """Handle %edit magic petitions."""
         if not osp.isfile(filename):
-            # Create new file
-            with open(filename, "w") as f:
-                f.write("")
+            self.sig_edit_new.emit(filename)
         if encoding.is_text_file(filename):
             # The default line number sent by ipykernel is always the last
             # one, but we prefer to use the first.
