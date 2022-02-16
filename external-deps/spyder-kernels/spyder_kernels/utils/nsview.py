@@ -648,7 +648,7 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
     """
     supported_types = get_supported_types()
     assert mode in list(supported_types.keys())
-    excluded_names = settings['excluded_names']
+    excluded_names = list(settings['excluded_names'])
     if more_excluded_names is not None:
         excluded_names += more_excluded_names
     return globalsfilter(

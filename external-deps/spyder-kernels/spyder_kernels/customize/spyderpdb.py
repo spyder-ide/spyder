@@ -175,8 +175,14 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 if execute_events:
                      get_ipython().events.trigger('pre_execute')
 
-                code_ast, capture_last_expression = capture_last_Expr(
-                    line, "_spyderpdb_out")
+                code_ast = ast.parse(line)
+
+                if line.rstrip()[-1] == ";":
+                    # Supress output with ;
+                    capture_last_expression = False
+                else:
+                    code_ast, capture_last_expression = capture_last_Expr(
+                        code_ast, "_spyderpdb_out")
 
                 if locals is not globals:
                     # Mitigates a behaviour of CPython that makes it difficult
@@ -201,19 +207,33 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     # Create a function
                     indent = "    "
                     code = ["def _spyderpdb_code():"]
+
                     # Load the locals
+                    globals["_spyderpdb_builtins_locals"] = builtins.locals
+
+                    # Save builtins locals in case it is shadowed
                     globals["_spyderpdb_locals"] = locals
+
+                    # Load locals if they have a valid name
+                    # In comprehensions, locals could contain ".0" for example
                     code += [indent + "{k} = _spyderpdb_locals['{k}']".format(
-                        k=k) for k in locals]
+                        k=k) for k in locals if isidentifier(k)]
+
+
                     # Update the locals
-                    code += [indent + "_spyderpdb_locals.update(locals())"]
+                    code += [indent + "_spyderpdb_locals.update("
+                             "_spyderpdb_builtins_locals())"]
+
                     # Run the function
                     code += ["_spyderpdb_code()"]
+
                     # Cleanup
                     code += [
                         "del _spyderpdb_code",
-                        "del _spyderpdb_locals"
+                        "del _spyderpdb_locals",
+                        "del _spyderpdb_builtins_locals"
                     ]
+
                     # Parse the function
                     fun_ast = ast.parse('\n'.join(code) + '\n')
 
@@ -773,8 +793,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         with DebugWrapper(self):
             super(SpyderPdb, self).runcall(*args, **kwds)
 
-    def enter_recursive_debugger(
-            self, code, filename, continue_if_has_breakpoints):
+    def enter_recursive_debugger(self, code, filename,
+                                 continue_if_has_breakpoints):
         """
         Enter debugger recursively.
         """

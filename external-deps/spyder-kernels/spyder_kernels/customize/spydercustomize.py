@@ -32,7 +32,8 @@ from spyder_kernels.customize.spyderpdb import SpyderPdb, get_new_debugger
 from spyder_kernels.customize.umr import UserModuleReloader
 from spyder_kernels.py3compat import (
     TimeoutError, PY2, _print, encode, compat_exec)
-from spyder_kernels.customize.utils import capture_last_Expr
+from spyder_kernels.customize.utils import (
+    capture_last_Expr, normalise_filename)
 
 if not PY2:
     from IPython.core.inputtransformer2 import (
@@ -425,16 +426,6 @@ def transform_cell(code, indent_only=False):
     return '\n' * number_empty_lines + code
 
 
-def compile_code(code, filename, capture_last_expression, indent_only=False):
-    """Compile code and capture last expression if needed."""
-    code = transform_cell(code, indent_only=indent_only)
-    if capture_last_expression:
-        code, capture_last_expression = capture_last_Expr(
-            code, "_spyder_out")
-    compiled = compile(code, filename, 'exec')
-    return compiled, capture_last_expression
-
-
 def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
               exec_fun=None, capture_last_expression=False):
     """Execute code and display any exception."""
@@ -457,12 +448,10 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
             # TODO: remove the try-except and let the SyntaxError raise
             # Because there should not be ipython code in a python file
             try:
-                compiled, capture_last_expression = compile_code(
-                    code, filename, capture_last_expression, indent_only=True)
+                ast_code = ast.parse(transform_cell(code, indent_only=True))
             except SyntaxError as e:
                 try:
-                    compiled, capture_last_expression = compile_code(
-                        code, filename, capture_last_expression)
+                    ast_code = ast.parse(transform_cell(code))
                 except SyntaxError:
                     if PY2:
                         raise e
@@ -480,10 +469,17 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
                             ".ipy extension.\n")
                         SHOW_INVALID_SYNTAX_MSG = False
         else:
-            compiled, capture_last_expression = compile_code(
-                code, filename, capture_last_expression)
+            ast_code = ast.parse(transform_cell(code))
 
-        exec_fun(compiled, ns_globals, ns_locals)
+        if code.rstrip()[-1] == ";":
+            # Supress output with ;
+            capture_last_expression = False
+
+        if capture_last_expression:
+            ast_code, capture_last_expression = capture_last_Expr(
+                ast_code, "_spyder_out")
+
+        exec_fun(compile(ast_code, filename, 'exec'), ns_globals, ns_locals)
 
         if capture_last_expression:
             out = ns_globals.pop("_spyder_out", None)
@@ -640,14 +636,6 @@ else:
     builtins.spyder_runfile = runfile
 
 
-def normalise_filename(filename):
-    """Normalise path for window."""
-    # Recursive
-    if os.name == 'nt':
-        return filename.replace('\\', '/')
-    return filename
-
-
 def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
               current_namespace=False):
     """
@@ -669,12 +657,12 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
         code = (
             "runfile({}".format(repr(normalise_filename(filename))) +
             ", args=%r, wdir=%r, current_namespace=%r)" % (
-                args, wdir, current_namespace))
+                args, wdir, current_namespace)
+        )
 
         shell.pdb_session.enter_recursive_debugger(
             code, filename, True,
         )
-
     else:
         debugger = get_new_debugger(filename, True)
         _exec_file(
@@ -682,7 +670,8 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
             args=args, wdir=wdir,
             current_namespace=current_namespace,
             exec_fun=debugger.run,
-            stack_depth=1)
+            stack_depth=1
+        )
 
 
 builtins.debugfile = debugfile
@@ -781,7 +770,8 @@ def debugcell(cellname, filename=None, post_mortem=False):
         # Recursive
         code = (
             "runcell({}, ".format(repr(cellname)) +
-            "{})".format(repr(normalise_filename(filename))))
+            "{})".format(repr(normalise_filename(filename)))
+        )
         shell.pdb_session.enter_recursive_debugger(
             code, filename, False,
         )
@@ -791,7 +781,8 @@ def debugcell(cellname, filename=None, post_mortem=False):
             cellname=cellname,
             filename=debugger.canonic(filename),
             exec_fun=debugger.run,
-            stack_depth=1)
+            stack_depth=1
+        )
 
 
 builtins.debugcell = debugcell
