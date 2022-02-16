@@ -4630,5 +4630,35 @@ def test_debug_unsaved_function(main_window, qtbot):
     assert "1---> 2     print(1)" in control.toPlainText()
 
 
+@pytest.mark.slow
+def test_out_runfile_runcell(main_window, qtbot):
+    """
+    Test that runcell and runfile return values if last statment
+    is expression.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+    codes = {
+        "a = 1 + 1; a": (2, True),
+        "a = 1 + 3; a;": (4, False),
+        "a = 1 + 5\na": (6, True),
+        "a = 1 + 7\na;": (8, False)
+        }
+    for code in codes:
+        num, shown = codes[code]
+        # create new file
+        main_window.editor.new()
+        code_editor = main_window.editor.get_focus_widget()
+        code_editor.set_text(code)
+        with qtbot.waitSignal(shell.executed):
+            main_window.editor.run_cell()
+        if shown:
+            assert "]: " + str(num) in control.toPlainText()
+        else:
+            assert not "]: " + str(num) in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()
