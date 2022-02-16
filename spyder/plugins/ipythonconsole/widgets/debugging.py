@@ -431,6 +431,21 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if pdb_state is not None and isinstance(pdb_state, dict):
             self.refresh_from_pdb(pdb_state)
 
+    def show_pdb_output(self, text):
+        """Show Pdb output."""
+        self._append_plain_text(self.output_sep, before_prompt=True)
+        prompt = self._current_out_prompt()
+        self._append_html(
+            '<span class="out-prompt">%s</span>' % prompt,
+            before_prompt=True
+        )
+        # If the repr is multiline, make sure we start on a new line,
+        # so that its lines are aligned.
+        if "\n" in text and not self.output_sep.endswith("\n"):
+            self._append_plain_text('\n', before_prompt=True)
+        self._append_plain_text(text + self.output_sep2, before_prompt=True)
+        self._append_plain_text('\n', before_prompt=True)
+
     def get_pdb_last_step(self):
         """Get last pdb step retrieved from a Pdb session."""
         fname, lineno = self._pdb_frame_loc
@@ -466,6 +481,14 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     # --- Private API --------------------------------------------------
     def _current_prompt(self):
         prompt = "IPdb [{}]".format(self._pdb_history_input_number + 1)
+        for i in range(self._pdb_in_loop - 1):
+            # Add recursive debugger prompt
+            prompt = "({})".format(prompt)
+        return prompt + ": "
+
+    def _current_out_prompt(self):
+        """Get current out prompt."""
+        prompt = "Out\u00A0\u00A0[{}]".format(self._pdb_history_input_number)
         for i in range(self._pdb_in_loop - 1):
             # Add recursive debugger prompt
             prompt = "({})".format(prompt)

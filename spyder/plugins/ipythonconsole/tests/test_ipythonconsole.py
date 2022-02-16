@@ -2074,6 +2074,45 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     assert 'IPdb [1]:' in control.toPlainText()
 
 
+def test_pdb_out(ipyconsole, qtbot):
+    """Test that browsing command history is working while debugging."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_widget().get_focus_widget()
+    control.setFocus()
+
+    # Enter debugging mode
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+
+    # Generate some output
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute('a = 12 + 1; a')
+
+    assert "[1]: 13" in control.toPlainText()
+
+    # Generate hide output
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute('a = 14 + 1; a;')
+
+    assert "[2]: 15" not in control.toPlainText()
+
+    # Multiline
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute('a = 16 + 1\na')
+
+    assert "[3]: 17" in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute('a = 18 + 1\na;')
+
+    assert "[4]: 19" not in control.toPlainText()
+    assert "IPdb [4]:" in control.toPlainText()
+
+
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
 @pytest.mark.skipif(

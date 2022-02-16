@@ -12,6 +12,7 @@ Spyder kernel for Jupyter.
 
 # Standard library imports
 from distutils.version import LooseVersion
+import logging
 import os
 import sys
 import threading
@@ -22,9 +23,9 @@ from ipykernel.ipkernel import IPythonKernel
 from traitlets.config.loader import LazyConfigValue
 
 # Local imports
-from spyder_kernels.py3compat import TEXT_TYPES, to_text_string
-from spyder_kernels.comms.frontendcomm import FrontendComm
-from spyder_kernels.py3compat import PY3, input
+from spyder_kernels.py3compat import (
+    TEXT_TYPES, to_text_string, PY3, input, TimeoutError)
+from spyder_kernels.comms.frontendcomm import FrontendComm, CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
@@ -33,6 +34,10 @@ from spyder_kernels.console.shell import SpyderShell
 
 if PY3:
     import faulthandler
+
+
+logger = logging.getLogger(__name__)
+
 
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)
@@ -88,7 +93,6 @@ class SpyderKernel(IPythonKernel):
                 call_id, handlers[call_id])
 
         self.namespace_view_settings = {}
-        self._pdb_step = None
         self._mpl_backend_error = None
         self._running_namespace = None
         self._pdb_input_line = None
@@ -301,13 +305,20 @@ class SpyderKernel(IPythonKernel):
             return self.shell.pdb_session.do_complete(code, cursor_pos)
         return self._do_complete(code, cursor_pos)
 
-    def publish_pdb_state(self):
-        """Publish Pdb state."""
-        if self.shell.pdb_session:
-            state = dict(namespace_view = self.get_namespace_view(),
-                         var_properties = self.get_var_properties(),
-                         step = self._pdb_step)
+    def publish_pdb_state(self, step):
+        """
+        Publish Variable Explorer state and Pdb step through
+        send_spyder_msg.
+        """
+        state = dict(
+            namespace_view=self.get_namespace_view(),
+            var_properties=self.get_var_properties(),
+            step=step
+         )
+        try:
             self.frontend_call(blocking=False).pdb_state(state)
+        except (CommError, TimeoutError):
+            logger.debug("Could not send Pdb state to the frontend.")
 
     def set_spyder_breakpoints(self, breakpoints):
         """
