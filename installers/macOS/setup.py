@@ -79,6 +79,9 @@ def make_app_bundle(dist_dir, make_lite=False):
     docutils :
         [Errno 20] Not a directory: '<path>/Resources/lib/python39.zip/
         docutils/writers/latex2e/docutils.sty'
+    humanfriendly :
+        spyder-terminal plugin
+        ModuleNotFoundError: No module named 'humanfriendly.tables'
     IPython :
         [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
         Source file
@@ -130,6 +133,8 @@ def make_app_bundle(dist_dir, make_lite=False):
         python38.zip/spyder/app/mac_stylesheet.qss'
     spyder_kernels :
         No module named spyder_kernels.console.__main__
+    spyder_terminal :
+        No module named spyder_terminal.server
     textdistance :
         NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
         python39.zip/textdistance/libraries.json'
@@ -152,11 +157,12 @@ def make_app_bundle(dist_dir, make_lite=False):
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
-    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'docutils', 'IPython',
-                'jedi', 'jinja2', 'keyring', 'parso', 'pygments', 'pylint',
-                'pylsp', 'pylsp_black', 'pyls_spyder', 'qtawesome',
-                'setuptools', 'sphinx', 'spyder', 'spyder_kernels',
-                'textdistance', 'debugpy', 'pkg_resources'
+    PACKAGES = ['alabaster', 'astroid', 'blib2to3', 'debugpy', 'docutils',
+                'humanfriendly', 'IPython', 'jedi', 'jinja2', 'keyring',
+                'pkg_resources', 'parso', 'pygments', 'pylint', 'pylsp',
+                'pylsp_black', 'pyls_spyder', 'qtawesome', 'setuptools',
+                'sphinx', 'spyder', 'spyder_kernels', 'spyder_terminal',
+                'textdistance'
                 ]
     INCLUDES = ['_sitebuiltins',  # required for IPython help()
                 'jellyfish',
