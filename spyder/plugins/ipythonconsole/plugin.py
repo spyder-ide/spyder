@@ -98,6 +98,16 @@ class IPythonConsole(SpyderDockablePlugin):
         requested file.
     """
 
+    sig_edit_new = Signal(str)
+    """
+    This signal will request to create a new file in a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    """
+
     sig_pdb_state_changed = Signal(bool, dict)
     """
     This signal is emitted when the debugging state changes.
@@ -219,6 +229,7 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_edit_goto_requested[str, int, str, bool].connect(
             self.sig_edit_goto_requested[str, int, str, bool])
+        widget.sig_edit_new.connect(self.sig_edit_new)
         widget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
@@ -299,6 +310,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested.connect(editor.load)
         self.sig_edit_goto_requested[str, int, str, bool].connect(
             self._load_file_in_editor)
+        self.sig_edit_new.connect(editor.new)
         editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         editor.run_in_current_ipyclient.connect(self.run_script)
         editor.run_cell_in_ipyclient.connect(self.run_cell)
@@ -341,6 +353,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested.disconnect(editor.load)
         self.sig_edit_goto_requested[str, int, str, bool].disconnect(
             self._load_file_in_editor)
+        self.sig_edit_new.disconnect(editor.new)
         editor.breakpoints_saved.disconnect(self.set_spyder_breakpoints)
         editor.run_in_current_ipyclient.disconnect(self.run_script)
         editor.run_cell_in_ipyclient.disconnect(self.run_cell)
