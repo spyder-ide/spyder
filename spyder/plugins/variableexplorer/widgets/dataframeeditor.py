@@ -757,7 +757,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
             if orientation == Qt.Horizontal:
                 return Qt.AlignCenter
             else:
-                return Qt.AlignRight | Qt.AlignVCenter
+                return int(Qt.AlignRight | Qt.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.axis == 1 and self._shape[1] <= 1:
@@ -849,7 +849,7 @@ class DataFrameLevelModel(QAbstractTableModel):
             if orientation == Qt.Horizontal:
                 return Qt.AlignCenter
             else:
-                return Qt.AlignRight | Qt.AlignVCenter
+                return int(Qt.AlignRight | Qt.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
