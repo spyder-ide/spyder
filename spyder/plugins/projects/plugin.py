@@ -140,7 +140,7 @@ class Projects(SpyderDockablePlugin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _("Project")
+        return _("Projects")
 
     def get_description(self):
         return _("Create Spyder projects and manage their files.")
