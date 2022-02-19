@@ -1208,13 +1208,18 @@ class MainWindow(QMainWindow):
         else:
             # Load last project if a project was active when Spyder
             # was closed
+            reopen_last_session = False
             if projects:
                 projects.reopen_last_project()
+                if projects.get_active_project() is None:
+                    reopen_last_session = True
+            else:
+                reopen_last_session = True
 
-            # If no project is active, load last session
-            if projects and projects.get_active_project() is None:
-                if editor:
-                    editor.setup_open_files(close_previous_files=False)
+            # If no project is active or Projects is disabled, load last
+            # session
+            if editor and reopen_last_session:
+                editor.setup_open_files(close_previous_files=False)
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
