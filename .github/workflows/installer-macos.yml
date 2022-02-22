@@ -70,6 +70,11 @@ jobs:
       - name: Test Application Bundle
         if: ${{github.event_name == 'pull_request'}}
         run: ./test_app.sh -t 60 -d 10 ${DISTDIR}
+      - name: Code Sign Application
+        env:
+           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: ./codesign.sh -d -c "${MACOS_CERTIFICATE}" -p "${MACOS_CERTIFICATE_PWD}" "${DISTDIR}/Spyder.app"
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact
