@@ -70,3 +70,8 @@ def install():
         },
         cwd=SUBMODULE
     )
+
+
+# This is necessary to install the subrepo on CIs
+if __name__ == "__main__":
+    print(get_version())
