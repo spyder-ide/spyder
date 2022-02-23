@@ -8,6 +8,7 @@ import logging
 import sys
 import re
 from subprocess import Popen, PIPE
+import os
 
 from pylint.epylint import py_run
 from pylsp import hookimpl, lsp
@@ -18,6 +19,15 @@ except Exception:  # pylint: disable=broad-except
     import json
 
 log = logging.getLogger(__name__)
+
+# Pylint fails to suppress STDOUT when importing whitelisted C
+# extensions, mangling their output into the expected JSON which breaks the
+# parser. The most prominent example (and maybe the only one out there) is
+# pygame - we work around that by asking pygame to NOT display the message upon
+# import via an (otherwise harmless) environment variable. This is an ad-hoc
+# fix for a very specific upstream issue.
+# Related: https://github.com/PyCQA/pylint/issues/3518
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 
 
 class PylintLinter:
@@ -236,7 +246,7 @@ def _run_pylint_stdio(pylint_executable, document, flags):
         cmd = [pylint_executable]
         cmd.extend(flags)
         cmd.extend(['--from-stdin', document.path])
-        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # pylint: disable=consider-using-with
     except IOError:
         log.debug("Can't execute %s. Trying with 'python -m pylint'", pylint_executable)
         cmd = ['python', '-m', 'pylint']

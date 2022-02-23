@@ -12,6 +12,7 @@ This server can be configured using `workspace/didChangeConfiguration` method. E
 | `pylsp.plugins.flake8.hangClosing` | `boolean` | Hang closing bracket instead of matching indentation of opening bracket's line. | `null` |
 | `pylsp.plugins.flake8.ignore` | `array`  | List of errors and warnings to ignore (or skip). | `null` |
 | `pylsp.plugins.flake8.maxLineLength` | `integer` | Maximum allowed line length for the entirety of this run. | `null` |
+| `pylsp.plugins.flake8.indentSize` | `integer` | Set indentation spaces. | `null` |
 | `pylsp.plugins.flake8.perFileIgnores` | `array`  | A pairing of filenames and violation codes that defines which violations to ignore in a particular file, for example: `["file_path.py:W305,W304"]`). | `null` |
 | `pylsp.plugins.flake8.select` | `array`  | List of errors and warnings to enable. | `null` |
 | `pylsp.plugins.jedi.extra_paths` | `array`  | Define extra paths for jedi.Script. | `[]` |
@@ -44,6 +45,7 @@ This server can be configured using `workspace/didChangeConfiguration` method. E
 | `pylsp.plugins.pycodestyle.ignore` | `array`  of unique `string` items | Ignore errors and warnings | `null` |
 | `pylsp.plugins.pycodestyle.hangClosing` | `boolean` | Hang closing bracket instead of matching indentation of opening bracket's line. | `null` |
 | `pylsp.plugins.pycodestyle.maxLineLength` | `number`  | Set maximum allowed line length. | `null` |
+| `pylsp.plugins.pycodestyle.indentSize` | `integer` | Set indentation spaces. | `null` |
 | `pylsp.plugins.pydocstyle.enabled` | `boolean` | Enable or disable the plugin. | `false` |
 | `pylsp.plugins.pydocstyle.convention` | `string` | Choose the basic list of checked errors by specifying an existing convention. | `null` |
 | `pylsp.plugins.pydocstyle.addIgnore` | `array`  of unique `string` items | Ignore errors and warnings in addition to the specified convention. | `null` |

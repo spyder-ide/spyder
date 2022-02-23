@@ -71,3 +71,10 @@ def test_hanging_indentation(config, workspace):
 
     assert len(res) == 1
     assert res[0]['newText'] == CORRECT_INDENTED_DOC
+
+
+def test_cr_line_endings(config, workspace):
+    doc = Document(DOC_URI, workspace, 'import os;import sys\r\rdict(a=1)')
+    res = pylsp_format_document(config, doc)
+
+    assert res[0]['newText'] == 'import os\rimport sys\r\rdict(a=1)\r'
