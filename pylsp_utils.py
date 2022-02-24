@@ -35,7 +35,8 @@ def remove_installation():
 
 def get_version():
     """Get current version to pass it to setuptools-scm."""
-    with open('requirements/conda.txt', 'r') as f:
+    req_file = osp.join(HERE, 'requirements', 'conda.txt')
+    with open(req_file, 'r') as f:
         lines = f.readlines()
 
     for line in lines:
