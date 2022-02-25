@@ -39,7 +39,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=7.6.0;<8.0.0"
+IPYTHON_REQVER = ">=7.31.1;<8.0.0"
 JEDI_REQVER = '>=0.17.2;<0.19.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
