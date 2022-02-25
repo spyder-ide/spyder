@@ -32,6 +32,7 @@ def pylsp_lint(workspace, document):
         'hang_closing': settings.get('hangClosing'),
         'ignore': settings.get('ignore'),
         'max_line_length': settings.get('maxLineLength'),
+        'indent_size': settings.get('indentSize'),
         'select': settings.get('select'),
     }
     kwargs = {k: v for k, v in opts.items() if v}

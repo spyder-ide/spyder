@@ -26,10 +26,6 @@ if [ "$USE_CONDA" = "true" ]; then
     conda remove spyder-kernels --force -q -y
     conda remove python-lsp-server --force -q -y
     conda remove qdarkstyle --force -q -y
-
-    # Install an older version of black until we fix pylsp-black to
-    # work with 22.1.0
-    mamba install black=21
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -59,18 +55,19 @@ else
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y
-
-    # Install an older version of black until we fix pylsp-black to
-    # work with 22.1.0
-    pip install black==21.12b0
 fi
 
 # Install subrepos in development mode
 for dep in $(ls external-deps)
 do
-    pushd external-deps/$dep
-    pip install --no-deps -q -e .
-    popd
+    echo "Installing $dep subrepo"
+
+    # This is necessary to pass our minimal required version of PyLSP to setuptools-scm
+    if [ "$dep" = "python-lsp-server" ]; then
+        SETUPTOOLS_SCM_PRETEND_VERSION=`python pylsp_utils.py` pip install --no-deps -q -e external-deps/$dep
+    else
+        pip install --no-deps -q -e external-deps/$dep
+    fi
 done
 
 # Install boilerplate plugin

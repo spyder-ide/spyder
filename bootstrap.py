@@ -26,9 +26,10 @@ import os
 import os.path as osp
 import pkg_resources
 import shutil
-import subprocess
 import sys
 import time
+
+import pylsp_utils
 
 time_start = time.time()
 
@@ -120,7 +121,7 @@ if args.debug:
     # safety check - Spyder config should not be imported at this point
     if "spyder.config.base" in sys.modules:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
-    print("0x. Switching debug mode on")
+    print("*. Switching debug mode on")
     os.environ["SPYDER_DEBUG"] = "3"
     if len(args.filter_log) > 0:
         print("*. Displaying log messages only from the "
@@ -144,43 +145,20 @@ for path in os.listdir(DEPS_PATH):
     print("*. Patched sys.path with %s" % external_dep_path)
     i += 1
 
-# Create an egg-info folder to declare the PyLS subrepo entry points.
-pyls_submodule = osp.join(DEPS_PATH, 'python-lsp-server')
-pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
-pyls_installation_egg = osp.join(
-    pyls_submodule, 'python_lsp_server.egg-info')
+# Remove any leftover PyLSP installation from previous execution
+print("*. Removing previous PyLSP local installation.")
+pylsp_utils.remove_installation()
 
-
-def remove_pyls_installation():
-    shutil.rmtree(pyls_installation_dir, ignore_errors=True)
-    shutil.rmtree(pyls_installation_egg, ignore_errors=True)
-
-
-if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
-    # Remove any leftover installation from previous execution
-    print("*. Removing previous PyLSP local installation.")
-    remove_pyls_installation()
-
-# Install PyLS locally
+# Install PyLSP locally
 print("*. Installing PyLSP locally")
-subprocess.check_output(
-    [sys.executable,
-     '-W',
-     'ignore',
-     'setup.py',
-     'develop',
-     '--no-deps',
-     '--install-dir',
-     pyls_installation_dir],
-    env={**os.environ, **{'PYTHONPATH': pyls_installation_dir}},
-    cwd=pyls_submodule
-)
+pylsp_utils.install()
 
-atexit.register(remove_pyls_installation)
-
-print("*. Declaring completion providers")
+# Remove PyLSP temp installation at exit
+atexit.register(pylsp_utils.remove_installation)
 
 # Register completion providers
+print("*. Declaring completion providers")
+
 fallback = pkg_resources.EntryPoint.parse(
     'fallback = spyder.plugins.completion.providers.fallback.provider:'
     'FallbackProvider')

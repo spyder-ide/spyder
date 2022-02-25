@@ -43,6 +43,7 @@ def pylsp_lint(workspace, document):
         'hang-closing': settings.get('hangClosing'),
         'ignore': ignores or None,
         'max-line-length': settings.get('maxLineLength'),
+        'indent-size': settings.get('indentSize'),
         'select': settings.get('select'),
     }
 
@@ -80,7 +81,7 @@ def run_flake8(flake8_executable, args, document):
     try:
         cmd = [flake8_executable]
         cmd.extend(args)
-        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # pylint: disable=consider-using-with
     except IOError:
         log.debug("Can't execute %s. Trying with '%s -m flake8'", flake8_executable, sys.executable)
         cmd = [sys.executable, '-m', 'flake8']
