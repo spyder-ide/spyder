@@ -44,10 +44,15 @@ jobs:
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: |
-          ${pythonLocation}/bin/python -m pip install \
-            -e ${GITHUB_WORKSPACE}/external-deps/spyder-kernels \
-            -e ${GITHUB_WORKSPACE}/external-deps/python-lsp-server \
-            -e ${GITHUB_WORKSPACE}/external-deps/qdarkstyle
+          for dep in $(ls ${GITHUB_WORKSPACE}/external-deps)
+          do
+              if [ "$dep" = "python-lsp-server" ]; then
+                  SETUPTOOLS_SCM_PRETEND_VERSION=`${pythonLocation}/bin/python ${GITHUB_WORKSPACE}/pylsp_utils.py` \
+                  ${pythonLocation}/bin/python -m pip install -e ${GITHUB_WORKSPACE}/external-deps/$dep
+              else
+                  ${pythonLocation}/bin/python -m pip install -e ${GITHUB_WORKSPACE}/external-deps/$dep
+              fi
+          done
       - name: Show Build Environment
         run: |
           ${pythonLocation}/bin/python -V -V

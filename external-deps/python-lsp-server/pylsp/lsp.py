@@ -48,6 +48,11 @@ class DiagnosticSeverity:
     Hint = 4
 
 
+class DiagnosticTag:
+    Unnecessary = 1
+    Deprecated = 2
+
+
 class InsertTextFormat:
     PlainText = 1
     Snippet = 2
