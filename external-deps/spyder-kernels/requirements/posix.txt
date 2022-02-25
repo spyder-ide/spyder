@@ -1,6 +1,6 @@
 cloudpickle
 ipykernel>=6.6.1
-ipython>=7.6.0,<8
+ipython>=7.31.1,<8
 jupyter_client>=7.1.0
 pyzmq>=22.1.0
 wurlitzer>=1.0.3
