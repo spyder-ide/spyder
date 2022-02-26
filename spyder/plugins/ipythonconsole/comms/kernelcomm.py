@@ -192,7 +192,7 @@ class KernelComm(CommBase, QObject):
             else:
                 # The user has other problems
                 logger.info(
-                    "Dropping message because kernel is dead: ",
+                    "Dropping message because kernel is dead: %s",
                     str(call_dict)
                 )
                 return
