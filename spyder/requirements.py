@@ -17,12 +17,17 @@ from pkg_resources import parse_version
 def show_warning(message):
     """Show warning using Tkinter if available"""
     try:
-        # If Tkinter is installed (highly probable), showing an error pop-up
-        import Tkinter, tkMessageBox
-        root = Tkinter.Tk()
-        root.withdraw()
-        tkMessageBox.showerror("Spyder", message)
-    except ImportError:
+        # If tkinter is installed (highly probable), show an error pop-up.
+        # From https://stackoverflow.com/a/17280890/438386
+        import tkinter as tk
+        root = tk.Tk()
+        root.title("Spyder")
+        label = tk.Label(root, text=message, justify='left')
+        label.pack(side="top", fill="both", expand=True, padx=20, pady=20)
+        button = tk.Button(root, text="OK", command=lambda: root.destroy())
+        button.pack(side="bottom", fill="none", expand=True)
+        root.mainloop()
+    except Exception:
         pass
     raise RuntimeError(message)
 
@@ -44,9 +49,10 @@ def check_qt():
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]
         actual_ver = qtpy.QT_VERSION
-        if parse_version(actual_ver) < parse_version(required_ver):
+        if (actual_ver is None or
+                parse_version(actual_ver) < parse_version(required_ver)):
             show_warning("Please check Spyder installation requirements:\n"
-                         "%s %s+ is required (found v%s)."
+                         "%s %s+ is required (found %s)."
                          % (package_name, required_ver, actual_ver))
     except ImportError:
         show_warning("Failed to import qtpy.\n"
