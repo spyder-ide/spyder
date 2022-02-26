@@ -44,9 +44,10 @@ def check_qt():
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]
         actual_ver = qtpy.QT_VERSION
-        if parse_version(actual_ver) < parse_version(required_ver):
+        if (actual_ver is None or
+                parse_version(actual_ver) < parse_version(required_ver)):
             show_warning("Please check Spyder installation requirements:\n"
-                         "%s %s+ is required (found v%s)."
+                         "%s %s+ is required (found %s)."
                          % (package_name, required_ver, actual_ver))
     except ImportError:
         show_warning("Failed to import qtpy.\n"
