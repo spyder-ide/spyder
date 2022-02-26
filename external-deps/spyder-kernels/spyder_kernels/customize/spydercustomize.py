@@ -31,7 +31,7 @@ from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb, get_new_debugger
 from spyder_kernels.customize.umr import UserModuleReloader
 from spyder_kernels.py3compat import (
-    TimeoutError, PY2, _print, encode, compat_exec)
+    TimeoutError, PY2, _print, encode, compat_exec, FileNotFoundError)
 from spyder_kernels.customize.utils import (
     capture_last_Expr, normalise_filename)
 
@@ -511,7 +511,7 @@ def get_file_code(filename, save_all=True):
     try:
         file_code = frontend_request(blocking=True).get_file_code(
             filename, save_all=save_all)
-    except (CommError, TimeoutError, RuntimeError):
+    except (CommError, TimeoutError, RuntimeError, FileNotFoundError):
         file_code = None
     if file_code is None:
         with open(filename, 'r') as f:
