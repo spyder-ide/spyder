@@ -17,12 +17,17 @@ from pkg_resources import parse_version
 def show_warning(message):
     """Show warning using Tkinter if available"""
     try:
-        # If Tkinter is installed (highly probable), showing an error pop-up
-        import Tkinter, tkMessageBox
-        root = Tkinter.Tk()
-        root.withdraw()
-        tkMessageBox.showerror("Spyder", message)
-    except ImportError:
+        # If tkinter is installed (highly probable), show an error pop-up.
+        # From https://stackoverflow.com/a/17280890/438386
+        import tkinter as tk
+        root = tk.Tk()
+        root.title("Spyder")
+        label = tk.Label(root, text=message, justify='left')
+        label.pack(side="top", fill="both", expand=True, padx=20, pady=20)
+        button = tk.Button(root, text="OK", command=lambda: root.destroy())
+        button.pack(side="bottom", fill="none", expand=True)
+        root.mainloop()
+    except Exception:
         pass
     raise RuntimeError(message)
 
