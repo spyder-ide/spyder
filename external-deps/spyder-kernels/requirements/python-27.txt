@@ -7,3 +7,5 @@ pyzmq>=17,<20
 wurlitzer>=1.0.3
 # To avoid an error with conda
 click =7
+# To avoid a problem with zict
+zict <2.1.0

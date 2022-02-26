@@ -317,8 +317,10 @@ else:
 # =============================================================================
 if PY2:
     TimeoutError = RuntimeError
+    FileNotFoundError = IOError
 else:
     TimeoutError = TimeoutError
+    FileNotFoundError = FileNotFoundError
 
 if PY2:
     import re
