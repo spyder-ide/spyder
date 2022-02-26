@@ -191,7 +191,10 @@ class KernelComm(CommBase, QObject):
                 raise RuntimeError("Kernel is dead")
             else:
                 # The user has other problems
-                logger.info("Dropping message because kernel is dead: %s", str(call_dict))
+                logger.info(
+                    "Dropping message because kernel is dead: %s",
+                    str(call_dict)
+                )
                 return
 
         settings = call_dict['settings']
