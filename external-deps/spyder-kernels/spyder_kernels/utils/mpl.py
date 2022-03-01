@@ -29,12 +29,8 @@ else:
 MPL_BACKENDS_TO_SPYDER = {
     inline_backend: 0,
     'Qt5Agg': 2,
-    'Qt4Agg': 3,
+    'TkAgg': 3,
     'MacOSX': 4,
-    'GTK3Agg': 5,
-    'GTKAgg': 6,
-    'WX': 7,
-    'TkAgg': 8
 }
 
 
@@ -42,8 +38,6 @@ def automatic_backend():
     """Get Matplolib automatic backend option."""
     if is_module_installed('PyQt5'):
         auto_backend = 'qt5'
-    elif is_module_installed('PyQt4'):
-        auto_backend = 'qt4'
     elif is_module_installed('_tkinter'):
         auto_backend = 'tk'
     else:
@@ -56,10 +50,6 @@ MPL_BACKENDS_FROM_SPYDER = {
     '0': 'inline',
     '1': automatic_backend(),
     '2': 'qt5',
-    '3': 'qt4',
-    '4': 'osx',
-    '5': 'gtk3',
-    '6': 'gtk',
-    '7': 'wx',
-    '8': 'tk'
+    '3': 'tk',
+    '4': 'osx'
 }

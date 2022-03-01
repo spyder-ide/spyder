@@ -151,7 +151,7 @@ def ipyconsole(qtbot, request, tmpdir):
     # Use the Tkinter backend if requested
     tk_backend = request.node.get_closest_marker('tk_backend')
     if tk_backend:
-        configuration.set('ipython_console', 'pylab/backend', 8)
+        configuration.set('ipython_console', 'pylab/backend', 3)
 
     # Start a Pylab client if requested
     pylab_client = request.node.get_closest_marker('pylab_client')
