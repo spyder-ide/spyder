@@ -142,7 +142,6 @@ class MainWindow(QMainWindow):
     all_actions_defined = Signal()
     # type: (OrderedDict, OrderedDict)
     sig_pythonpath_changed = Signal(object, object)
-    sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")
     sig_moved = Signal("QMoveEvent")

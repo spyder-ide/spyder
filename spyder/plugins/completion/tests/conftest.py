@@ -44,7 +44,6 @@ class MainWindowMock(QMainWindow):
         self._APPLICATION_TOOLBARS = MagicMock()
 
         self.console = Mock()
-        self.sig_main_interpreter_changed = Mock()
 
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
 
