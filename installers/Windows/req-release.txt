@@ -1,5 +1,2 @@
 # Spyder external plugins
 spyder-terminal>=1.2.1
-
-# There are no wheels for version 3.3
-cryptography==3.2.1
