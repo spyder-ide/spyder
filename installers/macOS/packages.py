@@ -9,39 +9,17 @@ The following packages are included in py2app's PACKAGES option so that
 they will be placed in Spyder.app/Contents/Resources/lib/python<ver>
 instead.
 
-alabaster :
-    Error message: [Errno 20] Not a directory: '<path>/Resources/lib/
-    python38.zip/alabaster'
-astroid :
-    ImportError: cannot import name 'context' from 'astroid'
-    (<path>/Resources/lib/python38.zip/astroid/__init__.pyc)
 blib2to3 :
     File "<frozen zipimport>", line 177, in get_data
     KeyError: 'blib2to3/Users/rclary/Library/Caches/black/20.8b1/
     Grammar3.8.6.final.0.pickle'
-debugpy :
-    NotADirectoryError: [Errno 20] Not a directory:
-    '<path>/Resources/lib/python39.zip/debugpy/_vendored'
-docutils :
-    [Errno 20] Not a directory: '<path>/Resources/lib/python39.zip/
-    docutils/writers/latex2e/docutils.sty'
 humanfriendly :
     spyder-terminal plugin
     ModuleNotFoundError: No module named 'humanfriendly.tables'
-jedi :
-    jedi.api.environment.InvalidPythonEnvironment: Could not get version
-    information for '<path>/Contents/MacOS/python': InternalError("The
-    subprocess <path>/Contents/MacOS/python has crashed (EOFError('Ran out
-    of input'), stderr=).")
 jinja2 :
     No module named 'jinja2.ext'
 keyring :
     ModuleNotFoundError: No module named 'keyring.backends.<mod>'
-parso :
-    jedi.api.environment.InvalidPythonEnvironment: Could not get version
-    information for '/Users/rclary/opt/miniconda3/envs/c2w_37/bin/python':
-    InternalError("The subprocess /Users/rclary/opt/miniconda3/envs/c2w_37/
-    bin/python has crashed (EOFError('Ran out of input'), stderr=).")
 PIL :
     Library not loaded: @loader_path/.dylibs/libjpeg.9.dylib
     Note: only applicable to not-Lite build
@@ -55,9 +33,6 @@ pylsp_black :
     Mandatory: python-pyls-black >=1.0.0 : None (NOK)
 pyls_spyder :
     Mandatory: pyls_spyder >=0.1.1 : None (NOK)
-qtawesome :
-    NotADirectoryError: [Errno 20] Not a directory: '<path>/Resourses/lib/
-    python38.zip/qtawesome/fonts/fontawesome4.7-webfont.ttf'
 setuptools :
     Mandatory: setuptools >=49.6.0 : None (NOK)
 spyder :
@@ -67,33 +42,22 @@ spyder_kernels :
     No module named spyder_kernels.console.__main__
 spyder_terminal :
     No module named spyder_terminal.server
-textdistance :
-    NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
-    python39.zip/textdistance/libraries.json'
 """
 
 # Packages that cannot be in the zip folder
 PACKAGES = [
-    'alabaster',
-    'astroid',
     'blib2to3',
-    'debugpy',
-    'docutils',
     'humanfriendly',
-    'jedi',
     'jinja2',
     'keyring',
     'pkg_resources',
-    'parso',
     'pylint',
     'pylsp_black',
     'pyls_spyder',
-    'qtawesome',
     'setuptools',
     'spyder',
     'spyder_kernels',
     'spyder_terminal',
-    'textdistance',
 ]
 
 # Packages to exclude
