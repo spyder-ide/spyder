@@ -66,11 +66,9 @@ def make_app_bundle(dist_dir, make_lite=False):
 
     if make_lite:
         EXCLUDES.extend(SCIENTIFIC)
-        EXCLUDES.append('PIL')
         EXCLUDE_EGG.extend(['pillow'])
     else:
         INCLUDES.extend(SCIENTIFIC)
-        PACKAGES.extend(['PIL'])
 
     EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
