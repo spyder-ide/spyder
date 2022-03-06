@@ -57,19 +57,6 @@ def make_app_bundle(dist_dir, make_lite=False):
     """
     from spyder.config.utils import EDIT_FILETYPES, _get_extensions
 
-    # Patch py2app for IPython help()
-    py2app_file = pkg_resources.pkgutil.get_loader('py2app').get_filename()
-    site_file = os.path.join(os.path.dirname(py2app_file), 'apptemplate',
-                             'lib', 'site.py')
-    logger.info('Patching %s...', site_file)
-    with open(site_file, 'a+') as f:
-        f.seek(0)
-        content = f.read()
-        if 'builtins.help = _sitebuiltins._Helper()' not in content:
-            f.write('\nimport builtins'
-                    '\nimport _sitebuiltins'
-                    '\nbuiltins.help = _sitebuiltins._Helper()\n')
-
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
@@ -83,15 +70,10 @@ def make_app_bundle(dist_dir, make_lite=False):
         EXCLUDE_EGG.extend(['pillow'])
     else:
         INCLUDES.extend(SCIENTIFIC)
-        PACKAGES.extend(['pandas', 'PIL'])
+        PACKAGES.extend(['PIL'])
 
     EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
-
-    # Get rtree dylibs
-    rtree_loc = pkg_resources.get_distribution('rtree').module_path
-    rtree_dylibs = os.scandir(os.path.join(rtree_loc, 'rtree', 'lib'))
-    FRAMEWORKS = [lib.path for lib in rtree_dylibs]
 
     OPTIONS = {
         'optimize': 0,
@@ -100,7 +82,6 @@ def make_app_bundle(dist_dir, make_lite=False):
         'excludes': EXCLUDES,
         'iconfile': ICONFILE,
         'dist_dir': dist_dir,
-        'frameworks': FRAMEWORKS,
         'emulate_shell_environment': True,
         'plist': {
             'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
