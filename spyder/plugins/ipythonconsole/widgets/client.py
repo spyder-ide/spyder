@@ -716,7 +716,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Reset Pdb state and reopen comm
             sw._pdb_in_loop = False
             sw.spyder_kernel_comm.remove()
-            sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+            try:
+                sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+            except AttributeError:
+                # An error occurred while opening our comm channel.
+                # Aborting!
+                return
 
             # Start autorestart mechanism
             sw.kernel_manager.autorestart = True
