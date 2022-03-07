@@ -14,7 +14,6 @@ $ python setup.py
 import os
 import sys
 import shutil
-import pkg_resources
 from logging import getLogger, StreamHandler, Formatter
 from setuptools import setup
 
@@ -30,6 +29,7 @@ logger.setLevel('INFO')
 HERE = os.path.abspath(__file__)
 THISDIR = os.path.dirname(HERE)
 SPYREPO = os.path.realpath(os.path.join(THISDIR, '..', '..'))
+EXTDEPS = os.path.join(SPYREPO, 'external-deps')
 ICONFILE = os.path.join(SPYREPO, 'img_src', 'spyder.icns')
 SPYLINK = os.path.join(THISDIR, 'spyder')
 
@@ -62,15 +62,11 @@ def make_app_bundle(dist_dir, make_lite=False):
 
     from packages import PACKAGES, INCLUDES, EXCLUDES, SCIENTIFIC
 
-    EXCLUDE_EGG = ['py2app']
-
     if make_lite:
         EXCLUDES.extend(SCIENTIFIC)
-        EXCLUDE_EGG.extend(['pillow'])
     else:
         INCLUDES.extend(SCIENTIFIC)
 
-    EXCLUDE_EGG.extend(EXCLUDES)
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
     OPTIONS = {
@@ -104,57 +100,14 @@ def make_app_bundle(dist_dir, make_lite=False):
         os.remove(app_script_path)
         os.remove(SPYLINK)
 
-    # Copy egg info: fixes several pkg_resources issues
-    copy_egg_info(dist_dir)
+    # Copy Spyder egg-info
+    egg = os.path.join(SPYREPO, 'spyder.egg-info')
+    dest = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources', 'lib',
+                        'python{}.{}'.format(*PYVER), 'spyder.egg-info')
+    shutil.copytree(egg, dest)
 
     return
 
-
-def copy_egg_info(dist_dir):
-    from zipfile import ZipFile
-
-    pkg_resources.working_set.add_entry(SPYREPO)
-    egg_map = {}
-    for dist in pkg_resources.working_set:
-        if dist.egg_info is None:
-            continue
-
-        try:
-            tops = dist.get_metadata('top_level.txt').strip().split('\n')
-            for top in tops:
-                egg_map.update({top: dist.egg_info})
-        except FileNotFoundError:
-            egg_map.update({dist.project_name: dist.egg_info})
-
-    base_dir = os.path.join(dist_dir, MAC_APP_NAME,
-                            'Contents', 'Resources', 'lib')
-    pkg_dir = os.path.join(base_dir, 'python{}.{}'.format(*PYVER))
-    lib_dir = os.path.join(pkg_dir, 'lib-dynload')
-    zip_dir = os.path.join(base_dir, 'python{}{}.zip'.format(*PYVER))
-
-    pkgs = set(f.name for f in os.scandir(pkg_dir))
-    pkgs.update(f.name for f in os.scandir(lib_dir))
-    pkgs.update(item.split(os.sep)[0] for item in ZipFile(zip_dir).namelist())
-
-    eggs = set()
-    for pkg in pkgs:
-        top = pkg.split('.')[0]
-
-        egg = None
-        try:
-            dist = pkg_resources.get_distribution(top)
-            egg = dist.egg_info
-        except Exception:
-            egg = egg_map.get(top, None)
-
-        if egg is not None:
-            eggs.add(egg)
-
-    for egg in eggs:
-        egg_name = os.path.basename(egg)
-        dest = os.path.join(pkg_dir, egg_name)
-        shutil.copytree(egg, dest)
-        logger.info(f'Copied {egg_name}')
 
 def make_disk_image(dist_dir, make_lite=False):
     """
