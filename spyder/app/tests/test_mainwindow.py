@@ -2823,8 +2823,10 @@ def test_preferences_change_interpreter(qtbot, main_window):
                                                  'main_interpreter')
     page.cus_exec_radio.setChecked(True)
     page.cus_exec_combo.combobox.setCurrentText(sys.executable)
-    with qtbot.waitSignal(main_window.sig_main_interpreter_changed,
-                          timeout=5000, raising=True):
+
+    mi_container = main_window.main_interpreter.get_container()
+    with qtbot.waitSignal(mi_container.sig_interpreter_changed,
+            timeout=5000, raising=True):
         dlg.ok_btn.animateClick()
 
     # Check updated pyls configuration
