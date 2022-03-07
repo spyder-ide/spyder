@@ -374,6 +374,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             interrupt=True,
             blocking=True).get_matplotlib_backend()
 
+    def get_mpl_interactive_backend(self):
+        """Call kernel to get current interactive backend."""
+        return self.call_kernel(
+            interrupt=True,
+            blocking=True).get_mpl_interactive_backend()
+
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""
         cmd = "get_ipython().kernel.set_matplotlib_backend('{}', {})"

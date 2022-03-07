@@ -823,20 +823,40 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         inline_backend = 0
         pylab_restart = False
-        client_backend_not_inline = [False] * len(self.clients)
+        clients_backend_require_restart = [False] * len(self.clients)
         current_client = self.get_current_client()
-        current_client_backend_not_inline = False
+        current_client_backend_require_restart = False
         if pylab_o and pylab_backend_n == option and current_client:
             pylab_backend_o = self.get_conf(pylab_backend_n)
-            client_backend_not_inline = [
-                client.shellwidget.get_matplotlib_backend() != inline_backend
-                for client in self.clients]
-            current_client_backend_not_inline = (
-                current_client.shellwidget.get_matplotlib_backend()
-                != inline_backend)
-            pylab_restart = (
-                any(client_backend_not_inline) and
-                pylab_backend_o != inline_backend)
+
+            # Check if clients require a restart due to a change in
+            # interactive backend.
+            clients_backend_require_restart = []
+            for client in self.clients:
+                interactive_backend = (
+                    client.shellwidget.get_mpl_interactive_backend())
+
+                if (
+                    # No restart is needed if the new backend is inline
+                    pylab_backend_o != inline_backend and
+                    # There was an error getting the interactive backend in
+                    # the kernel, so we can't proceed.
+                    interactive_backend is not None and
+                    # There has to be an interactive backend (i.e. different
+                    # from inline) set in the kernel before. Else, a restart
+                    # is not necessary.
+                    interactive_backend != inline_backend and
+                    # The interactive backend to switch to has to be different
+                    # from the current one
+                    interactive_backend != pylab_backend_o
+                ):
+                    clients_backend_require_restart.append(True)
+                    if id(client) == id(current_client):
+                        current_client_backend_require_restart = True
+                else:
+                    clients_backend_require_restart.append(False)
+
+            pylab_restart = any(clients_backend_require_restart)
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
             self.initial_conf_options = self.get_conf_options()
@@ -853,8 +873,11 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Apply settings
         options = {option: value}
         for idx, client in enumerate(self.clients):
-            restart = ((pylab_restart and client_backend_not_inline[idx]) or
-                       restart_needed)
+            restart = (
+                (pylab_restart and clients_backend_require_restart[idx]) or
+                restart_needed
+            )
+
             if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
@@ -873,7 +896,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.restart_kernel()
                 client.ask_before_restart = current_ask_before_restart
 
-        if (((pylab_restart and current_client_backend_not_inline)
+        if (((pylab_restart and current_client_backend_require_restart)
              or restart_needed) and restart_current and current_client):
             current_client_ask_before_restart = (
                 current_client.ask_before_restart)
