@@ -51,6 +51,7 @@ if v[0] >= 3 and v[:2] < (3, 7):
 NAME = 'spyder'
 LIBNAME = 'spyder'
 WINDOWS_INSTALLER_NAME = os.environ.get('EXE_NAME')
+
 from spyder import __version__, __website_url__  #analysis:ignore
 
 
