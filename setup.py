@@ -50,6 +50,8 @@ if v[0] >= 3 and v[:2] < (3, 7):
 # =============================================================================
 NAME = 'spyder'
 LIBNAME = 'spyder'
+WINDOWS_INSTALLER_NAME = os.environ.get('EXE_NAME')
+
 from spyder import __version__, __website_url__  #analysis:ignore
 
 
@@ -242,6 +244,12 @@ install_requires = [
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
 ]
+
+# Replace spyder-kernels constraint to enable
+# building Windows installers on PRs
+if 'dev' in __version__ and WINDOWS_INSTALLER_NAME:
+    install_requires.remove('spyder-kernels>=2.2.1,<2.3.0')
+    install_requires.append('spyder-kernels>=2.2.1,<=2.3.0.dev0')
 
 extras_require = {
     'test:platform_system == "Linux"': ['pytest-xvfb'],
