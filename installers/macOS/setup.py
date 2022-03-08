@@ -15,6 +15,7 @@ import os
 import sys
 import shutil
 from logging import getLogger, StreamHandler, Formatter
+from pathlib import Path
 from setuptools import setup
 
 # Setup logger
@@ -26,14 +27,12 @@ logger.addHandler(h)
 logger.setLevel('INFO')
 
 # Define paths
-HERE = os.path.abspath(__file__)
-THISDIR = os.path.dirname(HERE)
-SPYREPO = os.path.realpath(os.path.join(THISDIR, '..', '..'))
-EXTDEPS = os.path.join(SPYREPO, 'external-deps')
-ICONFILE = os.path.join(SPYREPO, 'img_src', 'spyder.icns')
-SPYLINK = os.path.join(THISDIR, 'spyder')
+THISDIR = Path(__file__).resolve().parent
+SPYREPO = (THISDIR / '..' / '..').resolve()
+ICONFILE = SPYREPO / 'img_src' / 'spyder.icns'
+SPYLINK = THISDIR / 'spyder'
 
-sys.path.append(SPYREPO)
+sys.path.append(SPYREPO.as_posix())
 
 from spyder import __version__ as SPYVER
 from spyder.config.base import MAC_APP_NAME
@@ -49,7 +48,7 @@ def make_app_bundle(dist_dir, make_lite=False):
 
     Parameters
     ----------
-    dist_dir : str
+    dist_dir : PosixPath
         Directory in which to put the application bundle.
     make_lite : bool, optional
         Whether to create the application bundle with minimal packages.
@@ -74,8 +73,8 @@ def make_app_bundle(dist_dir, make_lite=False):
         'packages': PACKAGES,
         'includes': INCLUDES,
         'excludes': EXCLUDES,
-        'iconfile': ICONFILE,
-        'dist_dir': dist_dir,
+        'iconfile': ICONFILE.as_posix(),
+        'dist_dir': dist_dir.as_posix(),
         'emulate_shell_environment': True,
         'plist': {
             'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
@@ -89,21 +88,21 @@ def make_app_bundle(dist_dir, make_lite=False):
 
     # Copy main application script
     app_script_name = MAC_APP_NAME.replace('.app', '.py')
-    app_script_path = os.path.join(SPYREPO, 'scripts', app_script_name)
-    shutil.copy2(os.path.join(SPYREPO, 'scripts', 'spyder'), app_script_path)
+    app_script_path = SPYREPO / 'scripts' / app_script_name
+    shutil.copy2(SPYREPO / 'scripts' / 'spyder', app_script_path)
 
     # Build the application
     try:
-        os.symlink(os.path.join(SPYREPO, 'spyder'), SPYLINK)
-        setup(app=[app_script_path], options={'py2app': OPTIONS})
+        os.symlink(SPYREPO / 'spyder', SPYLINK)
+        setup(app=[app_script_path.as_posix()], options={'py2app': OPTIONS})
     finally:
         os.remove(app_script_path)
         os.remove(SPYLINK)
 
     # Copy Spyder egg-info
-    egg = os.path.join(SPYREPO, 'spyder.egg-info')
-    dest = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources', 'lib',
-                        'python{}.{}'.format(*PYVER), 'spyder.egg-info')
+    egg = SPYREPO / 'spyder.egg-info'
+    dest = Path(dist_dir, MAC_APP_NAME, 'Contents', 'Resources', 'lib',
+                'python{}.{}'.format(*PYVER), 'spyder.egg-info').resolve()
     shutil.copytree(egg, dest)
 
     return
@@ -115,7 +114,7 @@ def make_disk_image(dist_dir, make_lite=False):
 
     Parameters
     ----------
-    dist_dir : str
+    dist_dir : PosixPath
         Directory in which to put the disk image.
     make_lite : bool, optional
         Whether to append the disk image file and volume name with 'Lite'.
@@ -128,16 +127,18 @@ def make_disk_image(dist_dir, make_lite=False):
     from dmgbuild.core import DMGError
 
     volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)
-    dmgfile = os.path.join(dist_dir, 'Spyder')
+    dmg_name = 'Spyder'
     if make_lite:
         volume_name += ' Lite'
-        dmgfile += '-Lite'
-    dmgfile += '.dmg'
+        dmg_name += '-Lite'
+    dmg_name += '.dmg'
+    dmgfile = (dist_dir / dmg_name).as_posix()
 
-    settings_file = os.path.join(THISDIR, 'dmg_settings.py')
+
+    settings_file = (THISDIR / 'dmg_settings.py').as_posix()
     settings = {
-        'files': [os.path.join(dist_dir, MAC_APP_NAME)],
-        'badge_icon': ICONFILE,
+        'files': [(dist_dir / MAC_APP_NAME).as_posix()],
+        'badge_icon': ICONFILE.as_posix(),
         'icon_locations': {MAC_APP_NAME: (140, 120),
                            'Applications': (500, 120)}
     }
@@ -178,8 +179,8 @@ if __name__ == '__main__':
     # Groom sys.argv for py2app
     sys.argv = sys.argv[:1] + ['py2app'] + rem
 
-    dist_dir = os.path.abspath(args.dist_dir)
-    build_dir = os.path.abspath(args.build_dir)
+    dist_dir = Path(args.dist_dir).resolve()
+    build_dir = Path(args.build_dir).resolve()
 
     if args.make_app:
         shutil.rmtree(build_dir, ignore_errors=True)
