@@ -85,8 +85,19 @@ def try_to_eval(value):
 def get_size(item):
     """Return shape/size/len of an item of arbitrary type"""
     try:
-        if (hasattr(item, 'shape') and
-                isinstance(item.shape, (tuple, np.integer))):
+        if (
+            hasattr(item, 'size') and hasattr(item.size, 'compute') or
+            hasattr(item, 'shape') and hasattr(item.shape, 'compute')
+        ):
+            # This is necessary to avoid an error when trying to
+            # get the size/shape of dask objects. We don't compute the
+            # size/shape since such operation could be expensive.
+            # Fixes spyder-ide/spyder#16844
+            return 1
+        elif (
+            hasattr(item, 'shape') and
+            isinstance(item.shape, (tuple, np.integer))
+        ):
             try:
                 if item.shape:
                     # This is needed since values could return as
