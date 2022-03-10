@@ -325,8 +325,17 @@ def main_window(request, tmpdir, qtbot):
 
     # Wait until console is up
     shell = window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    try:
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
+    except Exception:
+        # Print content of shellwidget and close window
+        print(shell._control.toPlainText())
+        client = window.ipyconsole.get_current_client()
+        if client.info_page != client.blank_page:
+            print('info_page')
+            print(client.info_page)
+        raise
 
     if os.name != 'nt':
         # _DummyThread are created if current_thread() is called from them.
@@ -4499,6 +4508,7 @@ foo(1)
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 def test_focus_to_consoles(main_window, qtbot):
     """
     Check that we give focus to the text widget of our consoles after focus
