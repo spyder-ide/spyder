@@ -53,10 +53,6 @@ class CompletionConfigPage(PluginConfigPage):
             tip=_("Default is 3"), section='editor')
         code_snippets_box = newcb(
             _("Enable code snippets"), 'enable_code_snippets')
-        kite_cta_box = newcb(
-            _("Notify me when Kite can provide missing completions "
-              "(but is unavailable)"),
-            'kite_call_to_action')
         completions_after_idle = self.create_spinbox(
             _("Show automatic completions after keyboard idle (ms):"), None,
             'automatic_completions_after_ms', min_=0, max_=10000, step=10,
@@ -72,15 +68,14 @@ class CompletionConfigPage(PluginConfigPage):
         completions_layout.addWidget(completion_hint_box, 0, 0)
         completions_layout.addWidget(code_snippets_box, 1, 0)
         completions_layout.addWidget(automatic_completion_box, 2, 0)
-        completions_layout.addWidget(kite_cta_box, 3, 0)
-        completions_layout.addWidget(completions_after_characters.plabel, 4, 0)
-        completions_layout.addWidget(completions_after_characters.spinbox, 4, 1)
-        completions_layout.addWidget(completions_after_idle.plabel, 5, 0)
-        completions_layout.addWidget(completions_after_idle.spinbox, 5, 1)
-        completions_layout.addWidget(completions_hint_after_idle.plabel, 6, 0)
-        completions_layout.addWidget(completions_hint_after_idle.spinbox, 6, 1)
-        completions_layout.addWidget(completions_wait_for_ms.plabel, 7, 0)
-        completions_layout.addWidget(completions_wait_for_ms.spinbox, 7, 1)
+        completions_layout.addWidget(completions_after_characters.plabel, 3, 0)
+        completions_layout.addWidget(completions_after_characters.spinbox, 3, 1)
+        completions_layout.addWidget(completions_after_idle.plabel, 4, 0)
+        completions_layout.addWidget(completions_after_idle.spinbox, 4, 1)
+        completions_layout.addWidget(completions_hint_after_idle.plabel, 5, 0)
+        completions_layout.addWidget(completions_hint_after_idle.spinbox, 5, 1)
+        completions_layout.addWidget(completions_wait_for_ms.plabel, 6, 0)
+        completions_layout.addWidget(completions_wait_for_ms.spinbox, 6, 1)
         completions_layout.setColumnStretch(2, 6)
         self.completions_group.setLayout(completions_layout)
 
