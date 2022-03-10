@@ -268,7 +268,7 @@ class CompletionPlugin(SpyderPluginV2):
                  'linting requests sent to multiple providers.')
 
     def get_icon(self):
-        return self.create_icon('lspserver')
+        return self.create_icon('completions')
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)
