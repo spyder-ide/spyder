@@ -16,6 +16,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.run.confpage import RunConfigPage
+# from spyder.plugins.run.container import RunContainer
 
 # Localization
 _ = get_translation('spyder')
@@ -31,7 +32,8 @@ class Run(SpyderPluginV2):
     NAME = "run"
     # TODO: Fix requires to reflect the desired order in the preferences
     REQUIRES = [Plugins.Preferences]
-    CONTAINER_CLASS = None
+    OPTIONAL = [Plugins.MainMenu]
+    CONTAINER_CLASS = None # RunContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = RunConfigPage
     CONF_FILE = False
@@ -50,6 +52,11 @@ class Run(SpyderPluginV2):
 
     def on_initialize(self):
         pass
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
