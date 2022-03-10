@@ -310,8 +310,6 @@ spyder_completions_entry_points = [
      'FallbackProvider'),
     ('snippets = spyder.plugins.completion.providers.snippets.provider:'
      'SnippetsProvider'),
-    ('kite = spyder.plugins.completion.providers.kite.provider:'
-     'KiteProvider'),
     ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
      'LanguageServerProvider'),
 ]
