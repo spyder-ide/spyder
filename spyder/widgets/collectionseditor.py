@@ -1317,8 +1317,8 @@ class CollectionsEditorWidget(QWidget):
         toolbar = SpyderToolbar(parent = None, title = 'Editor toolbar')
 
         for item in self.editor.menu_actions:
-                if item != None:
-                    toolbar.addAction(item)
+            if item != None:
+                toolbar.addAction(item)
 
         layout = QVBoxLayout()
         layout.addWidget(toolbar)
