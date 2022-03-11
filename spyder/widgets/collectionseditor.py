@@ -61,6 +61,7 @@ from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
+from spyder.api.widgets.toolbars import SpyderToolbar
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -585,6 +586,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         self.array_filename = None
         self.menu = None
+        self.menu_actions = None
         self.empty_ws_menu = None
         self.paste_action = None
         self.copy_action = None
@@ -683,7 +685,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             icon=ima.icon('outline_explorer'),
             triggered=self.view_item)
         menu = QMenu(self)
-        menu_actions = [self.edit_action, self.plot_action, self.hist_action,
+        self.menu_actions = [self.edit_action, self.plot_action, self.hist_action,
                         self.imshow_action, self.save_array_action,
                         self.insert_action,
                         self.insert_action_above, self.insert_action_below,
@@ -691,7 +693,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                         self.paste_action, self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
-        add_actions(menu, menu_actions)
+        add_actions(menu, self.menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(
             self.empty_ws_menu,
@@ -1312,7 +1314,14 @@ class CollectionsEditorWidget(QWidget):
         else:
             self.editor = CollectionsEditorTableView(self, data, readonly,
                                                      title)
+        toolbar = SpyderToolbar(parent = None, title = 'Editor toolbar')
+
+        for item in self.editor.menu_actions:
+                if item != None:
+                    toolbar.addAction(item)
+
         layout = QVBoxLayout()
+        layout.addWidget(toolbar)
         layout.addWidget(self.editor)
         self.setLayout(layout)
 
