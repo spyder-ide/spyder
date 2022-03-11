@@ -685,14 +685,15 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             icon=ima.icon('outline_explorer'),
             triggered=self.view_item)
         menu = QMenu(self)
-        self.menu_actions = [self.edit_action, self.plot_action, self.hist_action,
-                        self.imshow_action, self.save_array_action,
-                        self.insert_action,
-                        self.insert_action_above, self.insert_action_below,
-                        self.remove_action, self.copy_action,
-                        self.paste_action, self.view_action,
-                        None, self.rename_action, self.duplicate_action,
-                        None, resize_action, resize_columns_action]
+        self.menu_actions = [self.edit_action, self.plot_action,
+                             self.hist_action, self.imshow_action,
+                             self.save_array_action, self.insert_action,
+                             self.insert_action_above,
+                             self.insert_action_below,
+                             self.remove_action, self.copy_action,
+                             self.paste_action, self.view_action,
+                             None, self.rename_action, self.duplicate_action,
+                             None, resize_action, resize_columns_action]
         add_actions(menu, self.menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(
@@ -1314,10 +1315,10 @@ class CollectionsEditorWidget(QWidget):
         else:
             self.editor = CollectionsEditorTableView(self, data, readonly,
                                                      title)
-        toolbar = SpyderToolbar(parent = None, title = 'Editor toolbar')
+        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
 
         for item in self.editor.menu_actions:
-            if item != None:
+            if item is not None:
                 toolbar.addAction(item)
 
         layout = QVBoxLayout()
