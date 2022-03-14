@@ -797,9 +797,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Check that we are not triggering validations in the initial
         # notification sent when Spyder is starting or when another option
         # already required a restart and the restart dialog was shown
-        if option in self.initial_conf_options:
-            self.initial_conf_options.remove(option)
-            return
+        if not self._testing:
+            if option in self.initial_conf_options:
+                self.initial_conf_options.remove(option)
+                return
 
         restart_needed = False
         restart_options = []
@@ -851,8 +852,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                     interactive_backend != pylab_backend_o
                 ):
                     clients_backend_require_restart.append(True)
+
+                    # Detect if current client requires restart
                     if id(client) == id(current_client):
                         current_client_backend_require_restart = True
+
+                        # For testing
+                        if self._testing:
+                            os.environ['BACKEND_REQUIRE_RESTART'] = 'true'
                 else:
                     clients_backend_require_restart.append(False)
 
