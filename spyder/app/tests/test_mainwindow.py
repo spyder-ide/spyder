@@ -325,8 +325,17 @@ def main_window(request, tmpdir, qtbot):
 
     # Wait until console is up
     shell = window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    try:
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
+    except Exception:
+        # Print content of shellwidget and close window
+        print(shell._control.toPlainText())
+        client = window.ipyconsole.get_current_client()
+        if client.info_page != client.blank_page:
+            print('info_page')
+            print(client.info_page)
+        raise
 
     if os.name != 'nt':
         # _DummyThread are created if current_thread() is called from them.
@@ -2823,8 +2832,10 @@ def test_preferences_change_interpreter(qtbot, main_window):
                                                  'main_interpreter')
     page.cus_exec_radio.setChecked(True)
     page.cus_exec_combo.combobox.setCurrentText(sys.executable)
-    with qtbot.waitSignal(main_window.sig_main_interpreter_changed,
-                          timeout=5000, raising=True):
+
+    mi_container = main_window.main_interpreter.get_container()
+    with qtbot.waitSignal(mi_container.sig_interpreter_changed,
+            timeout=5000, raising=True):
         dlg.ok_btn.animateClick()
 
     # Check updated pyls configuration
@@ -4497,6 +4508,7 @@ foo(1)
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 def test_focus_to_consoles(main_window, qtbot):
     """
     Check that we give focus to the text widget of our consoles after focus
