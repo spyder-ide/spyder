@@ -69,7 +69,8 @@ class CompletionConfigPage(PluginConfigPage):
         completions_layout.addWidget(code_snippets_box, 1, 0)
         completions_layout.addWidget(automatic_completion_box, 2, 0)
         completions_layout.addWidget(completions_after_characters.plabel, 3, 0)
-        completions_layout.addWidget(completions_after_characters.spinbox, 3, 1)
+        completions_layout.addWidget(
+            completions_after_characters.spinbox, 3, 1)
         completions_layout.addWidget(completions_after_idle.plabel, 4, 0)
         completions_layout.addWidget(completions_after_idle.spinbox, 4, 1)
         completions_layout.addWidget(completions_hint_after_idle.plabel, 5, 0)
