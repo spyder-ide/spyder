@@ -586,7 +586,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         self.array_filename = None
         self.menu = None
-        self.menu_actions = None
+        self.menu_actions = []
         self.empty_ws_menu = None
         self.paste_action = None
         self.copy_action = None
