@@ -474,11 +474,11 @@ class CompletionPlugin(SpyderPluginV2):
             provider.STATUS_BAR_CLASSES, provider_name)
         if plugin_loaded:
             for id_ in widgets_ids:
-                # Validation to check for status bar registration before
-                # adding a widget.
-                # See spyder-ide/spyder#16977
-                if id_ not in container.statusbar_widgets:
-                    current_widget = container.statusbar_widgets[id_]
+                current_widget = container.statusbar_widgets[id_]
+                # Validation to check for status bar registration before trying
+                # to add a widget.
+                # See spyder-ide/spyder#16997
+                if id_ not in self.statusbar.get_status_widgets():
                     self.statusbar.add_status_widget(current_widget)
 
     def unregister_statusbar(self, provider_name):
@@ -496,8 +496,8 @@ class CompletionPlugin(SpyderPluginV2):
         for id_ in provider_keys:
             # Validation to check for status bar registration before trying
             # to remove a widget.
-            # See spyder-ide/spyder#16977
-            if id_ in container.statusbar_widgets[id_]:
+            # See spyder-ide/spyder#16997
+            if id_ in container.statusbar_widgets:
                 self.get_container().remove_statusbar_widget(id_)
                 self.statusbar.remove_status_widget(id_)
 
