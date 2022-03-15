@@ -500,7 +500,7 @@ class SpyderKernel(IPythonKernel):
                 # which users can set interactively with the %matplotlib
                 # magic but not through our Preferences.
                 return -1
-        except NameError:
+        except Exception:
             return None
 
     def set_matplotlib_backend(self, backend, pylab=False):
