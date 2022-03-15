@@ -2229,7 +2229,6 @@ def test_restart_intertactive_backend(ipyconsole):
     Test that we ask for a restart after switching to a different interactive
     backend in preferences.
     """
-    #client = ipyconsole.get_current_client()
     main_widget = ipyconsole.get_widget()
     main_widget.change_possible_restart_conf('pylab/backend', 3)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
