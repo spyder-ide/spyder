@@ -1323,8 +1323,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 kite_call_to_action = finfo.editor.kite_call_to_action
-                comp_widget.setParent(ancestor)
-                kite_call_to_action.setParent(ancestor)
+
+                # This is necessary to catch an error when the plugin is
+                # undocked and docked back, and (probably) a completion is
+                # in progress.
+                # Fixes spyder-ide/spyder#17486
+                try:
+                    comp_widget.setParent(ancestor)
+                    kite_call_to_action.setParent(ancestor)
+                except RuntimeError:
+                    pass
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
