@@ -94,6 +94,12 @@ class InterpreterStatus(BaseTimerStatus):
 
         return self.value
 
+    # ---- Qt reimplemented
+    def closeEvent(self, event):
+        self._get_envs_timer.stop()
+        self._worker_manager.terminate_all()
+        super().closeEvent(event)
+
     # ---- Widget API
     def _get_env_dir(self, interpreter):
         """Get env directory from interpreter executable."""

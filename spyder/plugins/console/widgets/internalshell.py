@@ -252,7 +252,7 @@ class InternalShell(PythonShellWidget):
         self.new_prompt(prompt)
         self.setFocus()
         self.input_mode = True
-        self.input_loop = QEventLoop()
+        self.input_loop = QEventLoop(None)
         self.input_loop.exec_()
         self.input_loop = None
 

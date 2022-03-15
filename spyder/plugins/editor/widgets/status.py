@@ -89,6 +89,11 @@ class VCSStatus(StatusBarWidget):
         self._git_job_queue = None
         self._last_git_job = None
 
+    # ---- Qt reimplemented
+    def closeEvent(self, event):
+        super().closeEvent(event)
+        self._worker_manager.terminate_all()
+
     def update_vcs_state(self, idx, fname, fname2):
         """Update vcs status."""
         self.update_vcs(fname, None)
@@ -109,7 +114,7 @@ class VCSStatus(StatusBarWidget):
             self._last_git_job = (fname, index)
             self._git_job_queue = None
             self._git_is_working = True
-            #worker.start()
+            worker.start()
 
     def get_git_refs(self, fname):
         """Get Git active branch, state, branches (plus tags)."""

@@ -21,8 +21,7 @@ import sys
 import time
 
 # Third-party imports
-from qtpy.QtCore import (QObject, QProcess, QProcessEnvironment,
-                         QSocketNotifier, Signal, Slot)
+from qtpy.QtCore import (QObject, QProcess, QSocketNotifier, Signal, Slot)
 import zmq
 import psutil
 
@@ -390,11 +389,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         # running.”). No further error handling because we are out of luck
         # anyway if the process doesn’t finish.
         if self.transport is not None:
-            self.transport.kill()
+            self.transport.close()
             self.transport.waitForFinished(1000)
         self.context.destroy()
         if self.server is not None:
-            self.server.kill()
+            self.server.close()
             self.server.waitForFinished(1000)
 
     def is_transport_alive(self):

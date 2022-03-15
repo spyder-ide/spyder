@@ -218,6 +218,10 @@ class BaseTimerStatus(StatusBarWidget):
         self.timer.timeout.connect(self.update_status)
         self.timer.start(self._interval)
 
+    def closeEvent(self, event):
+        self.timer.stop()
+        super().closeEvent(event)
+
     # ---- Qt API
     def setVisible(self, value):
         """Override Qt method to stops timers if widget is not visible."""

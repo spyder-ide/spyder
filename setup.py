@@ -252,7 +252,6 @@ if 'dev' in __version__ and WINDOWS_INSTALLER_NAME:
     install_requires.append('spyder-kernels>=2.2.1,<=2.3.0.dev0')
 
 extras_require = {
-    'test:platform_system == "Linux"': ['pytest-xvfb'],
     'test:platform_system == "Windows"': ['pywin32'],
     'test': [
         'coverage',

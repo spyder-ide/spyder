@@ -305,6 +305,7 @@ class HelpWidget(PluginMainWidget):
 
         # Widgets
         self._sphinx_thread = SphinxThread(
+            None,
             html_text_no_doc=warning(self.no_docs, css_path=self.css_path),
             css_path=self.css_path,
         )

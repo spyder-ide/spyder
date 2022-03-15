@@ -20,6 +20,7 @@ Editor widget based on QtGui.QPlainTextEdit
 from unicodedata import category
 import logging
 import functools
+import os
 import os.path as osp
 import re
 import sre_constants
@@ -29,6 +30,7 @@ import textwrap
 # Third party imports
 from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
+from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QRegExp, Qt, QTimer, QThread, QUrl, Signal,
                          Slot)
@@ -476,7 +478,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code Folding
         self.code_folding = True
-        self.update_folding_thread = QThread()
+        self.update_folding_thread = QThread(None)
         self.update_folding_thread.finished.connect(self.finish_code_folding)
 
         # Completions hint
@@ -547,7 +549,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_in_progress = False
 
         # Diagnostics
-        self.update_diagnostics_thread = QThread()
+        self.update_diagnostics_thread = QThread(None)
         self.update_diagnostics_thread.run = self.set_errors
         self.update_diagnostics_thread.finished.connect(
             self.finish_code_analysis)
@@ -726,6 +728,12 @@ class CodeEditor(TextEditBaseWidget):
         return [sc.data for sc in self.shortcuts]
 
     def closeEvent(self, event):
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.stop()
+        self.update_folding_thread.quit()
+        self.update_folding_thread.wait()
+        self.update_diagnostics_thread.quit()
+        self.update_diagnostics_thread.wait()
         TextEditBaseWidget.closeEvent(self, event)
 
     def get_document_id(self):

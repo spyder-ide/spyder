@@ -386,6 +386,10 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         self._cached_kernel_properties = None
 
+    def on_close(self):
+        self.mainwindow_close = True
+        self.close_clients()
+
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):

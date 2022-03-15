@@ -432,6 +432,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         layout.setContentsMargins(self._margin_left, 0, self._margin_right, 0)
         layout.setSpacing(0)
 
+    def closeEvent(self, event):
+        self.on_close()
+        super().closeEvent(event)
+
     # --- Public methods to use
     # ------------------------------------------------------------------------
     def get_plugin(self):
@@ -894,6 +898,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             'A PluginMainWidget subclass must define an `update_actions` '
             f'method! Hint: {type(self)} should implement `update_actions`')
 
+    def on_close(self):
+        """
+        Perform actions before the widget is closed.
+
+        This method **must** only operate on local attributes.
+        """
+        pass
 
 def run_test():
     # Third party imports

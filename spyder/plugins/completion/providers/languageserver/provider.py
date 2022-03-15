@@ -145,7 +145,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """Stop all heartbeats"""
         for language in self.clients_hearbeat:
             try:
-                self.clients_hearbeat[language].stop()
+                if self.clients_hearbeat[language] is not None:
+                    self.clients_hearbeat[language].stop()
             except (TypeError, KeyError, RuntimeError):
                 pass
 
@@ -655,11 +656,13 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 except TypeError:
                     pass
                 try:
-                    self.clients_hearbeat[language].stop()
+                    if self.clients_hearbeat[language] is not None:
+                        self.clients_hearbeat[language].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
+            self.sig_stop_completions.emit(language)
 
     def receive_response(self, response_type, response, language, req_id):
         if req_id in self.requests:

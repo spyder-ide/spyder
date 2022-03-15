@@ -78,8 +78,8 @@ class PydocServer(QThread):
     """
     sig_server_started = Signal()
 
-    def __init__(self, port):
-        QThread.__init__(self)
+    def __init__(self, parent, port):
+        QThread.__init__(self, parent)
 
         self.port = port
         self.server = None
@@ -151,21 +151,30 @@ class PydocBrowser(PluginMainWidget):
         self.url_combo = UrlComboBox(
             self, id_=PydocBrowserToolbarItems.UrlCombo)
 
+        # Setup web view frame
         self.webview = FrameWebView(
             self,
             handle_links=self.get_conf('handle_links')
         )
-        self.find_widget = FindReplace(self)
+        self.webview.setup()
+        self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
+        self.webview.loadStarted.connect(self._start)
+        self.webview.loadFinished.connect(self._finish)
+        self.webview.titleChanged.connect(self.setWindowTitle)
+        self.webview.urlChanged.connect(self._change_url)
+        if not WEBENGINE:
+            self.webview.iconChanged.connect(self._handle_icon_change)
 
-        # Setup
+        # Setup find widget
+        self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
         self.url_combo.setMaxCount(self.get_conf('max_history_entries'))
         tip = _('Write a package name here, e.g. pandas')
         self.url_combo.lineEdit().setPlaceholderText(tip)
         self.url_combo.lineEdit().setToolTip(tip)
-        self.webview.setup()
-        self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
+        self.url_combo.valid.connect(
+            lambda x: self._handle_url_combo_activation())
 
         # Layout
         layout = QVBoxLayout()
@@ -173,17 +182,6 @@ class PydocBrowser(PluginMainWidget):
         layout.addSpacing(1)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-
-        # Signals
-        self.url_combo.valid.connect(
-            lambda x: self._handle_url_combo_activation())
-        self.webview.loadStarted.connect(self._start)
-        self.webview.loadFinished.connect(self._finish)
-        self.webview.titleChanged.connect(self.setWindowTitle)
-        self.webview.urlChanged.connect(self._change_url)
-
-        if not WEBENGINE:
-            self.webview.iconChanged.connect(self._handle_icon_change)
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -237,7 +235,10 @@ class PydocBrowser(PluginMainWidget):
                 # and the context is WidgetWithChildrenShortcut we need to
                 # assign the same actions to the children widgets in order
                 # for shortcuts to work
-                self.webview.addAction(action)
+                try:
+                    self.webview.addAction(action)
+                except RuntimeError:
+                    pass
 
         self.sig_toggle_view_changed.connect(self.initialize)
 
@@ -295,11 +296,11 @@ class PydocBrowser(PluginMainWidget):
     # --- Qt overrides
     # ------------------------------------------------------------------------
     def closeEvent(self, event):
-        try:
-            self.server.quit_server()
-        except AttributeError:
-            pass
-        event.accept()
+        self.webview.web_widget.stop()
+        if self.server:
+            self.server.finished.connect(self.deleteLater)
+            self.quit_server()
+        super().closeEvent(event)
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -315,7 +316,7 @@ class PydocBrowser(PluginMainWidget):
         self.url_combo.addItems(history)
 
     @Slot(bool)
-    def initialize(self, checked=True):
+    def initialize(self, checked=True, force=False):
         """
         Start pydoc server.
 
@@ -325,27 +326,31 @@ class PydocBrowser(PluginMainWidget):
             This method is connected to the `sig_toggle_view_changed` signal,
             so that the first time the widget is made visible it will start
             the server. Default is True.
+        force: bool, optional
+            Force a server start even if the server is running.
+            Default is False.
         """
-        if checked and self.server is None:
+        if force or (checked and self.server is None
+                     or not self.is_server_running()):
             self.sig_toggle_view_changed.disconnect(self.initialize)
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-            QApplication.processEvents()
             self.start_server()
 
     def is_server_running(self):
         """Return True if pydoc server is already running."""
-        return self.server is not None
+        return self.server is not None and self.server.is_running()
 
     def start_server(self):
         """Start pydoc server."""
         if self.server is None:
             self.set_home_url('http://127.0.0.1:{}/'.format(PORT))
-        elif self.server.isRunning():
+        elif self.server.is_running():
             self.server.sig_server_started.disconnect(
                 self._continue_initialization)
             self.server.quit()
+            self.server.wait()
 
-        self.server = PydocServer(port=PORT)
+        self.server = PydocServer(None, port=PORT)
         self.server.sig_server_started.connect(
             self._continue_initialization)
         self.server.start()
@@ -360,6 +365,7 @@ class PydocBrowser(PluginMainWidget):
                 self._continue_initialization)
             self.server.quit_server()
             self.server.quit()
+            self.server.wait()
 
     def get_label(self):
         """Return address label text"""

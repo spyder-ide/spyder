@@ -804,6 +804,8 @@ class CompletionPlugin(SpyderPluginV2):
         container = self.get_container()
 
         provider_instance.sig_provider_ready.connect(self.provider_available)
+        provider_instance.sig_stop_completions.connect(
+            self.sig_stop_completions)
         provider_instance.sig_response_ready.connect(self.receive_response)
         provider_instance.sig_exception_occurred.connect(
             self.sig_exception_occurred)
@@ -857,11 +859,11 @@ class CompletionPlugin(SpyderPluginV2):
             server_status = self.language_status[language]
             server_status[provider_name] = False
 
-    def start_all_providers(self):
+    def start_all_providers(self, force=False):
         """Start all detected completion providers."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.STOPPED:
+            if provider_info['status'] == self.STOPPED or force:
                 provider_enabled = self.get_conf(
                     ('enabled_providers', provider_name), True)
                 if provider_enabled:

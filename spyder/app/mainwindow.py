@@ -1517,7 +1517,7 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
-        #print('baz')
+
         self.plugin_registry = PLUGIN_REGISTRY
 
         if cancelable and CONF.get('main', 'prompt_on_exit'):
@@ -1527,43 +1527,51 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.No:
                 return False
 
-        if CONF.get('main', 'single_instance') and self.open_files_server:
-            self.open_files_server.close()
+        # TODO: This should be managed in a different way
+        if running_in_mac_app():
+            # Save window settings *after* closing all plugin windows, in order
+            # to show them in their previous locations in the next session.
+            # Fixes spyder-ide/spyder#12139
+            prefix = 'window' + '/'
+            if self.layouts is not None:
+                self.layouts.save_current_window_settings(prefix)
 
-        can_close = self.plugin_registry.delete_all_plugins(
-            excluding={Plugins.Layout}, close_immediately=close_immediately)
+            # Close application
+            os._exit(0)
+            app = qapplication()  # analysis:ignore
+            del app
+        else:
+            can_close = self.plugin_registry.delete_all_plugins(
+                excluding={Plugins.Layout},
+                close_immediately=close_immediately)
 
-        #can_close = True
-        if not can_close and not close_immediately:
-            return False
+            if not can_close and not close_immediately:
+                return False
 
-        # Save window settings *after* closing all plugin windows, in order
-        # to show them in their previous locations in the next session.
-        # Fixes spyder-ide/spyder#12139
-        prefix = 'window' + '/'
-        if self.layouts is not None:
-            self.layouts.save_current_window_settings(prefix)
-        try:
-            self.plugin_registry.delete_plugin(Plugins.Layout)
-        except:
-            pass
+            # Save window settings *after* closing all plugin windows, in order
+            # to show them in their previous locations in the next session.
+            # Fixes spyder-ide/spyder#12139
+            prefix = 'window' + '/'
+            if self.layouts is not None:
+                self.layouts.save_current_window_settings(prefix)
+                try:
+                    layouts_container = self.layouts.get_container()
+                    if layouts_container:
+                        layouts_container.close()
+                        layouts_container.deleteLater()
+                    self.layouts.deleteLater()
+                    self.plugin_registry.delete_plugin(
+                        Plugins.Layout, teardown=False)
+                except RuntimeError:
+                    pass
 
-        #os._exit(0)
-        #app = qapplication()
-        #del app
+            self.already_closed = True
 
-        # import time
-        # for __ in range(50):
-        #     QApplication.processEvents()
-        #     time.sleep(0.05)
+            if CONF.get('main', 'single_instance') and self.open_files_server:
+                self.open_files_server.close()
 
-        def trace(frame, event, arg):
-            print("%s, %s:%d" % (event, frame.f_code.co_filename, frame.f_lineno))
-            return trace
+            QApplication.processEvents()
 
-        #sys.settrace(trace)
-
-        self.already_closed = True
         return True
 
     def add_dockwidget(self, plugin):
@@ -1862,6 +1870,8 @@ class MainWindow(QMainWindow):
                 enotsock = (errno.WSAENOTSOCK if os.name == 'nt'
                             else errno.ENOTSOCK)
                 if e.args[0] in [errno.ECONNABORTED, enotsock]:
+                    return
+                if self.already_closed:
                     return
                 raise
             fname = req.recv(1024)

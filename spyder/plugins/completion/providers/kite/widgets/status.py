@@ -37,15 +37,15 @@ class KiteStatusWidget(StatusBarWidget):
     def __init__(self, parent, provider):
         self.provider = provider
         self.tooltip = self.BASE_TOOLTIP
-        self.installation_thread = KiteInstallationThread(self)
+        self.installation_thread = KiteInstallationThread(None)
         super().__init__(parent)
         is_installed, _ = check_if_kite_installed()
         self.setVisible(is_installed)
 
         # Installation dialog
-        # self.installer = KiteInstallerDialog(
-        #     self,
-        #     self.installation_thread)
+        self.installer = KiteInstallerDialog(
+            self,
+            self.installation_thread)
 
         self.installation_thread.sig_installation_status.connect(
             self.set_value)

@@ -63,7 +63,6 @@ dependencies:
 - pytest-mock
 - pytest-order
 - pytest-qt
-- pytest-xvfb
 - pyyaml
 - scipy
 - sympy

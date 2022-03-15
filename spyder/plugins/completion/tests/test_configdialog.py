@@ -54,8 +54,8 @@ class MainWindowMock(QMainWindow):
     sig_setup_finished = Signal()
     sig_pythonpath_changed = Signal(object, object)
 
-    def __init__(self):
-        super(MainWindowMock, self).__init__(None)
+    def __init__(self, parent):
+        super(MainWindowMock, self).__init__(parent)
         self.statusbar = Mock()
         self.console = Mock()
 
@@ -79,9 +79,9 @@ def test_config_dialog(request, config_dialog):
     def teardown():
         # Remove fake entry points from pkg_resources
         if not running_in_ci():
-            pkg_resources.working_set.by_key.pop('unknown')
-            pkg_resources.working_set.entry_keys.pop('spyder')
-            pkg_resources.working_set.entry_keys.pop(__file__)
+            pkg_resources.working_set.by_key.pop('unknown', None)
+            pkg_resources.working_set.entry_keys.pop('spyder', None)
+            pkg_resources.working_set.entry_keys.pop(__file__, None)
             pkg_resources.working_set.entries.remove('spyder')
 
     request.addfinalizer(teardown)
