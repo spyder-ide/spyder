@@ -179,14 +179,8 @@ class RunConfigOptions(QWidget):
         firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
         # --- Run settings ---
-        run_group = QGroupBox(_("Run settings"))
-        run_layout = QVBoxLayout(run_group)
-
         self.run_default_config_radio = QRadioButton(RUN_DEFAULT_CONFIG)
-        run_layout.addWidget(self.run_default_config_radio)
-
         self.run_custom_config_radio = QRadioButton(RUN_CUSTOM_CONFIG)
-        run_layout.addWidget(self.run_custom_config_radio)
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
@@ -291,7 +285,8 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb.setChecked(firstrun_o)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(run_group)
+        layout.addWidget(self.run_default_config_radio)
+        layout.addWidget(self.run_custom_config_radio)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
