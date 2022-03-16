@@ -201,7 +201,8 @@ def main_window(request, tmpdir, qtbot):
     if not running_in_ci():
         register_fake_entrypoints()
 
-    # Get original processEvents function in case test that overrides it fails
+    # Get original processEvents function in case the test that overrides it
+    # fails
     super_processEvents = QApplication.processEvents
 
     # Disable Kite provider
@@ -319,7 +320,7 @@ def main_window(request, tmpdir, qtbot):
         if isinstance(param, dict) and 'spy_config' in param:
             CONF.set(*param['spy_config'])
     except AttributeError:
-        # Not all the test that use the fixture define request.param
+        # Not all tests that use this fixture define request.param
         pass
 
     if not hasattr(main_window, 'window') or main_window.window is None:

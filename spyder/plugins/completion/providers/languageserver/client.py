@@ -21,7 +21,7 @@ import sys
 import time
 
 # Third-party imports
-from qtpy.QtCore import (QObject, QProcess, QSocketNotifier, Signal, Slot)
+from qtpy.QtCore import QObject, QProcess, QSocketNotifier, Signal, Slot
 import zmq
 import psutil
 
