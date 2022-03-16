@@ -36,9 +36,8 @@ class RunContextType(dict):
         self.identifier = identifier
 
     def __setattr__(self, key: str, value: str) -> None:
-        if key in self:
-            raise KeyError(f'Run {self.identifier} {key} is already registered!')
-        self[key] = value
+        if key not in self:
+            self[key] = value
 
     def __getattribute__(self, key: str) -> str:
         if key in self:
@@ -48,11 +47,11 @@ class RunContextType(dict):
 
 RunContext = RunContextType('context')
 RunResultFormat = RunContextType('result display format')
-RunInputFormat = set({})
+RunInputExtension = set({})
 
-RunContext.File = 'file'
-RunContext.Selection = 'selection'
-RunContext.Cell = 'cell'
+# RunContext.File = 'file'
+# RunContext.Selection = 'selection'
+# RunContext.Cell = 'cell'
 
 RunResultFormat.NoDisplay = 'no_display'
 
@@ -81,7 +80,7 @@ class RunInformation(TypedDict):
     # The output format to produce after executing the input. Each entry on the
     # set must belong to the `RunResultFormat` dict. The executor is responsible
     # of producing the correct format. This field will be available on a
-    # RunExecutorProvider but it is not necessary for a RunInputProvider to
+    # RunExecutor but it is not necessary for a RunInputProvider to
     # include it.
     output_formats: NotRequired[Set[str]]
 
@@ -93,7 +92,7 @@ class RunInformation(TypedDict):
     metadata: RunInputMetadata
 
     # File extension or identifier of the input context. It must belong to the
-    # `RunInputFormat` set.
+    # `RunInputExtension` set.
     input_extension: str
 
 
@@ -130,7 +129,7 @@ class RunResult(TypedDict):
     run_output: Union[Any, RunResultError]
 
     # File extension or identifier of the input context. It must belong to the
-    # `RunInputFormat` set.
+    # `RunInputExtension` set.
     input_extension: str
 
     # Original run input metadata.
@@ -145,17 +144,51 @@ class RunResult(TypedDict):
     is_error: bool
 
 
+class Context(TypedDict):
+    """Run context name schema."""
+    # Human-readable name for the run context. It must be CamelCase
+    name: str
+    # String identifier for the run context. If non-existent or None, then
+    # a snake_case version of the name is used.
+    identifier: NotRequired[Optional[str]]
+
+
+class OutputFormat(TypedDict):
+    """Output format information schema."""
+    # Human-readable name for the output format. It must be CamelCase
+    name: str
+    # String identifier for the output format. If non-existent or None, then
+    # a snake_case version of the name is used.
+    identifier: NotRequired[Optional[str]]
+
+
 class SupportedRunConfiguration(TypedDict):
     """Run configuration entry schema."""
 
     # File extension or identifier of the input context. It must belong to the
-    # `RunInputFormat` set.
+    # `RunInputExtension` set.
     input_extension: str
 
     # The supported contexts for the given input extension. e.g., file, selection, cell, others.
     # The context can be compared against the values of `RunContext`. e.g.,
     # `info['context'] == RunContext.File`
-    contexts: List[str]
+    contexts: List[Context]
+
+
+class SupportedExecutionRunConfiguration(TypedDict):
+    """Run execution configuration metadata."""
+
+    # File extension or identifier of the input context. It must belong to the
+    # `RunInputExtension` set.
+    input_extension: str
+
+    # The context for the given input extension. e.g., file, selection, cell, others.
+    # The context can be compared against the values of `RunContext`. e.g.,
+    # `info['context'] == RunContext.File`
+    context: Context
+
+    # The output formats available for the given context and extension.
+    output_formats: List[OutputFormat]
 
 
 class RunInputProvider:
@@ -164,7 +197,8 @@ class RunInputProvider:
 
     This API needs to be implemented by any plugin that wants to provide
     an input/file to a code runner. e.g., Editor files/ to be executed into
-    the IPythonConsole.
+    the IPythonConsole. This interface needs to be covariant with respect to
+    :class:`spyder.api.plugins.SpyderDockablePlugin`
     """
 
     def get_run_input(self, context: str) -> RunInformation:
@@ -186,13 +220,14 @@ class RunInputProvider:
         raise NotImplementedError(f'{type(self)} must implement get_run_input')
 
 
-class RunExecutorProvider:
+class RunExecutor:
     """
     Interface used to execute run context information.
 
     This API needs to be implemented by any plugin that wants to execute
     an input produced by a :class:`RunInputProvider` to produce an output
-    compatible by a :class:`RunResultViewer`
+    compatible by a :class:`RunResultViewer`. This interface needs to be
+    covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
     def exec_run_input(self, input: RunInformation) -> List[RunResult]:
@@ -225,7 +260,8 @@ class RunResultViewer:
     Interface used to display run execution results.
 
     This API needs to be implemented by any plugin that wants to display
-    an output produced by a :class:`RunResultViewer`.
+    an output produced by a :class:`RunResultViewer`. This interface needs
+    to be covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
     def display_run_result(self, result: RunResult):
