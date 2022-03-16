@@ -1163,7 +1163,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     # Assert that there are no variables in the variable explorer
     main_window.variableexplorer.change_visibility(True)
     nsb = main_window.variableexplorer.current_widget()
-    qtbot.wait(500)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0)
     assert nsb.editor.source_model.rowCount() == 0
 
     python_shell = shell
@@ -1180,7 +1180,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     # Assert that a variable is visible in the variable explorer
     main_window.variableexplorer.change_visibility(True)
     nsb = main_window.variableexplorer.current_widget()
-    qtbot.wait(500)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1)
     assert nsb.editor.source_model.rowCount() == 1
 
     # Test runfile in external_kernel
@@ -1202,12 +1202,14 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert "3" in shell._control.toPlainText()
 
     # Try quitting the kernels
-    shell.execute('quit()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('quit()')
     python_shell.execute('quit()')
-    qtbot.wait(1000)
 
     # Make sure everything quit properly
+    qtbot.waitUntil(lambda: not km.is_alive())
     assert not km.is_alive()
+    qtbot.waitUntil(lambda: not spykm.is_alive())
     assert not spykm.is_alive()
 
     # Close the channels
