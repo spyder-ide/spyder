@@ -234,6 +234,12 @@ class CompletionPlugin(SpyderPluginV2):
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
             try:
+                # This absolutely ensures that the Kite provider won't be
+                # loaded. For instance, it can happen when you have an older
+                # Spyder version installed, but you're running it with
+                # bootstrap.
+                if 'kite' in entry_point.name:
+                    continue
                 logger.debug(f'Loading entry point: {entry_point}')
                 Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
@@ -262,7 +268,7 @@ class CompletionPlugin(SpyderPluginV2):
                  'linting requests sent to multiple providers.')
 
     def get_icon(self):
-        return self.create_icon('lspserver')
+        return self.create_icon('completions')
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)
