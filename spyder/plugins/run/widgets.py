@@ -200,6 +200,27 @@ class RunConfigOptions(QWidget):
         self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
         interpreter_layout.addWidget(self.systerm_radio)
 
+        # --- System terminal ---
+        external_group = QWidget()
+        external_group.setDisabled(True)
+        self.systerm_radio.toggled.connect(external_group.setEnabled)
+
+        external_layout = QGridLayout()
+        external_group.setLayout(external_layout)
+        self.interact_cb = QCheckBox(INTERACT)
+        external_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
+
+        self.pclo_cb = QCheckBox(_("Command line options:"))
+        external_layout.addWidget(self.pclo_cb, 3, 0)
+        self.pclo_edit = QLineEdit()
+        self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
+        self.pclo_edit.setEnabled(False)
+        self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
+                                    "other options you set here"))
+        external_layout.addWidget(self.pclo_edit, 3, 1)
+
+        interpreter_layout.addWidget(external_group)
+
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
         common_group.setDisabled(True)
@@ -254,30 +275,6 @@ class RunConfigOptions(QWidget):
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
-        # --- System terminal ---
-        external_group = QGroupBox(_("External system terminal"))
-        external_group.setDisabled(True)
-
-        self.run_custom_config_radio.toggled.connect(
-            lambda x: external_group.setEnabled(
-                x and self.systerm_radio.isChecked())
-            )
-        self.systerm_radio.toggled.connect(external_group.setEnabled)
-
-        external_layout = QGridLayout()
-        external_group.setLayout(external_layout)
-        self.interact_cb = QCheckBox(INTERACT)
-        external_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
-
-        self.pclo_cb = QCheckBox(_("Command line options:"))
-        external_layout.addWidget(self.pclo_cb, 3, 0)
-        self.pclo_edit = QLineEdit()
-        self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
-        self.pclo_edit.setEnabled(False)
-        self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
-                                    "other options you set here"))
-        external_layout.addWidget(self.pclo_edit, 3, 1)
-
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
@@ -290,7 +287,6 @@ class RunConfigOptions(QWidget):
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
-        layout.addWidget(external_group)
         layout.addWidget(self.firstrun_cb)
         layout.addStretch(100)
 
