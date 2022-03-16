@@ -20,7 +20,6 @@ Editor widget based on QtGui.QPlainTextEdit
 from unicodedata import category
 import logging
 import functools
-import os
 import os.path as osp
 import re
 import sre_constants
@@ -30,7 +29,6 @@ import textwrap
 # Third party imports
 from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
-from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QRegExp, Qt, QTimer, QThread, QUrl, Signal,
                          Slot)

@@ -330,8 +330,8 @@ class PydocBrowser(PluginMainWidget):
             Force a server start even if the server is running.
             Default is False.
         """
-        if force or (checked and self.server is None
-                     or not self.is_server_running()):
+        server_needed = checked and self.server is None
+        if force or server_needed or not self.is_server_running():
             self.sig_toggle_view_changed.disconnect(self.initialize)
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
             self.start_server()
