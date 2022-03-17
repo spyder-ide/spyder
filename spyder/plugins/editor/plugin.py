@@ -699,6 +699,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", add_shortcut_to_tip=True)
 
+        run_to_line_action = create_action(self, _("Run &to current line"),
+                                           tip=_("Run to current line"),
+                                           triggered=self.run_to_line,
+                                           context=Qt.WidgetShortcut)
+        self.register_shortcut(run_to_line_action, context="Editor",
+                               name="Run to line", add_shortcut_to_tip=True)
+
+        run_from_line_action = create_action(self, _("Run &from current line"),
+                                             tip=_("Run from current line"),
+                                             triggered=self.run_from_line,
+                                             context=Qt.WidgetShortcut)
+        self.register_shortcut(run_from_line_action, context="Editor",
+                               name="Run from line", add_shortcut_to_tip=True)
+
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
@@ -1106,7 +1120,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run_menu_actions = [run_action, run_cell_action,
                             run_cell_advance_action,
                             re_run_last_cell_action, MENU_SEPARATOR,
-                            run_selected_action, re_run_action,
+                            run_selected_action, run_to_line_action,
+                            run_from_line_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
@@ -3013,6 +3028,18 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection()
+
+    @Slot()
+    def run_to_line(self):
+        """Run all lines from beginning up to current line"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_to_line()
+
+    @Slot()
+    def run_from_line(self):
+        """Run all lines from current line to end"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_from_line()
 
     @Slot()
     def run_cell(self):

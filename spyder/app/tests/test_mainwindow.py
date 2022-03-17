@@ -1441,12 +1441,18 @@ def test_run_code(main_window, qtbot, tmpdir):
     main_window.editor.load(filepath)
 
     # Move to the editor's first line
-    code_editor = main_window.editor.get_focus_widget()
+    editor = main_window.editor
+    code_editor = editor.get_focus_widget()
     code_editor.setFocus()
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
+
+    # Set modifier for CTRL or darwin Meta
+    modifier = Qt.ControlModifier
+    if sys.platform == 'darwin':
+        modifier = Qt.MetaModifier
 
     # ---- Run file ----
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1478,6 +1484,41 @@ def test_run_code(main_window, qtbot, tmpdir):
     assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
+
+    reset_run_code(qtbot, shell, code_editor, nsb)
+
+    # ---- Run to line ----
+    # Run lines from file start until, but excluding, current cursor line
+    # Move to line 10 then move one characters into the line and
+    # run lines above
+    editor.go_to_line(10)
+    qtbot.keyClick(code_editor, Qt.Key_Right)
+    qtbot.keyClick(code_editor, Qt.Key_F9, modifier=Qt.ShiftModifier)
+    qtbot.wait(500)
+
+    assert shell.get_value('a') == 10
+    assert shell.get_value('li') == [1, 2, 3]
+    # Test that lines below did not run
+    assert 'arr' not in nsb.editor.source_model._data.keys()
+    assert 's' not in nsb.editor.source_model._data.keys()
+
+    reset_run_code(qtbot, shell, code_editor, nsb)
+
+    # ---- Run from line ----
+    # Move to line 6, run lines from current cursor line to end
+    # Note that last line (14) will raise a NameError if 'a' is not defined
+    # Set 'a' to a different value before hand to avoid errors in shell
+    shell.execute('a = 100')
+    editor.go_to_line(6)
+    qtbot.keyClick(code_editor, Qt.Key_Right)
+    qtbot.keyClick(code_editor, Qt.Key_F9, modifier=modifier)
+    qtbot.wait(500)
+
+    assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
+    assert shell.get_value('li') == [1, 2, 3]
+    assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
+    # Test that lines above did not run, i.e. a is still 100
+    assert shell.get_value('a') == 100
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
@@ -1525,9 +1566,6 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Run cell ----
     # Run the first cell in file
-    modifier = Qt.ControlModifier
-    if sys.platform == 'darwin':
-        modifier = Qt.MetaModifier
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=modifier)
 
     # Wait until the object has appeared in the variable explorer
