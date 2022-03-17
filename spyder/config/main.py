@@ -456,6 +456,8 @@ DEFAULTS = [
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
+              'editor/run to line': 'Shift+F9',
+              'editor/run from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
