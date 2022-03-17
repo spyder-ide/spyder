@@ -1745,6 +1745,7 @@ class MainWindow(QMainWindow):
     def show_path_manager(self):
         """Show path manager dialog."""
         def _dialog_finished(result_code):
+            """Restore path manager dialog instance variable."""
             self._path_manager = None
 
         if self._path_manager is None:
