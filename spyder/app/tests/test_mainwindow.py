@@ -325,8 +325,17 @@ def main_window(request, tmpdir, qtbot):
 
     # Wait until console is up
     shell = window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    try:
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
+    except Exception:
+        # Print content of shellwidget and close window
+        print(shell._control.toPlainText())
+        client = window.ipyconsole.get_current_client()
+        if client.info_page != client.blank_page:
+            print('info_page')
+            print(client.info_page)
+        raise
 
     if os.name != 'nt':
         # _DummyThread are created if current_thread() is called from them.
@@ -957,6 +966,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
     # --- Use cwd for this file ---
     rc = RunConfiguration().get()
+    rc['default'] = False
     rc['file_dir'] = False
     rc['cw_dir'] = True
     config_entry = (test_file, rc)
@@ -1013,8 +1023,8 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # --- Set run options for this file ---
     rc = RunConfiguration().get()
-    # A dedicated console is used when these two options are False
-    rc['current'] = rc['systerm'] = False
+    # A dedicated console is used when these three options are False
+    rc['default'] = rc['current'] = rc['systerm'] = False
     config_entry = (test_file, rc)
     CONF.set('run', 'configurations', [config_entry])
 
@@ -4499,6 +4509,7 @@ foo(1)
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 def test_focus_to_consoles(main_window, qtbot):
     """
     Check that we give focus to the text widget of our consoles after focus

@@ -234,6 +234,12 @@ class CompletionPlugin(SpyderPluginV2):
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
             try:
+                # This absolutely ensures that the Kite provider won't be
+                # loaded. For instance, it can happen when you have an older
+                # Spyder version installed, but you're running it with
+                # bootstrap.
+                if 'kite' in entry_point.name:
+                    continue
                 logger.debug(f'Loading entry point: {entry_point}')
                 Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
@@ -262,7 +268,7 @@ class CompletionPlugin(SpyderPluginV2):
                  'linting requests sent to multiple providers.')
 
     def get_icon(self):
-        return self.create_icon('lspserver')
+        return self.create_icon('completions')
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)
@@ -474,11 +480,11 @@ class CompletionPlugin(SpyderPluginV2):
             provider.STATUS_BAR_CLASSES, provider_name)
         if plugin_loaded:
             for id_ in widgets_ids:
-                # Validation to check for status bar registration before
-                # adding a widget.
-                # See spyder-ide/spyder#16977
-                if id_ not in container.statusbar_widgets:
-                    current_widget = container.statusbar_widgets[id_]
+                current_widget = container.statusbar_widgets[id_]
+                # Validation to check for status bar registration before trying
+                # to add a widget.
+                # See spyder-ide/spyder#16997
+                if id_ not in self.statusbar.get_status_widgets():
                     self.statusbar.add_status_widget(current_widget)
 
     def unregister_statusbar(self, provider_name):
@@ -496,8 +502,8 @@ class CompletionPlugin(SpyderPluginV2):
         for id_ in provider_keys:
             # Validation to check for status bar registration before trying
             # to remove a widget.
-            # See spyder-ide/spyder#16977
-            if id_ in container.statusbar_widgets[id_]:
+            # See spyder-ide/spyder#16997
+            if id_ in container.statusbar_widgets:
                 self.get_container().remove_statusbar_widget(id_)
                 self.statusbar.remove_status_widget(id_)
 

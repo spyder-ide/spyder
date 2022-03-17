@@ -58,8 +58,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                        get_run_configuration,
-                                        RunConfigDialog, RunConfigOneDialog)
+                                        get_run_configuration, RunConfigDialog,
+                                        RunConfiguration, RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 
 
@@ -1323,8 +1323,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 kite_call_to_action = finfo.editor.kite_call_to_action
-                comp_widget.setParent(ancestor)
-                kite_call_to_action.setParent(ancestor)
+
+                # This is necessary to catch an error when the plugin is
+                # undocked and docked back, and (probably) a completion is
+                # in progress.
+                # Fixes spyder-ide/spyder#17486
+                try:
+                    comp_widget.setParent(ancestor)
+                    kite_call_to_action.setParent(ancestor)
+                except RuntimeError:
+                    pass
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
@@ -2928,6 +2936,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if show_dlg and not dialog.exec_():
                 return
             runconf = dialog.get_configuration()
+
+        if runconf.default:
+            # use global run preferences settings
+            runconf = RunConfiguration()
 
         args = runconf.get_arguments()
         python_args = runconf.get_python_arguments()
