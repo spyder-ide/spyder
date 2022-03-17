@@ -398,7 +398,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         plugin_name: str
             Name of the plugin to delete.
         teardown: bool
-            True if the teardown notification to other plugins should be send
+            True if the teardown notification to other plugins should be sent
             when deleting the plugin, False otherwise.
 
         Returns
