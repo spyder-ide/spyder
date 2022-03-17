@@ -299,7 +299,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
         header.customContextMenuRequested.connect(self.show_header_menu)
 
         # Style adjustments
-        self.setStyle(DirViewStyle(None))
+        self._style = DirViewStyle(None)
+        self._style.setParent(self)
+        self.setStyle(self._style)
 
         # Setup
         self.setup_fs_model()

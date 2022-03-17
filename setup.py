@@ -226,8 +226,8 @@ install_requires = [
     'pylint>=2.5.0',
     'python-lsp-black>=1.0.0',
     'pyls-spyder>=0.4.0',
-    'pyqt5<5.13',
-    'pyqtwebengine<5.13',
+    'pyqt5<5.16',
+    'pyqtwebengine<5.16',
     'python-lsp-server[all]>=1.3.2,<1.4.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
@@ -252,7 +252,6 @@ if 'dev' in __version__ and WINDOWS_INSTALLER_NAME:
     install_requires.append('spyder-kernels>=2.2.1,<=2.3.0.dev0')
 
 extras_require = {
-    'test:platform_system == "Linux"': ['pytest-xvfb'],
     'test:platform_system == "Windows"': ['pywin32'],
     'test': [
         'coverage',

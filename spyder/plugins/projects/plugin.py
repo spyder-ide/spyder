@@ -385,6 +385,7 @@ class Projects(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
+        self.watcher.stop()
         return True
 
     def unmaximize(self):

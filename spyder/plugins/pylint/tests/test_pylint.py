@@ -81,6 +81,7 @@ class MainWindowMock(QMainWindow):
 @pytest.fixture
 def pylint_plugin(mocker, qtbot):
     main_window = MainWindowMock()
+    qtbot.addWidget(main_window)
     main_window.resize(640, 480)
     main_window.projects.get_active_project_path = mocker.MagicMock(
         return_value=None)
@@ -95,8 +96,10 @@ def pylint_plugin(mocker, qtbot):
     widget.filecombo.clear()
     widget.show()
 
-    qtbot.addWidget(main_window)
-    return plugin
+    yield plugin
+
+    widget.close()
+    plugin.on_close()
 
 
 @pytest.fixture
@@ -203,7 +206,7 @@ def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker,
 
     qtbot.waitUntil(
         lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
-        timeout=5000)
+        timeout=10000)
     pylint_data = pylint_widget.get_data(filename=pylint_test_script)
 
     print(pylint_data)

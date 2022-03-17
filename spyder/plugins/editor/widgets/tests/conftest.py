@@ -227,9 +227,9 @@ def codeeditor(qtbot):
                         scroll_past_end=True)
     widget.setup_editor(language='Python')
     widget.resize(640, 480)
-    qtbot.addWidget(widget)
     widget.show()
-    return widget
+    yield widget
+    widget.close()
 
 
 @pytest.fixture

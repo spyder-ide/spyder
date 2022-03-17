@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        INSTALL_TYPE: ['conda']
+        INSTALL_TYPE: ['pip']
         PYTHON_VERSION: ['3.7']
         TEST_TYPE: ['fast', 'slow']
     timeout-minutes: 120

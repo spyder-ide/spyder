@@ -14,7 +14,7 @@ from unittest.mock import Mock, MagicMock
 
 # Third party imports
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QMainWindow
+from qtpy.QtWidgets import QWidget, QMainWindow
 import pytest
 
 # Local imports
@@ -28,8 +28,8 @@ from spyder.utils.icon_manager import ima
 class MainWindowMock(QMainWindow):
     register_shortcut = Mock()
 
-    def __init__(self):
-        super().__init__(None)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []
@@ -69,12 +69,13 @@ class MainWindowMock(QMainWindow):
         pass
 
 
-class ConfigDialogTester:
-    def __init__(self, params):
-        main_class, general_config_plugins, plugins = params
-        self._main = main_class() if main_class else None
+class ConfigDialogTester(QWidget):
+    def __init__(self, parent, main_class,
+                 general_config_plugins, plugins):
+        super().__init__(parent)
+        self._main = main_class(self) if main_class else None
         if self._main is None:
-            self._main = MainWindowMock()
+            self._main = MainWindowMock(self)
 
         def set_prefs_size(self, size):
             pass
@@ -125,25 +126,33 @@ def global_config_dialog(qtbot):
 
     These options are the ones not tied to a specific plugin.
     """
-    preferences = Preferences(MainWindowMock(), CONF)
-    preferences.open_dialog(None)
+    mainwindow = MainWindowMock(None)
+    qtbot.addWidget(mainwindow)
 
+    preferences = Preferences(mainwindow, CONF)
+    preferences.open_dialog(None)
     container = preferences.get_container()
     dlg = container.dialog
-    qtbot.addWidget(dlg)
-    dlg.show()
-    return dlg
+
+    yield dlg
+
+    dlg.close()
 
 
 @pytest.fixture
 def config_dialog(qtbot, request, mocker):
     mocker.patch.object(ima, 'icon', lambda x, *_: QIcon())
-    main_ref = ConfigDialogTester(request.param)
+    main_class, general_config_plugins, plugins = request.param
+
+    main_ref = ConfigDialogTester(
+        None, main_class, general_config_plugins, plugins)
+    qtbot.addWidget(main_ref)
+
     preferences = main_ref._main.get_plugin(Plugins.Preferences)
     preferences.open_dialog(None)
-
     container = preferences.get_container()
     dlg = container.dialog
-    qtbot.addWidget(dlg)
-    dlg.show()
-    return dlg
+
+    yield dlg
+
+    dlg.close()

@@ -3007,15 +3007,15 @@ class EditorSplitter(QSplitter):
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
+            if close_splitter:
+                # editorstack just closed was the last widget in this QSplitter
+                self.close()
+                return
+            self.__give_focus_to_remaining_editor()
         except (RuntimeError, AttributeError):
             # editorsplitter has been destroyed (happens when closing a
             # EditorMainWindow instance)
             return
-        if close_splitter:
-            # editorstack just closed was the last widget in this QSplitter
-            self.close()
-            return
-        self.__give_focus_to_remaining_editor()
 
     def editorsplitter_closed(self):
         logger.debug("method 'editorsplitter_closed':")
@@ -3266,7 +3266,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
-        QMainWindow.__init__(self)
+        QMainWindow.__init__(self, plugin)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin

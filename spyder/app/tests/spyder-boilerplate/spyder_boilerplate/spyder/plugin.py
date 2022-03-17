@@ -120,7 +120,8 @@ class SpyderBoilerplate(SpyderDockablePlugin):
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return "Spyder Boilerplate"
 
     def get_description(self):

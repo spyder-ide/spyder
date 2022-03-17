@@ -60,7 +60,7 @@ class WorkerUpdates(QObject):
         """
         # Don't perform any check for development versions
         if 'dev' in self.version:
-            return (False, latest_release)
+            return (False, self.latest_release)
 
         # Filter releases
         if is_stable_version(self.version):
@@ -138,4 +138,7 @@ class WorkerUpdates(QObject):
         # Don't show dialog when starting up spyder and an error occur
         if not (self.startup and error_msg is not None):
             self.error = error_msg
-            self.sig_ready.emit()
+            try:
+                self.sig_ready.emit()
+            except RuntimeError:
+                pass
