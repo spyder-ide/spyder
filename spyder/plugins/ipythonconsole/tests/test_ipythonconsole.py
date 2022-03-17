@@ -39,7 +39,8 @@ from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
-from spyder.config.base import get_home_dir, running_in_ci
+from spyder.config.base import (
+    get_home_dir, running_in_ci, running_in_ci_with_conda)
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import ConfigurationManager
 from spyder.py3compat import PY2, to_text_string
@@ -204,13 +205,15 @@ def ipyconsole(qtbot, request, tmpdir):
     # Set exclamation mark to True
     configuration.set('ipython_console', 'pdb_use_exclamation_mark', True)
 
-    # This segfaults on macOS
-    if not sys.platform == "darwin":
+    if os.name == 'nt':
         qtbot.addWidget(window)
-    window.resize(640, 480)
-    window.show()
+
+    with qtbot.waitExposed(window):
+        window.resize(640, 480)
+        window.show()
 
     # Wait until the window is fully up
+    qtbot.waitUntil(lambda: console.get_current_shellwidget() is not None)
     shell = console.get_current_shellwidget()
     try:
         qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -253,7 +256,6 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Close
     console.on_close()
-    window.close()
     os.environ.pop('IPYCONSOLE_TESTING')
     os.environ.pop('IPYCONSOLE_TEST_DIR')
     os.environ.pop('IPYCONSOLE_TEST_NO_STDERR')
@@ -561,6 +563,8 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
 @pytest.mark.skipif(
     running_in_ci() and sys.platform == 'darwin',
     reason="Hangs sometimes on macOS")
+@pytest.mark.skipif(os.name == 'nt' and running_in_ci_with_conda(),
+                    reason="It hangs on Windows CI using conda")
 def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     """Test that tabs preserve their names after they are moved."""
     # Create a new client
@@ -1107,6 +1111,10 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.skipif(running_in_ci(), reason="Fails frequently in CI")
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="Failing on Windows. In fact on Windows you can "
+                           "copy with Ctrl + C i.e a KeyboardInterrupt isn't "
+                           "triggered when doing Ctrl + C while debugging")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
     Test that Ctrl+C works while debugging
@@ -1122,6 +1130,8 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
         shell.execute('%debug print()')
 
     # Test Ctrl+C
+    qtbot.waitUntil(lambda: 'IPdb [1]: ' in control.toPlainText())
+    control.setFocus()
     qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
     qtbot.waitUntil(
         lambda: 'For copying text while debugging, use Ctrl+Shift+C' in
@@ -1428,16 +1438,18 @@ def test_remove_old_std_files(ipyconsole, qtbot):
 
     # The current kernel std files should be present
     for fname in glob.glob(osp.join(tmpdir, '*')):
-        assert osp.basename(fname).startswith('kernel')
-        assert any(
-            [osp.basename(fname).endswith(ext)
-             for ext in ('.stderr', '.stdout', '.fault')]
-        )
+        if osp.basename(fname) != 'test':
+            assert osp.basename(fname).startswith('kernel')
+            assert any(
+                [osp.basename(fname).endswith(ext)
+                 for ext in ('.stderr', '.stdout', '.fault')]
+            )
 
 
 @flaky(max_runs=10)
 @pytest.mark.use_startup_wdir
-@pytest.mark.skipif(os.name == 'nt', reason="Too flaky on Windows")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Too flaky on Linux")
 def test_console_working_directory(ipyconsole, qtbot):
     """Test for checking the working directory."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1756,6 +1768,7 @@ def test_wrong_std_module(ipyconsole, qtbot, tmpdir, spyder_pythonpath):
 
 
 @flaky(max_runs=3)
+@pytest.mark.known_leak
 @pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
 def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
     """
@@ -1973,11 +1986,10 @@ def test_stop_pdb(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'nt', reason="Times out on Windows")
 def test_code_cache(ipyconsole, qtbot):
     """
     Test that code sent to execute is properly cached
-    and that the cache is empited on interrupt.
+    and that the cache is emptied on interrupt.
     """
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1995,7 +2007,8 @@ def test_code_cache(ipyconsole, qtbot):
 
     # Send two execute requests and make sure the second one is executed
     shell.execute('import time; time.sleep(.5)')
-    shell.execute('var = 142')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('var = 142')
     qtbot.wait(500)
     qtbot.waitUntil(lambda: check_value('var', 142))
     assert shell.get_value('var') == 142

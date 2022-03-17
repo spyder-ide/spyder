@@ -478,7 +478,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code Folding
         self.code_folding = True
-        self.update_folding_thread = QThread()
+        self.update_folding_thread = QThread(None)
         self.update_folding_thread.finished.connect(self.finish_code_folding)
 
         # Completions hint
@@ -549,7 +549,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_in_progress = False
 
         # Diagnostics
-        self.update_diagnostics_thread = QThread()
+        self.update_diagnostics_thread = QThread(None)
         self.update_diagnostics_thread.run = self.set_errors
         self.update_diagnostics_thread.finished.connect(
             self.finish_code_analysis)
@@ -728,6 +728,12 @@ class CodeEditor(TextEditBaseWidget):
         return [sc.data for sc in self.shortcuts]
 
     def closeEvent(self, event):
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.stop()
+        self.update_folding_thread.quit()
+        self.update_folding_thread.wait()
+        self.update_diagnostics_thread.quit()
+        self.update_diagnostics_thread.wait()
         TextEditBaseWidget.closeEvent(self, event)
 
     def get_document_id(self):

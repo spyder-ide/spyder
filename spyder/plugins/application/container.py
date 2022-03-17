@@ -100,13 +100,14 @@ class ApplicationContainer(PluginMainContainer):
     # -------------------------------------------------------------------------
     def setup(self):
         # Compute dependencies in a thread to not block the interface.
-        self.dependencies_thread = QThread()
+        self.dependencies_thread = QThread(None)
 
         # Attributes
         self.dialog_manager = DialogManager()
         self.give_updates_feedback = False
         self.thread_updates = None
         self.worker_updates = None
+        self.updates_timer = None
 
         # Actions
         # Documentation actions
@@ -212,6 +213,14 @@ class ApplicationContainer(PluginMainContainer):
     def on_close(self):
         """To call from Spyder when the plugin is closed."""
         self.dialog_manager.close_all()
+        if self.updates_timer is not None:
+            self.updates_timer.stop()
+        if self.thread_updates is not None:
+            self.thread_updates.quit()
+            self.thread_updates.wait()
+        if self.dependencies_thread is not None:
+            self.dependencies_thread.quit()
+            self.dependencies_thread.wait()
 
     @Slot()
     def show_about(self):
@@ -320,9 +329,10 @@ class ApplicationContainer(PluginMainContainer):
         self.check_updates_action.setDisabled(True)
 
         if self.thread_updates is not None:
-            self.thread_updates.terminate()
+            self.thread_updates.quit()
+            self.thread_updates.wait()
 
-        self.thread_updates = QThread(self)
+        self.thread_updates = QThread(None)
         self.worker_updates = WorkerUpdates(self, startup=startup)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
@@ -332,11 +342,11 @@ class ApplicationContainer(PluginMainContainer):
         # Delay starting this check to avoid blocking the main window
         # while loading.
         # Fixes spyder-ide/spyder#15839
-        updates_timer = QTimer(self)
-        updates_timer.setInterval(3000)
-        updates_timer.setSingleShot(True)
-        updates_timer.timeout.connect(self.thread_updates.start)
-        updates_timer.start()
+        self.updates_timer = QTimer(self)
+        self.updates_timer.setInterval(3000)
+        self.updates_timer.setSingleShot(True)
+        self.updates_timer.timeout.connect(self.thread_updates.start)
+        self.updates_timer.start()
 
     # ---- Dependencies
     # -------------------------------------------------------------------------

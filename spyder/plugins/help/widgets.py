@@ -305,6 +305,7 @@ class HelpWidget(PluginMainWidget):
 
         # Widgets
         self._sphinx_thread = SphinxThread(
+            None,
             html_text_no_doc=warning(self.no_docs, css_path=self.css_path),
             css_path=self.css_path,
         )
@@ -563,7 +564,10 @@ class HelpWidget(PluginMainWidget):
                            self.object_combo,
                            self.object_edit]:
                 if action not in widget.actions():
-                    widget.addAction(action)
+                    try:
+                        widget.addAction(action)
+                    except RuntimeError:
+                        pass
 
     def get_focus_widget(self):
         self.object_combo.lineEdit().selectAll()

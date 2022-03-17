@@ -343,6 +343,9 @@ class PylintWidget(PluginMainWidget):
         self.treewidget.sig_edit_goto_requested.connect(
             self.sig_edit_goto_requested)
 
+    def on_close(self):
+        self.stop_code_analysis()
+
     # --- Private API
     # ------------------------------------------------------------------------
     @Slot()
@@ -435,8 +438,8 @@ class PylintWidget(PluginMainWidget):
         return process is not None and process.state() == QProcess.Running
 
     def _kill_process(self):
-        self._process.kill()
-        self._process.waitForFinished()
+        self._process.close()
+        self._process.waitForFinished(1000)
         self.stop_spinner()
 
     def _update_combobox_history(self):
@@ -599,6 +602,9 @@ class PylintWidget(PluginMainWidget):
             self.code_analysis_action.setIcon(self.create_icon("run"))
 
         self.remove_obsolete_items()
+
+    def on_close(self):
+        self.stop_code_analysis()
 
     # --- Public API
     # ------------------------------------------------------------------------

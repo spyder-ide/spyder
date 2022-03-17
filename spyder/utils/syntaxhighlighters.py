@@ -1286,6 +1286,9 @@ class PygmentsSH(BaseSH):
         # yet finished processing
         self._allow_highlight = True
 
+    def stop(self):
+        self._worker_manager.terminate_all()
+
     def make_charlist(self):
         """Parses the complete text and stores format for each character."""
 

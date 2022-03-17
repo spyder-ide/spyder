@@ -28,7 +28,7 @@ dependencies:
 - pygments >=2.0
 - pylint >=2.5.0
 - pyls-spyder >=0.4.0
-- pyqt <5.13
+- pyqt <5.16
 - python-lsp-black >=1.0.0
 - python-lsp-server >=1.3.2,<1.4.0
 - pyxdg >=0.26
@@ -63,7 +63,6 @@ dependencies:
 - pytest-mock
 - pytest-order
 - pytest-qt
-- pytest-xvfb
 - pyyaml
 - scipy
 - sympy
