@@ -202,6 +202,7 @@ def make_app_bundle(dist_dir, make_lite=False):
         'iconfile': ICONFILE,
         'dist_dir': dist_dir,
         'frameworks': FRAMEWORKS,
+        'emulate_shell_environment': True,
         'plist': {
             'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
                                        'CFBundleTypeName': 'Text File',
