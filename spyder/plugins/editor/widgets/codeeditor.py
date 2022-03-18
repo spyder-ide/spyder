@@ -4385,11 +4385,11 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'run cell'),
             triggered=self.sig_run_cell.emit)
         self.run_cell_and_advance_action = create_action(
-            self, _("Run cell and advance"), icon=ima.icon('run_cell'),
+            self, _("Run cell and advance"), icon=ima.icon('run_cell_advance'),
             shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
             triggered=self.sig_run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
-            self, _("Re-run last cell"), icon=ima.icon('run_cell'),
+            self, _("Re-run last cell"),
             shortcut=CONF.get_shortcut('editor', 're-run last cell'),
             triggered=self.sig_re_run_last_cell.emit)
         self.run_selection_action = create_action(
