@@ -30,9 +30,8 @@ from pkg_resources import parse_version
 import psutil
 
 # Local imports
-from spyder.config.base import (is_stable_version, running_under_pytest,
-                                get_home_dir, running_in_mac_app)
-from spyder.config.utils import is_anaconda
+from spyder.config.base import (running_under_pytest, get_home_dir,
+                                running_in_mac_app)
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
@@ -978,34 +977,43 @@ def is_python_interpreter_valid_name(filename):
 
 def is_python_interpreter(filename):
     """Evaluate whether a file is a python interpreter or not."""
+    # Must be imported here to avoid circular import
+    from spyder.utils.conda import is_conda_env
+
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
+
     if (not osp.isfile(real_filename) or
-        not is_python_interpreter_valid_name(filename)):
+        not is_python_interpreter_valid_name(real_filename)):
         return False
-    elif is_pythonw(filename):
+
+    # File exists and has valid name
+
+    is_text_file = encoding.is_text_file(real_filename)
+
+    if is_pythonw(real_filename):
         if os.name == 'nt':
             # pythonw is a binary on Windows
-            if not encoding.is_text_file(real_filename):
+            if not is_text_file:
                 return True
             else:
                 return False
         elif sys.platform == 'darwin':
             # pythonw is a text file in Anaconda but a binary in
             # the system
-            if is_anaconda() and encoding.is_text_file(real_filename):
+            if is_conda_env(pyexec=real_filename) and is_text_file:
                 return True
-            elif not encoding.is_text_file(real_filename):
+            elif not is_text_file:
                 return True
             else:
                 return False
         else:
             # There's no pythonw in other systems
             return False
-    elif encoding.is_text_file(real_filename):
+    elif is_text_file:
         # At this point we can't have a text file
         return False
     else:
-        return check_python_help(filename)
+        return check_python_help(real_filename)
 
 
 def is_pythonw(filename):
