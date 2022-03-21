@@ -1720,15 +1720,6 @@ class MainWindow(QMainWindow):
         # Load new path
         new_path_dict_p = self.get_spyder_pythonpath_dict()  # Includes project
 
-        # Update Spyder interpreter
-        for path in path_dict:
-            while path in sys.path:
-                sys.path.remove(path)
-
-        for path, active in reversed(new_path_dict_p.items()):
-            if active:
-                sys.path.insert(1, path)
-
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
         self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
