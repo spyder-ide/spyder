@@ -987,7 +987,6 @@ def is_python_interpreter(filename):
         return False
 
     # File exists and has valid name
-
     is_text_file = encoding.is_text_file(real_filename)
 
     if is_pythonw(real_filename):
