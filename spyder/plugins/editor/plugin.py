@@ -876,17 +876,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.win_eol_action = create_action(
             self,
-            _("Carriage return and line feed (Windows)"),
+            _("CRLF (Windows)"),
             toggled=lambda checked: self.toggle_eol_chars('nt', checked)
         )
         self.linux_eol_action = create_action(
             self,
-            _("Line feed (UNIX)"),
+            _("LF (Unix)"),
             toggled=lambda checked: self.toggle_eol_chars('posix', checked)
         )
         self.mac_eol_action = create_action(
             self,
-            _("Carriage return (Mac)"),
+            _("CR (macOS)"),
             toggled=lambda checked: self.toggle_eol_chars('mac', checked)
         )
         eol_action_group = QActionGroup(self)
