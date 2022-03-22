@@ -2870,6 +2870,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
+
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
             # See spyder-ide/spyder#8644 for details.
@@ -2881,7 +2882,12 @@ class CodeEditor(TextEditBaseWidget):
                                           replace(osp.os.sep, '/')
                                           + '"' for url in urls)
                 else:
-                    text = urls[0].toLocalFile().replace(osp.os.sep, '/')
+                    # The `urls` list can be empty, so we need to check that
+                    # before proceeding.
+                    # Fixes spyder-ide/spyder#17521
+                    if urls:
+                        text = urls[0].toLocalFile().replace(osp.os.sep, '/')
+
         eol_chars = self.get_line_separator()
         if len(text.splitlines()) > 1:
             text = eol_chars.join((text + eol_chars).splitlines())
