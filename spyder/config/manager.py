@@ -644,12 +644,14 @@ class ConfigurationManager(object):
 try:
     CONF = ConfigurationManager()
 except Exception:
+    from spyder.app.utils import create_application
+    app = create_application()
     reset_reply = QMessageBox.critical(
         None, 'Spyder',
-        _("Error loading Spyder's preferences manager.\n"
+        _("Error loading Spyder's preferences manager. "
           "You will need to reset Spyder configuration files "
-          "for Spyder to be able to launch."
-          " Reset the Spyder configuration files now?"),
+          "for Spyder to be able to launch.\n\n"
+          "Reset the Spyder configuration files now?"),
         QMessageBox.Yes, QMessageBox.No)
     if reset_reply == QMessageBox.Yes:
         reset_config_files()
