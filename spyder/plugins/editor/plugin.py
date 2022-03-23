@@ -876,17 +876,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.win_eol_action = create_action(
             self,
-            _("Carriage return and line feed (Windows)"),
+            _("CRLF (Windows)"),
             toggled=lambda checked: self.toggle_eol_chars('nt', checked)
         )
         self.linux_eol_action = create_action(
             self,
-            _("Line feed (UNIX)"),
+            _("LF (Unix)"),
             toggled=lambda checked: self.toggle_eol_chars('posix', checked)
         )
         self.mac_eol_action = create_action(
             self,
-            _("Carriage return (Mac)"),
+            _("CR (macOS)"),
             toggled=lambda checked: self.toggle_eol_chars('mac', checked)
         )
         eol_action_group = QActionGroup(self)
@@ -3471,6 +3471,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                         self.editorwindows_to_be_created.append(
                             layout_settings)
                 self.set_last_focused_editorstack(self, self.editorstacks[0])
+
+            # This is necessary to update the statusbar widgets after files
+            # have been loaded.
+            editorstack = self.get_current_editorstack()
+            if editorstack:
+                self.get_current_editorstack().refresh()
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
