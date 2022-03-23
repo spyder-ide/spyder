@@ -621,6 +621,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
+        self.selectionModel().selectionChanged.connect(self.refresh_menu)
 
     def setup_menu(self):
         """Setup context menu"""
@@ -1320,7 +1321,9 @@ class CollectionsEditorWidget(QWidget):
         for item in self.editor.menu_actions:
             if item is not None:
                 toolbar.addAction(item)
-
+        
+        # Update the toolbar actions state
+        self.editor.refresh_menu()
         layout = QVBoxLayout()
         layout.addWidget(toolbar)
         layout.addWidget(self.editor)
