@@ -1194,10 +1194,9 @@ class CollectionsEditorTableView(BaseTableView):
         self.setModel(self.source_model)
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
-
-        self.setup_table()
+        
         self.menu = self.setup_menu()
-
+        self.setup_table()
         if isinstance(data, set):
             self.horizontalHeader().hideSection(0)
 
@@ -1507,10 +1506,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate.sig_editor_shown.connect(self.sig_editor_shown)
         self.setItemDelegate(self.delegate)
 
-        self.setup_table()
-
         if create_menu:
             self.menu = self.setup_menu()
+        self.setup_table()
 
     # ------ Remote/local API -------------------------------------------------
     def get_value(self, name):
