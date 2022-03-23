@@ -1529,7 +1529,9 @@ class MainWindow(QMainWindow):
                 return False
 
         # TODO: This should be managed in a different way
-        if running_in_mac_app():
+        # Prevents segfaults on close in the MacOS app and showing a warning
+        # message if spyder-terminal is installed
+        if not running_under_pytest():
             # Save window settings *after* closing all plugin windows, in order
             # to show them in their previous locations in the next session.
             # Fixes spyder-ide/spyder#12139
