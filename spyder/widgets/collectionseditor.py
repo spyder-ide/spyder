@@ -766,8 +766,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         """Refresh context menu"""
         index = self.currentIndex()
         condition = index.isValid()
-        self.edit_action.setEnabled(condition)
-        self.remove_action.setEnabled(condition)
+        if self.edit_action is not None:
+            self.edit_action.setEnabled(condition)
+        if self.remove_action is not None:
+            self.remove_action.setEnabled(condition)
         self.refresh_plot_entries(index)
 
     def refresh_plot_entries(self, index):
