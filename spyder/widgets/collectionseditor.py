@@ -788,13 +788,20 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             is_array = condition_plot = condition_imshow = is_list \
                      = condition_hist = False
         is_list_instance = isinstance(self.source_model.get_data(), list)
-        self.plot_action.setVisible(condition_plot or is_list)
-        self.hist_action.setVisible(condition_hist or is_list)
-        self.insert_action.setVisible(not is_list_instance)
-        self.insert_action_above.setVisible(is_list_instance)
-        self.insert_action_below.setVisible(is_list_instance)
-        self.imshow_action.setVisible(condition_imshow)
-        self.save_array_action.setVisible(is_array)
+        if self.plot_action is not None:
+            self.plot_action.setVisible(condition_plot or is_list)
+        if self.hist_action is not None:
+            self.hist_action.setVisible(condition_hist or is_list)
+        if self.insert_action is not None:            
+            self.insert_action.setVisible(not is_list_instance)
+        if self.insert_action_above is not None:
+            self.insert_action_above.setVisible(is_list_instance)
+        if self.insert_action_below is not None:
+            self.insert_action_below.setVisible(is_list_instance)
+        if self.imshow_action is not None:
+            self.imshow_action.setVisible(condition_imshow)
+        if self.save_array_action is not None:
+            self.save_array_action.setVisible(is_array)
 
     def resize_column_contents(self):
         """Resize columns to contents."""
