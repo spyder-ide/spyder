@@ -3471,6 +3471,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                         self.editorwindows_to_be_created.append(
                             layout_settings)
                 self.set_last_focused_editorstack(self, self.editorstacks[0])
+
+            # This is necessary to update the statusbar widgets after files
+            # have been loaded.
+            editorstack = self.get_current_editorstack()
+            if editorstack:
+                self.get_current_editorstack().refresh()
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
