@@ -15,9 +15,6 @@ import os.path as osp
 from typing import Any, Dict, Optional, Set
 import weakref
 
-# Third-party imports
-from qtpy.QtWidgets import QMessageBox
-
 # Local imports
 from spyder.api.utils import PrefixedTuple
 from spyder.config.base import (
@@ -644,14 +641,14 @@ class ConfigurationManager(object):
 try:
     CONF = ConfigurationManager()
 except Exception:
+    from qtpy.QtWidgets import QMessageBox
     from spyder.app.utils import create_application
     app = create_application()
     reset_reply = QMessageBox.critical(
         None, 'Spyder',
-        _("Error loading Spyder's preferences manager. "
-          "You will need to reset Spyder configuration files "
-          "for Spyder to be able to launch.\n\n"
-          "Reset the Spyder configuration files now?"),
+        _("There was an error while loading Spyder configuration options. "
+          "You need to reset them for Spyder to be able to launch.\n\n"
+          "Do you want to proceed?"),
         QMessageBox.Yes, QMessageBox.No)
     if reset_reply == QMessageBox.Yes:
         reset_config_files()
