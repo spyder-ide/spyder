@@ -521,14 +521,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
         benign_errors = [
-            # See spyder-ide/spyder#16828
-            "This version of python seems to be incorrectly compiled",
-            "internal generated filenames are not absolute",
-            "This may make the debugger miss breakpoints",
-            "http://bugs.python.org/issue1666807",
-            # See spyder-ide/spyder#16927
-            "It seems the debugger cannot resolve",
-            "https://bugs.python.org/issue1180193",
             # Old error
             "No such comm"
         ]
