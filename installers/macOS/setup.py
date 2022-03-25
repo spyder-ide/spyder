@@ -42,13 +42,71 @@ PYVER = [sys.version_info.major, sys.version_info.minor,
          sys.version_info.micro]
 
 
+def fix_zip_entry_points(zfile):
+    """
+    Fix zip archive so that pkg_resources will find entry points.
+    Remove if a better solution emerges.
+
+    Parameters
+    ----------
+    zfile : pathlib.Path
+        Path to zip archive.
+    """
+    import os
+    from zipfile import ZipFile
+
+    logger.info('Converting zip file...')
+
+    file = zfile.parent / 'temp'
+    ZipFile(zfile).extractall(file)
+    os.remove(zfile)
+    file.replace(zfile)
+
+
+def patch_py2app():
+    """
+    Patch py2app PyQt recipe and site.py for version 0.27.
+    Remove after version 0.28 is available.
+    """
+    from importlib.util import find_spec
+    from importlib.metadata import version
+    from packaging.version import parse
+
+    logger.info('Patching py2app...')
+
+    py2app_ver = version('py2app')
+    if parse(py2app_ver) > parse('0.27'):
+        raise DeprecationWarning(f'py2app version {py2app_ver} > 0.27; '
+                                 'stop using patch_py2app.')
+
+    root = Path(find_spec('py2app').origin).parent
+
+    # Patch site.py
+    site_file = root / 'apptemplate' / 'lib' / 'site.py'
+    append_text = ("builtins.quit = "
+                   "_sitebuiltins.Quitter('quit', 'Ctrl-D (i.e. EOF)')\n"
+                   "builtins.exit = "
+                   "_sitebuiltins.Quitter('exit', 'Ctrl-D (i.e. EOF)')\n")
+    text = site_file.read_text()
+    if append_text not in text:
+        site_file.write_text(text + append_text)
+
+    # Patch qt5.py
+    qt5_file = root / 'recipes' / 'qt5.py'
+    search_text = "if qtdir != os.path.dirname(PyQt5.__file__):"
+    replace_text = "if os.path.dirname(PyQt5.__file__) not in qtdir:"
+    text = qt5_file.read_text()
+    if replace_text not in text:
+        qt5_file.write_text(text.replace(search_text, replace_text))
+
+
 def make_app_bundle(dist_dir, make_lite=False):
     """
     Make macOS application bundle.
 
     Parameters
     ----------
-    dist_dir : PosixPath
+    dist_dir : pathlib.Path
         Directory in which to put the application bundle.
     make_lite : bool, optional
         Whether to create the application bundle with minimal packages.
@@ -93,16 +151,20 @@ def make_app_bundle(dist_dir, make_lite=False):
 
     # Build the application
     try:
+        patch_py2app()
         os.symlink(SPYREPO / 'spyder', SPYLINK)
         setup(app=[app_script_path.as_posix()], options={'py2app': OPTIONS})
+        fix_zip_entry_points(
+            dist_dir / MAC_APP_NAME / 'Contents' / 'Resources' / 'lib' /
+            'python{}{}.zip'.format(*PYVER[:2]))
     finally:
         os.remove(app_script_path)
         os.remove(SPYLINK)
 
     # Copy Spyder egg-info
     egg = SPYREPO / 'spyder.egg-info'
-    dest = Path(dist_dir, MAC_APP_NAME, 'Contents', 'Resources', 'lib',
-                'python{}.{}'.format(*PYVER), 'spyder.egg-info').resolve()
+    dest = (dist_dir / MAC_APP_NAME / 'Contents' / 'Resources' / 'lib' /
+            'python{}.{}'.format(*PYVER) / 'spyder.egg-info')
     shutil.copytree(egg, dest)
 
     return
@@ -114,7 +176,7 @@ def make_disk_image(dist_dir, make_lite=False):
 
     Parameters
     ----------
-    dist_dir : PosixPath
+    dist_dir : pathlib.Path
         Directory in which to put the disk image.
     make_lite : bool, optional
         Whether to append the disk image file and volume name with 'Lite'.
