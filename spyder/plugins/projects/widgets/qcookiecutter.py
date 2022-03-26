@@ -371,9 +371,10 @@ class CookiecutterWidget(QtWidgets.QWidget):
                 fh.write(val)
 
             if self._process is not None:
-                self._process.terminate()
+                self._process.close()
+                self._process.waitForFinished(1000)
 
-            self._process = QtCore.QProcess()
+            self._process = QtCore.QProcess(self)
             self._process.setProgram(sys.executable)
             self._process.setArguments([self._tempfile])
             self._process.finished.connect(self._on_process_finished)

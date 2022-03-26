@@ -53,7 +53,7 @@ def projects(qtbot, mocker):
                 return MagicMock()
 
     # Main window mock
-    main_window = MainWindowProjectsMock()
+    main_window = MainWindowProjectsMock(None)
 
     # Create plugin
     projects = Projects(configuration=CONF)
@@ -71,8 +71,9 @@ def projects(qtbot, mocker):
     projects.shortcut = None
     mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
                         'install_tab_event_filter')
-    qtbot.addWidget(projects.get_widget())
-    return projects
+    yield projects
+    projects.get_container().close()
+    projects.on_close()
 
 
 @pytest.fixture

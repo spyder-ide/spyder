@@ -58,3 +58,10 @@ def test_config_file(tmpdir, workspace):
 
     # A was split on multiple lines because of column_limit from config file
     assert pylsp_format_document(doc)[0]['newText'] == "A = [\n    'h', 'w',\n    'a'\n]\n\nB = ['h', 'w']\n"
+
+
+def test_cr_line_endings(workspace):
+    doc = Document(DOC_URI, workspace, 'import os;import sys\r\rdict(a=1)')
+    res = pylsp_format_document(doc)
+
+    assert res[0]['newText'] == 'import os\rimport sys\r\rdict(a=1)\r'

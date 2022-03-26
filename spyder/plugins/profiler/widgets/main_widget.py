@@ -316,8 +316,8 @@ class ProfilerWidget(PluginMainWidget):
         """Kill the profiling process if it is running."""
         if self.process is not None:
             if self.process.state() == QProcess.Running:
-                self.process.kill()
-                self.process.waitForFinished()
+                self.process.close()
+                self.process.waitForFinished(1000)
 
         self.update_actions()
 
@@ -578,7 +578,8 @@ class ProfilerWidget(PluginMainWidget):
     def stop(self):
         """Stop the running process."""
         self.running = False
-        self.process.kill()
+        self.process.close()
+        self.process.waitForFinished(1000)
         self.stop_spinner()
         self.update_actions()
 

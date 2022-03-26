@@ -142,7 +142,6 @@ class MainWindow(QMainWindow):
     all_actions_defined = Signal()
     # type: (OrderedDict, OrderedDict)
     sig_pythonpath_changed = Signal(object, object)
-    sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")
     sig_moved = Signal("QMoveEvent")
@@ -583,6 +582,7 @@ class MainWindow(QMainWindow):
         self.path = ()
         self.not_active_path = ()
         self.project_path = ()
+        self._path_manager = None
 
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
@@ -1153,11 +1153,8 @@ class MainWindow(QMainWindow):
         is triggered.
         """
         # Required plugins
-        help_plugin = self.get_plugin(Plugins.Help, error=False)
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole, error=False)
         projects = self.get_plugin(Plugins.Projects, error=False)
         editor = self.get_plugin(Plugins.Editor, error=False)
-        console = self.get_plugin(Plugins.Console, error=False)
 
         # Process pending events and hide splash before loading the
         # previous session.
@@ -1196,22 +1193,6 @@ class MainWindow(QMainWindow):
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
 
-        # Hide Internal Console so that people don't use it instead of
-        # the External or IPython ones
-        if console and console.dockwidget.isVisible() and DEV is None:
-            console.toggle_view_action.setChecked(False)
-            console.dockwidget.hide()
-
-        # Show Help and IPython console by default
-        plugins_to_show = []
-        if help_plugin:
-            plugins_to_show.append(help_plugin)
-        if ipyconsole:
-            plugins_to_show.append(ipyconsole)
-        for plugin in plugins_to_show:
-            if plugin.dockwidget.isVisible():
-                plugin.dockwidget.raise_()
-
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
@@ -1227,13 +1208,18 @@ class MainWindow(QMainWindow):
         else:
             # Load last project if a project was active when Spyder
             # was closed
+            reopen_last_session = False
             if projects:
                 projects.reopen_last_project()
+                if projects.get_active_project() is None:
+                    reopen_last_session = True
+            else:
+                reopen_last_session = True
 
-            # If no project is active, load last session
-            if projects and projects.get_active_project() is None:
-                if editor:
-                    editor.setup_open_files(close_previous_files=False)
+            # If no project is active or Projects is disabled, load last
+            # session
+            if editor and reopen_last_session:
+                editor.setup_open_files(close_previous_files=False)
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1533,6 +1519,8 @@ class MainWindow(QMainWindow):
         if self.already_closed or self.is_starting_up:
             return True
 
+        self.plugin_registry = PLUGIN_REGISTRY
+
         if cancelable and CONF.get('main', 'prompt_on_exit'):
             reply = QMessageBox.critical(self, 'Spyder',
                                          'Do you really want to exit?',
@@ -1540,23 +1528,53 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.No:
                 return False
 
-        if CONF.get('main', 'single_instance') and self.open_files_server:
-            self.open_files_server.close()
+        # TODO: This should be managed in a different way
+        # Prevents segfaults on close in the MacOS app and showing a warning
+        # message if spyder-terminal is installed
+        if not running_under_pytest():
+            # Save window settings *after* closing all plugin windows, in order
+            # to show them in their previous locations in the next session.
+            # Fixes spyder-ide/spyder#12139
+            prefix = 'window' + '/'
+            if self.layouts is not None:
+                self.layouts.save_current_window_settings(prefix)
 
-        can_close = PLUGIN_REGISTRY.delete_all_plugins(
-            excluding={Plugins.Layout}, close_immediately=close_immediately)
+            # Close application
+            os._exit(0)
+            app = qapplication()  # analysis:ignore
+            del app
+        else:
+            can_close = self.plugin_registry.delete_all_plugins(
+                excluding={Plugins.Layout},
+                close_immediately=close_immediately)
 
-        if not can_close and not close_immediately:
-            return False
+            if not can_close and not close_immediately:
+                return False
 
-        # Save window settings *after* closing all plugin windows, in order
-        # to show them in their previous locations in the next session.
-        # Fixes spyder-ide/spyder#12139
-        prefix = 'window' + '/'
-        self.layouts.save_current_window_settings(prefix)
-        PLUGIN_REGISTRY.delete_plugin(Plugins.Layout)
+            # Save window settings *after* closing all plugin windows, in order
+            # to show them in their previous locations in the next session.
+            # Fixes spyder-ide/spyder#12139
+            prefix = 'window' + '/'
+            if self.layouts is not None:
+                self.layouts.save_current_window_settings(prefix)
+                try:
+                    layouts_container = self.layouts.get_container()
+                    if layouts_container:
+                        layouts_container.close()
+                        layouts_container.deleteLater()
+                    self.layouts.deleteLater()
+                    self.plugin_registry.delete_plugin(
+                        Plugins.Layout, teardown=False)
+                except RuntimeError:
+                    pass
 
-        self.already_closed = True
+            self.already_closed = True
+
+            if CONF.get('main', 'single_instance') and self.open_files_server:
+                self.open_files_server.close()
+
+            QApplication.processEvents()
+
         return True
 
     def add_dockwidget(self, plugin):
@@ -1757,19 +1775,29 @@ class MainWindow(QMainWindow):
     @Slot()
     def show_path_manager(self):
         """Show path manager dialog."""
-        from spyder.widgets.pathmanager import PathManager
-        projects = self.get_plugin(Plugins.Projects, error=False)
+        def _dialog_finished(result_code):
+            """Restore path manager dialog instance variable."""
+            self._path_manager = None
 
-        read_only_path = ()
-        if projects:
-            read_only_path = tuple(projects.get_pythonpath())
+        if self._path_manager is None:
+            from spyder.widgets.pathmanager import PathManager
+            projects = self.get_plugin(Plugins.Projects, error=False)
+            read_only_path = ()
+            if projects:
+                read_only_path = tuple(projects.get_pythonpath())
 
-        dialog = PathManager(self, self.path, read_only_path,
-                             self.not_active_path, sync=True)
-        self._path_manager = dialog
-        dialog.sig_path_changed.connect(self.update_python_path)
-        dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
-        dialog.show()
+            dialog = PathManager(self, self.path, read_only_path,
+                                 self.not_active_path, sync=True)
+            self._path_manager = dialog
+            dialog.sig_path_changed.connect(self.update_python_path)
+            dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
+            dialog.finished.connect(_dialog_finished)
+            dialog.show()
+        else:
+            self._path_manager.show()
+            self._path_manager.activateWindow()
+            self._path_manager.raise_()
+            self._path_manager.setFocus()
 
     def pythonpath_changed(self):
         """Project's PYTHONPATH contribution has changed."""
@@ -1855,6 +1883,8 @@ class MainWindow(QMainWindow):
                 enotsock = (errno.WSAENOTSOCK if os.name == 'nt'
                             else errno.ENOTSOCK)
                 if e.args[0] in [errno.ECONNABORTED, enotsock]:
+                    return
+                if self.already_closed:
                     return
                 raise
             fname = req.recv(1024)

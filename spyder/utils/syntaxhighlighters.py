@@ -188,8 +188,9 @@ class BaseSH(QSyntaxHighlighter):
     BLANK_ALPHA_FACTOR = 0.31
 
     sig_outline_explorer_data_changed = Signal()
-    # Signal to advertise a new cell
-    sig_new_cell = Signal(OutlineExplorerData)
+
+    # Use to signal font change
+    sig_font_changed = Signal()
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
@@ -215,6 +216,9 @@ class BaseSH(QSyntaxHighlighter):
         self.cell_separators = None
         self.editor = None
         self.patterns = DEFAULT_COMPILED_PATTERNS
+
+        # List of cells
+        self._cell_list = []
 
     def get_background_color(self):
         return QColor(self.background_color)
@@ -258,6 +262,7 @@ class BaseSH(QSyntaxHighlighter):
             self.font = font
         if self.font is not None:
             base_format.setFont(self.font)
+            self.sig_font_changed.emit()
         self.formats = {}
         colors = self.color_scheme.copy()
         self.background_color = colors.pop("background")
@@ -564,8 +569,8 @@ class PythonSH(BaseSH):
                     oedata.def_type = OutlineExplorerData.CELL
                     def_name = get_code_cell_name(text)
                     oedata.def_name = def_name
-                    # Let the editor know a new cell was added in the document
-                    self.sig_new_cell.emit(oedata)
+                    # Keep list of cells for performence reasons
+                    self._cell_list.append(oedata)
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
@@ -1280,6 +1285,9 @@ class PygmentsSH(BaseSH):
         # Flag variable to avoid unnecessary highlights if the worker has not
         # yet finished processing
         self._allow_highlight = True
+
+    def stop(self):
+        self._worker_manager.terminate_all()
 
     def make_charlist(self):
         """Parses the complete text and stores format for each character."""

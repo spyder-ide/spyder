@@ -63,6 +63,9 @@ class MainInterpreterContainer(PluginMainContainer):
                     osp.isfile(executable)):
                 self.sig_add_to_custom_interpreters_requested.emit(executable)
 
+    def on_close(self):
+        self.interpreter_status.close()
+
     # ---- Public API
     def get_main_interpreter(self):
         if self.get_conf('default'):

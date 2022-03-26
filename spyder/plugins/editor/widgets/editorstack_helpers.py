@@ -75,7 +75,7 @@ class ThreadManager(QObject):
     def add_thread(self, checker, end_callback, source_code, parent):
         """Add thread to queue."""
         parent_id = id(parent)
-        thread = AnalysisThread(self, checker, source_code)
+        thread = AnalysisThread(None, checker, source_code)
         self.end_callbacks[id(thread)] = end_callback
         self.pending_threads.append((thread, parent_id))
         logger.debug("Added thread %r to queue" % thread)

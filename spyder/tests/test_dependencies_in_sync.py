@@ -9,7 +9,6 @@ from ast import literal_eval
 import os
 
 # Third party imports
-import pytest
 import yaml
 
 # Local imports

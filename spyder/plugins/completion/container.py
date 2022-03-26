@@ -13,6 +13,7 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.widgets.main_container import PluginMainContainer
+from spyder.plugins.completion.widgets.status import CompletionStatus
 
 
 class CompletionContainer(PluginMainContainer):
@@ -24,7 +25,7 @@ class CompletionContainer(PluginMainContainer):
         self.provider_statusbars = {}
 
     def setup(self, options=None):
-        pass
+        self.completion_status = CompletionStatus(parent=self)
 
     def update_actions(self):
         pass

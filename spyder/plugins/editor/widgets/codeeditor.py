@@ -176,6 +176,8 @@ class CodeEditor(TextEditBaseWidget):
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
     sig_run_selection = Signal()
+    sig_run_to_line = Signal()
+    sig_run_from_line = Signal()
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
     sig_re_run_last_cell = Signal()
@@ -501,7 +503,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code Folding
         self.code_folding = True
-        self.update_folding_thread = QThread()
+        self.update_folding_thread = QThread(None)
         self.update_folding_thread.finished.connect(self.finish_code_folding)
 
         # Completions hint
@@ -572,7 +574,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_in_progress = False
 
         # Diagnostics
-        self.update_diagnostics_thread = QThread()
+        self.update_diagnostics_thread = QThread(None)
         self.update_diagnostics_thread.run = self.set_errors
         self.update_diagnostics_thread.finished.connect(
             self.finish_code_analysis)
@@ -760,6 +762,12 @@ class CodeEditor(TextEditBaseWidget):
         return [sc.data for sc in self.shortcuts]
 
     def closeEvent(self, event):
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.stop()
+        self.update_folding_thread.quit()
+        self.update_folding_thread.wait()
+        self.update_diagnostics_thread.quit()
+        self.update_diagnostics_thread.wait()
         TextEditBaseWidget.closeEvent(self, event)
 
     def get_document_id(self):
@@ -774,6 +782,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter.rehighlight)
         self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
+        self.highlighter.sig_font_changed.connect(self.sync_font)
 
     # ---- Widget setup and options
     def toggle_wrap_mode(self, enable):
@@ -2004,6 +2013,18 @@ class CodeEditor(TextEditBaseWidget):
         self._pending_server_requests = []
         self._server_requests_timer.stop()
         if self.completions_available:
+            # This is necessary to prevent an error in our tests.
+            try:
+                # Servers can send an empty publishDiagnostics reply to clear
+                # diagnostics after they receive a didClose request. Since
+                # we also ask for symbols and folding when processing
+                # diagnostics, we need to prevent it from happening
+                # before sending that request here.
+                self._timer_sync_symbols_and_folding.timeout.disconnect(
+                    self.sync_symbols_and_folding)
+            except TypeError:
+                pass
+
             params = {
                 'file': self.filename,
                 'codeeditor': self
@@ -2207,19 +2228,17 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter = self.highlighter_class(self.document(),
                                                   self.font(),
                                                   self.color_scheme)
-        self.highlighter._cell_list = []
-        self.highlighter.sig_new_cell.connect(self.add_to_cell_list)
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
+        self.highlighter.sig_font_changed.connect(self.sync_font)
         self._rehighlight_timer.timeout.connect(
             self.highlighter.rehighlight)
 
-    def add_to_cell_list(self, oedata):
-        """Add new cell to cell list."""
-        if self.highlighter is None:
-            return
-        self.highlighter._cell_list.append(oedata)
+    def sync_font(self):
+        """Highlighter changed font, update."""
+        self.setFont(self.highlighter.font)
+        self.sig_font_changed.emit()
 
     def get_cell_list(self):
         """Get all cells."""
@@ -2803,7 +2822,6 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
-        self.sig_font_changed.emit()
         self.panels.refresh()
         self.apply_highlighter_settings(color_scheme)
 
@@ -2887,6 +2905,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
+
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
             # See spyder-ide/spyder#8644 for details.
@@ -2898,7 +2917,12 @@ class CodeEditor(TextEditBaseWidget):
                                           replace(osp.os.sep, '/')
                                           + '"' for url in urls)
                 else:
-                    text = urls[0].toLocalFile().replace(osp.os.sep, '/')
+                    # The `urls` list can be empty, so we need to check that
+                    # before proceeding.
+                    # Fixes spyder-ide/spyder#17521
+                    if urls:
+                        text = urls[0].toLocalFile().replace(osp.os.sep, '/')
+
         eol_chars = self.get_line_separator()
         if len(text.splitlines()) > 1:
             text = eol_chars.join((text + eol_chars).splitlines())
@@ -4385,11 +4409,11 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'run cell'),
             triggered=self.sig_run_cell.emit)
         self.run_cell_and_advance_action = create_action(
-            self, _("Run cell and advance"), icon=ima.icon('run_cell'),
+            self, _("Run cell and advance"), icon=ima.icon('run_cell_advance'),
             shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
             triggered=self.sig_run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
-            self, _("Re-run last cell"), icon=ima.icon('run_cell'),
+            self, _("Re-run last cell"),
             shortcut=CONF.get_shortcut('editor', 're-run last cell'),
             triggered=self.sig_re_run_last_cell.emit)
         self.run_selection_action = create_action(
@@ -4397,7 +4421,14 @@ class CodeEditor(TextEditBaseWidget):
             icon=ima.icon('run_selection'),
             shortcut=CONF.get_shortcut('editor', 'run selection'),
             triggered=self.sig_run_selection.emit)
-
+        self.run_to_line_action = create_action(
+            self, _("Run to current line"),
+            shortcut=CONF.get_shortcut('editor', 'run to line'),
+            triggered=self.sig_run_to_line.emit)
+        self.run_from_line_action = create_action(
+            self, _("Run from current line"),
+            shortcut=CONF.get_shortcut('editor', 'run from line'),
+            triggered=self.sig_run_from_line.emit)
         self.debug_cell_action = create_action(
             self, _("Debug cell"), icon=ima.icon('debug_cell'),
             shortcut=CONF.get_shortcut('editor', 'debug cell'),
@@ -4442,6 +4473,7 @@ class CodeEditor(TextEditBaseWidget):
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
                      self.re_run_last_cell_action, self.run_selection_action,
+                     self.run_to_line_action, self.run_from_line_action,
                      self.gotodef_action, None, self.undo_action,
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
@@ -5275,6 +5307,8 @@ class CodeEditor(TextEditBaseWidget):
         self.run_cell_action.setVisible(self.is_python_or_ipython())
         self.run_cell_and_advance_action.setVisible(self.is_python_or_ipython())
         self.run_selection_action.setVisible(self.is_python_or_ipython())
+        self.run_to_line_action.setVisible(self.is_python_or_ipython())
+        self.run_from_line_action.setVisible(self.is_python_or_ipython())
         self.re_run_last_cell_action.setVisible(self.is_python_or_ipython())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 

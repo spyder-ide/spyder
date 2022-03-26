@@ -24,6 +24,7 @@ from traitlets import observe
 # Local imports
 from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
+from spyder.config.gui import get_color_scheme
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
@@ -84,8 +85,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     @classmethod
     def prune_shutdown_thread_list(cls):
         """Remove shutdown threads."""
-        cls.shutdown_thread_list = [
-            t for t in cls.shutdown_thread_list if t.isRunning()]
+        pruned_shutdown_thread_list = []
+        for t in cls.shutdown_thread_list:
+            try:
+                if t.isRunning():
+                    pruned_shutdown_thread_list.append(t)
+            except RuntimeError:
+                pass
+        cls.shutdown_thread_list = pruned_shutdown_thread_list
 
     @classmethod
     def wait_all_shutdown(cls):
@@ -96,6 +103,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     thread.kernel_manager._kill_kernel()
                 except Exception:
                     pass
+                thread.quit()
                 thread.wait()
         cls.shutdown_thread_list = []
 
@@ -131,6 +139,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers.update({
             'pdb_state': self.set_pdb_state,
             'pdb_execute': self.pdb_execute,
+            'show_pdb_output': self.show_pdb_output,
             'get_pdb_settings': self.get_pdb_settings,
             'set_debug_state': self.set_debug_state,
             'update_syspath': self.update_syspath,
@@ -172,17 +181,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = True
         if shutdown_kernel:
             self.interrupt_kernel()
+            if self.kernel_manager:
+                self.kernel_manager.stop_restarter()
             self.spyder_kernel_comm.close()
-            self.kernel_manager.stop_restarter()
-
-            shutdown_thread = QThread()
-            shutdown_thread.kernel_manager = self.kernel_manager
-            shutdown_thread.run = self.shutdown_kernel
             if self.kernel_client is not None:
-                shutdown_thread.finished.connect(
-                    self.kernel_client.stop_channels)
-            shutdown_thread.start()
-            self.shutdown_thread_list.append(shutdown_thread)
+                self.kernel_client.stop_channels()
+            if self.kernel_manager:
+                shutdown_thread = QThread(None)
+                shutdown_thread.kernel_manager = self.kernel_manager
+                shutdown_thread.run = self.shutdown_kernel
+                self.shutdown_thread_list.append(shutdown_thread)
+                shutdown_thread.start()
         else:
             self.spyder_kernel_comm.close(shutdown_channel=False)
             if self.kernel_client is not None:
@@ -945,6 +954,17 @@ the sympy module (e.g. plot)
             self._highlighter._clear_caches()
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
+
+    def _get_color(self, color):
+        """
+        Get a color as qtconsole.styles._get_color() would return from
+        a builtin Pygments style.
+        """
+        color_scheme = get_color_scheme(self.syntax_style)
+        return dict(
+            bgcolor=color_scheme['background'],
+            select=color_scheme['background'],
+            fgcolor=color_scheme['normal'][0])[color]
 
     def _prompt_started_hook(self):
         """Emit a signal when the prompt is ready."""

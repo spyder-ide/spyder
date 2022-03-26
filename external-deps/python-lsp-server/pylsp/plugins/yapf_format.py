@@ -3,9 +3,12 @@
 
 import logging
 import os
+
 from yapf.yapflib import file_resources
 from yapf.yapflib.yapf_api import FormatCode
+
 from pylsp import hookimpl
+from pylsp._utils import get_eol_chars
 
 log = logging.getLogger(__name__)
 
@@ -34,8 +37,17 @@ def pylsp_format_range(document, range):  # pylint: disable=redefined-builtin
 
 
 def _format(document, lines=None):
+    # Yapf doesn't work with CR line endings, so we replace them by '\n'
+    # and restore them below.
+    replace_cr = False
+    source = document.source
+    eol_chars = get_eol_chars(source)
+    if eol_chars == '\r':
+        replace_cr = True
+        source = source.replace('\r', '\n')
+
     new_source, changed = FormatCode(
-        document.source,
+        source,
         lines=lines,
         filename=document.filename,
         style_config=file_resources.GetDefaultStyleForDir(
@@ -45,6 +57,9 @@ def _format(document, lines=None):
 
     if not changed:
         return []
+
+    if replace_cr:
+        new_source = new_source.replace('\n', '\r')
 
     # I'm too lazy at the moment to parse diffs into TextEdit items
     # So let's just return the entire file...

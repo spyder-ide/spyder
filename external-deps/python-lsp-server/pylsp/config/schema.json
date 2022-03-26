@@ -54,6 +54,11 @@
       "default": null,
       "description": "Maximum allowed line length for the entirety of this run."
     },
+    "pylsp.plugins.flake8.indentSize": {
+      "type": "integer",
+      "default": null,
+      "description": "Set indentation spaces."
+    },
     "pylsp.plugins.flake8.perFileIgnores": {
       "type": "array",
       "default": null,
@@ -236,6 +241,11 @@
       "type": "number",
       "default": null,
       "description": "Set maximum allowed line length."
+    },
+    "pylsp.plugins.pycodestyle.indentSize": {
+      "type": "integer",
+      "default": null,
+      "description": "Set indentation spaces."
     },
     "pylsp.plugins.pydocstyle.enabled": {
       "type": "boolean",

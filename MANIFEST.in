@@ -9,3 +9,4 @@ include CHANGELOG.md
 include AUTHORS.txt
 include NOTICE.txt
 include bootstrap.py
+include pylsp_utils.py

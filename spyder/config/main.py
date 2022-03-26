@@ -330,7 +330,7 @@ DEFAULTS = [
             ('completions',
              {
                'enable': True,
-               'kite_call_to_action': True,
+               'kite_call_to_action': False,
                'enable_code_snippets': True,
                'completions_wait_for_ms': 200,
                'enabled_providers': {},
@@ -456,6 +456,8 @@ DEFAULTS = [
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
+              'editor/run to line': 'Shift+F9',
+              'editor/run from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -637,4 +639,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '70.2.0'
+CONF_VERSION = '70.3.0'

@@ -5,6 +5,11 @@ if [ "$OS" = "macos" ]; then
     PATH=/Users/runner/miniconda3/envs/test/bin:/Users/runner/miniconda3/condabin:$PATH
 fi
 
+# Install gdb
+if [ "$USE_GDB" = "true" ]; then
+    mamba install gdb -c conda-forge -q -y
+fi
+
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
@@ -13,11 +18,6 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # Install test ones
     mamba install python=$PYTHON_VERSION --file requirements/tests.txt -c conda-forge -q -y
-
-    # Install Pyzmq 19 because our tests are failing with version 20
-    if [ "$OS" = "win" ]; then
-        mamba install pyzmq=19
-    fi
 
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y
@@ -32,9 +32,6 @@ else
 
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
-
-    # Remove pytest-xvfb because it causes hangs
-    pip uninstall -q -y pytest-xvfb
 
     # Install qtpy from Github
     pip install git+https://github.com/spyder-ide/qtpy.git
@@ -60,9 +57,14 @@ fi
 # Install subrepos in development mode
 for dep in $(ls external-deps)
 do
-    pushd external-deps/$dep
-    pip install --no-deps -q -e .
-    popd
+    echo "Installing $dep subrepo"
+
+    # This is necessary to pass our minimal required version of PyLSP to setuptools-scm
+    if [ "$dep" = "python-lsp-server" ]; then
+        SETUPTOOLS_SCM_PRETEND_VERSION=`python pylsp_utils.py` pip install --no-deps -q -e external-deps/$dep
+    else
+        pip install --no-deps -q -e external-deps/$dep
+    fi
 done
 
 # Install boilerplate plugin

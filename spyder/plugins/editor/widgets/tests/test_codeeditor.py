@@ -9,6 +9,7 @@ import os.path as osp
 import sys
 
 # Third party imports
+from qtpy import QT_VERSION
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QTextEdit
@@ -420,16 +421,16 @@ def test_editor_delete_selection(codeeditor, qtbot):
     assert editor.textCursor().columnNumber() == expected_column
 
 
+@pytest.mark.skipif(QT_VERSION.startswith('5.15'),
+                    reason='Fixed on Qt 5.15')
 def test_qtbug35861(qtbot):
     """This test will detect if upstream QTBUG-35861 is fixed.
-
     If that happens, then the workarounds for spyder-ide/spyder#12663
     can be removed. Such a fix would probably only happen in the most
     recent Qt version however...
-
     See also https://bugreports.qt.io/browse/QTBUG-35861
     """
-    widget = QTextEdit()
+    widget = QTextEdit(None)
     qtbot.addWidget(widget)
     widget.show()
 

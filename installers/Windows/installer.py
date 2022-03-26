@@ -99,7 +99,6 @@ packages=
     ntsecuritycon
     {packages}
 files={package_dist_info} > $INSTDIR/pkgs
-    black-20.8b1.dist-info > $INSTDIR/pkgs
     __main__.py > $INSTDIR/pkgs/jedi/inference/compiled/subprocess
     __init__.py > $INSTDIR/pkgs/pylint
     lib
@@ -339,13 +338,6 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
         with tempfile.TemporaryDirectory(
                 prefix="installer-pynsist-") as work_dir:
             print("Temporary working directory at", work_dir)
-
-            # NOTE: SHOULD BE TEMPORAL (until black has wheels available).
-            # See the 'files' section on the pynsist template config too.
-            print("Copying dist.info for black-20.8b1")
-            shutil.copytree(
-                "installers/Windows/assets/black/black-20.8b1.dist-info",
-                os.path.join(work_dir, "black-20.8b1.dist-info"))
 
             # NOTE: SHOULD BE TEMPORAL (until jedi has the fix available).
             # See the 'files' section on the pynsist template config too.

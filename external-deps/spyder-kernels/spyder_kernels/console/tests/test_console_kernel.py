@@ -482,6 +482,54 @@ if __name__ == '__main__':
 @flaky(max_runs=3)
 @pytest.mark.skipif(not PY3,
                     reason="Only meant for Python 3")
+def test_multiprocessing_2(tmpdir):
+    """
+    Test that multiprocessing works on Python 3.
+    """
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Remove all variables
+        client.execute("%reset -f")
+        client.get_shell_msg(timeout=TIMEOUT)
+
+        # Write multiprocessing code to a file
+        code = """
+from multiprocessing import Pool
+
+class myClass():
+    def __init__(self, i):
+        self.i = i + 10
+
+def myFunc(i):
+    return myClass(i)
+
+if __name__ == '__main__':
+    with Pool(5) as p:
+        result = p.map(myFunc, [1, 2, 3])
+    result = [r.i for r in result]
+"""
+        p = tmpdir.join("mp-test.py")
+        p.write(code)
+
+        # Run code
+        client.execute("runfile(r'{}')".format(to_text_string(p)))
+        client.get_shell_msg(timeout=TIMEOUT)
+
+        # Verify that the `result` variable is defined
+        client.inspect('result')
+        msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
+        content = msg['content']
+        assert content['found']
+        assert "[11, 12, 13]" in content['data']['text/plain']
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(not PY3,
+                    reason="Only meant for Python 3")
 def test_dask_multiprocessing(tmpdir):
     """
     Test that dask multiprocessing works on Python 3.

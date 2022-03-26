@@ -37,8 +37,8 @@ class SphinxThread(QThread):
     error_msg = Signal(str)
     html_ready = Signal(str)
 
-    def __init__(self, html_text_no_doc='', css_path=CSS_PATH):
-        super(SphinxThread, self).__init__()
+    def __init__(self, parent, html_text_no_doc='', css_path=CSS_PATH):
+        super(SphinxThread, self).__init__(parent)
         self.doc = None
         self.context = None
         self.html_text_no_doc = html_text_no_doc

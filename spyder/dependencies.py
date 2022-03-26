@@ -39,7 +39,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=7.6.0;<8.0.0"
+IPYTHON_REQVER = ">=7.31.1;<8.0.0"
 JEDI_REQVER = '>=0.17.2;<0.19.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
@@ -66,7 +66,7 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.2.0;<2.3.0'
+SPYDER_KERNELS_REQVER = '>=2.2.1;<2.3.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
@@ -367,9 +367,14 @@ def add(modname, package_name, features, required_version,
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
+        # Avoid showing an unnecessary error when running our tests.
+        if running_in_ci() and 'spyder_boilerplate' in modname:
+            continue
+
         if dependency.modname == modname:
             raise ValueError(
                 f"Dependency has already been registered: {modname}")
+
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
                                 installed_version, kind)]

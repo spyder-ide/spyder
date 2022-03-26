@@ -145,7 +145,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """Stop all heartbeats"""
         for language in self.clients_hearbeat:
             try:
-                self.clients_hearbeat[language].stop()
+                if self.clients_hearbeat[language] is not None:
+                    self.clients_hearbeat[language].stop()
             except (TypeError, KeyError, RuntimeError):
                 pass
 
@@ -654,8 +655,14 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     language_client['instance'].disconnect()
                 except TypeError:
                     pass
+                try:
+                    if self.clients_hearbeat[language] is not None:
+                        self.clients_hearbeat[language].stop()
+                except (TypeError, KeyError, RuntimeError):
+                    pass
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
+            self.sig_stop_completions.emit(language)
 
     def receive_response(self, response_type, response, language, req_id):
         if req_id in self.requests:
@@ -756,8 +763,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Autoformatting configuration
         formatter = self.get_conf('formatting')
-        formatter = 'pyls_black' if formatter == 'black' else formatter
-        formatters = ['autopep8', 'yapf', 'pyls_black']
+        formatter = 'pylsp_black' if formatter == 'black' else formatter
+        formatters = ['autopep8', 'yapf', 'pylsp_black']
         formatter_options = {
             fmt: {
                 'enabled': fmt == formatter
@@ -765,8 +772,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
             for fmt in formatters
         }
 
-        if formatter == 'pyls_black':
-            formatter_options['pyls_black']['line_length'] = cs_max_line_length
+        if formatter == 'pylsp_black':
+            formatter_options['pylsp_black']['line_length'] = cs_max_line_length
 
         # PyLS-Spyder configuration
         group_cells = self.get_conf(

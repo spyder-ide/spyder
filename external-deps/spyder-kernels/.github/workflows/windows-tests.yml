@@ -22,6 +22,7 @@ jobs:
       fail-fast: false 
       matrix:
         PYTHON_VERSION: ['3.7', '3.8', '3.9']
+    timeout-minutes: 25
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1
@@ -31,14 +32,16 @@ jobs:
            activate-environment: test
            auto-update-conda: true
            auto-activate-base: false
+           channels: conda-forge
+           miniforge-variant: Mambaforge
            python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install package dependencies
         shell: bash -l {0}
-        run: conda install --file requirements/windows.txt -y -q
+        run: mamba install --file requirements/windows.txt -y -q
       - name: Install test dependencies
         shell: bash -l {0}
         run: |
-          conda install --file requirements/tests.txt -y -q
+          mamba install --file requirements/tests.txt -y -q
       - name: Install Package
         shell: bash -l {0}
         run: pip install -e .

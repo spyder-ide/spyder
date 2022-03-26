@@ -267,6 +267,7 @@ class IconManager():
             'close_pane':              [('mdi.window-close',), {'color': self.MAIN_FG_COLOR}],
             'toolbar_ext_button':      [('mdi.dots-horizontal',), {'color': self.MAIN_FG_COLOR}],
             # --- Autocompletion/document symbol type icons --------------
+            'completions':             [('mdi.code-tags-check',), {'color': self.MAIN_FG_COLOR}],
             'keyword':                 [('mdi.alpha-k-box',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'color':                   [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'enum':                    [('mdi.alpha-e-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
@@ -326,7 +327,8 @@ class IconManager():
             'folding.arrow_right_on':  [('mdi.menu-right',), {'color': self.MAIN_FG_COLOR}],
             'folding.arrow_down_off':  [('mdi.menu-down',), {'color': SpyderPalette.GROUP_3}],
             'folding.arrow_down_on':   [('mdi.menu-down',), {'color': self.MAIN_FG_COLOR}],
-            'lspserver':               [('mdi.code-tags-check',), {'color': self.MAIN_FG_COLOR}],
+            'lspserver.down':          [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
+            'lspserver.ready':         [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
             'dependency_ok':           [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
             'dependency_warning':      [('mdi.alert',), {'color': SpyderPalette.COLOR_WARN_2}],
             'dependency_error':        [('mdi.alert',), {'color': SpyderPalette.COLOR_ERROR_1}],

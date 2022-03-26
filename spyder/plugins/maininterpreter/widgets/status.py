@@ -5,7 +5,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Status bar widget."""
+"""Main interpreter status widget."""
 
 # Standard library imports
 import os
@@ -13,13 +13,11 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import QPoint, QTimer, Signal
-from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import QTimer, Signal
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
-from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
@@ -50,9 +48,6 @@ class InterpreterStatus(BaseTimerStatus):
         self.path_to_env = {}
         self.envs = {}
         self.value = ''
-
-        self.menu = QMenu(self)
-        self.sig_clicked.connect(self.show_menu)
 
         # Worker to compute envs in a thread
         self._worker_manager = WorkerManager(max_threads=1)
@@ -99,12 +94,11 @@ class InterpreterStatus(BaseTimerStatus):
 
         return self.value
 
-    def get_tooltip(self):
-        """Override api method."""
-        return self._interpreter if self._interpreter else ''
-
-    def get_icon(self):
-        return self.create_icon('environment')
+    # ---- Qt reimplemented
+    def closeEvent(self, event):
+        self._get_envs_timer.stop()
+        self._worker_manager.terminate_all()
+        super().closeEvent(event)
 
     # ---- Widget API
     def _get_env_dir(self, interpreter):
@@ -153,23 +147,6 @@ class InterpreterStatus(BaseTimerStatus):
         """Request to open the main interpreter preferences."""
         self.sig_open_preferences_requested.emit()
 
-    def show_menu(self):
-        """Display a menu when clicking on the widget."""
-        menu = self.menu
-        menu.clear()
-        text = _("Change default environment in Preferences...")
-        change_action = create_action(
-            self,
-            text=text,
-            triggered=self.open_interpreter_preferences,
-        )
-        add_actions(menu, [change_action])
-        rect = self.contentsRect()
-        os_height = 7 if os.name == 'nt' else 12
-        pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-40, -rect.height() - os_height))
-        menu.popup(pos)
-
     def _get_env_info(self, path):
         """Get environment information."""
         path = path.lower() if os.name == 'nt' else path
@@ -198,4 +175,3 @@ class InterpreterStatus(BaseTimerStatus):
             self._interpreter = interpreter
         self.value = self._get_env_info(self._interpreter)
         self.set_value(self.value)
-        self.update_tooltip()

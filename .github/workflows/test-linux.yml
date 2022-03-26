@@ -40,13 +40,14 @@ jobs:
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
       USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
+      USE_GDB: 'false'
     strategy:
       fail-fast: false
       matrix:
-        INSTALL_TYPE: ['conda', 'pip']
-        PYTHON_VERSION: ['3.7']
+        INSTALL_TYPE: ['pip', 'conda']
+        PYTHON_VERSION: ['3.7', '3.9']
         TEST_TYPE: ['fast', 'slow']
-
+    timeout-minutes: 120
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
@@ -71,7 +72,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update --fix-missing
-          sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0 xterm --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache conda
         uses: actions/cache@v2
         env:
@@ -108,10 +109,18 @@ jobs:
         run: |
           conda info
           conda list
+      #- name: Setup tmate session
+      #  if: env.RUN_BUILD == 'true'
+      #  uses: mxschmitt/action-tmate@v3
+      #  timeout-minutes: 30
       - name: Run manifest checks
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: check-manifest
+      - name: Run tests with gdb
+        if: env.USE_GDB == 'true'
+        shell: bash -l {0}
+        run: xvfb-run --auto-servernum gdb -return-child-result -batch -ex r -ex py-bt --args python runtests.py -s
       - name: Run tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
