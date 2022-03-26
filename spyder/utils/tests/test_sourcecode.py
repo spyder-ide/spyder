@@ -113,18 +113,15 @@ def test_get_eol_chars():
     assert eol_chars == '\r\n'
 
 
-@pytest.mark.parametrize('use_os', [True, False])
-def test_get_eol_chars_use_os(use_os):
-    eol_chars = sourcecode.get_eol_chars('foo', use_os=use_os)
-    if use_os:
-        if os.name == 'nt':
-            assert eol_chars == "\r\n"
-        elif sys.platform.startswith('linux'):
-            assert eol_chars == "\n"
-        elif sys.platform == 'darwin':
-            assert eol_chars == "\r"
-    else:
-        assert eol_chars is None
+def test_get_eol_chars_no_eol():
+    eol_chars = sourcecode.get_eol_chars('foo')
+
+    if os.name == 'nt':
+        assert eol_chars == "\r\n"
+    elif sys.platform.startswith('linux'):
+        assert eol_chars == "\n"
+    elif sys.platform == 'darwin':
+        assert eol_chars == "\r"
 
 
 if __name__ == '__main__':

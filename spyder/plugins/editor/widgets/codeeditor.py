@@ -1883,7 +1883,7 @@ class CodeEditor(TextEditBaseWidget):
 
             # Replace repl_text eols for '\n' to match the ones used in
             # `text`.
-            repl_eol = sourcecode.get_eol_chars(repl_text, use_os=False)
+            repl_eol = sourcecode.get_eol_chars(repl_text)
             if repl_eol is not None and repl_eol != '\n':
                 repl_text = repl_text.replace(repl_eol, '\n')
 
