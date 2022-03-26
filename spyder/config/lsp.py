@@ -50,6 +50,11 @@ PYTHON_CONFIG = {
                 'pylsp_black': {
                     'enabled': False
                 },
+                'black': {
+                    'line_length': 79,
+                    'preview': False,
+                    'cache_config': False,
+                },
                 'yapf': {
                     'enabled': False
                 },

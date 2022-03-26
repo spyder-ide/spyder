@@ -44,7 +44,7 @@ yapf = pytest.param(
 black = pytest.param(
     'black',
     marks=pytest.mark.skipif(
-        is_module_installed('pylsp_black', '<1.2.0'),
+        is_module_installed('python-lsp-black', '<1.2.0'),
         reason="Versions older than 1.2 don't handle eol's correctly"
     )
 )
