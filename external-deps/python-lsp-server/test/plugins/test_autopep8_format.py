@@ -1,6 +1,8 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
+import pytest
+
 from pylsp import uris
 from pylsp.plugins.autopep8_format import pylsp_format_document, pylsp_format_range
 from pylsp.workspace import Document
@@ -73,8 +75,9 @@ def test_hanging_indentation(config, workspace):
     assert res[0]['newText'] == CORRECT_INDENTED_DOC
 
 
-def test_cr_line_endings(config, workspace):
-    doc = Document(DOC_URI, workspace, 'import os;import sys\r\rdict(a=1)')
+@pytest.mark.parametrize('newline', ['\r\n', '\r'])
+def test_line_endings(config, workspace, newline):
+    doc = Document(DOC_URI, workspace, f'import os;import sys{2 * newline}dict(a=1)')
     res = pylsp_format_document(config, doc)
 
-    assert res[0]['newText'] == 'import os\rimport sys\r\rdict(a=1)\r'
+    assert res[0]['newText'] == f'import os{newline}import sys{2 * newline}dict(a=1){newline}'
