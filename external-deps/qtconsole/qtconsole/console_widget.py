@@ -2416,7 +2416,12 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         if password:
             self._show_prompt('Warning: QtConsole does not support password mode, '\
                               'the text you type will be visible.', newline=True)
-        self._show_prompt(prompt, newline=False)
+
+        if 'ipdb' not in prompt.lower():
+            # This is a prompt that asks for input from the user.
+            self._show_prompt(prompt, newline=False, separator=False)
+        else:
+            self._show_prompt(prompt, newline=False)
 
         if callback is None:
             self._reading_callback = None
@@ -2462,7 +2467,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self._control.ensureCursorVisible()
         self._control.setTextCursor(original_cursor)
 
-    def _show_prompt(self, prompt=None, html=False, newline=True):
+    def _show_prompt(self, prompt=None, html=False, newline=True,
+                     separator=True):
         """ Writes a new prompt at the end of the buffer.
 
         Parameters
@@ -2478,6 +2484,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         newline : bool, optional (default True)
             If set, a new line will be written before showing the prompt if
             there is not already a newline at the end of the buffer.
+
+        separator : bool, optional (default True)
+            If set, a separator will be written before the prompt.
         """
         self._flush_pending_stream()
         cursor = self._get_end_cursor()
@@ -2502,7 +2511,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                 self._append_block()
 
         # Write the prompt.
-        self._append_plain_text(self._prompt_sep)
+        if separator:
+            self._append_plain_text(self._prompt_sep)
         if prompt is None:
             if self._prompt_html is None:
                 self._append_plain_text(self._prompt)
