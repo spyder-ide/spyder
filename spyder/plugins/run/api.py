@@ -15,12 +15,15 @@ from typing import Any, Set, List, Union, Optional
 
 # PEP 589 and 544 are available from Python 3.8 onwards
 if sys.version_info >= (3, 8):
-    from typing import TypedDict, Protocol
+    from typing import TypedDict
 else:
-    from typing_extensions import TypedDict, Protocol
+    from typing_extensions import TypedDict
 
 # Support PEP 655 (available from Python 3.11 onwards)
 from typing_extensions import NotRequired
+
+# Qt imports
+from qtpy.QtWidgets import QWidget
 
 
 class RunActions:
@@ -56,7 +59,7 @@ RunInputExtension = set({})
 RunResultFormat.NoDisplay = 'no_display'
 
 
-class RunInputMetadata(TypedDict):
+class RunConfigurationMetadata(TypedDict):
     """Run input metadata schema."""
     # Human-readable name for the run input.
     name: str
@@ -68,11 +71,11 @@ class RunInputMetadata(TypedDict):
     extra: NotRequired[dict]
 
 
-class RunInformation(TypedDict):
+class RunConfiguration(TypedDict):
     """Run input information schema."""
 
     # The context of the input provided. e.g., file, selection, cell, others.
-    # This attribute can be customized by the `RunInputProvider` when
+    # This attribute can be customized by the `RunConfigurationProvider` when
     # registering with the run plugin. The context can be compared against the
     # values of `RunContext`. e.g., `info['context'] == RunContext.File`
     context: str
@@ -80,7 +83,7 @@ class RunInformation(TypedDict):
     # The output format to produce after executing the input. Each entry on the
     # set must belong to the `RunResultFormat` dict. The executor is responsible
     # of producing the correct format. This field will be available on a
-    # RunExecutor but it is not necessary for a RunInputProvider to
+    # RunExecutor but it is not necessary for a RunConfigurationProvider to
     # include it.
     output_formats: NotRequired[Set[str]]
 
@@ -89,7 +92,7 @@ class RunInformation(TypedDict):
     run_input: Any
 
     # Run input metadata information.
-    metadata: RunInputMetadata
+    metadata: RunConfigurationMetadata
 
     # File extension or identifier of the input context. It must belong to the
     # `RunInputExtension` set.
@@ -133,7 +136,7 @@ class RunResult(TypedDict):
     input_extension: str
 
     # Original run input metadata.
-    metadata: RunInputMetadata
+    metadata: RunConfigurationMetadata
 
     # Execution metadata.
     execution_metadata: RunExecutionMetadata
@@ -169,7 +172,8 @@ class SupportedRunConfiguration(TypedDict):
     # `RunInputExtension` set.
     input_extension: str
 
-    # The supported contexts for the given input extension. e.g., file, selection, cell, others.
+    # The supported contexts for the given input extension.
+    # e.g., file, selection, cell, others.
     # The context can be compared against the values of `RunContext`. e.g.,
     # `info['context'] == RunContext.File`
     contexts: List[Context]
@@ -182,7 +186,8 @@ class SupportedExecutionRunConfiguration(TypedDict):
     # `RunInputExtension` set.
     input_extension: str
 
-    # The context for the given input extension. e.g., file, selection, cell, others.
+    # The context for the given input extension.
+    # e.g., file, selection, cell, others.
     # The context can be compared against the values of `RunContext`. e.g.,
     # `info['context'] == RunContext.File`
     context: Context
@@ -190,8 +195,11 @@ class SupportedExecutionRunConfiguration(TypedDict):
     # The output formats available for the given context and extension.
     output_formats: List[OutputFormat]
 
+    # True if the executor requires a path in order to work. False otherwise
+    requires_cwd: bool
 
-class RunInputProvider:
+
+class RunConfigurationProvider:
     """
     Interface used to retrieve inputs to run on a code executor.
 
@@ -201,7 +209,7 @@ class RunInputProvider:
     :class:`spyder.api.plugins.SpyderDockablePlugin`
     """
 
-    def get_run_input(self, context: str) -> RunInformation:
+    def get_run_configuration(self, context: str) -> RunConfiguration:
         """
         Return the run information for the specified context.
 
@@ -213,7 +221,7 @@ class RunInputProvider:
 
         Returns
         -------
-        information: RunInformation
+        configuration: RunConfiguration
             A dictionary containing the information required by the run
             executor.
         """
@@ -225,18 +233,18 @@ class RunExecutor:
     Interface used to execute run context information.
 
     This API needs to be implemented by any plugin that wants to execute
-    an input produced by a :class:`RunInputProvider` to produce an output
+    an input produced by a :class:`RunConfigurationProvider` to produce an output
     compatible by a :class:`RunResultViewer`. This interface needs to be
     covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
-    def exec_run_input(self, input: RunInformation) -> List[RunResult]:
+    def exec_run_configuration(self, input: RunConfiguration) -> List[RunResult]:
         """
-        Execute a run input.
+        Execute a run configuration.
 
         Arguments
         ---------
-        input: RunInformation
+        input: RunConfiguration
             A dictionary containing the information required to execute the
             run input.
 
@@ -276,4 +284,16 @@ class RunResultViewer:
             representation in a format that the `RunResultViewer` instance
             supports.
         """
-        raise NotImplementedError(f'{type(self)} must implement display_run_result')
+        raise NotImplementedError(
+            f'{type(self)} must implement display_run_result')
+
+
+class RunExecutorConfigurationGroup(QWidget):
+    """QWidget subclass used to declare a RunExecutor configuration options."""
+
+    def get_configuration(self) -> dict:
+        """
+        Obtain a dictionary containing the execution configuration
+        options for the executor.
+        """
+        return {}

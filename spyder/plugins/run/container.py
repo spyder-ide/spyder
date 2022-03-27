@@ -22,7 +22,7 @@ from spyder.api.translations import get_translation
 from spyder.plugins.run.api import RunActions, RunResult
 from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunResultFormat, RunInputExtension,
-    RunInputProvider, SupportedRunConfiguration,
+    RunConfigurationProvider, SupportedRunConfiguration,
     SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat)
 
 # Localization
@@ -34,7 +34,7 @@ class RunContainer(PluginMainContainer):
 
 
     def setup(self):
-        self.input_providers: Dict[Tuple[str, str], WeakSet[RunInputProvider]] = {}
+        self.input_providers: Dict[Tuple[str, str], WeakSet[RunConfigurationProvider]] = {}
         self.executors: Dict[Tuple[str, str, str], WeakSet[RunExecutor]] = {}
         self.viewers: Dict[str, WeakSet[RunResultViewer]] = {}
 
@@ -60,18 +60,27 @@ class RunContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
+    def run_file(self):
+        pass
+
+    def edit_run_configurations(self):
+        pass
+
+    def re_run_file(self):
+        pass
+
     def register_input_provider_configuration(
-            self, provider: RunInputProvider,
+            self, provider: RunConfigurationProvider,
             configuration: List[SupportedRunConfiguration]):
         """
-        Register a :class:`RunInputProvider` instance to indicate its support
+        Register a :class:`RunConfigurationProvider` instance to indicate its support
         for a given set of run configurations.
 
         Parameters
         ----------
-        provider: RunInputProvider
+        provider: RunConfigurationProvider
             A :class:`SpyderPluginV2` instance that implements the
-            :class:`RunInputProvider` interface and will register execution
+            :class:`RunConfigurationProvider` interface and will register execution
             input type information.
         configuration: List[SuportedRunConfiguration]
             A list of input configurations that the provider is able to
@@ -96,17 +105,17 @@ class RunContainer(PluginMainContainer):
 
 
     def deregister_input_provider_configuration(
-            self, provider: RunInputProvider,
+            self, provider: RunConfigurationProvider,
             configuration: List[SupportedRunConfiguration]):
         """
-        Deregister a :class:`RunInputProvider` instance from providing a set
+        Deregister a :class:`RunConfigurationProvider` instance from providing a set
         of run configurations that are no longer supported by it.
 
         Parameters
         ----------
-        provider: RunInputProvider
+        provider: RunConfigurationProvider
             A :class:`SpyderPluginV2` instance that implements the
-            :class:`RunInputProvider` interface and will deregister execution
+            :class:`RunConfigurationProvider` interface and will deregister execution
             input type information.
         configuration: List[SuportedRunConfiguration]
             A list of input configurations that the provider wants to deregister.
@@ -179,7 +188,7 @@ class RunContainer(PluginMainContainer):
         """
         for config in configuration:
             ext = config['input_extension']
-            context = config['context']:
+            context = config['context']
             context_name = context['name']
             context_id = getattr(RunContext, context_name)
 
