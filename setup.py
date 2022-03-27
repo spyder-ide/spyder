@@ -231,7 +231,7 @@ install_requires = [
     'python-lsp-server[all]>=1.3.2,<1.4.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
-    'qdarkstyle==3.0.2',
+    'qdarkstyle>=3.0.2,<3.1.0',
     'qstylizer>=0.1.10',
     'qtawesome>=1.0.2',
     'qtconsole>=5.2.1,<5.3.0',
