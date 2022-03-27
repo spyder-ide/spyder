@@ -1372,14 +1372,15 @@ QComboBox {
         &:alternate {
             background: $COLOR_BACKGROUND_1;
         }
-
-        &:checked {
+        /* Remove to fix #282, #285 and MR #288*/
+        /*&:checked {
             font-weight: bold;
         }
 
         &:selected {
             border: 0px solid transparent;
         }
+        */
     }
 
     &::drop-down {

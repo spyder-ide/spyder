@@ -47,6 +47,14 @@ setup(
     long_description=long_desc,
     long_description_content_type='text/x-rst',
     include_package_data=True,  # add data file from MANIFEST.in #193
+    package_data={  # add data files when installing package #299
+        "": ["*",
+             "dark/rc/*",
+             "light/rc/*",
+             "qss/*",
+             "svg/*",
+             ],
+    },
     classifiers=classifiers,
     zip_safe=False,  # don't use eggs
     entry_points={"console_scripts": ["qdarkstyle=qdarkstyle.__main__:main",
