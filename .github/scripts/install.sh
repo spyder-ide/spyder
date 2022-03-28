@@ -23,9 +23,16 @@ if [ "$USE_CONDA" = "true" ]; then
     mamba install check-manifest codecov -c conda-forge -q -y
 
     # Remove packages we have subrepos for.
-    conda remove spyder-kernels --force -q -y
-    conda remove python-lsp-server --force -q -y
-    conda remove qdarkstyle --force -q -y
+    for dep in $(ls external-deps)
+    do
+        echo "Removing $dep package"
+
+        if [ "$dep" = "qtconsole" ]; then
+            conda remove qtconsole-base qtconsole --force -q -y
+        else
+            conda remove $dep --force -q -y
+        fi
+    done
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -36,9 +43,6 @@ else
     # Install qtpy from Github
     pip install git+https://github.com/spyder-ide/qtpy.git
 
-    # Install qtconsole from Github
-    pip install git+https://github.com/jupyter/qtconsole.git
-
     # Install QtAwesome from Github
     pip install git+https://github.com/spyder-ide/qtawesome.git
 
@@ -46,9 +50,11 @@ else
     pip install -q check-manifest codecov
 
     # Remove packages we have subrepos for
-    pip uninstall spyder-kernels -q -y
-    pip uninstall python-lsp-server -q -y
-    pip uninstall qdarkstyle -q -y
+    for dep in $(ls external-deps)
+    do
+        echo "Removing $dep package"
+        pip uninstall $dep -q -y
+    done
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y
