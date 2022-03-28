@@ -257,7 +257,7 @@ Due to that, a clone of those projects is placed in the `external-deps` director
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/jupyter/qtconsole.git external-deps/qtconsole -b develop -f
+    $ git subrepo clone https://github.com/jupyter/qtconsole.git external-deps/qtconsole -b master -f
     ```
 
 
