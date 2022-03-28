@@ -2,7 +2,7 @@
 
 1. Create pull request to update CHANGELOG.md with
     * `loghub python-lsp/python-lsp-server -m vX.X.X`
-    * git add -A && git commit -m "Update Changelog"
+    * git add -A && git commit -m "Update changelog for X.X.X"
 
     This is necessary to run our tests before the release, so we can be sure
     everything is in order.
@@ -16,5 +16,4 @@
 6. python setup.py bdist_wheel
 7. twine check dist/*
 8. twine upload dist/*
-9. git push upstream develop
-10. git push upstream --tags
+9. git push upstream --tags

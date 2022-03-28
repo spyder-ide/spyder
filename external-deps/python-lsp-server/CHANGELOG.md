@@ -1,12 +1,23 @@
 # History of changes
 
+## Version 1.4.1 (2022/03/27)
+
+### Pull Requests Merged
+
+* [PR 179](https://github.com/python-lsp/python-lsp-server/pull/179) - Fix Yapf formatting with CRLF line endings, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 174](https://github.com/python-lsp/python-lsp-server/pull/174) - Improved documentation regarding configuration, by [@spookylukey](https://github.com/spookylukey)
+
+In this release 2 pull requests were closed.
+
+----
+
+## Version 1.4.0 (2022/03/11)
+
 ### New features
 
 * Support pycodestyle indent-size option
 * Add `DiagnosticTag` constants from LSP 3.15
 * Drop support for Python 3.6
-
-## Version 1.4.0 (2022/03/11)
 
 ### Issues Closed
 

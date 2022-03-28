@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/python-lsp/python-lsp-server.git
-	branch = fix-yapf-crlf
-	commit = a38339494cb9d37c20a4df9c90503e9e49570bd2
-	parent = f1481931b6b7096f0985e69e6f1e06cb42f52b49
+	branch = develop
+	commit = 62cdac5989142744d2fee56ec4acbf77f61bf942
+	parent = 9a992d4e68a954590fb88ab69ca11d4f55d6d53a
 	method = merge
 	cmdver = 0.4.3
