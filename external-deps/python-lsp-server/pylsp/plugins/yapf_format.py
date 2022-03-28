@@ -37,14 +37,14 @@ def pylsp_format_range(document, range):  # pylint: disable=redefined-builtin
 
 
 def _format(document, lines=None):
-    # Yapf doesn't work with CR line endings, so we replace them by '\n'
+    # Yapf doesn't work with CRLF/CR line endings, so we replace them by '\n'
     # and restore them below.
-    replace_cr = False
+    replace_eols = False
     source = document.source
     eol_chars = get_eol_chars(source)
-    if eol_chars == '\r':
-        replace_cr = True
-        source = source.replace('\r', '\n')
+    if eol_chars in ['\r', '\r\n']:
+        replace_eols = True
+        source = source.replace(eol_chars, '\n')
 
     new_source, changed = FormatCode(
         source,
@@ -58,8 +58,8 @@ def _format(document, lines=None):
     if not changed:
         return []
 
-    if replace_cr:
-        new_source = new_source.replace('\n', '\r')
+    if replace_eols:
+        new_source = new_source.replace('\n', eol_chars)
 
     # I'm too lazy at the moment to parse diffs into TextEdit items
     # So let's just return the entire file...
