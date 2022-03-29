@@ -173,6 +173,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
         self.shutting_down = True
         if shutdown_kernel:
+            if not self.kernel_manager:
+                return
+
             self.interrupt_kernel()
             self.spyder_kernel_comm.close()
             self.kernel_manager.stop_restarter()
