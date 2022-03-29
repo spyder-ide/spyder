@@ -10,13 +10,9 @@
 import json
 import os
 import os.path as osp
-import subprocess
 import sys
 
-from spyder.config.base import running_in_mac_app, get_home_dir
-from spyder.utils.programs import (find_program, run_program,
-                                   run_shell_command)
-
+from spyder.utils.programs import find_program, run_program, run_shell_command
 
 WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}

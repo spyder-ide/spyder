@@ -17,7 +17,8 @@ import weakref
 
 # Local imports
 from spyder.api.utils import PrefixedTuple
-from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
+from spyder.config.base import (
+    _, get_conf_paths, get_conf_path, get_home_dir, reset_config_files)
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.types import ConfigurationKey, ConfigurationObserver
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault, cp
@@ -637,4 +638,21 @@ class ConfigurationManager(object):
             plugin_config.reset_to_defaults(section='shortcuts')
 
 
-CONF = ConfigurationManager()
+try:
+    CONF = ConfigurationManager()
+except Exception:
+    from qtpy.QtWidgets import QMessageBox
+    from spyder.app.utils import create_application
+    app = create_application()
+    reset_reply = QMessageBox.critical(
+        None, 'Spyder',
+        _("There was an error while loading Spyder configuration options. "
+          "You need to reset them for Spyder to be able to launch.\n\n"
+          "Do you want to proceed?"),
+        QMessageBox.Yes, QMessageBox.No)
+    if reset_reply == QMessageBox.Yes:
+        reset_config_files()
+        QMessageBox.information(
+            None, 'Spyder',
+            _("Spyder configuration files resetted!"))
+    os._exit(0)

@@ -24,7 +24,7 @@ import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
                             QSplitter, QVBoxLayout, QWidget, QListWidget,
@@ -480,6 +480,18 @@ class EditorStack(QWidget):
             name='Run selection',
             parent=self)
 
+        run_to_line = CONF.config_shortcut(
+            self.run_to_line,
+            context='Editor',
+            name='Run to line',
+            parent=self)
+
+        run_from_line = CONF.config_shortcut(
+            self.run_from_line,
+            context='Editor',
+            name='Run from line',
+            parent=self)
+
         new_file = CONF.config_shortcut(
             lambda: self.sig_new_file[()].emit(),
             context='Editor',
@@ -644,11 +656,11 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
-                tabshift, run_selection, new_file, open_file, save_file,
-                save_all, save_as, close_all, prev_edit_pos, prev_cursor,
-                next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, debug_cell,
-                run_cell_and_advance,
+                tabshift, run_selection, run_to_line, run_from_line, new_file,
+                open_file, save_file, save_all, save_as, close_all,
+                prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
+                zoom_out, zoom_reset, close_file_1, close_file_2, run_cell,
+                debug_cell, run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -2448,6 +2460,8 @@ class EditorStack(QWidget):
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
+        editor.sig_run_to_line.connect(self.run_to_line)
+        editor.sig_run_from_line.connect(self.run_from_line)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
@@ -2709,6 +2723,39 @@ class EditorStack(QWidget):
         finfo.editor.format_document_or_range()
 
     #  ------ Run
+    def _run_lines_cursor(self, direction):
+        """ Select and run all lines from cursor in given direction"""
+        editor = self.get_current_editor()
+
+        # Move cursor to start of line then move to beginning or end of
+        # document with KeepAnchor
+        cursor = editor.textCursor()
+        cursor.movePosition(QTextCursor.StartOfLine)
+
+        if direction == 'up':
+            cursor.movePosition(QTextCursor.Start, QTextCursor.KeepAnchor)
+        elif direction == 'down':
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+
+        code_text = editor.get_selection_as_executable_code(cursor)
+        if code_text:
+            self.exec_in_extconsole.emit(code_text.rstrip(),
+                                         self.focus_to_editor)
+
+    def run_to_line(self):
+        """
+        Run all lines from the beginning up to, but not including, current
+        line.
+        """
+        self._run_lines_cursor(direction='up')
+
+    def run_from_line(self):
+        """
+        Run all lines from and including the current line to the end of
+        the document.
+        """
+        self._run_lines_cursor(direction='down')
+
     def run_selection(self):
         """
         Run selected text or current line in console.
@@ -2960,15 +3007,15 @@ class EditorSplitter(QSplitter):
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
+            if close_splitter:
+                # editorstack just closed was the last widget in this QSplitter
+                self.close()
+                return
+            self.__give_focus_to_remaining_editor()
         except (RuntimeError, AttributeError):
             # editorsplitter has been destroyed (happens when closing a
             # EditorMainWindow instance)
             return
-        if close_splitter:
-            # editorstack just closed was the last widget in this QSplitter
-            self.close()
-            return
-        self.__give_focus_to_remaining_editor()
 
     def editorsplitter_closed(self):
         logger.debug("method 'editorsplitter_closed':")
@@ -3219,7 +3266,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
-        QMainWindow.__init__(self)
+        QMainWindow.__init__(self, plugin)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin

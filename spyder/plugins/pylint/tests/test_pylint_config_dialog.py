@@ -29,8 +29,8 @@ from spyder.plugins.preferences.tests.conftest import config_dialog
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
 
-    def __init__(self):
-        super().__init__(None)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.editor = MagicMock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
         self.projects = MagicMock()

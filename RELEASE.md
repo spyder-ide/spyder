@@ -89,11 +89,15 @@ To release a new version of Spyder you need to follow these steps:
 
 * Release a new version of `python-lsp-server`, if required.
 
-* Merge PRs on Conda-forge that update the `spyder-kernels` and `python-lsp-server` feedstocks (usually an automatic PR will appear that can be either merged as it is or be use as boilerplate):
+* Release a new version of `qtconsole`, if required.
+
+* Merge PRs on Conda-forge that update the `spyder-kernels`, `python-lsp-server` and `qtconsole` feedstocks (usually an automatic PR will appear that can be either merged as it is or be used as boilerplate):
 
   - `spyder-kernels`: https://github.com/conda-forge/spyder-kernels-feedstock
 
   - `python-lsp-server`: https://github.com/conda-forge/python-lsp-server-feedstock
+
+  - `qtconsole`: https://github.com/conda-forge/qtconsole-feedstock
 
   **Notes**:
 
@@ -120,6 +124,7 @@ To release a new version of Spyder you need to follow these steps:
 
       git subrepo pull external-deps/spyder-kernels
       git subrepo pull external-deps/python-lsp-server
+      git subrepo pull external-deps/qtconsole
 
 * Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
 

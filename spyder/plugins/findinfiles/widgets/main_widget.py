@@ -589,7 +589,7 @@ class FindInFilesWidget(PluginMainWidget):
         # Start
         self.running = True
         self.start_spinner()
-        self.search_thread = SearchThread(self, search_text, self.text_color)
+        self.search_thread = SearchThread(None, search_text, self.text_color)
         self.search_thread.sig_finished.connect(self._handle_search_complete)
         self.search_thread.sig_file_match.connect(
             self.result_browser.append_file_result

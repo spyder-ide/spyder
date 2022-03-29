@@ -250,7 +250,14 @@ class SpyderDockWidget(QDockWidget):
         QTabBar holding tabified dockwidgets.
         """
         dock_tabbar = None
-        tabbars = self.main.findChildren(QTabBar)
+
+        # This is necessary to catch an error when closing the app
+        # in macOS with PyQt 5.15
+        try:
+            tabbars = self.main.findChildren(QTabBar)
+        except RuntimeError:
+            tabbars = []
+
         for tabbar in tabbars:
             for tab in range(tabbar.count()):
                 title = tabbar.tabText(tab)

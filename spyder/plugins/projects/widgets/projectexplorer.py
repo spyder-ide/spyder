@@ -91,8 +91,10 @@ class ProxyModel(QSortFilterProxyModel):
         else:
             for p in [osp.normcase(p) for p in self.path_list]:
                 if path == p or path.startswith(p + os.sep):
-                    if not any([d in path for d in self.PATHS_TO_SHOW]):
-                        if any([d in path for d in self.PATHS_TO_HIDE]):
+                    if not any([path.endswith(os.sep + d)
+                                for d in self.PATHS_TO_SHOW]):
+                        if any([path.endswith(os.sep + d)
+                                for d in self.PATHS_TO_HIDE]):
                             return False
                         else:
                             return True

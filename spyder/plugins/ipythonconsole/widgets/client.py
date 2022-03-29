@@ -196,6 +196,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Close threads to avoid segfault."""
         if (self.restart_thread is not None
                 and self.restart_thread.isRunning()):
+            self.restart_thread.quit()
             self.restart_thread.wait()
 
     # ----- Private methods ---------------------------------------------------
@@ -515,19 +516,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         # Stop shellwidget
         self.shellwidget.shutdown()
-        self.remove_std_files()
+        self.remove_std_files(is_last_client=False)
 
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
         benign_errors = [
-            # See spyder-ide/spyder#16828
-            "This version of python seems to be incorrectly compiled",
-            "internal generated filenames are not absolute",
-            "This may make the debugger miss breakpoints",
-            "http://bugs.python.org/issue1666807",
-            # See spyder-ide/spyder#16927
-            "It seems the debugger cannot resolve",
-            "https://bugs.python.org/issue1180193",
             # Old error
             "No such comm"
         ]
@@ -588,6 +581,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
+        if (self.restart_thread is not None
+                and self.restart_thread.isRunning()):
+            self.restart_thread.finished.disconnect()
+            self.restart_thread.quit()
+            self.restart_thread.wait()
         shutdown_kernel = (
             is_last_client and not self.is_external_kernel
             and not self.is_error_shown)
@@ -648,9 +646,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 if (self.restart_thread is not None
                         and self.restart_thread.isRunning()):
                     self.restart_thread.finished.disconnect()
-                    self.restart_thread.terminate()
+                    self.restart_thread.quit()
                     self.restart_thread.wait()
-                self.restart_thread = QThread()
+                self.restart_thread = QThread(None)
                 self.restart_thread.run = self._restart_thread_main
                 self.restart_thread.error = None
                 self.restart_thread.finished.connect(

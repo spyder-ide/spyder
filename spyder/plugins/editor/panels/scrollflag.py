@@ -88,6 +88,10 @@ class ScrollFlagArea(Panel):
         """This property holds whether the vertical scrollbar is visible."""
         return self.editor.verticalScrollBar().isVisible()
 
+    def closeEvent(self, event):
+        self._update_list_timer.stop()
+        super().closeEvent(event)
+
     def sizeHint(self):
         """Override Qt method"""
         return QSize(self.WIDTH, 0)

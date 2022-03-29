@@ -226,16 +226,16 @@ install_requires = [
     'pylint>=2.5.0',
     'python-lsp-black>=1.0.0',
     'pyls-spyder>=0.4.0',
-    'pyqt5<5.13',
-    'pyqtwebengine<5.13',
-    'python-lsp-server[all]>=1.3.2,<1.4.0',
+    'pyqt5<5.16',
+    'pyqtwebengine<5.16',
+    'python-lsp-server[all]>=1.4.0,<1.5.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
-    'qdarkstyle==3.0.2',
+    'qdarkstyle>=3.0.2,<3.1.0',
     'qstylizer>=0.1.10',
     'qtawesome>=1.0.2',
     'qtconsole>=5.2.1,<5.3.0',
-    'qtpy>=1.5.0',
+    'qtpy>=2.0.1',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
@@ -252,7 +252,6 @@ if 'dev' in __version__ and WINDOWS_INSTALLER_NAME:
     install_requires.append('spyder-kernels>=2.2.1,<=2.3.0.dev0')
 
 extras_require = {
-    'test:platform_system == "Linux"': ['pytest-xvfb'],
     'test:platform_system == "Windows"': ['pywin32'],
     'test': [
         'coverage',
@@ -310,8 +309,6 @@ spyder_completions_entry_points = [
      'FallbackProvider'),
     ('snippets = spyder.plugins.completion.providers.snippets.provider:'
      'SnippetsProvider'),
-    ('kite = spyder.plugins.completion.providers.kite.provider:'
-     'KiteProvider'),
     ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
      'LanguageServerProvider'),
 ]

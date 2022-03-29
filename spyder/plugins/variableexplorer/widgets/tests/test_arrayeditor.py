@@ -221,8 +221,8 @@ def test_arrayeditor_edit_1d_array(qtbot):
     arr = np.arange(0, 5)
     dlg = ArrayEditor()
     assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
-    dlg.show()
-    qtbot.waitForWindowShown(dlg)
+    with qtbot.waitExposed(dlg):
+        dlg.show()
     view = dlg.arraywidget.view
 
     qtbot.keyPress(view, Qt.Key_Down)
@@ -241,8 +241,8 @@ def test_arrayeditor_edit_2d_array(qtbot):
     diff_arr = arr.copy()
     dlg = ArrayEditor()
     assert dlg.setup_and_check(arr, '2D array', xlabels=None, ylabels=None)
-    dlg.show()
-    qtbot.waitForWindowShown(dlg)
+    with qtbot.waitExposed(dlg):
+        dlg.show()
     view = dlg.arraywidget.view
 
     qtbot.keyPress(view, Qt.Key_Down)
@@ -267,8 +267,8 @@ def test_arrayeditor_edit_complex_array(qtbot):
     dlg = ArrayEditor()
     assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
                                ylabels=None)
-    dlg.show()
-    qtbot.waitForWindowShown(dlg)
+    with qtbot.waitExposed(dlg):
+        dlg.show()
     view = dlg.arraywidget.view
     qtbot.keyPress(view, Qt.Key_Down)
 
@@ -334,8 +334,8 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         dialog = ArrayEditor()
         assert dialog.setup_and_check(test_array, '1D array',
                                       xlabels=None, ylabels=None)
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.arraywidget.view
 
         qtbot.keyClick(view, Qt.Key_Down)

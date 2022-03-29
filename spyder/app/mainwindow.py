@@ -582,6 +582,7 @@ class MainWindow(QMainWindow):
         self.path = ()
         self.not_active_path = ()
         self.project_path = ()
+        self._path_manager = None
 
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
@@ -1518,6 +1519,8 @@ class MainWindow(QMainWindow):
         if self.already_closed or self.is_starting_up:
             return True
 
+        self.plugin_registry = PLUGIN_REGISTRY
+
         if cancelable and CONF.get('main', 'prompt_on_exit'):
             reply = QMessageBox.critical(self, 'Spyder',
                                          'Do you really want to exit?',
@@ -1525,24 +1528,53 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.No:
                 return False
 
-        if CONF.get('main', 'single_instance') and self.open_files_server:
-            self.open_files_server.close()
+        # TODO: This should be managed in a different way
+        # Prevents segfaults on close in the MacOS app and showing a warning
+        # message if spyder-terminal is installed
+        if not running_under_pytest():
+            # Save window settings *after* closing all plugin windows, in order
+            # to show them in their previous locations in the next session.
+            # Fixes spyder-ide/spyder#12139
+            prefix = 'window' + '/'
+            if self.layouts is not None:
+                self.layouts.save_current_window_settings(prefix)
 
-        can_close = PLUGIN_REGISTRY.delete_all_plugins(
-            excluding={Plugins.Layout}, close_immediately=close_immediately)
+            # Close application
+            os._exit(0)
+            app = qapplication()  # analysis:ignore
+            del app
+        else:
+            can_close = self.plugin_registry.delete_all_plugins(
+                excluding={Plugins.Layout},
+                close_immediately=close_immediately)
 
-        if not can_close and not close_immediately:
-            return False
+            if not can_close and not close_immediately:
+                return False
 
-        # Save window settings *after* closing all plugin windows, in order
-        # to show them in their previous locations in the next session.
-        # Fixes spyder-ide/spyder#12139
-        prefix = 'window' + '/'
-        if self.layouts is not None:
-            self.layouts.save_current_window_settings(prefix)
-        PLUGIN_REGISTRY.delete_plugin(Plugins.Layout)
+            # Save window settings *after* closing all plugin windows, in order
+            # to show them in their previous locations in the next session.
+            # Fixes spyder-ide/spyder#12139
+            prefix = 'window' + '/'
+            if self.layouts is not None:
+                self.layouts.save_current_window_settings(prefix)
+                try:
+                    layouts_container = self.layouts.get_container()
+                    if layouts_container:
+                        layouts_container.close()
+                        layouts_container.deleteLater()
+                    self.layouts.deleteLater()
+                    self.plugin_registry.delete_plugin(
+                        Plugins.Layout, teardown=False)
+                except RuntimeError:
+                    pass
 
-        self.already_closed = True
+            self.already_closed = True
+
+            if CONF.get('main', 'single_instance') and self.open_files_server:
+                self.open_files_server.close()
+
+            QApplication.processEvents()
+
         return True
 
     def add_dockwidget(self, plugin):
@@ -1743,19 +1775,29 @@ class MainWindow(QMainWindow):
     @Slot()
     def show_path_manager(self):
         """Show path manager dialog."""
-        from spyder.widgets.pathmanager import PathManager
-        projects = self.get_plugin(Plugins.Projects, error=False)
+        def _dialog_finished(result_code):
+            """Restore path manager dialog instance variable."""
+            self._path_manager = None
 
-        read_only_path = ()
-        if projects:
-            read_only_path = tuple(projects.get_pythonpath())
+        if self._path_manager is None:
+            from spyder.widgets.pathmanager import PathManager
+            projects = self.get_plugin(Plugins.Projects, error=False)
+            read_only_path = ()
+            if projects:
+                read_only_path = tuple(projects.get_pythonpath())
 
-        dialog = PathManager(self, self.path, read_only_path,
-                             self.not_active_path, sync=True)
-        self._path_manager = dialog
-        dialog.sig_path_changed.connect(self.update_python_path)
-        dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
-        dialog.show()
+            dialog = PathManager(self, self.path, read_only_path,
+                                 self.not_active_path, sync=True)
+            self._path_manager = dialog
+            dialog.sig_path_changed.connect(self.update_python_path)
+            dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
+            dialog.finished.connect(_dialog_finished)
+            dialog.show()
+        else:
+            self._path_manager.show()
+            self._path_manager.activateWindow()
+            self._path_manager.raise_()
+            self._path_manager.setFocus()
 
     def pythonpath_changed(self):
         """Project's PYTHONPATH contribution has changed."""
@@ -1841,6 +1883,8 @@ class MainWindow(QMainWindow):
                 enotsock = (errno.WSAENOTSOCK if os.name == 'nt'
                             else errno.ENOTSOCK)
                 if e.args[0] in [errno.ECONNABORTED, enotsock]:
+                    return
+                if self.already_closed:
                     return
                 raise
             fname = req.recv(1024)

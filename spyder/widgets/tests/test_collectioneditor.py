@@ -735,8 +735,8 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
     for test_obj, expected_obj, keys in nonsettable_objects_data:
         col_editor = CollectionsEditor(None)
         col_editor.setup(test_obj)
-        col_editor.show()
-        qtbot.waitForWindowShown(col_editor)
+        with qtbot.waitExposed(col_editor):
+            col_editor.show()
         view = col_editor.widget.editor
         indicies = [view.source_model.get_index_from_key(key) for key in keys]
 

@@ -1,5 +1,53 @@
 # History of changes
 
+## Version 1.4.1 (2022/03/27)
+
+### Pull Requests Merged
+
+* [PR 179](https://github.com/python-lsp/python-lsp-server/pull/179) - Fix Yapf formatting with CRLF line endings, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 174](https://github.com/python-lsp/python-lsp-server/pull/174) - Improved documentation regarding configuration, by [@spookylukey](https://github.com/spookylukey)
+
+In this release 2 pull requests were closed.
+
+----
+
+## Version 1.4.0 (2022/03/11)
+
+### New features
+
+* Support pycodestyle indent-size option
+* Add `DiagnosticTag` constants from LSP 3.15
+* Drop support for Python 3.6
+
+### Issues Closed
+
+* [Issue 153](https://github.com/python-lsp/python-lsp-server/issues/153) - Plugin crash crashes whole diagnostic ([PR 158](https://github.com/python-lsp/python-lsp-server/pull/158) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 150](https://github.com/python-lsp/python-lsp-server/issues/150) - README.md: Windows users trying to install the *extras* in `cmd.exe` need to use double quotes instead of single quotes ([PR 163](https://github.com/python-lsp/python-lsp-server/pull/163) by [@ScientificProgrammer](https://github.com/ScientificProgrammer))
+* [Issue 147](https://github.com/python-lsp/python-lsp-server/issues/147) - C extensions printing on import break pylint diagnostics
+* [Issue 143](https://github.com/python-lsp/python-lsp-server/issues/143) - Still shows diagnostics on closed files ([PR 165](https://github.com/python-lsp/python-lsp-server/pull/165) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 126](https://github.com/python-lsp/python-lsp-server/issues/126) - Use git-based versioning
+
+In this release 5 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 165](https://github.com/python-lsp/python-lsp-server/pull/165) - Clear diagnostics when closing documents, by [@ccordoba12](https://github.com/ccordoba12) ([143](https://github.com/python-lsp/python-lsp-server/issues/143))
+* [PR 163](https://github.com/python-lsp/python-lsp-server/pull/163) - Update single quotes to double quotes for install command examples, by [@ScientificProgrammer](https://github.com/ScientificProgrammer) ([150](https://github.com/python-lsp/python-lsp-server/issues/150))
+* [PR 158](https://github.com/python-lsp/python-lsp-server/pull/158) - Prevent third-party plugins with faulty hooks to crash the server, by [@ccordoba12](https://github.com/ccordoba12) ([153](https://github.com/python-lsp/python-lsp-server/issues/153))
+* [PR 154](https://github.com/python-lsp/python-lsp-server/pull/154) - Prevent faulty third-party plugins to crash the server, by [@arian-f](https://github.com/arian-f)
+* [PR 151](https://github.com/python-lsp/python-lsp-server/pull/151) - Fix Autopep8 and Yapf formatting with CR line endings, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 148](https://github.com/python-lsp/python-lsp-server/pull/148) - Fix pygame greeting breaking pylint diagnostics, by [@piotr-machura](https://github.com/piotr-machura)
+* [PR 142](https://github.com/python-lsp/python-lsp-server/pull/142) - Add `DiagnosticTag` constants from LSP 3.15, by [@krassowski](https://github.com/krassowski)
+* [PR 141](https://github.com/python-lsp/python-lsp-server/pull/141) - Support pycodestyle indent-size option, by [@mnauw](https://github.com/mnauw)
+* [PR 138](https://github.com/python-lsp/python-lsp-server/pull/138) - Make pylint test Python version independent, by [@jspricke](https://github.com/jspricke)
+* [PR 137](https://github.com/python-lsp/python-lsp-server/pull/137) - Add license info to `setup.py` so it will show up in wheel installs, by [@itsbenweeks](https://github.com/itsbenweeks)
+* [PR 130](https://github.com/python-lsp/python-lsp-server/pull/130) - Update Python base version to 3.7+, by [@npradeep357](https://github.com/npradeep357)
+* [PR 84](https://github.com/python-lsp/python-lsp-server/pull/84) - Move the package metadata from setup.py to setup.cfg, by [@KOLANICH](https://github.com/KOLANICH) ([84](https://github.com/python-lsp/python-lsp-server/issues/84))
+
+In this release 12 pull requests were closed.
+
+----
+
 ## Version 1.3.3 (2021-12-13)
 
 ### Issues Closed
