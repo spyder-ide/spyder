@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sys
 from datetime import datetime
-from typing import Any, Set, List, Union, Optional
+from typing import Any, Set, List, Union, Optional, Type
 
 # PEP 589 and 544 are available from Python 3.8 onwards
 if sys.version_info >= (3, 8):
@@ -63,22 +63,27 @@ class RunConfigurationMetadata(TypedDict):
     """Run input metadata schema."""
     # Human-readable name for the run input.
     name: str
-    # Source of the input provided.
+    # Name of the RunConfigurationProvider that produced the run configuration.
     source: str
     # Timestamp of the run input information.
     timestamp: datetime
     # Extra metadata information.
     extra: NotRequired[dict]
-
-
-class RunConfiguration(TypedDict):
-    """Run input information schema."""
-
+    # Unique identifier for this run configuration. This should be generated
+    # and managed by the RunConfigurationProvider
+    uuid: str
     # The context of the input provided. e.g., file, selection, cell, others.
     # This attribute can be customized by the `RunConfigurationProvider` when
     # registering with the run plugin. The context can be compared against the
     # values of `RunContext`. e.g., `info['context'] == RunContext.File`
-    context: str
+    context: Context
+    # File extension or identifier of the input context. It must belong to the
+    # `RunInputExtension` set.
+    input_extension: str
+
+
+class RunConfiguration(TypedDict):
+    """Run input information schema."""
 
     # The output format to produce after executing the input. Each entry on the
     # set must belong to the `RunResultFormat` dict. The executor is responsible
@@ -93,10 +98,6 @@ class RunConfiguration(TypedDict):
 
     # Run input metadata information.
     metadata: RunConfigurationMetadata
-
-    # File extension or identifier of the input context. It must belong to the
-    # `RunInputExtension` set.
-    input_extension: str
 
 
 class RunExecutionMetadata(TypedDict):
@@ -195,6 +196,11 @@ class SupportedExecutionRunConfiguration(TypedDict):
     # The output formats available for the given context and extension.
     output_formats: List[OutputFormat]
 
+    # The configuration widget used to set the options for the current
+    # input extension and context combination. If None or missing then no
+    # configuration widget will be shown on the Run dialog for that combination.
+    configuration_widget: NotRequired[Optional[RunExecutorConfigurationGroup]]
+
     # True if the executor requires a path in order to work. False otherwise
     requires_cwd: bool
 
@@ -209,15 +215,16 @@ class RunConfigurationProvider:
     :class:`spyder.api.plugins.SpyderDockablePlugin`
     """
 
-    def get_run_configuration(self, context: str) -> RunConfiguration:
+    def get_run_configuration(self, uuid: str) -> RunConfiguration:
         """
-        Return the run information for the specified context.
+        Return the run information for the specified identifier.
 
         Arguments
         ---------
         context: str
-            The context for the run request. It must be a member of
-            :data:`RunContext`.
+            The unique identifier for the run configuration requested, such
+            id should have been registered previously via
+            `register_run_configuration_metadata` on the Run plugin.
 
         Returns
         -------
@@ -289,7 +296,40 @@ class RunResultViewer:
 
 
 class RunExecutorConfigurationGroup(QWidget):
-    """QWidget subclass used to declare a RunExecutor configuration options."""
+    """
+    QWidget subclass used to declare a RunExecutor configuration options.
+
+    Every executor that wants to add a configuration group to the Run
+    dialog for a given context and input extension must subclass this
+    interface.
+
+    Parameters
+    ---------
+    parent: QWidget
+        The instance of the run dialog, which will be always given by
+        parameter.
+    context: Context
+        The run configuration context for which the dialog will provide
+        options.
+    input_extension: str
+        The run configuration input extension for which the dialog will
+        provide options.
+    input_metadata: RunConfigurationMetadata
+        The run configuration metadata that will be tentatively executed.
+
+    Notes
+    -----
+    The aforementioned parameters will be always be passed by the Run
+    dialog instance, and no subclass should modify them.
+    """
+
+    def __init__(self, parent: QWidget, context: Context, input_extension: str,
+                 input_metadata: RunConfigurationMetadata):
+        """Create a run executor configuration widget."""
+        super().__init__(parent)
+        self.context = context
+        self.input_extension = input_extension
+        self.input_metadata = input_metadata
 
     def get_configuration(self) -> dict:
         """

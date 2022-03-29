@@ -7,12 +7,14 @@
 """Spyder run container."""
 
 # Standard library imports
+from cProfile import run
 import re
-from weakref import WeakSet
+from collections import OrderedDict
+from weakref import WeakSet, WeakValueDictionary
 from typing import List, Dict, Tuple
 
 # Third-party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal, QAbstractListModel, QModelIndex
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -23,7 +25,8 @@ from spyder.plugins.run.api import RunActions, RunResult
 from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunResultFormat, RunInputExtension,
     RunConfigurationProvider, SupportedRunConfiguration,
-    SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat)
+    SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
+    RunConfigurationMetadata)
 
 # Localization
 _ = get_translation('spyder')
@@ -32,9 +35,8 @@ _ = get_translation('spyder')
 class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
-
     def setup(self):
-        self.input_providers: Dict[Tuple[str, str], WeakSet[RunConfigurationProvider]] = {}
+        self.run_metadata_provider: WeakValueDictionary[str, RunConfigurationProvider] = WeakValueDictionary()
         self.executors: Dict[Tuple[str, str, str], WeakSet[RunExecutor]] = {}
         self.viewers: Dict[str, WeakSet[RunResultViewer]] = {}
 
@@ -69,68 +71,49 @@ class RunContainer(PluginMainContainer):
     def re_run_file(self):
         pass
 
-    def register_input_provider_configuration(
+    def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,
-            configuration: List[SupportedRunConfiguration]):
+            metadata: RunConfigurationMetadata):
         """
-        Register a :class:`RunConfigurationProvider` instance to indicate its support
-        for a given set of run configurations.
+        Register the metadata for a run configuration.
 
         Parameters
         ----------
         provider: RunConfigurationProvider
             A :class:`SpyderPluginV2` instance that implements the
-            :class:`RunConfigurationProvider` interface and will register execution
-            input type information.
-        configuration: List[SuportedRunConfiguration]
-            A list of input configurations that the provider is able to
-            produce. Each configuration specifies the input extension
-            identifier as well as the available execution context for that
-            type.
+            :class:`RunConfigurationProvider` interface and will register
+            and own a run configuration.
+        metadata: RunConfigurationMetadata
+            The metadata for a run configuration that the provider is able to
+            produce.
         """
-        for config in configuration:
-            ext = config['input_extension']
-            if ext not in RunInputExtension:
-                RunInputExtension.add(ext)
-            for context in config['contexts']:
-                context_name = context['name']
-                context_identifier = context.get('identifier', None)
-                if context_identifier is None:
-                    context_identifier = camel_case_to_snake_case(context_name)
-                setattr(RunContext, context_name, context_identifier)
+        ext = metadata['input_extension']
+        if ext not in RunInputExtension:
+            RunInputExtension.add(ext)
+        context = metadata['context']
+        context_name = context['name']
+        context_identifier = context.get('identifier', None)
+        if context_identifier is None:
+            context_identifier = camel_case_to_snake_case(context_name)
+        setattr(RunContext, context_name, context_identifier)
 
-                provider_set = self.input_providers.get((ext, context_identifier), WeakSet())
-                provider_set.add(provider)
-                self.input_providers[(ext, context_identifier)] = provider_set
+        run_id = metadata['uuid']
+        self.run_metadata_provider[run_id] = provider
+        self.metadata_model[run_id] = metadata
 
-
-    def deregister_input_provider_configuration(
-            self, provider: RunConfigurationProvider,
-            configuration: List[SupportedRunConfiguration]):
+    def deregister_run_configuration_metadata(self, uuid: str):
         """
-        Deregister a :class:`RunConfigurationProvider` instance from providing a set
-        of run configurations that are no longer supported by it.
+        Deregister a given run configuration by its unique identifier.
 
         Parameters
         ----------
-        provider: RunConfigurationProvider
-            A :class:`SpyderPluginV2` instance that implements the
-            :class:`RunConfigurationProvider` interface and will deregister execution
-            input type information.
-        configuration: List[SuportedRunConfiguration]
-            A list of input configurations that the provider wants to deregister.
-            Each configuration specifies the input extension
-            identifier as well as the available execution context for that
-            type.
+        uuid: str
+            Unique identifier for a run configuration metadata that will not
+            longer exist. This id should have been registered using
+            `register_run_configuration_metadata`.
         """
-        for config in configuration:
-            ext = config['input_extension']
-            for context in config['contexts']:
-                context_name = context['name']
-                context_id = getattr(RunContext, context_name)
-                if (ext, context_id) in self.input_providers:
-                    providers_set = self.input_providers[(ext, context_id)]
-                    providers_set.discard(provider)
+        self.metadata_model.pop(uuid)
+        self.run_metadata_provider.pop(uuid)
 
     def register_executor_configuration(
             self, executor: RunExecutor,

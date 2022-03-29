@@ -25,7 +25,7 @@ from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.api import (
     RunContext, RunResultFormat, RunInputExtension, RunConfigurationProvider,
     SupportedRunConfiguration, RunExecutor, SupportedExecutionRunConfiguration,
-    RunResultViewer, OutputFormat)
+    RunResultViewer, OutputFormat, RunConfigurationMetadata)
 from spyder.plugins.run.container import RunContainer
 
 # Localization
@@ -91,53 +91,43 @@ class Run(SpyderPluginV2):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def register_input_provider_configuration(
+    def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,
-            configuration: List[SupportedRunConfiguration]):
+            metadata: RunConfigurationMetadata):
         """
-        Register a :class:`RunConfigurationProvider` instance to indicate
-        its support for a given set of run configurations.
-        This method can be called whenever an input provider can extend its
-        support for a given run input configuration.
+        Register the metadata for a run configuration.
 
         Parameters
         ----------
         provider: RunConfigurationProvider
             A :class:`SpyderPluginV2` instance that implements the
             :class:`RunConfigurationProvider` interface and will register
-            execution input type information.
-        configuration: List[SuportedRunConfiguration]
-            A list of input configurations that the provider is able to
-            produce. Each configuration specifies the input extension
-            identifier as well as the available execution context for that
-            type.
-        """
-        self.get_container().register_input_provider_configuration(
-            provider, configuration)
+            and own a run configuration.
+        metadata: RunConfigurationMetadata
+            The metadata for a run configuration that the provider is able to
+            produce.
 
-    def deregister_input_provider_configuration(
-            self, provider: RunConfigurationProvider,
-            configuration: List[SupportedRunConfiguration]):
+        Notes
+        -----
+        The unique identifier for the metadata dictionary is produced and
+        managed by the provider and the Run plugin will only refer to the
+        run configuration by using such id.
         """
-        Deregister a :class:`RunConfigurationProvider` instance from providing
-        a set of run configurations that are no longer supported by it. This
-        method can be called whenever an input provider wants to remove its
-        support for a given run input configuration.
+        self.get_container().register_run_configuration_metadata(
+            provider, metadata)
+
+    def deregister_run_configuration_metadata(self, uuid: str):
+        """
+        Deregister a given run configuration by its unique identifier.
 
         Parameters
         ----------
-        provider: RunConfigurationProvider
-            A :class:`SpyderPluginV2` instance that implements the
-            :class:`RunConfigurationProvider` interface and will deregister execution
-            input type information.
-        configuration: List[SupportedRunConfiguration]
-            A list of input configurations that the provider wants to deregister.
-            Each configuration specifies the input extension
-            identifier as well as the available execution context for that
-            type.
+        uuid: str
+            Unique identifier for a run configuration metadata that will not
+            longer exist. This id should have been registered using
+            `register_run_configuration_metadata`.
         """
-        self.get_container().deregister_input_provider_configuration(
-            provider, configuration)
+        self.get_container().deregister_run_configuration_metadata(uuid)
 
     def register_executor_configuration(
             self, provider: RunExecutor,

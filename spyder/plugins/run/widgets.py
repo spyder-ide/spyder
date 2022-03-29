@@ -8,10 +8,11 @@
 
 # Standard library imports
 import os.path as osp
+from collections import OrderedDict
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, Signal, Slot, QAbstractListModel, QModelIndex
 from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QFrame, QGridLayout, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
@@ -19,6 +20,7 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.plugins.run.api import RunConfigurationMetadata
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -520,3 +522,4 @@ class RunConfigDialog(BaseRunConfigDialog):
             configurations.append( (filename, options) )
         _set_run_configurations(configurations)
         QDialog.accept(self)
+
