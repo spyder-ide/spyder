@@ -766,10 +766,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         """Refresh context menu"""
         index = self.currentIndex()
         condition = index.isValid()
-        if self.edit_action is not None:
-            self.edit_action.setEnabled(condition)
-        if self.remove_action is not None:
-            self.remove_action.setEnabled(condition)
+        self.edit_action.setEnabled(condition)
+        self.remove_action.setEnabled(condition)
         self.refresh_plot_entries(index)
 
     def refresh_plot_entries(self, index):
@@ -788,20 +786,13 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             is_array = condition_plot = condition_imshow = is_list \
                      = condition_hist = False
         is_list_instance = isinstance(self.source_model.get_data(), list)
-        if self.plot_action is not None:
-            self.plot_action.setVisible(condition_plot or is_list)
-        if self.hist_action is not None:
-            self.hist_action.setVisible(condition_hist or is_list)
-        if self.insert_action is not None:            
-            self.insert_action.setVisible(not is_list_instance)
-        if self.insert_action_above is not None:
-            self.insert_action_above.setVisible(is_list_instance)
-        if self.insert_action_below is not None:
-            self.insert_action_below.setVisible(is_list_instance)
-        if self.imshow_action is not None:
-            self.imshow_action.setVisible(condition_imshow)
-        if self.save_array_action is not None:
-            self.save_array_action.setVisible(is_array)
+        self.plot_action.setVisible(condition_plot or is_list)
+        self.hist_action.setVisible(condition_hist or is_list)
+        self.insert_action.setVisible(not is_list_instance)
+        self.insert_action_above.setVisible(is_list_instance)
+        self.insert_action_below.setVisible(is_list_instance)
+        self.imshow_action.setVisible(condition_imshow)
+        self.save_array_action.setVisible(is_array)
 
     def resize_column_contents(self):
         """Resize columns to contents."""
@@ -1195,8 +1186,8 @@ class CollectionsEditorTableView(BaseTableView):
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
         
-        self.menu = self.setup_menu()
         self.setup_table()
+        self.menu = self.setup_menu()
         if isinstance(data, set):
             self.horizontalHeader().hideSection(0)
 
@@ -1505,10 +1496,11 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             self.sig_editor_creation_started)
         self.delegate.sig_editor_shown.connect(self.sig_editor_shown)
         self.setItemDelegate(self.delegate)
+        
+        self.setup_table()
 
         if create_menu:
             self.menu = self.setup_menu()
-        self.setup_table()
 
     # ------ Remote/local API -------------------------------------------------
     def get_value(self, name):
@@ -1593,6 +1585,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         """Setup context menu."""
         menu = BaseTableView.setup_menu(self)
         return menu
+
+    def refresh_menu(self):
+        if self.var_properties:
+            super().refresh_menu()
 
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the variable finder."""
