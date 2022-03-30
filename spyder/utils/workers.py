@@ -77,7 +77,10 @@ class PythonWorker(QObject):
             error = err
 
         if not self._is_finished:
-            self.sig_finished.emit(self, output, error)
+            try:
+                self.sig_finished.emit(self, output, error)
+            except RuntimeError:
+                pass
         self._is_finished = True
 
 
