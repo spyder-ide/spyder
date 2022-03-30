@@ -1,6 +1,5 @@
 # Spyder extra packages
 autopep8
-black==21.12b0  # App fails with version 22
 flake8
 Paramiko
 pycodestyle
