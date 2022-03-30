@@ -1,2 +1,2 @@
 # Spyder external plugins
-spyder-terminal>=1.2.1
+spyder-terminal>=1.2.2
