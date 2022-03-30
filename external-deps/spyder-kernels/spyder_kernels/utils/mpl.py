@@ -29,6 +29,7 @@ else:
 MPL_BACKENDS_TO_SPYDER = {
     inline_backend: 0,
     'Qt5Agg': 2,
+    'QtAgg': 2,  # For Matplotlib 3.5+
     'TkAgg': 3,
     'MacOSX': 4,
 }
