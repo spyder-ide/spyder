@@ -107,7 +107,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update the version of any packages required before the release in the following files:
 
-  - `setup.py`
+  - `setup.py` (look up for the Windows installer patch too)
   - `spyder/dependencies.py`
   - `requirements/conda.txt`
   - `binder/environment.yml`
