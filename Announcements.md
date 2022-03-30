@@ -1,22 +1,33 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.2.2 is released!
+**Subject**: [ANN] Spyder 5.3.0 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.2.2** has been released and is available for
+I'm pleased to announce that Spyder **5.3.0** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes thirty-eight days after version 5.2.1 and it contains the
-following important fixes:
+This release comes sixty-eight days after version 5.2.2 and it contains the
+following new features, important fixes and new API features:
 
-* Fix using Tk backend on Windows with the IPython Console.
-* Fix several issues regarding the IPython Console kernel restart, shutdown and bening errors handling.
+* New `Run to current line` and `Run from current line` actions in the Editor
+* New option to reset per-file run configurations
+* Now the spyder-terminal plugin comes bundled with the standalone installers (MacOS and Windows)
+* Now the Windows standalone installers come with Python 3.8.10
+* Drop support for Python 3.6
+* Update PyQt requirement to 5.15
+* Fix the restart logic in the IPython Console to set matplotlib interactive backends
+* Fix some issues related to black formatting configuration and usage
+* Improve Editor performance by decreasing the amount of requests (didChange request) made to the pyls instance
+* Disable Kite provider for completions
+* Require IPython => 7.31.1 due to CVE-2022-21699
+* Several fixes for type errors with Python 3.10
+* New `on_close` method for the `PluginMainWidget` class that its called on `closeEvent`
 
-In this release we fixed 35 issues and merged 45 pull requests that amount
-to more than 164 commits. For a full list of fixes, please see our
+In this release we fixed 45 issues and merged 66 pull requests that amount
+to more than 303 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -27,6 +38,7 @@ efficient scientific development and computing environment. Join us to help
 creating your favorite environment!
 
 Enjoy!
+
 Daniel
 
 
