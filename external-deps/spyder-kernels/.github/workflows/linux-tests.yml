@@ -18,6 +18,7 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'ubuntu'
+      USE_CONDA: 'true'
     strategy:
       fail-fast: false 
       matrix:

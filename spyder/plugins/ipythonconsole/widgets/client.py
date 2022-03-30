@@ -521,6 +521,19 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
         benign_errors = [
+            # Error when switching from the Qt5 backend to the Tk one.
+            # See spyder-ide/spyder#17488
+            "KeyboardInterrupt caught in kernel",
+            "QSocketNotifier: Multiple socket notifiers for same socket",
+            # Error when switching from the Tk backend to the Qt5 one.
+            # See spyder-ide/spyder#17488
+            "Tcl_AsyncDelete async handler deleted by the wrong thread",
+            "error in background error handler:",
+            "    while executing",
+            '"::tcl::Bgerror',
+            # Avoid showing this warning because it was up to the user to
+            # disable secure writes.
+            "WARNING: Insecure writes have been enabled via environment",
             # Old error
             "No such comm"
         ]
@@ -695,7 +708,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Reset Pdb state and reopen comm
             sw._pdb_in_loop = False
             sw.spyder_kernel_comm.remove()
-            sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+            try:
+                sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+            except AttributeError:
+                # An error occurred while opening our comm channel.
+                # Aborting!
+                return
 
             # Start autorestart mechanism
             sw.kernel_manager.autorestart = True

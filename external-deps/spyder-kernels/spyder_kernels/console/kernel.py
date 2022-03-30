@@ -83,6 +83,7 @@ class SpyderKernel(IPythonKernel):
             'update_syspath': self.update_syspath,
             'is_special_kernel_valid': self.is_special_kernel_valid,
             'get_matplotlib_backend': self.get_matplotlib_backend,
+            'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
             'pdb_input_reply': self.pdb_input_reply,
             '_interrupt_eventloop': self._interrupt_eventloop,
             'enable_faulthandler': self.enable_faulthandler,
@@ -448,6 +449,60 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             return None
 
+    def get_mpl_interactive_backend(self):
+        """
+        Get current Matplotlib interactive backend.
+
+        This is different from the current backend because, for instance, the
+        user can set first the Qt5 backend, then the Inline one. In that case,
+        the current backend is Inline, but the current interactive one is Qt5,
+        and this backend can't be changed without a kernel restart.
+        """
+        # Mapping from frameworks to backend names.
+        mapping = {
+            'qt': 'QtAgg',  # For Matplotlib 3.5+
+            'qt5': 'Qt5Agg',
+            'tk': 'TkAgg',
+            'macosx': 'MacOSX'
+        }
+
+        try:
+            # --- Get interactive framework
+            framework = None
+
+            # This is necessary because _get_running_interactive_framework
+            # can't detect Tk in a Jupyter kernel.
+            if hasattr(self, 'app_wrapper'):
+                if hasattr(self.app_wrapper, 'app'):
+                    import tkinter
+                    if isinstance(self.app_wrapper.app, tkinter.Tk):
+                        framework = 'tk'
+
+            if framework is None:
+                try:
+                    # This is necessary for Matplotlib 3.3.0+
+                    from matplotlib import cbook
+                    framework = cbook._get_running_interactive_framework()
+                except AttributeError:
+                    # For older versions
+                    from matplotlib import backends
+                    framework = backends._get_running_interactive_framework()
+
+            # --- Return backend according to framework
+            if framework is None:
+                # Since no interactive backend has been set yet, this is
+                # equivalent to having the inline one.
+                return 0
+            elif framework in mapping:
+                return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+            else:
+                # This covers the case of other backends (e.g. Wx or Gtk)
+                # which users can set interactively with the %matplotlib
+                # magic but not through our Preferences.
+                return -1
+        except Exception:
+            return None
+
     def set_matplotlib_backend(self, backend, pylab=False):
         """Set matplotlib backend given a Spyder backend option."""
         mpl_backend = MPL_BACKENDS_FROM_SPYDER[to_text_string(backend)]
@@ -713,7 +768,12 @@ class SpyderKernel(IPythonKernel):
         """
         import traceback
         from IPython.core.getipython import get_ipython
-        import matplotlib
+
+        # Don't proceed further if there's any error while importing Matplotlib
+        try:
+            import matplotlib
+        except Exception:
+            return
 
         generic_error = (
             "\n" + "="*73 + "\n"
