@@ -768,7 +768,12 @@ class SpyderKernel(IPythonKernel):
         """
         import traceback
         from IPython.core.getipython import get_ipython
-        import matplotlib
+
+        # Don't proceed further if there's any error while importing Matplotlib
+        try:
+            import matplotlib
+        except Exception:
+            return
 
         generic_error = (
             "\n" + "="*73 + "\n"

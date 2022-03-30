@@ -1,5 +1,5 @@
 cloudpickle
-ipykernel>=6.6.1
+ipykernel>=6.9.2
 ipython>=7.31.1,<8
 jupyter_client>=7.1.0
 pyzmq>=22.1.0
