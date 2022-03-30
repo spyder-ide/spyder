@@ -414,7 +414,7 @@ class BaseRunConfigDialog(QDialog):
         """Run button was just clicked"""
         pass
 
-    def setup(self, fname):
+    def setup(self):
         """Setup Run Configuration dialog with filename *fname*"""
         raise NotImplementedError
 
@@ -522,4 +522,24 @@ class RunConfigDialog(BaseRunConfigDialog):
             configurations.append( (filename, options) )
         _set_run_configurations(configurations)
         QDialog.accept(self)
+
+
+class RunDialog(BaseRunConfigDialog):
+    """Run dialog used to configure run executors."""
+
+    def __init__(self, parent=None, run_conf_model=None, executors_model=None):
+        super().__init__(parent)
+        self.run_conf_model = run_conf_model
+        self.executors_model = executors_model
+
+    def setup(self):
+        combo_label = QLabel(_("Select a run configuration:"))
+        self.configuration_combo = QComboBox()
+        self.executor_combo = QComboBox()
+        self.configuration_combo.setMaxVisibleItems(20)
+        self.configuration_combo.view().setVerticalScrollBarPolicy(
+            Qt.ScrollBarAsNeeded)
+        self.configuration_combo.setModel(self.run_conf_model)
+
+        self.executor_combo.setMaxVisibleItems(20)
 

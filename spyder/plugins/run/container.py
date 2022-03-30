@@ -32,11 +32,70 @@ from spyder.plugins.run.api import (
 _ = get_translation('spyder')
 
 
+class RunExecutorListModel(QAbstractListModel):
+    sig_executor_widget_changed = Signal(object)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.executors: List[str] = []
+
+    def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+        return self.executors[index.row()]
+
+    def rowCount(self, parent: QModelIndex = None) -> int:
+        return len(self.executors)
+
+    def update_executors(self, executors):
+        self.executors = executors
+        self.dataChanged.emit(self.createIndex(0, 0),
+                              self.createIndex(len(self.executors), 0))
+
+
+class RunConfigurationListModel(QAbstractListModel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.metadata_index: Dict[int, str] = {}
+        self.run_configurations: OrderedDict[
+            str, RunConfigurationMetadata] = OrderedDict()
+        self.executor_model: RunExecutorListModel = RunExecutorListModel()
+
+    def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+        uuid = self.metadata_index[index.row()]
+        metadata = self.run_configurations[uuid]
+        return metadata['name']
+
+    def rowCount(self, parent: QModelIndex = None) -> int:
+        return len(self.run_configurations)
+
+    def pop(self, uuid: str) -> RunConfigurationMetadata:
+        item = self.run_configurations.pop(uuid)
+        self.metadata_index = dict(enumerate(self.run_configurations))
+        self.dataChanged.emit(self.createIndex(0, 0),
+                              self.createIndex(len(self.metadata_index), 0))
+        return item
+
+    def __iter__(self):
+        return iter(self.run_configurations)
+
+    def __len__(self):
+        return len(self.run_configurations)
+
+    def __getitem__(self, uuid: str) -> RunConfigurationMetadata:
+        return self.run_configurations[uuid]
+
+    def __setitem__(self, uuid: str, metadata: RunConfigurationMetadata):
+        self.run_configurations[uuid] = metadata
+        self.metadata_index[len(self.metadata_index)] = uuid
+
+
 class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
     def setup(self):
-        self.run_metadata_provider: WeakValueDictionary[str, RunConfigurationProvider] = WeakValueDictionary()
+        self.metadata_model = RunConfigurationListModel(self)
+        self.run_metadata_provider: WeakValueDictionary[
+            str, RunConfigurationProvider] = WeakValueDictionary()
         self.executors: Dict[Tuple[str, str, str], WeakSet[RunExecutor]] = {}
         self.viewers: Dict[str, WeakSet[RunResultViewer]] = {}
 
