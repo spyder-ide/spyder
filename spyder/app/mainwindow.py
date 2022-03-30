@@ -1535,7 +1535,6 @@ class MainWindow(QMainWindow):
             # Open files/project, check unsaved files, etc.
             if self.editor is not None:
                 try:
-                    self.editor.close()
                     self.editor.deleteLater()
                     self.plugin_registry.delete_plugin(
                         Plugins.Editor, teardown=False)

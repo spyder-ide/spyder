@@ -530,6 +530,23 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         if not can_close:
             return False
 
+        # Delete Spyder 4 internal plugins
+        for plugin_name in set(self.internal_plugins):
+            if plugin_name not in excluding:
+                plugin_instance = self.plugin_registry[plugin_name]
+                if isinstance(plugin_instance, SpyderPlugin):
+                    try:
+                        plugin_instance.deleteLater()
+                    except RuntimeError:
+                        pass
+                    can_close &= self.delete_plugin(
+                        plugin_name, teardown=False)
+                    if not can_close and not close_immediately:
+                        break
+
+        if not can_close:
+            return False
+
         # Delete Spyder 5+ external plugins
         for plugin_name in set(self.external_plugins):
             if plugin_name not in excluding:
@@ -565,24 +582,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         if not can_close and not close_immediately:
             return False
 
-        # Delete Spyder 4 internal plugins
-        for plugin_name in set(self.internal_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPlugin):
-                    try:
-                        plugin_instance.close()
-                        plugin_instance.deleteLater()
-                    except RuntimeError:
-                        pass
-                    can_close &= self.delete_plugin(
-                        plugin_name, teardown=False)
-                    if not can_close and not close_immediately:
-                        break
-
-        if not can_close:
-            return False
-
+        # Delete Spyder 5 internal plugins
         for plugin_name in set(self.internal_plugins):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
