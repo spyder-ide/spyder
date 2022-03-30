@@ -3,6 +3,28 @@
 Changes in Jupyter Qt console
 =============================
 
+.. _5.3:
+
+5.3
+~~~
+
+5.3.0
+-----
+
+`5.3.0 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.3.0>`__
+
+Additions
++++++++++
+
+* Add support for PyQt6.
+
+Changes
++++++++
+
+* Don't show spurious blank lines when running input statements.
+* Fix showing Latex images with dark background colors.
+* Drop support for Python 3.6
+
 .. _5.2:
 
 5.2
