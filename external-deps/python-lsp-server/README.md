@@ -12,6 +12,7 @@ The base language server requires [Jedi](https://github.com/davidhalter/jedi) to
 ```
 pip install python-lsp-server
 ```
+This will expose the command `pylsp` on your PATH. Confirm that installation succeeded by running `pylsp --help`.
 
 If the respective dependencies are found, the following optional providers will be enabled:
 - [Rope](https://github.com/python-rope/rope) for Completions and renaming
