@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-03-25 13:02-0500\n"
-"PO-Revision-Date: 2022-03-28 18:22\n"
+"PO-Revision-Date: 2022-04-01 19:02\n"
 "Last-Translator: \n"
 "Language-Team: Telugu\n"
 "MIME-Version: 1.0\n"
@@ -19,11 +19,11 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "ఈ ప్రదేశం అవసరం లేని మరియు తక్కువగ ఉపయోగ పడుతున్న స్పయిడర్ లోపల ప్లగ్-ఇన్ మరియు బయట ప్లగ్-ఇన్, రెండిటిని ఆపివేయ వచ్చు. ఇక్కడ అన్-చెక్ చేసిన ప్లగ్-ఇన్స్ వెంటనే తీసివేయ బడతాయి. స్పయిడర్-ని మల్లి మొదలు పెట్టినప్పుడు, ఆ ప్లగ్-ఇన్ ని విడిచి మిగిలిన వాటిని లోడ్ చేస్తుంది."
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
-msgstr ""
+msgstr "లోపల ఉన్న ప్లగ్-ఇన్స్"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
@@ -31,7 +31,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/registry.py:738
 msgid "Plugins"
-msgstr ""
+msgstr "ప్లగ్ఇన్స్"
 
 #: spyder/api/widgets/main_widget.py:246
 msgid "Main widget toolbar"
