@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-03-25 13:02-0500\n"
-"PO-Revision-Date: 2022-04-01 19:02\n"
+"PO-Revision-Date: 2022-04-01 19:21\n"
 "Last-Translator: \n"
 "Language-Team: Telugu\n"
 "MIME-Version: 1.0\n"
@@ -35,55 +35,55 @@ msgstr "ప్లగ్ఇన్స్"
 
 #: spyder/api/widgets/main_widget.py:246
 msgid "Main widget toolbar"
-msgstr ""
+msgstr "మెయిన్ విజెట్ టూల్-బార్"
 
 #: spyder/api/widgets/main_widget.py:256
 msgid "Main widget corner toolbar"
-msgstr ""
+msgstr "మెయిన్ విజెట్ మూలలోఉన్న టూల్-బార్"
 
 #: spyder/api/widgets/main_widget.py:268
 msgid "Options menu"
-msgstr ""
+msgstr "ఒప్-షన్స్ మెనూ"
 
 #: spyder/api/widgets/main_widget.py:315 spyder/plugins/base.py:182 spyder/plugins/editor/widgets/editor.py:690 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:204
 msgid "Options"
-msgstr ""
+msgstr "ఒప్-షన్స్"
 
 #: spyder/api/widgets/main_widget.py:339 spyder/plugins/base.py:197
 msgid "Dock"
-msgstr ""
+msgstr "డాక్"
 
 #: spyder/api/widgets/main_widget.py:340 spyder/plugins/base.py:199
 msgid "Dock the pane"
-msgstr ""
+msgstr "పేన్ ని డాక్ చేయండి"
 
 #: spyder/api/widgets/main_widget.py:346 spyder/plugins/base.py:204
 msgid "Undock"
-msgstr ""
+msgstr "ఆన్-డాక్"
 
 #: spyder/api/widgets/main_widget.py:347 spyder/plugins/base.py:206
 msgid "Undock the pane"
-msgstr ""
+msgstr "పేన్ ని అన్-డాక్ చేయండి"
 
 #: spyder/api/widgets/main_widget.py:353 spyder/plugins/base.py:211 spyder/plugins/variableexplorer/widgets/arrayeditor.py:826 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:999 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:303 spyder/plugins/variableexplorer/widgets/texteditor.py:73 spyder/widgets/collectionseditor.py:1392 spyder/widgets/reporterror.py:224
 msgid "Close"
-msgstr ""
+msgstr "మూయండి"
 
 #: spyder/api/widgets/main_widget.py:354 spyder/plugins/base.py:213
 msgid "Close the pane"
-msgstr ""
+msgstr "పేన్ ని మూయండి"
 
 #: spyder/api/widgets/toolbars.py:123
 msgid "More"
-msgstr ""
+msgstr "మరింత"
 
 #: spyder/app/mainwindow.py:196
 msgid "Compatibility Check"
-msgstr ""
+msgstr "అనుకూలత తనిఖీ"
 
 #: spyder/app/mainwindow.py:207
 msgid "Loading {}..."
-msgstr ""
+msgstr "వేచి ఉండండి, వస్తుంది {}..."
 
 #: spyder/app/mainwindow.py:700
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
