@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-03-25 13:02-0500\n"
-"PO-Revision-Date: 2022-04-02 07:26\n"
+"PO-Revision-Date: 2022-04-02 07:46\n"
 "Last-Translator: \n"
 "Language-Team: Telugu\n"
 "MIME-Version: 1.0\n"
@@ -91,7 +91,7 @@ msgstr "సాకెట్ నిర్మాణం లో ఒక తప్ప�
 
 #: spyder/app/mainwindow.py:822 spyder/plugins/tours/widgets.py:1087
 msgid "Welcome to Spyder!"
-msgstr ""
+msgstr "స్పయిడర్ కి స్వాగతం!"
 
 #: spyder/app/mainwindow.py:828
 msgid "Spyder Internal Console\n\n"
@@ -100,7 +100,9 @@ msgid "Spyder Internal Console\n\n"
 "internals with the following commands:\n"
 "  spy.app, spy.window, dir(spy)\n\n"
 "Please don't use it to run your code\n\n"
-msgstr ""
+msgstr "స్పయిడర్ లోపల ఉన్న కన్-సోల్\n\n"
+"స్పయిడర్ లోపల ఉన్న లోపాలను చూపించడానికి, ఈ కన్-సోల్ ను వాడుతుంది. స్పయిడర్ లోపల ఈ క్రింది కమాండ్స్ తో తనిఖీ కూడా చేయవచ్చు. spy.app, spy.window, dir(spy)\n\n"
+"ఈ కోడ్స్ ని దయచేసి వాడొద్దు\n\n"
 
 #: spyder/app/mainwindow.py:908
 msgid "Loading old third-party plugins..."
