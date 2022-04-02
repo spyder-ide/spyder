@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-03-25 13:02-0500\n"
-"PO-Revision-Date: 2022-04-01 19:21\n"
+"PO-Revision-Date: 2022-04-02 07:26\n"
 "Last-Translator: \n"
 "Language-Team: Telugu\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr "ఈ ప్రదేశం అవసరం లేని మరియు తక్కువగ ఉపయోగ పడుతున్న స్పయిడర్ లోపల ప్లగ్-ఇన్ మరియు బయట ప్లగ్-ఇన్, రెండిటిని ఆపివేయ వచ్చు. ఇక్కడ అన్-చెక్ చేసిన ప్లగ్-ఇన్స్ వెంటనే తీసివేయ బడతాయి. స్పయిడర్-ని మల్లి మొదలు పెట్టినప్పుడు, ఆ ప్లగ్-ఇన్ ని విడిచి మిగిలిన వాటిని లోడ్ చేస్తుంది."
+msgstr "ఈ ప్రదేశంలో అవసరం లేని స్పయిడర్ ప్లగ్-ఇన్స్ ని ఆపివేయ వచ్చు. ఇక్కడ అన్-చెక్ చేసిన ప్లగ్-ఇన్స్ వెంటనే తీసివేయబడతాయి. స్పయిడర్-ని మల్లి మొదలు పెట్టినప్పుడు, ఆ ప్లగ్-ఇన్ ని విడిచి మిగిలిన వాటిని లోడ్ చేస్తుంది."
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
@@ -27,7 +27,7 @@ msgstr "లోపల ఉన్న ప్లగ్-ఇన్స్"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
-msgstr ""
+msgstr "బయట ఉన్న ప్లగ్ఇన్స్"
 
 #: spyder/api/plugin_registration/registry.py:738
 msgid "Plugins"
@@ -39,7 +39,7 @@ msgstr "మెయిన్ విజెట్ టూల్-బార్"
 
 #: spyder/api/widgets/main_widget.py:256
 msgid "Main widget corner toolbar"
-msgstr "మెయిన్ విజెట్ మూలలోఉన్న టూల్-బార్"
+msgstr "మెయిన్ విజెట్ మూలలో ఉన్న టూల్-బార్"
 
 #: spyder/api/widgets/main_widget.py:268
 msgid "Options menu"
@@ -87,7 +87,7 @@ msgstr "వేచి ఉండండి, వస్తుంది {}..."
 
 #: spyder/app/mainwindow.py:700
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
-msgstr ""
+msgstr "సాకెట్ నిర్మాణం లో ఒక తప్పు జరిగింది. మీరు మీ కమాండ్ ప్రోమ్-ట్ ని అడ్మిన్ మోడ్ లో రన్ చేసి మీ కంప్యూటర్ ని రీస్టార్ట్ చేయండి. <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
 
 #: spyder/app/mainwindow.py:822 spyder/plugins/tours/widgets.py:1087
 msgid "Welcome to Spyder!"
