@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-03-25 13:02-0500\n"
-"PO-Revision-Date: 2022-03-25 22:12\n"
+"PO-Revision-Date: 2022-04-03 15:20\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -236,11 +236,12 @@ msgstr "ショートカットコンテキストは'_'またはプラグイン`CO
 #: spyder/config/manager.py:649
 msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr ""
+msgstr "Spyderの設定オプションの読み込み中にエラーが発生しました。 Spyderを起動するためにはそれらをリセットする必要があります。\n\n"
+"続行しますか？"
 
 #: spyder/config/manager.py:657
 msgid "Spyder configuration files resetted!"
-msgstr ""
+msgstr "Spyder設定ファイルをリセットしました！"
 
 #: spyder/config/utils.py:25 spyder/plugins/explorer/widgets/explorer.py:1710 spyder/plugins/pylint/main_widget.py:861
 msgid "Python files"
@@ -2296,19 +2297,19 @@ msgstr "選択範囲あるいは現在行を実行"
 
 #: spyder/plugins/editor/plugin.py:702
 msgid "Run &to current line"
-msgstr ""
+msgstr "現在の行まで実行(&T)"
 
 #: spyder/plugins/editor/plugin.py:703 spyder/plugins/editor/widgets/codeeditor.py:4407
 msgid "Run to current line"
-msgstr ""
+msgstr "現在の行まで実行"
 
 #: spyder/plugins/editor/plugin.py:709
 msgid "Run &from current line"
-msgstr ""
+msgstr "現在の行から実行(&F)"
 
 #: spyder/plugins/editor/plugin.py:710 spyder/plugins/editor/widgets/codeeditor.py:4411
 msgid "Run from current line"
-msgstr ""
+msgstr "現在の行から実行"
 
 #: spyder/plugins/editor/plugin.py:717 spyder/plugins/editor/widgets/codeeditor.py:4390
 msgid "Run cell"
@@ -5270,11 +5271,11 @@ msgstr "実行構成の管理"
 
 #: spyder/plugins/run/widgets.py:31
 msgid "Run file with default configuration"
-msgstr ""
+msgstr "デフォルト設定でファイルを実行"
 
 #: spyder/plugins/run/widgets.py:32
 msgid "Run file with custom configuration"
-msgstr ""
+msgstr "カスタム設定でファイルを実行"
 
 #: spyder/plugins/run/widgets.py:33
 msgid "Execute in current console"
