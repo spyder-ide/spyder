@@ -109,6 +109,7 @@ class DragButton(QToolButton):
         self.setIconSize(button_size)
         self.setAutoRaise(True)
         self.setIcon(ima.icon('drag_dock_widget'))
+        self.setToolTip(_("Drag and drop pane to a different position"))
         self.setStyleSheet(self._stylesheet)
 
     def mouseReleaseEvent(self, event):
@@ -182,12 +183,14 @@ class DockTitleBar(QWidget):
 
         button_size = QSize(20, 20)
 
-        left_spacer = QWidget(self)
-        left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-
         drag_button = DragButton(self, button_size)
 
+        left_spacer = QWidget(self)
+        left_spacer.setToolTip(drag_button.toolTip())
+        left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
         right_spacer = QWidget(self)
+        right_spacer.setToolTip(drag_button.toolTip())
         right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         close_button = CloseButton(self, button_size)
