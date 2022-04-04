@@ -16,14 +16,18 @@ instead.
 humanfriendly :
     spyder-terminal plugin
     ModuleNotFoundError: No module named 'humanfriendly.tables'
+pathspec :
+    ModuleNotFoundError: No module named '610faff656c4cfcbb4a3__mypyc'
+    pylsp.config.config - Failed to load pylsp entry point 'pylsp_black':
+    The 'pathspec>=0.9.0' distribution was not found and is required by black
 pkg_resources:
     ImportError: The 'more_itertools' package is required; normally this is
     bundled with this package so if you get this warning, consult the
     packager of your distribution.
-pylsp_black :
-    Mandatory: python-pyls-black >=1.0.0 : None (NOK)
 pyls_spyder :
     Mandatory: pyls_spyder >=0.1.1 : None (NOK)
+pylsp_black :
+    Mandatory: python-pyls-black >=1.0.0 : None (NOK)
 setuptools :
     Mandatory: setuptools >=49.6.0 : None (NOK)
 spyder :
@@ -39,8 +43,8 @@ spyder_terminal :
 PACKAGES = [
     'humanfriendly',
     'pkg_resources',
-    'pylsp_black',
     'pyls_spyder',
+    'pylsp_black',
     'setuptools',
     'spyder',
     'spyder_kernels',
@@ -52,6 +56,7 @@ EXCLUDES = []
 
 # modules that py2app misses
 INCLUDES = [
+    'pathspec',
     'jellyfish',
     'pylsp',
 ]
