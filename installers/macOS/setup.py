@@ -98,12 +98,6 @@ def make_app_bundle(dist_dir, make_lite=False):
         app_script_path.unlink(missing_ok=True)
         SPYLINK.unlink(missing_ok=True)
 
-    # Copy Spyder egg-info
-    egg = SPYREPO / 'spyder.egg-info'
-    dest = (dist_dir / MAC_APP_NAME / 'Contents' / 'Resources' / 'lib' /
-            'python{}.{}'.format(*PYVER) / 'spyder.egg-info')
-    shutil.copytree(egg, dest)
-
     return
 
 
