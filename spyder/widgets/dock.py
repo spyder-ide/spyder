@@ -13,8 +13,13 @@ from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
 import qstylizer.style
 
+from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
+
+
+# For translations
+_ = get_translation('spyder')
 
 
 # =============================================================================
@@ -132,25 +137,35 @@ class CloseButton(QToolButton):
         # Style
         self.setIconSize(button_size)
         self.setAutoRaise(True)
-        self.setIcon(ima.icon('DialogCloseButton'))
-        self.setStyleSheet(self._stylesheet)
+        self.setIcon(ima.icon('lock_open'))
+        self.setToolTip(_("Lock pane"))
 
-    @property
-    def _stylesheet(self):
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+
+    def _apply_stylesheet(self, bgcolor):
         css = qstylizer.style.StyleSheet()
         css.QToolButton.setValues(
             borderRadius='0px',
-            border='0px'
+            border='0px',
+            backgroundColor=bgcolor
         )
-        return css.toString()
+        self.setStyleSheet(css.toString())
 
     def enterEvent(self, event):
         self.setCursor(Qt.ArrowCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
         self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self.setIcon(ima.icon('lock'))
         super().enterEvent(event)
 
+    def mousePressEvent(self, event):
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6)
+        super().mousePressEvent(event)
+
     def leaveEvent(self, event):
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
         self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self.setIcon(ima.icon('lock_open'))
         super().leaveEvent(event)
 
 
