@@ -11,7 +11,6 @@ To be used like this:
 $ python setup.py
 """
 
-import os
 import sys
 import shutil
 from logging import getLogger, StreamHandler, Formatter
@@ -52,14 +51,13 @@ def fix_zip_entry_points(zfile):
     zfile : pathlib.Path
         Path to zip archive.
     """
-    import os
     from zipfile import ZipFile
 
     logger.info('Converting zip file...')
 
     file = zfile.parent / 'temp'
     ZipFile(zfile).extractall(file)
-    os.remove(zfile)
+    zfile.unlink()
     file.replace(zfile)
 
 
@@ -152,14 +150,14 @@ def make_app_bundle(dist_dir, make_lite=False):
     # Build the application
     try:
         patch_py2app()
-        os.symlink(SPYREPO / 'spyder', SPYLINK)
+        SPYLINK.symlink_to(SPYREPO / 'spyder')
         setup(app=[app_script_path.as_posix()], options={'py2app': OPTIONS})
         fix_zip_entry_points(
             dist_dir / MAC_APP_NAME / 'Contents' / 'Resources' / 'lib' /
             'python{}{}.zip'.format(*PYVER[:2]))
     finally:
-        os.remove(app_script_path)
-        os.remove(SPYLINK)
+        app_script_path.unlink(missing_ok=True)
+        SPYLINK.unlink(missing_ok=True)
 
     # Copy Spyder egg-info
     egg = SPYREPO / 'spyder.egg-info'
