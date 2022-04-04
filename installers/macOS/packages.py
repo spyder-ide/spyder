@@ -13,13 +13,20 @@ The following packages are included in py2app's PACKAGES option so that
 they will be placed in Spyder.app/Contents/Resources/lib/python<ver>
 instead.
 
+610faff656c4cfcbb4a3__mypyc :
+    WARNING - pylsp.config.config - Failed to load pylsp entry point
+    'pylsp_black': No module named '610faff656c4cfcbb4a3__mypyc'
+blib2to3 :
+    WARNING - pylsp.config.config - Failed to load pylsp entry point
+    'pylsp_black': cannot import name 'pgen' from 'blib2to3.pgen2'
+    WARNING - pylsp.config.config - Failed to load pylsp entry point
+    'pylsp_black': [Errno 2] No such file or directory:
+        '.../Grammar3.9.9.final.0.pickle'
 humanfriendly :
     spyder-terminal plugin
     ModuleNotFoundError: No module named 'humanfriendly.tables'
 pathspec :
-    ModuleNotFoundError: No module named '610faff656c4cfcbb4a3__mypyc'
-    pylsp.config.config - Failed to load pylsp entry point 'pylsp_black':
-    The 'pathspec>=0.9.0' distribution was not found and is required by black
+    WARNING - pylsp.config.config - Failed to load pylsp entry point 'pylsp_black': The 'pathspec>=0.9.0' distribution was not found and is required by black
 pkg_resources:
     ImportError: The 'more_itertools' package is required; normally this is
     bundled with this package so if you get this warning, consult the
@@ -41,6 +48,7 @@ spyder_terminal :
 
 # Packages that cannot be in the zip folder
 PACKAGES = [
+    'blib2to3',
     'humanfriendly',
     'pkg_resources',
     'pyls_spyder',
@@ -56,6 +64,8 @@ EXCLUDES = []
 
 # modules that py2app misses
 INCLUDES = [
+    '610faff656c4cfcbb4a3__mypyc',
+    'blackd',
     'pathspec',
     'jellyfish',
     'pylsp',
