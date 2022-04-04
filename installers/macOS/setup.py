@@ -17,11 +17,14 @@ from logging import getLogger, StreamHandler, Formatter
 from pathlib import Path
 from setuptools import setup
 
+from spyder import __version__ as SPYVER
+from spyder.config.base import MAC_APP_NAME
+
 # Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
 h.setFormatter(fmt)
-logger = getLogger('spyder-macOS')
+logger = getLogger('macOS-installer')
 logger.addHandler(h)
 logger.setLevel('INFO')
 
@@ -29,12 +32,9 @@ logger.setLevel('INFO')
 THISDIR = Path(__file__).resolve().parent
 SPYREPO = (THISDIR / '..' / '..').resolve()
 ICONFILE = SPYREPO / 'img_src' / 'spyder.icns'
-SPYLINK = THISDIR / 'spyder'
+APPSCRIPT = SPYREPO / 'scripts' / 'spyder'
 
-sys.path.append(SPYREPO.as_posix())
-
-from spyder import __version__ as SPYVER
-from spyder.config.base import MAC_APP_NAME
+APP_BASE_NAME = MAC_APP_NAME[:-4]
 
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
@@ -85,18 +85,9 @@ def make_app_bundle(dist_dir, make_lite=False):
         }
     }
 
-    # Copy main application script
-    app_script_name = MAC_APP_NAME.replace('.app', '.py')
-    app_script_path = SPYREPO / 'scripts' / app_script_name
-    shutil.copy2(SPYREPO / 'scripts' / 'spyder', app_script_path)
-
     # Build the application
-    try:
-        SPYLINK.symlink_to(SPYREPO / 'spyder')
-        setup(app=[app_script_path.as_posix()], options={'py2app': OPTIONS})
-    finally:
-        app_script_path.unlink(missing_ok=True)
-        SPYLINK.unlink(missing_ok=True)
+    setup(name=APP_BASE_NAME, app=[APPSCRIPT.as_posix()],
+          options={'py2app': OPTIONS})
 
     return
 
@@ -119,7 +110,7 @@ def make_disk_image(dist_dir, make_lite=False):
     from dmgbuild import build_dmg
     from dmgbuild.core import DMGError
 
-    volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)
+    volume_name = '{}-{} Py-{}.{}.{}'.format(APP_BASE_NAME, SPYVER, *PYVER)
     dmg_name = 'Spyder'
     if make_lite:
         volume_name += ' Lite'
