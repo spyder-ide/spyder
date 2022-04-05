@@ -16,6 +16,7 @@ import qstylizer.style
 from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import PanesToolbarStyleSheet
 
 
 # For translations
@@ -146,6 +147,7 @@ class CloseButton(QToolButton):
     def _apply_stylesheet(self, bgcolor):
         css = qstylizer.style.StyleSheet()
         css.QToolButton.setValues(
+            width=PanesToolbarStyleSheet.BUTTON_WIDTH,
             borderRadius='0px',
             border='0px',
             backgroundColor=bgcolor
@@ -230,7 +232,10 @@ class DockTitleBar(QWidget):
 
     def _apply_stylesheet(self, bgcolor):
         css = qstylizer.style.StyleSheet()
-        css.QWidget.setValues(backgroundColor=bgcolor)
+        css.QWidget.setValues(
+            height=PanesToolbarStyleSheet.BUTTON_HEIGHT,
+            backgroundColor=bgcolor
+        )
         self.setStyleSheet(css.toString())
 
 
