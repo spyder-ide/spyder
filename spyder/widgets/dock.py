@@ -244,6 +244,7 @@ class SpyderDockWidget(QDockWidget):
 
     # Signals
     sig_plugin_closed = Signal()
+    sig_title_bar_shown = Signal(bool)
 
     def __init__(self, title, parent):
         super(SpyderDockWidget, self).__init__(title, parent)
@@ -315,8 +316,10 @@ class SpyderDockWidget(QDockWidget):
 
     def remove_title_bar(self):
         """Set empty qwidget on title bar."""
+        self.sig_title_bar_shown.emit(False)
         self.setTitleBarWidget(self.empty_titlebar)
 
     def set_title_bar(self):
         """Set custom title bar."""
+        self.sig_title_bar_shown.emit(True)
         self.setTitleBarWidget(self.titlebar)

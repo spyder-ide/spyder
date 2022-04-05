@@ -1468,6 +1468,7 @@ class EditorStack(QWidget):
                 actions += [MENU_SEPARATOR, plugin._dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
+                            plugin._lock_unlock_action,
                             plugin._undock_action,
                             plugin._close_plugin_action]
 

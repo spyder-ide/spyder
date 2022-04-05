@@ -39,7 +39,7 @@ from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
 from spyder.utils.stylesheet import (
     APP_STYLESHEET, PANES_TABBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
-from spyder.widgets.dock import SpyderDockWidget
+from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
 # Localization
@@ -60,7 +60,7 @@ class PluginMainWidgetActions:
     ClosePane = 'close_pane'
     DockPane = 'dock_pane'
     UndockPane = 'undock_pane'
-    ChangePanePosition = 'change_pane_position'
+    LockUnlockPosition = 'lock_unlock_position'
 
 
 class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
@@ -339,6 +339,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             icon=self.create_icon('dock'),
             triggered=self.close_window,
         )
+        self.lock_unlock_action = self.create_action(
+            name=PluginMainWidgetActions.LockUnlockPosition,
+            text=_("Unlock position"),
+            tip=_("Unlock to move to another position"),
+            icon=self.create_icon('drag_dock_widget'),
+            triggered=self.lock_unlock_position,
+        )
         self.undock_action = self.create_action(
             name=PluginMainWidgetActions.UndockPane,
             text=_("Undock"),
@@ -353,13 +360,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             icon=self.create_icon('close_pane'),
             triggered=self.close_dock,
         )
-        self.change_position_action = self.create_action(
-            name=PluginMainWidgetActions.ChangePanePosition,
-            text=_("Change position"),
-            tip=_("Move the pane in another location"),
-            icon=self.create_icon('drag_dock_widget'),
-            triggered=self.change_position,
-        )
         # We use this instead of the QDockWidget.toggleViewAction
         self.toggle_view_action = self.create_action(
             name='switch to ' + self._name,
@@ -369,7 +369,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             shortcut_context='_',
         )
 
-        for item in [self.change_position_action, self.undock_action,
+        for item in [self.lock_unlock_action, self.undock_action,
                      self.close_action, self.dock_action]:
             self.add_item_to_menu(
                 item,
@@ -405,7 +405,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         show_dock_actions = self.windowwidget is None
         self.undock_action.setVisible(show_dock_actions)
         self.close_action.setVisible(show_dock_actions)
-        self.change_position_action.setVisible(show_dock_actions)
+        self.lock_unlock_action.setVisible(show_dock_actions)
         self.dock_action.setVisible(not show_dock_actions)
 
         if sys.platform == 'darwin':
@@ -432,6 +432,23 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             QApplication.setOverrideCursor(Qt.ClosedHandCursor)
         else:
             QApplication.restoreOverrideCursor()
+
+    @Slot(bool)
+    def _on_title_bar_shown(self, visible):
+        """
+        Actions to perform when the title bar is shown/hidden.
+        """
+        if visible:
+            self.lock_unlock_action.setText(_('Lock position'))
+            self.lock_unlock_action.setIcon(self.create_icon('lock_open'))
+            self.lock_unlock_action.setToolTip(
+                _("Unlock to move to another position"))
+        else:
+            self.lock_unlock_action.setText(_('Unlock position'))
+            self.lock_unlock_action.setIcon(
+                self.create_icon('drag_dock_widget'))
+            self.lock_unlock_action.setToolTip(
+                _("Lock to the current position"))
 
     # --- Public Qt overriden methods
     # ------------------------------------------------------------------------
@@ -869,6 +886,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         # Signals
         dock.visibilityChanged.connect(self.change_visibility)
         dock.topLevelChanged.connect(self._on_top_level_change)
+        dock.sig_title_bar_shown.connect(self._on_title_bar_shown)
 
         return (dock, dock.LOCATION)
 
@@ -879,8 +897,14 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         self.toggle_view(False)
 
-    def change_position(self):
-        self.dockwidget.set_title_bar()
+    def lock_unlock_position(self):
+        """
+        Show/hide title bar to move/lock position.
+        """
+        if isinstance(self.dockwidget.titleBarWidget(), DockTitleBar):
+            self.dockwidget.remove_title_bar()
+        else:
+            self.dockwidget.set_title_bar()
 
     # --- API: methods to define or override
     # ------------------------------------------------------------------------
