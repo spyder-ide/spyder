@@ -141,32 +141,32 @@ class CloseButton(QToolButton):
         self.setAutoRaise(True)
         self.setIcon(ima.icon('lock_open'))
         self.setToolTip(_("Lock pane"))
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
 
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
-
-    def _apply_stylesheet(self, bgcolor):
+    def _apply_stylesheet(self, bgcolor, bradius):
         css = qstylizer.style.StyleSheet()
         css.QToolButton.setValues(
             width=PanesToolbarStyleSheet.BUTTON_WIDTH,
-            borderRadius='0px',
+            borderRadius=f'{bradius}px',
             border='0px',
-            backgroundColor=bgcolor
+            backgroundColor=bgcolor,
         )
+
         self.setStyleSheet(css.toString())
 
     def enterEvent(self, event):
         self.setCursor(Qt.ArrowCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5, 3)
         self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
         self.setIcon(ima.icon('lock'))
         super().enterEvent(event)
 
     def mousePressEvent(self, event):
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6, 3)
         super().mousePressEvent(event)
 
     def leaveEvent(self, event):
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
         self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
         self.setIcon(ima.icon('lock_open'))
         super().leaveEvent(event)
