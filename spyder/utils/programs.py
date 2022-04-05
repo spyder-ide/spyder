@@ -730,11 +730,8 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     if executable is None:
         executable = get_python_executable()
 
-    # If fname or wdir has spaces, must be enclosed in quotes (all platforms)
-    if ' ' in fname:
-        fname = '"' + fname + '"'
-    if ' ' in wdir:
-        wdir = '"' + wdir + '"'
+    # Quote fname in case it has spaces (all platforms)
+    fname = f'"{fname}"'
 
     # If python_exe contains spaces, it can't be ran on Windows, so we
     # have to enclose them in quotes. Also wdir can come with / as os.sep, so
@@ -801,15 +798,15 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                         suffix='.sh', dir=get_temp_dir(),
                                         delete=False)
         if wdir:
-            f.write('cd {}\n'.format(wdir))
+            f.write('cd "{}"\n'.format(wdir))
         if running_in_mac_app(executable):
-            f.write(f'export PYTHONHOME={os.environ["PYTHONPATH"]}\n')
+            f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
         f.write(' '.join(p_args))
         f.close()
         os.chmod(f.name, 0o777)
 
         def run_terminal_thread():
-            proc = run_shell_command('open -a Terminal.app ' + f.name, env={})
+            proc = run_shell_command(f'open -a Terminal.app {f.name}')
             # Prevent race condition
             time.sleep(3)
             proc.wait()
