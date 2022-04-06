@@ -733,13 +733,14 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     # Quote fname in case it has spaces (all platforms)
     fname = f'"{fname}"'
 
+    wdir = None if not wdir else wdir  # Cannot be empty string
+
     p_args = get_python_args(fname, python_args, interact, debug, args)
 
     if os.name == 'nt':
         if wdir is not None:
             # wdir can come with / as os.sep, so we need to take care of it.
             wdir = wdir.replace('/', '\\')
-            wdir = None if not wdir else wdir  # Cannot be empty string
 
         # python_exe must be quoted in case it has spaces
         cmd = f'start cmd.exe /K ""{executable}" '
@@ -754,29 +755,15 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                    "an external terminal"),
                                  QMessageBox.Ok)
     elif sys.platform.startswith('linux'):
-        programs = [{'cmd': 'gnome-terminal',
-                     'wdir-option': '--working-directory',
-                     'execute-option': '-x'},
-                    {'cmd': 'konsole',
-                     'wdir-option': '--workdir',
-                     'execute-option': '-e'},
-                    {'cmd': 'xfce4-terminal',
-                     'wdir-option': '--working-directory',
-                     'execute-option': '-x'},
-                    {'cmd': 'xterm',
-                     'wdir-option': None,
-                     'execute-option': '-e'},]
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '-x'},
+                    {'cmd': 'konsole', 'execute-option': '-e'},
+                    {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
+                    {'cmd': 'xterm', 'execute-option': '-e'}]
         for program in programs:
             if is_program_installed(program['cmd']):
-                arglist = []
-                if program['wdir-option'] and wdir:
-                    arglist += [program['wdir-option'], wdir]
-                arglist.append(program['execute-option'])
-                arglist += [executable] + p_args
-                if wdir:
-                    run_program(program['cmd'], arglist, cwd=wdir)
-                else:
-                    run_program(program['cmd'], arglist)
+                cmd = [program['cmd'], program['execute-option'], executable]
+                cmd.extend(p_args)
+                run_shell_command(' '.join(cmd), cwd=wdir)
                 return
     elif sys.platform == 'darwin':
         f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
