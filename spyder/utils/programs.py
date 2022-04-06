@@ -733,26 +733,19 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     # Quote fname in case it has spaces (all platforms)
     fname = f'"{fname}"'
 
-    # If python_exe contains spaces, it can't be ran on Windows, so we
-    # have to enclose them in quotes. Also wdir can come with / as os.sep, so
-    # we need to take care of it.
-    if os.name == 'nt':
-        wdir = wdir.replace('/', '\\')
-        executable = '"' + executable + '"'
-
-    p_args = [executable]
-    p_args += get_python_args(fname, python_args, interact, debug, args)
+    p_args = get_python_args(fname, python_args, interact, debug, args)
 
     if os.name == 'nt':
-        cmd = 'start cmd.exe /K "'
-        if wdir:
-            cmd += 'cd ' + wdir + ' && '
+        if wdir is not None:
+            # wdir can come with / as os.sep, so we need to take care of it.
+            wdir = wdir.replace('/', '\\')
+            wdir = None if not wdir else wdir  # Cannot be empty string
+
+        # python_exe must be quoted in case it has spaces
+        cmd = f'start cmd.exe /K ""{executable}" '
         cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
         try:
-            if wdir:
-                run_shell_command(cmd, cwd=wdir)
-            else:
-                run_shell_command(cmd)
+            run_shell_command(cmd, cwd=wdir)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
@@ -779,7 +772,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                 if program['wdir-option'] and wdir:
                     arglist += [program['wdir-option'], wdir]
                 arglist.append(program['execute-option'])
-                arglist += p_args
+                arglist += [executable] + p_args
                 if wdir:
                     run_program(program['cmd'], arglist, cwd=wdir)
                 else:
@@ -793,7 +786,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             f.write('cd "{}"\n'.format(wdir))
         if running_in_mac_app(executable):
             f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
-        f.write(' '.join(p_args))
+        f.write(' '.join([executable] + p_args))
         f.close()
         os.chmod(f.name, 0o777)
 
