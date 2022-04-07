@@ -900,7 +900,13 @@ class Projects(SpyderDockablePlugin):
         project_type_id = EmptyProject.ID
         if osp.isfile(fpath):
             config = configparser.ConfigParser()
-            config.read(fpath, encoding='utf-8')
+
+            # Catch any possible error when reading the workspace config file.
+            # Fixes spyder-ide/spyder#17621
+            try:
+                config.read(fpath, encoding='utf-8')
+            except Exception:
+                pass
 
             # This is necessary to catch an error for projects created in
             # Spyder 4 or older versions.
