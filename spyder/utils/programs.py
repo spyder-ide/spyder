@@ -32,7 +32,7 @@ import psutil
 # Local imports
 from spyder.config.base import (running_under_pytest, get_home_dir,
                                 running_in_mac_app)
-from spyder.py3compat import PY2, is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
@@ -730,40 +730,23 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     if executable is None:
         executable = get_python_executable()
 
-    # If fname or wdir has spaces, must be enclosed in quotes (all platforms)
-    if ' ' in fname:
-        fname = '"' + fname + '"'
-    if ' ' in wdir:
-        wdir = '"' + wdir + '"'
+    # Quote fname in case it has spaces (all platforms)
+    fname = f'"{fname}"'
 
-    # If python_exe contains spaces, it can't be ran on Windows, so we
-    # have to enclose them in quotes. Also wdir can come with / as os.sep, so
-    # we need to take care of it.
-    if os.name == 'nt':
-        wdir = wdir.replace('/', '\\')
-        executable = '"' + executable + '"'
+    wdir = None if not wdir else wdir  # Cannot be empty string
 
-    p_args = [executable]
-    p_args += get_python_args(fname, python_args, interact, debug, args)
+    p_args = get_python_args(fname, python_args, interact, debug, args)
 
     if os.name == 'nt':
-        cmd = 'start cmd.exe /K "'
-        if wdir:
-            cmd += 'cd ' + wdir + ' && '
+        if wdir is not None:
+            # wdir can come with / as os.sep, so we need to take care of it.
+            wdir = wdir.replace('/', '\\')
+
+        # python_exe must be quoted in case it has spaces
+        cmd = f'start cmd.exe /K ""{executable}" '
         cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
-        # Command line and cwd have to be converted to the filesystem
-        # encoding before passing them to subprocess, but only for
-        # Python 2.
-        # See https://bugs.python.org/issue1759845#msg74142 and
-        # spyder-ide/spyder#1856.
-        if PY2:
-            cmd = encoding.to_fs_from_unicode(cmd)
-            wdir = encoding.to_fs_from_unicode(wdir)
         try:
-            if wdir:
-                run_shell_command(cmd, cwd=wdir)
-            else:
-                run_shell_command(cmd)
+            run_shell_command(cmd, cwd=wdir)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
@@ -772,44 +755,30 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                    "an external terminal"),
                                  QMessageBox.Ok)
     elif sys.platform.startswith('linux'):
-        programs = [{'cmd': 'gnome-terminal',
-                     'wdir-option': '--working-directory',
-                     'execute-option': '-x'},
-                    {'cmd': 'konsole',
-                     'wdir-option': '--workdir',
-                     'execute-option': '-e'},
-                    {'cmd': 'xfce4-terminal',
-                     'wdir-option': '--working-directory',
-                     'execute-option': '-x'},
-                    {'cmd': 'xterm',
-                     'wdir-option': None,
-                     'execute-option': '-e'},]
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '-x'},
+                    {'cmd': 'konsole', 'execute-option': '-e'},
+                    {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
+                    {'cmd': 'xterm', 'execute-option': '-e'}]
         for program in programs:
             if is_program_installed(program['cmd']):
-                arglist = []
-                if program['wdir-option'] and wdir:
-                    arglist += [program['wdir-option'], wdir]
-                arglist.append(program['execute-option'])
-                arglist += p_args
-                if wdir:
-                    run_program(program['cmd'], arglist, cwd=wdir)
-                else:
-                    run_program(program['cmd'], arglist)
+                cmd = [program['cmd'], program['execute-option'], executable]
+                cmd.extend(p_args)
+                run_shell_command(' '.join(cmd), cwd=wdir)
                 return
     elif sys.platform == 'darwin':
         f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
                                         suffix='.sh', dir=get_temp_dir(),
                                         delete=False)
         if wdir:
-            f.write('cd {}\n'.format(wdir))
+            f.write('cd "{}"\n'.format(wdir))
         if running_in_mac_app(executable):
-            f.write(f'export PYTHONHOME={os.environ["PYTHONPATH"]}\n')
-        f.write(' '.join(p_args))
+            f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
+        f.write(' '.join([executable] + p_args))
         f.close()
         os.chmod(f.name, 0o777)
 
         def run_terminal_thread():
-            proc = run_shell_command('open -a Terminal.app ' + f.name, env={})
+            proc = run_shell_command(f'open -a Terminal.app {f.name}')
             # Prevent race condition
             time.sleep(3)
             proc.wait()
