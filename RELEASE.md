@@ -134,9 +134,9 @@ To release a new version of Spyder you need to follow these steps:
 
 * git pull or git fetch/merge
 
-* Update CHANGELOG.md with `loghub spyder-ide/spyder -m vX.X.X`
+* Update `changelogs/Spyder-5.md` with `loghub spyder-ide/spyder -m vX.X.X`
 
-* Add sections for `New features`, `Important fixes` and `New API features` in CHANGELOG.md. For this take a look at closed issues and PRs for the current milestone.
+* Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-5.md`. For this take a look at closed issues and PRs for the current milestone.
 
 * `git add .` and `git commit -m "Update Changelog"`
 
