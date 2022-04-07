@@ -2262,7 +2262,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
             # This is necessary to prevent raising the console if the editor
             # and console are tabified next to each other and the 'Maintain
-            # focus in the editor' option is activated.
+            # focus in the editor' option is enabled.
             # Fixes spyder-ide/spyder#17028
             if not focus_to_editor:
                 self.sig_switch_to_plugin_requested.emit()
@@ -2435,15 +2435,26 @@ class IPythonConsoleWidget(PluginMainWidget):
                 sw.reset_namespace(warning=False)
             elif current_client and clear_variables:
                 sw.reset_namespace(warning=False)
+
             # Needed to handle an error when kernel_client is none.
             # See spyder-ide/spyder#6308.
             try:
                 sw.execute(str(lines))
             except AttributeError:
                 pass
-            self.activateWindow()
+
             if set_focus:
-                self.get_current_client().get_control().setFocus()
+                # The `activateWindow` call below needs to be inside this `if`
+                # to avoid giving focus to the console when it's undocked,
+                # users are running code from the editor and the 'Maintain
+                # focus in the editor' option is enabled.
+                # Fixes spyder-ide/spyder#3221
+                self.activateWindow()
+
+                # Gives focus to the current client
+                focus_widget = self.get_focus_widget()
+                if focus_widget:
+                    focus_widget.setFocus()
 
     # ---- For error handling
     def go_to_error(self, text):
