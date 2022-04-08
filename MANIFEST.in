@@ -10,3 +10,4 @@ include AUTHORS.txt
 include NOTICE.txt
 include bootstrap.py
 include pylsp_utils.py
+include install_subrepos.py
