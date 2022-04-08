@@ -11,8 +11,7 @@
 """
 Bootstrap Spyder.
 
-Detect environment and execute Spyder from source checkout.
-See spyder-ide/spyder#741.
+Execute Spyder from source checkout.
 """
 
 # pylint: disable=C0103
@@ -20,20 +19,20 @@ See spyder-ide/spyder#741.
 # pylint: disable=C0413
 
 # Standard library imports
-import atexit
 import argparse
 import os
-import os.path as osp
-import pkg_resources
 import shutil
 import sys
 import time
+from pathlib import Path
 
-import pylsp_utils
+from install_subrepos import REPOS, install_repo
 
 time_start = time.time()
 
-# --- Parse command line
+print("Executing Spyder from source checkout")
+
+# ---- Parse command line
 
 parser = argparse.ArgumentParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
@@ -65,57 +64,23 @@ parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()
 
-# Store variable to be used in self.restart (restart spyder instance)
-os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(sys.argv[1:])
-
 assert args.gui in (None, 'pyqt5', 'pyside2'), \
        "Invalid GUI toolkit option '%s'" % args.gui
+
+# Prepare arguments for Spyder's main script
+sys.argv = [sys.argv[0]] + args.spyder_options
+
+# ---- Update os.environ
+
+# Store variable to be used in self.restart (restart spyder instance)
+os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(sys.argv[1:])
 
 # Start Spyder with a clean configuration directory for testing purposes
 if args.safe_mode:
     os.environ['SPYDER_SAFE_MODE'] = 'True'
 
-# Prepare arguments for Spyder's main script
-sys.argv = [sys.argv[0]] + args.spyder_options
-
-
-print("Executing Spyder from source checkout")
-DEVPATH = osp.dirname(osp.abspath(__file__))
-
 # To activate/deactivate certain things for development
 os.environ['SPYDER_DEV'] = 'True'
-
-# --- Test environment for surprises
-
-# Warn if Spyder is located on non-ASCII path
-# See spyder-ide/spyder#812.
-try:
-    osp.join(DEVPATH, 'test')
-except UnicodeDecodeError:
-    print("STOP: Spyder is located in the path with non-ASCII characters,")
-    print("      which is known to cause problems, see spyder-ide/spyder#812.")
-    try:
-        input = raw_input
-    except NameError:
-        pass
-    input("Press Enter to continue or Ctrl-C to abort...")
-
-# Warn if we're running under 3rd party exception hook, such as
-# apport_python_hook.py from Ubuntu
-if sys.excepthook != sys.__excepthook__:
-    if sys.excepthook.__name__ != 'apport_excepthook':
-        print("WARNING: 3rd party Python exception hook is active: '%s'"
-              % sys.excepthook.__name__)
-    else:
-        if not args.no_apport:
-            print("WARNING: Ubuntu Apport exception hook is detected")
-            print("         Use --no-apport option to disable it")
-        else:
-            sys.excepthook = sys.__excepthook__
-            print("NOTICE: Ubuntu Apport exception hook is disabed")
-
-
-# --- Continue
 
 if args.debug:
     # safety check - Spyder config should not be imported at this point
@@ -130,65 +95,6 @@ if args.debug:
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 
-
-# Add this path to the front of sys.path
-sys.path.insert(0, DEVPATH)
-print("*. Patched sys.path with %s" % DEVPATH)
-
-# Add external dependencies subrepo paths to be the next entries
-# (1, 2, etc) of sys.path
-DEPS_PATH = osp.join(DEVPATH, 'external-deps')
-i = 1
-for path in os.listdir(DEPS_PATH):
-    external_dep_path = osp.join(DEPS_PATH, path)
-    sys.path.insert(i, external_dep_path)
-    print("*. Patched sys.path with %s" % external_dep_path)
-    i += 1
-
-# Remove any leftover PyLSP installation from previous execution
-print("*. Removing previous PyLSP local installation.")
-pylsp_utils.remove_installation()
-
-# Install PyLSP locally
-print("*. Installing PyLSP locally")
-pylsp_utils.install()
-
-# Remove PyLSP temp installation at exit
-atexit.register(pylsp_utils.remove_installation)
-
-# Register completion providers
-print("*. Declaring completion providers")
-
-fallback = pkg_resources.EntryPoint.parse(
-    'fallback = spyder.plugins.completion.providers.fallback.provider:'
-    'FallbackProvider')
-
-snippets = pkg_resources.EntryPoint.parse(
-    'snippets = spyder.plugins.completion.providers.snippets.provider:'
-    'SnippetsProvider'
-)
-
-lsp = pkg_resources.EntryPoint.parse(
-    'lsp = spyder.plugins.completion.providers.languageserver.provider:'
-    'LanguageServerProvider'
-)
-
-# Create a fake Spyder distribution
-d = pkg_resources.Distribution(__file__)
-
-# Add the providers to the fake EntryPoint
-d._ep_map = {
-    'spyder.completions': {
-        'fallback': fallback,
-        'snippets': snippets,
-        'lsp': lsp,
-    }
-}
-
-# Add the fake distribution to the global working_set
-pkg_resources.working_set.add(d, 'spyder')
-
-
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:
     try:
@@ -201,6 +107,13 @@ else:
     print("*. Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
 
+# ---- Update PyLSP
+
+if REPOS['python-lsp-server']['editable']:
+    # Installed in editable mode -> reinstall
+    install_repo('python-lsp-server', editable=True)
+
+# ---- Check versions
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
@@ -212,7 +125,6 @@ print("    [Python %s %dbits, Qt %s, %s %s on %s]" %
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
-
 # Check that we have the right qtpy version
 from spyder.utils import programs
 if not programs.is_module_installed('qtpy', '>=1.1.0'):
@@ -220,8 +132,7 @@ if not programs.is_module_installed('qtpy', '>=1.1.0'):
     sys.exit("ERROR: Your qtpy version is outdated. Please install qtpy "
              "1.1.0 or higher to be able to work with Spyder!")
 
-
-# --- Executing Spyder
+# ---- Execute Spyder
 
 if args.show_console:
     print("(Deprecated) --show console does nothing, now the default behavior "
@@ -234,8 +145,8 @@ if args.hide_console and os.name == 'nt':
 # Reset temporary config directory if starting in --safe-mode
 if args.safe_mode or os.environ.get('SPYDER_SAFE_MODE'):
     from spyder.config.base import get_conf_path  # analysis:ignore
-    conf_dir = get_conf_path()
-    if osp.isdir(conf_dir):
+    conf_dir = Path(get_conf_path())
+    if conf_dir.is_dir():
         shutil.rmtree(conf_dir)
 
 print("*. Running Spyder")
