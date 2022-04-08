@@ -76,6 +76,13 @@ If using `pip` and `virtualenv` (not recommended), you need to `cd` to the direc
 $ pip install -e .
 ```
 
+Finally, you need to install the core dependencies in the subrepos.
+This will install `spyder`, `spyder-kernels`, `qdarkstyle`, and `python-lsp-server` in editable mode.
+
+```bash
+$ python install_subrepos.py --editable
+```
+
 ### Running Spyder
 
 To start Spyder directly from your clone, i.e. without installing it into your environment, you need to run (from the directory you cloned it to e.g. `spyder`):
