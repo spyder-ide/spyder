@@ -668,6 +668,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         Get command line options passed by the user when they started
         Spyder in a system terminal.
+
+        See app/cli_options.py for the option names.
         """
         return self._main._cli_options
 

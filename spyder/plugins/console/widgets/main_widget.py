@@ -117,6 +117,16 @@ class ConsoleWidget(PluginMainWidget):
         self.error_traceback = ''
         self.dismiss_error = False
 
+        # Header message
+        message = _(
+            "Spyder Internal Console\n\n"
+            "This console is used to report application\n"
+            "internal errors and to inspect Spyder\n"
+            "internals with the following commands:\n"
+            "  spy.app, spy.window, dir(spy)\n\n"
+            "Please don't use it to run your code\n\n"
+        )
+
         # Options that come from the command line
         cli_options = plugin.get_command_line_options()
         profile = cli_options.profile
@@ -126,10 +136,8 @@ class ConsoleWidget(PluginMainWidget):
         self.dialog_manager = DialogManager()
         self.error_dlg = None
         self.shell = InternalShell(  # TODO: Move to use SpyderWidgetMixin?
-            parent=parent,
-            namespace=self.get_conf('namespace', {}),
-            commands=self.get_conf('commands', []),
-            message=self.get_conf('message', ''),
+            commands=[],
+            message=message,
             max_line_count=self.get_conf('max_line_count'),
             profile=profile,
             multithreaded=multithreaded,
