@@ -636,11 +636,17 @@ class Projects(SpyderDockablePlugin):
                                              default=None)
 
         # Needs a safer test of project existence!
-        if (current_project_path and
-                self.is_valid_project(current_project_path)):
-            self.open_project(path=current_project_path,
-                              restart_consoles=True,
-                              save_previous_files=False)
+        if (
+            current_project_path and
+            self.is_valid_project(current_project_path)
+        ):
+            cli_options = self.get_command_line_options()
+            self.open_project(
+                path=current_project_path,
+                restart_consoles=True,
+                save_previous_files=False,
+                workdir=cli_options.working_directory
+            )
             self.load_config()
 
     def get_project_filenames(self):

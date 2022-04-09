@@ -9,6 +9,7 @@ Working Directory widget.
 """
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 
@@ -26,8 +27,9 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PathComboBox
 
 
-# Localization
+# Localization and logging
 _ = get_translation('spyder')
+logger = logging.getLogger(__name__)
 
 
 # ---- Constants
@@ -88,7 +90,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
-
         # Variables
         self.history = self.get_conf('history', [])
         self.histindex = None
@@ -265,6 +266,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
         # Changing working directory
         try:
+            logger.debug(f'Setting cwd to {directory}')
             os.chdir(directory)
             self.pathedit.add_text(directory)
             self.update_actions()
@@ -287,7 +289,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         return [str(self.pathedit.itemText(index)) for index
                 in range(self.pathedit.count())]
 
-    def set_history(self, history):
+    def set_history(self, history, cli_workdir=None):
         """
         Set the current history list.
 
@@ -295,14 +297,21 @@ class WorkingDirectoryContainer(PluginMainContainer):
         ----------
         history: list
             List of string paths.
+        cli_workdir: str or None
+            Working directory passed on the command line.
         """
         self.set_conf('history', history)
         if history:
             self.pathedit.addItems(history)
 
-        if self.get_conf('workdir', None) is None:
+        if cli_workdir is None:
             workdir = self.get_workdir()
         else:
-            workdir = self.get_conf('workdir')
+            logger.debug('Setting cwd passed from the command line')
+            workdir = cli_workdir
+
+            # In case users pass an invalid directory on the command line
+            if not osp.isdir(workdir):
+                workdir = get_home_dir()
 
         self.chdir(workdir)

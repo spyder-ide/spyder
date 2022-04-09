@@ -532,8 +532,6 @@ class MainWindow(QMainWindow):
         if os.name == "nt":
             qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
 
-        self.init_workdir = options.working_directory
-
         # Set default style
         self.default_style = str(qapp.style().objectName())
 
@@ -833,9 +831,6 @@ class MainWindow(QMainWindow):
         CONF.set('internal_console', 'commands', [])
         CONF.set('internal_console', 'namespace', {})
         CONF.set('internal_console', 'show_internal_errors', True)
-
-        # Working directory initialization
-        CONF.set('workingdir', 'init_workdir', self.init_workdir)
 
         # Load and register internal and external plugins
         external_plugins = find_external_plugins()
