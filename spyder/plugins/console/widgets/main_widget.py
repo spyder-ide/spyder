@@ -117,6 +117,11 @@ class ConsoleWidget(PluginMainWidget):
         self.error_traceback = ''
         self.dismiss_error = False
 
+        # Options that come from the command line
+        cli_options = plugin.get_command_line_options()
+        profile = cli_options.profile
+        multithreaded = cli_options.multithreaded
+
         # Widgets
         self.dialog_manager = DialogManager()
         self.error_dlg = None
@@ -126,8 +131,8 @@ class ConsoleWidget(PluginMainWidget):
             commands=self.get_conf('commands', []),
             message=self.get_conf('message', ''),
             max_line_count=self.get_conf('max_line_count'),
-            profile=self.get_conf('profile', False),
-            multithreaded=self.get_conf('multithreaded', False),
+            profile=profile,
+            multithreaded=multithreaded,
         )
         self.find_widget = FindReplace(self)
 
