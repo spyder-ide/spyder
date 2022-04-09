@@ -544,6 +544,9 @@ class MainWindow(QMainWindow):
             self.open_project = None
         self.window_title = options.window_title
 
+        # Save command line options for plugins to access them
+        self._cli_options = options
+
         logger.info("Start of MainWindow constructor")
 
         def signal_handler(signum, frame=None):

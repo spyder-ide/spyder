@@ -664,6 +664,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         return get_font(option=option, font_size_delta=font_size_delta)
 
+    def get_command_line_options(self):
+        """
+        Get command line options passed by the user when they started
+        Spyder in a system terminal.
+        """
+        return self._main._cli_options
+
     # --- API: Mandatory methods to define -----------------------------------
     # ------------------------------------------------------------------------
     @staticmethod
