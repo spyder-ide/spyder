@@ -273,7 +273,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
             if emit:
                 self.sig_current_directory_changed.emit(directory)
-
         except OSError:
             self.history.pop(self.histindex)
 
