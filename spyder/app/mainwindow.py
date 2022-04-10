@@ -669,7 +669,6 @@ class MainWindow(QMainWindow):
         self.is_starting_up = True
         self.is_setting_up = True
 
-        self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
 
@@ -1141,13 +1140,6 @@ class MainWindow(QMainWindow):
                 pass
 
         self.restore_scrollbar_position.emit()
-
-        # Workaround for spyder-ide/spyder#880.
-        # QDockWidget objects are not painted if restored as floating
-        # windows, so we must dock them before showing the mainwindow,
-        # then set them again as floating windows here.
-        for widget in self.floating_dockwidgets:
-            widget.setFloating(True)
 
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
