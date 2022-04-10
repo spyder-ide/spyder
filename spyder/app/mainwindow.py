@@ -114,10 +114,6 @@ if os.name == 'nt':
 # Module logger
 logger = logging.getLogger(__name__)
 
-# Get the cwd before initializing WorkingDirectory, which sets it to the one
-# used in the last session
-CWD = getcwd_or_home()
-
 #==============================================================================
 # Install Qt messaage handler
 #==============================================================================
@@ -135,6 +131,7 @@ class MainWindow(QMainWindow):
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     DEFAULT_LAYOUTS = 4
+    INITIAL_CWD = getcwd_or_home()
 
     # Signals
     restore_scrollbar_position = Signal()
@@ -1648,7 +1645,7 @@ class MainWindow(QMainWindow):
 
     def get_initial_working_directory(self):
         """Return the initial working directory."""
-        return CWD
+        return self.INITIAL_CWD
 
     def open_external_file(self, fname):
         """

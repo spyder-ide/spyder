@@ -67,8 +67,10 @@ def projects(qtbot, mocker, request, tmpdir):
     # Main window mock
     main_window = MainWindowProjectsMock(None)
     if use_cli_project:
-        cli_project = tmpdir.mkdir('cli_project_dir')
-        main_window._cli_options.project = str(cli_project)
+        tmpdir.mkdir('cli_project_dir')
+
+        # This allows us to test relative paths passed on the command line
+        main_window._cli_options.project = 'cli_project_dir'
 
     # Create plugin
     projects = Projects(configuration=CONF)
