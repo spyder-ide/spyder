@@ -43,6 +43,7 @@ class FindInFiles(SpyderDockablePlugin):
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
     CONF_FILE = False
+    RAISE_AND_FOCUS = True
 
     # --- SpyderDocakblePlugin API
     # ------------------------------------------------------------------------
