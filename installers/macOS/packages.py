@@ -44,7 +44,6 @@ PACKAGES = [
     'setuptools',
     'spyder',
     'spyder_kernels',
-    'spyder_terminal',
 ]
 
 # Packages to exclude
@@ -54,6 +53,9 @@ EXCLUDES = []
 INCLUDES = [
     'jellyfish',
     'pylsp',
+    'venv',
+    'pip',
+    'distutils',
 ]
 
 SCIENTIFIC = [
