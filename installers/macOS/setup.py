@@ -11,18 +11,20 @@ To be used like this:
 $ python setup.py
 """
 
-import os
 import sys
 import shutil
 from logging import getLogger, StreamHandler, Formatter
 from pathlib import Path
 from setuptools import setup
 
+from spyder import __version__ as SPYVER
+from spyder.config.base import MAC_APP_NAME
+
 # Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
 h.setFormatter(fmt)
-logger = getLogger('spyder-macOS')
+logger = getLogger('macOS-installer')
 logger.addHandler(h)
 logger.setLevel('INFO')
 
@@ -30,74 +32,13 @@ logger.setLevel('INFO')
 THISDIR = Path(__file__).resolve().parent
 SPYREPO = (THISDIR / '..' / '..').resolve()
 ICONFILE = SPYREPO / 'img_src' / 'spyder.icns'
-SPYLINK = THISDIR / 'spyder'
+APPSCRIPT = SPYREPO / 'scripts' / 'spyder'
 
-sys.path.append(SPYREPO.as_posix())
-
-from spyder import __version__ as SPYVER
-from spyder.config.base import MAC_APP_NAME
+APP_BASE_NAME = MAC_APP_NAME[:-4]
 
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
          sys.version_info.micro]
-
-
-def fix_zip_entry_points(zfile):
-    """
-    Fix zip archive so that pkg_resources will find entry points.
-    Remove if a better solution emerges.
-
-    Parameters
-    ----------
-    zfile : pathlib.Path
-        Path to zip archive.
-    """
-    import os
-    from zipfile import ZipFile
-
-    logger.info('Converting zip file...')
-
-    file = zfile.parent / 'temp'
-    ZipFile(zfile).extractall(file)
-    os.remove(zfile)
-    file.replace(zfile)
-
-
-def patch_py2app():
-    """
-    Patch py2app PyQt recipe and site.py for version 0.27.
-    Remove after version 0.28 is available.
-    """
-    from importlib.util import find_spec
-    from importlib.metadata import version
-    from packaging.version import parse
-
-    logger.info('Patching py2app...')
-
-    py2app_ver = version('py2app')
-    if parse(py2app_ver) > parse('0.27'):
-        raise DeprecationWarning(f'py2app version {py2app_ver} > 0.27; '
-                                 'stop using patch_py2app.')
-
-    root = Path(find_spec('py2app').origin).parent
-
-    # Patch site.py
-    site_file = root / 'apptemplate' / 'lib' / 'site.py'
-    append_text = ("builtins.quit = "
-                   "_sitebuiltins.Quitter('quit', 'Ctrl-D (i.e. EOF)')\n"
-                   "builtins.exit = "
-                   "_sitebuiltins.Quitter('exit', 'Ctrl-D (i.e. EOF)')\n")
-    text = site_file.read_text()
-    if append_text not in text:
-        site_file.write_text(text + append_text)
-
-    # Patch qt5.py
-    qt5_file = root / 'recipes' / 'qt5.py'
-    search_text = "if qtdir != os.path.dirname(PyQt5.__file__):"
-    replace_text = "if os.path.dirname(PyQt5.__file__) not in qtdir:"
-    text = qt5_file.read_text()
-    if replace_text not in text:
-        qt5_file.write_text(text.replace(search_text, replace_text))
 
 
 def make_app_bundle(dist_dir, make_lite=False):
@@ -144,28 +85,9 @@ def make_app_bundle(dist_dir, make_lite=False):
         }
     }
 
-    # Copy main application script
-    app_script_name = MAC_APP_NAME.replace('.app', '.py')
-    app_script_path = SPYREPO / 'scripts' / app_script_name
-    shutil.copy2(SPYREPO / 'scripts' / 'spyder', app_script_path)
-
     # Build the application
-    try:
-        patch_py2app()
-        os.symlink(SPYREPO / 'spyder', SPYLINK)
-        setup(app=[app_script_path.as_posix()], options={'py2app': OPTIONS})
-        fix_zip_entry_points(
-            dist_dir / MAC_APP_NAME / 'Contents' / 'Resources' / 'lib' /
-            'python{}{}.zip'.format(*PYVER[:2]))
-    finally:
-        os.remove(app_script_path)
-        os.remove(SPYLINK)
-
-    # Copy Spyder egg-info
-    egg = SPYREPO / 'spyder.egg-info'
-    dest = (dist_dir / MAC_APP_NAME / 'Contents' / 'Resources' / 'lib' /
-            'python{}.{}'.format(*PYVER) / 'spyder.egg-info')
-    shutil.copytree(egg, dest)
+    setup(name=APP_BASE_NAME, app=[APPSCRIPT.as_posix()],
+          options={'py2app': OPTIONS})
 
     return
 
@@ -188,7 +110,7 @@ def make_disk_image(dist_dir, make_lite=False):
     from dmgbuild import build_dmg
     from dmgbuild.core import DMGError
 
-    volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)
+    volume_name = '{}-{} Py-{}.{}.{}'.format(APP_BASE_NAME, SPYVER, *PYVER)
     dmg_name = 'Spyder'
     if make_lite:
         volume_name += ' Lite'
