@@ -4683,10 +4683,10 @@ foo(1)
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
-def test_focus_to_consoles(main_window, qtbot):
+def test_focus_for_plugins_with_raise_and_focus(main_window, qtbot):
     """
-    Check that we give focus to the text widget of our consoles after focus
-    is given to their dockwidgets.
+    Check that we give focus to the focus widget declared by plugins that use
+    the RAISE_AND_FOCUS class constant.
     """
     # Wait for the console to be up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -4709,6 +4709,12 @@ def test_focus_to_consoles(main_window, qtbot):
     console.dockwidget.raise_()
     focus_widget = QApplication.focusWidget()
     assert focus_widget is console.get_widget().get_focus_widget()
+
+    # Switch to Find and assert focus is given to its focus widget
+    find = main_window.get_plugin(Plugins.Find)
+    find.toggle_view_action.setChecked(True)
+    focus_widget = QApplication.focusWidget()
+    assert focus_widget is find.get_widget().get_focus_widget()
 
 
 @pytest.mark.slow
