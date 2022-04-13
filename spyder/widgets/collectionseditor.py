@@ -626,10 +626,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def setup_menu(self):
         """Setup context menu"""
         resize_action = create_action(self, _("Resize rows to contents"),
+                                      icon=ima.icon('collaprow'),
                                       triggered=self.resizeRowsToContents)
         resize_columns_action = create_action(
             self,
             _("Resize columns to contents"),
+            icon=ima.icon('collapcol'),
             triggered=self.resize_column_contents)
         self.paste_action = create_action(self, _("Paste"),
                                           icon=ima.icon('editpaste'),
@@ -1185,7 +1187,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.setModel(self.source_model)
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
-        
+
         self.setup_table()
         self.menu = self.setup_menu()
         if isinstance(data, set):
@@ -1320,7 +1322,7 @@ class CollectionsEditorWidget(QWidget):
         for item in self.editor.menu_actions:
             if item is not None:
                 toolbar.addAction(item)
-        
+
         # Update the toolbar actions state
         self.editor.refresh_menu()
         layout = QVBoxLayout()
@@ -1496,7 +1498,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             self.sig_editor_creation_started)
         self.delegate.sig_editor_shown.connect(self.sig_editor_shown)
         self.setItemDelegate(self.delegate)
-        
+
         self.setup_table()
 
         if create_menu:
