@@ -1186,7 +1186,7 @@ class MainWindow(QMainWindow):
         if (CONF.get('main', 'single_instance') and not self.new_instance
                 and self.open_files_server):
             t = threading.Thread(target=self.start_open_files_server)
-            t.setDaemon(True)
+            t.daemon = True
             t.start()
 
             # Connect the window to the signal emitted by the previous server

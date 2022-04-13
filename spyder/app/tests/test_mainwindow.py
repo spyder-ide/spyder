@@ -844,7 +844,8 @@ def test_get_help_ipython_console_special_characters(
        return value in control.toPlainText()
 
     qtbot.keyClicks(control, u'aa\t')
-    qtbot.waitUntil(lambda: check_control(control, u'aaʹbb'), timeout=2000)
+    qtbot.waitUntil(lambda: check_control(control, u'aaʹbb'),
+                    timeout=SHELL_TIMEOUT)
 
     # Get help
     control.inspect_current_object()
@@ -1091,6 +1092,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
+@pytest.mark.order(1)
 @pytest.mark.no_new_console
 @flaky(max_runs=3)
 def test_dedicated_consoles(main_window, qtbot):
@@ -2169,6 +2171,9 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     (parse_version(ipy_release.version) >= parse_version('7.23.0') and
      parse_version(ipykernel.__version__) <= parse_version('5.5.3')),
     reason="Fails due to a bug in the %matplotlib magic")
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'),
+    reason="Timeouts a lot on Linux")
 def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     """
     Test that the option to set bbox_inches to 'tight' or 'None' is
@@ -2235,9 +2240,10 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
 
     # Restart the kernel and wait until it's up again
-    shell._prompt_html = None
-    client.restart_kernel()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    with qtbot.waitSignal(client.sig_execution_state_changed,
+                          timeout=SHELL_TIMEOUT):
+        client.restart_kernel()
+    qtbot.waitUntil(lambda: 'In [1]:' in control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
 
     # Generate the same plot inline with bbox_inches='tight' and save the
@@ -3838,7 +3844,7 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     code_editor.set_text(
         "import multiprocessing\n"
         "import traceback\n"
-        'if __name__ is "__main__":\n'
+        'if __name__ == "__main__":\n'
         "    p = multiprocessing.Process(target=traceback.print_exc)\n"
         "    p.start()\n"
         "    p.join()\n"
@@ -3853,11 +3859,13 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     # be broken.
     if os.name == 'nt':
         qtbot.waitUntil(
-            lambda: "Warning: multiprocessing" in shell._control.toPlainText())
+            lambda: "Warning: multiprocessing" in shell._control.toPlainText(),
+            timeout=SHELL_TIMEOUT)
     else:
         # There is no exception, so the exception is None
         qtbot.waitUntil(
-            lambda: 'None' in shell._control.toPlainText())
+            lambda: 'None' in shell._control.toPlainText(),
+            timeout=SHELL_TIMEOUT)
 
 
 @pytest.mark.slow
