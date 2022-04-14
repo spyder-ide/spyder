@@ -930,7 +930,7 @@ def test_window_title(main_window, tmpdir):
     projects.open_project(path=path)
 
     # Set non-ascii window title
-    main_window.window_title = u'اختبار'
+    main_window._cli_options.window_title = u'اختبار'
 
     # Assert window title is computed without errors
     # and has the expected strings

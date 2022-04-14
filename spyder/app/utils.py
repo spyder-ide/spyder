@@ -300,8 +300,7 @@ def create_window(WindowClass, app, splash, options, args):
     main.post_visible_setup()
 
     if main.console:
-        namespace = CONF.get('internal_console', 'namespace', {})
-        main.console.start_interpreter(namespace)
+        main.console.start_interpreter(namespace={})
         main.console.set_namespace_item('spy', Spy(app=app, window=main))
 
     # Propagate current configurations to all configuration observers
