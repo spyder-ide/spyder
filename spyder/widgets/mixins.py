@@ -19,8 +19,10 @@ import re
 import sre_constants
 import sys
 import textwrap
+from pkg_resources import parse_version
 
 # Third party imports
+from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
@@ -1194,11 +1196,12 @@ class BaseEditMixin(object):
         """Delete selected text."""
         self.textCursor().removeSelectedText()
         # The next three lines are a workaround for a quirk of
-        # QTextEdit. See spyder-ide/spyder#12663 and
+        # QTextEdit on Qt < 5.15. See spyder-ide/spyder#12663 and
         # https://bugreports.qt.io/browse/QTBUG-35861
-        cursor = self.textCursor()
-        cursor.setPosition(cursor.position())
-        self.setTextCursor(cursor)
+        if parse_version(QT_VERSION) < parse_version('5.15'):
+            cursor = self.textCursor()
+            cursor.setPosition(cursor.position())
+            self.setTextCursor(cursor)
 
     def replace(self, text, pattern=None):
         """Replace selected text by *text*.
