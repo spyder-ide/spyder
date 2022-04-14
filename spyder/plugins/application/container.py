@@ -577,6 +577,7 @@ class ApplicationContainer(PluginMainContainer):
             self.dpi_messagebox.finished.connect(
                 lambda result: self.handle_dpi_change_response(result, dpi))
             self.dpi_messagebox.open()
+
             # Show dialog always in the primary screen to prevent not being
             # able to see it if a screen gets disconnected while
             # in suspended state. See spyder-ide/spyder#16390
@@ -585,4 +586,7 @@ class ApplicationContainer(PluginMainContainer):
             screen_geometry = QGuiApplication.primaryScreen().geometry()
             x = (screen_geometry.width() - dpi_messagebox_width) / 2
             y = (screen_geometry.height() - dpi_messagebox_height) / 2
-            self.dpi_messagebox.move(x, y)
+
+            # Convert coordinates to int to avoid a TypeError in Python 3.10
+            # Fixes spyder-ide/spyder#17677
+            self.dpi_messagebox.move(int(x), int(y))
