@@ -114,10 +114,6 @@ if os.name == 'nt':
 # Module logger
 logger = logging.getLogger(__name__)
 
-# Get the cwd before initializing WorkingDirectory, which sets it to the one
-# used in the last session
-CWD = getcwd_or_home()
-
 #==============================================================================
 # Install Qt messaage handler
 #==============================================================================
@@ -135,6 +131,7 @@ class MainWindow(QMainWindow):
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     DEFAULT_LAYOUTS = 4
+    INITIAL_CWD = getcwd_or_home()
 
     # Signals
     restore_scrollbar_position = Signal()
@@ -532,17 +529,11 @@ class MainWindow(QMainWindow):
         if os.name == "nt":
             qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
 
+        # Set default style
         self.default_style = str(qapp.style().objectName())
 
-        self.init_workdir = options.working_directory
-        self.profile = options.profile
-        self.multithreaded = options.multithreaded
-        self.new_instance = options.new_instance
-        if options.project is not None and not running_in_mac_app():
-            self.open_project = osp.normpath(osp.join(CWD, options.project))
-        else:
-            self.open_project = None
-        self.window_title = options.window_title
+        # Save command line options for plugins to access them
+        self._cli_options = options
 
         logger.info("Start of MainWindow constructor")
 
@@ -678,7 +669,6 @@ class MainWindow(QMainWindow):
         self.is_starting_up = True
         self.is_setting_up = True
 
-        self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
 
@@ -824,24 +814,6 @@ class MainWindow(QMainWindow):
         # Switcher instance
         logger.info("Loading switcher...")
         self.create_switcher()
-
-        message = _(
-            "Spyder Internal Console\n\n"
-            "This console is used to report application\n"
-            "internal errors and to inspect Spyder\n"
-            "internals with the following commands:\n"
-            "  spy.app, spy.window, dir(spy)\n\n"
-            "Please don't use it to run your code\n\n"
-        )
-        CONF.set('internal_console', 'message', message)
-        CONF.set('internal_console', 'multithreaded', self.multithreaded)
-        CONF.set('internal_console', 'profile', self.profile)
-        CONF.set('internal_console', 'commands', [])
-        CONF.set('internal_console', 'namespace', {})
-        CONF.set('internal_console', 'show_internal_errors', True)
-
-        # Working directory initialization
-        CONF.set('workingdir', 'init_workdir', self.init_workdir)
 
         # Load and register internal and external plugins
         external_plugins = find_external_plugins()
@@ -1152,10 +1124,6 @@ class MainWindow(QMainWindow):
         Actions to be performed only after the main window's `show` method
         is triggered.
         """
-        # Required plugins
-        projects = self.get_plugin(Plugins.Projects, error=False)
-        editor = self.get_plugin(Plugins.Editor, error=False)
-
         # Process pending events and hide splash before loading the
         # previous session.
         QApplication.processEvents()
@@ -1173,18 +1141,14 @@ class MainWindow(QMainWindow):
 
         self.restore_scrollbar_position.emit()
 
-        # Workaround for spyder-ide/spyder#880.
-        # QDockWidget objects are not painted if restored as floating
-        # windows, so we must dock them before showing the mainwindow,
-        # then set them again as floating windows here.
-        for widget in self.floating_dockwidgets:
-            widget.setFloating(True)
-
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
-        if (CONF.get('main', 'single_instance') and not self.new_instance
-                and self.open_files_server):
+        if (
+            CONF.get('main', 'single_instance') and
+            not self._cli_options.new_instance and
+            self.open_files_server
+        ):
             t = threading.Thread(target=self.start_open_files_server)
             t.setDaemon(True)
             t.start()
@@ -1196,30 +1160,9 @@ class MainWindow(QMainWindow):
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
-        # Load project, if any.
-        # TODO: Remove this reference to projects once we can send the command
-        # line options to the plugins.
-        if self.open_project:
-            if not running_in_mac_app():
-                if projects:
-                    projects.open_project(
-                        self.open_project, workdir=self.init_workdir
-                    )
-        else:
-            # Load last project if a project was active when Spyder
-            # was closed
-            reopen_last_session = False
-            if projects:
-                projects.reopen_last_project()
-                if projects.get_active_project() is None:
-                    reopen_last_session = True
-            else:
-                reopen_last_session = True
-
-            # If no project is active or Projects is disabled, load last
-            # session
-            if editor and reopen_last_session:
-                editor.setup_open_files(close_previous_files=False)
+        # Reopen last session if no project is active
+        # NOTE: This needs to be after the calls to on_mainwindow_visible
+        self.reopen_last_session()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1237,6 +1180,26 @@ class MainWindow(QMainWindow):
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
         self.sig_setup_finished.emit()
+
+    def reopen_last_session(self):
+        """
+        Reopen last session if no project is active.
+
+        This can't be moved to on_mainwindow_visible in the editor because we
+        need to let the same method on Projects run first.
+        """
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        reopen_last_session = False
+
+        if projects:
+            if projects.get_active_project() is None:
+                reopen_last_session = True
+        else:
+            reopen_last_session = True
+
+        if editor and reopen_last_session:
+            editor.setup_open_files(close_previous_files=False)
 
     def restore_undocked_plugins(self):
         """Restore plugins that were undocked in the previous session."""
@@ -1267,8 +1230,9 @@ class MainWindow(QMainWindow):
         if get_debug_level():
             title += u" [DEBUG MODE %d]" % get_debug_level()
 
-        if self.window_title is not None:
-            title += u' -- ' + to_text_string(self.window_title)
+        window_title = self._cli_options.window_title
+        if window_title is not None:
+            title += u' -- ' + to_text_string(window_title)
 
         # TODO: Remove self.projects reference once there's an API for setting
         # window title.
@@ -1671,6 +1635,10 @@ class MainWindow(QMainWindow):
             fname = file_uri(fname)
             start_file(fname)
 
+    def get_initial_working_directory(self):
+        """Return the initial working directory."""
+        return self.INITIAL_CWD
+
     def open_external_file(self, fname):
         """
         Open external files that can be handled either by the Editor or the
@@ -1678,8 +1646,9 @@ class MainWindow(QMainWindow):
         """
         # Check that file exists
         fname = encoding.to_unicode_from_fs(fname)
-        if osp.exists(osp.join(CWD, fname)):
-            fpath = osp.join(CWD, fname)
+        initial_cwd = self.get_initial_working_directory()
+        if osp.exists(osp.join(initial_cwd, fname)):
+            fpath = osp.join(initial_cwd, fname)
         elif osp.exists(fname):
             fpath = fname
         else:

@@ -9,6 +9,8 @@
 Testing utilities to be used with pytest.
 """
 
+# Standard library imports
+import sys
 import types
 from unittest.mock import Mock, MagicMock
 
@@ -20,6 +22,7 @@ import pytest
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+from spyder.app.cli_options import get_options
 from spyder.config.manager import CONF
 from spyder.plugins.preferences.plugin import Preferences
 from spyder.utils.icon_manager import ima
@@ -38,6 +41,10 @@ class MainWindowMock(QMainWindow):
         self._APPLICATION_TOOLBARS = MagicMock()
 
         self.console = Mock()
+
+        # To provide command line options for plugins that need them
+        sys_argv = [sys.argv[0]]  # Avoid options passed to pytest
+        self._cli_options = get_options(sys_argv)[0]
 
         PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)

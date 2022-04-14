@@ -22,6 +22,8 @@ import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.app.cli_options import get_options
+from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 import spyder.plugins.base
 from spyder.plugins.projects.plugin import Projects, QMessageBox
@@ -34,8 +36,9 @@ from spyder.py3compat import to_text_string
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
-def projects(qtbot, mocker):
+def projects(qtbot, mocker, request, tmpdir):
     """Projects plugin fixture."""
+    use_cli_project = request.node.get_closest_marker('use_cli_project')
 
     class EditorMock(MagicMock):
         def get_open_filenames(self):
@@ -44,6 +47,12 @@ def projects(qtbot, mocker):
             return []
 
     class MainWindowProjectsMock(MainWindowMock):
+        def __init__(self, parent):
+            # This avoids using the cli options passed to pytest
+            sys_argv = [sys.argv[0]]
+            self._cli_options = get_options(sys_argv)[0]
+            super().__init__(parent)
+
         def __getattr__(self, attr):
             if attr == 'ipyconsole':
                 return None
@@ -52,8 +61,16 @@ def projects(qtbot, mocker):
             except AttributeError:
                 return MagicMock()
 
+        def get_initial_working_directory(self):
+            return str(tmpdir)
+
     # Main window mock
     main_window = MainWindowProjectsMock(None)
+    if use_cli_project:
+        tmpdir.mkdir('cli_project_dir')
+
+        # This allows us to test relative paths passed on the command line
+        main_window._cli_options.project = 'cli_project_dir'
 
     # Create plugin
     projects = Projects(configuration=CONF)
@@ -347,6 +364,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
 
 @flaky(max_runs=5)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
+@pytest.mark.skipif(not running_in_ci(), reason="Hangs locally sometimes")
 def test_filesystem_notifications(qtbot, projects, tmpdir):
     """
     Test that filesystem notifications are emitted when creating,
@@ -463,6 +481,38 @@ def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
     with qtbot.waitSignals(
             [projects.sig_project_loaded, projects.sig_project_closed]):
         projects.open_project(path=path2)
+
+
+@pytest.mark.use_cli_project
+def test_project_cli(projects):
+    """Test that we can open a project from the command line."""
+    # Simulate opening a project when the main window is visible
+    projects.on_mainwindow_visible()
+
+    # Verify that we created the expected project
+    active_project = projects.get_active_project_path()
+    assert osp.split(active_project)[-1] == 'cli_project_dir'
+
+    # Close project
+    projects.close_project()
+
+
+def test_reopen_project(projects, tmpdir):
+    """Test that we can reopen a project from the last session."""
+    # Create project
+    last_project = tmpdir.mkdir('last_project_dir')
+    last_project.mkdir('.spyproject')
+    projects.set_conf('current_project_path', str(last_project))
+
+    # Simulate opening a project when the main window is visible
+    projects.on_mainwindow_visible()
+
+    # Verify that we created the expected project
+    active_project = projects.get_active_project_path()
+    assert osp.split(active_project)[-1] == 'last_project_dir'
+
+    # Close project
+    projects.close_project()
 
 
 if __name__ == "__main__":

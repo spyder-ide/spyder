@@ -78,7 +78,11 @@ class WorkingDirectory(SpyderPluginV2):
         self.sig_current_directory_changed.connect(
             lambda path, plugin=None: self.chdir(path, plugin))
 
-        container.set_history(self.load_history())
+        cli_options = self.get_command_line_options()
+        container.set_history(
+            self.load_history(),
+            cli_options.working_directory
+        )
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
