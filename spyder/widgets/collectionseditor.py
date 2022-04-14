@@ -626,12 +626,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def setup_menu(self):
         """Setup context menu"""
         resize_action = create_action(self, _("Resize rows to contents"),
-                                      icon=ima.icon('collaprow'),
+                                      icon=ima.icon('collapse_row'),
                                       triggered=self.resizeRowsToContents)
         resize_columns_action = create_action(
             self,
             _("Resize columns to contents"),
-            icon=ima.icon('collapcol'),
+            icon=ima.icon('collapse_column'),
             triggered=self.resize_column_contents)
         self.paste_action = create_action(self, _("Paste"),
                                           icon=ima.icon('editpaste'),
