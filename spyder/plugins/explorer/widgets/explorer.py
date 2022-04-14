@@ -661,7 +661,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             if len(assoc) >= 1:
                 actions = self._create_file_associations_actions()
                 self.open_with_submenu.menuAction().setVisible(True)
-                self.open_with_submenu.clear()
+                self.open_with_submenu.clear_actions()
                 for action in actions:
                     self.add_item_to_menu(
                         action,
