@@ -46,6 +46,7 @@ from spyder_kernels.utils.nsview import (
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
@@ -61,7 +62,7 @@ from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
-from spyder.api.widgets.toolbars import SpyderToolbar
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -1317,7 +1318,9 @@ class CollectionsEditorWidget(QWidget):
         else:
             self.editor = CollectionsEditorTableView(self, data, readonly,
                                                      title)
+
         toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
+        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
 
         for item in self.editor.menu_actions:
             if item is not None:
