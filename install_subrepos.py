@@ -10,7 +10,6 @@ Helper script for installing spyder and external-deps locally in editable mode.
 
 import argparse
 import os
-import re
 import sys
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
@@ -39,7 +38,7 @@ for p in DEPS_PATH.iterdir():
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
 h.setFormatter(fmt)
-logger = getLogger('InstallLocal')
+logger = getLogger('InstallSubRepos')
 logger.addHandler(h)
 logger.setLevel('INFO')
 
@@ -52,38 +51,38 @@ def get_python_lsp_version():
             if 'python-lsp-server' not in line:
                 continue
 
-            version = next(iter(Requirement(line).specifier))).version
+            version = next(iter(Requirement(line).specifier)).version
 
             break
 
     return version
 
 
-def install_repo(repo, editable=False):
+def install_repo(name, editable=False):
     """
     Install a single repo from source located in spyder/external-deps, ignoring
     dependencies, in standard or editable mode.
 
     Parameters
     ----------
-    repo : str
+    name : str
         Must be the distribution name of a repo in spyder/external-deps.
     editable : bool (False)
         Standard install (False) or editable (True). This uses the `-e` flag.
 
     """
     try:
-        repo_path = REPOS[repo]
+        repo_path = REPOS[name]['repo']
     except KeyError:
         logger.warning(
-            'Distribution %r not valid. Must be one of %s', repo, set(REPOS.keys()))
+            'Distribution %r not valid. Must be one of %s', name, set(REPOS.keys()))
         return
 
     install_cmd = BASE_COMMAND.copy()
 
     # PyLSP requires pretend version
     env = None
-    if repo == 'python-lsp-server':
+    if name == 'python-lsp-server':
         env = {**os.environ}
         env.update({'SETUPTOOLS_SCM_PRETEND_VERSION': get_python_lsp_version()})
 
@@ -94,7 +93,7 @@ def install_repo(repo, editable=False):
     else:
         mode = 'standard'
 
-    logger.info('Installing %r from source in %s mode.', repo, mode)
+    logger.info('Installing %r from source in %s mode.', name, mode)
     install_cmd.append(repo_path.as_posix())
     check_output(install_cmd, env=env)
 
