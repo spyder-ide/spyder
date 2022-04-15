@@ -666,12 +666,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         )
         self.insert_action_above = create_action(
             self, _("Insert above"),
-            icon=ima.icon('insert'),
+            icon=ima.icon('insert_above'),
             triggered=lambda: self.insert_item(below=False)
         )
         self.insert_action_below = create_action(
             self, _("Insert below"),
-            icon=ima.icon('insert'),
+            icon=ima.icon('insert_below'),
             triggered=lambda: self.insert_item(below=True)
         )
         self.remove_action = create_action(self, _("Remove"),

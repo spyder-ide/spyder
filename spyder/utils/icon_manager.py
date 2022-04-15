@@ -195,6 +195,8 @@ class IconManager():
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
+            'insert_above':            [('mdi.table-arrow-up',), {'color': self.MAIN_FG_COLOR}],
+            'insert_below':            [('mdi.table-arrow-down',), {'color': self.MAIN_FG_COLOR}],
             'rename':                  [('mdi.rename-box',), {'color': self.MAIN_FG_COLOR}],
             'move':                    [('mdi.file-move',), {'color': self.MAIN_FG_COLOR}],
             'edit_add':                [('mdi.plus',), {'color': self.MAIN_FG_COLOR}],

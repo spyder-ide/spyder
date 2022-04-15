@@ -72,8 +72,6 @@ class VariableExplorerContextMenuActions:
     ImshowAction = 'imshow_action'
     SaveArrayAction = 'save_array_action'
     InsertAction = 'insert_action'
-    InsertActionAbove = 'insert_action_above'
-    InsertActionBelow = 'insert_action_below'
     RemoveAction = 'remove_action'
     RenameAction = 'rename_action'
     DuplicateAction = 'duplicate_action'
@@ -219,12 +217,14 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         resize_rows_action = self.create_action(
             VariableExplorerContextMenuActions.ResizeRowsAction,
             text=_("Resize rows to contents"),
+            icon=self.create_icon('collapse_row'),
             triggered=self.resize_rows
         )
 
         resize_columns_action = self.create_action(
             VariableExplorerContextMenuActions.ResizeColumnsAction,
             _("Resize columns to contents"),
+            icon=self.create_icon('collapse_column'),
             triggered=self.resize_columns
         )
 
