@@ -35,7 +35,7 @@ if [ "$USE_CONDA" = "true" ]; then
     done
 else
     # Update pip and setuptools
-    python -m pip install -U pip setuptools wheels
+    python -m pip install -U pip setuptools wheel build
 
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
@@ -66,8 +66,8 @@ pip install --no-deps -q -e .
 popd
 
 # Install Spyder to test it as if it was properly installed.
-python -m pip wheel --no-deps -w dist .
-python -m pip install --no-deps dist/spyder*.whl
+python -bb -X dev -W error -m build
+python -bb -X dev -W error -m pip install --no-deps dist/spyder*.whl
 
 # Create environment for Jedi environments tests
 mamba create -n jedi-test-env -q -y python=3.6 flask spyder-kernels

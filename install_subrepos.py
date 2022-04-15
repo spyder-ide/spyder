@@ -14,8 +14,10 @@ import re
 import sys
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
-from pkg_resources import DistributionNotFound, get_distribution
 from subprocess import check_output
+
+from importlib_metadata import PackageNotFoundError, distribution
+from packaging.requirements import Requirement
 
 DEVPATH = Path(__file__).resolve().parent
 DEPS_PATH = DEVPATH / 'external-deps'
@@ -23,14 +25,15 @@ BASE_COMMAND = [sys.executable, '-m', 'pip', 'install', '--no-deps']
 
 REPOS = {}
 for p in DEPS_PATH.iterdir():
-    if p.name.startswith('.'):
+    if p.name.startswith('.') or not p.is_dir():
         continue
     try:
-        dist = Path(get_distribution(p.name).location)
-    except DistributionNotFound:
+        dist = distribution(p.name)._path
+    except PackageNotFoundError:
         dist = None
 
-    REPOS[p.name] = {'repo': p, 'dist': dist, 'editable': p == dist}
+    REPOS[p.name] = {
+        'repo': p, 'dist': dist, 'editable': p == dist or p in dist.parents}
 
 # ---- Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -44,19 +47,12 @@ logger.setLevel('INFO')
 def get_python_lsp_version():
     """Get current version to pass it to setuptools-scm."""
     req_file = DEVPATH / 'requirements' / 'conda.txt'
-    with open(req_file, 'r') as f:
+    with open(req_file, 'r', encoding='utf-8') as f:
         for line in f:
             if 'python-lsp-server' not in line:
                 continue
 
-            # Get version part of dependency line
-            version = line.strip().split()[1]
-
-            # Get lower bound
-            version = version.split(',')[0]
-
-            # Remove comparison signs and only leave version number
-            version = re.search(r'\d+.*', version).group()
+            version = next(iter(Requirement(line).specifier))).version
 
             break
 
@@ -80,7 +76,7 @@ def install_repo(repo, editable=False):
         repo_path = REPOS[repo]
     except KeyError:
         logger.warning(
-            f"Distribution '{repo}' not valid. Must be one of {REPOS.keys()}")
+            'Distribution %r not valid. Must be one of %s', repo, set(REPOS.keys()))
         return
 
     install_cmd = BASE_COMMAND.copy()
@@ -91,19 +87,16 @@ def install_repo(repo, editable=False):
         env = {**os.environ}
         env.update({'SETUPTOOLS_SCM_PRETEND_VERSION': get_python_lsp_version()})
 
-    msg = f"Installing '{repo}' from source in {{}} mode."
     if editable:
         # Add edit flag to install command
         install_cmd.append('-e')
-        msg = msg.format('editable')
+        mode = 'editable'
     else:
-        msg = msg.format('standard')
+        mode = 'standard'
 
-    logger.info(msg)
+    logger.info('Installing %r from source in %s mode.', repo, mode)
     install_cmd.append(repo_path.as_posix())
     check_output(install_cmd, env=env)
-
-    return
 
 
 def main(install=tuple(REPOS.keys()), **kwargs):
