@@ -57,27 +57,34 @@ $ workon spyder-dev
 
 ### Installing dependencies
 
-After you have created your development environment, you need to install Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
+After you have created your development environment, you need to install Spyder and Spyder's necessary dependencies.
+First change your working directory to the repo directory.
+
+```bash
+$ cd path/to/spyder/repo
+```
+
+Next, with Anaconda, install the dependencies from `conda` and Spyder in develop mode from local source.
 
 ```bash
 $ conda install -c conda-forge --file requirements/conda.txt
+$ pip install --no-deps -e .
 ```
 
-This installs all Spyder's dependencies into the environment.
+If using `pip` and `virtualenv` (not recommended), Spyder is installed in develop mode from local source and dependencies are installed from PyPi with one command.
+
+```bash
+$ pip install -e .
+```
+
 If you are running on macOS, you will also need to install `python.app`.
 
 ```bash
 $ conda install python.app
 ```
 
-If using `pip` and `virtualenv` (not recommended), you need to `cd` to the directory where your git clone is stored and run:
-
-```bash
-$ pip install -e .
-```
-
 Finally, you need to install the core dependencies in the subrepos.
-This will install `spyder`, `spyder-kernels`, `qdarkstyle`, and `python-lsp-server` in editable mode.
+This will install `spyder-kernels`, `qdarkstyle`, `qtconsole`, and `python-lsp-server` in develop mode.
 
 ```bash
 $ python install_subrepos.py --editable

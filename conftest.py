@@ -20,7 +20,7 @@ os.environ['SPYDER_PYTEST'] = 'True'
 
 # ---- Update PyLSP
 # When running in CI, subrepos are installed in the env.
-if not bool(os.environ.get('CI')):
+if not os.environ.get('CI'):
     from install_subrepos import REPOS, install_repo
     if REPOS['python-lsp-server']['editable']:
         # Installed in editable mode -> reinstall

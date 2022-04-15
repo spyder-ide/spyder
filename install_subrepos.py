@@ -30,9 +30,11 @@ for p in DEPS_PATH.iterdir():
         dist = distribution(p.name)._path
     except PackageNotFoundError:
         dist = None
+        editable = None
+    else:
+        editable = (p == dist or p in dist.parents)
 
-    REPOS[p.name] = {
-        'repo': p, 'dist': dist, 'editable': p == dist or p in dist.parents}
+    REPOS[p.name] = {'repo': p, 'dist': dist, 'editable': editable}
 
 # ---- Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -123,8 +125,8 @@ if __name__ == '__main__':
         '--install', dest='install', nargs='+',
         default=REPOS.keys(),
         help="Space-separated list of distribution names to install, e.g. "
-             "spyder spyder-kernels. If option not provided, then all of the "
-             "repos in spyder/external-deps are installed"
+             "qtconsole spyder-kernels. If option not provided, then all of "
+             "the repos in spyder/external-deps are installed"
     )
     parser.add_argument(
         '--editable', dest='editable',
