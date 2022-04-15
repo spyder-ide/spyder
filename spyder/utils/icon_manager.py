@@ -12,7 +12,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QBuffer, QByteArray
-from qtpy.QtGui import QIcon, QImage
+from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -355,20 +355,44 @@ class IconManager():
     def get_icon(self, name, resample=False):
         """Return image inside a QIcon object.
 
-        default: default image name or icon
-        resample: if True, manually resample icon pixmaps for usual sizes
-        (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons
-        created from SVG images on non-Windows platforms due to a Qt bug.
-        See spyder-ide/spyder#1314.
+        Parameters
+        ----------
+        name: str
+            Image name or icon
+        resample: bool
+            If True, manually resample icon pixmaps for usual sizes
+            (16, 24, 32, 48, 96, 128, 256). This is recommended for
+            QMainWindow icons created from SVG images on non-Windows
+            platforms due to a Qt bug. See spyder-ide/spyder#1314.
         """
         icon_path = get_image_path(name)
-        icon = QIcon(icon_path)
         if resample:
+            # This only applies to the Spyder 2 icons
+            icon = QIcon(icon_path)
             icon0 = QIcon()
             for size in (16, 24, 32, 48, 96, 128, 256, 512):
                 icon0.addPixmap(icon.pixmap(size, size))
             return icon0
         else:
+            icon = QIcon()
+
+            # Normal state
+            normal_state = QPixmap(icon_path)
+            icon.addPixmap(normal_state, QIcon.Normal)
+
+            # This is the color GammaRay reports for icons in disabled
+            # buttons, both for the dark and light themes
+            disabled_color = QColor(150, 150, 150)
+
+            # Paint icon with the previous color to get the disabled state.
+            # Taken from https://stackoverflow.com/a/65618075/438386
+            disabled_state = QPixmap(icon_path)
+            qp = QPainter(disabled_state)
+            qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
+            qp.fillRect(disabled_state.rect(), disabled_color)
+            qp.end()
+            icon.addPixmap(disabled_state, QIcon.Disabled)
+
             return icon
 
     def icon(self, name, scale_factor=None, resample=False):
