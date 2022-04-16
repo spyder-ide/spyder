@@ -22,10 +22,6 @@ from spyder.py3compat import PY2
 
 class IPythonConsoleConfigPage(PluginConfigPage):
 
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("IPython console")
-
     def setup_page(self):
         newcb = self.create_checkbox
 
@@ -114,16 +110,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                               "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
-        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Qt4", 3)]
+        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Tkinter", 3)]
 
         if sys.platform == 'darwin':
-            backends.append(("OS X", 4))
-        if sys.platform.startswith('linux'):
-            backends.append(("Gtk3", 5))
-            backends.append(("Gtk", 6))
-        if PY2:
-            backends.append(("Wx", 7))
-        backends.append(("Tkinter", 8))
+            backends.append(("macOS", 4))
         backends = tuple(backends)
 
         backend_box = self.create_combobox(

@@ -139,7 +139,7 @@ def test_jedi_completion(config, workspace):
 
     assert items
     labels = [i['label'] for i in items]
-    assert 'isabs(path)' in labels
+    assert 'isfile(path)' in labels
 
     # Test we don't throw with big character
     pylsp_jedi_completions(config, doc, {'line': 1, 'character': 1000})
@@ -149,7 +149,7 @@ def test_jedi_completion_item_resolve(config, workspace):
     # Over the blank line
     com_position = {'line': 8, 'character': 0}
     doc = Document(DOC_URI, workspace, DOC)
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': math.inf}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': math.inf}}})
     completions = pylsp_jedi_completions(config, doc, com_position)
 
     items = {c['label']: c for c in completions}
@@ -175,7 +175,11 @@ def test_jedi_completion_with_fuzzy_enabled(config, workspace):
     items = pylsp_jedi_completions(config, doc, com_position)
 
     assert items
-    assert items[0]['label'] == 'commonprefix(list)'
+
+    expected = 'commonprefix(m)'
+    if JEDI_VERSION == '0.18.0':
+        expected = 'commonprefix(list)'
+    assert items[0]['label'] == expected
 
     # Test we don't throw with big character
     pylsp_jedi_completions(config, doc, {'line': 1, 'character': 1000})
@@ -187,16 +191,16 @@ def test_jedi_completion_resolve_at_most(config, workspace):
     doc = Document(DOC_URI, workspace, DOC)
 
     # Do not resolve any labels
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': 0}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': 0}}})
     items = pylsp_jedi_completions(config, doc, com_position)
     labels = {i['label'] for i in items}
     assert 'isabs' in labels
 
     # Resolve all items
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': math.inf}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': math.inf}}})
     items = pylsp_jedi_completions(config, doc, com_position)
     labels = {i['label'] for i in items}
-    assert 'isabs(path)' in labels
+    assert 'isfile(path)' in labels
 
 
 def test_rope_completion(config, workspace):
@@ -214,7 +218,7 @@ def test_jedi_completion_ordering(config, workspace):
     # Over the blank line
     com_position = {'line': 8, 'character': 0}
     doc = Document(DOC_URI, workspace, DOC)
-    config.update({'plugins': {'jedi_completion': {'resolve_at_most_labels': math.inf}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': math.inf}}})
     completions = pylsp_jedi_completions(config, doc, com_position)
 
     items = {c['label']: c['sortText'] for c in completions}
@@ -318,6 +322,20 @@ def test_snippets_completion(config, workspace):
     assert completions[0]['insertTextFormat'] == lsp.InsertTextFormat.Snippet
 
 
+def test_snippets_completion_at_most(config, workspace):
+    doc_snippets = 'from collections import defaultdict \na=defaultdict'
+    doc = Document(DOC_URI, workspace, doc_snippets)
+    config.capabilities['textDocument'] = {
+        'completion': {'completionItem': {'snippetSupport': True}}}
+    config.update({'plugins': {'jedi_completion': {'include_params': True}}})
+    config.update({'plugins': {'jedi_completion': {'resolve_at_most': 0}}})
+
+    com_position = {'line': 1, 'character': len(doc_snippets)}
+    completions = pylsp_jedi_completions(config, doc, com_position)
+    assert completions[0]['insertText'] == 'defaultdict'
+    assert not completions[0].get('insertTextFormat', None)
+
+
 def test_completion_with_class_objects(config, workspace):
     doc_text = 'class FOOBAR(Object): pass\nFOOB'
     com_position = {'line': 1, 'character': 4}
@@ -346,7 +364,10 @@ def test_snippet_parsing(config, workspace):
         'completion': {'completionItem': {'snippetSupport': True}}}
     config.update({'plugins': {'jedi_completion': {'include_params': True}}})
     completions = pylsp_jedi_completions(config, doc, completion_position)
-    out = 'divmod(${1:a}, ${2:b})$0'
+
+    out = 'divmod(${1:x}, ${2:y})$0'
+    if JEDI_VERSION == '0.18.0':
+        out = 'divmod(${1:a}, ${2:b})$0'
     assert completions[0]['insertText'] == out
 
 
@@ -393,11 +414,11 @@ def test_multistatement_snippet(config, workspace):
     completions = pylsp_jedi_completions(config, doc, position)
     assert completions[0]['insertText'] == 'date'
 
-    document = 'from datetime import date; a = date'
+    document = 'from math import fmod; a = fmod'
     doc = Document(DOC_URI, workspace, document)
     position = {'line': 0, 'character': len(document)}
     completions = pylsp_jedi_completions(config, doc, position)
-    assert completions[0]['insertText'] == 'date(${1:year}, ${2:month}, ${3:day})$0'
+    assert completions[0]['insertText'] == 'fmod(${1:x}, ${2:y})$0'
 
 
 def test_jedi_completion_extra_paths(tmpdir, workspace):

@@ -269,7 +269,10 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
     editor, _ = completions_codeeditor_linting
     editor.textCursor().insertText("print('test)\n")
 
-    expected = [['EOL while scanning string literal', 1]]
+    if sys.version_info >= (3, 10):
+        expected = [['unterminated string literal (detected at line 1)', 1]]
+    else:
+        expected = [['EOL while scanning string literal', 1]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
@@ -306,8 +309,16 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     editor, _ = completions_codeeditor_linting
     editor.textCursor().insertText("print('test'\n")
 
-    expected = [['unexpected EOF while parsing', 1],
-                ['E901 TokenError: EOF in multi-line statement', 2]]
+    if sys.version_info >= (3, 10):
+        expected = [
+            ["'(' was never closed", 1],
+            ['E901 TokenError: EOF in multi-line statement', 2]
+        ]
+    else:
+        expected = [
+            ['unexpected EOF while parsing', 1],
+            ['E901 TokenError: EOF in multi-line statement', 2]
+        ]
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):

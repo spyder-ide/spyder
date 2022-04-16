@@ -13,11 +13,9 @@ NOTE: DO NOT add fixtures here. It could generate problems with
 
 import os
 import os.path as osp
-import shutil
-import subprocess
 import sys
-import warnings
 
+import pylsp_utils
 
 # ---- To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
@@ -32,8 +30,7 @@ running_in_ci = bool(os.environ.get('CI'))
 
 # ---- Handle subrepos
 # NOTE: Please don't move this from here!
-# Add subrepo paths to sys.path locally. When running in CI, subrepos
-# are installed to the env.
+# When running in CI, subrepos are installed in the env.
 if not running_in_ci:
     HERE = osp.dirname(osp.abspath(__file__))
     DEPS_PATH = osp.join(HERE, 'external-deps')
@@ -43,32 +40,11 @@ if not running_in_ci:
         sys.path.insert(i, external_dep_path)
         i += 1
 
+    # Remove previous local PyLSP installation.
+    pylsp_utils.remove_installation()
 
-# ---- Install PyLS locally when not running in CI
-if not running_in_ci:
-    # Create an egg-info folder to declare the PyLS subrepo entry points.
-    pyls_submodule = osp.join(DEPS_PATH, 'python-lsp-server')
-    pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
-    pyls_installation_egg = osp.join(
-        pyls_submodule, 'python_lsp_server.egg-info')
-
-    # Remove previous local PyLS installation.
-    if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
-        shutil.rmtree(pyls_installation_dir, ignore_errors=True)
-        shutil.rmtree(pyls_installation_egg, ignore_errors=True)
-
-    subprocess.check_output(
-        [sys.executable,
-         '-W',
-         'ignore',
-         'setup.py',
-         'develop',
-         '--no-deps',
-         '--install-dir',
-         pyls_installation_dir],
-        env={**os.environ, **{'PYTHONPATH': pyls_installation_dir}},
-        cwd=pyls_submodule
-    )
+    # Install PyLS locally.
+    pylsp_utils.install()
 
 
 # ---- Pytest adjustments

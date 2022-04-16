@@ -526,7 +526,6 @@ class TextHelper(object):
             text_cursor.setPosition(s)
             text_cursor.setPosition(e, text_cursor.KeepAnchor)
         self._editor.setTextCursor(text_cursor)
-        self._editor.document_did_change()
 
     def search_text(self, text_cursor, search_txt, search_flags):
         """

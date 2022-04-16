@@ -1,6 +1,8 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
+import pytest
+
 from pylsp import uris
 from pylsp.plugins.yapf_format import pylsp_format_document, pylsp_format_range
 from pylsp.workspace import Document
@@ -58,3 +60,11 @@ def test_config_file(tmpdir, workspace):
 
     # A was split on multiple lines because of column_limit from config file
     assert pylsp_format_document(doc)[0]['newText'] == "A = [\n    'h', 'w',\n    'a'\n]\n\nB = ['h', 'w']\n"
+
+
+@pytest.mark.parametrize('newline', ['\r\n', '\r'])
+def test_line_endings(workspace, newline):
+    doc = Document(DOC_URI, workspace, f'import os;import sys{2 * newline}dict(a=1)')
+    res = pylsp_format_document(doc)
+
+    assert res[0]['newText'] == f'import os{newline}import sys{2 * newline}dict(a=1){newline}'

@@ -16,6 +16,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
+from spyder.config.base import get_conf_path
 from spyder.plugins.history.confpage import HistoryConfigPage
 from spyder.plugins.history.widgets import HistoryWidget
 
@@ -29,7 +30,8 @@ class HistoryLog(SpyderDockablePlugin):
     """
 
     NAME = 'historylog'
-    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Console]
+    REQUIRES = [Plugins.Preferences, Plugins.Console]
+    OPTIONAL = [Plugins.IPythonConsole]
     TABIFY = Plugins.IPythonConsole
     WIDGET_CLASS = HistoryWidget
     CONF_SECTION = NAME
@@ -43,6 +45,11 @@ class HistoryLog(SpyderDockablePlugin):
     This signal is emitted when the focus of the code editor storing history
     changes.
     """
+
+    def __init__(self, parent=None, configuration=None):
+        """Initialization."""
+        super().__init__(parent, configuration)
+        self.add_history(get_conf_path('history.py'))
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
@@ -70,6 +77,12 @@ class HistoryLog(SpyderDockablePlugin):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.connect(self.refresh)
 
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_append_to_history_requested.connect(
+            self.append_to_history)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -79,6 +92,12 @@ class HistoryLog(SpyderDockablePlugin):
     def on_console_teardown(self):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.disconnect(self.refresh)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_teardown(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_append_to_history_requested.disconnect(
+            self.append_to_history)
 
     def update_font(self):
         color_scheme = self.get_color_scheme()

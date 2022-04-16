@@ -15,7 +15,6 @@ import sys
 import threading
 import time
 
-import ipykernel
 from IPython.core.getipython import get_ipython
 from jupyter_client.localinterfaces import localhost
 from tornado import ioloop
@@ -35,7 +34,7 @@ def get_free_port():
     return port
 
 
-def frontend_request(blocking=True, timeout=None):
+def frontend_request(blocking, timeout=None):
     """
     Send a request to the frontend.
 
@@ -146,38 +145,35 @@ class FrontendComm(CommBase):
             return
 
         handler = self.kernel.shell_handlers.get(msg_type, None)
-        if handler is None:
-            self.kernel.log.warning("Unknown message type: %r", msg_type)
-        else:
-            try:
-                if not PY2:
-                    import asyncio
-                    if (not getattr(asyncio, 'run', False) or
-                            ipykernel.__version__[0] < '6'):
-                        # This is required for Python 3.6, which doesn't have
-                        # asyncio.run or ipykernel versions less than 6. The
-                        # nice thing is that ipykernel 6, which requires
-                        # asyncio, doesn't support Python 3.6.
-                        handler(out_stream, ident, msg)
-                    else:
-                        # This is needed for ipykernel 6+
-                        asyncio.run(handler(out_stream, ident, msg))
-                else:
-                    handler(out_stream, ident, msg)
-            except ValueError as e:
-                # This avoids showing an unnecessary message about expected
-                # coroutines.
+        try:
+            if handler is None:
+                self.kernel.log.warning("Unknown message type: %r", msg_type)
                 return
-            except Exception:
-                self.kernel.log.error("Exception in message handler:",
-                                      exc_info=True)
+            if PY2:
+                handler(out_stream, ident, msg)
                 return
 
-        sys.stdout.flush()
-        sys.stderr.flush()
-        # Flush to ensure reply is sent
-        if out_stream:
-            out_stream.flush(zmq.POLLOUT)
+            import asyncio
+
+            if (getattr(asyncio, 'run', False) and
+                    asyncio.iscoroutinefunction(handler)):
+                # This is needed for ipykernel 6+
+                asyncio.run(handler(out_stream, ident, msg))
+            else:
+                # This is required for Python 3.6, which doesn't have
+                # asyncio.run or ipykernel versions less than 6. The
+                # nice thing is that ipykernel 6, which requires
+                # asyncio, doesn't support Python 3.6.
+                handler(out_stream, ident, msg)
+        except Exception:
+            self.kernel.log.error(
+                "Exception in message handler:", exc_info=True)
+        finally:
+            sys.stdout.flush()
+            sys.stderr.flush()
+            # Flush to ensure reply is sent
+            if out_stream:
+                out_stream.flush(zmq.POLLOUT)
 
     def remote_call(self, comm_id=None, blocking=False, callback=None,
                     timeout=None):
@@ -265,8 +261,11 @@ class FrontendComm(CommBase):
         """Call the callback function for the remote call."""
         saved_stdout_write = sys.stdout.write
         saved_stderr_write = sys.stderr.write
-        sys.stdout.write = WriteWrapper(saved_stdout_write, call_name)
-        sys.stderr.write = WriteWrapper(saved_stderr_write, call_name)
+        thread_id = threading.get_ident()
+        sys.stdout.write = WriteWrapper(
+            saved_stdout_write, call_name, thread_id)
+        sys.stderr.write = WriteWrapper(
+            saved_stderr_write, call_name, thread_id)
         try:
             return super(FrontendComm, self)._remote_callback(
                 call_name, call_args, call_kwargs)
@@ -275,19 +274,41 @@ class FrontendComm(CommBase):
             sys.stderr.write = saved_stderr_write
 
 
-class WriteWrapper():
+class WriteWrapper(object):
     """Wrapper to warn user when text is printed."""
 
-    def __init__(self, write, name):
+    def __init__(self, write, name, thread_id):
         self._write = write
         self._name = name
+        self._thread_id = thread_id
         self._warning_shown = False
+
+    def is_benign_message(self, message):
+        """Determine if a message is benign in order to filter it."""
+        benign_messages = [
+            # Fixes spyder-ide/spyder#14928
+            # Fixes spyder-ide/spyder-kernels#343
+            'DeprecationWarning',
+            # Fixes spyder-ide/spyder-kernels#365
+            'IOStream.flush timed out'
+        ]
+
+        return any([msg in message for msg in benign_messages])
 
     def __call__(self, string):
         """Print warning once."""
-        if not self._warning_shown:
-            self._warning_shown = True
-            self._write(
-                "\nOutput from spyder call "
-                + repr(self._name) + ":\n")
-        return self._write(string)
+        if self._thread_id != threading.get_ident():
+            return self._write(string)
+
+        if not self.is_benign_message(string):
+            if not self._warning_shown:
+                self._warning_shown = True
+
+                # Don't print handler name for `show_mpl_backend_errors`
+                # because we have a specific message for it.
+                if repr(self._name) != "'show_mpl_backend_errors'":
+                    self._write(
+                        "\nOutput from spyder call " + repr(self._name) + ":\n"
+                    )
+
+            return self._write(string)

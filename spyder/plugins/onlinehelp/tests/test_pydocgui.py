@@ -12,6 +12,8 @@ import sys
 from unittest.mock import MagicMock
 
 # Test library imports
+import numpy as np
+from numpy.lib import NumpyVersion
 import pytest
 from flaky import flaky
 
@@ -25,37 +27,33 @@ def pydocbrowser(qtbot):
     plugin_mock = MagicMock()
     plugin_mock.CONF_SECTION = 'onlinehelp'
     widget = PydocBrowser(parent=None, plugin=plugin_mock, name='pydoc')
-    widget._setup()
-    widget.setup()
-
-    with qtbot.waitSignal(widget.sig_load_finished, timeout=6000):
-        widget.initialize()
-
-    qtbot.addWidget(widget)
-    return qtbot, widget
-
-
-@pytest.mark.skipif(
-    sys.platform == 'darwin', reason="Does not work on Mac")
-def test_pydocbrowser(pydocbrowser):
-    """Run Pydoc Browser."""
-    qtbot, browser = pydocbrowser
-    assert browser
+    with qtbot.waitSignal(widget.webview.loadFinished, timeout=20000):
+        widget._setup()
+        widget.setup()
+        widget.resize(640, 480)
+        widget.show()
+        widget.initialize(force=True)
+    yield widget
+    widget.close()
 
 
 @flaky(max_runs=5)
+@pytest.mark.order(1)
 @pytest.mark.parametrize(
-    "lib", [('str', 'class str', 1),
-            ('numpy.compat', 'numpy.compat', 2)
-            ])
+    "lib",
+    [('str', 'class str', [0, 1]), ('numpy.testing', 'numpy.testing', [5, 10])]
+)
 @pytest.mark.skipif(
-    sys.platform == 'darwin', reason="Does not work on Mac")
-def test_get_pydoc(pydocbrowser, lib):
+    (sys.platform == 'darwin' or
+     NumpyVersion(np.__version__) < NumpyVersion('1.21.0')),
+    reason="Fails on Mac and older versions of Numpy"
+)
+def test_get_pydoc(pydocbrowser, qtbot, lib):
     """
     Go to the documentation by url.
     Regression test for spyder-ide/spyder#10740
     """
-    qtbot, browser = pydocbrowser
+    browser = pydocbrowser
     element, doc, matches = lib
 
     webview = browser.webview
@@ -63,10 +61,8 @@ def test_get_pydoc(pydocbrowser, lib):
     with qtbot.waitSignal(webview.loadFinished):
         browser.set_url(element_url)
 
-    # Check number of matches. In Python 2 are 3 matches instead
-    # of 2 for numpy.compat
-    qtbot.waitUntil(
-        lambda: webview.get_number_matches(doc) in [matches, matches + 1])
+    expected_range = list(range(matches[0], matches[1]))
+    qtbot.waitUntil(lambda: webview.get_number_matches(doc) in expected_range)
 
 
 if __name__ == "__main__":

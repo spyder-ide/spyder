@@ -121,10 +121,10 @@ When you start to work on a new pull request (PR), you need to be sure that your
 
 To guide you, issues on Github are marked with a milestone that indicates the correct branch to use. If not, follow these guidelines:
 
-* Use the `4.x` branch for bugfixes only (*e.g.* milestones `v4.0.1` or `v4.1.2`)
-* Use `master` to introduce new features or break compatibility with previous Spyder versions (*e.g.* milestones `v5.0beta1` or `v5.0beta2`).
+* Use the `5.x` branch for bugfixes only (*e.g.* milestones `v5.0.1` or `v5.1.2`)
+* Use `master` to introduce new features or break compatibility with previous Spyder versions (*e.g.* milestones `v6.0beta1` or `v6.0beta2`).
 
-You should also submit bugfixes to `4.x` or `master` for errors that are only present in those respective branches.
+You should also submit bugfixes to `5.x` or `master` for errors that are only present in those respective branches.
 
 To start working on a new PR, you need to execute these commands, filling in the branch names where appropriate:
 
@@ -143,10 +143,10 @@ If you started your work in the wrong base branch, or want to backport it, you c
 $ git rebase --onto <NEW-BASE-BRANCH> <OLD-BASE-BRANCH> <YOUR-BRANCH>
 ```
 
-For example, backporting `my_branch` from `master` to `4.x`:
+For example, backporting `my_branch` from `master` to `5.x`:
 
 ```bash
-$ git rebase --onto 4.x master my_branch
+$ git rebase --onto 5.x master my_branch
 ```
 
 
@@ -203,39 +203,61 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
     $ git subrepo clone https://github.com/spyder-ide/spyder-kernels.git external-deps/spyder-kernels -b <branch> -f
     ```
 
-where `<branch>` needs to be `1.x` if your `fix_in_spyder` branch was done against Spyder's `4.x` branch; and `master`, if you did it against our `master` branch here.
+where `<branch>` needs to be `2.x` if your `fix_in_spyder` branch was done against Spyder's `5.x` branch; and `master`, if you did it against our `master` branch here.
 
 
-## Making contributions that depend on pull requests in python-lsp-server
+## Making contributions that depend on pull requests in python-lsp-server or qtconsole
 
-As with spyder-kernels, Spyder is tightly integrated with the [python-lsp-server](https://github.com/python-lsp/python-lsp-server) to provide code completion, linting and folding on its editor.
+As with spyder-kernels, Spyder is tightly integrated with the [python-lsp-server](https://github.com/python-lsp/python-lsp-server) to provide code completion, linting and folding on its editor; and [qtconsole](https://github.com/jupyter/qtconsole) for its IPython console.
 
-Due to that, a clone of that project is placed in the `external-deps` directory, which is managed with the `git subrepo` project. If you want to make a pull request in python-lsp-server that affects functionality in Spyder, please read carefully the instructions in the previous section because they are very similar for this case. A summary of those instructions applied to this project is the following:
+Due to that, a clone of those projects is placed in the `external-deps` directory, which is managed with the `git subrepo` project. If you want to make a pull request in python-lsp-server or qtconsole that affects functionality in Spyder, please read carefully the instructions in the previous section because they are very similar for those cases. A summary of those instructions applied to these projects is the following:
 
-* First you need to create a pull request in python-lsp-server with the changes you want to make there. Let's assume the branch from which that pull request is created is called `fix_in_pyls`.
+* First you need to create a pull request in python-lsp-server or qtconsole with the changes you want to make there. Let's assume the branch from which that pull request is created is called `fix_in_external_dep`.
 
 * Then you need to create a branch in Spyder (let's call it `fix_in_spyder`) with the fixes that require that pull request and update the python-lsp-server subrepo. For that you need to execute the following commands:
 
     ```
     $ git checkout -b fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_pylsp -f
+    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_external_dep -f
     ```
 
-    and then commit the changes you need to make in Spyder.
+    in case the fix is in python-lsp-server, or
 
-* If you need to add more commits to `fix_in_pylsp`, you need to update `fix_in_spyder` with these commands:
+    ```
+    $ git checkout -b fix_in_spyder
+    $ git subrepo clone https://github.com/myuser/qtconsole.git external-deps/qtconsole -b fix_in_external_dep -f
+    ```
+
+    if the fix is in qtconsole. And then commit the changes you need to make in Spyder.
+
+* If you need to add more commits to `fix_in_external_dep`, you need to update `fix_in_spyder` with these commands:
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_pylsp -f
+    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_external_dep -f
     $ git push origin fix_in_spyder
     ```
 
-* After `fix_in_pylsp` is merged, you need to update the python-lsp-server subrepo in your `fix_in_spyder` branch with
+    or
+
+    ```
+    $ git checkout fix_in_spyder
+    $ git subrepo clone https://github.com/myuser/qtconsole.git external-deps/qtconsole -b fix_in_external_dep -f
+    $ git push origin fix_in_spyder
+    ```
+
+* After `fix_in_external_dep` is merged, you need to update the python-lsp-server or qtconsole subrepos in your `fix_in_spyder` branch with
 
     ```
     $ git checkout fix_in_spyder
     $ git subrepo clone https://github.com/python-lsp/python-lsp-server.git external-deps/python-lsp-server -b develop -f
+    ```
+
+    or
+
+    ```
+    $ git checkout fix_in_spyder
+    $ git subrepo clone https://github.com/jupyter/qtconsole.git external-deps/qtconsole -b master -f
     ```
 
 

@@ -24,7 +24,7 @@ import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
                             QSplitter, QVBoxLayout, QWidget, QListWidget,
@@ -47,6 +47,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
@@ -129,9 +130,9 @@ class TabSwitcherWidget(QListWidget):
 
     def set_dialog_position(self):
         """Positions the tab switcher in the top-center of the editor."""
-        left = self.editor.geometry().width()/2 - self.width()/2
-        top = (self.editor.tabs.tabBar().geometry().height() +
-               self.editor.fname_label.geometry().height())
+        left = int(self.editor.geometry().width()/2 - self.width()/2)
+        top = int(self.editor.tabs.tabBar().geometry().height() +
+                  self.editor.fname_label.geometry().height())
 
         self.move(self.editor.mapToGlobal(QPoint(left, top)))
 
@@ -179,8 +180,8 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, object, str, bool)
-    debug_cell_in_ipyclient = Signal(str, object, str, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -479,6 +480,18 @@ class EditorStack(QWidget):
             name='Run selection',
             parent=self)
 
+        run_to_line = CONF.config_shortcut(
+            self.run_to_line,
+            context='Editor',
+            name='Run to line',
+            parent=self)
+
+        run_from_line = CONF.config_shortcut(
+            self.run_from_line,
+            context='Editor',
+            name='Run from line',
+            parent=self)
+
         new_file = CONF.config_shortcut(
             lambda: self.sig_new_file[()].emit(),
             context='Editor',
@@ -643,11 +656,11 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
-                tabshift, run_selection, new_file, open_file, save_file,
-                save_all, save_as, close_all, prev_edit_pos, prev_cursor,
-                next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, debug_cell,
-                run_cell_and_advance,
+                tabshift, run_selection, run_to_line, run_from_line, new_file,
+                open_file, save_file, save_all, save_as, close_all,
+                prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
+                zoom_out, zoom_reset, close_file_1, close_file_2, run_cell,
+                debug_cell, run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -811,6 +824,9 @@ class EditorStack(QWidget):
                 lambda: self.get_current_editor(),
                 lambda: self,
                 section=self.get_plugin_title())
+
+        if isinstance(initial_text, bool):
+            initial_text = ''
 
         self.switcher_dlg.set_search_text(initial_text)
         self.switcher_dlg.setup()
@@ -1496,11 +1512,16 @@ class EditorStack(QWidget):
             The self.data index for the filename.  Returns None
             if the filename is not found in self.data.
         """
-        fixpath = lambda path: osp.normcase(osp.realpath(path))
-        for index, finfo in enumerate(self.data):
-            if fixpath(filename) == fixpath(finfo.filename):
-                return index
-        return None
+        data_filenames = self.get_filenames()
+        try:
+            # Try finding without calling the slow realpath
+            return data_filenames.index(filename)
+        except ValueError:
+            filename = fixpath(filename)
+            for index, editor_filename in enumerate(data_filenames):
+                if filename == fixpath(editor_filename):
+                    return index
+            return None
 
     def set_current_filename(self, filename, focus=True):
         """Set current filename and return the associated editor instance."""
@@ -1634,6 +1655,7 @@ class EditorStack(QWidget):
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
+            self.update_fname_label()
             return False
         self.__modify_stack_title()
         return is_ok
@@ -2438,6 +2460,8 @@ class EditorStack(QWidget):
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
+        editor.sig_run_to_line.connect(self.run_to_line)
+        editor.sig_run_from_line.connect(self.run_from_line)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
@@ -2636,22 +2660,29 @@ class EditorStack(QWidget):
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
-        """Sets the EOL character(s) based on the operating system.
+        """
+        Sets the EOL character(s) based on the operating system.
 
         If `osname` is None, then the default line endings for the current
-        operating system (`os.name` value) will be used.
+        operating system will be used.
 
-        `osname` can be one of:
-            ('posix', 'nt', 'java')
+        `osname` can be one of: 'posix', 'nt', 'mac'.
         """
         if osname is None:
-            osname = os.name
+            if os.name == 'nt':
+                osname = 'nt'
+            elif sys.platform == 'darwin':
+                osname = 'mac'
+            else:
+                osname = 'posix'
+
         if index is None:
             index = self.get_stack_index()
+
         finfo = self.data[index]
         eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
         logger.debug(f"Set OS eol chars {eol_chars} for file {finfo.filename}")
-        finfo.editor.set_eol_chars(eol_chars)
+        finfo.editor.set_eol_chars(eol_chars=eol_chars)
         finfo.editor.document().setModified(True)
 
     def remove_trailing_spaces(self, index=None):
@@ -2692,6 +2723,39 @@ class EditorStack(QWidget):
         finfo.editor.format_document_or_range()
 
     #  ------ Run
+    def _run_lines_cursor(self, direction):
+        """ Select and run all lines from cursor in given direction"""
+        editor = self.get_current_editor()
+
+        # Move cursor to start of line then move to beginning or end of
+        # document with KeepAnchor
+        cursor = editor.textCursor()
+        cursor.movePosition(QTextCursor.StartOfLine)
+
+        if direction == 'up':
+            cursor.movePosition(QTextCursor.Start, QTextCursor.KeepAnchor)
+        elif direction == 'down':
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+
+        code_text = editor.get_selection_as_executable_code(cursor)
+        if code_text:
+            self.exec_in_extconsole.emit(code_text.rstrip(),
+                                         self.focus_to_editor)
+
+    def run_to_line(self):
+        """
+        Run all lines from the beginning up to, but not including, current
+        line.
+        """
+        self._run_lines_cursor(direction='up')
+
+    def run_from_line(self):
+        """
+        Run all lines from and including the current line to the end of
+        the document.
+        """
+        self._run_lines_cursor(direction='down')
+
     def run_selection(self):
         """
         Run selected text or current line in console.
@@ -2746,15 +2810,7 @@ class EditorStack(QWidget):
         else:
             move_func = self.get_current_editor().go_to_previous_cell
 
-        if self.focus_to_editor:
-            move_func()
-        else:
-            term = QApplication.focusWidget()
-            move_func()
-            term.setFocus()
-            term = QApplication.focusWidget()
-            move_func()
-            term.setFocus()
+        move_func()
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
@@ -2789,16 +2845,12 @@ class EditorStack(QWidget):
         """
         (filename, cell_name) = cell_id
         if editor.is_python_or_ipython():
-            args = (text, cell_name, filename, self.run_cell_copy)
+            args = (text, cell_name, filename, self.run_cell_copy,
+                    self.focus_to_editor)
             if debug:
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        if self.focus_to_editor:
-            editor.setFocus()
-        else:
-            console = QApplication.focusWidget()
-            console.setFocus()
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):
@@ -2955,15 +3007,15 @@ class EditorSplitter(QSplitter):
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
+            if close_splitter:
+                # editorstack just closed was the last widget in this QSplitter
+                self.close()
+                return
+            self.__give_focus_to_remaining_editor()
         except (RuntimeError, AttributeError):
             # editorsplitter has been destroyed (happens when closing a
             # EditorMainWindow instance)
             return
-        if close_splitter:
-            # editorstack just closed was the last widget in this QSplitter
-            self.close()
-            return
-        self.__give_focus_to_remaining_editor()
 
     def editorsplitter_closed(self):
         logger.debug("method 'editorsplitter_closed':")
@@ -3214,7 +3266,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
-        QMainWindow.__init__(self)
+        QMainWindow.__init__(self, plugin)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin

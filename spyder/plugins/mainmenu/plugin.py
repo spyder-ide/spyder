@@ -39,6 +39,7 @@ class MainMenu(SpyderPluginV2):
     NAME = 'mainmenu'
     CONF_SECTION = NAME
     CONF_FILE = False
+    CAN_BE_DISABLED = False
 
     @staticmethod
     def get_name():

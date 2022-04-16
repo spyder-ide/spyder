@@ -24,7 +24,6 @@ class StatusBarConfigPage(PluginConfigPage):
 
         # --- Status bar
         sbar_group = QGroupBox(_("Display"))
-        show_status_bar = newcb(_("Show status bar"), 'show_status_bar')
 
         memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
                            tip=self.plugin.mem_status.toolTip())
@@ -42,19 +41,6 @@ class StatusBarConfigPage(PluginConfigPage):
 
         clock_box = newcb(_("Show clock"), 'clock/enable')
 
-        status_bar_o = self.get_option('show_status_bar')
-        show_status_bar.toggled.connect(memory_box.setEnabled)
-        show_status_bar.toggled.connect(memory_spin.setEnabled)
-        show_status_bar.toggled.connect(cpu_box.setEnabled)
-        show_status_bar.toggled.connect(cpu_spin.setEnabled)
-        show_status_bar.toggled.connect(clock_box.setEnabled)
-
-        memory_box.setEnabled(status_bar_o)
-        memory_spin.setEnabled(status_bar_o)
-        cpu_box.setEnabled(status_bar_o)
-        cpu_spin.setEnabled(status_bar_o)
-        clock_box.setEnabled(status_bar_o)
-
         # Layout status bar
         cpu_memory_layout = QGridLayout()
         cpu_memory_layout.addWidget(memory_box, 0, 0)
@@ -64,7 +50,6 @@ class StatusBarConfigPage(PluginConfigPage):
         cpu_memory_layout.addWidget(clock_box, 2, 0)
 
         sbar_layout = QVBoxLayout()
-        sbar_layout.addWidget(show_status_bar)
         sbar_layout.addLayout(cpu_memory_layout)
         sbar_group.setLayout(sbar_layout)
 

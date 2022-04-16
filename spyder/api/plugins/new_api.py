@@ -16,6 +16,7 @@ import inspect
 import logging
 import os
 import os.path as osp
+import sys
 from typing import List, Union
 import warnings
 
@@ -33,7 +34,9 @@ from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.app.cli_options import get_options
 from spyder.config.gui import get_color_scheme, get_font
+from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
@@ -277,9 +280,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         super().__init__(parent)
 
         # This is required since the MRO of this class does not go up until to
-        # SpyderPluginObserver when using super(), see
-        # https://fuhm.net/super-harmful/
+        # SpyderPluginObserver and SpyderConfigurationObserver when using
+        # super(), see https://fuhm.net/super-harmful/
         SpyderPluginObserver.__init__(self)
+        SpyderConfigurationObserver.__init__(
+            self, configuration=configuration)
 
         self._main = parent
         self._widget = None
@@ -297,17 +302,30 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self.PLUGIN_NAME = self.NAME
 
         if self.CONTAINER_CLASS is not None:
-            self._container = container = self.CONTAINER_CLASS(
-                name=self.NAME,
-                plugin=self,
-                parent=parent
-            )
+            if (issubclass(self.CONTAINER_CLASS, PluginMainWidget)
+                    and configuration is not CONF
+                    and configuration is not None):
+                self._container = container = self.CONTAINER_CLASS(
+                    name=self.NAME,
+                    plugin=self,
+                    parent=parent,
+                    configuration=configuration
+                )
+            else:
+                self._container = container = self.CONTAINER_CLASS(
+                    name=self.NAME,
+                    plugin=self,
+                    parent=parent
+                )
 
             if isinstance(container, SpyderWidgetMixin):
                 container.setup()
                 container.update_actions()
 
             if isinstance(container, PluginMainContainer):
+                # TODO: This signals should also affect the main_widgets?
+                # Currently this is not working for
+                # instances of PluginMainWidget subclasses
                 # Default signals to connect in main container or main widget.
                 container.sig_exception_occurred.connect(
                     self.sig_exception_occurred)
@@ -647,6 +665,20 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             font_size_delta = cls.FONT_SIZE_DELTA
 
         return get_font(option=option, font_size_delta=font_size_delta)
+
+    def get_command_line_options(self):
+        """
+        Get command line options passed by the user when they started
+        Spyder in a system terminal.
+
+        See app/cli_options.py for the option names.
+        """
+        if self._main is not None:
+            return self._main._cli_options
+        else:
+            # This is necessary when the plugin has no parent.
+            sys_argv = [sys.argv[0]]  # Avoid options passed to pytest
+            return get_options(sys_argv)[0]
 
     # --- API: Mandatory methods to define -----------------------------------
     # ------------------------------------------------------------------------

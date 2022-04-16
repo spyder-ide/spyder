@@ -70,6 +70,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     def __init__(self, is_cython=False, is_pylab=False,
                  is_sympy=False, **kwargs):
+        # Needed to handle other configuration objects than the default CONF.
+        # Useful for changing preferences when testing while using the
+        # `ipyconsole` fixture.
+        configuration = kwargs.pop('configuration', self.CONFIGURATION)
+        self.CONFIGURATION = configuration
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
         self.is_pylab = is_pylab
@@ -193,9 +198,15 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             env_vars['SPY_RUN_CYTHON'] = True
 
         # App considerations
-        if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
-            env_vars.pop('PYTHONHOME', None)
-            env_vars.pop('PYTHONPATH', None)
+        if (running_in_mac_app() or is_pynsist()):
+            if default_interpreter:
+                # See spyder-ide/spyder#16927
+                # See spyder-ide/spyder#16828
+                # See spyder-ide/spyder#17552
+                env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
+            else:
+                env_vars.pop('PYTHONHOME', None)
+                env_vars.pop('PYTHONPATH', None)
 
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.

@@ -276,6 +276,7 @@ class ApplicationToolbar(SpyderToolbar):
 
         self._style = ToolbarStyle(None)
         self._style.TYPE = 'Application'
+        self._style.setParent(self)
         self.setStyle(self._style)
 
         self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
@@ -308,6 +309,7 @@ class MainWidgetToolbar(SpyderToolbar):
 
         self._style = ToolbarStyle(None)
         self._style.TYPE = 'MainWidget'
+        self._style.setParent(self)
         self.setStyle(self._style)
 
         self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))

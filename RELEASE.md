@@ -20,7 +20,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Go to the integrations page on Crowdin:
 
-  https://crowdin.com/project/spyder/settings#integration-github
+  https://crowdin.com/project/spyder/apps/system/github
 
 * Press `Sync now` there to open a new translation PR.
 
@@ -75,12 +75,12 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update the `master` branch with
 
-      git checkout 4.x
+      git checkout 5.x
       git fetch upstream
-      git merge upstream/4.x
+      git merge upstream/5.x
       git checkout master
-      git merge 4.x
-      Merge from 4.x: PR #xxxxx
+      git merge 5.x
+      Merge from 5.x: PR #xxxxx
       git push upstream master
 
 ### Update core dependencies
@@ -89,21 +89,31 @@ To release a new version of Spyder you need to follow these steps:
 
 * Release a new version of `python-lsp-server`, if required.
 
+* Release a new version of `qtconsole`, if required.
+
+* Merge PRs on Conda-forge that update the `spyder-kernels`, `python-lsp-server` and `qtconsole` feedstocks (usually an automatic PR will appear that can be either merged as it is or be used as boilerplate):
+
+  - `spyder-kernels`: https://github.com/conda-forge/spyder-kernels-feedstock
+
+  - `python-lsp-server`: https://github.com/conda-forge/python-lsp-server-feedstock
+
+  - `qtconsole`: https://github.com/conda-forge/qtconsole-feedstock
+
+  **Notes**:
+
+  - Review carefully the release notes of those packages to see if it's necessary to add new dependencies or update the constraints on the current ones (e.g. `jedi >=0.17.2`).
+
 * Create a new branch in your fork with the name `update-core-deps`
-
-* In case a new version is not part of the `defaults` channel yet, you need to copy it to our channel with the following command:
-
-      anaconda copy conda-forge/pyls-spyder/0.3.2 --to-label dev --to-owner spyder-ide
-
-  *Note*: For this you need to install first the `anaconda-client` package in your `base` environment and open an account in https://anaconda.org/
 
 * Update the version of any packages required before the release in the following files:
 
-  - `setup.py`
+  - `setup.py` (look up for the Windows installer patch too)
   - `spyder/dependencies.py`
   - `requirements/conda.txt`
   - `binder/environment.yml`
-  - `spyder/plugins/ipythonconsole/plugin.py`
+  - *`spyder/plugins/ipythonconsole/widgets/main_widget.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
+
+**Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
 
 * Commit with
 
@@ -114,8 +124,9 @@ To release a new version of Spyder you need to follow these steps:
 
       git subrepo pull external-deps/spyder-kernels
       git subrepo pull external-deps/python-lsp-server
+      git subrepo pull external-deps/qtconsole
 
-* Merge this PR following the procedure mentioned on `MAINTENANCE.md`
+* Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
 
 ## To do the release
 
@@ -123,13 +134,13 @@ To release a new version of Spyder you need to follow these steps:
 
 * git pull or git fetch/merge
 
-* Update CHANGELOG.md with `loghub spyder-ide/spyder -m vX.X.X`
+* Update `changelogs/Spyder-5.md` with `loghub spyder-ide/spyder -m vX.X.X`
 
-* Add sections for `New features` and `Important fixes` in CHANGELOG.md. For this take a look at closed issues and PRs for the current milestone.
+* Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-5.md`. For this take a look at closed issues and PRs for the current milestone.
 
 * `git add .` and `git commit -m "Update Changelog"`
 
-* Update Announcements.md (this goes to our Google group)
+* Update Announcements.md (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
 
 * `git add .` and `git commit -m "Update Announcements"`
 
@@ -145,7 +156,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * pip install -U pip setuptools twine wheel
 
-* python3 setup.py bdist_wheel
+* python setup.py bdist_wheel
 
 * twine check dist/*
 
@@ -174,28 +185,21 @@ To release a new version of Spyder you need to follow these steps:
 
 ## After the release
 
-* Publish release in our Github Releases page.
+* Publish release in our Github Releases page:
+  - Copy the contents of the previous release description (updating the relevant information and links to point to the new Spyder version and changelog entry).
+  - Edit the previous release description to only have the changelog line.
 
-* Publish release announcements to our list.
-
-* Merge PRs on Conda-forge that update the `spyder-kernels` and `python-lsp-server` feedstocks.
-
-  **Notes**:
-
-  - Review carefully the release notes of those packages to see if it's necessary to add new dependencies or update the constraints on the current ones (e.g. `jedi >=0.17.2`).
-  - After merging each of those PRs, give a ping to the Anaconda team telling them that these packages are required for the new Spyder version. You need to use the handle `@anaconda-pkg-build` for that. Here is an example of this kinf of messages:
-
-    https://github.com/conda-forge/spyder-kernels-feedstock/pull/58#issuecomment-725664085
-
-* After those PRs are merged, go to
+* Merge PR on Conda-forge for Spyder. For that you can go to
 
   https://github.com/conda-forge/spyder-feedstock
 
-  and merge the corresponding PR for the new release.
+  and merge the corresponding PR for the new release (usually an automatic PR will appear that can be either merged as it is or be use as boilerplate).
 
   **Notes**:
 
   - Don't forget to add new dependencies and update constraints on the rest of them. For that, you need to compare line by line the contents of the `recipe/meta.yaml` file in the feedstock with
 
-    https://github.com/spyder-ide/spyder/blob/4.x/requirements/conda.txt
+    https://github.com/spyder-ide/spyder/blob/5.x/requirements/conda.txt
   - After merging, give a ping to `@anaconda-pkg-build` about the new release.
+
+* Publish release announcement to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been built.

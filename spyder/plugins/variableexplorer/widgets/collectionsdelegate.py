@@ -15,7 +15,7 @@ import operator
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QDateTime, Qt, Signal, Slot
+from qtpy.QtCore import QDateTime, Qt, Signal
 from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
                             QItemDelegate, QLineEdit, QMessageBox, QTableView)
 from spyder_kernels.utils.lazymodules import (
@@ -32,8 +32,6 @@ from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor)
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
-    import safe_tio_call
 
 
 LARGE_COLLECTION = 1e5
@@ -183,6 +181,10 @@ class CollectionsDelegate(QItemDelegate):
                 np.ndarray is not FakeObject and
                 PIL.Image is not FakeObject and
                 not object_explorer):
+            # Sometimes the ArrayEditor import above is not seen (don't know
+            # why), so we need to reimport it here.
+            # Fixes spyder-ide/spyder#16731
+            from .arrayeditor import ArrayEditor
             arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):

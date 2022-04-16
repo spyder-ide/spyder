@@ -13,12 +13,13 @@ subclass of PluginMainWidget.
 
 # Standard library imports
 from collections import OrderedDict
+import logging
 import sys
 from typing import Optional
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
                             QWidget)
@@ -32,6 +33,8 @@ from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
                                       PluginMainWidgetMenus)
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
+from spyder.config.manager import CONF
+from spyder.py3compat import qbytearray_to_str
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
@@ -42,6 +45,9 @@ from spyder.widgets.tabs import Tabs
 
 # Localization
 _ = get_translation('spyder')
+
+# Logging
+logger = logging.getLogger(__name__)
 
 
 class PluginMainWidgetWidgets:
@@ -186,12 +192,14 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     needs its ancestor to be updated.
     """
 
-    def __init__(self, name, plugin, parent=None):
+    def __init__(self, name, plugin, parent=None, configuration=CONF):
         if PYQT5:
-            super().__init__(parent=parent, class_parent=plugin)
+            super().__init__(parent=parent, class_parent=plugin,
+                             configuration=configuration)
         else:
             QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=plugin)
+            SpyderWidgetMixin.__init__(self, class_parent=plugin,
+                                       configuration=configuration)
 
         # Attributes
         # --------------------------------------------------------------------
@@ -423,6 +431,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         super().setLayout(self._main_layout)
         layout.setContentsMargins(self._margin_left, 0, self._margin_right, 0)
         layout.setSpacing(0)
+
+    def closeEvent(self, event):
+        self.on_close()
+        super().closeEvent(event)
 
     # --- Public methods to use
     # ------------------------------------------------------------------------
@@ -697,8 +709,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     @Slot()
     def create_window(self):
         """
-        Create a QMainWindow instance containing this SpyderWidget.
+        Create a QMainWindow instance containing this widget.
         """
+        logger.debug("Undocking plugin")
+
         # Widgets
         self.windowwidget = window = SpyderWindowWidget(self)
 
@@ -712,21 +726,38 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         window.setWindowTitle(self.get_title())
         window.resize(self.size())
 
+        # Restore window geometry
+        geometry = self.get_conf('window_geometry', default='')
+        if geometry:
+            try:
+                window.restoreGeometry(
+                    QByteArray().fromHex(str(geometry).encode('utf-8'))
+                )
+            except Exception:
+                pass
+
+        # Dock widget setup
         if self.dockwidget:
             self.dockwidget.setFloating(False)
             self.dockwidget.setVisible(False)
 
         self.set_ancestor(window)
         self._update_actions()
-        window.sig_closed.connect(self.close_window)
         window.show()
 
     @Slot()
     def close_window(self):
         """
-        Close QMainWindow instance that contains this SpyderWidget.
+        Close QMainWindow instance that contains this widget.
         """
+        logger.debug("Docking plugin back to the main window")
+
         if self.windowwidget is not None:
+            # Save window geometry to restore it when undocking the plugin
+            # again.
+            geometry = self.windowwidget.saveGeometry()
+            self.set_conf('window_geometry', qbytearray_to_str(geometry))
+
             # Fixes spyder-ide/spyder#10704
             self.__unsafe_window = self.windowwidget
             self.__unsafe_window.deleteLater()
@@ -745,11 +776,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 self._update_actions()
 
     def change_visibility(self, enable, force_focus=None):
-        """
-        Dock widget visibility has changed.
-        """
-        is_visible = not self.is_visible
-
+        """Dock widget visibility has changed."""
         if self.dockwidget is None:
             return
 
@@ -762,7 +789,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         raise_and_focus = getattr(self, 'RAISE_AND_FOCUS', None)
 
         if force_focus is None:
-            if raise_and_focus or not is_visible:
+            if raise_and_focus and enable:
                 focus_widget = self.get_focus_widget()
                 if focus_widget:
                     focus_widget.setFocus()
@@ -871,6 +898,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             'A PluginMainWidget subclass must define an `update_actions` '
             f'method! Hint: {type(self)} should implement `update_actions`')
 
+    def on_close(self):
+        """
+        Perform actions before the widget is closed.
+
+        This method **must** only operate on local attributes.
+        """
+        pass
 
 def run_test():
     # Third party imports

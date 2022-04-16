@@ -12,8 +12,6 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
-from __future__ import print_function
-
 import codecs
 import locale
 import os
@@ -65,6 +63,11 @@ def running_under_pytest():
 def running_in_ci():
     """Return True if currently running under CI."""
     return bool(os.environ.get('CI'))
+
+
+def running_in_ci_with_conda():
+    """Return True if currently running under CI with conda packages."""
+    return running_in_ci() and bool(os.environ.get('USE_CONDA'))
 
 
 def is_stable_version(version):
@@ -397,9 +400,10 @@ def get_available_translations():
     # is added, to ensure LANGUAGE_CODES is updated.
     for lang in langs:
         if lang not in LANGUAGE_CODES:
-            error = ('Update LANGUAGE_CODES (inside config/base.py) if a new '
-                     'translation has been added to Spyder')
-            print(error)  # spyder: test-skip
+            if DEV:
+                error = ('Update LANGUAGE_CODES (inside config/base.py) if a '
+                         'new translation has been added to Spyder')
+                print(error)  # spyder: test-skip
             return ['en']
     return langs
 

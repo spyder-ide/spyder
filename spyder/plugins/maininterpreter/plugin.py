@@ -40,6 +40,7 @@ class MainInterpreter(SpyderPluginV2):
     CONF_WIDGET_CLASS = MainInterpreterConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False
+    CAN_BE_DISABLED = False
 
     # ---- SpyderPluginV2 API
     @staticmethod
@@ -58,11 +59,6 @@ class MainInterpreter(SpyderPluginV2):
         # Connect signal to open preferences
         container.sig_open_preferences_requested.connect(
             self._open_interpreter_preferences
-        )
-
-        # Report that the interpreter has changed
-        container.sig_interpreter_changed.connect(
-            self._main.sig_main_interpreter_changed
         )
 
         # Add custom interpreter to list of saved ones

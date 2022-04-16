@@ -854,11 +854,14 @@ class ThumbnailScrollBar(QFrame):
 
     def set_current_thumbnail(self, thumbnail):
         """Set the currently selected thumbnail."""
+        if self.current_thumbnail == thumbnail:
+            return
+        if self.current_thumbnail is not None:
+            self.current_thumbnail.highlight_canvas(False)
         self.current_thumbnail = thumbnail
         self.figure_viewer.load_figure(
             thumbnail.canvas.fig, thumbnail.canvas.fmt)
-        for thumbnail in self._thumbnails:
-            thumbnail.highlight_canvas(thumbnail == self.current_thumbnail)
+        self.current_thumbnail.highlight_canvas(True)
 
     def go_previous_thumbnail(self):
         """Select the thumbnail previous to the currently selected one."""

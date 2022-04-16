@@ -19,7 +19,6 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.plugin_registration._confpage import PluginsConfigPage
-from spyder.api.plugins.enum import Plugins
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import (
     Plugins, SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,
@@ -390,7 +389,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             plugin_instance = self.plugin_registry[plugin_name]
             plugin_instance.register_plugin_preferences(self)
 
-    def delete_plugin(self, plugin_name: str) -> bool:
+    def delete_plugin(self, plugin_name: str, teardown: bool = True) -> bool:
         """
         Remove and delete a plugin from the registry by its name.
 
@@ -398,6 +397,9 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         ----------
         plugin_name: str
             Name of the plugin to delete.
+        teardown: bool
+            True if the teardown notification to other plugins should be sent
+            when deleting the plugin, False otherwise.
 
         Returns
         -------
@@ -405,7 +407,12 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             True if the registry was able to teardown and remove the plugin.
             False otherwise.
         """
+        logger.debug(f'Deleting plugin {plugin_name}')
         plugin_instance = self.plugin_registry[plugin_name]
+
+        # Remove config
+        if plugin_instance.CONF_FILE:
+            CONF.unregister_plugin(plugin_instance)
 
         # Determine if plugin can be closed
         can_delete = True
@@ -418,22 +425,43 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             return False
 
         if isinstance(plugin_instance, SpyderPluginV2):
-            # Disconnect plugin from other plugins
-            self._teardown_plugin(plugin_name)
+            if teardown:
+                # Disconnect plugin from other plugins
+                self._teardown_plugin(plugin_name)
 
-            # Disconnect depending plugins from the plugin to delete
-            self._notify_plugin_teardown(plugin_name)
+                # Disconnect depending plugins from the plugin to delete
+                self._notify_plugin_teardown(plugin_name)
 
             # Remove the plugin from the main window (if graphical)
             if isinstance(plugin_instance, SpyderDockablePlugin):
+                # Save if plugin was undocked to restore it the next time.
+                if plugin_instance.get_widget().windowwidget:
+                    plugin_instance.set_conf('undocked_on_window_close', True)
+                else:
+                    plugin_instance.set_conf('undocked_on_window_close', False)
+
+                # Close undocked plugins.
                 plugin_instance.close_window()
 
             # Perform plugin closure tasks
-            plugin_instance.on_close(True)
+            try:
+                plugin_instance.on_close(True)
+            except RuntimeError:
+                pass
         elif isinstance(plugin_instance, SpyderPlugin):
-            # Disconnect depending plugins from the plugin to delete
-            self._notify_plugin_teardown(plugin_name)
+            if teardown:
+                # Disconnect depending plugins from the plugin to delete
+                self._notify_plugin_teardown(plugin_name)
             if isinstance(plugin_instance, SpyderPluginWidget):
+                # Save if plugin was undocked to restore it the next time.
+                if plugin_instance._undocked_window:
+                    plugin_instance.set_option(
+                        'undocked_on_window_close', True)
+                else:
+                    plugin_instance.set_option(
+                        'undocked_on_window_close', False)
+
+                # Close undocked plugins.
                 plugin_instance._close_window()
 
         # Delete plugin from the registry and auxiliary structures
@@ -462,6 +490,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         # Remove the plugin from the registry
         self.plugin_registry.pop(plugin_name)
+
         return True
 
     def delete_all_plugins(self, excluding: Optional[Set[str]] = None,
@@ -493,7 +522,25 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPlugin):
-                    can_close &= self.delete_plugin(plugin_name)
+                    can_close &= self.delete_plugin(
+                        plugin_name, teardown=False)
+                    if not can_close and not close_immediately:
+                        break
+
+        if not can_close:
+            return False
+
+        # Delete Spyder 4 internal plugins
+        for plugin_name in set(self.internal_plugins):
+            if plugin_name not in excluding:
+                plugin_instance = self.plugin_registry[plugin_name]
+                if isinstance(plugin_instance, SpyderPlugin):
+                    try:
+                        plugin_instance.deleteLater()
+                    except RuntimeError:
+                        pass
+                    can_close &= self.delete_plugin(
+                        plugin_name, teardown=False)
                     if not can_close and not close_immediately:
                         break
 
@@ -505,30 +552,65 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
-                    can_close &= self.delete_plugin(plugin_name)
+                    # Cleanly delete plugin widgets. This avoids segfautls with
+                    # PyQt 5.15
+                    if isinstance(plugin_instance, SpyderDockablePlugin):
+                        try:
+                            plugin_instance.get_widget().close()
+                            plugin_instance.get_widget().deleteLater()
+                        except RuntimeError:
+                            pass
+                    else:
+                        container = plugin_instance.get_container()
+                        if container:
+                            try:
+                                container.close()
+                                container.deleteLater()
+                            except RuntimeError:
+                                pass
+
+                    # Delete plugin
+                    try:
+                        plugin_instance.deleteLater()
+                    except RuntimeError:
+                        pass
+                    can_close &= self.delete_plugin(
+                        plugin_name, teardown=False)
                     if not can_close and not close_immediately:
                         break
 
         if not can_close and not close_immediately:
             return False
 
-        # Delete Spyder 4 internal plugins
-        for plugin_name in set(self.internal_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPlugin):
-                    can_close &= self.delete_plugin(plugin_name)
-                    if not can_close and not close_immediately:
-                        break
-
-        if not can_close:
-            return False
-
+        # Delete Spyder 5 internal plugins
         for plugin_name in set(self.internal_plugins):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
-                    can_close &= self.delete_plugin(plugin_name)
+                    # Cleanly delete plugin widgets. This avoids segfautls with
+                    # PyQt 5.15
+                    if isinstance(plugin_instance, SpyderDockablePlugin):
+                        try:
+                            plugin_instance.get_widget().close()
+                            plugin_instance.get_widget().deleteLater()
+                        except RuntimeError:
+                            pass
+                    else:
+                        container = plugin_instance.get_container()
+                        if container:
+                            try:
+                                container.close()
+                                container.deleteLater()
+                            except RuntimeError:
+                                pass
+
+                    # Delete plugin
+                    try:
+                        plugin_instance.deleteLater()
+                    except RuntimeError:
+                        pass
+                    can_close &= self.delete_plugin(
+                        plugin_name, teardown=False)
                     if not can_close and not close_immediately:
                         break
 

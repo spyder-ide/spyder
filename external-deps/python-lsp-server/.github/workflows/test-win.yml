@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.9', '3.8', '3.7', '3.6']
+        PYTHON_VERSION: ['3.9', '3.8', '3.7']
     timeout-minutes: 10
     steps:
       - uses: actions/cache@v1
@@ -35,4 +35,6 @@ jobs:
           architecture: 'x64'
       - run: python -m pip install --upgrade pip setuptools
       - run: pip install -e .[all,test]
+      - name: Show test environment
+        run: pip list
       - run: pytest -v test/

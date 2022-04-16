@@ -39,7 +39,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=7.6.0"
+IPYTHON_REQVER = ">=7.31.1;<8.0.0"
 JEDI_REQVER = '>=0.17.2;<0.19.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
@@ -53,20 +53,20 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=2.5.0'
-PYLSP_REQVER = '>=1.2.2;<1.3.0'
-PYLSP_BLACK_REQVER = '>=1.0.0'
+PYLSP_REQVER = '>=1.4.1;<1.5.0'
+PYLSP_BLACK_REQVER = '>=1.2.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
-QDARKSTYLE_REQVER = '=3.0.2'
+QDARKSTYLE_REQVER = '>=3.0.2;<3.1.0'
 QSTYLIZER_REQVER = '>=0.1.10'
 QTAWESOME_REQVER = '>=1.0.2'
-QTCONSOLE_REQVER = '>=5.1.0'
-QTPY_REQVER = '>=1.5.0'
+QTCONSOLE_REQVER = '>=5.3.0;<5.4.0'
+QTPY_REQVER = '>=2.0.1'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.1.1;<2.2.0'
+SPYDER_KERNELS_REQVER = '>=2.3.0;<2.4.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
@@ -76,7 +76,7 @@ WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
 
 # Optional dependencies
 CYTHON_REQVER = '>=0.21'
-MATPLOTLIB_REQVER = '>=2.0.0'
+MATPLOTLIB_REQVER = '>=3.0.0'
 NUMPY_REQVER = '>=1.7'
 PANDAS_REQVER = '>=1.1.1'
 SCIPY_REQVER = '>=0.17.0'
@@ -307,9 +307,23 @@ class Dependency(object):
         self.required_version = required_version
         self.kind = kind
 
+        # Although this is not necessarily the case, it's customary that a
+        # package's distribution name be it's name on PyPI with hyphens
+        # replaced by underscores.
+        # Example:
+        # * Package name: python-lsp-black.
+        # * Distribution name: python_lsp_black
+        self.distribution_name = self.package_name.replace('-', '_')
+
         if installed_version is None:
             try:
                 self.installed_version = programs.get_module_version(modname)
+                if not self.installed_version:
+                    # Use get_package_version and the distribution name
+                    # because there are cases for which the version can't
+                    # be obtained from the module (e.g. pylsp_black).
+                    self.installed_version = programs.get_package_version(
+                        self.distribution_name)
             except Exception:
                 # NOTE: Don't add any exception type here!
                 # Modules can fail to import in several ways besides
@@ -321,8 +335,12 @@ class Dependency(object):
     def check(self):
         """Check if dependency is installed"""
         if self.required_version:
-            return programs.is_module_installed(self.modname,
-                                                self.required_version)
+            installed = programs.is_module_installed(
+                self.modname,
+                self.required_version,
+                distribution_name=self.distribution_name
+            )
+            return installed
         else:
             return True
 
@@ -349,9 +367,14 @@ def add(modname, package_name, features, required_version,
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
+        # Avoid showing an unnecessary error when running our tests.
+        if running_in_ci() and 'spyder_boilerplate' in modname:
+            continue
+
         if dependency.modname == modname:
-            raise ValueError("Dependency has already been registered: %s"\
-                             % modname)
+            raise ValueError(
+                f"Dependency has already been registered: {modname}")
+
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
                                 installed_version, kind)]
@@ -386,15 +409,17 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
     maxwidth += 1
     text = ""
     prev_order = '-1'
-    for order, title, version in sorted(data,
-                                        key=lambda x: x[0] + x[1].lower()):
+    for order, title, version in sorted(
+            data, key=lambda x: x[0] + x[1].lower()):
         if order != prev_order:
-            text += '{sep}# {name}:{sep}'.format(
-                sep=linesep, name=order_dep[order].capitalize())
+            name = order_dep[order]
+            if name == MANDATORY:
+                text += f'# {name.capitalize()}:{linesep}'
+            else:
+                text += f'{linesep}# {name.capitalize()}:{linesep}'
             prev_order = order
 
-        text += '{title}:  {version}{linesep}'.format(
-            title=title.ljust(maxwidth), version=version, linesep=linesep)
+        text += f'{title.ljust(maxwidth)}:  {version}{linesep}'
 
     # Remove spurious linesep when reporting deps to Github
     if not linesep == '<br>':

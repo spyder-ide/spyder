@@ -42,6 +42,7 @@ class WorkingDirectory(SpyderPluginV2):
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
+    CAN_BE_DISABLED = False
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
 
@@ -77,7 +78,11 @@ class WorkingDirectory(SpyderPluginV2):
         self.sig_current_directory_changed.connect(
             lambda path, plugin=None: self.chdir(path, plugin))
 
-        container.set_history(self.load_history())
+        cli_options = self.get_command_line_options()
+        container.set_history(
+            self.load_history(),
+            cli_options.working_directory
+        )
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):

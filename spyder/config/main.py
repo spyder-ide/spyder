@@ -165,7 +165,7 @@ DEFAULTS = [
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': True,
-              'pdb_stop_first_line': True,
+              'pdb_stop_first_line': True
               }),
             ('variable_explorer',
              {
@@ -174,7 +174,7 @@ DEFAULTS = [
                                           # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
-              'exclude_uppercase': True,
+              'exclude_uppercase': False,
               'exclude_capitalized': False,
               'exclude_unsupported': False,
               'exclude_callables_and_modules': True,
@@ -330,7 +330,7 @@ DEFAULTS = [
             ('completions',
              {
                'enable': True,
-               'kite_call_to_action': True,
+               'kite_call_to_action': False,
                'enable_code_snippets': True,
                'completions_wait_for_ms': 200,
                'enabled_providers': {},
@@ -456,6 +456,8 @@ DEFAULTS = [
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
+              'editor/run to line': 'Shift+F9',
+              'editor/run from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -508,6 +510,8 @@ DEFAULTS = [
               'ipython_console/inspect current object': "Ctrl+I",
               'ipython_console/clear shell': "Ctrl+L",
               'ipython_console/clear line': "Shift+Escape",
+              'ipython_console/enter array inline': "Ctrl+Alt+M",
+              'ipython_console/enter array table': "Ctrl+M",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
@@ -532,7 +536,7 @@ DEFAULTS = [
               'explorer/copy absolute path': 'Ctrl+Alt+C',
               'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
               # ---- In plugins/findinfiles/plugin ----
-              'find_in_files/find in files': 'Ctrl+Alt+F',
+              'find_in_files/find in files': 'Alt+Shift+F',
               }),
             ('appearance', APPEARANCE),
             ]
@@ -635,4 +639,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '70.1.0'
+CONF_VERSION = '70.4.0'

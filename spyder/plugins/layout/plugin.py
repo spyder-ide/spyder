@@ -57,7 +57,9 @@ DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
 # * Spyder 5.0.0 to 5.0.5: Version 1 (a bump was required due to the new API).
 # * Spyder 5.1.0: Version 2 (a bump was required due to the migration of
 #                            Projects to the new API).
-WINDOW_STATE_VERSION = 2
+# * Spyder 5.2.0: Version 3 (a bump was required due to the migration of
+#                            IPython Console to the new API)
+WINDOW_STATE_VERSION = 3
 
 
 class Layout(SpyderPluginV2):
@@ -69,6 +71,7 @@ class Layout(SpyderPluginV2):
     REQUIRES = [Plugins.All]  # Uses wildcard to require all the plugins
     CONF_FILE = False
     CONTAINER_CLASS = LayoutContainer
+    CAN_BE_DISABLED = False
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
@@ -497,14 +500,6 @@ class Layout(SpyderPluginV2):
                 self.main.setUpdatesEnabled(True)
                 self.setup_layout(default=True)
                 return
-
-            # Workaround for spyder-ide/spyder#880.
-            # QDockWidget objects are not painted if restored as floating
-            # windows, so we must dock them before showing the mainwindow.
-            for widget in self.children():
-                if isinstance(widget, QDockWidget) and widget.isFloating():
-                    self.floating_dockwidgets.append(widget)
-                    widget.setFloating(False)
 
         # Is fullscreen?
         if is_fullscreen:

@@ -91,8 +91,8 @@ class IndentationGuide(Panel):
 
                 if end_whitespace and end_whitespace != total_whitespace:
                     font_metrics = self.editor.fontMetrics()
-                    x = (font_metrics.width(total_whitespace * '9') +
-                         self.bar_offset + offset)
+                    x = int(font_metrics.width(total_whitespace * '9') +
+                            self.bar_offset + offset)
                     painter.drawLine(x, top, x, bottom)
 
     # --- Other methods

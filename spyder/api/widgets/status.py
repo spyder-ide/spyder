@@ -102,12 +102,12 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
             self._icon = self.get_icon()
             self._pixmap = None
             self._icon_size = QSize(16, 16)  # Should this be adjustable?
-            self.label_icon = QLabel()
+            self.label_icon = QLabel(self)
             self.set_icon()
 
         # Label
         if self.show_label:
-            self.label_value = QLabel()
+            self.label_value = QLabel(self)
             self.set_value('')
 
             # See spyder-ide/spyder#9044.
@@ -214,9 +214,13 @@ class BaseTimerStatus(StatusBarWidget):
         self.label_value.setMinimumWidth(fm.width('000%'))
 
         # Setup
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
         self.timer.start(self._interval)
+
+    def closeEvent(self, event):
+        self.timer.stop()
+        super().closeEvent(event)
 
     # ---- Qt API
     def setVisible(self, value):

@@ -12,10 +12,6 @@ Tests for the comment features
 import pytest
 from qtpy.QtGui import QTextCursor
 
-# Local imports
-from spyder.py3compat import to_text_string
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-
 
 # --- Helper methods
 # -----------------------------------------------------------------------------
@@ -28,31 +24,14 @@ def toggle_comment(editor, single_line=True, start_line=1):
         editor.moveCursor(QTextCursor.End, mode=QTextCursor.KeepAnchor)
         editor.toggle_comment()
     text = editor.toPlainText()
-    return to_text_string(text)
-
-
-# --- Fixtures
-# -----------------------------------------------------------------------------
-@pytest.fixture
-def code_editor_bot(qtbot):
-    """
-    Setup CodeEditor with some text useful for folding related tests.
-    """
-    editor = CodeEditor(parent=None)
-    indent_chars = " " * 4
-    tab_stop_width_spaces = 4
-    language = "Python"
-    editor.setup_editor(language=language, indent_chars=indent_chars,
-                        tab_stop_width_spaces=tab_stop_width_spaces)
-
-    return editor, qtbot
+    return str(text)
 
 
 # --- Tests
 # -----------------------------------------------------------------------------
-def test_single_line_comment(code_editor_bot):
+def test_single_line_comment(codeeditor):
     """Test toggle comment in a single line."""
-    editor, qtbot = code_editor_bot
+    editor = codeeditor
     text = ("#class a():\n"
             "#    self.b = 1\n"
             " #   print(self.b)\n"
@@ -111,9 +90,9 @@ def test_single_line_comment(code_editor_bot):
                     )
 
 
-def test_selection_comment(code_editor_bot):
+def test_selection_comment(codeeditor):
     """Test toggle comments with selection of more tha one line."""
-    editor, qtbot = code_editor_bot
+    editor = codeeditor
     text = ("#class a():\n"
             "#    self.b = 1\n"
             " #   print(self.b)\n"
