@@ -81,7 +81,7 @@ However, if you need to synchronize the commits of these packages, then you must
 (spy-build) $ python -m pip install --no-deps -e ../../external-deps/qdarkstyle
 (spy-build) $ python -m pip install --no-deps -e ../../external-deps/qtconsole
 (spy-build) $ python -m pip install --no-deps -e ../../external-deps/spyder-kernels
-(spy-build) $ export SETUPTOOLS_SCM_PRETEND_VERSION=`../../python pylsp_utils.py`
+(spy-build) $ export SETUPTOOLS_SCM_PRETEND_VERSION=`python ../../pylsp_utils.py`
 (spy-build) $ python -m pip install --no-deps -e ../../external-deps/python-lsp-server
 ```
 
