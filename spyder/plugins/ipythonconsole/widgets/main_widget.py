@@ -310,6 +310,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
 
+        # Disable infowidget if requested by the user
+        self.enable_infowidget = True
+        if plugin:
+            cli_options = plugin.get_command_line_options()
+            if cli_options.no_web_widgets:
+                self.enable_infowidget = False
+
         # Attrs for testing
         self._testing = bool(os.environ.get('IPYCONSOLE_TESTING'))
         self._test_dir = os.environ.get('IPYCONSOLE_TEST_DIR')
@@ -350,13 +357,17 @@ class IPythonConsoleWidget(PluginMainWidget):
             layout.addWidget(self.tabwidget)
 
         # Info widget
-        self.infowidget = FrameWebView(self)
-        if WEBENGINE:
-            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
+        if self.enable_infowidget:
+            self.infowidget = FrameWebView(self)
+            if WEBENGINE:
+                self.infowidget.page().setBackgroundColor(
+                    QColor(MAIN_BG_COLOR))
+            else:
+                self.infowidget.setStyleSheet(
+                    "background:{}".format(MAIN_BG_COLOR))
+            layout.addWidget(self.infowidget)
         else:
-            self.infowidget.setStyleSheet(
-                "background:{}".format(MAIN_BG_COLOR))
-        layout.addWidget(self.infowidget)
+            self.infowidget = None
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
@@ -1221,7 +1232,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self._font = font
         self._rich_font = rich_font
 
-        if self.infowidget:
+        if self.enable_infowidget:
             self.infowidget.set_font(rich_font)
 
         for client in self.clients:
@@ -1245,14 +1256,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             client = self.tabwidget.currentWidget()
 
             # Decide what to show for each client
-            if client.info_page != client.blank_page:
+            if (client.info_page != client.blank_page and
+                    self.enable_infowidget):
                 # Show info_page if it has content
                 client.set_info_page()
                 client.shellwidget.hide()
                 client.layout.addWidget(self.infowidget)
                 self.infowidget.show()
             else:
-                self.infowidget.hide()
+                if self.enable_infowidget:
+                    self.infowidget.hide()
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
