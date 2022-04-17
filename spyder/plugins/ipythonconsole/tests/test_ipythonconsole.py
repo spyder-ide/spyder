@@ -39,6 +39,7 @@ from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
+from spyder.app.cli_options import get_options
 from spyder.config.base import (
     get_home_dir, running_in_ci, running_in_ci_with_conda)
 from spyder.config.gui import get_color_scheme
@@ -101,8 +102,18 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
 def ipyconsole(qtbot, request, tmpdir):
     """IPython console fixture."""
     configuration = ConfigurationManager(conf_path=str(tmpdir))
+    no_web_widgets = request.node.get_closest_marker('no_web_widgets')
 
     class MainWindowMock(QMainWindow):
+
+        def __init__(self):
+            # This avoids using the cli options passed to pytest
+            sys_argv = [sys.argv[0]]
+            self._cli_options = get_options(sys_argv)[0]
+            if no_web_widgets:
+                self._cli_options.no_web_widgets = True
+            super().__init__()
+
         def get_spyder_pythonpath(self):
             return configuration.get('main', 'spyder_pythonpath', [])
 
@@ -2245,6 +2256,14 @@ def test_restart_intertactive_backend(ipyconsole):
     main_widget = ipyconsole.get_widget()
     main_widget.change_possible_restart_conf('pylab/backend', 3)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+
+
+@flaky(max_runs=3)
+@pytest.mark.no_web_widgets
+def test_no_infowidget(ipyconsole):
+    """Test that we don't create the infowidget if requested by the user."""
+    client = ipyconsole.get_widget().get_current_client()
+    assert client.infowidget is None
 
 
 if __name__ == "__main__":

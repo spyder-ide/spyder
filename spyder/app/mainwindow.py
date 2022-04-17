@@ -827,6 +827,12 @@ class MainWindow(QMainWindow):
         registry_external_plugins = {}
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
+            # Disable panes that use web widgets (currently Help and Online
+            # Help) if the user asks for it.
+            # See spyder-ide/spyder#16518
+            if self._cli_options.no_web_widgets:
+                if "help" in plugin_name:
+                    continue
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
@@ -1157,6 +1163,7 @@ class MainWindow(QMainWindow):
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
 
+        
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 

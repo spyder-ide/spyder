@@ -169,7 +169,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.shellwidget)
-        self.layout.addWidget(self.infowidget)
+        if self.infowidget is not None:
+            self.layout.addWidget(self.infowidget)
         self.setLayout(self.layout)
 
         # --- Exit function
@@ -254,16 +255,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def _show_loading_page(self):
         """Show animation while the kernel is loading."""
-        self.shellwidget.hide()
-        self.infowidget.show()
-        self.info_page = self.loading_page
-        self.set_info_page()
+        if self.infowidget is not None:
+            self.shellwidget.hide()
+            self.infowidget.show()
+            self.info_page = self.loading_page
+            self.set_info_page()
 
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
-        self.infowidget.hide()
-        self.info_page = self.blank_page
-        self.set_info_page()
+        if self.infowidget is not None:
+            self.infowidget.hide()
+            self.info_page = self.blank_page
+            self.set_info_page()
         self.shellwidget.show()
 
     def _read_stderr(self):
@@ -507,9 +510,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             error=error)
 
         # Show error
-        self.set_info_page()
-        self.shellwidget.hide()
-        self.infowidget.show()
+        if self.infowidget is not None:
+            self.set_info_page()
+            self.shellwidget.hide()
+            self.infowidget.show()
 
         # Tell the client we're in error mode
         self.is_error_shown = True
@@ -636,8 +640,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 running_under_pytest() or
                 not self.ask_before_restart):
             if sw.kernel_manager:
-                if self.infowidget.isVisible():
-                    self.infowidget.hide()
+                if self.infowidget is not None:
+                    if self.infowidget.isVisible():
+                        self.infowidget.hide()
 
                 if self._abort_kernel_restart():
                     sw.spyder_kernel_comm.close()
@@ -876,7 +881,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def set_info_page(self):
         """Set current info_page."""
-        if self.info_page is not None:
+        if self.infowidget is not None and self.info_page is not None:
             self.infowidget.setHtml(
                 self.info_page,
                 QUrl.fromLocalFile(self.css_path)

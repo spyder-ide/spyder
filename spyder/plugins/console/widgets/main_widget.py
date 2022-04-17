@@ -124,7 +124,7 @@ class ConsoleWidget(PluginMainWidget):
             "internal errors and to inspect Spyder\n"
             "internals with the following commands:\n"
             "  spy.app, spy.window, dir(spy)\n\n"
-            "Please don't use it to run your code\n\n"
+            "Please do not use it to run your code\n\n"
         )
 
         # Options that come from the command line
