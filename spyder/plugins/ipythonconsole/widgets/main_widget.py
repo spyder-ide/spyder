@@ -2165,25 +2165,27 @@ class IPythonConsoleWidget(PluginMainWidget):
         # editor during repeated, rapid entry of debugging commands.
         self.sig_edit_goto_requested[str, int, str, bool].emit(
             fname, lineno, '', False)
-        self.activateWindow()
-        shellwidget._control.setFocus()
+
+        # Give focus to console if requested
+        if not shellwidget._pdb_focus_to_editor:
+            self.activateWindow()
+            shellwidget._control.setFocus()
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
 
-    def pdb_execute_command(self, command):
+    def pdb_execute_command(self, command, focus_to_editor):
         """
         Send command to the pdb kernel if possible.
         """
-
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.pdb_execute_command(command)
+                sw.pdb_execute_command(command, focus_to_editor)
             except AttributeError:
                 pass
 
@@ -2320,6 +2322,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                 if console_namespace:
                     line += ", current_namespace=True"
                 line += ")"
+
+                if debug:
+                    # To keep focus in editor after running debugfile
+                    client.shellwidget._pdb_focus_to_editor = focus_to_editor
             else:  # External, non spyder-kernels, use %run
                 line = "%run "
                 if debug:

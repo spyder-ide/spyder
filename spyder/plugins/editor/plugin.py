@@ -2869,8 +2869,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.switch_to_plugin()
         ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
         if ipyconsole:
-            ipyconsole.pdb_execute_command(command)
-            ipyconsole.switch_to_plugin()
+            ipyconsole.pdb_execute_command(
+                command, focus_to_editor=self.get_option('focus_to_editor'))
 
     # ----- Handlers for the IPython Console kernels
     def _get_editorstack(self):

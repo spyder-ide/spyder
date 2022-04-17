@@ -773,7 +773,7 @@ class IPythonConsole(SpyderDockablePlugin):
         """Get last pdb step of the current console."""
         return self.get_widget().get_pdb_last_step()
 
-    def pdb_execute_command(self, command):
+    def pdb_execute_command(self, command, focus_to_editor):
         """
         Send command to the pdb kernel if possible.
 
@@ -781,12 +781,14 @@ class IPythonConsole(SpyderDockablePlugin):
         ----------
         command : str
             Command to execute by the pdb kernel.
+        focus_to_editor: bool
+            Leave focus in editor after the command is executed.
 
         Returns
         -------
         None.
         """
-        self.get_widget().pdb_execute_command(command)
+        self.get_widget().pdb_execute_command(command, focus_to_editor)
 
     def print_debug_file_msg(self):
         """
