@@ -2285,7 +2285,8 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For scripts
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace):
+                   current_client, clear_variables, console_namespace,
+                   focus_to_editor):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(str(text))
 
@@ -2335,18 +2336,22 @@ class IPythonConsoleWidget(PluginMainWidget):
                     pass
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables,
-                                      set_focus=False)
+                                      set_focus=not focus_to_editor)
                 else:
                     if is_new_client:
                         client.shellwidget.silent_execute('%clear')
                     else:
                         client.shellwidget.execute('%clear')
                     client.shellwidget.sig_prompt_ready.connect(
-                            lambda: self.execute_code(
-                                line, current_client, clear_variables,
-                                set_focus=False))
+                        lambda: self.execute_code(
+                            line, current_client, clear_variables,
+                            set_focus=not focus_to_editor
+                        )
+                    )
             except AttributeError:
                 pass
+
+            # Show plugin after execution
             self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen

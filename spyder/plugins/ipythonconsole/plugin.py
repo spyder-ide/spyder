@@ -620,7 +620,8 @@ class IPythonConsole(SpyderDockablePlugin):
 
     # ---- For execution and debugging
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace):
+                   current_client, clear_variables, console_namespace,
+                   focus_to_editor):
         """
         Run script in current or dedicated client.
 
@@ -646,6 +647,8 @@ class IPythonConsole(SpyderDockablePlugin):
             False otherwise.
         console_namespace : bool
             True if the console namespace should be used, False otherwise.
+        focus_to_editor: bool
+            Leave focus in editor after execution.
 
         Returns
         -------
@@ -659,7 +662,8 @@ class IPythonConsole(SpyderDockablePlugin):
             post_mortem,
             current_client,
             clear_variables,
-            console_namespace)
+            console_namespace,
+            focus_to_editor)
 
     def run_cell(self, code, cell_name, filename, run_cell_copy,
                  focus_to_editor, function='runcell'):
