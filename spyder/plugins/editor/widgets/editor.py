@@ -2833,7 +2833,8 @@ class EditorStack(QWidget):
             self.exec_in_extconsole.emit(text, self.focus_to_editor)
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
-        editor.move_cursor_to_next('line', 'down')
+        if self.focus_to_editor:
+            editor.move_cursor_to_next('line', 'down')
 
     def run_cell(self, debug=False):
         """Run current cell."""

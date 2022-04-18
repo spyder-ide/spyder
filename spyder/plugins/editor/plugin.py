@@ -2866,7 +2866,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def debug_command(self, command):
         """Debug actions"""
-        self.switch_to_plugin()
         ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
         if ipyconsole:
             ipyconsole.pdb_execute_command(
@@ -3037,7 +3036,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot()
     def debug_file(self):
         """Debug current script"""
-        self.switch_to_plugin()
         current_editor = self.get_current_editor()
         if current_editor is not None:
             current_editor.sig_debug_start.emit()

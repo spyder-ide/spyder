@@ -13,7 +13,7 @@ import os
 
 # Third party imports
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
-from qtpy.QtWidgets import QApplication, QDesktopWidget, QDockWidget
+from qtpy.QtWidgets import QApplication, QDesktopWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -641,10 +641,11 @@ class Layout(SpyderPluginV2):
             try:
                 # New API
                 self.main.setCentralWidget(self._last_plugin.get_widget())
+                self._last_plugin.get_widget().set_maximized_state(True)
             except AttributeError:
                 # Old API
                 self.main.setCentralWidget(self._last_plugin)
-            self._last_plugin._ismaximized = True
+                self._last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline
@@ -679,7 +680,7 @@ class Layout(SpyderPluginV2):
 
             try:
                 # New API
-                self._last_plugin.get_widget().is_maximized = False
+                self._last_plugin.get_widget().set_maximized_state(False)
             except AttributeError:
                 # Old API
                 self._last_plugin._ismaximized = False

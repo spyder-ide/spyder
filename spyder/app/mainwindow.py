@@ -387,7 +387,7 @@ class MainWindow(QMainWindow):
             # New API
             if (
                 last_plugin is not None
-                and last_plugin.get_widget().is_maximized
+                and last_plugin.get_widget().get_maximized_state()
                 and last_plugin is not plugin
             ):
                 maximize_action = self.layouts.maximize_action

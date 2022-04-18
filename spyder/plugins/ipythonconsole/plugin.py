@@ -319,7 +319,7 @@ class IPythonConsole(SpyderDockablePlugin):
 
         # Connect Editor debug action with Console
         self.sig_pdb_state_changed.connect(editor.update_pdb_state)
-        editor.exec_in_extconsole.connect(self.execute_code_and_focus_editor)
+        editor.exec_in_extconsole.connect(self.run_selection)
         editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
@@ -366,8 +366,7 @@ class IPythonConsole(SpyderDockablePlugin):
 
         # Connect Editor debug action with Console
         self.sig_pdb_state_changed.disconnect(editor.update_pdb_state)
-        editor.exec_in_extconsole.disconnect(
-            self.execute_code_and_focus_editor)
+        editor.exec_in_extconsole.disconnect(self.run_selection)
         editor.sig_file_debug_message_requested.disconnect(
             self.print_debug_file_msg)
 
@@ -407,10 +406,6 @@ class IPythonConsole(SpyderDockablePlugin):
     def _load_file_in_editor(self, fname, lineno, word, processevents):
         editor = self.get_plugin(Plugins.Editor)
         editor.load(fname, lineno, word, processevents=processevents)
-
-    def _switch_to_editor(self):
-        editor = self.get_plugin(Plugins.Editor)
-        editor.switch_to_plugin()
 
     def _on_project_loaded(self):
         projects = self.get_plugin(Plugins.Projects)
@@ -750,16 +745,9 @@ class IPythonConsole(SpyderDockablePlugin):
             current_client=current_client,
             clear_variables=clear_variables)
 
-    def execute_code_and_focus_editor(self, lines, focus_to_editor=True):
-        """
-        Execute lines in IPython console and eventually set focus
-        to the Editor.
-        """
-        self.execute_code(lines)
-        if focus_to_editor and self.get_plugin(Plugins.Editor):
-            self._switch_to_editor()
-        else:
-            self.switch_to_plugin()
+    def run_selection(self, lines, focus_to_editor=True):
+        """Execute selected lines in the current console."""
+        self.get_widget().execute_code(lines, set_focus=not focus_to_editor)
 
     def stop_debugging(self):
         """Stop debugging in the current console."""
