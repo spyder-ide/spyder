@@ -15,6 +15,7 @@ import gc
 import os
 import os.path as osp
 import psutil
+import random
 import re
 import shutil
 import sys
@@ -1908,20 +1909,116 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Set focus to the Editor
-    main_window.editor.get_focus_widget().setFocus()
 
-    # Click the maximize button
+    def get_random_plugin():
+        """Get a random dockable plugin and give it focus"""
+        plugins = get_class_values(Plugins)
+        plugins.remove(Plugins.Editor)
+        plugins.remove(Plugins.IPythonConsole)
+        plugins.remove(Plugins.All)
+
+        plugin = main_window.get_plugin(Plugins.Layout)
+        while not hasattr(plugin, 'WIDGET_CLASS'):
+            plugin_name = random.choice(plugins)
+            plugin = main_window.get_plugin(plugin_name)
+
+        if not plugin.get_widget().toggle_view_action.isChecked():
+            plugin.toggle_view(True)
+            plugin._hide_after_test = True
+
+        plugin.get_widget().get_focus_widget().setFocus()
+        return plugin
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Grab maximize button
     max_action = main_window.layouts.maximize_action
     max_button = main_window.main_toolbar.widgetForAction(max_action)
+
+    # Maximize a random plugin
+    plugin_1 = get_random_plugin()
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
-    # Verify that the Editor is maximized
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+
+    # Assert plugin_1 is unmaximized and focus is in the editor
+    assert not plugin_1.get_widget().get_maximized_state()
+    assert QApplication.focusWidget() is main_window.editor.get_focus_widget()
+    assert not max_action.isChecked()
+    if hasattr(plugin_1, '_hide_after_test'):
+        plugin_1.toggle_view(False)
+
+    # Maximize editor
+    qtbot.mouseClick(max_button, Qt.LeftButton)
     assert main_window.editor._ismaximized
 
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
     assert not main_window.editor._ismaximized
+
+    # Don't call switch_to_plugin when the IPython console is undocked
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    assert main_window.editor._ismaximized
+    ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
+    ipyconsole.create_window()
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    assert main_window.editor._ismaximized
+
+    # Unmaximize when docking back the IPython console
+    ipyconsole.close_window()
+    assert not main_window.editor._ismaximized
+
+    # Maximize a plugin and check that it's unmaximized after clicking the
+    # debug button
+    plugin_2 = get_random_plugin()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: 'IPdb' in shell._control.toPlainText())
+    assert not plugin_2.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+
+    # This checks that running other debugging actions doesn't maximize the
+    # editor by error
+    debug_next_action = main_window.debug_toolbar_actions[1]
+    debug_next_button = main_window.debug_toolbar.widgetForAction(
+        debug_next_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_next_button, Qt.LeftButton)
+    assert not main_window.editor._ismaximized
+    assert not max_action.isChecked()
+
+    # Check that running debugging actions unmaximizes plugins
+    plugin_2.get_widget().get_focus_widget().setFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_next_button, Qt.LeftButton)
+    assert not plugin_2.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_2, '_hide_after_test'):
+        plugin_2.toggle_view(False)
+
+    stop_debug_action = main_window.debug_toolbar_actions[5]
+    stop_debug_button = main_window.debug_toolbar.widgetForAction(
+        stop_debug_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+
+    # Maximize a plugin and check that it's unmaximized after running code
+    plugin_3 = get_random_plugin()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+    assert not plugin_3.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_3, '_hide_after_test'):
+        plugin_3.toggle_view(False)
 
 
 @pytest.mark.slow
