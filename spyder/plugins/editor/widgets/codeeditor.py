@@ -20,6 +20,7 @@ Editor widget based on QtGui.QPlainTextEdit
 from unicodedata import category
 import logging
 import functools
+import os
 import os.path as osp
 import re
 import sre_constants
@@ -4575,9 +4576,11 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(event.text())
         if text:
             # The next three lines are a workaround for a quirk of
-            # QTextEdit on Qt < 5.15. See spyder-ide/spyder#12663 and
+            # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
+            # See spyder-ide/spyder#12663 and
             # https://bugreports.qt.io/browse/QTBUG-35861
-            if parse_version(QT_VERSION) < parse_version('5.15'):
+            if (parse_version(QT_VERSION) < parse_version('5.15')
+                    or os.name == 'nt' or sys.platform == 'darwin'):
                 cursor = self.textCursor()
                 cursor.setPosition(cursor.position())
                 self.setTextCursor(cursor)
