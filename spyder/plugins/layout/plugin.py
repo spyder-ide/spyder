@@ -696,6 +696,11 @@ class Layout(SpyderPluginV2):
                 # Old API
                 self._last_plugin.get_focus_widget().setFocus()
 
+    def unmaximize_dockwidget(self):
+        """Unmaximize any dockable plugin."""
+        if self.maximize_action.isChecked():
+            self.maximize_action.setChecked(False)
+
     def _update_fullscreen_action(self):
         if self._fullscreen_flag:
             icon = self.create_icon('window_nofullscreen')
