@@ -1043,7 +1043,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         Switch to plugin and define if focus should be given or not.
         """
-        self.sig_switch_to_plugin_requested.emit(self, force_focus)
+        if self.get_widget().windowwidget is None:
+            self.sig_switch_to_plugin_requested.emit(self, force_focus)
 
     def set_ancestor(self, ancestor_widget):
         """

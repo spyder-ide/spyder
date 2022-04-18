@@ -814,6 +814,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
             if self.dockwidget is not None:
                 self.sig_update_ancestor_requested.emit()
+                self.get_plugin().switch_to_plugin()
                 self.dockwidget.setWidget(self)
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
