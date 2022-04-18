@@ -1069,6 +1069,9 @@ class SpyderDockablePlugin(SpyderPluginV2):
     def create_dockwidget(self, mainwindow):
         return self.get_widget().create_dockwidget(mainwindow)
 
+    def create_window(self):
+        self.get_widget().create_window()
+
     def close_window(self, save_undocked=False):
         self.get_widget().close_window(save_undocked=save_undocked)
 

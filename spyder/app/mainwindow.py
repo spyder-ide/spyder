@@ -1217,7 +1217,7 @@ class MainWindow(QMainWindow):
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if isinstance(plugin, SpyderDockablePlugin):
                 if plugin.get_conf('undocked_on_window_close', default=False):
-                    plugin.get_widget().create_window()
+                    plugin.create_window()
             elif isinstance(plugin, SpyderPluginWidget):
                 if plugin.get_option('undocked_on_window_close',
                                      default=False):
