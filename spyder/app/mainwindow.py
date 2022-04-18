@@ -385,15 +385,28 @@ class MainWindow(QMainWindow):
         last_plugin = self.last_plugin
         try:
             # New API
-            if (last_plugin is not None
-                    and last_plugin.get_widget().is_maximized
-                    and last_plugin is not plugin):
-                self.layouts.maximize_dockwidget()
+            if (
+                last_plugin is not None
+                and last_plugin.get_widget().is_maximized
+                and last_plugin is not plugin
+            ):
+                maximize_action = self.layouts.maximize_action
+                if maximize_action.isChecked():
+                    maximize_action.setChecked(False)
+                else:
+                    maximize_action.setChecked(True)
         except AttributeError:
             # Old API
-            if (last_plugin is not None and self.last_plugin._ismaximized
-                    and last_plugin is not plugin):
-                self.layouts.maximize_dockwidget()
+            if (
+                last_plugin is not None
+                and self.last_plugin._ismaximized
+                and last_plugin is not plugin
+            ):
+                maximize_action = self.layouts.maximize_action
+                if maximize_action.isChecked():
+                    maximize_action.setChecked(False)
+                else:
+                    maximize_action.setChecked(True)
 
         try:
             # New API
