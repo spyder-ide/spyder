@@ -56,7 +56,7 @@ jobs:
           ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
-        run: ${pythonLocation}/bin/python -bb -X dev -W error ${GITHUB_WORKSPACE}/install_subrepos.py
+        run: ${pythonLocation}/bin/python -bb -X dev -W error ${GITHUB_WORKSPACE}/install_dev_repos.py --no-install spyder
       - name: Show Build Environment
         run: |
           ${pythonLocation}/bin/python -V -V

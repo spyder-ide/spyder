@@ -245,11 +245,14 @@ install_requires = [
     'watchdog>=0.10.3'
 ]
 
-# Replace spyder-kernels constraint to enable
-# building Windows installers on PRs
-if 'dev' in __version__ and WINDOWS_INSTALLER_NAME:
+# Loosen constraints to ensure dev versions still work
+if 'dev' in __version__:
+    install_requires.remove('python-lsp-server[all]>=1.4.1,<1.5.0')
+    install_requires.remove('qtconsole>=5.3.0,<5.4.0')
     install_requires.remove('spyder-kernels>=2.3.1,<2.4.0')
-    install_requires.append('spyder-kernels>=2.3.1,<=2.4.0.dev0')
+    install_requires.append('python-lsp-server[all]>=1.4.1,<1.6.0')
+    install_requires.append('qtconsole>=5.3.0,<5.5.0')
+    install_requires.append('spyder-kernels>=2.3.1,<2.5.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],

@@ -26,7 +26,7 @@ import sys
 import time
 from pathlib import Path
 
-from install_subrepos import REPOS, install_repo
+from install_dev_repos import REPOS, install_repo
 
 time_start = time.time()
 

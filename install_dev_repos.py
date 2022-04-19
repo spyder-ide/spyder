@@ -23,8 +23,9 @@ DEPS_PATH = DEVPATH / 'external-deps'
 BASE_COMMAND = [sys.executable, '-m', 'pip', 'install', '--no-deps']
 
 REPOS = {}
-for p in DEPS_PATH.iterdir():
-    if p.name.startswith('.') or not p.is_dir():
+for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
+    if p.name.startswith('.') or not p.is_dir() and not (
+            (p / 'setup.py').exists() or (p / 'pyproject.toml').exists()):
         continue
     try:
         dist = distribution(p.name)._path
@@ -68,9 +69,11 @@ def install_repo(name, editable=False):
     Parameters
     ----------
     name : str
-        Must be the distribution name of a repo in spyder/external-deps.
+        Must be 'spyder' or the distribution name of a repo in
+        spyder/external-deps.
     editable : bool (False)
-        Standard install (False) or editable (True). This uses the `-e` flag.
+        Install repo in editable mode (True) or standard mode (False).
+        This uses the `-e` flag.
 
     """
     try:
@@ -100,19 +103,22 @@ def install_repo(name, editable=False):
     check_output(install_cmd, env=env)
 
 
-def main(install=tuple(REPOS.keys()), **kwargs):
+def main(install=tuple(REPOS.keys()), no_install=tuple(), **kwargs):
     """
     Install all subrepos from source.
 
     Parameters
     ----------
-    install : iterable (all repos in spyder/external-deps)
+    install : iterable (spyder and all repos in spyder/external-deps)
         Distribution names of repos to be installed from spyder/external-deps.
+    no_install : iterable ()
+        Distribution names to exclude from install.
     **kwargs :
         Keyword arguments passed to `install_repo`.
 
     """
-    for repo in install:
+    _install = set(install) - set(no_install)
+    for repo in _install:
         install_repo(repo, **kwargs)
 
 
@@ -120,17 +126,21 @@ if __name__ == '__main__':
     # ---- Parse command line
 
     parser = argparse.ArgumentParser(
-        usage="python install_subrepos.py [options]")
+        usage="python install_dev_repos.py [options]")
     parser.add_argument(
-        '--install', dest='install', nargs='+',
+        '--install', nargs='+',
         default=REPOS.keys(),
         help="Space-separated list of distribution names to install, e.g. "
              "qtconsole spyder-kernels. If option not provided, then all of "
              "the repos in spyder/external-deps are installed"
     )
     parser.add_argument(
-        '--editable', dest='editable',
-        action='store_true', default=False,
+        '--no-install', nargs='+', default=[],
+        help="Space-separated list of distribution names to exclude from "
+             "install. Default is empty list."
+    )
+    parser.add_argument(
+        '--editable', action='store_true', default=False,
         help="Install in editable mode."
     )
 

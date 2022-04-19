@@ -38,13 +38,21 @@ Finally, set the upstream remote to the official Spyder repo with:
 $ git remote add upstream https://github.com/spyder-ide/spyder.git
 ```
 
+
 ### Creating a conda environment or virtualenv
 
-If you use Anaconda you can create a conda environment with the following commands:
+If you use Anaconda you can create a conda environment and install the necessary dependencies as follows.
 
 ```bash
-$ conda create -n spyder-dev python=3
+$ conda create -n spyder-dev -c conda-forge --file requirements/conda.txt
 $ conda activate spyder-dev
+(spyder-dev) $ python install_dev_repos.py --editable
+```
+
+If you are running on macOS, you will also need to install `python.app`, so the first line above should read
+
+```bash
+$ conda create -n spyder-dev -c conda-forge --file requirements/conda.txt python.app
 ```
 
 You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
@@ -52,57 +60,24 @@ You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
 ```bash
 $ mkvirtualenv spyder-dev
 $ workon spyder-dev
+(spyder-dev) $ install -e .
+(spyder-dev) $ python install_dev_repos.py --editable --no-install spyder
 ```
 
-
-### Installing dependencies
-
-After you have created your development environment, you need to install Spyder and Spyder's necessary dependencies.
-First change your working directory to the repo directory.
-
-```bash
-$ cd path/to/spyder/repo
-```
-
-Next, with Anaconda, install the dependencies from `conda` and Spyder in develop mode from local source.
-
-```bash
-$ conda install -c conda-forge --file requirements/conda.txt
-$ pip install --no-deps -e .
-```
-
-If using `pip` and `virtualenv` (not recommended), Spyder is installed in develop mode from local source and dependencies are installed from PyPi with one command.
-
-```bash
-$ pip install -e .
-```
-
-If you are running on macOS, you will also need to install `python.app`.
-
-```bash
-$ conda install python.app
-```
-
-Finally, you need to install the core dependencies in the subrepos.
-This will install `spyder-kernels`, `qdarkstyle`, `qtconsole`, and `python-lsp-server` in develop mode.
-
-```bash
-$ python install_subrepos.py --editable
-```
 
 ### Running Spyder
 
 To start Spyder directly from your clone, i.e. without installing it into your environment, you need to run (from the directory you cloned it to e.g. `spyder`):
 
 ```bash
-$ python bootstrap.py
+$ python -b -X dev bootstrap.py
 ```
-Note that if you are running on macOS, you will need to call `pythonw` instead of `python`.
+Note that if you are running on macOS 10.15 or earlier, you will need to call `pythonw` instead of `python`.
 
 To start Spyder in debug mode, useful for tracking down an issue, you can run:
 
 ```bash
-$ python bootstrap.py --debug
+$ python -b -X dev bootstrap.py --debug
 ```
 
 **Important Note**: To test any changes you've made to the Spyder source code, you need to restart Spyder or start a fresh instance (you can run multiple copies simultaneously by unchecking the Preferences option <kbd>Use a single instance</kbd> under <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
