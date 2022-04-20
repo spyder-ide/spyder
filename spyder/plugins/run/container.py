@@ -7,11 +7,11 @@
 """Spyder run container."""
 
 # Standard library imports
-from cProfile import run
+from optparse import Option
 import re
 from collections import OrderedDict
 from weakref import WeakSet, WeakValueDictionary
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Set, Optional
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal, QAbstractListModel, QModelIndex
@@ -37,32 +37,72 @@ class RunExecutorListModel(QAbstractListModel):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.executors: List[str] = []
+        self.current_input: Optional[Tuple[str, str]] = None
+        self.current_executor: Optional[str] = None
+        self.executor_names: Dict[str, str] = {}
+        self.executors_per_input: Dict[
+            Tuple[str, str], Dict[
+                str, SupportedExecutionRunConfiguration]] = {}
+
+    def set_executor_name(self, executor_id: str, executor_name: str):
+        self.executor_names[executor_id] = executor_name
+
+    def add_input_executor_configuration(
+            self, ext: str, context_id: str, executor_id: str,
+            config: SupportedExecutionRunConfiguration):
+        input_executors = self.executors_per_input.get((ext, context_id), {})
+        executor_configurations = input_executors.get(executor_id, {})
+        executor_configurations[executor_id] = config
+        input_executors[(ext, context_id)] = executor_configurations
+
+    def remove_input_executor_configuration(
+            self, ext: str, context_id: str, executor_id: str):
+        input_executors = self.executors_per_input[(ext, context_id)]
+        input_executors.pop(executor_id)
+
+    def switch_input(self, run_input: Tuple[str, str]):
+        if run_input in self.executors_per_input:
+            self.current_input = run_input
+            executors = self.executors_per_input[run_input]
+            self.dataChanged.emit(self.createIndex(0, 0),
+                                  self.createIndex(len(executors), 0))
+        else:
+            raise ValueError(
+                f'The requested run input combination {run_input} is not '
+                'registered')
+
+    def get_selected_run_configuration(self) -> SupportedExecutionRunConfiguration:
+        input_executors = self.executors_per_input[self.current_input]
+        return input_executors[self.current_executor]
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
-        return self.executors[index.row()]
+        executors = self.executors_per_input[self.current_input]
+        sorted_executors = sorted(list(executors.keys()))
+        executor_id = sorted_executors[index.row()]
+        self.current_executor = executor_id
+        return self.executor_names[executor_id]
 
     def rowCount(self, parent: QModelIndex = None) -> int:
-        return len(self.executors)
-
-    def update_executors(self, executors):
-        self.executors = executors
-        self.dataChanged.emit(self.createIndex(0, 0),
-                              self.createIndex(len(self.executors), 0))
+        executors = self.executors_per_input.get(self.current_input, {})
+        return len(executors)
 
 
 class RunConfigurationListModel(QAbstractListModel):
-    def __init__(self, parent):
+    def __init__(self, parent, executor_model):
         super().__init__(parent)
         self.parent = parent
         self.metadata_index: Dict[int, str] = {}
         self.run_configurations: OrderedDict[
             str, RunConfigurationMetadata] = OrderedDict()
-        self.executor_model: RunExecutorListModel = RunExecutorListModel()
+        self.executor_model: RunExecutorListModel = executor_model
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         uuid = self.metadata_index[index.row()]
         metadata = self.run_configurations[uuid]
+        context_name = metadata['context']['name']
+        context_id = getattr(RunContext, context_name)
+        ext = metadata['input_extension']
+        self.executor_model.switch_input((ext, context_id))
         return metadata['name']
 
     def rowCount(self, parent: QModelIndex = None) -> int:
@@ -94,10 +134,17 @@ class RunContainer(PluginMainContainer):
 
     def setup(self):
         self.metadata_model = RunConfigurationListModel(self)
+        self.executor_model = RunExecutorListModel(self)
+
         self.run_metadata_provider: WeakValueDictionary[
             str, RunConfigurationProvider] = WeakValueDictionary()
-        self.executors: Dict[Tuple[str, str, str], WeakSet[RunExecutor]] = {}
-        self.viewers: Dict[str, WeakSet[RunResultViewer]] = {}
+        self.run_executors: WeakValueDictionary[
+            str, RunExecutor] = WeakValueDictionary()
+        self.viewers: WeakValueDictionary[
+            str, RunResultViewer] = WeakValueDictionary()
+
+        self.executor_use_count: Dict[str, int] = {}
+        self.viewers_per_output: Dict[str, Set[str]] = {}
 
         self.run_action = self.create_action(
             RunActions.Run, _('&Run'), self.create_icon('run'),
@@ -154,6 +201,7 @@ class RunContainer(PluginMainContainer):
         context_identifier = context.get('identifier', None)
         if context_identifier is None:
             context_identifier = camel_case_to_snake_case(context_name)
+            context['identifier'] = context_identifier
         setattr(RunContext, context_name, context_identifier)
 
         run_id = metadata['uuid']
@@ -193,24 +241,39 @@ class RunContainer(PluginMainContainer):
             identifier as well as the available execution context for that
             type.
         """
+        executor_id = executor.NAME
+        executor_name = executor.get_name()
+        self.run_executors[executor_id] = executor
+        executor_count = self.executor_use_count.get(executor_id, 0)
         for config in configuration:
             ext = config['input_extension']
             context = config['context']
             context_name = context['name']
-            context_id = getattr(RunContext, context_name)
+            context_id = context.get('identifier', None)
+            if context_id is None:
+                context_id = camel_case_to_snake_case(context_name)
+            setattr(RunContext, context_name, context_id)
+
+            output_formats = []
             for out in config['output_formats']:
                 output_name = out['name']
                 output_id = out.get('identifier', None)
                 if not output_id:
                     output_id = camel_case_to_snake_case(output_name)
                 setattr(RunResultFormat, output_name, output_id)
+                updated_out = {'name': output_name, 'identifier': output_id}
+                output_formats.append(updated_out)
 
-                executor_set = self.executors.get((ext, context_id, output_id), WeakSet())
-                executor_set.add(executor)
-                self.executors[(ext, context_id, output_id)] = executor_set
+            config['output_formats'] = output_formats
+            self.executor_model.add_input_executor_configuration(
+                ext, context_id, executor_id, config)
+            executor_count += 1
+
+        self.executor_use_count[executor_id] = executor_count
+        self.executor_model.set_executor_name(executor_id, executor_name)
 
     def deregister_executor_configuration(
-            self, provider: RunExecutor,
+            self, executor: RunExecutor,
             configuration: List[SupportedExecutionRunConfiguration]):
         """
         Deregister a :class:`RunExecutor` instance from providing a set
@@ -218,29 +281,28 @@ class RunContainer(PluginMainContainer):
 
         Parameters
         ----------
-        provider: RunExecutor
+        executor: RunExecutor
             A :class:`SpyderPluginV2` instance that implements the
             :class:`RunExecutor` interface and will deregister execution
             input type information.
         configuration: List[SupportedExecutionRunConfiguration]
-            A list of input configurations that the provider wants to deregister.
+            A list of input configurations that the executor wants to deregister.
             Each configuration specifies the input extension
             identifier as well as the available execution context for that
             type.
         """
+        executor_id = executor.NAME
         for config in configuration:
             ext = config['input_extension']
             context = config['context']
             context_name = context['name']
             context_id = getattr(RunContext, context_name)
+            self.executor_model.remove_input_executor_configuration(
+                ext, context_id, executor_id)
+            self.executor_use_count[executor_id] -= 1
 
-            for out in config['output_formats']:
-                output_name = out['name']
-                output_id = out.get('identifier', None)
-                output_id = getattr(RunResultFormat, output_name, output_id)
-                if (ext, context_id, output_id) in self.executors:
-                    executor_set = self.executors[(ext, context_id, output_id)]
-                    executor_set.discard(provider)
+        if self.executor_use_count[executor_id] <= 0:
+            self.run_executors.pop(executor_id)
 
     def register_viewer_configuration(
             self, viewer: RunResultViewer, formats: List[OutputFormat]):

@@ -150,7 +150,7 @@ class RunResult(TypedDict):
 
 class Context(TypedDict):
     """Run context name schema."""
-    # Human-readable name for the run context. It must be CamelCase
+    # CamelCase name of the context.
     name: str
     # String identifier for the run context. If non-existent or None, then
     # a snake_case version of the name is used.
@@ -333,7 +333,23 @@ class RunExecutorConfigurationGroup(QWidget):
 
     def get_configuration(self) -> dict:
         """
-        Obtain a dictionary containing the execution configuration
-        options for the executor.
+        Obtain a dictionary containing the configuration options for
+        the executor.
         """
         return {}
+
+    def get_default_configuration(self) -> dict:
+        """
+        Obtain a dictionary containing the default values for the
+        executor configuration.
+        """
+        return {}
+
+    def set_configuration(self, config: dict):
+        """
+        Given a configuration dictionary compatible with the current
+        configuration group, set the graphical elements to their corresponding
+        values.
+        """
+        raise NotImplementedError(f'{type(self)} must implement '
+                                  'set_configuration')
