@@ -58,7 +58,7 @@ else
 fi
 
 # Install subrepos from source
-python -bb -X dev -W error install_dev_repos.py --no-install spyder
+python -bb -X dev -W error install_dev_repos.py --not-editable --no-install spyder
 
 # Install boilerplate plugin
 pushd spyder/app/tests/spyder-boilerplate

@@ -53,7 +53,7 @@ def get_python_lsp_version():
     return version
 
 
-def install_repo(name, editable=False):
+def install_repo(name, not_editable=False):
     """
     Install a single repo from source located in spyder/external-deps, ignoring
     dependencies, in standard or editable mode.
@@ -63,16 +63,16 @@ def install_repo(name, editable=False):
     name : str
         Must be 'spyder' or the distribution name of a repo in
         spyder/external-deps.
-    editable : bool (False)
-        Install repo in editable mode (True) or standard mode (False).
-        This uses the `-e` flag.
+    not_editable : bool (False)
+        Install repo in standard mode (True) or editable mode (False).
+        Editable mode uses pip's `-e` flag.
 
     """
     try:
         repo_path = REPOS[name]
     except KeyError:
-        logger.warning(
-            'Distribution %r not valid. Must be one of %s', name, set(REPOS.keys()))
+        logger.warning('Distribution %r not valid. Must be one of %s',
+                       name, set(REPOS.keys()))
         return
 
     install_cmd = BASE_COMMAND.copy()
@@ -81,14 +81,15 @@ def install_repo(name, editable=False):
     env = None
     if name == 'python-lsp-server':
         env = {**os.environ}
-        env.update({'SETUPTOOLS_SCM_PRETEND_VERSION': get_python_lsp_version()})
+        env.update(
+            {'SETUPTOOLS_SCM_PRETEND_VERSION': get_python_lsp_version()})
 
-    if editable:
+    if not_editable:
+        mode = 'standard'
+    else:
         # Add edit flag to install command
         install_cmd.append('-e')
         mode = 'editable'
-    else:
-        mode = 'standard'
 
     logger.info('Installing %r from source in %s mode.', name, mode)
     install_cmd.append(repo_path.as_posix())
@@ -132,8 +133,8 @@ if __name__ == '__main__':
              "install. Default is empty list."
     )
     parser.add_argument(
-        '--editable', action='store_true', default=False,
-        help="Install in editable mode."
+        '--not-editable', action='store_true', default=False,
+        help="Install in standard mode, not editable mode."
     )
 
     args = parser.parse_args()
