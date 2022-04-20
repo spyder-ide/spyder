@@ -26,8 +26,6 @@ import sys
 import time
 from pathlib import Path
 
-from install_dev_repos import REPOS, install_repo
-
 time_start = time.time()
 
 print("Executing Spyder from source checkout")
@@ -106,12 +104,6 @@ if args.gui is None:
 else:
     print("*. Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
-
-# ---- Update PyLSP
-
-if REPOS['python-lsp-server']['editable']:
-    # Installed in editable mode -> reinstall
-    install_repo('python-lsp-server', editable=True)
 
 # ---- Check versions
 

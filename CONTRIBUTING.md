@@ -39,9 +39,9 @@ $ git remote add upstream https://github.com/spyder-ide/spyder.git
 ```
 
 
-### Creating a conda environment or virtualenv
+### Creating an environment and installing dependencies
 
-If you use Anaconda you can create a conda environment and install the necessary dependencies as follows.
+If you use a Conda-based distribution (Anaconda, etc), you can create an environment and install the necessary dependencies as follows:
 
 ```bash
 $ conda create -n spyder-dev -c conda-forge --file requirements/conda.txt
@@ -49,10 +49,10 @@ $ conda activate spyder-dev
 (spyder-dev) $ python install_dev_repos.py --editable
 ```
 
-If you are running on macOS, you will also need to install `python.app`, so the first line above should read
+If you are running on macOS, you will also need to install `python.app`, so after activating the environment, run
 
 ```bash
-$ conda create -n spyder-dev -c conda-forge --file requirements/conda.txt python.app
+$ conda install -c conda-forge python.app
 ```
 
 You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
@@ -60,24 +60,24 @@ You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
 ```bash
 $ mkvirtualenv spyder-dev
 $ workon spyder-dev
-(spyder-dev) $ install -e .
+(spyder-dev) $ pip install -e .
 (spyder-dev) $ python install_dev_repos.py --editable --no-install spyder
 ```
 
 
 ### Running Spyder
 
-To start Spyder directly from your clone, i.e. without installing it into your environment, you need to run (from the directory you cloned it to e.g. `spyder`):
+To run Spyder from your clone in its development mode, with extra checks and options (pass `--help` to see them), launch it via the `bootstrap.py` script in the repo root directory:
 
 ```bash
-$ python -b -X dev bootstrap.py
+$ python bootstrap.py
 ```
 Note that if you are running on macOS 10.15 or earlier, you will need to call `pythonw` instead of `python`.
 
 To start Spyder in debug mode, useful for tracking down an issue, you can run:
 
 ```bash
-$ python -b -X dev bootstrap.py --debug
+$ python bootstrap.py --debug
 ```
 
 **Important Note**: To test any changes you've made to the Spyder source code, you need to restart Spyder or start a fresh instance (you can run multiple copies simultaneously by unchecking the Preferences option <kbd>Use a single instance</kbd> under <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .

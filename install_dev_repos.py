@@ -15,7 +15,6 @@ from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 from subprocess import check_output
 
-from importlib_metadata import PackageNotFoundError, distribution
 from packaging.requirements import Requirement
 
 DEVPATH = Path(__file__).resolve().parent
@@ -27,21 +26,14 @@ for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
     if p.name.startswith('.') or not p.is_dir() and not (
             (p / 'setup.py').exists() or (p / 'pyproject.toml').exists()):
         continue
-    try:
-        dist = distribution(p.name)._path
-    except PackageNotFoundError:
-        dist = None
-        editable = None
-    else:
-        editable = (p == dist or p in dist.parents)
 
-    REPOS[p.name] = {'repo': p, 'dist': dist, 'editable': editable}
+    REPOS[p.name] = p
 
 # ---- Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
 h.setFormatter(fmt)
-logger = getLogger('InstallSubRepos')
+logger = getLogger('InstallDevRepos')
 logger.addHandler(h)
 logger.setLevel('INFO')
 
@@ -77,7 +69,7 @@ def install_repo(name, editable=False):
 
     """
     try:
-        repo_path = REPOS[name]['repo']
+        repo_path = REPOS[name]
     except KeyError:
         logger.warning(
             'Distribution %r not valid. Must be one of %s', name, set(REPOS.keys()))
