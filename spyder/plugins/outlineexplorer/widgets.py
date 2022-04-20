@@ -717,7 +717,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         current_ordered_items = [self.topLevelItem(index) for index in
                                  range(self.topLevelItemCount())]
-        # Convert list in a dictionary in order to remove duplicated entries
+        
+        # Convert list to a dictionary in order to remove duplicated entries
         # when having multiple editors (splitted or in new windows).
         # See spyder-ide/spyder#14646
         current_ordered_items_dict = {
