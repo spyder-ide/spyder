@@ -1517,7 +1517,13 @@ class EditorStack(QWidget):
             # Try finding without calling the slow realpath
             return data_filenames.index(filename)
         except ValueError:
-            filename = fixpath(filename)
+            # See note about OSError on set_current_filename
+            # Fixes spyder-ide/spyder#17685
+            try:
+                filename = fixpath(filename)
+            except OSError:
+                return None
+
             for index, editor_filename in enumerate(data_filenames):
                 if filename == fixpath(editor_filename):
                     return index
@@ -1525,13 +1531,17 @@ class EditorStack(QWidget):
 
     def set_current_filename(self, filename, focus=True):
         """Set current filename and return the associated editor instance."""
-        # This is necessary to catch an error on Windows for files in a
-        # directory junction pointing to a symlink whose target is on a
-        # network drive that is unavailable at startup.
+        # FileNotFoundError: This is necessary to catch an error on Windows
+        # for files in a directory junction pointing to a symlink whose target
+        # is on a network drive that is unavailable at startup.
         # Fixes spyder-ide/spyder#15714
+        # OSError: This is necessary to catch an error on Windows when Spyder
+        # was closed with a file in a shared folder on a different computer on
+        # the network, and is started again when that folder is not available.
+        # Fixes spyder-ide/spyder#17685
         try:
             index = self.has_filename(filename)
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             index = None
 
         if index is not None:
