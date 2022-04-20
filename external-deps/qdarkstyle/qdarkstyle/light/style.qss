@@ -1286,16 +1286,20 @@ QComboBox::indicator:alternate {
   background: #FAFAFA;
 }
 
+QComboBox::item {
+  /* Remove to fix #282, #285 and MR #288*/
+  /*&:checked {
+            font-weight: bold;
+        }
+
+        &:selected {
+            border: 0px solid transparent;
+        }
+        */
+}
+
 QComboBox::item:alternate {
   background: #FAFAFA;
-}
-
-QComboBox::item:checked {
-  font-weight: bold;
-}
-
-QComboBox::item:selected {
-  border: 0px solid transparent;
 }
 
 QComboBox::drop-down {

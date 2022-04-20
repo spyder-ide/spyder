@@ -58,8 +58,8 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_MIN_VERSION = '2.2.1'
-SPYDER_KERNELS_MAX_VERSION = '2.3.0'
+SPYDER_KERNELS_MIN_VERSION = '2.3.0'
+SPYDER_KERNELS_MAX_VERSION = '2.4.0'
 SPYDER_KERNELS_VERSION = (
     f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
 SPYDER_KERNELS_VERSION_MSG = _(
@@ -310,6 +310,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
 
+        # Disable infowidget if requested by the user
+        self.enable_infowidget = True
+        if plugin:
+            cli_options = plugin.get_command_line_options()
+            if cli_options.no_web_widgets:
+                self.enable_infowidget = False
+
         # Attrs for testing
         self._testing = bool(os.environ.get('IPYCONSOLE_TESTING'))
         self._test_dir = os.environ.get('IPYCONSOLE_TEST_DIR')
@@ -350,13 +357,17 @@ class IPythonConsoleWidget(PluginMainWidget):
             layout.addWidget(self.tabwidget)
 
         # Info widget
-        self.infowidget = FrameWebView(self)
-        if WEBENGINE:
-            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
+        if self.enable_infowidget:
+            self.infowidget = FrameWebView(self)
+            if WEBENGINE:
+                self.infowidget.page().setBackgroundColor(
+                    QColor(MAIN_BG_COLOR))
+            else:
+                self.infowidget.setStyleSheet(
+                    "background:{}".format(MAIN_BG_COLOR))
+            layout.addWidget(self.infowidget)
         else:
-            self.infowidget.setStyleSheet(
-                "background:{}".format(MAIN_BG_COLOR))
-        layout.addWidget(self.infowidget)
+            self.infowidget = None
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
@@ -385,6 +396,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         self._init_asyncio_patch()
 
         self._cached_kernel_properties = None
+
+    def on_close(self):
+        self.mainwindow_close = True
+        self.close_clients()
 
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
@@ -800,9 +815,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Check that we are not triggering validations in the initial
         # notification sent when Spyder is starting or when another option
         # already required a restart and the restart dialog was shown
-        if option in self.initial_conf_options:
-            self.initial_conf_options.remove(option)
-            return
+        if not self._testing:
+            if option in self.initial_conf_options:
+                self.initial_conf_options.remove(option)
+                return
 
         restart_needed = False
         restart_options = []
@@ -826,20 +842,46 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         inline_backend = 0
         pylab_restart = False
-        client_backend_not_inline = [False] * len(self.clients)
+        clients_backend_require_restart = [False] * len(self.clients)
         current_client = self.get_current_client()
-        current_client_backend_not_inline = False
+        current_client_backend_require_restart = False
         if pylab_o and pylab_backend_n == option and current_client:
             pylab_backend_o = self.get_conf(pylab_backend_n)
-            client_backend_not_inline = [
-                client.shellwidget.get_matplotlib_backend() != inline_backend
-                for client in self.clients]
-            current_client_backend_not_inline = (
-                current_client.shellwidget.get_matplotlib_backend()
-                != inline_backend)
-            pylab_restart = (
-                any(client_backend_not_inline) and
-                pylab_backend_o != inline_backend)
+
+            # Check if clients require a restart due to a change in
+            # interactive backend.
+            clients_backend_require_restart = []
+            for client in self.clients:
+                interactive_backend = (
+                    client.shellwidget.get_mpl_interactive_backend())
+
+                if (
+                    # No restart is needed if the new backend is inline
+                    pylab_backend_o != inline_backend and
+                    # There was an error getting the interactive backend in
+                    # the kernel, so we can't proceed.
+                    interactive_backend is not None and
+                    # There has to be an interactive backend (i.e. different
+                    # from inline) set in the kernel before. Else, a restart
+                    # is not necessary.
+                    interactive_backend != inline_backend and
+                    # The interactive backend to switch to has to be different
+                    # from the current one
+                    interactive_backend != pylab_backend_o
+                ):
+                    clients_backend_require_restart.append(True)
+
+                    # Detect if current client requires restart
+                    if id(client) == id(current_client):
+                        current_client_backend_require_restart = True
+
+                        # For testing
+                        if self._testing:
+                            os.environ['BACKEND_REQUIRE_RESTART'] = 'true'
+                else:
+                    clients_backend_require_restart.append(False)
+
+            pylab_restart = any(clients_backend_require_restart)
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
             self.initial_conf_options = self.get_conf_options()
@@ -856,8 +898,11 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Apply settings
         options = {option: value}
         for idx, client in enumerate(self.clients):
-            restart = ((pylab_restart and client_backend_not_inline[idx]) or
-                       restart_needed)
+            restart = (
+                (pylab_restart and clients_backend_require_restart[idx]) or
+                restart_needed
+            )
+
             if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
@@ -876,7 +921,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.restart_kernel()
                 client.ask_before_restart = current_ask_before_restart
 
-        if (((pylab_restart and current_client_backend_not_inline)
+        if (((pylab_restart and current_client_backend_require_restart)
              or restart_needed) and restart_current and current_client):
             current_client_ask_before_restart = (
                 current_client.ask_before_restart)
@@ -1022,7 +1067,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.sig_shellwidget_created.emit(client.shellwidget)
 
     def _shellwidget_deleted(self, client):
-        self.sig_shellwidget_deleted.emit(client.shellwidget)
+        try:
+            self.sig_shellwidget_deleted.emit(client.shellwidget)
+        except RuntimeError:
+            pass
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
@@ -1184,7 +1232,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self._font = font
         self._rich_font = rich_font
 
-        if self.infowidget:
+        if self.enable_infowidget:
             self.infowidget.set_font(rich_font)
 
         for client in self.clients:
@@ -1208,14 +1256,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             client = self.tabwidget.currentWidget()
 
             # Decide what to show for each client
-            if client.info_page != client.blank_page:
+            if (client.info_page != client.blank_page and
+                    self.enable_infowidget):
                 # Show info_page if it has content
                 client.set_info_page()
                 client.shellwidget.hide()
                 client.layout.addWidget(self.infowidget)
                 self.infowidget.show()
             else:
-                self.infowidget.hide()
+                if self.enable_infowidget:
+                    self.infowidget.hide()
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab

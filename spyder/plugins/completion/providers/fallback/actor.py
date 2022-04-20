@@ -48,7 +48,7 @@ class FallbackActor(QObject):
         self.mutex = QMutex()
         self.file_tokens = {}
         self.diff_patch = diff_match_patch()
-        self.thread = QThread()
+        self.thread = QThread(None)
         self.moveToThread(self.thread)
 
         self.thread.started.connect(self.started)

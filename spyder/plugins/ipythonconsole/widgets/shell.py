@@ -85,8 +85,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     @classmethod
     def prune_shutdown_thread_list(cls):
         """Remove shutdown threads."""
-        cls.shutdown_thread_list = [
-            t for t in cls.shutdown_thread_list if t.isRunning()]
+        pruned_shutdown_thread_list = []
+        for t in cls.shutdown_thread_list:
+            try:
+                if t.isRunning():
+                    pruned_shutdown_thread_list.append(t)
+            except RuntimeError:
+                pass
+        cls.shutdown_thread_list = pruned_shutdown_thread_list
 
     @classmethod
     def wait_all_shutdown(cls):
@@ -97,6 +103,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     thread.kernel_manager._kill_kernel()
                 except Exception:
                     pass
+                thread.quit()
                 thread.wait()
         cls.shutdown_thread_list = []
 
@@ -173,18 +180,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
         self.shutting_down = True
         if shutdown_kernel:
-            self.interrupt_kernel()
-            self.spyder_kernel_comm.close()
-            self.kernel_manager.stop_restarter()
+            if not self.kernel_manager:
+                return
 
-            shutdown_thread = QThread()
-            shutdown_thread.kernel_manager = self.kernel_manager
-            shutdown_thread.run = self.shutdown_kernel
+            self.interrupt_kernel()
+            if self.kernel_manager:
+                self.kernel_manager.stop_restarter()
+            self.spyder_kernel_comm.close()
             if self.kernel_client is not None:
-                shutdown_thread.finished.connect(
-                    self.kernel_client.stop_channels)
-            shutdown_thread.start()
-            self.shutdown_thread_list.append(shutdown_thread)
+                self.kernel_client.stop_channels()
+            if self.kernel_manager:
+                shutdown_thread = QThread(None)
+                shutdown_thread.kernel_manager = self.kernel_manager
+                shutdown_thread.run = self.shutdown_kernel
+                self.shutdown_thread_list.append(shutdown_thread)
+                shutdown_thread.start()
         else:
             self.spyder_kernel_comm.close(shutdown_channel=False)
             if self.kernel_client is not None:
@@ -373,6 +383,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         return self.call_kernel(
             interrupt=True,
             blocking=True).get_matplotlib_backend()
+
+    def get_mpl_interactive_backend(self):
+        """Call kernel to get current interactive backend."""
+        return self.call_kernel(
+            interrupt=True,
+            blocking=True).get_mpl_interactive_backend()
 
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""

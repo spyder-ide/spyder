@@ -77,7 +77,10 @@ class PythonWorker(QObject):
             error = err
 
         if not self._is_finished:
-            self.sig_finished.emit(self, output, error)
+            try:
+                self.sig_finished.emit(self, output, error)
+            except RuntimeError:
+                pass
         self._is_finished = True
 
 
@@ -88,7 +91,7 @@ class ProcessWorker(QObject):
     sig_finished = Signal(object, object, object)
     sig_partial = Signal(object, object, object)
 
-    def __init__(self, cmd_list, environ=None):
+    def __init__(self, parent, cmd_list, environ=None):
         """
         Process worker based on a QProcess for non blocking UI.
 
@@ -99,7 +102,7 @@ class ProcessWorker(QObject):
         environ : dict
             Process environment,
         """
-        super(ProcessWorker, self).__init__()
+        super(ProcessWorker, self).__init__(parent)
         self._result = None
         self._cmd_list = cmd_list
         self._fired = False
@@ -107,8 +110,8 @@ class ProcessWorker(QObject):
         self._partial_stdout = None
         self._started = False
 
-        self._timer = QTimer()
-        self._process = QProcess()
+        self._timer = QTimer(self)
+        self._process = QProcess(self)
         self._set_environment(environ)
 
         self._timer.setInterval(150)
@@ -159,7 +162,7 @@ class ProcessWorker(QObject):
     def communicate(self):
         """Retrieve information."""
         self._communicate_first = True
-        self._process.waitForFinished()
+        self._process.waitForFinished(5000)
 
         enco = self._get_encoding()
         if self._partial_stdout is None:
@@ -187,7 +190,9 @@ class ProcessWorker(QObject):
 
     def close(self):
         """Close the running process."""
+        self._timer.stop()
         self._process.close()
+        self._process.waitForFinished(1000)
 
     def is_finished(self):
         """Return True if worker has finished processing."""
@@ -202,9 +207,11 @@ class ProcessWorker(QObject):
 
     def terminate(self):
         """Terminate running processes."""
+        self._timer.stop()
         if self._process.state() == QProcess.Running:
             try:
-                self._process.terminate()
+                self._process.close()
+                self._process.waitForFinished(1000)
             except Exception:
                 pass
         self._fired = True
@@ -226,13 +233,13 @@ class WorkerManager(QObject):
         self._queue_workers = deque()
         self._threads = []
         self._workers = []
-        self._timer = QTimer()
-        self._timer_worker_delete = QTimer()
+        self._timer = QTimer(self)
+        self._timer_worker_delete = QTimer(self)
         self._running_threads = 0
         self._max_threads = max_threads
 
         # Keeps references to old workers
-        # Needed to avoud C++/python object errors
+        # Needed to avoid C++/python object errors
         self._bag_collector = deque()
 
         self._timer.setInterval(333)
@@ -259,7 +266,7 @@ class WorkerManager(QObject):
             #                                 len(self._threads)))
             self._running_threads += 1
             worker = self._queue_workers.popleft()
-            thread = QThread()
+            thread = QThread(None)
             if isinstance(worker, PythonWorker):
                 worker.moveToThread(thread)
                 worker.sig_finished.connect(thread.quit)
@@ -267,6 +274,7 @@ class WorkerManager(QObject):
                 thread.start()
             elif isinstance(worker, ProcessWorker):
                 thread.quit()
+                thread.wait()
                 worker._start()
             self._threads.append(thread)
         else:
@@ -296,7 +304,7 @@ class WorkerManager(QObject):
 
     def create_process_worker(self, cmd_list, environ=None):
         """Create a new process worker instance."""
-        worker = ProcessWorker(cmd_list, environ=environ)
+        worker = ProcessWorker(self, cmd_list, environ=environ)
         self._create_worker(worker)
         return worker
 
@@ -305,12 +313,13 @@ class WorkerManager(QObject):
         for worker in self._workers:
             worker.terminate()
 
-        # for thread in self._threads:
-        #     try:
-        #         thread.terminate()
-        #         thread.wait()
-        #     except Exception:
-        #         pass
+        for thread in self._threads:
+            try:
+                thread.quit()
+                thread.wait()
+            except Exception:
+                pass
+
         self._queue_workers = deque()
 
     def _create_worker(self, worker):

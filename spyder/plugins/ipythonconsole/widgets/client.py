@@ -169,7 +169,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.shellwidget)
-        self.layout.addWidget(self.infowidget)
+        if self.infowidget is not None:
+            self.layout.addWidget(self.infowidget)
         self.setLayout(self.layout)
 
         # --- Exit function
@@ -196,6 +197,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Close threads to avoid segfault."""
         if (self.restart_thread is not None
                 and self.restart_thread.isRunning()):
+            self.restart_thread.quit()
             self.restart_thread.wait()
 
     # ----- Private methods ---------------------------------------------------
@@ -253,16 +255,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def _show_loading_page(self):
         """Show animation while the kernel is loading."""
-        self.shellwidget.hide()
-        self.infowidget.show()
-        self.info_page = self.loading_page
-        self.set_info_page()
+        if self.infowidget is not None:
+            self.shellwidget.hide()
+            self.infowidget.show()
+            self.info_page = self.loading_page
+            self.set_info_page()
 
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
-        self.infowidget.hide()
-        self.info_page = self.blank_page
-        self.set_info_page()
+        if self.infowidget is not None:
+            self.infowidget.hide()
+            self.info_page = self.blank_page
+            self.set_info_page()
         self.shellwidget.show()
 
     def _read_stderr(self):
@@ -506,28 +510,34 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             error=error)
 
         # Show error
-        self.set_info_page()
-        self.shellwidget.hide()
-        self.infowidget.show()
+        if self.infowidget is not None:
+            self.set_info_page()
+            self.shellwidget.hide()
+            self.infowidget.show()
 
         # Tell the client we're in error mode
         self.is_error_shown = True
 
         # Stop shellwidget
         self.shellwidget.shutdown()
-        self.remove_std_files()
+        self.remove_std_files(is_last_client=False)
 
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
         benign_errors = [
-            # See spyder-ide/spyder#16828
-            "This version of python seems to be incorrectly compiled",
-            "internal generated filenames are not absolute",
-            "This may make the debugger miss breakpoints",
-            "http://bugs.python.org/issue1666807",
-            # See spyder-ide/spyder#16927
-            "It seems the debugger cannot resolve",
-            "https://bugs.python.org/issue1180193",
+            # Error when switching from the Qt5 backend to the Tk one.
+            # See spyder-ide/spyder#17488
+            "KeyboardInterrupt caught in kernel",
+            "QSocketNotifier: Multiple socket notifiers for same socket",
+            # Error when switching from the Tk backend to the Qt5 one.
+            # See spyder-ide/spyder#17488
+            "Tcl_AsyncDelete async handler deleted by the wrong thread",
+            "error in background error handler:",
+            "    while executing",
+            '"::tcl::Bgerror',
+            # Avoid showing this warning because it was up to the user to
+            # disable secure writes.
+            "WARNING: Insecure writes have been enabled via environment",
             # Old error
             "No such comm"
         ]
@@ -588,6 +598,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
+        if (self.restart_thread is not None
+                and self.restart_thread.isRunning()):
+            self.restart_thread.finished.disconnect()
+            self.restart_thread.quit()
+            self.restart_thread.wait()
         shutdown_kernel = (
             is_last_client and not self.is_external_kernel
             and not self.is_error_shown)
@@ -625,8 +640,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 running_under_pytest() or
                 not self.ask_before_restart):
             if sw.kernel_manager:
-                if self.infowidget.isVisible():
-                    self.infowidget.hide()
+                if self.infowidget is not None:
+                    if self.infowidget.isVisible():
+                        self.infowidget.hide()
 
                 if self._abort_kernel_restart():
                     sw.spyder_kernel_comm.close()
@@ -648,9 +664,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 if (self.restart_thread is not None
                         and self.restart_thread.isRunning()):
                     self.restart_thread.finished.disconnect()
-                    self.restart_thread.terminate()
+                    self.restart_thread.quit()
                     self.restart_thread.wait()
-                self.restart_thread = QThread()
+                self.restart_thread = QThread(None)
                 self.restart_thread.run = self._restart_thread_main
                 self.restart_thread.error = None
                 self.restart_thread.finished.connect(
@@ -697,7 +713,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Reset Pdb state and reopen comm
             sw._pdb_in_loop = False
             sw.spyder_kernel_comm.remove()
-            sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+            try:
+                sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+            except AttributeError:
+                # An error occurred while opening our comm channel.
+                # Aborting!
+                return
 
             # Start autorestart mechanism
             sw.kernel_manager.autorestart = True
@@ -860,7 +881,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def set_info_page(self):
         """Set current info_page."""
-        if self.info_page is not None:
+        if self.infowidget is not None and self.info_page is not None:
             self.infowidget.setHtml(
                 self.info_page,
                 QUrl.fromLocalFile(self.css_path)

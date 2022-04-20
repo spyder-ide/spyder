@@ -42,7 +42,7 @@ class SnippetsActor(QObject):
         self.daemon = True
         self.mutex = QMutex()
         self.language_snippets = {}
-        self.thread = QThread()
+        self.thread = QThread(None)
         self.moveToThread(self.thread)
 
         self.thread.started.connect(self.started)
@@ -54,6 +54,7 @@ class SnippetsActor(QObject):
         with QMutexLocker(self.mutex):
             logger.debug("Snippets plugin stopping...")
             self.thread.quit()
+            self.thread.wait()
 
     def start(self):
         """Start thread."""

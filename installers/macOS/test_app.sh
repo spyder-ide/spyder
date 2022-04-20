@@ -81,6 +81,6 @@ fi
     kill -s SIGKILL $$
 ) 2> /dev/null &
 
-export SPYDER_DEBUG=2
+export SPYDER_DEBUG=3
 export INSTALLER_TEST=1
 exec $@/Spyder.app/Contents/MacOS/Spyder

@@ -299,7 +299,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
         header.customContextMenuRequested.connect(self.show_header_menu)
 
         # Style adjustments
-        self.setStyle(DirViewStyle(None))
+        self._style = DirViewStyle(None)
+        self._style.setParent(self)
+        self.setStyle(self._style)
 
         # Setup
         self.setup_fs_model()
@@ -659,7 +661,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             if len(assoc) >= 1:
                 actions = self._create_file_associations_actions()
                 self.open_with_submenu.menuAction().setVisible(True)
-                self.open_with_submenu.clear()
+                self.open_with_submenu.clear_actions()
                 for action in actions:
                     self.add_item_to_menu(
                         action,

@@ -260,7 +260,6 @@ class Console(SpyderDockablePlugin):
         Stdin and stdout are now redirected through the internal console.
         """
         widget = self.get_widget()
-        widget.set_conf('namespace', namespace)
         widget.start_interpreter(namespace)
 
     def set_namespace_item(self, name, value):

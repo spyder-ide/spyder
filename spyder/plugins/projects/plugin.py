@@ -13,10 +13,10 @@ updating the file tree explorer associated with a project
 
 # Standard library imports
 import configparser
+import logging
 import os
 import os.path as osp
 import shutil
-import functools
 from collections import OrderedDict
 
 # Third party imports
@@ -31,7 +31,7 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import get_translation
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.config.base import (get_home_dir, get_project_config_folder,
-                                running_under_pytest)
+                                running_in_mac_app, running_under_pytest)
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
@@ -47,8 +47,9 @@ from spyder.plugins.completion.api import (
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
-# Localization
+# Localization and logging
 _ = get_translation("spyder")
+logger = logging.getLogger(__name__)
 
 
 class ProjectsMenuSubmenus:
@@ -385,6 +386,7 @@ class Projects(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
+        self.watcher.stop()
         return True
 
     def unmaximize(self):
@@ -400,6 +402,26 @@ class Projects(SpyderDockablePlugin):
         def opener(*args, **kwargs):
             self.open_project(path=project)
         return opener
+
+    def on_mainwindow_visible(self):
+        # Open project passed on the command line or reopen last one.
+        cli_options = self.get_command_line_options()
+        initial_cwd = self._main.get_initial_working_directory()
+
+        if cli_options.project is not None:
+            # This doesn't work for our Mac app
+            if not running_in_mac_app():
+                logger.debug('Opening project from the command line')
+                project = osp.normpath(
+                    osp.join(initial_cwd, cli_options.project)
+                )
+                self.open_project(
+                    project,
+                    workdir=cli_options.working_directory
+                )
+        else:
+            logger.debug('Reopening project from last session')
+            self.reopen_last_project()
 
     # ------ Public API -------------------------------------------------------
     @Slot()
@@ -467,6 +489,9 @@ class Projects(SpyderDockablePlugin):
                 return
         else:
             path = encoding.to_unicode_from_fs(path)
+
+        logger.debug(f'Opening project located at {path}')
+
         if project is None:
             project_type_class = self._load_project_type_class(path)
             project = project_type_class(
@@ -611,11 +636,17 @@ class Projects(SpyderDockablePlugin):
                                              default=None)
 
         # Needs a safer test of project existence!
-        if (current_project_path and
-                self.is_valid_project(current_project_path)):
-            self.open_project(path=current_project_path,
-                              restart_consoles=True,
-                              save_previous_files=False)
+        if (
+            current_project_path and
+            self.is_valid_project(current_project_path)
+        ):
+            cli_options = self.get_command_line_options()
+            self.open_project(
+                path=current_project_path,
+                restart_consoles=True,
+                save_previous_files=False,
+                workdir=cli_options.working_directory
+            )
             self.load_config()
 
     def get_project_filenames(self):
@@ -899,7 +930,13 @@ class Projects(SpyderDockablePlugin):
         project_type_id = EmptyProject.ID
         if osp.isfile(fpath):
             config = configparser.ConfigParser()
-            config.read(fpath, encoding='utf-8')
+
+            # Catch any possible error when reading the workspace config file.
+            # Fixes spyder-ide/spyder#17621
+            try:
+                config.read(fpath, encoding='utf-8')
+            except Exception:
+                pass
 
             # This is necessary to catch an error for projects created in
             # Spyder 4 or older versions.

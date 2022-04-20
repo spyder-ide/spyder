@@ -33,6 +33,7 @@ import numpy as np
 # Local imports
 from spyder_kernels.py3compat import PY2, PY3, to_text_string
 from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
 from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 
@@ -1091,6 +1092,45 @@ def test_locals_globals_in_pdb(kernel):
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
+
+
+@flaky(max_runs=3)
+@pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt5'])
+@pytest.mark.skipif(PY2, reason="Doesn't work on Python 2")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Doesn't work reliably on Windows and Mac")
+@pytest.mark.skipif(
+    not bool(os.environ.get('USE_CONDA')),
+    reason="Doesn't work with pip packages")
+def test_get_interactive_backend(backend):
+    """
+    Test that we correctly get the interactive backend set in the kernel.
+    """
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Set backend
+        if backend is not None:
+            client.execute("%matplotlib {}".format(backend))
+            client.get_shell_msg(timeout=TIMEOUT)
+
+        # Get backend
+        code = "backend = get_ipython().kernel.get_mpl_interactive_backend()"
+        client.execute(code, user_expressions={'output': 'backend'})
+        reply = client.get_shell_msg(timeout=TIMEOUT)
+        while 'user_expressions' not in reply['content']:
+            reply = client.get_shell_msg(timeout=TIMEOUT)
+
+        # Get value obtained through user_expressions
+        user_expressions = reply['content']['user_expressions']
+        value = user_expressions['output']['data']['text/plain']
+
+        # Assert we got the right interactive backend
+        if backend is not None:
+            assert MPL_BACKENDS_FROM_SPYDER[value] == backend
+        else:
+            assert value == '0'
 
 
 if __name__ == "__main__":

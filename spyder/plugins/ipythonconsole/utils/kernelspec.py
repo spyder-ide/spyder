@@ -198,9 +198,15 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             env_vars['SPY_RUN_CYTHON'] = True
 
         # App considerations
-        if (running_in_mac_app() or is_pynsist()) and not default_interpreter:
-            env_vars.pop('PYTHONHOME', None)
-            env_vars.pop('PYTHONPATH', None)
+        if (running_in_mac_app() or is_pynsist()):
+            if default_interpreter:
+                # See spyder-ide/spyder#16927
+                # See spyder-ide/spyder#16828
+                # See spyder-ide/spyder#17552
+                env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
+            else:
+                env_vars.pop('PYTHONHOME', None)
+                env_vars.pop('PYTHONPATH', None)
 
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.
