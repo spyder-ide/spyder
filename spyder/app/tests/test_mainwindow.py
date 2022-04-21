@@ -2482,6 +2482,9 @@ def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
 @flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and running_in_ci(),
+    reason="It stalls the CI sometimes on MacOS")
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """
     Test fix for spyder-ide/spyder#6317.
@@ -3841,14 +3844,25 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     # create new file
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.set_text(
-        "import multiprocessing\n"
-        "import traceback\n"
-        'if __name__ == "__main__":\n'
-        "    p = multiprocessing.Process(target=traceback.print_exc)\n"
-        "    p.start()\n"
-        "    p.join()\n"
-    )
+    if sys.platform == 'darwin':
+        # Since Python 3.8 MacOS uses by default `spawn` instead of `fork`
+        # and that causes problems.
+        # See https://stackoverflow.com/a/65666298/15954282
+        text = ("import multiprocessing\n"
+                'multiprocessing.set_start_method("fork")\n'
+                "import traceback\n"
+                'if __name__ == "__main__":\n'
+                "    p = multiprocessing.Process(target=traceback.print_exc)\n"
+                "    p.start()\n"
+                "    p.join()\n")
+    else:
+        text = ("import multiprocessing\n"
+                "import traceback\n"
+                'if __name__ == "__main__":\n'
+                "    p = multiprocessing.Process(target=traceback.print_exc)\n"
+                "    p.start()\n"
+                "    p.join()\n")
+    code_editor.set_text(text)
     # This code should run even on windows
 
     # Start running
