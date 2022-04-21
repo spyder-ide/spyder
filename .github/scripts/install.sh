@@ -21,18 +21,6 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y
-
-    # Remove packages we have subrepos for.
-    for dep in $(ls external-deps)
-    do
-        echo "Removing $dep package"
-
-        if [ "$dep" = "qtconsole" ]; then
-            conda remove qtconsole-base qtconsole --force -q -y
-        else
-            conda remove $dep --force -q -y
-        fi
-    done
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
