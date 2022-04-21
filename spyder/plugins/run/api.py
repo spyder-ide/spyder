@@ -36,8 +36,6 @@ class RunContextType(dict):
     def __init__(self, identifier: str):
         super().__init__()
 
-        self.identifier = identifier
-
     def __setattr__(self, key: str, value: str) -> None:
         if key not in self:
             self[key] = value
@@ -51,10 +49,6 @@ class RunContextType(dict):
 RunContext = RunContextType('context')
 RunResultFormat = RunContextType('result display format')
 RunInputExtension = set({})
-
-# RunContext.File = 'file'
-# RunContext.Selection = 'selection'
-# RunContext.Cell = 'cell'
 
 RunResultFormat.NoDisplay = 'no_display'
 

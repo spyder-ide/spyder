@@ -534,12 +534,33 @@ class RunDialog(BaseRunConfigDialog):
 
     def setup(self):
         combo_label = QLabel(_("Select a run configuration:"))
+        executor_label = QLabel(_("Select a run executor:"))
         self.configuration_combo = QComboBox()
         self.executor_combo = QComboBox()
-        self.configuration_combo.setMaxVisibleItems(20)
-        self.configuration_combo.view().setVerticalScrollBarPolicy(
-            Qt.ScrollBarAsNeeded)
+        # self.configuration_combo.setMaxVisibleItems(20)
+        # self.configuration_combo.view().setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarAsNeeded)
         self.configuration_combo.setModel(self.run_conf_model)
+        print('$$$$$$$$$$$$ ', self.configuration_combo.count())
 
-        self.executor_combo.setMaxVisibleItems(20)
+        # self.executor_combo.setMaxVisibleItems(20)
+        # self.executor_combo.view().setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarAsNeeded)
+        self.executor_combo.setModel(self.executors_model)
 
+        self.stack = QStackedWidget()
+        layout = self.add_widgets(combo_label, self.configuration_combo,
+                                  executor_label, self.executor_combo,
+                                  10, self.stack)
+
+        widget_dialog = QWidget()
+        widget_dialog.setLayout(layout)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidget(widget_dialog)
+        scrollarea.setMinimumWidth(600)
+        scrollarea.setWidgetResizable(True)
+        scroll_layout = QVBoxLayout(self)
+        scroll_layout.addWidget(scrollarea)
+        self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        self.setWindowTitle(_("Run configuration per file"))

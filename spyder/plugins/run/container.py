@@ -21,6 +21,7 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.utils.sourcecode import camel_case_to_snake_case
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.translations import get_translation
+from spyder.plugins.run.widgets import RunDialog
 from spyder.plugins.run.api import RunActions, RunResult
 from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunResultFormat, RunInputExtension,
@@ -53,7 +54,7 @@ class RunExecutorListModel(QAbstractListModel):
         input_executors = self.executors_per_input.get((ext, context_id), {})
         executor_configurations = input_executors.get(executor_id, {})
         executor_configurations[executor_id] = config
-        input_executors[(ext, context_id)] = executor_configurations
+        self.executors_per_input[(ext, context_id)] = executor_configurations
 
     def remove_input_executor_configuration(
             self, ext: str, context_id: str, executor_id: str):
@@ -97,6 +98,8 @@ class RunConfigurationListModel(QAbstractListModel):
         self.executor_model: RunExecutorListModel = executor_model
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+        print('********* data ', index.row())
+        # print(self.metadata_index)
         uuid = self.metadata_index[index.row()]
         metadata = self.run_configurations[uuid]
         context_name = metadata['context']['name']
@@ -106,13 +109,14 @@ class RunConfigurationListModel(QAbstractListModel):
         return metadata['name']
 
     def rowCount(self, parent: QModelIndex = None) -> int:
+        # print('rowCount ------------------ ', len(self.run_configurations))
         return len(self.run_configurations)
 
     def pop(self, uuid: str) -> RunConfigurationMetadata:
         item = self.run_configurations.pop(uuid)
         self.metadata_index = dict(enumerate(self.run_configurations))
-        self.dataChanged.emit(self.createIndex(0, 0),
-                              self.createIndex(len(self.metadata_index), 0))
+        # self.dataChanged.emit(self.createIndex(0, 0),
+        #                       self.createIndex(len(self.metadata_index), 0))
         return item
 
     def __iter__(self):
@@ -127,14 +131,19 @@ class RunConfigurationListModel(QAbstractListModel):
     def __setitem__(self, uuid: str, metadata: RunConfigurationMetadata):
         self.run_configurations[uuid] = metadata
         self.metadata_index[len(self.metadata_index)] = uuid
+        # print(self.metadata_index)
+        # self.modelReset
+        # self.dataChanged.emit(self.createIndex(0, 0),
+        #                       self.createIndex(len(self.metadata_index), 0))
 
 
 class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
     def setup(self):
-        self.metadata_model = RunConfigurationListModel(self)
         self.executor_model = RunExecutorListModel(self)
+        self.metadata_model = RunConfigurationListModel(
+            self, self.executor_model)
 
         self.run_metadata_provider: WeakValueDictionary[
             str, RunConfigurationProvider] = WeakValueDictionary()
@@ -147,7 +156,7 @@ class RunContainer(PluginMainContainer):
         self.viewers_per_output: Dict[str, Set[str]] = {}
 
         self.run_action = self.create_action(
-            RunActions.Run, _('&Run'), self.create_icon('run'),
+            RunActions.Run, _('&Run (New)'), self.create_icon('run'),
             tip=_("Run file"), triggered=self.run_file,
             register_shortcut=True, shortcut_context='_')
 
@@ -169,7 +178,9 @@ class RunContainer(PluginMainContainer):
         pass
 
     def run_file(self):
-        pass
+        dialog = RunDialog(self, self.metadata_model, self.executor_model)
+        dialog.setup()
+        dialog.exec_()
 
     def edit_run_configurations(self):
         pass

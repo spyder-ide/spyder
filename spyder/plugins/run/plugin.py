@@ -25,8 +25,9 @@ from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.api import (
     RunContext, RunResultFormat, RunInputExtension, RunConfigurationProvider,
     SupportedRunConfiguration, RunExecutor, SupportedExecutionRunConfiguration,
-    RunResultViewer, OutputFormat, RunConfigurationMetadata)
+    RunResultViewer, OutputFormat, RunConfigurationMetadata, RunActions)
 from spyder.plugins.run.container import RunContainer
+from spyder.plugins.toolbar.api import ApplicationToolbars
 
 # Localization
 _ = get_translation('spyder')
@@ -42,7 +43,7 @@ class Run(SpyderPluginV2):
     NAME = "run"
     # TODO: Fix requires to reflect the desired order in the preferences
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONTAINER_CLASS = RunContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = RunConfigPage
@@ -78,16 +79,22 @@ class Run(SpyderPluginV2):
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
 
-
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.add_item_to_application_toolbar(
+            self.get_action(RunActions.Run), ApplicationToolbars.Debug)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
+
 
     # --- Public API
     # ------------------------------------------------------------------------

@@ -41,7 +41,7 @@ class IPythonConsole(SpyderDockablePlugin):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -251,6 +251,52 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         self._remove_old_std_files()
 
+        self.python_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'py',
+            'contexts': [
+                {
+                    'name': 'File'
+                },
+                {
+                    'name': 'Cell'
+                },
+                {
+                    'name': 'Selection'
+                },
+            ]
+        }
+
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Cell'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True
+            }
+        ]
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         # Register conf page
@@ -322,6 +368,9 @@ class IPythonConsole(SpyderDockablePlugin):
         editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
+        editor.add_supported_run_configuration(
+            self.python_editor_run_configuration)
+
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
@@ -329,6 +378,11 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.projects_available = True
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
+
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -366,6 +420,9 @@ class IPythonConsole(SpyderDockablePlugin):
         editor.sig_file_debug_message_requested.disconnect(
             self.print_debug_file_msg)
 
+        editor.remove_supported_run_configuration(
+            self.python_editor_run_configuration)
+
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
@@ -373,6 +430,12 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.projects_available = False
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
 
     def update_font(self):
         """Update font from Preferences"""

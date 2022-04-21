@@ -18,6 +18,9 @@ import os.path as osp
 import re
 import sys
 import time
+import uuid
+from datetime import datetime
+from typing import Dict
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
@@ -42,6 +45,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.editor.api import EditorRunConfiguration
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -57,6 +61,7 @@ from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
+from spyder.plugins.run.api import RunContext, RunConfigurationMetadata
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration, RunConfigDialog,
                                         RunConfiguration, RunConfigOneDialog)
@@ -64,6 +69,10 @@ from spyder.plugins.mainmenu.api import ApplicationMenus
 
 
 logger = logging.getLogger(__name__)
+
+RunContext.File = 'file'
+RunContext.Selection = 'selection'
+RunContext.Cell = 'cell'
 
 
 class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
@@ -176,6 +185,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                'utf-8')
             except EnvironmentError:
                 pass
+
+        self.pending_run_files = set({})
+        self.run_configurations_per_origin = {}
+        self.supported_run_configurations = {}
+
+        self.file_per_id = {}
+        self.id_per_file = {}
+        self.metadata_per_id: Dict[str, RunConfigurationMetadata] = {}
 
         self.projects = None
         self.outlineexplorer = None
@@ -333,12 +350,49 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         except AttributeError:
             pass
 
+    def register_file_run_metadata(self, filename, filename_ext):
+        # Register opened files with the run plugin
+        file_id = str(uuid.uuid4())
+        metadata: RunConfigurationMetadata = {
+            'name': filename,
+            'source': self.NAME,
+            'datetime': datetime.now(),
+            'uuid': file_id,
+            'context': {
+                'name': 'File'
+            },
+            'input_extension': filename_ext
+        }
+        print(metadata)
+
+        self.file_per_id[file_id] = filename
+        self.id_per_file[filename] = file_id
+        self.metadata_per_id[file_id] = metadata
+
+        run = self.main.get_plugin(Plugins.Run)
+        run.register_run_configuration_metadata(self, metadata)
+
     @Slot(dict)
     def report_open_file(self, options):
         """Report that a file was opened to the completion manager."""
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
+        _, filename_ext = osp.splitext(filename)
+        filename_ext = filename_ext[1:]
+        print('-------------', filename)
+
+        able_to_run_file = False
+        if filename_ext in self.supported_run_configurations:
+            ext_contexts = self.supported_run_configurations[filename_ext]
+            if (filename not in self.id_per_file and
+                    RunContext.File in ext_contexts):
+                self.register_file_run_metadata(filename, filename_ext)
+                able_to_run_file = True
+
+        if not able_to_run_file:
+            self.pending_run_files |= {(filename, filename_ext)}
+
         status = None
         if self.main.get_plugin(Plugins.Completions, error=False):
             status = (
@@ -2899,6 +2953,71 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return editor.toPlainText()
 
     #------ Run Python script
+    def add_supported_run_configuration(self, config: EditorRunConfiguration):
+        origin = config['origin']
+        extension = config['extension']
+        contexts = config['contexts']
+
+        actual_contexts = set({})
+        ext_origins = self.run_configurations_per_origin.get(extension, {})
+
+        file_enabled = False
+        for context in contexts:
+            context_name = context['name']
+            context_id = getattr(RunContext, context_name)
+            actual_contexts |= {context_id}
+            context_origins = ext_origins.get(context_id, set({}))
+            context_origins |= {origin}
+            ext_origins[context_id] = context_origins
+            if context_id == RunContext.File:
+                file_enabled = True
+
+        ext_contexts = self.supported_run_configurations.get(extension, set({}))
+        ext_contexts |= actual_contexts
+        self.supported_run_configurations[extension] = ext_contexts
+        self.run_configurations_per_origin[extension] = ext_origins
+
+        for filename, filename_ext in list(self.pending_run_files):
+            if filename_ext == extension and file_enabled:
+                self.register_file_run_metadata(filename, filename_ext)
+            else:
+                self.pending_run_files -= {(filename, filename_ext)}
+
+    def remove_supported_run_configuration(self, config: EditorRunConfiguration):
+        origin = config['origin']
+        extension = config['extension']
+        contexts = config['contexts']
+
+        to_remove = []
+        ext_origins = self.run_configurations_per_origin[extension]
+        for context in contexts:
+            context_name = context['name']
+            context_id = getattr(RunContext, context_name)
+            context_origins = ext_origins[context_id]
+            context_origins -= {origin}
+            if len(context_origins) == 0:
+                to_remove.append(context_id)
+                ext_origins.pop(context_id)
+
+        if len(ext_origins) == 0:
+            self.run_configurations_per_origin.pop(extension)
+
+        ext_contexts = self.supported_run_configurations[extension]
+        for context in to_remove:
+            ext_contexts -= {context}
+
+        if len(ext_contexts) == 0:
+            self.supported_run_configurations.pop(extension)
+
+        for metadata_id in list(self.metadata_per_id.keys()):
+            metadata = self.metadata_per_id[metadata_id]
+            if metadata['input_extension'] == extension:
+                if metadata['context'] in to_remove:
+                    self.metadata_per_id.pop(metadata_id)
+                    filename = self.file_per_id.pop(metadata_id)
+                    self.id_per_file.pop(filename)
+                    self.pending_run_files |= {(filename, metadata['input_extension'])}
+
     @Slot()
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
