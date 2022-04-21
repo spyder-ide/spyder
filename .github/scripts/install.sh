@@ -33,6 +33,11 @@ if [ "$USE_CONDA" = "true" ]; then
             conda remove $dep --force -q -y
         fi
     done
+
+    # Install jupyter_client 7.2.0 to prevent ZMQ Socket operation on non-socket
+    # Remove this when the issue is fixed upstream most probaly with jupyter_client=7.2.3
+    # See https://github.com/spyder-ide/spyder/issues/17615
+    mamba install jupyter_client=7.2.0 -c conda-forge -q -y
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -55,6 +60,11 @@ else
         echo "Removing $dep package"
         pip uninstall $dep -q -y
     done
+
+    # Install jupyter_client 7.2.0 to prevent ZMQ Socket operation on non-socket
+    # Remove this when the issue is fixed upstream most probaly with jupyter_client=7.2.3
+    # See https://github.com/spyder-ide/spyder/issues/17615
+    pip install -q jupyter_client==7.2.0
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y

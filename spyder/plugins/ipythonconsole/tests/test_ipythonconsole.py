@@ -1120,36 +1120,6 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
-@flaky(max_runs=10)
-@pytest.mark.skipif(running_in_ci(), reason="Fails frequently in CI")
-@pytest.mark.skipif(os.name == 'nt',
-                    reason="Failing on Windows. In fact on Windows you can "
-                           "copy with Ctrl + C i.e a KeyboardInterrupt isn't "
-                           "triggered when doing Ctrl + C while debugging")
-def test_ctrl_c_dbg(ipyconsole, qtbot):
-    """
-    Test that Ctrl+C works while debugging
-    """
-    shell = ipyconsole.get_current_shellwidget()
-
-    # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_widget().get_focus_widget()
-    control.setFocus()
-
-    # Enter debugging mode
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug print()')
-
-    # Test Ctrl+C
-    qtbot.waitUntil(lambda: 'IPdb [1]: ' in control.toPlainText())
-    control.setFocus()
-    qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
-    qtbot.waitUntil(
-        lambda: 'For copying text while debugging, use Ctrl+Shift+C' in
-        control.toPlainText(), timeout=2000)
-
-    assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
-
 
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
