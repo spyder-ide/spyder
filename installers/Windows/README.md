@@ -16,16 +16,16 @@ Script to build an installer for Windows using Pynsist.
 Mu is distributed under the GPL-3.0 license.
 
 
-We use here the base functions of the script to build a Windows installer of
-spyder, mainly changing the code to generalize its functionality and configure
+We use here the base functions of the script to build a Windows installer for
+Spyder, mainly changing the code to generalize its functionality and configuring
 the run with more arguments (package name, conda python interpreter, extra
 packages, etc.).
 
-As a NSIS installer the generated installer counts with some command line flags:
+As an NSIS installer, the generated Spyder executable has the following command line flags:
 https://nsis.sourceforge.io/Docs/Chapter3.html#installerusage
 
-Besides those flags, the installer also counts with the command line options
-available when using the `MultiUser.nsh` header file:
+Besides those flags, the installer also has with the following command line options
+available because it uses the `MultiUser.nsh` header file:
 
 * `/ALLUSERS` to install for all the users
 * `/CURRENTUSER` to install only for the current user (default)
