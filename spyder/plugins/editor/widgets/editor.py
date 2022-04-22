@@ -3014,9 +3014,9 @@ class EditorSplitter(QSplitter):
             focus_widget.setFocus()
 
     def editorstack_closed(self):
-        logger.debug("method 'editorstack_closed':")
-        logger.debug("    self  : %r" % self)
         try:
+            logger.debug("method 'editorstack_closed':")
+            logger.debug("    self  : %r" % self)
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
