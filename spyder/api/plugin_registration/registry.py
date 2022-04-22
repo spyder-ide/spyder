@@ -694,7 +694,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         try:
             self.sig_plugin_ready.disconnect()
-        except TypeError:
+        except (TypeError, RuntimeError):
             # Omit failures if there are no slots connected
             pass
 
