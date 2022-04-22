@@ -24,7 +24,7 @@ packages, etc.).
 As an NSIS installer, the generated Spyder executable has the following command line flags:
 https://nsis.sourceforge.io/Docs/Chapter3.html#installerusage
 
-Besides those flags, the installer also has with the following command line options
+Besides those flags, the installer also has the following command line options
 available because it uses the `MultiUser.nsh` header file:
 
 * `/ALLUSERS` to install for all the users
