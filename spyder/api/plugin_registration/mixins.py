@@ -10,8 +10,9 @@ Spyder API plugin registration mixins.
 
 # Standard library imports
 import logging
-from typing import Any, Union, Optional
-import warnings
+
+from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import Plugins
 
 logger = logging.getLogger(__name__)
 
@@ -38,15 +39,41 @@ class SpyderPluginObserver:
         for method_name in dir(self):
             method = getattr(self, method_name, None)
             if hasattr(method, '_plugin_listen'):
-                info = method._plugin_listen
-                logger.debug(f'Method {method_name} is watching plugin {info}')
-                self._plugin_listeners[info] = method_name
+                plugin_listen = method._plugin_listen
+
+                # Check if plugin is listed among REQUIRES and OPTIONAL
+                if (
+                    self.NAME != Plugins.Layout and
+                    (plugin_listen not in self.REQUIRES + self.OPTIONAL)
+                ):
+                    raise SpyderAPIError(
+                        f"Method {method_name} of {self} is trying to watch "
+                        f"plugin {plugin_listen}, but that plugin is not "
+                        f"listed in REQUIRES nor OPTIONAL."
+                    )
+
+                logger.debug(
+                    f'Method {method_name} is watching plugin {plugin_listen}'
+                )
+                self._plugin_listeners[plugin_listen] = method_name
 
             if hasattr(method, '_plugin_teardown'):
-                info = method._plugin_teardown
+                plugin_teardown = method._plugin_teardown
+
+                # Check if plugin is listed among REQUIRES and OPTIONAL
+                if (
+                    self.NAME != Plugins.Layout and
+                    (plugin_teardown not in self.REQUIRES + self.OPTIONAL)
+                ):
+                    raise SpyderAPIError(
+                        f"Method {method_name} of {self} is trying to watch "
+                        f"plugin {plugin_teardown}, but that plugin is not "
+                        f"listed in REQUIRES nor OPTIONAL."
+                    )
+
                 logger.debug(f'Method {method_name} will handle plugin '
-                             f'teardown for {info}')
-                self._plugin_teardown_listeners[info] = method_name
+                             f'teardown for {plugin_teardown}')
+                self._plugin_teardown_listeners[plugin_teardown] = method_name
 
     def _on_plugin_available(self, plugin: str):
         """
