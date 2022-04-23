@@ -60,7 +60,7 @@ jobs:
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Test Application Bundle
         if: ${{github.event_name == 'pull_request'}}
-        run: ./test_app.sh -t 60 ${DISTDIR}
+        run: ./test_app.sh -t 60 -d 10 ${DISTDIR}
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact
