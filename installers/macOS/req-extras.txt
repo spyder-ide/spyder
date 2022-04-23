@@ -8,3 +8,5 @@ pyflakes
 pyxdg
 rope
 yapf
+# Temporarily limit jupyter-client spyder-ide/spyder#17615
+jupyter-client<7.2.1
