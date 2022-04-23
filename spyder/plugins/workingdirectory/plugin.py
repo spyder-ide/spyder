@@ -62,7 +62,7 @@ class WorkingDirectory(SpyderPluginV2):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Current working directory')
+        return _('Working directory')
 
     def get_description(self):
         return _('Set the current working directory for various plugins.')
