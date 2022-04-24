@@ -137,8 +137,8 @@ class LSPServerEditor(QDialog):
             "port if connecting to an external server, "
             "or to a local one using TCP instead of stdio pipes."
             "<br><br>"
-            "<i>Note</i>: You can use the placeholders <tt>{host}</tt> and "
-            "<tt>{port}</tt> in the server arguments field to automatically "
+            f"<i>Note</i>: You can use the placeholders <tt>{host}</tt> and "
+            f"<tt>{port}</tt> in the server arguments field to automatically "
             "fill in the respective values.<br>"
         )
         self.parent = parent
