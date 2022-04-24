@@ -105,7 +105,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  ask_before_restart=True,
                  ask_before_closing=False,
                  css_path=None,
-                 configuration=None,
                  handlers={},
                  stderr_obj=None,
                  stdout_obj=None,
@@ -151,8 +150,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             is_external_kernel=is_external_kernel,
             is_spyder_kernel=is_spyder_kernel,
             handlers=handlers,
-            local_kernel=True,
-            configuration=configuration)
+            local_kernel=True
+        )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()

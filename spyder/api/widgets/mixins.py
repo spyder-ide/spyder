@@ -576,16 +576,14 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
     # Context name used to store actions, toolbars, toolbuttons and menus
     CONTEXT_NAME = None
 
-    def __init__(self, class_parent=None, configuration=CONF):
+    def __init__(self, class_parent=None):
         for attr in ['CONF_SECTION', 'PLUGIN_NAME']:
             if getattr(self, attr, None) is None:
                 if hasattr(class_parent, attr):
                     # Inherit class_parent CONF_SECTION/PLUGIN_NAME value
                     setattr(self, attr, getattr(class_parent, attr))
-        if configuration is None:
-            configuration = CONF
 
-        super().__init__(configuration=configuration)
+        super().__init__()
 
     @staticmethod
     def create_icon(name):
