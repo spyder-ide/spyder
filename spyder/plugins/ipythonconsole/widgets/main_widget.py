@@ -32,8 +32,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import (
-    get_conf_path, get_home_dir, running_under_pytest)
+from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
@@ -300,7 +299,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.clients = []
         self.filenames = []
         self.mainwindow_close = False
-        self.projects_available = False
         self.active_project_path = None
         self.create_new_client_if_empty = True
         self.css_path = self.get_conf('css_path', section='appearance')
@@ -1818,31 +1816,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
-        # Set shell cwd according to preferences
-        cwd_path = ''
-        if self.get_conf(
-                'console/use_project_or_home_directory', section='workingdir'):
-            cwd_path = get_home_dir()
-            if (self.projects_available and
-                    self.active_project_path is not None):
-                cwd_path = self.active_project_path
-        elif self.get_conf(
-                'startup/use_fixed_directory', section='workingdir'):
-            cwd_path = self.get_conf(
-                'startup/fixed_directory',
-                default=get_home_dir(),
-                section='workingdir')
-        elif self.get_conf(
-                'console/use_fixed_directory', section='workingdir'):
-            cwd_path = self.get_conf(
-                'console/fixed_directory', section='workingdir')
-
-        if osp.isdir(cwd_path) and self._plugin.main is not None:
-            shellwidget.set_cwd(cwd_path)
-            if give_focus:
-                # Syncronice cwd with explorer and cwd widget
-                shellwidget.update_cwd()
-
         # Connect client to history log
         self.sig_history_requested.emit(client.history_filename)
         client.sig_append_to_history_requested.connect(
@@ -2375,11 +2348,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             shellwidget.set_cwd(directory)
 
     def set_working_directory(self, dirname):
-        """Set current working directory.
-        In the workingdirectory and explorer plugins.
+        """
+        Set current working directory in the workingdirectory and explorer
+        plugins.
         """
         if osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
+
+    def get_working_directory(self):
+        """Get current working directory."""
+        return self.get_plugin()._get_working_directory()
 
     def update_working_directory(self):
         """Update working directory to console cwd."""
