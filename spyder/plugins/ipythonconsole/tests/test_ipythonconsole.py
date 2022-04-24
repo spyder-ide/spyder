@@ -99,7 +99,7 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
 # Qt Test Fixtures
 # =============================================================================
 @pytest.fixture
-def ipyconsole(qtbot, request):
+def ipyconsole(qtbot, request, tmpdir):
     """IPython console fixture."""
     configuration = CONF
     no_web_widgets = request.node.get_closest_marker('no_web_widgets')
@@ -128,18 +128,24 @@ def ipyconsole(qtbot, request):
     # Tests assume inline backend
     configuration.set('ipython_console', 'pylab/backend', 0)
 
-    # Start in a new working directory the console
+    # Start the console in a fixed working directory
     use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
     if use_startup_wdir:
-        new_wdir = osp.join(os.getcwd(), NEW_DIR)
-        if not osp.exists(new_wdir):
-            os.mkdir(new_wdir)
-        configuration.set('workingdir', 'console/use_fixed_directory', True)
-        configuration.set('workingdir', 'console/fixed_directory', new_wdir)
-    else:
-        configuration.set('workingdir', 'console/use_fixed_directory', False)
+        new_wdir = str(tmpdir.mkdir(NEW_DIR))
         configuration.set(
-            'workingdir', 'console/fixed_directory', get_home_dir())
+            'workingdir',
+            'startup/use_project_or_home_directory',
+            False
+        )
+        configuration.set('workingdir', 'startup/use_fixed_directory', True)
+        configuration.set('workingdir', 'startup/fixed_directory', new_wdir)
+    else:
+        configuration.set(
+            'workingdir',
+            'startup/use_project_or_home_directory',
+            True
+        )
+        configuration.set('workingdir', 'startup/use_fixed_directory', False)
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
@@ -212,6 +218,9 @@ def ipyconsole(qtbot, request):
                               is_sympy=is_sympy,
                               is_cython=is_cython)
     window.setCentralWidget(console.get_widget())
+
+    # Return working directory from the plugin
+    console._get_working_directory = lambda: get_home_dir()
 
     # Set exclamation mark to True
     configuration.set('ipython_console', 'pdb_use_exclamation_mark', True)
@@ -1427,12 +1436,12 @@ def test_remove_old_std_files(ipyconsole, qtbot):
             )
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.use_startup_wdir
-@pytest.mark.skipif(sys.platform.startswith('linux'),
-                    reason="Too flaky on Linux")
-def test_console_working_directory(ipyconsole, qtbot):
-    """Test for checking the working directory."""
+def test_startup_working_directory(ipyconsole, qtbot):
+    """
+    Test that the fixed startup working directory option works as expected.
+    """
     shell = ipyconsole.get_current_shellwidget()
     with qtbot.waitSignal(shell.executed):
         shell.execute('import os; cwd = os.getcwd()')
@@ -1574,7 +1583,6 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
 
 
 @flaky(max_runs=10)
-@pytest.mark.use_startup_wdir
 def test_pdb_multiline(ipyconsole, qtbot):
     """Test entering a multiline statment into pdb"""
     shell = ipyconsole.get_current_shellwidget()
@@ -1833,7 +1841,6 @@ def test_stdout_poll(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.use_startup_wdir
 def test_startup_code_pdb(ipyconsole, qtbot):
     """Test that startup code for pdb works."""
     shell = ipyconsole.get_current_shellwidget()
@@ -2235,6 +2242,75 @@ def test_no_infowidget(ipyconsole):
     """Test that we don't create the infowidget if requested by the user."""
     client = ipyconsole.get_widget().get_current_client()
     assert client.infowidget is None
+
+
+@flaky(max_runs=3)
+def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
+    """
+    Test that the working directory options for new consoles work as expected.
+    """
+    def get_cwd_of_new_client():
+        ipyconsole.create_new_client()
+        shell = ipyconsole.get_current_shellwidget()
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
+
+        with qtbot.waitSignal(shell.executed):
+            shell.execute('import os; cwd = os.getcwd()')
+
+        return shell.get_value('cwd')
+
+    # --- Check use_project_or_home_directory
+    ipyconsole.set_conf(
+        'console/use_project_or_home_directory',
+        True,
+        section='workingdir',
+    )
+
+    # Simulate that there's a project open
+    project_dir = str(tmpdir.mkdir('ipyconsole_project_test'))
+    ipyconsole.get_widget().update_active_project_path(project_dir)
+
+    # Get cwd of new client and assert is the expected one
+    assert get_cwd_of_new_client() == project_dir
+
+    # Reset option
+    ipyconsole.set_conf(
+        'console/use_project_or_home_directory',
+        False,
+        section='workingdir',
+    )
+
+    # --- Check current working directory
+    ipyconsole.set_conf('console/use_cwd', True, section='workingdir')
+
+    # Simulate a specific directory
+    cwd_dir = str(tmpdir.mkdir('ipyconsole_cwd_test'))
+    ipyconsole._get_working_directory = lambda: cwd_dir
+
+    # Get cwd of new client and assert is the expected one
+    assert get_cwd_of_new_client() == cwd_dir
+
+    # Reset option
+    ipyconsole.set_conf('console/use_cwd', False, section='workingdir')
+
+    # --- Check fixed working directory
+    ipyconsole.set_conf(
+        'console/use_fixed_directory',
+        True,
+        section='workingdir'
+    )
+
+    # Simulate a fixed directory
+    fixed_dir = str(tmpdir.mkdir('ipyconsole_fixed_test'))
+    ipyconsole.set_conf(
+        'console/fixed_directory',
+        fixed_dir,
+        section='workingdir'
+    )
+
+    # Get cwd of new client and assert is the expected one
+    assert get_cwd_of_new_client() == fixed_dir
 
 
 if __name__ == "__main__":
