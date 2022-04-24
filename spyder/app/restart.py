@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
 from spyder.app.utils import create_splash_screen
-from spyder.config.base import _
+from spyder.config.base import _, running_in_mac_app
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication
@@ -163,16 +163,18 @@ def main():
     # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
     # be set before creating the application.
     #==========================================================================
+    env = os.environ.copy()
+
     if CONF.get('main', 'high_dpi_custom_scale_factor'):
         factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
         f = list(filter(None, factors.split(';')))
         if len(f) == 1:
-            os.environ['QT_SCALE_FACTOR'] = f[0]
+            env['QT_SCALE_FACTOR'] = f[0]
         else:
-            os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+            env['QT_SCREEN_SCALE_FACTORS'] = factors
     else:
-        os.environ['QT_SCALE_FACTOR'] = ''
-        os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
+        env['QT_SCALE_FACTOR'] = ''
+        env['QT_SCREEN_SCALE_FACTORS'] = ''
 
     # Splash screen
     # -------------------------------------------------------------------------
@@ -185,14 +187,13 @@ def main():
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables
-    spyder_args = os.environ.pop('SPYDER_ARGS', None)
-    pid = os.environ.pop('SPYDER_PID', None)
-    is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
-    reset = os.environ.pop('SPYDER_RESET', 'False')
+    spyder_args = env.pop('SPYDER_ARGS', None)
+    pid = env.pop('SPYDER_PID', None)
+    is_bootstrap = env.pop('SPYDER_IS_BOOTSTRAP', None)
+    reset = env.pop('SPYDER_RESET', 'False')
 
     # Get the spyder base folder based on this file
-    this_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
-    spyder_folder = osp.split(this_folder)[0]
+    spyder_dir = osp.dirname(osp.dirname(osp.dirname(osp.abspath(__file__))))
 
     if not any([spyder_args, pid, is_bootstrap, reset]):
         error = "This script can only be called from within a Spyder instance"
@@ -226,21 +227,17 @@ def main():
     else:
         args_reset = ['--reset']
 
-    # Arrange arguments to be passed to the restarter and reset subprocess
-    args = ' '.join(args)
-    args_reset = ' '.join(args_reset)
-
-    # Get python executable running this script
-    python = sys.executable
-
-    # Build the command
-    if is_bootstrap:
-        spyder = osp.join(spyder_folder, 'bootstrap.py')
+    # Build the base command
+    if running_in_mac_app(sys.executable):
+        exe = env['EXECUTABLEPATH']
+        command = [f'"{exe}"']
     else:
-        spyderdir = osp.join(spyder_folder, 'spyder')
-        spyder = osp.join(spyderdir, 'app', 'start.py')
+        if is_bootstrap:
+            script = osp.join(spyder_dir, 'bootstrap.py')
+        else:
+            script = osp.join(spyder_dir, 'spyder', 'app', 'start.py')
 
-    command = '"{0}" "{1}" {2}'.format(python, spyder, args)
+        command = [f'"{sys.executable}"', f'"{script}"']
 
     # Adjust the command and/or arguments to subprocess depending on the OS
     shell = not IS_WINDOWS
@@ -258,16 +255,14 @@ def main():
         # The old spyder instance took too long to close and restart aborts
         restarter.launch_error_message(error_type=CLOSE_ERROR)
 
-    env = os.environ.copy()
-
     # Reset Spyder (if required)
     # -------------------------------------------------------------------------
     if reset:
         restarter.set_splash_message(_('Resetting Spyder to defaults'))
-        command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
         try:
-            p = subprocess.Popen(command_reset, shell=shell, env=env)
+            p = subprocess.Popen(' '.join(command + args_reset),
+                                 shell=shell, env=env)
         except Exception as error:
             restarter.launch_error_message(error_type=RESET_ERROR, error=error)
         else:
@@ -297,7 +292,7 @@ def main():
     # -------------------------------------------------------------------------
     restarter.set_splash_message(_('Restarting'))
     try:
-        subprocess.Popen(command, shell=shell, env=env)
+        subprocess.Popen(' '.join(command + args), shell=shell, env=env)
     except Exception as error:
         restarter.launch_error_message(error_type=RESTART_ERROR, error=error)
 
