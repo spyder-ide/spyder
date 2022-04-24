@@ -206,7 +206,7 @@ class WorkingDirectory(SpyderPluginV2):
             history = [name for name in history if osp.isdir(name)]
         else:
             if workdir is None:
-                workdir = self.get_workdir()
+                workdir = self.get_container()._get_init_workdir()
 
             history = [workdir]
 
