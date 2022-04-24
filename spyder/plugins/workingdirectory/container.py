@@ -175,15 +175,18 @@ class WorkingDirectoryContainer(PluginMainContainer):
         str:
             The current working directory.
         """
-        if self.get_conf('startup/use_fixed_directory', ''):
-            workdir = self.get_conf('startup/fixed_directory')
-        elif self.get_conf('console/use_project_or_home_directory', ''):
-            workdir = get_home_dir()
-        else:
-            workdir = self.get_conf('console/fixed_directory', '')
+        workdir = get_home_dir()
 
-        if not osp.isdir(workdir):
+        if self.get_conf('startup/use_project_or_home_directory'):
             workdir = get_home_dir()
+        elif self.get_conf('startup/use_fixed_directory'):
+            workdir = self.get_conf('startup/fixed_directory')
+
+            # If workdir can't be found, restore default options.
+            if not osp.isdir(workdir):
+                self.set_conf('startup/use_project_or_home_directory', True)
+                self.set_conf('startup/use_fixed_directory', False)
+                workdir = get_home_dir()
 
         return workdir
 
