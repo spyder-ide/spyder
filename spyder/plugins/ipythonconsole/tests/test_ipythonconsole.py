@@ -1865,6 +1865,7 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     "backend",
     ['inline', 'qt5', 'tk', 'osx']
 )
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Hangs frequently on Mac")
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
     """Check if setting an event loop while debugging works."""
     # Skip failing tests
