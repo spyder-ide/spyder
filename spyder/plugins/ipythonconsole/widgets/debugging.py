@@ -187,11 +187,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # Temporary flags
         self._tmp_reading = False
         # super init
-        # Needed to handle other configuration objects than the default CONF.
-        # Useful for changing preferences when testing while using the
-        # `ipyconsole` fixture.
-        configuration = kwargs.pop('configuration', self.CONFIGURATION)
-        self.CONFIGURATION = configuration
         super(DebuggingWidget, self).__init__(*args, **kwargs)
 
         # Adapted from qtconsole/frontend_widget.py

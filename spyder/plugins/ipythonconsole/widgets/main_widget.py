@@ -292,9 +292,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
 
         self.menu_actions = None
         self.master_clients = 0
@@ -1155,7 +1154,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               reset_warning=reset_warning,
                               ask_before_restart=ask_before_restart,
                               css_path=self.css_path,
-                              configuration=self.CONFIGURATION,
                               handlers=self.registered_spyder_kernel_handlers,
                               stderr_obj=stderr_obj,
                               stdout_obj=stdout_obj,
@@ -1575,7 +1573,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_restart=ask_before_restart,
                               ask_before_closing=ask_before_closing,
                               css_path=self.css_path,
-                              configuration=self.CONFIGURATION,
                               handlers=self.registered_spyder_kernel_handlers,
                               stderr_obj=stderr_obj,
                               stdout_obj=stdout_obj,
@@ -2097,8 +2094,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Create a kernel spec for our own kernels"""
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
-                                is_sympy=is_sympy,
-                                configuration=self.CONFIGURATION)
+                                is_sympy=is_sympy)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_handle,

@@ -1095,6 +1095,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 @pytest.mark.order(1)
 @pytest.mark.no_new_console
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Hangs sometimes on Mac')
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     from spyder.plugins.run.widgets import RunConfiguration

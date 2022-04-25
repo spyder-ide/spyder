@@ -70,11 +70,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     def __init__(self, is_cython=False, is_pylab=False,
                  is_sympy=False, **kwargs):
-        # Needed to handle other configuration objects than the default CONF.
-        # Useful for changing preferences when testing while using the
-        # `ipyconsole` fixture.
-        configuration = kwargs.pop('configuration', self.CONFIGURATION)
-        self.CONFIGURATION = configuration
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
         self.is_pylab = is_pylab

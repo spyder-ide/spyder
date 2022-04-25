@@ -37,7 +37,6 @@ class SpyderConfigurationAccessor:
     # used to record the object's permanent data in Spyder
     # config system.
     CONF_SECTION = None
-    CONFIGURATION = CONF
 
     def get_conf(self,
                  option: ConfigurationKey,
@@ -74,7 +73,7 @@ class SpyderConfigurationAccessor:
                 'class attribute!'
             )
 
-        return self.CONFIGURATION.get(section, option, default)
+        return CONF.get(section, option, default)
 
     def get_conf_options(self, section: Optional[str] = None):
         """
@@ -102,7 +101,7 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
-        return self.CONFIGURATION.options(section)
+        return CONF.options(section)
 
     def set_conf(self,
                  option: ConfigurationKey,
@@ -135,7 +134,7 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
-        self.CONFIGURATION.set(
+        CONF.set(
             section,
             option,
             value,
@@ -162,7 +161,7 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
-        self.CONFIGURATION.remove_option(section, option)
+        CONF.remove_option(section, option)
 
     def get_conf_default(self,
                          option: ConfigurationKey,
@@ -184,7 +183,7 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
-        return self.CONFIGURATION.get_default(section, option)
+        return CONF.get_default(section, option)
 
     def get_shortcut(self, name: str, context: Optional[str] = None) -> str:
         """
@@ -208,7 +207,7 @@ class SpyderConfigurationAccessor:
             If the section does not exist in the configuration.
         """
         context = self.CONF_SECTION if context is None else context
-        return self.CONFIGURATION.get_shortcut(context, name)
+        return CONF.get_shortcut(context, name)
 
     def config_shortcut(
             self, action: QAction, name: str, parent: QWidget,
@@ -237,7 +236,7 @@ class SpyderConfigurationAccessor:
             shortcuts preferences page.
         """
         shortcut_context = self.CONF_SECTION if context is None else context
-        return self.CONFIGURATION.config_shortcut(
+        return CONF.config_shortcut(
             action,
             shortcut_context,
             name,
@@ -247,7 +246,7 @@ class SpyderConfigurationAccessor:
     @property
     def old_conf_version(self):
         """Get old Spyder configuration version."""
-        return self.CONFIGURATION.old_spyder_version
+        return CONF.old_spyder_version
 
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):
@@ -264,10 +263,8 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     the corresponding registered method is called with the new value.
     """
 
-    def __init__(self, configuration=None):
+    def __init__(self):
         super().__init__()
-        if configuration is not None:
-            self.CONFIGURATION = configuration
         if self.CONF_SECTION is None:
             warnings.warn(
                 'A SpyderConfigurationObserver must define a `CONF_SECTION` '
@@ -287,11 +284,11 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
             for option in observed_options:
                 logger.debug(f'{self} is observing {option} '
                              f'in section {section}')
-                self.CONFIGURATION.observe_configuration(self, section, option)
+                CONF.observe_configuration(self, section, option)
 
     def __del__(self):
         # Remove object from the configuration observer
-        self.CONFIGURATION.unobserve_configuration(self)
+        CONF.unobserve_configuration(self)
 
     def _gather_observers(self):
         """Gather all the methods decorated with `on_conf_change`."""

@@ -43,7 +43,7 @@ from spyder.app.cli_options import get_options
 from spyder.config.base import (
     get_home_dir, running_in_ci, running_in_ci_with_conda)
 from spyder.config.gui import get_color_scheme
-from spyder.config.manager import ConfigurationManager
+from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
@@ -99,9 +99,9 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
 # Qt Test Fixtures
 # =============================================================================
 @pytest.fixture
-def ipyconsole(qtbot, request, tmpdir):
+def ipyconsole(qtbot, request):
     """IPython console fixture."""
-    configuration = ConfigurationManager(conf_path=str(tmpdir))
+    configuration = CONF
     no_web_widgets = request.node.get_closest_marker('no_web_widgets')
 
     class MainWindowMock(QMainWindow):
@@ -1865,6 +1865,7 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     "backend",
     ['inline', 'qt5', 'tk', 'osx']
 )
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Hangs frequently on Mac")
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
     """Check if setting an event loop while debugging works."""
     # Skip failing tests
