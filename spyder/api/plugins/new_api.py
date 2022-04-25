@@ -36,7 +36,6 @@ from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.app.cli_options import get_options
 from spyder.config.gui import get_color_scheme, get_font
-from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
@@ -283,8 +282,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         # SpyderPluginObserver and SpyderConfigurationObserver when using
         # super(), see https://fuhm.net/super-harmful/
         SpyderPluginObserver.__init__(self)
-        SpyderConfigurationObserver.__init__(
-            self, configuration=configuration)
+        SpyderConfigurationObserver.__init__(self)
 
         self._main = parent
         self._widget = None
@@ -302,21 +300,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self.PLUGIN_NAME = self.NAME
 
         if self.CONTAINER_CLASS is not None:
-            if (issubclass(self.CONTAINER_CLASS, PluginMainWidget)
-                    and configuration is not CONF
-                    and configuration is not None):
-                self._container = container = self.CONTAINER_CLASS(
-                    name=self.NAME,
-                    plugin=self,
-                    parent=parent,
-                    configuration=configuration
-                )
-            else:
-                self._container = container = self.CONTAINER_CLASS(
-                    name=self.NAME,
-                    plugin=self,
-                    parent=parent
-                )
+            self._container = container = self.CONTAINER_CLASS(
+                name=self.NAME,
+                plugin=self,
+                parent=parent
+            )
 
             if isinstance(container, SpyderWidgetMixin):
                 container.setup()

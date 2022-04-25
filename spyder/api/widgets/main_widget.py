@@ -33,7 +33,6 @@ from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
                                       PluginMainWidgetMenus)
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
-from spyder.config.manager import CONF
 from spyder.py3compat import qbytearray_to_str
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
@@ -192,14 +191,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     needs its ancestor to be updated.
     """
 
-    def __init__(self, name, plugin, parent=None, configuration=CONF):
+    def __init__(self, name, plugin, parent=None):
         if PYQT5:
-            super().__init__(parent=parent, class_parent=plugin,
-                             configuration=configuration)
+            super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=plugin,
-                                       configuration=configuration)
+            SpyderWidgetMixin.__init__(self, class_parent=plugin)
 
         # Attributes
         # --------------------------------------------------------------------
