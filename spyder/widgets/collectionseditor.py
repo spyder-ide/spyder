@@ -30,11 +30,9 @@ from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QHBoxLayout, QHeaderView, QInputDialog,
-                            QLineEdit, QMenu, QMessageBox,
-                            QPushButton, QTableView, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit, QMenu,
+    QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
@@ -54,7 +52,8 @@ from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
                               is_type_text_string, NUMERIC_TYPES)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
+from spyder.utils.qthelpers import (
+    add_actions, create_action, MENU_SEPARATOR, mimedata2url)
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
@@ -688,22 +687,37 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             _("View with the Object Explorer"),
             icon=ima.icon('outline_explorer'),
             triggered=self.view_item)
+
         menu = QMenu(self)
-        self.menu_actions = [self.edit_action, self.plot_action,
-                             self.hist_action, self.imshow_action,
-                             self.save_array_action, self.insert_action,
-                             self.insert_action_above,
-                             self.insert_action_below,
-                             self.remove_action, self.copy_action,
-                             self.paste_action, self.view_action,
-                             None, self.rename_action, self.duplicate_action,
-                             None, resize_action, resize_columns_action]
+        self.menu_actions = [
+            self.edit_action,
+            self.copy_action,
+            self.paste_action,
+            self.rename_action,
+            self.remove_action,
+            self.save_array_action,
+            MENU_SEPARATOR,
+            self.insert_action,
+            self.insert_action_above,
+            self.insert_action_below,
+            self.duplicate_action,
+            MENU_SEPARATOR,
+            self.view_action,
+            self.plot_action,
+            self.hist_action,
+            self.imshow_action,
+            MENU_SEPARATOR,
+            resize_action,
+            resize_columns_action
+        ]
         add_actions(menu, self.menu_actions)
+
         self.empty_ws_menu = QMenu(self)
         add_actions(
             self.empty_ws_menu,
             [self.insert_action, self.paste_action]
         )
+
         return menu
 
 
