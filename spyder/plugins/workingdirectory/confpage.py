@@ -37,8 +37,10 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         )
         startup_label.setWordWrap(True)
         lastdir_radio = self.create_radiobutton(
-            _("The project or user home directory"),
+            _("The project (if open) or user home directory"),
             'startup/use_project_or_home_directory',
+            tip=_("The startup working dir will be root of the current project"
+                  "if one is open, otherwise the user home directory"),
             button_group=startup_bg
         )
         thisdir_radio = self.create_radiobutton(
@@ -73,12 +75,14 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         console_label.setWordWrap(True)
         console_bg = QButtonGroup(console_group)
         console_project_radio = self.create_radiobutton(
-            _("The project or user home directory"),
-            'console/use_project_or_home_directory',
+            _("The project (if open) or user home directory"),
+            'startup/use_project_or_home_directory',
+            tip=_("The working dir for new consoles will be root of the "
+                  "project if one is open, otherwise the user home directory"),
             button_group=console_bg
         )
         console_cwd_radio = self.create_radiobutton(
-            _("The current working directory"),
+            _("The working directory of the current console"),
             'console/use_cwd',
             button_group=console_bg
         )
