@@ -808,9 +808,15 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend'])
-    def change_possible_restart_conf(self, option, value):
-        """Apply options that possibly require a kernel restart."""
+        'pylab', 'pylab/backend',
+        'pylab/autoload', 'pylab/inline/figure_format',
+        'pylab/inline/resolution', 'pylab/inline/width',
+        'pylab/inline/height', 'pylab/inline/bbox_inches'])
+    def change_possible_restart_and_mpl_conf(self, option, value):
+        """
+        Apply options that possibly require a kernel restart or related to
+        Matplotlib inline backend options.
+        """
         # Check that we are not triggering validations in the initial
         # notification sent when Spyder is starting or when another option
         # already required a restart and the restart dialog was shown
