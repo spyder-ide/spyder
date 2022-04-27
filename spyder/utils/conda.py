@@ -13,6 +13,7 @@ import os.path as osp
 import sys
 
 from spyder.utils.programs import find_program, run_program, run_shell_command
+from spyder.config.base import running_in_mac_app, get_spy_umamba_path
 
 WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}
@@ -69,12 +70,16 @@ def get_conda_activation_script(pyexec=None, quote=False):
 
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
-    if os.name == 'nt':
-        activate = 'Scripts/activate'
+    if running_in_mac_app():  # TODO: or is_pynsist()
+        # Use micromamba bundled with Spyder
+        script_path = get_spy_umamba_path()
     else:
-        activate = 'bin/activate'
+        if WINDOWS:
+            activate = 'Scripts/activate'
+        else:
+            activate = 'bin/activate'
 
-    script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False),
+        script_path = osp.join(get_conda_root_prefix(pyexec, quote=False),
                                activate).replace('\\', '/')
 
     if quote:
