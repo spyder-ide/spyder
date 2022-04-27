@@ -5079,9 +5079,33 @@ crash_func()
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 @pytest.mark.parametrize("focus_to_editor", [True, False])
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
     """Test that the focus_to_editor option works as expected."""
+
+    def check_focus(button, debug=False):
+        # Give focus back to the editor before running the next test
+        if not focus_to_editor:
+            code_editor.setFocus()
+
+        # Make sure we don't switch to the console after pressing the button
+        if focus_to_editor and not debug:
+            with qtbot.assertNotEmitted(
+                main_window.ipyconsole.sig_switch_to_plugin_requested,
+                wait=1000
+            ):
+                with qtbot.waitSignal(shell.executed):
+                    qtbot.mouseClick(button, Qt.LeftButton)
+        else:
+            with qtbot.waitSignal(shell.executed):
+                qtbot.mouseClick(button, Qt.LeftButton)
+
+        # Check the right widget has focus
+        focus_widget = QApplication.focusWidget()
+        if focus_to_editor:
+            assert focus_widget is code_editor
+        else:
+            assert focus_widget is control
+
     # Write code with cells to a file
     code = """# %%
 def foo(x):
@@ -5111,30 +5135,15 @@ foo(1)
     code_editor.setFocus()
     assert QApplication.focusWidget() is code_editor
 
-    # Select the run cell button to click it
+    # Run a file
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    check_focus(run_button, debug=True)
+
+    # Run a cell
     run_cell_action = main_window.run_toolbar_actions[1]
     run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
-
-    # Make sure we don't switch to the console after pressing the button
-    if focus_to_editor:
-        with qtbot.assertNotEmitted(
-            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
-        ):
-            qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-    else:
-        qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-        qtbot.wait(1000)
-
-    # Check the right widget has focus
-    focus_widget = QApplication.focusWidget()
-    if focus_to_editor:
-        assert focus_widget is code_editor
-    else:
-        assert focus_widget is control
-
-    # Give focus back to the editor before running the next test
-    if not focus_to_editor:
-        code_editor.setFocus()
+    check_focus(run_cell_button)
 
     # Move cursor to last line to run it
     cursor = code_editor.textCursor()
@@ -5142,27 +5151,22 @@ foo(1)
     cursor.movePosition(QTextCursor.PreviousBlock, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
 
-    # Select the run selection button to click it
+    # Run selection
     run_selection_action = main_window.run_toolbar_actions[3]
     run_selection_button = main_window.run_toolbar.widgetForAction(
         run_selection_action)
+    check_focus(run_selection_button)
 
-    # Make sure we don't switch to the console after pressing the button
-    if focus_to_editor:
-        with qtbot.assertNotEmitted(
-            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
-        ):
-            qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-    else:
-        qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-        qtbot.wait(1000)
+    # Debug a file
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    check_focus(debug_button, debug=True)
 
-    # Check the right widget has focus
-    focus_widget = QApplication.focusWidget()
-    if focus_to_editor:
-        assert focus_widget is code_editor
-    else:
-        assert focus_widget is control
+    # Go to the next line while debugging
+    debug_next_action = main_window.debug_toolbar_actions[1]
+    debug_next_button = main_window.debug_toolbar.widgetForAction(
+        debug_next_action)
+    check_focus(debug_next_button, debug=True)
 
 
 @pytest.mark.slow
