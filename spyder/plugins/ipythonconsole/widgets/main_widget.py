@@ -808,10 +808,10 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend',
-        'pylab/autoload', 'pylab/inline/figure_format',
-        'pylab/inline/resolution', 'pylab/inline/width',
-        'pylab/inline/height', 'pylab/inline/bbox_inches'])
+        'pylab', 'pylab/backend', 'pylab/autoload',
+        'pylab/inline/figure_format', 'pylab/inline/resolution',
+        'pylab/inline/width', 'pylab/inline/height',
+        'pylab/inline/bbox_inches'])
     def change_possible_restart_and_mpl_conf(self, option, value):
         """
         Apply options that possibly require a kernel restart or related to
