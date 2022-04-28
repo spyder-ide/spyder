@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-03-25 13:02-0500\n"
-"PO-Revision-Date: 2022-03-25 22:12\n"
+"PO-Revision-Date: 2022-04-28 19:43\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "Tu możesz włączyć/wyłączyć każdy wewnętrzny i zewnętrzny plugin Spydera, jeśli go nie potrzebujesz albo chcesz oszczędzić zasoby systemu. Niezaznaczone pluginy z tej strony zostaną natychmiast wyłączone i nie będą włączane przy kolejnych uruchomieniach Spydera."
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
