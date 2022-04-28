@@ -560,7 +560,7 @@ class ProfilerWidget(PluginMainWidget):
         if args:
             p_args.extend(shell_split(args))
 
-        executable = sys.executable
+        executable = self.get_conf('executable', section='main_interpreter')
         if executable.endswith("spyder.exe"):
             # py2exe distribution
             executable = "python.exe"
