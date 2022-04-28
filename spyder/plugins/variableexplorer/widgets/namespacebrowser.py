@@ -240,19 +240,21 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget.reset_namespace(warning=warning, message=True)
         self.editor.automatic_column_width = True
 
-    def save_data(self, filename=None):
+    def save_data(self):
         """Save data"""
+        filename = self.filename
         if filename is None:
-            filename = self.filename
-            if filename is None:
-                filename = getcwd_or_home()
-            filename, _selfilter = getsavefilename(self, _("Save data"),
-                                                   filename,
-                                                   iofunctions.save_filters)
-            if filename:
-                self.filename = filename
-            else:
-                return False
+            filename = getcwd_or_home()
+        ext = osp.splitext(filename)[1].lower()
+        if not ext:
+            filename = filename + '.spydata'
+        filename, _selfilter = getsavefilename(self, _("Save data"),
+                                               filename,
+                                               iofunctions.save_filters)
+        if filename:
+            self.filename = filename
+        else:
+            return False
 
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
