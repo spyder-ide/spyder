@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-03-25 13:02-0500\n"
-"PO-Revision-Date: 2022-04-28 19:43\n"
+"PO-Revision-Date: 2022-04-28 19:48\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -87,7 +87,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:700
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
-msgstr ""
+msgstr "Przy tworzeniu gniazda wymaganego przez Spydera wystąpił błąd. Spróbuj uruchomić z uprawnieniami administratora z linii komend (cmd.exe) polecenie <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br> a następnie zresetuj komputer."
 
 #: spyder/app/mainwindow.py:822 spyder/plugins/tours/widgets.py:1087
 msgid "Welcome to Spyder!"
@@ -108,7 +108,7 @@ msgstr "Spyder Internal Console\n\n"
 
 #: spyder/app/mainwindow.py:908
 msgid "Loading old third-party plugins..."
-msgstr ""
+msgstr "Wczytywanie starych pluginów innych firm..."
 
 #: spyder/app/mainwindow.py:956 spyder/plugins/editor/widgets/editor.py:282
 msgid "File switcher..."
