@@ -27,6 +27,8 @@ import time
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 
+from install_dev_repos import REPOS, install_repo
+
 # ---- Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
@@ -67,6 +69,8 @@ parser.add_argument('--filter-log', default='',
                     help="Comma-separated module name hierarchies whose log "
                          "messages should be shown. e.g., "
                          "spyder.plugins.completion,spyder.plugins.editor")
+parser.add_argument('--no-subrepos', action='store_true', default=False,
+                    help="Do not install subrepos")
 parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()
@@ -114,14 +118,25 @@ else:
     logger.info("Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
 
+# ---- Install sub repos
+
+if not args.no_subrepos:
+    for name in REPOS.keys():
+        if name == 'spyder':
+            continue
+        if not REPOS[name]['editable']:
+            install_repo(name)
+        else:
+            logger.info("%s already installed in editable mode", name)
+
 # ---- Check versions
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
 from spyder import get_versions
 versions = get_versions(reporev=True)
-logger.info("Imported Spyder %s - Revision %s, Branch: %s\n"
-            "    [Python %s %dbits, Qt %s, %s %s on %s]",
+logger.info("Imported Spyder %s - Revision %s, Branch: %s; "
+            "[Python %s %dbits, Qt %s, %s %s on %s]",
             versions['spyder'], versions['revision'], versions['branch'],
             versions['python'], versions['bitness'], versions['qt'],
             versions['qt_api'], versions['qt_api_ver'], versions['system'])
