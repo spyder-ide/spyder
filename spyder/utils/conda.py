@@ -64,7 +64,7 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     return root_prefix
 
 
-def get_conda_activation_script(pyexec=None, quote=False):
+def get_conda_activation_script(quote=False):
     """
     Return full path to conda activation script.
 
@@ -74,13 +74,14 @@ def get_conda_activation_script(pyexec=None, quote=False):
         # Use micromamba bundled with Spyder
         script_path = get_spy_umamba_path()
     else:
+        # Conda activation script is relative to executable
+        conda_exe_root = osp.dirname(osp.dirname(find_conda()))
         if WINDOWS:
             activate = 'Scripts/activate'
         else:
             activate = 'bin/activate'
 
-        script_path = osp.join(get_conda_root_prefix(pyexec, quote=False),
-                               activate).replace('\\', '/')
+        script_path = osp.join(conda_exe_root, activate).replace('\\', '/')
 
     if quote:
         script_path = add_quotes(script_path)
@@ -108,8 +109,12 @@ def get_conda_env_path(pyexec, quote=False):
 
 def find_conda():
     """Find conda executable."""
-    conda_exec = 'conda.bat' if WINDOWS else 'conda'
-    conda = find_program(conda_exec)
+    # First try the environment variables
+    conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+    if conda is None:
+        # Try searching for the executable
+        conda_exec = 'conda.bat' if WINDOWS else 'conda'
+        conda = find_program(conda_exec)
     return conda
 
 
