@@ -2225,7 +2225,7 @@ def test_restart_intertactive_backend(ipyconsole):
     backend in preferences.
     """
     main_widget = ipyconsole.get_widget()
-    main_widget.change_possible_restart_conf('pylab/backend', 3)
+    main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 3)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
 
 
