@@ -41,7 +41,10 @@ class SpyderPluginObserver:
             if hasattr(method, '_plugin_listen'):
                 plugin_listen = method._plugin_listen
 
-                # Check if plugin is listed among REQUIRES and OPTIONAL
+                # Check if plugin is listed among REQUIRES and OPTIONAL.
+                # Note: We can't do this validation for the Layout plugin
+                # because it depends on all plugins through the Plugins.All
+                # wildcard.
                 if (
                     self.NAME != Plugins.Layout and
                     (plugin_listen not in self.REQUIRES + self.OPTIONAL)
@@ -60,7 +63,10 @@ class SpyderPluginObserver:
             if hasattr(method, '_plugin_teardown'):
                 plugin_teardown = method._plugin_teardown
 
-                # Check if plugin is listed among REQUIRES and OPTIONAL
+                # Check if plugin is listed among REQUIRES and OPTIONAL.
+                # Note: We can't do this validation for the Layout plugin
+                # because it depends on all plugins through the Plugins.All
+                # wildcard.
                 if (
                     self.NAME != Plugins.Layout and
                     (plugin_teardown not in self.REQUIRES + self.OPTIONAL)
