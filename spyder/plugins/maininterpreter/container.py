@@ -57,7 +57,7 @@ class MainInterpreterContainer(PluginMainContainer):
                 (option == 'custom' and not value)):
             executable = get_python_executable()
         else:
-            executable = self.get_conf('custom_interpreter')
+            executable = osp.normpath(self.get_conf('custom_interpreter'))
             if osp.isfile(executable):
                 self.sig_add_to_custom_interpreters_requested.emit(executable)
             else:
