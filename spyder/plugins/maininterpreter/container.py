@@ -53,7 +53,8 @@ class MainInterpreterContainer(PluginMainContainer):
 
     @on_conf_change(option=['default', 'custom_interpreter', 'custom'])
     def section_conf_update(self, option, value):
-        if (option == 'default' and value) or (option == 'custom' and not value):
+        if ((option == 'default' and value) or
+                (option == 'custom' and not value)):
             executable = get_python_executable()
         else:
             executable = self.get_conf('custom_interpreter')
