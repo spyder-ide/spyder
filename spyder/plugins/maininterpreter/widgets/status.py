@@ -19,6 +19,7 @@ from qtpy.QtCore import QTimer, Signal
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
 from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
 from spyder.utils.workers import WorkerManager
@@ -73,7 +74,7 @@ class InterpreterStatus(BaseTimerStatus):
             # Env was removed on Mac or Linux
             self.set_conf('custom', False)
             self.set_conf('default', True)
-            self.update_interpreter(sys.executable)
+            self.update_interpreter(get_python_executable())
         elif not osp.isfile(self._interpreter):
             # This can happen on Windows because the interpreter was
             # renamed to .conda_trash
@@ -81,7 +82,7 @@ class InterpreterStatus(BaseTimerStatus):
                 # If conda-meta is missing, it means the env was removed
                 self.set_conf('custom', False)
                 self.set_conf('default', True)
-                self.update_interpreter(sys.executable)
+                self.update_interpreter(get_python_executable())
             else:
                 # If not, it means the interpreter is being updated so
                 # we need to update its version
