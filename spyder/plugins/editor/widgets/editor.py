@@ -2556,6 +2556,8 @@ class EditorStack(QWidget):
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         editor.sig_eol_chars_changed.connect(
             lambda eol_chars: self.refresh_eol_chars(eol_chars))
+        editor.sig_next_cursor.connect(self.sig_next_cursor.emit)
+        editor.sig_prev_cursor.connect(self.sig_prev_cursor.emit)
 
         self.find_widget.set_editor(editor)
 
