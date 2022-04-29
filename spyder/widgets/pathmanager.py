@@ -23,7 +23,6 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import PY2
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
@@ -53,6 +52,7 @@ class PathManager(QDialog):
         self.moveup_button = None
         self.movedown_button = None
         self.movebottom_button = None
+        self.import_button = None
         self.export_button = None
         self.selection_widgets = []
         self.top_toolbar_widgets = self._setup_top_toolbar()
@@ -168,8 +168,7 @@ class PathManager(QDialog):
             tip=_("Export to PYTHONPATH environment variable"),
             text_beside_icon=True)
 
-        self.selection_widgets.append(self.remove_button)
-        return [self.add_button, self.remove_button, None, self.import_button,
+        return [self.add_button, self.remove_button, self.import_button,
                 self.export_button]
 
     def _create_item(self, path):
@@ -193,10 +192,7 @@ class PathManager(QDialog):
     def editable_bottom_row(self):
         """Maximum bottom row count that is editable."""
         read_only_count = len(self.read_only_path)
-        if read_only_count == 0:
-            max_row = self.listwidget.count() - 1
-        else:
-            max_row = self.listwidget.count() - read_only_count - 1
+        max_row = self.listwidget.count() - read_only_count - 1
         return max_row
 
     def setup(self):
@@ -313,6 +309,8 @@ class PathManager(QDialog):
         for widget in disable_widgets:
             widget.setEnabled(False)
 
+        self.remove_button.setEnabled(self.listwidget.count()
+                                      - len(self.read_only_path))
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
         # Ok button only enabled if actual changes occur
@@ -341,23 +339,7 @@ class PathManager(QDialog):
             directory = getexistingdirectory(self, _("Select directory"),
                                              self.last_path)
             self.redirect_stdio.emit(True)
-
-        if PY2:
-            is_unicode = False
-            try:
-                directory.decode('ascii')
-            except (UnicodeEncodeError, UnicodeDecodeError):
-                is_unicode = True
-
-            if is_unicode:
-                QMessageBox.warning(
-                    self,
-                    _("Add path"),
-                    _("You are using Python 2 and the selected path has "
-                      "Unicode characters."
-                      "<br> "
-                      "Therefore, this path will not be added."),
-                    QMessageBox.Ok)
+            if not directory:
                 return
 
         directory = osp.abspath(directory)
