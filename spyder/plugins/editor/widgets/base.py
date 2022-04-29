@@ -44,6 +44,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     focus_changed = Signal()
     sig_insert_completion = Signal(str)
     sig_eol_chars_changed = Signal(str)
+    sig_prev_cursor = Signal()
+    sig_next_cursor = Signal()
 
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -1058,6 +1060,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     # ----Qt Events
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
+
+        # mouse buttons for forward and backward navigation
+        if event.button() == Qt.XButton1:
+            self.sig_prev_cursor.emit()
+        elif event.button() == Qt.XButton2:
+            self.sig_next_cursor.emit()
+
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
             self.setFocus()
