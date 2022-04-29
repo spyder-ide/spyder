@@ -19,7 +19,7 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListWidget, QListWidgetItem, QMessageBox,
-                            QVBoxLayout)
+                            QVBoxLayout, QLabel)
 
 # Local imports
 from spyder.config.base import _
@@ -75,6 +75,13 @@ class PathManager(QDialog):
         self.export_button.setVisible(os.name == 'nt' and sync)
 
         # Layouts
+        description = QLabel(
+            _("Only paths listed here will be passed to IPython consoles and "
+              "the language server<br>as additional Python search paths."
+              "<br>"
+              "Paths in your system <b>PYTHONPATH</b> environment variable "
+              "can be imported to this list.")
+        )
         top_layout = QHBoxLayout()
         self._add_widgets_to_layout(self.top_toolbar_widgets, top_layout)
 
@@ -84,6 +91,7 @@ class PathManager(QDialog):
         bottom_layout.addWidget(self.bbox)
 
         layout = QVBoxLayout()
+        layout.addWidget(description)
         layout.addLayout(top_layout)
         layout.addWidget(self.listwidget)
         layout.addLayout(bottom_layout)
