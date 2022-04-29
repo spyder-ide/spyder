@@ -561,9 +561,6 @@ class ProfilerWidget(PluginMainWidget):
             p_args.extend(shell_split(args))
 
         executable = self.get_conf('executable', section='main_interpreter')
-        if executable.endswith("spyder.exe"):
-            # py2exe distribution
-            executable = "python.exe"
 
         self.process.start(executable, p_args)
         running = self.process.waitForStarted()
