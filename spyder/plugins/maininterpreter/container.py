@@ -62,7 +62,7 @@ class MainInterpreterContainer(PluginMainContainer):
                 self.sig_add_to_custom_interpreters_requested.emit(executable)
             else:
                 executable = get_python_executable()
-                self.set_option('custom_interpreter', ' ')
+                self.set_conf('custom_interpreter', ' ')
         if executable != self.get_conf('executable'):
             self.set_conf('executable', executable)
 
