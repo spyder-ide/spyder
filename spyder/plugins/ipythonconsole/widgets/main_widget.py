@@ -2372,6 +2372,10 @@ class IPythonConsoleWidget(PluginMainWidget):
             if shell is not None:
                 shell.update_syspath(path_dict, new_path_dict)
 
+    def get_active_project_path(self):
+        """Get the active project path."""
+        return self.active_project_path
+
     def update_active_project_path(self, active_project_path):
         """
         Update the active project path attribute used to set the current
@@ -2385,7 +2389,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         Returns
         -------
         None.
-
         """
         self.active_project_path = active_project_path
 

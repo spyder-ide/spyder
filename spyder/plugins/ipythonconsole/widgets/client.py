@@ -356,6 +356,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Set initial cwd according to preferences."""
         logger.debug("Setting initial working directory")
         cwd_path = get_home_dir()
+        project_path = self.container.get_active_project_path()
 
         # This is for the first client
         if self.id_['int_id'] == '1':
@@ -364,8 +365,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 section='workingdir'
             ):
                 cwd_path = get_home_dir()
-                if self.container.active_project_path is not None:
-                    cwd_path = self.container.active_project_path
+                if project_path is not None:
+                    cwd_path = project_path
             elif self.get_conf(
                 'startup/use_fixed_directory',
                 section='workingdir'
@@ -382,8 +383,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 section='workingdir'
             ):
                 cwd_path = get_home_dir()
-                if self.container.active_project_path is not None:
-                    cwd_path = self.container.active_project_path
+                if project_path is not None:
+                    cwd_path = project_path
             elif self.get_conf('console/use_cwd', section='workingdir'):
                 cwd_path = self.container.get_working_directory()
             elif self.get_conf(
