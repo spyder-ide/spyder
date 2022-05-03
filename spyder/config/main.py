@@ -355,6 +355,7 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              'startup/use_project_or_home_directory': True,
               'startup/use_fixed_directory': False,
               }),
             ('tours',
