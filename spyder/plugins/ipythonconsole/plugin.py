@@ -41,7 +41,8 @@ class IPythonConsole(SpyderDockablePlugin):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
+                Plugins.Projects, Plugins.WorkingDirectory]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -325,8 +326,6 @@ class IPythonConsole(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-        widget = self.get_widget()
-        widget.projects_available = True
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
 
@@ -369,8 +368,6 @@ class IPythonConsole(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
-        widget = self.get_widget()
-        widget.projects_available = False
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
 
@@ -427,6 +424,12 @@ class IPythonConsole(SpyderDockablePlugin):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
+
+    def _get_working_directory(self):
+        """Get current working directory from its plugin."""
+        workdir = self.get_plugin(Plugins.WorkingDirectory)
+        if workdir:
+            return workdir.get_workdir()
 
     # ---- Public API
     # -------------------------------------------------------------------------
