@@ -346,6 +346,8 @@ class Preferences(SpyderPluginV2):
             application = self.get_plugin(Plugins.Application)
             application.sig_restart_requested.emit()
 
-    def can_close(self) -> bool:
+    def on_close(self, cancelable=False):
         container = self.get_container()
-        return not container.is_dialog_open()
+        if container.is_preferences_open():
+            container.close_preferences()
+        return True
