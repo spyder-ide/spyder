@@ -410,10 +410,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         logger.debug(f'Deleting plugin {plugin_name}')
         plugin_instance = self.plugin_registry[plugin_name]
 
-        # Remove config
-        if plugin_instance.CONF_FILE:
-            CONF.unregister_plugin(plugin_instance)
-
         # Determine if plugin can be closed
         can_delete = True
         if isinstance(plugin_instance, SpyderPluginV2):
@@ -493,6 +489,10 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         # Delete plugin from the registry and auxiliary structures
         self.plugin_dependents.pop(plugin_name, None)
         self.plugin_dependencies.pop(plugin_name, None)
+        if plugin_instance.CONF_FILE:
+            # This must be done after on_close() so that plugins can modify
+            # their (external) config therein.
+            CONF.unregister_plugin(plugin_instance)
 
         for plugin in self.plugin_dependents:
             all_plugin_dependents = self.plugin_dependents[plugin]
