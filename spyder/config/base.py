@@ -577,10 +577,10 @@ def running_in_mac_app(pyexec=None):
 # =============================================================================
 def get_spy_umamba_path():
     """Return the path to the Micromamba executable bundled with Spyder."""
-    if sys.platform == 'darwin':
+    if running_in_mac_app():
         path = osp.join(osp.dirname(osp.dirname(__file__)),
                         'bin', 'micromamba')
-    elif os.name == 'nt':
+    elif is_pynsist():
         path = None  # TODO: when micromamba is added to Windows installer
     else:
         path = None
