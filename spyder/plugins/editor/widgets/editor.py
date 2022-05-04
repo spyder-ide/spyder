@@ -3278,8 +3278,11 @@ class EditorWidget(QSplitter):
 
 
 class EditorMainWindow(QMainWindow):
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
-        QMainWindow.__init__(self, plugin)
+    def __init__(
+            self, plugin, menu_actions, toolbar_list, menu_list, parent=None):
+        # Parent needs to be `None` if the the created widget is meant to be
+        # independent. See spyder-ide/spyder#17803
+        QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin
