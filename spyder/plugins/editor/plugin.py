@@ -1818,7 +1818,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for text, line0 in results:
             icon = ima.icon('todo')
             slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
 
