@@ -148,6 +148,21 @@ class EditorConfigPage(PluginConfigPage):
             'tab_stop_width_spaces',
             default=4, min_=1, max_=8, step=1)
 
+        format_on_save = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            False
+        )
+        if format_on_save:
+            disabled_options = [
+                removetrail_box, add_newline_box, remove_trail_newline_box]
+            for disabled_option in disabled_options:
+                disabled_option.setToolTip(
+                    _("This option is disabled since the "
+                      "<i>Autoformat files on save</i> option is active.")
+                )
+                disabled_option.setDisabled(format_on_save)
+
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
                 tabwidth_spin.plabel.setEnabled(True)
