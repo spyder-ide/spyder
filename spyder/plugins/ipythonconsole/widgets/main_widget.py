@@ -1753,8 +1753,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # This avoids a recurrent, spurious NameError when running our
         # tests in our CIs
         if not self._testing:
-            kc.started_channels.connect(
-                lambda c=client: self._shellwidget_started(c))
             kc.stopped_channels.connect(
                 lambda c=client: self._shellwidget_deleted(c))
 
@@ -1765,6 +1763,25 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
+
+        # _shellwidget_started() – which emits sig_shellwidget_created() – must
+        # be called *after* set_kernel_client_and_manager() has been called.
+        # This is required so that plugins can rely on a initialized shell
+        # widget in their implementation of
+        # ShellConnectMainWidget.create_new_widget() (e.g. if they need to
+        # communicate with the kernel using the shell widget kernel client).
+        #
+        # NOTE kc.started_channels() signal must not be used to emit
+        # sig_shellwidget_created(): kc.start_channels()
+        # (QtKernelClientMixin.start_channels() from qtconsole module) emits the
+        # started_channels() signal. Slots connected to this signal are called
+        # directly from within start_channels() [1], i.e. before the shell
+        # widget’s initialization by set_kernel_client_and_manager().
+        #
+        # [1] Assuming no threads are involved, i.e. the signal-slot connection
+        # type is Qt.DirectConnection.
+        self._shellwidget_started(client)
+
 
     @Slot(str)
     def create_client_from_path(self, path):
