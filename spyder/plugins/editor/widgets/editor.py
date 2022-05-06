@@ -1880,6 +1880,7 @@ class EditorStack(QWidget):
                 return self.save_as(index=index)
             # The file doesn't need to be saved
             return True
+
         # The following options (`always_remove_trailing_spaces`,
         # `remove_trailing_newlines` and `add_newline`) also depend on the
         # `format_on_save` value.
@@ -1890,6 +1891,7 @@ class EditorStack(QWidget):
             self.trim_trailing_newlines(index)
         if self.add_newline and not self.format_on_save:
             self.add_newline_to_file(index)
+
         if self.convert_eol_on_save:
             # hack to account for the fact that the config file saves
             # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
