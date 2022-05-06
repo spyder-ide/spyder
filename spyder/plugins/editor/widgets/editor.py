@@ -1880,12 +1880,18 @@ class EditorStack(QWidget):
                 return self.save_as(index=index)
             # The file doesn't need to be saved
             return True
-        if self.always_remove_trailing_spaces:
+
+        # The following options (`always_remove_trailing_spaces`,
+        # `remove_trailing_newlines` and `add_newline`) also depend on the
+        # `format_on_save` value.
+        # See spyder-ide/spyder#17716
+        if self.always_remove_trailing_spaces and not self.format_on_save:
             self.remove_trailing_spaces(index)
-        if self.remove_trailing_newlines:
+        if self.remove_trailing_newlines and not self.format_on_save:
             self.trim_trailing_newlines(index)
-        if self.add_newline:
+        if self.add_newline and not self.format_on_save:
             self.add_newline_to_file(index)
+
         if self.convert_eol_on_save:
             # hack to account for the fact that the config file saves
             # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
