@@ -1806,7 +1806,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
             slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.warning_menu.addAction(action)
 
     def update_todo_menu(self):
