@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-06 17:57-0500\n"
-"PO-Revision-Date: 2022-05-07 01:15\n"
+"PO-Revision-Date: 2022-05-07 01:30\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -6238,11 +6238,11 @@ msgstr "在启动时，当前工作目录为:"
 
 #: spyder/plugins/workingdirectory/confpage.py:40 spyder/plugins/workingdirectory/confpage.py:78
 msgid "The project (if open) or user home directory"
-msgstr ""
+msgstr "项目 (如已打开) 或用户主目录"
 
 #: spyder/plugins/workingdirectory/confpage.py:42
 msgid "The startup working dir will be root of the current projectif one is open, otherwise the user home directory"
-msgstr ""
+msgstr "启动工作目录将为当前已打开项目的根目录，否则为用户主目录"
 
 #: spyder/plugins/workingdirectory/confpage.py:49
 msgid "At startup, the current working directory will be the specified path"
@@ -6250,19 +6250,19 @@ msgstr "启动时，当前工作目录将是指定的路径"
 
 #: spyder/plugins/workingdirectory/confpage.py:71
 msgid "New consoles"
-msgstr ""
+msgstr "新增控制台"
 
 #: spyder/plugins/workingdirectory/confpage.py:73
 msgid "The working directory for new IPython consoles is:"
-msgstr ""
+msgstr "新增 IPython 控制台的工作目录为:"
 
 #: spyder/plugins/workingdirectory/confpage.py:80
 msgid "The working dir for new consoles will be root of the project if one is open, otherwise the user home directory"
-msgstr ""
+msgstr "新增控制台的工作目录将为已打开项目的根目录，否则为用户主目录"
 
 #: spyder/plugins/workingdirectory/confpage.py:85
 msgid "The working directory of the current console"
-msgstr ""
+msgstr "当前控制台的工作目录"
 
 #: spyder/plugins/workingdirectory/confpage.py:92
 msgid "The directory when a new console is open will be the specified path"
@@ -6282,7 +6282,7 @@ msgstr "切换到上级目录"
 
 #: spyder/plugins/workingdirectory/plugin.py:65
 msgid "Working directory"
-msgstr ""
+msgstr "工作目录"
 
 #: spyder/plugins/workingdirectory/plugin.py:68
 msgid "Set the current working directory for various plugins."
