@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-06 17:57-0500\n"
-"PO-Revision-Date: 2022-05-06 23:32\n"
+"PO-Revision-Date: 2022-05-07 01:15\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1710,7 +1710,11 @@ msgid "Spyder Internal Console\n\n"
 "internals with the following commands:\n"
 "  spy.app, spy.window, dir(spy)\n\n"
 "Please do not use it to run your code\n\n"
-msgstr ""
+msgstr "Spyder 内部控制台\n\n"
+"该控制台用于报告应用程序的内部错误，\n"
+"并通过下列命令进行 Spyder 的内部检查:\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"请不要用它来运行你的代码\n\n"
 
 #: spyder/plugins/console/widgets/main_widget.py:179 spyder/plugins/ipythonconsole/widgets/main_widget.py:503
 msgid "&Quit"
@@ -2086,7 +2090,7 @@ msgstr "运行代码"
 
 #: spyder/plugins/editor/confpage.py:368
 msgid "This option is disabled since the <i>Autoformat files on save</i> option is active."
-msgstr ""
+msgstr "此选项已禁用，因为 <i>保存文件时自动格式化</i> 选项已激活。"
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:46 spyder/plugins/editor/panels/classfunctiondropdown.py:47 spyder/plugins/editor/panels/classfunctiondropdown.py:145 spyder/plugins/shortcuts/widgets/table.py:144
 msgid "<None>"
@@ -6226,11 +6230,11 @@ msgstr "文本编辑器"
 
 #: spyder/plugins/workingdirectory/confpage.py:27
 msgid "This is the directory that will be set as the default for the IPython console and Files panes."
-msgstr ""
+msgstr "这将被设置为 IPython 控制台和文件面板的默认目录。"
 
 #: spyder/plugins/workingdirectory/confpage.py:36
 msgid "At startup, the working directory is:"
-msgstr ""
+msgstr "在启动时，当前工作目录为:"
 
 #: spyder/plugins/workingdirectory/confpage.py:40 spyder/plugins/workingdirectory/confpage.py:78
 msgid "The project (if open) or user home directory"
