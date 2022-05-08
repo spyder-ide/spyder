@@ -53,24 +53,19 @@ options.""")
 parser.add_argument('--gui', default=None,
                     help="GUI toolkit: pyqt5 (for PyQt5) or pyside2 "
                     "(for PySide2)")
-parser.add_argument('--show-console', action='store_true', default=False,
-                    help="(Deprecated) Does nothing, now the default behavior "
-                    "is to show the console")
 parser.add_argument('--hide-console', action='store_true', default=False,
                     help="Hide parent console window (Windows only)")
 parser.add_argument('--safe-mode', dest="safe_mode",
                     action='store_true', default=False,
                     help="Start Spyder with a clean configuration directory")
-parser.add_argument('--no-apport', action='store_true', default=False,
-                    help="Disable Apport exception hook (Ubuntu)")
 parser.add_argument('--debug', action='store_true',
                     default=False, help="Run Spyder in debug mode")
 parser.add_argument('--filter-log', default='',
                     help="Comma-separated module name hierarchies whose log "
                          "messages should be shown. e.g., "
                          "spyder.plugins.completion,spyder.plugins.editor")
-parser.add_argument('--no-subrepos', action='store_true', default=False,
-                    help="Do not install subrepos")
+parser.add_argument('--no-install', action='store_true', default=False,
+                    help="Do not install spyder or subrepos")
 parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()
@@ -120,10 +115,8 @@ else:
 
 # ---- Install sub repos
 
-if not args.no_subrepos:
+if not args.no_install:
     for name in REPOS.keys():
-        if name == 'spyder':
-            continue
         if not REPOS[name]['editable']:
             install_repo(name)
         else:
