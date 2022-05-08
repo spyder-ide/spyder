@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-06 17:57-0500\n"
-"PO-Revision-Date: 2022-05-06 23:31\n"
+"PO-Revision-Date: 2022-05-08 12:46\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -6245,11 +6245,11 @@ msgstr "Texteditor"
 
 #: spyder/plugins/workingdirectory/confpage.py:27
 msgid "This is the directory that will be set as the default for the IPython console and Files panes."
-msgstr ""
+msgstr "Dies ist das Verzeichnis, das als Standard für die IPython-Konsole und die Dateibereiche festgelegt wird."
 
 #: spyder/plugins/workingdirectory/confpage.py:36
 msgid "At startup, the working directory is:"
-msgstr ""
+msgstr "Beim Starten ist das Arbeitsverzeichnis:"
 
 #: spyder/plugins/workingdirectory/confpage.py:40 spyder/plugins/workingdirectory/confpage.py:78
 msgid "The project (if open) or user home directory"
@@ -6265,11 +6265,11 @@ msgstr "Beim Programmstart ist das aktuelle Arbeitsverzeichnis der angegebene Pf
 
 #: spyder/plugins/workingdirectory/confpage.py:71
 msgid "New consoles"
-msgstr ""
+msgstr "Neue Konsolen"
 
 #: spyder/plugins/workingdirectory/confpage.py:73
 msgid "The working directory for new IPython consoles is:"
-msgstr ""
+msgstr "Das Arbeitsverzeichnis für neue IPython-Konsolen ist:"
 
 #: spyder/plugins/workingdirectory/confpage.py:80
 msgid "The working dir for new consoles will be root of the project if one is open, otherwise the user home directory"
@@ -6277,7 +6277,7 @@ msgstr ""
 
 #: spyder/plugins/workingdirectory/confpage.py:85
 msgid "The working directory of the current console"
-msgstr ""
+msgstr "Das Arbeitsverzeichnis der aktuellen Konsole"
 
 #: spyder/plugins/workingdirectory/confpage.py:92
 msgid "The directory when a new console is open will be the specified path"
@@ -6297,7 +6297,7 @@ msgstr "Zum übergeordneten Verzeichnis wechseln"
 
 #: spyder/plugins/workingdirectory/plugin.py:65
 msgid "Working directory"
-msgstr ""
+msgstr "Arbeitsverzeichnis"
 
 #: spyder/plugins/workingdirectory/plugin.py:68
 msgid "Set the current working directory for various plugins."
