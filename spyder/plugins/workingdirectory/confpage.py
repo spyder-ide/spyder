@@ -39,8 +39,9 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         lastdir_radio = self.create_radiobutton(
             _("The project (if open) or user home directory"),
             'startup/use_project_or_home_directory',
-            tip=_("The startup working dir will be root of the current project"
-                  "if one is open, otherwise the user home directory"),
+            tip=_("The startup working dir will be root of the "
+                  "current project if one is open, otherwise the "
+                  "user home directory"),
             button_group=startup_bg
         )
         thisdir_radio = self.create_radiobutton(
