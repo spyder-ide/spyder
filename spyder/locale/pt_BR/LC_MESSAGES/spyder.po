@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2022-05-06 17:57-0500\n"
+"POT-Creation-Date: 2022-05-09 12:58-0500\n"
 "PO-Revision-Date: 2022-03-28 13:18\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -5406,7 +5406,7 @@ msgstr "Diretório do arquivo que está sendo executado"
 msgid "The current working directory"
 msgstr "O diretório de trabalho atual"
 
-#: spyder/plugins/run/widgets.py:56 spyder/plugins/workingdirectory/confpage.py:47 spyder/plugins/workingdirectory/confpage.py:90
+#: spyder/plugins/run/widgets.py:56 spyder/plugins/workingdirectory/confpage.py:48 spyder/plugins/workingdirectory/confpage.py:91
 msgid "The following directory:"
 msgstr "O seguinte diretório:"
 
@@ -6345,39 +6345,39 @@ msgstr ""
 msgid "At startup, the working directory is:"
 msgstr "Na inicialização, o diretório de trabalho é:"
 
-#: spyder/plugins/workingdirectory/confpage.py:40 spyder/plugins/workingdirectory/confpage.py:78
+#: spyder/plugins/workingdirectory/confpage.py:40 spyder/plugins/workingdirectory/confpage.py:79
 #, fuzzy
 msgid "The project (if open) or user home directory"
 msgstr "O diretório do projeto atual ou diretório do usuário (se nenhum projeto estiver ativado)"
 
 #: spyder/plugins/workingdirectory/confpage.py:42
-msgid "The startup working dir will be root of the current projectif one is open, otherwise the user home directory"
+msgid "The startup working dir will be root of the current project if one is open, otherwise the user home directory"
 msgstr ""
 
-#: spyder/plugins/workingdirectory/confpage.py:49
+#: spyder/plugins/workingdirectory/confpage.py:50
 msgid "At startup, the current working directory will be the specified path"
 msgstr "Na inicialização, o diretório de trabalho atual será o caminho especificado"
 
-#: spyder/plugins/workingdirectory/confpage.py:71
+#: spyder/plugins/workingdirectory/confpage.py:72
 #, fuzzy
 msgid "New consoles"
 msgstr "Limpar console"
 
-#: spyder/plugins/workingdirectory/confpage.py:73
+#: spyder/plugins/workingdirectory/confpage.py:74
 #, fuzzy
 msgid "The working directory for new IPython consoles is:"
 msgstr "O diretório de trabalho para o novo console é:"
 
-#: spyder/plugins/workingdirectory/confpage.py:80
+#: spyder/plugins/workingdirectory/confpage.py:81
 msgid "The working dir for new consoles will be root of the project if one is open, otherwise the user home directory"
 msgstr ""
 
-#: spyder/plugins/workingdirectory/confpage.py:85
+#: spyder/plugins/workingdirectory/confpage.py:86
 #, fuzzy
 msgid "The working directory of the current console"
 msgstr "O diretório de trabalho para o novo console é:"
 
-#: spyder/plugins/workingdirectory/confpage.py:92
+#: spyder/plugins/workingdirectory/confpage.py:93
 msgid "The directory when a new console is open will be the specified path"
 msgstr "Quando um novo console for aberto o diretório será o do caminho especificado"
 
