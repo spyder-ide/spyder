@@ -152,7 +152,7 @@ class DocumentProvider:
 
     @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def process_signature_completion(self, response, req_id):
-        if len(response['signatures']) > 0:
+        if response and len(response['signatures']) > 0:
             response['signatures'] = response['signatures'][
                 response['activeSignature']]
             response['provider'] = LSP_COMPLETION

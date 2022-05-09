@@ -1156,14 +1156,14 @@ class MainWindow(QMainWindow):
             self.open_files_server
         ):
             t = threading.Thread(target=self.start_open_files_server)
-            t.setDaemon(True)
+            t.daemon = True
             t.start()
 
             # Connect the window to the signal emitted by the previous server
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
 
-        
+
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
@@ -1499,68 +1499,36 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.No:
                 return False
 
-        # TODO: This should be managed in a different way
-        # Prevents segfaults on close in the MacOS app
-        if running_in_mac_app():
-            # Close Editor and projects to run logic to save state:
-            # Open files/project, check unsaved files, etc.
-            if self.editor is not None:
-                try:
-                    self.editor.deleteLater()
-                    self.plugin_registry.delete_plugin(
-                        Plugins.Editor, teardown=False)
-                except RuntimeError:
-                    pass
-            if self.projects is not None:
-                try:
-                    self.projects.get_widget().close()
-                    self.projects.get_widget().deleteLater()
-                    self.plugin_registry.delete_plugin(
-                        Plugins.Projects, teardown=False)
-                except RuntimeError:
-                    pass
-            # Save window settings *after* closing all plugin windows, in order
-            # to show them in their previous locations in the next session.
-            # Fixes spyder-ide/spyder#12139
-            prefix = 'window' + '/'
-            if self.layouts is not None:
-                self.layouts.save_current_window_settings(prefix)
+        can_close = self.plugin_registry.delete_all_plugins(
+            excluding={Plugins.Layout},
+            close_immediately=close_immediately)
 
-            # Close application
-            os._exit(0)
-            app = qapplication()  # analysis:ignore
-            del app
-        else:
-            can_close = self.plugin_registry.delete_all_plugins(
-                excluding={Plugins.Layout},
-                close_immediately=close_immediately)
+        if not can_close and not close_immediately:
+            return False
 
-            if not can_close and not close_immediately:
-                return False
+        # Save window settings *after* closing all plugin windows, in order
+        # to show them in their previous locations in the next session.
+        # Fixes spyder-ide/spyder#12139
+        prefix = 'window' + '/'
+        if self.layouts is not None:
+            self.layouts.save_current_window_settings(prefix)
+            try:
+                layouts_container = self.layouts.get_container()
+                if layouts_container:
+                    layouts_container.close()
+                    layouts_container.deleteLater()
+                self.layouts.deleteLater()
+                self.plugin_registry.delete_plugin(
+                    Plugins.Layout, teardown=False)
+            except RuntimeError:
+                pass
 
-            # Save window settings *after* closing all plugin windows, in order
-            # to show them in their previous locations in the next session.
-            # Fixes spyder-ide/spyder#12139
-            prefix = 'window' + '/'
-            if self.layouts is not None:
-                self.layouts.save_current_window_settings(prefix)
-                try:
-                    layouts_container = self.layouts.get_container()
-                    if layouts_container:
-                        layouts_container.close()
-                        layouts_container.deleteLater()
-                    self.layouts.deleteLater()
-                    self.plugin_registry.delete_plugin(
-                        Plugins.Layout, teardown=False)
-                except RuntimeError:
-                    pass
+        self.already_closed = True
 
-            self.already_closed = True
+        if CONF.get('main', 'single_instance') and self.open_files_server:
+            self.open_files_server.close()
 
-            if CONF.get('main', 'single_instance') and self.open_files_server:
-                self.open_files_server.close()
-
-            QApplication.processEvents()
+        QApplication.processEvents()
 
         return True
 

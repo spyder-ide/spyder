@@ -44,15 +44,15 @@ def setup_workingdirectory(qtbot, request, tmpdir):
     use_cli_wdir = request.node.get_closest_marker('use_cli_wdir')
 
     # Setting default options
+    CONF.set('workingdir', 'startup/use_project_or_home_directory', True)
     CONF.set('workingdir', 'startup/use_fixed_directory', False)
-    CONF.set('workingdir', 'console/use_fixed_directory', False)
-    CONF.set('workingdir', 'startup/fixed_directory', get_home_dir())
 
     # Create main window and new directory
     main_window = MainWindow()
 
     if use_startup_wdir:
         new_wdir = tmpdir.mkdir(NEW_DIR + '_startup')
+        CONF.set('workingdir', 'startup/use_project_or_home_directory', False)
         CONF.set('workingdir', 'startup/use_fixed_directory', True)
         CONF.set('workingdir', 'startup/fixed_directory', str(new_wdir))
     elif use_cli_wdir:

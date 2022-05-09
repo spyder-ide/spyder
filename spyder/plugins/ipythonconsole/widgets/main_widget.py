@@ -32,8 +32,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import (
-    get_conf_path, get_home_dir, running_under_pytest)
+from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
@@ -292,16 +291,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
 
         self.menu_actions = None
         self.master_clients = 0
         self.clients = []
         self.filenames = []
         self.mainwindow_close = False
-        self.projects_available = False
         self.active_project_path = None
         self.create_new_client_if_empty = True
         self.css_path = self.get_conf('css_path', section='appearance')
@@ -809,9 +806,15 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend'])
-    def change_possible_restart_conf(self, option, value):
-        """Apply options that possibly require a kernel restart."""
+        'pylab', 'pylab/backend', 'pylab/autoload',
+        'pylab/inline/figure_format', 'pylab/inline/resolution',
+        'pylab/inline/width', 'pylab/inline/height',
+        'pylab/inline/bbox_inches'])
+    def change_possible_restart_and_mpl_conf(self, option, value):
+        """
+        Apply options that possibly require a kernel restart or related to
+        Matplotlib inline backend options.
+        """
         # Check that we are not triggering validations in the initial
         # notification sent when Spyder is starting or when another option
         # already required a restart and the restart dialog was shown
@@ -1155,7 +1158,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               reset_warning=reset_warning,
                               ask_before_restart=ask_before_restart,
                               css_path=self.css_path,
-                              configuration=self.CONFIGURATION,
                               handlers=self.registered_spyder_kernel_handlers,
                               stderr_obj=stderr_obj,
                               stdout_obj=stdout_obj,
@@ -1575,7 +1577,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_restart=ask_before_restart,
                               ask_before_closing=ask_before_closing,
                               css_path=self.css_path,
-                              configuration=self.CONFIGURATION,
                               handlers=self.registered_spyder_kernel_handlers,
                               stderr_obj=stderr_obj,
                               stdout_obj=stdout_obj,
@@ -1752,8 +1753,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # This avoids a recurrent, spurious NameError when running our
         # tests in our CIs
         if not self._testing:
-            kc.started_channels.connect(
-                lambda c=client: self._shellwidget_started(c))
             kc.stopped_channels.connect(
                 lambda c=client: self._shellwidget_deleted(c))
 
@@ -1764,6 +1763,25 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
+
+        # _shellwidget_started() – which emits sig_shellwidget_created() – must
+        # be called *after* set_kernel_client_and_manager() has been called.
+        # This is required so that plugins can rely on a initialized shell
+        # widget in their implementation of
+        # ShellConnectMainWidget.create_new_widget() (e.g. if they need to
+        # communicate with the kernel using the shell widget kernel client).
+        #
+        # NOTE kc.started_channels() signal must not be used to emit
+        # sig_shellwidget_created(): kc.start_channels()
+        # (QtKernelClientMixin.start_channels() from qtconsole module) emits the
+        # started_channels() signal. Slots connected to this signal are called
+        # directly from within start_channels() [1], i.e. before the shell
+        # widget’s initialization by set_kernel_client_and_manager().
+        #
+        # [1] Assuming no threads are involved, i.e. the signal-slot connection
+        # type is Qt.DirectConnection.
+        self._shellwidget_started(client)
+
 
     @Slot(str)
     def create_client_from_path(self, path):
@@ -1820,31 +1838,6 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
-
-        # Set shell cwd according to preferences
-        cwd_path = ''
-        if self.get_conf(
-                'console/use_project_or_home_directory', section='workingdir'):
-            cwd_path = get_home_dir()
-            if (self.projects_available and
-                    self.active_project_path is not None):
-                cwd_path = self.active_project_path
-        elif self.get_conf(
-                'startup/use_fixed_directory', section='workingdir'):
-            cwd_path = self.get_conf(
-                'startup/fixed_directory',
-                default=get_home_dir(),
-                section='workingdir')
-        elif self.get_conf(
-                'console/use_fixed_directory', section='workingdir'):
-            cwd_path = self.get_conf(
-                'console/fixed_directory', section='workingdir')
-
-        if osp.isdir(cwd_path) and self._plugin.main is not None:
-            shellwidget.set_cwd(cwd_path)
-            if give_focus:
-                # Syncronice cwd with explorer and cwd widget
-                shellwidget.update_cwd()
 
         # Connect client to history log
         self.sig_history_requested.emit(client.history_filename)
@@ -2097,8 +2090,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Create a kernel spec for our own kernels"""
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
-                                is_sympy=is_sympy,
-                                configuration=self.CONFIGURATION)
+                                is_sympy=is_sympy)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_handle,
@@ -2379,11 +2371,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             shellwidget.set_cwd(directory)
 
     def set_working_directory(self, dirname):
-        """Set current working directory.
-        In the workingdirectory and explorer plugins.
+        """
+        Set current working directory in the workingdirectory and explorer
+        plugins.
         """
         if osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
+
+    def get_working_directory(self):
+        """Get current working directory."""
+        return self.get_plugin()._get_working_directory()
 
     def update_working_directory(self):
         """Update working directory to console cwd."""
@@ -2398,6 +2395,10 @@ class IPythonConsoleWidget(PluginMainWidget):
             if shell is not None:
                 shell.update_syspath(path_dict, new_path_dict)
 
+    def get_active_project_path(self):
+        """Get the active project path."""
+        return self.active_project_path
+
     def update_active_project_path(self, active_project_path):
         """
         Update the active project path attribute used to set the current
@@ -2411,7 +2412,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         Returns
         -------
         None.
-
         """
         self.active_project_path = active_project_path
 

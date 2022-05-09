@@ -13,6 +13,7 @@ import os.path as osp
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QApplication, QMainWindow
@@ -216,6 +217,7 @@ def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker,
     assert pylint_data[1] is not None
 
 
+@flaky(max_runs=3)
 def test_pylint_widget_pylintrc(
         pylint_plugin, pylint_test_script, pylintrc_files, mocker, qtbot):
     """Test that entire pylint widget gets results depending on pylintrc."""

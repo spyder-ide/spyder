@@ -62,7 +62,7 @@ class WorkingDirectory(SpyderPluginV2):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Current working directory')
+        return _('Working directory')
 
     def get_description(self):
         return _('Set the current working directory for various plugins.')
@@ -206,7 +206,7 @@ class WorkingDirectory(SpyderPluginV2):
             history = [name for name in history if osp.isdir(name)]
         else:
             if workdir is None:
-                workdir = self.get_workdir()
+                workdir = self.get_container()._get_init_workdir()
 
             history = [workdir]
 

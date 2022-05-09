@@ -20,15 +20,18 @@ Editor widget based on QtGui.QPlainTextEdit
 from unicodedata import category
 import logging
 import functools
+import os
 import os.path as osp
 import re
 import sre_constants
 import sys
 import textwrap
+from pkg_resources import parse_version
 
 # Third party imports
 from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
+from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QRegExp, Qt, QTimer, QThread, QUrl, Signal,
                          Slot)
@@ -4573,11 +4576,14 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(event.text())
         if text:
             # The next three lines are a workaround for a quirk of
-            # QTextEdit. See spyder-ide/spyder#12663 and
+            # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
+            # See spyder-ide/spyder#12663 and
             # https://bugreports.qt.io/browse/QTBUG-35861
-            cursor = self.textCursor()
-            cursor.setPosition(cursor.position())
-            self.setTextCursor(cursor)
+            if (parse_version(QT_VERSION) < parse_version('5.15')
+                    or os.name == 'nt' or sys.platform == 'darwin'):
+                cursor = self.textCursor()
+                cursor.setPosition(cursor.position())
+                self.setTextCursor(cursor)
             self.sig_text_was_inserted.emit()
 
     def keyPressEvent(self, event):
