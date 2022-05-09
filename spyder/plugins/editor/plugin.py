@@ -363,7 +363,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             },
             'input_extension': filename_ext
         }
-        print(metadata)
 
         self.file_per_id[file_id] = filename
         self.id_per_file[filename] = file_id
@@ -1693,6 +1692,18 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot(str, str)
     def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
+        run = self.main.get_plugin(Plugins.Run)
+        if filename in self.id_per_file:
+            file_id = self.id_per_file.pop(filename)
+            self.file_per_id.pop(file_id)
+            self.metadata_per_id.pop(file_id)
+            if run is not None:
+                run.deregister_run_configuration_metadata(file_id)
+        else:
+            _, filename_ext = osp.splitext(filename)
+            filename_ext = filename_ext[1:]
+            self.pending_run_files -= {(filename, filename_ext)}
+
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)

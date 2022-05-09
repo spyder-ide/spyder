@@ -65,6 +65,7 @@ class RunExecutorListModel(QAbstractListModel):
         if run_input in self.executors_per_input:
             self.current_input = run_input
             executors = self.executors_per_input[run_input]
+            print(executors)
             self.dataChanged.emit(self.createIndex(0, 0),
                                   self.createIndex(len(executors), 0))
         else:
@@ -77,11 +78,12 @@ class RunExecutorListModel(QAbstractListModel):
         return input_executors[self.current_executor]
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
-        executors = self.executors_per_input[self.current_input]
-        sorted_executors = sorted(list(executors.keys()))
-        executor_id = sorted_executors[index.row()]
-        self.current_executor = executor_id
-        return self.executor_names[executor_id]
+        if role == Qt.DisplayRole:
+            executors = self.executors_per_input[self.current_input]
+            sorted_executors = sorted(list(executors.keys()))
+            executor_id = sorted_executors[index.row()]
+            self.current_executor = executor_id
+            return self.executor_names[executor_id]
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         executors = self.executors_per_input.get(self.current_input, {})
@@ -97,26 +99,28 @@ class RunConfigurationListModel(QAbstractListModel):
             str, RunConfigurationMetadata] = OrderedDict()
         self.executor_model: RunExecutorListModel = executor_model
 
+    def update_index(self, index: int):
+        uuid = self.metadata_index[index]
+        metadata = self.run_configurations[uuid]
+        context_name = metadata['context']['name']
+        context_id = getattr(RunContext, context_name)
+        ext = metadata['input_extension']
+        self.executor_model.switch_input((ext, context_id))
+
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            # print(self.metadata_index)
             uuid = self.metadata_index[index.row()]
             metadata = self.run_configurations[uuid]
-            context_name = metadata['context']['name']
-            context_id = getattr(RunContext, context_name)
-            ext = metadata['input_extension']
-            self.executor_model.switch_input((ext, context_id))
             return metadata['name']
 
     def rowCount(self, parent: QModelIndex = None) -> int:
-        # print('rowCount ------------------ ', len(self.run_configurations))
         return len(self.run_configurations)
 
     def pop(self, uuid: str) -> RunConfigurationMetadata:
         item = self.run_configurations.pop(uuid)
         self.metadata_index = dict(enumerate(self.run_configurations))
-        # self.dataChanged.emit(self.createIndex(0, 0),
-        #                       self.createIndex(len(self.metadata_index), 0))
+        self.dataChanged.emit(self.createIndex(0, 0),
+                              self.createIndex(len(self.metadata_index), 0))
         return item
 
     def __iter__(self):
@@ -131,11 +135,8 @@ class RunConfigurationListModel(QAbstractListModel):
     def __setitem__(self, uuid: str, metadata: RunConfigurationMetadata):
         self.run_configurations[uuid] = metadata
         self.metadata_index[len(self.metadata_index)] = uuid
-        # print(self.metadata_index)
-        # self.modelReset
-        # self.dataChanged.emit(self.createIndex(0, 0),
-        #                       self.createIndex(len(self.metadata_index), 0))
-
+        self.dataChanged.emit(self.createIndex(0, 0),
+                              self.createIndex(len(self.metadata_index), 0))
 
 class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
