@@ -70,19 +70,22 @@ def get_conda_activation_script(quote=False):
 
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
-    # Use micromamba bundled with Spyder installers
-    script_path = get_spy_umamba_path()
+    # Use micromamba bundled with Spyder installers or find conda exe
+    exe = get_spy_umamba_path() or find_conda()
 
-    # If micromamba is not available find conda activation script
-    if script_path is None:
+    if osp.basename(exe).startswith('micromamba'):
+        # For Micromamba, use the executable
+        script_path = exe
+    else:
         # Conda activation script is relative to executable
-        conda_exe_root = osp.dirname(osp.dirname(find_conda()))
+        conda_exe_root = osp.dirname(osp.dirname(exe))
         if WINDOWS:
             activate = 'Scripts/activate'
         else:
             activate = 'bin/activate'
+        script_path = osp.join(conda_exe_root, activate)
 
-        script_path = osp.join(conda_exe_root, activate).replace('\\', '/')
+    script_path = script_path.replace('\\', '/')
 
     if quote:
         script_path = add_quotes(script_path)
