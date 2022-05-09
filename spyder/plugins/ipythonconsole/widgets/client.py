@@ -13,11 +13,8 @@ Client widget for the IPython Console.
 This is the widget used on all its tabs.
 """
 
-
 # Standard library imports.
-# Fix for spyder-ide/spyder#1356.
-from __future__ import absolute_import
-
+import logging
 import os
 import os.path as osp
 import re
@@ -31,7 +28,8 @@ from qtpy.QtWidgets import (QMessageBox, QVBoxLayout, QWidget)
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import get_module_source_path, running_under_pytest
+from spyder.config.base import (
+    get_home_dir, get_module_source_path, running_under_pytest)
 from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
@@ -46,8 +44,9 @@ from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
 
-# Localization
+# Localization and logging
 _ = get_translation('spyder')
+logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------------------
 # Templates
@@ -105,7 +104,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  ask_before_restart=True,
                  ask_before_closing=False,
                  css_path=None,
-                 configuration=None,
                  handlers={},
                  stderr_obj=None,
                  stdout_obj=None,
@@ -151,8 +149,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             is_external_kernel=is_external_kernel,
             is_spyder_kernel=is_spyder_kernel,
             handlers=handlers,
-            local_kernel=True,
-            configuration=configuration)
+            local_kernel=True
+        )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
@@ -222,6 +220,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         # To show if special console is valid
         self._check_special_console_error()
+
+        # Set the initial current working directory
+        self._set_initial_cwd()
 
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
@@ -350,6 +351,54 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.container.refresh_container)
         page_control.sig_show_find_widget_requested.connect(
             self.container.find_widget.show)
+
+    def _set_initial_cwd(self):
+        """Set initial cwd according to preferences."""
+        logger.debug("Setting initial working directory")
+        cwd_path = get_home_dir()
+        project_path = self.container.get_active_project_path()
+
+        # This is for the first client
+        if self.id_['int_id'] == '1':
+            if self.get_conf(
+                'startup/use_project_or_home_directory',
+                section='workingdir'
+            ):
+                cwd_path = get_home_dir()
+                if project_path is not None:
+                    cwd_path = project_path
+            elif self.get_conf(
+                'startup/use_fixed_directory',
+                section='workingdir'
+            ):
+                cwd_path = self.get_conf(
+                    'startup/fixed_directory',
+                    default=get_home_dir(),
+                    section='workingdir'
+                )
+        else:
+            # For new clients
+            if self.get_conf(
+                'console/use_project_or_home_directory',
+                section='workingdir'
+            ):
+                cwd_path = get_home_dir()
+                if project_path is not None:
+                    cwd_path = project_path
+            elif self.get_conf('console/use_cwd', section='workingdir'):
+                cwd_path = self.container.get_working_directory()
+            elif self.get_conf(
+                'console/use_fixed_directory',
+                section='workingdir'
+            ):
+                cwd_path = self.get_conf(
+                    'console/fixed_directory',
+                    default=get_home_dir(),
+                    section='workingdir'
+                )
+
+        if osp.isdir(cwd_path):
+            self.shellwidget.set_cwd(cwd_path)
 
     # ----- Public API --------------------------------------------------------
     @property

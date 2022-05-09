@@ -410,10 +410,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         logger.debug(f'Deleting plugin {plugin_name}')
         plugin_instance = self.plugin_registry[plugin_name]
 
-        # Remove config
-        if plugin_instance.CONF_FILE:
-            CONF.unregister_plugin(plugin_instance)
-
         # Determine if plugin can be closed
         can_delete = True
         if isinstance(plugin_instance, SpyderPluginV2):
@@ -425,6 +421,28 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             return False
 
         if isinstance(plugin_instance, SpyderPluginV2):
+            # Cleanly delete plugin widgets. This avoids segfautls with
+            # PyQt 5.15
+            if isinstance(plugin_instance, SpyderDockablePlugin):
+                try:
+                    plugin_instance.get_widget().close()
+                    plugin_instance.get_widget().deleteLater()
+                except RuntimeError:
+                    pass
+            else:
+                container = plugin_instance.get_container()
+                if container:
+                    try:
+                        container.close()
+                        container.deleteLater()
+                    except RuntimeError:
+                        pass
+
+            # Delete plugin
+            try:
+                plugin_instance.deleteLater()
+            except RuntimeError:
+                pass
             if teardown:
                 # Disconnect plugin from other plugins
                 self._teardown_plugin(plugin_name)
@@ -449,6 +467,10 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             except RuntimeError:
                 pass
         elif isinstance(plugin_instance, SpyderPlugin):
+            try:
+                plugin_instance.deleteLater()
+            except RuntimeError:
+                pass
             if teardown:
                 # Disconnect depending plugins from the plugin to delete
                 self._notify_plugin_teardown(plugin_name)
@@ -467,6 +489,10 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         # Delete plugin from the registry and auxiliary structures
         self.plugin_dependents.pop(plugin_name, None)
         self.plugin_dependencies.pop(plugin_name, None)
+        if plugin_instance.CONF_FILE:
+            # This must be done after on_close() so that plugins can modify
+            # their (external) config therein.
+            CONF.unregister_plugin(plugin_instance)
 
         for plugin in self.plugin_dependents:
             all_plugin_dependents = self.plugin_dependents[plugin]
@@ -535,10 +561,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPlugin):
-                    try:
-                        plugin_instance.deleteLater()
-                    except RuntimeError:
-                        pass
                     can_close &= self.delete_plugin(
                         plugin_name, teardown=False)
                     if not can_close and not close_immediately:
@@ -552,28 +574,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
-                    # Cleanly delete plugin widgets. This avoids segfautls with
-                    # PyQt 5.15
-                    if isinstance(plugin_instance, SpyderDockablePlugin):
-                        try:
-                            plugin_instance.get_widget().close()
-                            plugin_instance.get_widget().deleteLater()
-                        except RuntimeError:
-                            pass
-                    else:
-                        container = plugin_instance.get_container()
-                        if container:
-                            try:
-                                container.close()
-                                container.deleteLater()
-                            except RuntimeError:
-                                pass
-
-                    # Delete plugin
-                    try:
-                        plugin_instance.deleteLater()
-                    except RuntimeError:
-                        pass
                     can_close &= self.delete_plugin(
                         plugin_name, teardown=False)
                     if not can_close and not close_immediately:
@@ -587,28 +587,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
-                    # Cleanly delete plugin widgets. This avoids segfautls with
-                    # PyQt 5.15
-                    if isinstance(plugin_instance, SpyderDockablePlugin):
-                        try:
-                            plugin_instance.get_widget().close()
-                            plugin_instance.get_widget().deleteLater()
-                        except RuntimeError:
-                            pass
-                    else:
-                        container = plugin_instance.get_container()
-                        if container:
-                            try:
-                                container.close()
-                                container.deleteLater()
-                            except RuntimeError:
-                                pass
-
-                    # Delete plugin
-                    try:
-                        plugin_instance.deleteLater()
-                    except RuntimeError:
-                        pass
                     can_close &= self.delete_plugin(
                         plugin_name, teardown=False)
                     if not can_close and not close_immediately:
@@ -716,7 +694,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         try:
             self.sig_plugin_ready.disconnect()
-        except TypeError:
+        except (TypeError, RuntimeError):
             # Omit failures if there are no slots connected
             pass
 

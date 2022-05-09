@@ -228,7 +228,7 @@ class WorkerManager(QObject):
 
     def __init__(self, max_threads=10):
         """Spyder Worker Manager for Generic Workers."""
-        super(QObject, self).__init__()
+        super().__init__()
         self._queue = deque()
         self._queue_workers = deque()
         self._threads = []
