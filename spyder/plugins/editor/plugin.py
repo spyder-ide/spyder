@@ -380,7 +380,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         codeeditor = options['codeeditor']
         _, filename_ext = osp.splitext(filename)
         filename_ext = filename_ext[1:]
-        print('-------------', filename)
 
         able_to_run_file = False
         if filename_ext in self.supported_run_configurations:

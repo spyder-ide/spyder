@@ -98,15 +98,15 @@ class RunConfigurationListModel(QAbstractListModel):
         self.executor_model: RunExecutorListModel = executor_model
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
-        print('********* data ', index.row())
-        # print(self.metadata_index)
-        uuid = self.metadata_index[index.row()]
-        metadata = self.run_configurations[uuid]
-        context_name = metadata['context']['name']
-        context_id = getattr(RunContext, context_name)
-        ext = metadata['input_extension']
-        self.executor_model.switch_input((ext, context_id))
-        return metadata['name']
+        if role == Qt.DisplayRole:
+            # print(self.metadata_index)
+            uuid = self.metadata_index[index.row()]
+            metadata = self.run_configurations[uuid]
+            context_name = metadata['context']['name']
+            context_id = getattr(RunContext, context_name)
+            ext = metadata['input_extension']
+            self.executor_model.switch_input((ext, context_id))
+            return metadata['name']
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         # print('rowCount ------------------ ', len(self.run_configurations))

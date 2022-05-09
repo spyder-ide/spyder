@@ -541,7 +541,6 @@ class RunDialog(BaseRunConfigDialog):
         # self.configuration_combo.view().setVerticalScrollBarPolicy(
         #     Qt.ScrollBarAsNeeded)
         self.configuration_combo.setModel(self.run_conf_model)
-        print('$$$$$$$$$$$$ ', self.configuration_combo.count())
 
         # self.executor_combo.setMaxVisibleItems(20)
         # self.executor_combo.view().setVerticalScrollBarPolicy(
