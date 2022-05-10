@@ -104,6 +104,7 @@ files={package_dist_info} > $INSTDIR/pkgs
     lib
     tcl86t.dll > $INSTDIR/pkgs
     tk86t.dll > $INSTDIR/pkgs
+    micromamba.exe > $INSTDIR/bin
 [Build]
 installer_name={installer_name}
 nsi_template={template}
@@ -361,6 +362,11 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             shutil.copy(
                 "installers/Windows/assets/tcl/tk86t.dll",
                 os.path.join(work_dir, "tk86t.dll"))
+
+            print("Copying micromamba assets")
+            shutil.copy(
+                "installers/Windows/assets/micromamba/micromamba.exe",
+                os.path.join(work_dir, "micromamba.exe"))
 
             print("Copying NSIS plugins into discoverable path")
             shutil.copy(
