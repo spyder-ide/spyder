@@ -22,6 +22,7 @@ from spyder.utils.misc import getcwd_or_home
 
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
+
     def setup_page(self):
         about_label = QLabel(
             _("This is the directory that will be set as the default for "
@@ -77,7 +78,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         console_bg = QButtonGroup(console_group)
         console_project_radio = self.create_radiobutton(
             _("The project (if open) or user home directory"),
-            'startup/use_project_or_home_directory',
+            'console/use_project_or_home_directory',
             tip=_("The working dir for new consoles will be root of the "
                   "project if one is open, otherwise the user home directory"),
             button_group=console_bg
