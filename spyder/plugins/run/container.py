@@ -65,7 +65,6 @@ class RunExecutorListModel(QAbstractListModel):
         if run_input in self.executors_per_input:
             self.current_input = run_input
             executors = self.executors_per_input[run_input]
-            print(executors)
             self.dataChanged.emit(self.createIndex(0, 0),
                                   self.createIndex(len(executors), 0))
         else:
@@ -94,10 +93,18 @@ class RunConfigurationListModel(QAbstractListModel):
     def __init__(self, parent, executor_model):
         super().__init__(parent)
         self.parent = parent
+        self.current_configuration: Optional[str] = None
         self.metadata_index: Dict[int, str] = {}
+        self.inverted_index: Dict[str, int] = {}
         self.run_configurations: OrderedDict[
             str, RunConfigurationMetadata] = OrderedDict()
         self.executor_model: RunExecutorListModel = executor_model
+
+    def set_current_run_configuration(self, uuid: str):
+        self.current_configuration = uuid
+
+    def get_initial_index(self) -> int:
+        return self.inverted_index[self.current_configuration]
 
     def update_index(self, index: int):
         uuid = self.metadata_index[index]
@@ -119,6 +126,7 @@ class RunConfigurationListModel(QAbstractListModel):
     def pop(self, uuid: str) -> RunConfigurationMetadata:
         item = self.run_configurations.pop(uuid)
         self.metadata_index = dict(enumerate(self.run_configurations))
+        self.inverted_index = {v: k for k, v in self.metadata_index}
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
         return item
@@ -135,6 +143,7 @@ class RunConfigurationListModel(QAbstractListModel):
     def __setitem__(self, uuid: str, metadata: RunConfigurationMetadata):
         self.run_configurations[uuid] = metadata
         self.metadata_index[len(self.metadata_index)] = uuid
+        self.inverted_index[uuid] = len(self.inverted_index)
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
 
@@ -155,6 +164,7 @@ class RunContainer(PluginMainContainer):
 
         self.executor_use_count: Dict[str, int] = {}
         self.viewers_per_output: Dict[str, Set[str]] = {}
+        self.currently_selected_configuration: Optional[str] = None
 
         self.run_action = self.create_action(
             RunActions.Run, _('&Run (New)'), self.create_icon('run'),
@@ -188,6 +198,15 @@ class RunContainer(PluginMainContainer):
 
     def re_run_file(self):
         pass
+
+    def switch_focused_run_configuration(self, uuid: Optional[str]):
+        uuid = uuid or None
+        if uuid is not None:
+            self.run_action.setEnabled(True)
+            self.currently_selected_configuration = uuid
+            self.metadata_model.set_current_run_configuration(uuid)
+        else:
+            self.run_action.setEnabled(False)
 
     def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,

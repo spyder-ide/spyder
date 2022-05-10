@@ -83,7 +83,8 @@ class Run(SpyderPluginV2):
         return self.create_icon('run')
 
     def on_initialize(self):
-        pass
+        self.sig_switch_run_configuration_focus.connect(
+            self.switch_focused_run_configuration)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -104,7 +105,6 @@ class Run(SpyderPluginV2):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
-
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -231,3 +231,8 @@ class Run(SpyderPluginV2):
             A list of output formats that the viewer wants to deregister.
         """
         self.get_container().deregister_viewer_configuration(viewer, formats)
+
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def switch_focused_run_configuration(self, uuid: str):
+        self.get_container().switch_focused_run_configuration(uuid)

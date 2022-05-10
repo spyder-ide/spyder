@@ -541,13 +541,21 @@ class RunDialog(BaseRunConfigDialog):
         # self.configuration_combo.view().setVerticalScrollBarPolicy(
         #     Qt.ScrollBarAsNeeded)
         self.configuration_combo.setModel(self.run_conf_model)
-        self.configuration_combo.activated.connect(
+        self.run_conf_model.update_index(
+            self.run_conf_model.get_initial_index())
+
+        self.configuration_combo.currentIndexChanged.connect(
             self.run_conf_model.update_index)
 
         # self.executor_combo.setMaxVisibleItems(20)
         # self.executor_combo.view().setVerticalScrollBarPolicy(
         #     Qt.ScrollBarAsNeeded)
         self.executor_combo.setModel(self.executors_model)
+        self.executor_combo.currentIndexChanged.connect(
+            self.display_executor_configuration)
+
+        self.configuration_combo.setCurrentIndex(
+            self.run_conf_model.get_initial_index())
 
         self.stack = QStackedWidget()
         layout = self.add_widgets(combo_label, self.configuration_combo,
@@ -565,3 +573,6 @@ class RunDialog(BaseRunConfigDialog):
         self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
+
+    def display_executor_configuration(self, index: int):
+        pass

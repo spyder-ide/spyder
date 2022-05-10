@@ -134,6 +134,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
 
+    # This signal is used to communicate with the run plugin
+    sig_editor_focus_changed_uuid = Signal(str)
+
     sig_help_requested = Signal(dict)
     """
     This signal is emitted to request help on a given object `name`.
@@ -234,6 +237,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             statusbar.add_status_widget(self.encoding_status)
             statusbar.add_status_widget(self.cursorpos_status)
             statusbar.add_status_widget(self.vcs_status)
+
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            self.sig_editor_focus_changed_uuid.connect(
+                run.sig_switch_run_configuration_focus)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -349,6 +357,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.get_current_editor().centerCursor()
         except AttributeError:
             pass
+
+    def update_run_focus_file(self):
+        filename = self.get_current_filename()
+        file_id = self.id_per_file.get(filename, None)
+        self.sig_editor_focus_changed_uuid.emit(file_id)
 
     def register_file_run_metadata(self, filename, filename_ext):
         # Register opened files with the run plugin
@@ -1623,6 +1636,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
+        editorstack.editor_focus_changed.connect(self.update_run_focus_file)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))

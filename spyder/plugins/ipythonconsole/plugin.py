@@ -42,7 +42,7 @@ class IPythonConsole(SpyderDockablePlugin):
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run,
-                Plugins.Projects, Plugins.WorkingDirectory
+                Plugins.Projects, Plugins.WorkingDirectory]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
