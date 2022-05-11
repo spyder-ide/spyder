@@ -1368,7 +1368,6 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 #==============================================================================
 def test_edit(data, title="", parent=None):
     """Test subroutine"""
-    app = qapplication()                  # analysis:ignore
     dlg = DataFrameEditor(parent=parent)
 
     if dlg.setup_and_check(data, title=title):
@@ -1383,6 +1382,8 @@ def test():
     """DataFrame editor test"""
     from numpy import nan
     from pandas.util.testing import assert_frame_equal, assert_series_equal
+
+    app = qapplication()                  # analysis:ignore
 
     df1 = pd.DataFrame(
         [
