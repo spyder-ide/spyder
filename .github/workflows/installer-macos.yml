@@ -56,6 +56,10 @@ jobs:
         run: |
           ${pythonLocation}/bin/python -V -V
           ${pythonLocation}/bin/python -m pip list
+      - name: Install Micromamba
+        working-directory: ${{ github.workspace }}/spyder
+        run: |
+          curl -Ls https://micro.mamba.pm/api/micromamba/osx-64/latest | tar -xvj bin/micromamba
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Test Application Bundle
