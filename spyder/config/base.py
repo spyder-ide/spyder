@@ -575,7 +575,7 @@ def running_in_mac_app(pyexec=None):
 # =============================================================================
 # Micromamba
 # =============================================================================
-def get_spy_umamba_path():
+def get_spyder_umamba_path():
     """Return the path to the Micromamba executable bundled with Spyder."""
     if running_in_mac_app():
         path = osp.join(osp.dirname(osp.dirname(__file__)),
