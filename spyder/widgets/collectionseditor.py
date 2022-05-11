@@ -27,8 +27,8 @@ import warnings
 
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
-                         Signal, Slot)
+from qtpy.QtCore import (
+    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit, QMenu,
@@ -1058,7 +1058,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             key = row
             data.insert(row, '')
         elif isinstance(data, dict):
-            key, valid = QInputDialog.getText(self, _( 'Insert'), _( 'Key:'),
+            key, valid = QInputDialog.getText(self, _('Insert'), _('Key:'),
                                               QLineEdit.Normal)
             if valid and to_text_string(key):
                 key = try_to_eval(to_text_string(key))
@@ -1072,6 +1072,15 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         if valid and to_text_string(value):
             self.new_value(key, try_to_eval(to_text_string(value)))
+
+        # Deselect selection after introducing an item.
+        # * This avoids showing the wrong buttons in our toolbar when the
+        # operation is completed.
+        # * Also, if we leave something selected here, then the next insertion
+        # operation won't introduce the item in the expected row. That's why
+        # we need to force users to select a row again after this.
+        self.selectionModel().select(index, QItemSelectionModel.Select)
+        self.selectionModel().select(index, QItemSelectionModel.Deselect)
 
     @Slot()
     def view_item(self):
