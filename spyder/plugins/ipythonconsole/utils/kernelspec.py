@@ -105,7 +105,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # the activation scripts at spyder/plugins/ipythonconsole/scripts/
             kernel_cmd = [
                 get_activation_script(),  # This is bundled with Spyder
-                get_conda_activation_script(pyexec),
+                get_conda_activation_script(),
                 get_conda_env_path(pyexec),  # Might be external
                 pyexec,
                 '{connection_file}',

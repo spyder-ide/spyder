@@ -8,7 +8,11 @@ CONDA_ENV_PYTHON=$3
 SPYDER_KERNEL_SPEC=$4
 
 # Activate kernel environment
-source $CONDA_ACTIVATE_SCRIPT $CONDA_ENV_PATH
+if [[ "$CONDA_ACTIVATE_SCRIPT" = *"micromamba" ]]; then
+    eval "$($CONDA_ACTIVATE_SCRIPT shell activate -p $CONDA_ENV_PATH)"
+else
+    source $CONDA_ACTIVATE_SCRIPT $CONDA_ENV_PATH
+fi
 
 # Start kernel
 $CONDA_ENV_PYTHON -m spyder_kernels.console -f $SPYDER_KERNEL_SPEC
