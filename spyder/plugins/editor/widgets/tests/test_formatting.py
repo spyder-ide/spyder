@@ -13,6 +13,7 @@ import os.path as osp
 # Third party imports
 import pytest
 from qtpy.QtGui import QTextCursor
+from qtpy.QtWidgets import QMessageBox
 import yapf
 
 # Local imports
@@ -205,5 +206,47 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
 
     # Wait for text to be formatted
     qtbot.wait(2000)
+
+    assert code_editor.get_text_with_eol() == expected
+
+
+@pytest.mark.slow
+@pytest.mark.order(1)
+@pytest.mark.parametrize('formatter', [autopep8, black])
+def test_closing_document_formatting(
+        formatter, completions_editor, qtbot, monkeypatch):
+    """Validate text autoformatting via autopep8, yapf or black."""
+    file_path, editorstack, code_editor, completion_plugin = completions_editor
+    text, expected = get_formatter_values(formatter, newline='\n')
+
+    # Set formatter
+    CONF.set(
+        'completions',
+        ('provider_configuration', 'lsp', 'values', 'formatting'),
+        formatter
+    )
+    completion_plugin.after_configuration_update([])
+    qtbot.wait(2000)
+
+    # Set text in editor
+    code_editor.set_text(text)
+
+    # Notify changes
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    # Perform formatting while closing the file
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
+        monkeypatch.setattr(QMessageBox, 'exec_',
+                            classmethod(lambda *args: QMessageBox.Yes))
+        monkeypatch.setattr(editorstack, 'select_savename',
+                            lambda *args: str(file_path))
+        editorstack.save_dialog_on_tests = True
+        editorstack.close_file()
+
+    # Load again formatted file and check content
+    code_editor = editorstack.load(str(file_path)).editor
 
     assert code_editor.get_text_with_eol() == expected

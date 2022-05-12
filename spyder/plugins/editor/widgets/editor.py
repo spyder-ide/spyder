@@ -16,14 +16,13 @@ import logging
 import os
 import os.path as osp
 import sys
-import functools
 import unicodedata
 
 # Third party imports
 import qstylizer.style
 from qtpy.compat import getsavefilename
-from qtpy.QtCore import (QByteArray, QEventLoop, QFileInfo, QPoint, QSize, Qt,
-                         QTimer, Signal, Slot)
+from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
+                         Signal, Slot)
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
@@ -1902,23 +1901,23 @@ class EditorStack(QWidget):
         try:
             if self.format_on_save and finfo.editor.formatting_enabled:
                 # Wait for document autoformat and then save
-
+                print('FORMAT')
                 # Waiting for the autoformat to complete is needed
                 # when the file is going to be closed after saving.
                 # See spyder-ide/spyder#17836
-                format_eventloop = QEventLoop(None)
-                format_timeout = QTimer(self)
-                format_timeout.setSingleShot(True)
-                format_timeout.timeout.connect(format_eventloop.quit)
+                format_eventloop = finfo.editor.format_eventloop
+                format_timer = finfo.editor.format_timer
+                format_timer.setSingleShot(True)
+                format_timer.timeout.connect(format_eventloop.quit)
 
                 finfo.editor.sig_stop_operation_in_progress.connect(
                     lambda: self._save_file(finfo))
                 finfo.editor.sig_stop_operation_in_progress.connect(
-                    format_timeout.stop)
+                    format_timer.stop)
                 finfo.editor.sig_stop_operation_in_progress.connect(
                     format_eventloop.quit)
 
-                format_timeout.start(10000)
+                format_timer.start(10000)
                 finfo.editor.format_document()
                 format_eventloop.exec_()
             else:

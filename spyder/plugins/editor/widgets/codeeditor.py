@@ -33,8 +33,8 @@ from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (QEvent, QRegExp, Qt, QTimer, QThread, QUrl, Signal,
-                         Slot)
+from qtpy.QtCore import (QEvent, QEventLoop, QRegExp, Qt, QTimer, QThread,
+                         QUrl, Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
@@ -520,6 +520,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Autoformat on save
         self.format_on_save = False
+        self.format_eventloop = QEventLoop(None)
+        self.format_timer = QTimer(self)
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -2989,7 +2991,6 @@ class CodeEditor(TextEditBaseWidget):
             if indentations:
                 max_dedent = min(indentations)
                 lines_adjustment = max(lines_adjustment, -max_dedent)
-    
             # Get new text
             remaining_lines = [
                 self.adjust_indentation(line, lines_adjustment)
