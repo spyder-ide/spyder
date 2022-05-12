@@ -565,15 +565,27 @@ def running_in_mac_app(pyexec=None):
     if pyexec is None:
         pyexec = sys.executable
 
-    # EXECUTABLEPATH only exists if Spyder is a macOS app bundle
-    # EXECUTABLEPATH = .../<app name>.app/Conents/MacOS/Spyder
-    app_exe_path = os.environ.get('EXECUTABLEPATH', None)
+    bpath = get_mac_app_bundle_path()
 
-    if (sys.platform == "darwin" and app_exe_path
-            and pyexec == osp.join(osp.dirname(app_exe_path), 'python')):
+    if bpath and pyexec == osp.join(bpath, 'Contents/MacOS/python'):
         return True
     else:
         return False
+
+
+def get_mac_app_bundle_path():
+    """
+    Return the full path to the macOS app bundle. Otherwise return None.
+
+    EXECUTABLEPATH environment variable only exists if Spyder is a macOS app
+    bundle. In which case it will always end with
+    "/<app name>.app/Conents/MacOS/Spyder".
+    """
+    app_exe_path = os.environ.get('EXECUTABLEPATH', None)
+    if sys.platform == "darwin" and app_exe_path:
+        return osp.dirname(osp.dirname(osp.dirname(osp.abspath(app_exe_path))))
+    else:
+        return None
 
 
 # =============================================================================
