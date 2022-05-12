@@ -1901,7 +1901,7 @@ class EditorStack(QWidget):
         try:
             if self.format_on_save and finfo.editor.formatting_enabled:
                 # Wait for document autoformat and then save
-                print('FORMAT')
+
                 # Waiting for the autoformat to complete is needed
                 # when the file is going to be closed after saving.
                 # See spyder-ide/spyder#17836
