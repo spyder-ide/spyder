@@ -1785,20 +1785,13 @@ def get_test_data():
 
 def editor_test():
     """Test Collections editor."""
-    from spyder.utils.qthelpers import qapplication
-
-    app = qapplication()             #analysis:ignore
     dialog = CollectionsEditor()
     dialog.setup(get_test_data())
     dialog.show()
-    app.exec_()
 
 
 def remote_editor_test():
     """Test remote collections editor."""
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-
     from spyder.config.manager import CONF
     from spyder_kernels.utils.nsview import (make_remote_view,
                                              REMOTE_SETTINGS)
@@ -1811,9 +1804,12 @@ def remote_editor_test():
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
-    app.exec_()
 
 
 if __name__ == "__main__":
+    from spyder.utils.qthelpers import qapplication
+
+    app = qapplication()  # analysis:ignore
     editor_test()
     remote_editor_test()
+    app.exec_()

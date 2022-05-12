@@ -68,7 +68,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update --fix-missing
-          sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0 xterm --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache conda
         uses: actions/cache@v2
         env:
