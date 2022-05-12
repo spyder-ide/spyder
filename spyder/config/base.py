@@ -549,9 +549,6 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 #==============================================================================
 # Mac application utilities
 #==============================================================================
-MAC_APP_NAME = 'Spyder.app'
-
-
 def running_in_mac_app(pyexec=None):
     """
     Check if Python executable is located inside a standalone Mac app.

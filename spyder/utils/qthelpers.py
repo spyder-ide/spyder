@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import MAC_APP_NAME
+from spyder.config.base import get_mac_app_bundle_path
 from spyder.config.manager import CONF
 from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils.icon_manager import ima
@@ -751,7 +751,7 @@ class MacApplication(QApplication):
                 pass
             elif self._has_started:
                 self.sig_open_external_file.emit(fname)
-            elif MAC_APP_NAME not in fname:
+            else:
                 self._pending_file_open.append(fname)
         return QApplication.event(self, event)
 
@@ -771,16 +771,14 @@ def register_app_launchservices(
     Register app to the Apple launch services so it can open Python files
     """
     app = QApplication.instance()
-    # If top frame is MAC_APP_NAME, set ourselves to open files at startup
-    origin_filename = get_origin_filename()
-    if MAC_APP_NAME in origin_filename:
-        bundle_idx = origin_filename.find(MAC_APP_NAME)
-        old_handler = als.get_bundle_identifier_for_path(
-            origin_filename[:bundle_idx] + MAC_APP_NAME)
+
+    # If macOS app, set ourselves to open files at startup
+    bundle = get_mac_app_bundle_path()
+    if bundle:
+        old_handler = als.get_bundle_identifier_for_path(bundle)
     else:
         # Else, just restore the previous handler
-        old_handler = als.get_UTI_handler(
-            uniform_type_identifier, role)
+        old_handler = als.get_UTI_handler(uniform_type_identifier, role)
 
     app._original_handlers[(uniform_type_identifier, role)] = old_handler
 
