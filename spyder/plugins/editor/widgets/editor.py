@@ -16,7 +16,6 @@ import logging
 import os
 import os.path as osp
 import sys
-import functools
 import unicodedata
 
 # Third party imports
@@ -1901,10 +1900,26 @@ class EditorStack(QWidget):
 
         try:
             if self.format_on_save and finfo.editor.formatting_enabled:
-                # Autoformat document and then save
+                # Wait for document autoformat and then save
+
+                # Waiting for the autoformat to complete is needed
+                # when the file is going to be closed after saving.
+                # See spyder-ide/spyder#17836
+                format_eventloop = finfo.editor.format_eventloop
+                format_timer = finfo.editor.format_timer
+                format_timer.setSingleShot(True)
+                format_timer.timeout.connect(format_eventloop.quit)
+
                 finfo.editor.sig_stop_operation_in_progress.connect(
                     lambda: self._save_file(finfo))
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    format_timer.stop)
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    format_eventloop.quit)
+
+                format_timer.start(10000)
                 finfo.editor.format_document()
+                format_eventloop.exec_()
             else:
                 self._save_file(finfo)
             return True
