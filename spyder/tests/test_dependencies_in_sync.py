@@ -220,6 +220,8 @@ def test_dependencies_for_spyder_dialog_in_sync():
 
     if 'pyqt' in spyder_reqs:
         spyder_reqs.pop('pyqt')
+    if 'pyqtwebengine' in spyder_reqs:
+        spyder_reqs.pop('pyqtwebengine')
 
     assert spyder_deps == spyder_reqs
 
@@ -230,9 +232,6 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     """
     spyder_setup = parse_setup_install_requires(SETUP_FPATH)
     spyder_reqs = parse_requirements(REQ_FPATH)
-
-    if 'pyqtwebengine' in spyder_setup:
-        spyder_setup.pop('pyqtwebengine')
 
     assert spyder_setup == spyder_reqs
 
