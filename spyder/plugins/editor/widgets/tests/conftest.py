@@ -116,9 +116,6 @@ def completions_editor(
         # Capture stderr and assert there are no errors
         sys_stream = capsys.readouterr()
         sys_err = sys_stream.err
-
-        if PY2:
-            sys_err = to_text_string(sys_err).encode('utf-8')
         assert sys_err == ''
 
     request.addfinalizer(teardown)

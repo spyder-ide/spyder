@@ -215,7 +215,7 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
 @pytest.mark.parametrize('formatter', [autopep8, black])
 def test_closing_document_formatting(
         formatter, completions_editor, qtbot, monkeypatch):
-    """Validate text autoformatting via autopep8, yapf or black."""
+    """Check that auto-formatting works when closing an usaved file."""
     file_path, editorstack, code_editor, completion_plugin = completions_editor
     text, expected = get_formatter_values(formatter, newline='\n')
 
