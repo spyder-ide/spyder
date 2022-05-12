@@ -993,22 +993,35 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def copy_item(self, erase_original=False, new_name=None):
         """Copy item"""
         indexes = self.selectedIndexes()
+
         if not indexes:
             return
+
         if self.proxy_model:
             idx_rows = unsorted_unique(
                 [self.proxy_model.mapToSource(idx).row() for idx in indexes])
         else:
             idx_rows = unsorted_unique([idx.row() for idx in indexes])
+
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
+
         orig_key = self.source_model.keys[idx_rows[0]]
         if erase_original:
+            if not isinstance(orig_key, str):
+                QMessageBox.warning(
+                    self,
+                    _("Warning"),
+                    _("You can only rename keys that are strings")
+                )
+                return
+
             title = _('Rename')
             field_text = _('New variable name:')
         else:
             title = _('Duplicate')
             field_text = _('Variable name:')
+
         data = self.source_model.get_data()
         if isinstance(data, (list, set)):
             new_key, valid = len(data), True
