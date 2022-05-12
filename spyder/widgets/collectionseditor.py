@@ -956,6 +956,22 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             event.ignore()
 
+    def _deselect_index(self, index):
+        """
+        Deselect index after any operation that adds or removes rows to/from
+        the editor.
+
+        Notes
+        -----
+        * This avoids showing the wrong buttons in the editor's toolbar when
+          the operation is completed.
+        * Also, if we leave something selected, then the next operation won't
+          introduce the item in the expected row. That's why we need to force
+          users to select a row again after this.
+        """
+        self.selectionModel().select(index, QItemSelectionModel.Select)
+        self.selectionModel().select(index, QItemSelectionModel.Deselect)
+
     @Slot()
     def edit_item(self):
         """Edit item"""
@@ -968,18 +984,23 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     @Slot()
     def remove_item(self, force=False):
         """Remove item"""
+        current_index = self.currentIndex()
         indexes = self.selectedIndexes()
+
         if not indexes:
             return
+
         for index in indexes:
             if not index.isValid():
                 return
+
         if not force:
             one = _("Do you want to remove the selected item?")
             more = _("Do you want to remove all selected items?")
             answer = QMessageBox.question(self, _("Remove"),
                                           one if len(indexes) == 1 else more,
                                           QMessageBox.Yes | QMessageBox.No)
+
         if force or answer == QMessageBox.Yes:
             if self.proxy_model:
                 idx_rows = unsorted_unique(
@@ -990,8 +1011,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
+        self._deselect_index(current_index)
+
     def copy_item(self, erase_original=False, new_name=None):
         """Copy item"""
+        current_index = self.currentIndex()
         indexes = self.selectedIndexes()
 
         if not indexes:
@@ -1030,6 +1054,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             new_key, valid = QInputDialog.getText(self, title, field_text,
                                                   QLineEdit.Normal, orig_key)
+
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
             if new_key == orig_key:
@@ -1037,6 +1062,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.copy_value(orig_key, new_key)
             if erase_original:
                 self.remove_values([orig_key])
+
+        self._deselect_index(current_index)
 
     @Slot()
     def duplicate_item(self):
@@ -1085,15 +1112,6 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         if valid and to_text_string(value):
             self.new_value(key, try_to_eval(to_text_string(value)))
-
-        # Deselect selection after introducing an item.
-        # * This avoids showing the wrong buttons in our toolbar when the
-        # operation is completed.
-        # * Also, if we leave something selected here, then the next insertion
-        # operation won't introduce the item in the expected row. That's why
-        # we need to force users to select a row again after this.
-        self.selectionModel().select(index, QItemSelectionModel.Select)
-        self.selectionModel().select(index, QItemSelectionModel.Deselect)
 
     @Slot()
     def view_item(self):
@@ -1302,9 +1320,11 @@ class CollectionsEditorTableView(BaseTableView):
 
     def new_value(self, key, value):
         """Create new value in data"""
+        index = self.currentIndex()
         data = self.source_model.get_data()
         data[key] = value
         self.set_data(data)
+        self._deselect_index(index)
 
     def is_list(self, key):
         """Return True if variable is a list or a tuple"""
