@@ -594,10 +594,8 @@ def get_spyder_umamba_path():
         path = osp.join(osp.dirname(osp.dirname(__file__)),
                         'bin', 'micromamba')
     elif is_pynsist():
-        base_path = osp.abspath(osp.dirname(__file__))
-        bin_path = osp.abspath(
-            osp.join(base_path, '..', '..', '..', 'bin'))
-        path = osp.join(bin_path, 'micromamba.exe')
+        path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
+                                    'bin', 'micromamba.exe'))
     else:
         path = None
 

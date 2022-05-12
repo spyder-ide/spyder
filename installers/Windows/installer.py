@@ -104,7 +104,7 @@ files={package_dist_info} > $INSTDIR/pkgs
     lib
     tcl86t.dll > $INSTDIR/pkgs
     tk86t.dll > $INSTDIR/pkgs
-    micromamba.exe > $INSTDIR/bin
+    micromamba.exe > $INSTDIR/pkgs/spyder/bin
 [Build]
 installer_name={installer_name}
 nsi_template={template}
