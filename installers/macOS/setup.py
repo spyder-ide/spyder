@@ -118,7 +118,6 @@ def make_disk_image(dist_dir, make_lite=False):
     dmg_name += '.dmg'
     dmgfile = (dist_dir / dmg_name).as_posix()
 
-
     settings_file = (THISDIR / 'dmg_settings.py').as_posix()
     settings = {
         'files': [(dist_dir / MAC_APP_NAME).as_posix()],

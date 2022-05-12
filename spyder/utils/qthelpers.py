@@ -20,11 +20,10 @@ import types
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, QUrl, Signal, Slot)
-from qtpy.QtGui import (
-    QDesktopServices, QIcon, QKeyEvent, QKeySequence, QPixmap)
+from qtpy.QtGui import QDesktopServices, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
-                            QProxyStyle, QPushButton, QStyle, QToolBar,
+                            QProxyStyle, QPushButton, QStyle,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
@@ -37,7 +36,6 @@ from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
-from spyder.config.manager import CONF
 
 # Third party imports
 if sys.platform == "darwin":
@@ -129,7 +127,7 @@ def qapplication(translate=True, test_time=3):
     if test_ci is not None:
         timer_shutdown = QTimer(app)
         timer_shutdown.timeout.connect(app.quit)
-        timer_shutdown.start(test_time*1000)
+        timer_shutdown.start(test_time * 1000)
     return app
 
 
@@ -147,14 +145,17 @@ def file_uri(fname):
 
 
 QT_TRANSLATOR = None
+
+
 def install_translator(qapp):
     """Install Qt translator to the QApplication instance"""
     global QT_TRANSLATOR
     if QT_TRANSLATOR is None:
         qt_translator = QTranslator()
-        if qt_translator.load("qt_"+QLocale.system().name(),
-                      QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
-            QT_TRANSLATOR = qt_translator # Keep reference alive
+        if qt_translator.load(
+                "qt_" + QLocale.system().name(),
+                QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+            QT_TRANSLATOR = qt_translator  # Keep reference alive
     if QT_TRANSLATOR is not None:
         qapp.installTranslator(QT_TRANSLATOR)
 
@@ -382,6 +383,7 @@ def wrap_toggled(toggled, section, option):
 
 def add_configuration_update(action):
     """Add on_configuration_change to a SpyderAction that depends on CONF."""
+
     def on_configuration_change(self, _option, _section, value):
         self.blockSignals(True)
         self.setChecked(value)
@@ -512,6 +514,7 @@ class DialogManager(QObject):
     Object that keep references to non-modal dialog boxes for another QObject,
     typically a QMainWindow or any kind of QWidget
     """
+
     def __init__(self):
         QObject.__init__(self)
         self.dialogs = {}
@@ -529,9 +532,9 @@ class DialogManager(QObject):
             dialog.show()
             self.dialogs[id(dialog)] = dialog
             dialog.accepted.connect(
-                              lambda eid=id(dialog): self.dialog_finished(eid))
+                lambda eid=id(dialog): self.dialog_finished(eid))
             dialog.rejected.connect(
-                              lambda eid=id(dialog): self.dialog_finished(eid))
+                lambda eid=id(dialog): self.dialog_finished(eid))
 
     def dialog_finished(self, dialog_id):
         """Manage non-modal dialog boxes"""
@@ -548,7 +551,7 @@ def get_filetype_icon(fname):
     ext = osp.splitext(fname)[1]
     if ext.startswith('.'):
         ext = ext[1:]
-    return ima.get_icon( "%s.png" % ext, ima.icon('FileIcon') )
+    return ima.get_icon("%s.png" % ext, ima.icon('FileIcon'))
 
 
 class SpyderAction(QAction):
@@ -572,6 +575,7 @@ class ShowStdIcons(QWidget):
     """
     Dialog showing standard icons
     """
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         layout = QHBoxLayout()
@@ -585,10 +589,10 @@ class ShowStdIcons(QWidget):
                 icon = ima.get_std_icon(child)
                 label = QLabel()
                 label.setPixmap(icon.pixmap(32, 32))
-                icon_layout.addWidget( label )
-                icon_layout.addWidget( QLineEdit(child.replace('SP_', '')) )
+                icon_layout.addWidget(label)
+                icon_layout.addWidget(QLineEdit(child.replace('SP_', '')))
                 col_layout.addLayout(icon_layout)
-                cindex = (cindex+1) % row_nb
+                cindex = (cindex + 1) % row_nb
                 if cindex == 0:
                     layout.addLayout(col_layout)
         self.setLayout(layout)
