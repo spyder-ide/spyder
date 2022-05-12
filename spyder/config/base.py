@@ -545,10 +545,7 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 #==============================================================================
 # Mac application utilities
 #==============================================================================
-if PY3:
-    MAC_APP_NAME = 'Spyder.app'
-else:
-    MAC_APP_NAME = 'Spyder-Py2.app'
+MAC_APP_NAME = 'Spyder.app'
 
 
 def running_in_mac_app(pyexec=None):
