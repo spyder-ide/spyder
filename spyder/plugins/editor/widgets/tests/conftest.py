@@ -84,7 +84,6 @@ def completions_editor(
     """Editorstack instance with LSP services activated."""
     # Create a CodeEditor instance
     editorstack, editor = editor_factory(new_file=False)
-    editorstack.set_format_on_save(True)
     qtbot_module.addWidget(editorstack)
 
     completion_plugin, capabilities = completion_plugin_all_started

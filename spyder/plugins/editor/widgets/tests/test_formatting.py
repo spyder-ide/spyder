@@ -220,6 +220,7 @@ def test_closing_document_formatting(
     text, expected = get_formatter_values(formatter, newline='\n')
 
     # Set formatter
+    editorstack.set_format_on_save(True)
     CONF.set(
         'completions',
         ('provider_configuration', 'lsp', 'values', 'formatting'),
