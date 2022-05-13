@@ -189,8 +189,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 text = to_text_string(lineedit.text())
                 if not validator(text):
                     QMessageBox.critical(self, self.get_name(),
-                                     "%s:<br><b>%s</b>" % (invalid_msg, text),
-                                     QMessageBox.Ok)
+                                         f"{invalid_msg}:<br><b>{text}</b>",
+                                         QMessageBox.Ok)
                     return False
 
         if self.tabs is not None and status:
@@ -271,9 +271,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     index = None
             if index:
                 combobox.setCurrentIndex(index)
-            combobox.currentIndexChanged.connect(lambda _foo, opt=option, sect=sec:
-                                                 self.has_been_modified(
-                                                     sect, opt))
+            combobox.currentIndexChanged.connect(
+                lambda _foo, opt=option, sect=sec:
+                    self.has_been_modified(sect, opt))
             if combobox.restart_required:
                 if sec is None:
                     self.restart_options[option] = combobox.label_text
@@ -762,7 +762,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
 
-        sizelabel = QLabel("  "+_("Size"))
+        sizelabel = QLabel("  " + _("Size"))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         self.fontboxes[(fontbox, sizebox)] = option
