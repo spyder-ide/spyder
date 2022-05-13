@@ -19,10 +19,10 @@ from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
 from qtpy.QtCore import Qt, Signal, Slot, QRegExp
 from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
-                            QFontComboBox, QGridLayout, QGroupBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QRadioButton, QSpinBox, QVBoxLayout, QWidget,
-                            QPlainTextEdit, QTabWidget)
+                            QFileDialog, QFontComboBox, QGridLayout, QGroupBox,
+                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
+                            QPlainTextEdit, QPushButton, QRadioButton,
+                            QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -566,7 +566,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         browsedir.setLayout(layout)
         return browsedir
 
-    def select_file(self, edit, filters=None):
+    def select_file(self, edit, filters=None, **kwargs):
         """Select File"""
         basedir = osp.dirname(to_text_string(edit.text()))
         if not osp.isdir(basedir):
@@ -574,7 +574,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if filters is None:
             filters = _("All files (*)")
         title = _("Select file")
-        filename, _selfilter = getopenfilename(self, title, basedir, filters)
+        filename, _selfilter = getopenfilename(self, title, basedir, filters,
+                                               **kwargs)
         if filename:
             edit.setText(filename)
 
@@ -733,7 +734,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             msg)
         browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
-        browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
+        options = QFileDialog.DontResolveSymlinks
+        browse_btn.clicked.connect(
+            lambda: self.select_file(edit, filters, options=options))
 
         layout = QGridLayout()
         layout.addWidget(combobox, 0, 0, 0, 9)
