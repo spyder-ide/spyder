@@ -18,7 +18,6 @@ from pathlib import Path
 from setuptools import setup
 
 from spyder import __version__ as SPYVER
-from spyder.config.base import MAC_APP_NAME
 
 # Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -34,6 +33,7 @@ SPYREPO = (THISDIR / '..' / '..').resolve()
 ICONFILE = SPYREPO / 'img_src' / 'spyder.icns'
 APPSCRIPT = SPYREPO / 'scripts' / 'spyder'
 
+MAC_APP_NAME = 'Spyder.app'
 APP_BASE_NAME = MAC_APP_NAME[:-4]
 
 # Python version
@@ -117,7 +117,6 @@ def make_disk_image(dist_dir, make_lite=False):
         dmg_name += '-Lite'
     dmg_name += '.dmg'
     dmgfile = (dist_dir / dmg_name).as_posix()
-
 
     settings_file = (THISDIR / 'dmg_settings.py').as_posix()
     settings = {
