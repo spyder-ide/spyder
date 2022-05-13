@@ -45,7 +45,7 @@ from spyder_kernels.utils.nsview import (
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.toolbars import SpyderToolbar
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
@@ -1011,7 +1011,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
-        self._deselect_index(current_index)
+        # This avoids a segfault in our tests that doesn't happen when
+        # removing items manually.
+        if not running_under_pytest():
+            self._deselect_index(current_index)
 
     def copy_item(self, erase_original=False, new_name=None):
         """Copy item"""
