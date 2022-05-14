@@ -594,7 +594,8 @@ def get_spyder_umamba_path():
         path = osp.join(osp.dirname(osp.dirname(__file__)),
                         'bin', 'micromamba')
     elif is_pynsist():
-        path = None  # TODO: when micromamba is added to Windows installer
+        path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
+                                    'bin', 'micromamba.exe'))
     else:
         path = None
 
