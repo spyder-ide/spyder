@@ -153,23 +153,29 @@ def test_remove_remote_variable(qtbot, monkeypatch):
     """Test the removing of the correct remote variable."""
     variables = {'a': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '1'},
+                       'view': '1',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'b': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '2'},
+                       'view': '2',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'c': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '3'},
+                       'view': '3',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'd': {'type': 'str',
-                       'size': 1, 'color': '#800000',
-                       'view': '4'},
+                       'size': 1,
+                       'view': '4',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'e': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '5'}}
+                       'view': '5',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'}}
     editor = RemoteCollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
     editor.setCurrentIndex(editor.model.index(1, 0))
@@ -179,19 +185,24 @@ def test_remove_remote_variable(qtbot, monkeypatch):
         assert names == ['b']
         data = {'a': {'type': 'int',
                       'size': 1,
-                      'color': '#0000ff',
-                      'view': '1'},
+                      'view': '1',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'},
                 'c': {'type': 'int',
                       'size': 1,
-                      'color': '#0000ff',
-                      'view': '3'},
+                      'view': '3',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'},
                 'd': {'type': 'str',
-                      'size': 1, 'color': '#800000',
-                      'view': '4'},
+                      'size': 1,
+                      'view': '4',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'},
                 'e': {'type': 'int',
                       'size': 1,
-                      'color': '#0000ff',
-                      'view': '5'}}
+                      'view': '5',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'}}
         editor.set_data(data)
     monkeypatch.setattr(
         'spyder.widgets'
@@ -221,11 +232,17 @@ def test_filter_rows(qtbot):
     """Test rows filtering."""
     data = (
         {'dfa':
-            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
-             'view': 'Column names: 0'},
+            {'type': 'DataFrame',
+             'size': (2, 1),
+             'view': 'Column names: 0',
+             'python_type': 'DataFrame',
+             'numpy_type': 'Unknown'},
          'dfb':
-            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
-             'view': 'Column names: 0'}}
+            {'type': 'DataFrame',
+             'size': (2, 1),
+             'view': 'Column names: 0',
+             'python_type': 'DataFrame',
+             'numpy_type': 'Unknown'}}
     )
     editor = RemoteCollectionsEditorTableView(None, data)
     editor.finder = NamespacesBrowserFinder(
