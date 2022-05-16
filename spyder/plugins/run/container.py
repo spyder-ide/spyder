@@ -39,7 +39,7 @@ class RunExecutorListModel(QAbstractListModel):
     def __init__(self, parent):
         super().__init__(parent)
         self.current_input: Optional[Tuple[str, str]] = None
-        self.current_executor: Optional[str] = None
+        # self.current_executor: Optional[str] = None
         self.executor_names: Dict[str, str] = {}
         self.executors_per_input: Dict[
             Tuple[str, str], Dict[
@@ -63,25 +63,30 @@ class RunExecutorListModel(QAbstractListModel):
 
     def switch_input(self, run_input: Tuple[str, str]):
         if run_input in self.executors_per_input:
+            self.beginResetModel()
             self.current_input = run_input
             executors = self.executors_per_input[run_input]
-            self.dataChanged.emit(self.createIndex(0, 0),
-                                  self.createIndex(len(executors), 0))
+            self.endResetModel()
         else:
             raise ValueError(
                 f'The requested run input combination {run_input} is not '
                 'registered')
 
-    def get_selected_run_configuration(self) -> SupportedExecutionRunConfiguration:
+    def get_selected_run_configuration(self, index: int) -> SupportedExecutionRunConfiguration:
         input_executors = self.executors_per_input[self.current_input]
-        return input_executors[self.current_executor]
+        sorted_executors = sorted(list(input_executors.keys()))
+        executor = sorted_executors[index]
+        return input_executors[executor]
+
+    def get_initial_index(self) -> int:
+        return 0
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         if role == Qt.DisplayRole:
             executors = self.executors_per_input[self.current_input]
             sorted_executors = sorted(list(executors.keys()))
             executor_id = sorted_executors[index.row()]
-            self.current_executor = executor_id
+            # self.current_executor = executor_id
             return self.executor_names[executor_id]
 
     def rowCount(self, parent: QModelIndex = None) -> int:
@@ -126,7 +131,7 @@ class RunConfigurationListModel(QAbstractListModel):
     def pop(self, uuid: str) -> RunConfigurationMetadata:
         item = self.run_configurations.pop(uuid)
         self.metadata_index = dict(enumerate(self.run_configurations))
-        self.inverted_index = {v: k for k, v in self.metadata_index}
+        self.inverted_index = {v: k for k, v in self.metadata_index.items()}
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
         return item

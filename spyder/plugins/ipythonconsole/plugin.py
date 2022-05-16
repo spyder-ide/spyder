@@ -21,6 +21,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
+from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
 from spyder.plugins.mainmenu.api import (
@@ -275,7 +276,7 @@ class IPythonConsole(SpyderDockablePlugin):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': None,
+                'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True
             },
             {

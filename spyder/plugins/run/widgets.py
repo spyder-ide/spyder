@@ -535,27 +535,24 @@ class RunDialog(BaseRunConfigDialog):
     def setup(self):
         combo_label = QLabel(_("Select a run configuration:"))
         executor_label = QLabel(_("Select a run executor:"))
+
         self.configuration_combo = QComboBox()
         self.executor_combo = QComboBox()
-        # self.configuration_combo.setMaxVisibleItems(20)
-        # self.configuration_combo.view().setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarAsNeeded)
-        self.configuration_combo.setModel(self.run_conf_model)
-        self.run_conf_model.update_index(
-            self.run_conf_model.get_initial_index())
-
-        self.configuration_combo.currentIndexChanged.connect(
-            self.run_conf_model.update_index)
-
-        # self.executor_combo.setMaxVisibleItems(20)
-        # self.executor_combo.view().setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarAsNeeded)
-        self.executor_combo.setModel(self.executors_model)
         self.executor_combo.currentIndexChanged.connect(
             self.display_executor_configuration)
+        self.executor_combo.setModel(self.executors_model)
 
-        self.configuration_combo.setCurrentIndex(
-            self.run_conf_model.get_initial_index())
+        self.configuration_combo.currentIndexChanged.connect(
+            self.update_configuration_run_index)
+        self.configuration_combo.setModel(self.run_conf_model)
+
+        self.configuration_combo.setMaxVisibleItems(20)
+        self.configuration_combo.view().setVerticalScrollBarPolicy(
+            Qt.ScrollBarAsNeeded)
+
+        self.executor_combo.setMaxVisibleItems(20)
+        self.executor_combo.view().setVerticalScrollBarPolicy(
+            Qt.ScrollBarAsNeeded)
 
         self.stack = QStackedWidget()
         layout = self.add_widgets(combo_label, self.configuration_combo,
@@ -574,5 +571,16 @@ class RunDialog(BaseRunConfigDialog):
 
         self.setWindowTitle(_("Run configuration per file"))
 
+    def update_configuration_run_index(self, index: int):
+        self.executor_combo.setCurrentIndex(-1)
+        self.run_conf_model.update_index(index)
+        self.executor_combo.setCurrentIndex(
+            self.executors_model.get_initial_index())
+
     def display_executor_configuration(self, index: int):
-        pass
+        if index == -1:
+            return
+
+        executor_info = self.executors_model.get_selected_run_configuration(
+            index)
+        print(executor_info)
