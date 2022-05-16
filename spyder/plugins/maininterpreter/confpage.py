@@ -51,7 +51,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         # add custom_interpreter to executable selection
         executable = self.get_option('executable', get_python_executable())
 
-        # the following checks are probably handled in on_conf_change
+        # check if the executable is valid - use Spyder's if not
         if self.get_option('default') or not osp.isfile(executable):
             executable = get_python_executable()
         elif not self.get_option('custom_interpreter'):
