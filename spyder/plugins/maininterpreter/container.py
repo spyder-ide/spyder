@@ -59,9 +59,10 @@ class MainInterpreterContainer(PluginMainContainer):
         else:
             executable = osp.normpath(self.get_conf('custom_interpreter'))
             self.sig_add_to_custom_interpreters_requested.emit(executable)
+
         # Setting executable option that will be used by other plugins in Spyder.
         if executable != self.get_conf('executable'):
-                self.set_conf('executable', executable)
+            self.set_conf('executable', executable)
 
     @on_conf_change(option=['executable'])
     def on_executable_changed(self, value):
