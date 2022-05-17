@@ -330,7 +330,7 @@ class CallTipWidget(TipWidget):
             elif etype == QEvent.WindowBlocked:
                 self.hide()
 
-        return super(CallTipWidget, self).eventFilter(obj, event)
+        return super().eventFilter(obj, event)
 
     def timerEvent(self, event):
         """ Reimplemented to hide the widget when the hide timer fires.
@@ -346,7 +346,7 @@ class CallTipWidget(TipWidget):
     def enterEvent(self, event):
         """ Reimplemented to cancel the hide timer.
         """
-        super(CallTipWidget, self).enterEvent(event)
+        super().enterEvent(event)
         if self.as_tooltip:
             self.hide()
 
@@ -374,7 +374,7 @@ class CallTipWidget(TipWidget):
         self._leave_event_hide()
 
     def mousePressEvent(self, event):
-        super(CallTipWidget, self).mousePressEvent(event)
+        super().mousePressEvent(event)
         self.hide()
 
     def setFont(self, font):
