@@ -641,9 +641,16 @@ class ConfigurationManager(object):
 try:
     CONF = ConfigurationManager()
 except Exception:
-    from qtpy.QtWidgets import QMessageBox
-    from spyder.app.utils import create_application
-    app = create_application()
+    from qtpy.QtWidgets import QApplication, QMessageBox
+
+    # Create QApplication in order to display the message below.
+    # NOTE: We don't use the functions we have to create a QApplication here
+    # because they could import CONF at some point, which would make this
+    # this fallback fail.
+    # See issue spyder-ide/spyder#17889
+    app = QApplication(['Spyder'])
+    app.setApplicationName('Spyder')
+
     reset_reply = QMessageBox.critical(
         None, 'Spyder',
         _("There was an error while loading Spyder configuration options. "
