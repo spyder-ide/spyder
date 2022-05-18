@@ -643,13 +643,17 @@ try:
 except Exception:
     from qtpy.QtWidgets import QApplication, QMessageBox
 
-    # Create QApplication in order to display the message below.
-    # NOTE: We don't use the functions we have to create a QApplication here
+    # Check if there's an app already running
+    app = QApplication.instance()
+
+    # Create app, if there's none, in order to display the message below.
+    # NOTE: Don't use the functions we have to create a QApplication here
     # because they could import CONF at some point, which would make this
-    # this fallback fail.
+    # fallback fail.
     # See issue spyder-ide/spyder#17889
-    app = QApplication(['Spyder'])
-    app.setApplicationName('Spyder')
+    if app is None:
+        app = QApplication(['Spyder'])
+        app.setApplicationName('Spyder')
 
     reset_reply = QMessageBox.critical(
         None, 'Spyder',
