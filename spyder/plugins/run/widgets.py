@@ -7,6 +7,7 @@
 """Run dialogs and widgets and data models."""
 
 # Standard library imports
+from curses import meta
 import os.path as osp
 from collections import OrderedDict
 
@@ -394,6 +395,7 @@ class BaseRunConfigDialog(QDialog):
         """Create dialog button box and add it to the dialog layout"""
         bbox = QDialogButtonBox(stdbtns)
         run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+        reset_deafults_btn = bbox.addButton(_('Reset'), QDialogButtonBox.ResetRole)
         run_btn.clicked.connect(self.run_btn_clicked)
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
@@ -538,6 +540,52 @@ class RunDialog(BaseRunConfigDialog):
 
         self.configuration_combo = QComboBox()
         self.executor_combo = QComboBox()
+
+        self.stack = QStackedWidget()
+        # reset_exec_config = QPushButton("Reset to defaults")
+        executor_layout = QVBoxLayout()
+        executor_layout.addWidget(self.stack)
+        # executor_layout.addWidget(reset_exec_config)
+
+        executor_group = QGroupBox(_("Executor configuration"))
+        executor_group.setLayout(executor_layout)
+
+        # --- Working directory ---
+        wdir_group = QGroupBox(_("Working directory settings"))
+        wdir_group.setDisabled(True)
+
+        # self.run_custom_config_radio.toggled.connect(wdir_group.setEnabled)
+
+        wdir_layout = QVBoxLayout(wdir_group)
+
+        self.file_dir_radio = QRadioButton(FILE_DIR)
+        wdir_layout.addWidget(self.file_dir_radio)
+
+        self.cwd_radio = QRadioButton(CW_DIR)
+        wdir_layout.addWidget(self.cwd_radio)
+
+        fixed_dir_layout = QHBoxLayout()
+        self.fixed_dir_radio = QRadioButton(FIXED_DIR)
+        fixed_dir_layout.addWidget(self.fixed_dir_radio)
+        self.wd_edit = QLineEdit()
+        self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
+        self.wd_edit.setEnabled(False)
+        fixed_dir_layout.addWidget(self.wd_edit)
+        browse_btn = create_toolbutton(
+            self,
+            triggered=self.select_directory,
+            icon=ima.icon('DirOpenIcon'),
+            tip=_("Select directory")
+            )
+        fixed_dir_layout.addWidget(browse_btn)
+        wdir_layout.addLayout(fixed_dir_layout)
+
+        self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
+
+        layout = self.add_widgets(combo_label, self.configuration_combo,
+                                  executor_label, self.executor_combo,
+                                  10, executor_group, wdir_group, self.firstrun_cb)
+
         self.executor_combo.currentIndexChanged.connect(
             self.display_executor_configuration)
         self.executor_combo.setModel(self.executors_model)
@@ -554,11 +602,6 @@ class RunDialog(BaseRunConfigDialog):
         self.executor_combo.view().setVerticalScrollBarPolicy(
             Qt.ScrollBarAsNeeded)
 
-        self.stack = QStackedWidget()
-        layout = self.add_widgets(combo_label, self.configuration_combo,
-                                  executor_label, self.executor_combo,
-                                  10, self.stack)
-
         widget_dialog = QWidget()
         widget_dialog.setLayout(layout)
         scrollarea = QScrollArea(self)
@@ -571,6 +614,16 @@ class RunDialog(BaseRunConfigDialog):
 
         self.setWindowTitle(_("Run configuration per file"))
 
+    def select_directory(self):
+        """Select directory"""
+        basedir = str(self.wd_edit.text())
+        if not osp.isdir(basedir):
+            basedir = getcwd_or_home()
+        directory = getexistingdirectory(self, _("Select directory"), basedir)
+        if directory:
+            self.wd_edit.setText(directory)
+            self.dir = directory
+
     def update_configuration_run_index(self, index: int):
         self.executor_combo.setCurrentIndex(-1)
         self.run_conf_model.update_index(index)
@@ -581,6 +634,25 @@ class RunDialog(BaseRunConfigDialog):
         if index == -1:
             return
 
-        executor_info = self.executors_model.get_selected_run_configuration(
-            index)
-        print(executor_info)
+        # Clear the QStackWidget contents
+        while self.stack.count() > 0:
+            widget = self.stack.widget(0)
+            self.stack.removeWidget(widget)
+
+        exec_tuple = self.executors_model.get_selected_run_executor(index)
+        executor_name, executor_info = exec_tuple
+        ConfigWidget = executor_info['configuration_widget']
+
+        metadata = self.run_conf_model.get_selected_metadata()
+        context = metadata['context']
+        input_extension = metadata['input_extension']
+        uuid = metadata['uuid']
+
+        widget = ConfigWidget(self, context, input_extension, metadata)
+        self.stack.addWidget(widget)
+
+        stored_parameters = self.run_conf_model.get_run_configuration_parameters(
+            uuid, executor_name)
+        if stored_parameters is None:
+            stored_parameters = widget.get_default_configuration()
+        widget.set_configuration(stored_parameters)

@@ -72,11 +72,12 @@ class RunExecutorListModel(QAbstractListModel):
                 f'The requested run input combination {run_input} is not '
                 'registered')
 
-    def get_selected_run_configuration(self, index: int) -> SupportedExecutionRunConfiguration:
+    def get_selected_run_executor(
+            self, index: int) -> Tuple[str, SupportedExecutionRunConfiguration]:
         input_executors = self.executors_per_input[self.current_input]
         sorted_executors = sorted(list(input_executors.keys()))
         executor = sorted_executors[index]
-        return input_executors[executor]
+        return executor, input_executors[executor]
 
     def get_initial_index(self) -> int:
         return 0
@@ -98,6 +99,7 @@ class RunConfigurationListModel(QAbstractListModel):
     def __init__(self, parent, executor_model):
         super().__init__(parent)
         self.parent = parent
+        self.selected_metadata: Optional[RunConfigurationMetadata] = None
         self.current_configuration: Optional[str] = None
         self.metadata_index: Dict[int, str] = {}
         self.inverted_index: Dict[str, int] = {}
@@ -111,12 +113,16 @@ class RunConfigurationListModel(QAbstractListModel):
     def get_initial_index(self) -> int:
         return self.inverted_index[self.current_configuration]
 
+    def get_selected_metadata(self) -> Optional[RunConfigurationMetadata]:
+        return self.selected_metadata
+
     def update_index(self, index: int):
         uuid = self.metadata_index[index]
         metadata = self.run_configurations[uuid]
         context_name = metadata['context']['name']
         context_id = getattr(RunContext, context_name)
         ext = metadata['input_extension']
+        self.selected_metadata = metadata
         self.executor_model.switch_input((ext, context_id))
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
@@ -127,6 +133,10 @@ class RunConfigurationListModel(QAbstractListModel):
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.run_configurations)
+
+    def get_run_configuration_parameters(
+            self, uuid: str, executor: str) -> Optional[dict]:
+        return self.parent.get_run_configuration_parameters(uuid, executor)
 
     def pop(self, uuid: str) -> RunConfigurationMetadata:
         item = self.run_configurations.pop(uuid)
@@ -262,8 +272,8 @@ class RunContainer(PluginMainContainer):
             self, executor: RunExecutor,
             configuration: List[SupportedExecutionRunConfiguration]):
         """
-        Register a :class:`RunExecutorProvider` instance to indicate its support
-        for a given set of run configurations.
+        Register a :class:`RunExecutorProvider` instance to indicate its
+        support for a given set of run configurations.
 
         Parameters
         ----------
@@ -322,8 +332,8 @@ class RunContainer(PluginMainContainer):
             :class:`RunExecutor` interface and will deregister execution
             input type information.
         configuration: List[SupportedExecutionRunConfiguration]
-            A list of input configurations that the executor wants to deregister.
-            Each configuration specifies the input extension
+            A list of input configurations that the executor wants to
+            deregister. Each configuration specifies the input extension
             identifier as well as the available execution context for that
             type.
         """
@@ -388,3 +398,28 @@ class RunContainer(PluginMainContainer):
             if format_id in self.viewers:
                 viewer_set = self.viewers[format_id]
                 viewer_set.discard(viewer)
+
+    def get_run_configuration_parameters(
+            self, uuid: str, executor_name: str) -> Optional[dict]:
+        """
+        Retrieve the stored parameters for a given run configuration with
+        id `uuid` and an executor `executor_name`.
+
+        Parameters
+        ----------
+        uuid: str
+            The run configuration identifier.
+        executor_name: str
+            The identifier of the run executor.
+
+        Returns
+        -------
+        config: Optional[dict]
+            A dictionary containing the run executor parameters for the given
+            run configuration. None if the run configuration has never used the
+            run executor.
+        """
+        all_parameters = self.get_conf('parameters', default={})
+        run_configuration_params = all_parameters.get(
+            uuid, {'executors': {}})
+        return run_configuration_params['executors'].get(executor_name, None)

@@ -615,6 +615,7 @@ NAME_MAP = {
             'configurations',
             'defaultconfiguration',
             'default/wdir/fixed_directory',
+            'parameters'
           ]
          ),
         ('workingdir', [
