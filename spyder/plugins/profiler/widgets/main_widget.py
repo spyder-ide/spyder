@@ -37,7 +37,8 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string
-from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
+from spyder.utils.misc import (
+    add_pathlist_to_PYTHONPATH, get_python_executable, getcwd_or_home)
 from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
@@ -1037,6 +1038,8 @@ def test():
     widget = ProfilerWidget('test', plugin=plugin_mock)
     widget._setup()
     widget.setup()
+    widget.get_conf('executable', get_python_executable(),
+                    section='main_interpreter')
     widget.resize(800, 600)
     widget.show()
     widget.analyze(script)
