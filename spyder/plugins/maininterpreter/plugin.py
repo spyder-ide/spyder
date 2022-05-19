@@ -99,12 +99,6 @@ class MainInterpreter(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         statusbar.remove_status_widget(self.interpreter_status.ID)
 
-    # ---- Public API
-    def get_interpreter(self):
-        """Get current interpreter."""
-        container = self.get_container()
-        return container.get_main_interpreter()
-
     @property
     def interpreter_status(self):
         return self.get_container().interpreter_status
@@ -126,4 +120,3 @@ class MainInterpreter(SpyderPluginV2):
         if interpreter not in custom_list:
             custom_list.append(interpreter)
             self.set_conf('custom_interpreters_list', custom_list)
-        self.set_conf('executable', interpreter)

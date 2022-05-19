@@ -803,7 +803,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
             environment = None
             env_vars = None
         else:
-            environment = self.get_conf('custom_interpreter',
+            environment = self.get_conf('executable',
                                         section='main_interpreter')
             env_vars = os.environ.copy()
             # external interpreter should not use internal PYTHONPATH
