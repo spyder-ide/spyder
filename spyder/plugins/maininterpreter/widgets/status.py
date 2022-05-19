@@ -19,7 +19,6 @@ from qtpy.QtCore import QTimer, Signal
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
 from spyder.utils.conda import get_list_conda_envs
-from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
 from spyder.utils.workers import WorkerManager
@@ -32,7 +31,6 @@ _ = get_translation('spyder')
 class InterpreterStatus(BaseTimerStatus):
     """Status bar widget for displaying the current conda environment."""
     ID = 'interpreter_status'
-
     CONF_SECTION = 'main_interpreter'
 
     sig_open_preferences_requested = Signal()
@@ -72,17 +70,13 @@ class InterpreterStatus(BaseTimerStatus):
 
         if not osp.isdir(env_dir):
             # Env was removed on Mac or Linux
-            self.set_conf('custom', False)
-            self.set_conf('default', True)
-            self.update_interpreter(get_python_executable())
+            self._on_interpreter_removed()
         elif not osp.isfile(self._interpreter):
             # This can happen on Windows because the interpreter was
             # renamed to .conda_trash
             if not osp.isdir(osp.join(env_dir, 'conda-meta')):
                 # If conda-meta is missing, it means the env was removed
-                self.set_conf('custom', False)
-                self.set_conf('default', True)
-                self.update_interpreter(get_python_executable())
+                self._on_interpreter_removed()
             else:
                 # If not, it means the interpreter is being updated so
                 # we need to update its version
@@ -95,7 +89,7 @@ class InterpreterStatus(BaseTimerStatus):
 
         return self.value
 
-    # ---- Qt reimplemented
+    # ---- Qt reimplemented methods
     def closeEvent(self, event):
         self._get_envs_timer.stop()
         self._worker_manager.terminate_all()
@@ -143,6 +137,20 @@ class InterpreterStatus(BaseTimerStatus):
             self.envs[name] = (path, version)
         __, version = self.envs[name]
         return f'{name} ({version})'
+
+    def _on_interpreter_removed(self):
+        """
+        Actions to take when the current custom interpreter is removed
+        outside Spyder.
+        """
+        # NOTES:
+        # 1. The interpreter will be updated when the option changes below
+        # generate a change in the 'executable' one in the container.
+        # 2. *Do not* change the order in which these options are set or the
+        # interpreter won't be updated correctly.
+        self.set_conf('custom_interpreter', ' ')
+        self.set_conf('custom', False)
+        self.set_conf('default', True)
 
     # ---- Public API
     def get_envs(self):
