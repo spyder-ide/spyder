@@ -101,7 +101,7 @@ class InterpreterStatus(BaseTimerStatus):
         self._worker_manager.terminate_all()
         super().closeEvent(event)
 
-    # ---- Widget API
+    # ---- Private API
     def _get_env_dir(self, interpreter):
         """Get env directory from interpreter executable."""
         if os.name == 'nt':
@@ -122,6 +122,29 @@ class InterpreterStatus(BaseTimerStatus):
         pyenv_env = get_list_pyenv_envs()
         return {**conda_env, **pyenv_env}
 
+    def _get_env_info(self, path):
+        """Get environment information."""
+        path = path.lower() if os.name == 'nt' else path
+        try:
+            name = self.path_to_env[path]
+        except KeyError:
+            win_app_path = osp.join(
+                'AppData', 'Local', 'Programs', 'spyder')
+            if 'Spyder.app' in path or win_app_path in path:
+                name = 'internal'
+            elif 'conda' in path:
+                name = 'conda'
+            elif 'pyenv' in path:
+                name = 'pyenv'
+            else:
+                name = 'custom'
+            version = get_interpreter_info(path)
+            self.path_to_env[path] = name
+            self.envs[name] = (path, version)
+        __, version = self.envs[name]
+        return f'{name} ({version})'
+
+    # ---- Public API
     def get_envs(self):
         """
         Get the list of environments in a thread to keep them up to
@@ -147,28 +170,6 @@ class InterpreterStatus(BaseTimerStatus):
     def open_interpreter_preferences(self):
         """Request to open the main interpreter preferences."""
         self.sig_open_preferences_requested.emit()
-
-    def _get_env_info(self, path):
-        """Get environment information."""
-        path = path.lower() if os.name == 'nt' else path
-        try:
-            name = self.path_to_env[path]
-        except KeyError:
-            win_app_path = osp.join(
-                'AppData', 'Local', 'Programs', 'spyder')
-            if 'Spyder.app' in path or win_app_path in path:
-                name = 'internal'
-            elif 'conda' in path:
-                name = 'conda'
-            elif 'pyenv' in path:
-                name = 'pyenv'
-            else:
-                name = 'custom'
-            version = get_interpreter_info(path)
-            self.path_to_env[path] = name
-            self.envs[name] = (path, version)
-        __, version = self.envs[name]
-        return f'{name} ({version})'
 
     def update_interpreter(self, interpreter=None):
         """Set main interpreter and update information."""
