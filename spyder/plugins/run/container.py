@@ -22,12 +22,13 @@ from spyder.utils.sourcecode import camel_case_to_snake_case
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.translations import get_translation
 from spyder.plugins.run.widgets import RunDialog
-from spyder.plugins.run.api import RunActions, RunResult
+# from spyder.plugins.run.api import RunActions, RunResult, StoredExtendedRunExecutionParameters
 from spyder.plugins.run.api import (
+    RunActions, RunResult, StoredRunExecutorParameters,
     RunContext, RunExecutor, RunResultFormat, RunInputExtension,
     RunConfigurationProvider, SupportedRunConfiguration,
     SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
-    RunConfigurationMetadata)
+    RunConfigurationMetadata, RunParameterFlags, StoredRunConfigurationExecutor)
 
 # Localization
 _ = get_translation('spyder')
@@ -135,7 +136,7 @@ class RunConfigurationListModel(QAbstractListModel):
         return len(self.run_configurations)
 
     def get_run_configuration_parameters(
-            self, uuid: str, executor: str) -> Optional[dict]:
+            self, uuid: str, executor: str) -> Optional[StoredRunExecutorParameters]:
         return self.parent.get_run_configuration_parameters(uuid, executor)
 
     def pop(self, uuid: str) -> RunConfigurationMetadata:
@@ -162,10 +163,52 @@ class RunConfigurationListModel(QAbstractListModel):
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
 
+
+class RunExecutorParameters(QAbstractListModel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.executor_conf_params: Dict[str, dict] = {}
+        self.params_index: Dict[int, str] = {}
+        self.inverse_index: Dict[str, int] = {}
+
+    def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+        pos = index.row()
+        total_saved_params = len(self.executor_conf_params)
+        if pos == total_saved_params:
+            if role == Qt.DisplayRole:
+                return _("Default/Transient")
+            elif role == Qt.ToolTipRole:
+                return _("This configuration will not be saved after execution")
+        else:
+            params_id = self.params_index[pos]
+            params = self.executor_conf_params[params_id]
+            params_name = params['name']
+            if role == Qt.DisplayRole:
+                return params_name
+
+    def rowCount(self, parent: QModelIndex = ...) -> int:
+        return len(self.executor_conf_params) + 1
+
+    def get_executor_parameters(
+            self, index: int) -> Tuple[RunParameterFlags, dict]:
+        if index == len(self) - 1:
+            return RunParameterFlags.SetDefaults, {}
+        else:
+            params_id = self.params_index[index]
+            params = self.executor_conf_params[params_id]
+            actual_params = params['params']
+            return RunParameterFlags.SwitchValues, actual_params
+
+    def __len__(self) -> int:
+        return len(self.executor_conf_params) + 1
+
+
 class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
     def setup(self):
+        self.parameter_model = RunExecutorParameters(self)
         self.executor_model = RunExecutorListModel(self)
         self.metadata_model = RunConfigurationListModel(
             self, self.executor_model)
@@ -204,7 +247,8 @@ class RunContainer(PluginMainContainer):
         pass
 
     def run_file(self):
-        dialog = RunDialog(self, self.metadata_model, self.executor_model)
+        dialog = RunDialog(self, self.metadata_model, self.executor_model,
+                           self.parameter_model)
         dialog.setup()
         dialog.exec_()
 
@@ -400,7 +444,7 @@ class RunContainer(PluginMainContainer):
                 viewer_set.discard(viewer)
 
     def get_run_configuration_parameters(
-            self, uuid: str, executor_name: str) -> Optional[dict]:
+            self, uuid: str, executor_name: str) -> Optional[StoredRunExecutorParameters]:
         """
         Retrieve the stored parameters for a given run configuration with
         id `uuid` and an executor `executor_name`.
@@ -419,7 +463,10 @@ class RunContainer(PluginMainContainer):
             run configuration. None if the run configuration has never used the
             run executor.
         """
-        all_parameters = self.get_conf('parameters', default={})
+        all_parameters: Dict[
+            str, StoredRunConfigurationExecutor] = self.get_conf(
+                'parameters', default={})
         run_configuration_params = all_parameters.get(
-            uuid, {'executors': {}})
-        return run_configuration_params['executors'].get(executor_name, None)
+            uuid, StoredRunConfigurationExecutor(executor=None, executors={}))
+        executors = run_configuration_params['executors']
+        return executors.get(executor_name, None)

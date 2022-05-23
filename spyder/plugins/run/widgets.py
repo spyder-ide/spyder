@@ -10,6 +10,7 @@
 from curses import meta
 import os.path as osp
 from collections import OrderedDict
+from pytest import param
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -18,10 +19,11 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QFrame, QGridLayout, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
                             QRadioButton, QSizePolicy, QScrollArea,
-                            QStackedWidget, QVBoxLayout, QWidget)
+                            QStackedWidget, QVBoxLayout, QWidget, QInputDialog,
+                            QLineEdit)
 
 # Local imports
-from spyder.plugins.run.api import RunConfigurationMetadata
+from spyder.plugins.run.api import RunConfigurationMetadata, RunParameterFlags
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -54,9 +56,11 @@ CONSOLE_NAMESPACE = _("Run in console's namespace instead of an empty one")
 POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
 
-FILE_DIR = _("The directory of the file being executed")
+FILE_DIR = _("The directory of the configuration being executed")
 CW_DIR = _("The current working directory")
 FIXED_DIR = _("The following directory:")
+
+STORE_PARAMS = _('Store current configuration as:')
 
 
 class RunConfiguration(object):
@@ -529,10 +533,13 @@ class RunConfigDialog(BaseRunConfigDialog):
 class RunDialog(BaseRunConfigDialog):
     """Run dialog used to configure run executors."""
 
-    def __init__(self, parent=None, run_conf_model=None, executors_model=None):
+    def __init__(self, parent=None, run_conf_model=None, executors_model=None,
+                 parameter_model=None):
         super().__init__(parent)
         self.run_conf_model = run_conf_model
         self.executors_model = executors_model
+        self.parameter_model = parameter_model
+        self.current_widget = None
 
     def setup(self):
         combo_label = QLabel(_("Select a run configuration:"))
@@ -541,18 +548,23 @@ class RunDialog(BaseRunConfigDialog):
         self.configuration_combo = QComboBox()
         self.executor_combo = QComboBox()
 
+        parameters_label = QLabel(_("Select the run parameters:"))
+        self.parameters_combo = QComboBox()
         self.stack = QStackedWidget()
         # reset_exec_config = QPushButton("Reset to defaults")
         executor_layout = QVBoxLayout()
+        executor_layout.addWidget(parameters_label)
+        executor_layout.addWidget(self.parameters_combo)
         executor_layout.addWidget(self.stack)
         # executor_layout.addWidget(reset_exec_config)
 
-        executor_group = QGroupBox(_("Executor configuration"))
+        executor_group = QGroupBox(_("Executor parameters"))
         executor_group.setLayout(executor_layout)
 
         # --- Working directory ---
         wdir_group = QGroupBox(_("Working directory settings"))
-        wdir_group.setDisabled(True)
+        # wdir_group.setDisabled(True)
+        executor_layout.addWidget(wdir_group)
 
         # self.run_custom_config_radio.toggled.connect(wdir_group.setEnabled)
 
@@ -580,11 +592,23 @@ class RunDialog(BaseRunConfigDialog):
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
+        # --- Store new custom configuration
+        self.store_params_cb = QCheckBox(STORE_PARAMS)
+        self.store_params_text = QLineEdit()
+        store_params_layout = QHBoxLayout()
+        store_params_layout.addWidget(self.store_params_cb)
+        store_params_layout.addWidget(self.store_params_text)
+        executor_layout.addLayout(store_params_layout)
+
+        self.store_params_cb.toggled.connect(self.store_params_text.setEnabled)
+        self.store_params_text.setPlaceholderText(_('My configuration name'))
+        self.store_params_text.setEnabled(False)
+
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
 
         layout = self.add_widgets(combo_label, self.configuration_combo,
                                   executor_label, self.executor_combo,
-                                  10, executor_group, wdir_group, self.firstrun_cb)
+                                  10, executor_group, self.firstrun_cb)
 
         self.executor_combo.currentIndexChanged.connect(
             self.display_executor_configuration)
@@ -601,6 +625,10 @@ class RunDialog(BaseRunConfigDialog):
         self.executor_combo.setMaxVisibleItems(20)
         self.executor_combo.view().setVerticalScrollBarPolicy(
             Qt.ScrollBarAsNeeded)
+
+        self.parameters_combo.currentIndexChanged.connect(
+            self.update_parameter_set)
+        self.parameters_combo.setModel(self.parameter_model)
 
         widget_dialog = QWidget()
         widget_dialog.setLayout(layout)
@@ -630,11 +658,17 @@ class RunDialog(BaseRunConfigDialog):
         self.executor_combo.setCurrentIndex(
             self.executors_model.get_initial_index())
 
+    def update_parameter_set(self, index: int):
+        print(f'Parameter index: {index}')
+        action, params = self.parameter_model.get_executor_parameters(index)
+
+
     def display_executor_configuration(self, index: int):
         if index == -1:
             return
 
         # Clear the QStackWidget contents
+        self.current_widget = None
         while self.stack.count() > 0:
             widget = self.stack.widget(0)
             self.stack.removeWidget(widget)
@@ -648,11 +682,13 @@ class RunDialog(BaseRunConfigDialog):
         input_extension = metadata['input_extension']
         uuid = metadata['uuid']
 
-        widget = ConfigWidget(self, context, input_extension, metadata)
-        self.stack.addWidget(widget)
+        self.current_widget = ConfigWidget(
+            self, context, input_extension, metadata)
+        self.stack.addWidget(self.current_widget)
 
         stored_parameters = self.run_conf_model.get_run_configuration_parameters(
             uuid, executor_name)
+
         if stored_parameters is None:
-            stored_parameters = widget.get_default_configuration()
-        widget.set_configuration(stored_parameters)
+            stored_parameters = self.current_widget.get_default_configuration()
+        self.current_widget.set_configuration(stored_parameters)

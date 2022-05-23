@@ -54,15 +54,15 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         # firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
         # --- Run settings ---
-        self.run_default_config_radio = QRadioButton(RUN_DEFAULT_CONFIG)
-        self.run_custom_config_radio = QRadioButton(RUN_CUSTOM_CONFIG)
+        # self.run_default_config_radio = QRadioButton(RUN_DEFAULT_CONFIG)
+        # self.run_custom_config_radio = QRadioButton(RUN_CUSTOM_CONFIG)
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
-        interpreter_group.setDisabled(True)
+        # interpreter_group.setDisabled(True)
 
-        self.run_custom_config_radio.toggled.connect(
-            interpreter_group.setEnabled)
+        # self.run_custom_config_radio.toggled.connect(
+        #     interpreter_group.setEnabled)
 
         interpreter_layout = QVBoxLayout(interpreter_group)
 
@@ -98,9 +98,9 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
-        common_group.setDisabled(True)
+        # common_group.setDisabled(True)
 
-        self.run_custom_config_radio.toggled.connect(common_group.setEnabled)
+        # self.run_custom_config_radio.toggled.connect(common_group.setEnabled)
 
         common_layout = QGridLayout(common_group)
 
@@ -157,8 +157,8 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         # self.firstrun_cb.setChecked(firstrun_o)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(self.run_default_config_radio)
-        layout.addWidget(self.run_custom_config_radio)
+        # layout.addWidget(self.run_default_config_radio)
+        # layout.addWidget(self.run_custom_config_radio)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         # layout.addWidget(wdir_group)
@@ -177,7 +177,7 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
     def get_default_configuration(self) -> dict:
         return {
-            'default': True,
+            # 'default': True,
             'args/enabled': False,
             'args': '',
             'current': True,
@@ -191,10 +191,10 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         }
 
     def set_configuration(self, config: dict):
-        self.run_default_config_radio.blockSignals(True)
-        self.run_default_config_radio.setChecked(config['default'])
-        self.run_custom_config_radio.setChecked(not config['default'])
-        self.run_default_config_radio.blockSignals(False)
+        # self.run_default_config_radio.blockSignals(True)
+        # self.run_default_config_radio.setChecked(config['default'])
+        # self.run_custom_config_radio.setChecked(not config['default'])
+        # self.run_default_config_radio.blockSignals(False)
 
         use_current_console = config['current']
         use_systerm = config['systerm']
