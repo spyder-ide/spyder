@@ -123,7 +123,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 "This option will enable the User Module Reloader (UMR) "
                 "in Python/IPython consoles. UMR forces Python to "
                 "reload deeply modules during import when running a "
-                "Python script using the Spyder's builtin function "
+                "Python file using the Spyder's builtin function "
                 "<b>runfile</b>."
                 "<br><br><b>1.</b> UMR may require to restart the "
                 "console in which it will be called "
