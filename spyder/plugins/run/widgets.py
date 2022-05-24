@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QLineEdit)
 
 # Local imports
-from spyder.plugins.run.api import RunConfigurationMetadata, RunParameterFlags
+from spyder.plugins.run.api import RunParameterFlags, WorkingDirSource
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -617,6 +617,8 @@ class RunDialog(BaseRunConfigDialog):
         self.configuration_combo.currentIndexChanged.connect(
             self.update_configuration_run_index)
         self.configuration_combo.setModel(self.run_conf_model)
+        self.configuration_combo.setCurrentIndex(
+            self.run_conf_model.get_initial_index())
 
         self.configuration_combo.setMaxVisibleItems(20)
         self.configuration_combo.view().setVerticalScrollBarPolicy(
@@ -659,9 +661,35 @@ class RunDialog(BaseRunConfigDialog):
             self.executors_model.get_initial_index())
 
     def update_parameter_set(self, index: int):
-        print(f'Parameter index: {index}')
-        action, params = self.parameter_model.get_executor_parameters(index)
+        if index < 0:
+            return
 
+        action, params = self.parameter_model.get_executor_parameters(index)
+        working_dir_params = params['working_dir']
+        stored_parameters = params['executor_params']
+
+        if action == RunParameterFlags.SetDefaults:
+            stored_parameters = self.current_widget.get_default_configuration()
+        self.current_widget.set_configuration(stored_parameters)
+
+        source = working_dir_params['source']
+        path = working_dir_params['path']
+
+        if source == WorkingDirSource.ConfigurationDirectory:
+            self.file_dir_radio.setChecked(True)
+            self.cwd_radio.setChecked(False)
+            self.fixed_dir_radio.setChecked(False)
+            self.wd_edit.setText('')
+        elif source == WorkingDirSource.CurrentDirectory:
+            self.file_dir_radio.setChecked(False)
+            self.cwd_radio.setChecked(True)
+            self.fixed_dir_radio.setChecked(False)
+            self.wd_edit.setText('')
+        elif source == WorkingDirSource.CustomDirectory:
+            self.file_dir_radio.setChecked(False)
+            self.cwd_radio.setChecked(False)
+            self.fixed_dir_radio.setChecked(True)
+            self.wd_edit.setText(path)
 
     def display_executor_configuration(self, index: int):
         if index == -1:
@@ -689,6 +717,10 @@ class RunDialog(BaseRunConfigDialog):
         stored_parameters = self.run_conf_model.get_run_configuration_parameters(
             uuid, executor_name)
 
-        if stored_parameters is None:
-            stored_parameters = self.current_widget.get_default_configuration()
-        self.current_widget.set_configuration(stored_parameters)
+        self.parameter_model.set_parameters(stored_parameters['params'])
+
+        selected_params = self.run_conf_model.get_last_used_execution_params(
+            uuid, executor_name)
+        index = self.parameter_model.get_parameters_index(selected_params)
+
+        self.parameters_combo.setCurrentIndex(index)

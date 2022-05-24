@@ -204,6 +204,9 @@ class SupportedExecutionRunConfiguration(TypedDict):
     # True if the executor requires a path in order to work. False otherwise
     requires_cwd: bool
 
+    # Priority number used to select the executor. The lower, the better.
+    priority: int
+
 
 class RunConfigurationProvider:
     """
@@ -396,10 +399,6 @@ class StoredExtendedRunExecutionParameters(TypedDict):
 class StoredRunExecutorParameters(TypedDict):
     """Per run executor configuration parameters."""
 
-    # Unique identifier for the currently selected parameters. None
-    # if using default or transient settings.
-    selected: Optional[str]
-
     # Dictionary that maps from parameter identifiers to the actual
     # configuration.
     params: Dict[str, StoredExtendedRunExecutionParameters]
@@ -411,6 +410,6 @@ class StoredRunConfigurationExecutor(TypedDict):
     # Name of the last used run executor for the current run configuration.
     executor: Optional[str]
 
-    # Dictionary that maps from executor name to its corresponding stored
-    # configuration.
-    executors: Dict[str, StoredRunExecutorParameters]
+    # Unique identifier for the currently selected parameters. None
+    # if using default or transient settings.
+    selected: Optional[str]

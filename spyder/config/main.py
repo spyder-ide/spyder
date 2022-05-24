@@ -540,6 +540,10 @@ DEFAULTS = [
               'find_in_files/find in files': 'Alt+Shift+F',
               }),
             ('appearance', APPEARANCE),
+            ('run',
+             {
+                'parameters': {}
+             })
             ]
 
 
@@ -615,7 +619,7 @@ NAME_MAP = {
             'configurations',
             'defaultconfiguration',
             'default/wdir/fixed_directory',
-            'parameters'
+            'last_used_parameters',
           ]
          ),
         ('workingdir', [

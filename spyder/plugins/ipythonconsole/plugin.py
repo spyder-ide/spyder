@@ -277,7 +277,8 @@ class IPythonConsole(SpyderDockablePlugin):
                 },
                 'output_formats': [],
                 'configuration_widget': IPythonConfigOptions,
-                'requires_cwd': True
+                'requires_cwd': True,
+                'priority': 0
             },
             {
                 'input_extension': 'py',
@@ -286,7 +287,8 @@ class IPythonConsole(SpyderDockablePlugin):
                 },
                 'output_formats': [],
                 'configuration_widget': None,
-                'requires_cwd': True
+                'requires_cwd': True,
+                'priority': 0
             },
             {
                 'input_extension': 'py',
@@ -295,7 +297,8 @@ class IPythonConsole(SpyderDockablePlugin):
                 },
                 'output_formats': [],
                 'configuration_widget': None,
-                'requires_cwd': True
+                'requires_cwd': True,
+                'priority': 0
             }
         ]
 
