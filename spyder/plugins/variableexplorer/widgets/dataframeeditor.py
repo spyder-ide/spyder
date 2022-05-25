@@ -290,8 +290,10 @@ class DataFrameModel(QAbstractTableModel):
     def get_bgcolor(self, index):
         """Background color depending on value."""
         column = index.column()
+
         if not self.bgcolor_enabled:
             return
+
         value = self.get_value(index.row(), column)
         if self.max_min_col[column] is None or pd.isna(value):
             color = QColor(BACKGROUND_NONNUMBER_COLOR)
@@ -305,10 +307,18 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column)
-            if vmax - vmin == 0:
-                vmax_vmin_diff = 1.0
-            else:
-                vmax_vmin_diff = vmax - vmin
+
+            # This is necessary to catch an error in Pandas when computing
+            # the difference between the max and min of a column.
+            # Fixes spyder-ide/spyder#18005
+            try:
+                if vmax - vmin == 0:
+                    vmax_vmin_diff = 1.0
+                else:
+                    vmax_vmin_diff = vmax - vmin
+            except TypeError:
+                return
+
             hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
                    (vmax - color_func(value)) / (vmax_vmin_diff))
             hue = float(abs(hue))
@@ -317,6 +327,7 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor.fromHsvF(hue, BACKGROUND_NUMBER_SATURATION,
                                     BACKGROUND_NUMBER_VALUE,
                                     BACKGROUND_NUMBER_ALPHA)
+
         return color
 
     def get_value(self, row, column):
