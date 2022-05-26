@@ -26,13 +26,14 @@ from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
+from spyder.plugins.run.api import RunExecutor
 from spyder.utils.programs import get_temp_dir
 
 # Localization
 _ = get_translation('spyder')
 
 
-class IPythonConsole(SpyderDockablePlugin):
+class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     """
     IPython Console plugin
 

@@ -208,6 +208,63 @@ class SupportedExecutionRunConfiguration(TypedDict):
     priority: int
 
 
+class WorkingDirSource:
+    ConfigurationDirectory = 0
+    CurrentDirectory = 1
+    CustomDirectory = 2
+
+
+class WorkingDirOpts(TypedDict):
+    """Run execution working directory options."""
+
+    # Source used to look for the working directory that will be used in
+    # the run execution.
+    source: WorkingDirSource
+
+    # If not None, then it specifies a path to a custom directory location.
+    path: Optional[str]
+
+
+class RunExecutionParameters(TypedDict):
+    """Run execution parameters."""
+
+    # The working directory options
+    working_dir: WorkingDirOpts
+
+    # The run executor parameters
+    executor_params: dict
+
+
+class ExtendedRunExecutionParameters(TypedDict):
+    """Extended run execution parameters."""
+
+    # The unique identifier for the execution parameter set.
+    uuid: str
+    # The name of the run execution parameter set.
+    name: str
+    # The run execution parameters.
+    params: RunExecutionParameters
+
+
+class StoredRunExecutorParameters(TypedDict):
+    """Per run executor configuration parameters."""
+
+    # Dictionary that maps from parameter identifiers to the actual
+    # configuration.
+    params: Dict[str, ExtendedRunExecutionParameters]
+
+
+class StoredRunConfigurationExecutor(TypedDict):
+    """Stored run executor options per run configuration settings."""
+
+    # Name of the last used run executor for the current run configuration.
+    executor: Optional[str]
+
+    # Unique identifier for the currently selected parameters. None
+    # if using default or transient settings.
+    selected: Optional[str]
+
+
 class RunConfigurationProvider:
     """
     Interface used to retrieve inputs to run on a code executor.
@@ -248,7 +305,9 @@ class RunExecutor:
     covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
-    def exec_run_configuration(self, input: RunConfiguration) -> List[RunResult]:
+    def exec_run_configuration(
+            self, input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
         """
         Execute a run configuration.
 
@@ -257,6 +316,9 @@ class RunExecutor:
         input: RunConfiguration
             A dictionary containing the information required to execute the
             run input.
+        conf: ExtendedRunExecutionParameters
+            A dictionary containing the configuration parameters to use
+            during execution.
 
         Returns
         -------
@@ -354,62 +416,4 @@ class RunExecutorConfigurationGroup(QWidget):
         configuration group, set the graphical elements to their corresponding
         values.
         """
-        raise NotImplementedError(f'{type(self)} must implement '
-                                  'set_configuration')
-
-
-class WorkingDirSource(IntEnum):
-    ConfigurationDirectory = 0
-    CurrentDirectory = 1
-    CustomDirectory = 2
-
-
-class WorkingDirOpts(TypedDict):
-    """Run execution working directory options."""
-
-    # Source used to look for the working directory that will be used in
-    # the run execution.
-    source: WorkingDirSource
-
-    # If not None, then it specifies a path to a custom directory location.
-    path: Optional[str]
-
-
-class StoredRunExecutionParameters(TypedDict):
-    """Run execution parameters stored in the Spyder configuration."""
-
-    # The working directory options
-    working_dir: WorkingDirOpts
-
-    # The run executor parameters
-    executor_params: dict
-
-
-class StoredExtendedRunExecutionParameters(TypedDict):
-    """Extended run execution parameters stored in the Spyder configuration."""
-
-    # The unique identifier for the execution parameter set.
-    uuid: str
-    # The name of the run execution parameter set.
-    name: str
-    # The run execution parameters.
-    params: StoredRunExecutionParameters
-
-
-class StoredRunExecutorParameters(TypedDict):
-    """Per run executor configuration parameters."""
-
-    # Dictionary that maps from parameter identifiers to the actual
-    # configuration.
-    params: Dict[str, StoredExtendedRunExecutionParameters]
-
-
-class StoredRunConfigurationExecutor(TypedDict):
-    """Stored run executor options per run configuration settings."""
-
-    # Name of the last used run executor for the current run configuration.
-    executor: Optional[str]
-
-    # Unique identifier for the currently selected parameters. None
-    # if using default or transient settings.
-    selected: Optional[str]
+        pass

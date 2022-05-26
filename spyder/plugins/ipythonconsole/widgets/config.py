@@ -50,19 +50,9 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         super().__init__(parent, context, input_extension, input_metadata)
 
         self.dir = None
-        # self.runconf = RunConfiguration()
-        # firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
-
-        # --- Run settings ---
-        # self.run_default_config_radio = QRadioButton(RUN_DEFAULT_CONFIG)
-        # self.run_custom_config_radio = QRadioButton(RUN_CUSTOM_CONFIG)
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
-        # interpreter_group.setDisabled(True)
-
-        # self.run_custom_config_radio.toggled.connect(
-        #     interpreter_group.setEnabled)
 
         interpreter_layout = QVBoxLayout(interpreter_group)
 
@@ -98,9 +88,6 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
-        # common_group.setDisabled(True)
-
-        # self.run_custom_config_radio.toggled.connect(common_group.setEnabled)
 
         common_layout = QGridLayout(common_group)
 
@@ -120,49 +107,9 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 3, 1)
 
-        # --- Working directory ---
-        # wdir_group = QGroupBox(_("Working directory settings"))
-        # wdir_group.setDisabled(True)
-
-        # self.run_custom_config_radio.toggled.connect(wdir_group.setEnabled)
-
-        # wdir_layout = QVBoxLayout(wdir_group)
-
-        # self.file_dir_radio = QRadioButton(FILE_DIR)
-        # wdir_layout.addWidget(self.file_dir_radio)
-
-        # self.cwd_radio = QRadioButton(CW_DIR)
-        # wdir_layout.addWidget(self.cwd_radio)
-
-        # fixed_dir_layout = QHBoxLayout()
-        # self.fixed_dir_radio = QRadioButton(FIXED_DIR)
-        # fixed_dir_layout.addWidget(self.fixed_dir_radio)
-        # self.wd_edit = QLineEdit()
-        # self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
-        # self.wd_edit.setEnabled(False)
-        # fixed_dir_layout.addWidget(self.wd_edit)
-        # browse_btn = create_toolbutton(
-        #     self,
-        #     triggered=self.select_directory,
-        #     icon=ima.icon('DirOpenIcon'),
-        #     tip=_("Select directory")
-        #     )
-        # fixed_dir_layout.addWidget(browse_btn)
-        # wdir_layout.addLayout(fixed_dir_layout)
-
-        # Checkbox to preserve the old behavior, i.e. always open the dialog
-        # on first run
-        # self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
-        # self.firstrun_cb.clicked.connect(self.set_firstrun_o)
-        # self.firstrun_cb.setChecked(firstrun_o)
-
         layout = QVBoxLayout(self)
-        # layout.addWidget(self.run_default_config_radio)
-        # layout.addWidget(self.run_custom_config_radio)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
-        # layout.addWidget(wdir_group)
-        # layout.addWidget(self.firstrun_cb)
         layout.addStretch(100)
 
     def select_directory(self):
@@ -177,7 +124,6 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
     def get_default_configuration(self) -> dict:
         return {
-            # 'default': True,
             'args/enabled': False,
             'args': '',
             'current': True,
@@ -191,13 +137,40 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         }
 
     def set_configuration(self, config: dict):
-        # self.run_default_config_radio.blockSignals(True)
-        # self.run_default_config_radio.setChecked(config['default'])
-        # self.run_custom_config_radio.setChecked(not config['default'])
-        # self.run_default_config_radio.blockSignals(False)
-
         use_current_console = config['current']
         use_systerm = config['systerm']
+        interact = config['interact']
+        post_mortem = config['post_mortem']
+        args_enabled = config['args/enabled']
+        args = config['args']
+        py_args_enabled = config['python_args/enabled']
+        py_args = config['python_args']
+        clear_namespace = config['clear_namespace']
+        console_namespace = config['console_namespace']
+
         self.current_radio.setChecked(use_current_console)
         self.dedicated_radio.setChecked(not use_current_console and not use_systerm)
         self.systerm_radio.setChecked(use_systerm)
+        self.interact_cb.setChecked(interact)
+        self.post_mortem_cb.setChecked(post_mortem)
+        self.pclo_cb.setChecked(args_enabled)
+        self.pclo_edit.setText(args)
+        self.clo_cb.setChecked(py_args_enabled)
+        self.clo_edit.setText(py_args)
+        self.clear_var_cb.setChecked(clear_namespace)
+        self.console_ns_cb.setChecked(console_namespace)
+
+    def get_configuration(self) -> dict:
+        return {
+            # 'default': True,
+            'args/enabled': self.pclo_cb.isChecked(),
+            'args': self.pclo_edit.text(),
+            'current': self.current_radio.isChecked(),
+            'systerm': self.systerm_radio.isChecked(),
+            'interact': self.interact_cb.isChecked(),
+            'post_mortem': self.post_mortem_cb.isChecked(),
+            'python_args/enabled': self.clo_cb.isChecked(),
+            'python_args': self.clo_edit.text(),
+            'clear_namespace': self.clear_var_cb.isChecked(),
+            'console_namespace': self.console_ns_cb.isChecked(),
+        }

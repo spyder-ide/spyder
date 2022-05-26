@@ -7,10 +7,10 @@
 """Run dialogs and widgets and data models."""
 
 # Standard library imports
-from curses import meta
+from datetime import datetime
 import os.path as osp
-from collections import OrderedDict
-from pytest import param
+from uuid import uuid4
+from typing import Tuple
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -23,7 +23,10 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QLineEdit)
 
 # Local imports
-from spyder.plugins.run.api import RunParameterFlags, WorkingDirSource
+from spyder.plugins.run.api import (
+    RunParameterFlags, WorkingDirSource, WorkingDirOpts,
+    RunExecutionParameters, ExtendedRunExecutionParameters,
+    RunExecutorConfigurationGroup)
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -61,6 +64,12 @@ CW_DIR = _("The current working directory")
 FIXED_DIR = _("The following directory:")
 
 STORE_PARAMS = _('Store current configuration as:')
+
+
+class RunDialogStatus:
+    Close = 0
+    Save = 1
+    Run = 2
 
 
 class RunConfiguration(object):
@@ -401,7 +410,9 @@ class BaseRunConfigDialog(QDialog):
         run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
         reset_deafults_btn = bbox.addButton(_('Reset'), QDialogButtonBox.ResetRole)
         run_btn.clicked.connect(self.run_btn_clicked)
+        reset_deafults_btn.clicked.connect(self.reset_btn_clicked)
         bbox.accepted.connect(self.accept)
+        bbox.accepted.connect(self.ok_btn_clicked)
         bbox.rejected.connect(self.reject)
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
@@ -418,6 +429,14 @@ class BaseRunConfigDialog(QDialog):
 
     def run_btn_clicked(self):
         """Run button was just clicked"""
+        pass
+
+    def reset_btn_clicked(self):
+        """Reset button was clicked."""
+        pass
+
+    def ok_btn_clicked(self):
+        """Ok button was clicked."""
         pass
 
     def setup(self):
@@ -540,6 +559,7 @@ class RunDialog(BaseRunConfigDialog):
         self.executors_model = executors_model
         self.parameter_model = parameter_model
         self.current_widget = None
+        self.status = RunDialogStatus.Close
 
     def setup(self):
         combo_label = QLabel(_("Select a run configuration:"))
@@ -703,7 +723,8 @@ class RunDialog(BaseRunConfigDialog):
 
         exec_tuple = self.executors_model.get_selected_run_executor(index)
         executor_name, executor_info = exec_tuple
-        ConfigWidget = executor_info['configuration_widget']
+        ConfigWidget = (executor_info['configuration_widget'] or
+                        RunExecutorConfigurationGroup)
 
         metadata = self.run_conf_model.get_selected_metadata()
         context = metadata['context']
@@ -724,3 +745,62 @@ class RunDialog(BaseRunConfigDialog):
         index = self.parameter_model.get_parameters_index(selected_params)
 
         self.parameters_combo.setCurrentIndex(index)
+
+    def reset_btn_clicked(self):
+        self.parameters_combo.setCurrentIndex(-1)
+        index = self.executor_combo.currentIndex()
+        self.display_executor_configuration(index)
+        self.store_params_text.setText('')
+        self.store_params_cb.setChecked(False)
+
+    def run_btn_clicked(self):
+        self.status |= RunDialogStatus.Run
+
+    def ok_btn_clicked(self):
+        self.status |= RunDialogStatus.Save
+
+    def accept(self) -> None:
+        widget_conf = self.current_widget.get_configuration()
+
+        path = None
+        source = None
+        if self.file_dir_radio.isChecked():
+            source = WorkingDirSource.ConfigurationDirectory
+        elif self.cwd_radio.isChecked():
+            source = WorkingDirSource.CurrentDirectory
+        else:
+            source = WorkingDirSource.CustomDirectory
+            path = self.wd_edit.text()
+
+        cwd_opts = WorkingDirOpts(source=source, path=path)
+
+        exec_params = RunExecutionParameters(
+            working_dir=cwd_opts, executor_params=widget_conf)
+
+        uuid, name = self.parameter_model.get_parameters_uuid_name(
+            self.parameters_combo.currentIndex()
+        )
+
+        if self.store_params_cb.isChecked():
+            uuid = str(uuid4())
+            name = self.store_params_text.text()
+            if name == '':
+                date_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                name = f'Configuration-{date_str}'
+
+        ext_exec_params = ExtendedRunExecutionParameters(
+            uuid=uuid, name=name, params=exec_params
+        )
+        executor_name, _ = self.executors_model.get_selected_run_executor(
+            self.executor_combo.currentIndex()
+        )
+        metadata_info = self.run_conf_model.get_metadata(
+            self.configuration_combo.currentIndex()
+        )
+
+        self.saved_conf = metadata_info['uuid'], executor_name, ext_exec_params
+        return super().accept()
+
+    def get_configuration(self) -> Tuple[
+            str, str, ExtendedRunExecutionParameters]:
+        return self.saved_conf

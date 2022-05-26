@@ -7,10 +7,6 @@
 """Spyder run container."""
 
 # Standard library imports
-from cProfile import run
-from optparse import Option
-import re
-import bisect
 from collections import OrderedDict
 from weakref import WeakSet, WeakValueDictionary
 from typing import List, Dict, Tuple, Set, Optional
@@ -23,15 +19,15 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.utils.sourcecode import camel_case_to_snake_case
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.translations import get_translation
-from spyder.plugins.run.widgets import RunDialog
-# from spyder.plugins.run.api import RunActions, RunResult, StoredExtendedRunExecutionParameters
+from spyder.plugins.run.widgets import RunDialog, RunDialogStatus
+# from spyder.plugins.run.api import RunActions, RunResult, ExtendedRunExecutionParameters
 from spyder.plugins.run.api import (
     RunActions, RunResult, StoredRunExecutorParameters,
     RunContext, RunExecutor, RunResultFormat, RunInputExtension,
     RunConfigurationProvider, SupportedRunConfiguration,
     SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
     RunConfigurationMetadata, RunParameterFlags, StoredRunConfigurationExecutor,
-    StoredExtendedRunExecutionParameters, StoredRunExecutionParameters,
+    ExtendedRunExecutionParameters, RunExecutionParameters,
     WorkingDirOpts, WorkingDirSource)
 
 # Localization
@@ -152,6 +148,11 @@ class RunConfigurationListModel(QAbstractListModel):
     def get_selected_metadata(self) -> Optional[RunConfigurationMetadata]:
         return self.selected_metadata
 
+    def get_metadata(self, index: int) -> RunConfigurationMetadata:
+        uuid = self.metadata_index[index]
+        metadata = self.run_configurations[uuid]
+        return metadata
+
     def update_index(self, index: int):
         uuid = self.metadata_index[index]
         metadata = self.run_configurations[uuid]
@@ -173,7 +174,11 @@ class RunConfigurationListModel(QAbstractListModel):
     def get_run_configuration_parameters(
             self, uuid: str, executor: str) -> Optional[
                 StoredRunExecutorParameters]:
-        return self.parent.get_run_configuration_parameters(uuid, executor)
+        context, ext = self.get_metadata_context_extension(uuid)
+        context_name = context['name']
+        context_id = getattr(RunContext, context_name)
+        return self.parent.get_executor_configuration_parameters(
+            executor, ext, context_id)
 
     def get_last_used_execution_params(
             self, uuid: str, executor: str) -> Optional[str]:
@@ -209,7 +214,7 @@ class RunExecutorParameters(QAbstractListModel):
         super().__init__(parent)
         self.parent = parent
         self.executor_conf_params: Dict[
-            str, StoredExtendedRunExecutionParameters] = {}
+            str, ExtendedRunExecutionParameters] = {}
         self.params_index: Dict[int, str] = {}
         self.inverse_index: Dict[str, int] = {}
 
@@ -233,12 +238,12 @@ class RunExecutorParameters(QAbstractListModel):
 
     def get_executor_parameters(
             self, index: int) -> Tuple[
-                RunParameterFlags, StoredRunExecutionParameters]:
+                RunParameterFlags, RunExecutionParameters]:
         if index == len(self) - 1:
             default_working_dir = WorkingDirOpts(
                 source=WorkingDirSource.ConfigurationDirectory,
                 path=None)
-            default_params = StoredRunExecutionParameters(
+            default_params = RunExecutionParameters(
                 working_dir=default_working_dir,
                 executor_params={})
             return RunParameterFlags.SetDefaults, default_params
@@ -248,8 +253,17 @@ class RunExecutorParameters(QAbstractListModel):
             actual_params = params['params']
             return RunParameterFlags.SwitchValues, actual_params
 
+    def get_parameters_uuid_name(
+            self, index: int) -> Tuple[Optional[str], Optional[str]]:
+        if index == len(self) - 1:
+            return None, None
+
+        params_id = self.params_index[index]
+        params = self.executor_conf_params[params_id]
+        return params['uuid'], params['name']
+
     def set_parameters(
-            self, parameters: Dict[str, StoredExtendedRunExecutionParameters]):
+            self, parameters: Dict[str, ExtendedRunExecutionParameters]):
         self.beginResetModel()
         self.executor_conf_params = parameters
         self.params_index = dict(enumerate(self.executor_conf_params))
@@ -313,6 +327,32 @@ class RunContainer(PluginMainContainer):
                            self.parameter_model)
         dialog.setup()
         dialog.exec_()
+
+        status = dialog.status
+        if status == RunDialogStatus.Close:
+            return
+
+        uuid, executor_name, ext_params = dialog.get_configuration()
+
+        if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
+            exec_uuid = ext_params['uuid']
+            if exec_uuid is not None:
+                context, ext = self.metadata_model.get_metadata_context_extension(
+                    uuid)
+                context_name = context['name']
+                context_id = getattr(RunContext, context_name)
+                all_exec_params = self.get_executor_configuration_parameters(
+                    executor_name, ext, context_id)
+                exec_params = all_exec_params['params']
+                exec_params[exec_uuid] = ext_params
+                self.set_executor_configuration_parameters(
+                    executor_name, ext, context_id, all_exec_params)
+
+        if (status & RunDialogStatus.Run) == RunDialogStatus.Run:
+            provider = self.run_metadata_provider[uuid]
+            executor = self.run_executors[executor_name]
+            # print(provider, executor)
+            # print('Run')
 
     def edit_run_configurations(self):
         pass
@@ -505,18 +545,21 @@ class RunContainer(PluginMainContainer):
                 viewer_set = self.viewers[format_id]
                 viewer_set.discard(viewer)
 
-    def get_run_configuration_parameters(
-            self, uuid: str, executor_name: str) -> StoredRunExecutorParameters:
+    def get_executor_configuration_parameters(
+            self, executor_name: str,
+            extension: str, context_id: str) -> StoredRunExecutorParameters:
         """
-        Retrieve the stored parameters for a given run configuration with
-        id `uuid` and an executor `executor_name`.
+        Retrieve the stored parameters for a given executor `executor_name`
+        using context `context_id` with file extension `extension`.
 
         Parameters
         ----------
-        uuid: str
-            The run configuration identifier.
         executor_name: str
             The identifier of the run executor.
+        extension: str
+            The file extension to register the configuration parameters for.
+        context_id: str
+            The context to register the configuration parameters for.
 
         Returns
         -------
@@ -525,10 +568,6 @@ class RunContainer(PluginMainContainer):
             run configuration.
         """
 
-        context, ext = self.metadata_model.get_metadata_context_extension(uuid)
-        context_name = context['name']
-        context_id = getattr(RunContext, context_name)
-
         all_executor_params: Dict[
             str, Dict[Tuple[str, str],
                       StoredRunExecutorParameters]] = self.get_conf(
@@ -536,9 +575,38 @@ class RunContainer(PluginMainContainer):
 
         executor_params = all_executor_params.get(executor_name, {})
         params = executor_params.get(
-            (ext, context_id), StoredRunExecutorParameters(params={}))
+            (extension, context_id), StoredRunExecutorParameters(params={}))
 
         return params
+
+    def set_executor_configuration_parameters(
+            self, executor_name: str, extension: str, context_id: str,
+            params: StoredRunExecutorParameters):
+        """
+        Update and save the list of configuration parameters for a given
+        executor on a given pair of context and file extension.
+
+        Parameters
+        ----------
+        executor_name: str
+            The identifier of the run executor.
+        extension: str
+            The file extension to register the configuration parameters for.
+        context_id: str
+            The context to register the configuration parameters for.
+        params: StoredRunExecutorParameters
+            A dictionary containing the run configuration parameters for
+            the given executor.
+        """
+        all_executor_params: Dict[
+            str, Dict[Tuple[str, str],
+                      StoredRunExecutorParameters]] = self.get_conf(
+                        'parameters', default={})
+
+        executor_params = all_executor_params.get(executor_name, {})
+        executor_params[(extension, context_id)] = params
+        all_executor_params[executor_name] = executor_params
+        self.set_conf('parameters', all_executor_params)
 
     def get_last_used_executor(self, uuid: str) -> StoredRunConfigurationExecutor:
         """
