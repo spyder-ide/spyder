@@ -15,7 +15,7 @@ import sys
 import stat
 import socket
 
-from spyder.py3compat import is_text_string, getcwd
+from spyder.py3compat import getcwd
 from spyder.config.base import get_home_dir
 
 
@@ -26,8 +26,8 @@ def __remove_pyc_pyo(fname):
     """Eventually remove .pyc and .pyo files associated to a Python script"""
     if osp.splitext(fname)[1] == '.py':
         for ending in ('c', 'o'):
-            if osp.exists(fname+ending):
-                os.remove(fname+ending)
+            if osp.exists(fname + ending):
+                os.remove(fname + ending)
 
 
 def rename_file(source, dest):
@@ -83,7 +83,7 @@ def select_port(default_port=20128):
                                  socket.SOCK_STREAM,
                                  socket.IPPROTO_TCP)
 #            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind( ("127.0.0.1", default_port) )
+            sock.bind(("127.0.0.1", default_port))
         except socket.error as _msg:  # analysis:ignore
             default_port += 1
         else:
@@ -105,6 +105,7 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
                       '.f03', '.f08']
     if excluded_dirnames is None:
         excluded_dirnames = ['build', 'dist', '.hg', '.svn']
+
     def get_filelines(path):
         dfiles, dlines = 0, 0
         if osp.splitext(path)[1] in extensions:
@@ -216,7 +217,7 @@ def get_common_path(pathlist):
             return abspardir(common)
         else:
             for path in pathlist:
-                if not osp.isdir(osp.join(common, path[len(common)+1:])):
+                if not osp.isdir(osp.join(common, path[len(common) + 1:])):
                     # `common` is not the real common prefix
                     return abspardir(common)
             else:
