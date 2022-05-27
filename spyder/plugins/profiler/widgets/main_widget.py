@@ -37,8 +37,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string
-from spyder.utils.misc import (
-    add_pathlist_to_PYTHONPATH, get_python_executable, getcwd_or_home)
+from spyder.utils.misc import get_python_executable, getcwd_or_home
 from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
@@ -532,17 +531,15 @@ class ProfilerWidget(PluginMainWidget):
             lambda ec, es=QProcess.ExitStatus: self._finished(ec, es))
         self.process.finished.connect(self.stop_spinner)
 
+        # Start with system environment
+        proc_env = QProcessEnvironment()
+        for k, v in os.environ.items():
+            proc_env.insert(k, v)
+        proc_env.insert("PYTHONIOENCODING", "utf8")
+        proc_env.remove('PYTHONPATH')
         if pythonpath is not None:
-            env = [to_text_string(_pth)
-                   for _pth in self.process.systemEnvironment()]
-            add_pathlist_to_PYTHONPATH(env, pythonpath)
-            processEnvironment = QProcessEnvironment()
-            for envItem in env:
-                envName, __, envValue = envItem.partition('=')
-                processEnvironment.insert(envName, envValue)
-
-            processEnvironment.insert("PYTHONIOENCODING", "utf8")
-            self.process.setProcessEnvironment(processEnvironment)
+            proc_env.insert('PYTHONPATH', os.pathsep.join(pythonpath))
+        self.process.setProcessEnvironment(proc_env)
 
         self.output = ''
         self.error_output = ''
