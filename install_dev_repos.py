@@ -54,8 +54,8 @@ def get_python_lsp_version():
             if 'python-lsp-server' not in line:
                 continue
 
-            version = next(iter(Requirement(line).specifier)).version
-
+            spec = Requirement(line).specifier
+            version = sorted([s.version for s in spec])[0]
             break
 
     return version
