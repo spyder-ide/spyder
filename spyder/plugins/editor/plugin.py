@@ -45,7 +45,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.editor.api import EditorRunConfiguration
+from spyder.plugins.editor.api.run import EditorRunConfiguration, FileRun
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -61,10 +61,10 @@ from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.run.api import RunContext, RunConfigurationMetadata
+from spyder.plugins.run.api import RunContext, RunConfigurationMetadata, RunConfiguration
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration, RunConfigDialog,
-                                        RunConfiguration, RunConfigOneDialog)
+                                        RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 
 
@@ -369,6 +369,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         metadata: RunConfigurationMetadata = {
             'name': filename,
             'source': self.NAME,
+            'path': filename,
             'datetime': datetime.now(),
             'uuid': file_id,
             'context': {
@@ -2978,7 +2979,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         return editor.toPlainText()
 
-    #------ Run Python script
+    #------ Run files
     def add_supported_run_configuration(self, config: EditorRunConfiguration):
         origin = config['origin']
         extension = config['extension']
@@ -3042,7 +3043,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     self.metadata_per_id.pop(metadata_id)
                     filename = self.file_per_id.pop(metadata_id)
                     self.id_per_file.pop(filename)
-                    self.pending_run_files |= {(filename, metadata['input_extension'])}
+                    self.pending_run_files |= {
+                        (filename, metadata['input_extension'])}
+
+    def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
+        metadata = self.metadata_per_id[metadata_id]
+        context = metadata['context']['name']
+        context = getattr(RunContext, context)
+        run_input = {}
+        if context == RunContext.File:
+            run_input = FileRun(path=metadata['name'])
+        run_conf = RunConfiguration(output_formats=[], run_input=run_input,
+                                    metadata=metadata)
+        return run_conf
 
     @Slot()
     def edit_run_configurations(self):

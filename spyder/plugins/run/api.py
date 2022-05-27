@@ -8,11 +8,13 @@
 
 # Standard library imports
 from __future__ import annotations
+from ast import Call
 
 import sys
+import functools
 from enum import IntEnum
 from datetime import datetime
-from typing import Any, Set, List, Union, Optional, Type, Dict
+from typing import Any, Callable, Set, List, Union, Optional, Dict
 
 # PEP 589 and 544 are available from Python 3.8 onwards
 if sys.version_info >= (3, 8):
@@ -65,6 +67,8 @@ class RunConfigurationMetadata(TypedDict):
     name: str
     # Name of the RunConfigurationProvider that produced the run configuration.
     source: str
+    # File path to the source used for the run configuration.
+    path: str
     # Timestamp of the run input information.
     timestamp: datetime
     # Extra metadata information.
@@ -148,6 +152,8 @@ class RunResult(TypedDict):
     is_error: bool
 
 
+PossibleRunResult = Union[RunResult, RunResultError]
+
 class Context(TypedDict):
     """Run context name schema."""
     # CamelCase name of the context.
@@ -178,34 +184,6 @@ class SupportedRunConfiguration(TypedDict):
     # The context can be compared against the values of `RunContext`. e.g.,
     # `info['context'] == RunContext.File`
     contexts: List[Context]
-
-
-class SupportedExecutionRunConfiguration(TypedDict):
-    """Run execution configuration metadata."""
-
-    # File extension or identifier of the input context. It must belong to the
-    # `RunInputExtension` set.
-    input_extension: str
-
-    # The context for the given input extension.
-    # e.g., file, selection, cell, others.
-    # The context can be compared against the values of `RunContext`. e.g.,
-    # `info['context'] == RunContext.File`
-    context: Context
-
-    # The output formats available for the given context and extension.
-    output_formats: List[OutputFormat]
-
-    # The configuration widget used to set the options for the current
-    # input extension and context combination. If None or missing then no
-    # configuration widget will be shown on the Run dialog for that combination.
-    configuration_widget: NotRequired[Optional[RunExecutorConfigurationGroup]]
-
-    # True if the executor requires a path in order to work. False otherwise
-    requires_cwd: bool
-
-    # Priority number used to select the executor. The lower, the better.
-    priority: int
 
 
 class WorkingDirSource:
@@ -295,6 +273,62 @@ class RunConfigurationProvider:
         raise NotImplementedError(f'{type(self)} must implement get_run_input')
 
 
+RunExecuteFunc = Callable[
+    [RunConfiguration, ExtendedRunExecutionParameters],
+    List[PossibleRunResult]]
+
+
+def run_execute(func: RunExecuteFunc = None,
+                extension: Optional[str] = None,
+                context: Optional[str] = None) -> RunExecuteFunc:
+    """
+    Method decorator used to mark a method as a executor for a given file
+    extension and context.
+
+    The methods that use this decorator must have the following signature:
+
+    .. code-block:: python
+        def execution_handler(
+                input: RunConfiguration,
+                conf: ExtendedRunExecutionParameters) -> List[PossibleRunResult]:
+            ...
+
+    Arguments
+    ---------
+    func: Callable
+        Method to mark as an executor handler. Given by default when applying
+        the decorator.
+    extension: Optional[str]
+        The file extension that the executor should handle. If None then the
+        method will handle all extensions.
+    context: Optional[str]
+        The execution context that the executor should handle. If None then
+        the method will handle all contexts.
+
+    Returns
+    -------
+    func: Callable
+        The same method that was given as input.
+
+    Notes
+    -----
+    The method must not crash or raise an exception, instead the
+    `RunResult` must wrap a `RunResultError` structure.
+    """
+    if func is None:
+        return functools.partial(
+            run_execute, extension=extension, context=context)
+
+    if extension is None:
+        extension = '__extension'
+
+    if context is None:
+        context = '__context'
+
+    func._run_exec = (extension, context)
+    return func
+
+
 class RunExecutor:
     """
     Interface used to execute run context information.
@@ -305,9 +339,26 @@ class RunExecutor:
     covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
+    def __init__(self):
+        super().__init__()
+        self._exec_methods: Dict[str, RunExecuteFunc] = {}
+        self._exec_ext_methods: Dict[str, RunExecuteFunc] = {}
+        self._exec_context_methods: Dict[str, RunExecuteFunc] = {}
+
+        for method_name in dir(self):
+            method = getattr(self, method_name, None)
+            if hasattr(method, '_run_exec'):
+                extension, context = method._run_exec
+                if extension == '__extension' and context != '__context':
+                    self._exec_ext_methods[context] = method
+                elif extension != '__extension' and context == '__context':
+                    self._exec_context_methods[extension] = method
+                else:
+                    self._exec_methods[(extension, context)] = method
+
     def exec_run_configuration(
             self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+            conf: ExtendedRunExecutionParameters) -> List[PossibleRunResult]:
         """
         Execute a run configuration.
 
@@ -326,13 +377,28 @@ class RunExecutor:
             A list of `RunResult` dictionary entries, one per each `run_output`
             format requested by the input. Each entry must comply with the
             format requested.
-
-        Notes
-        -----
-        This function must not crash or raise an exception, instead the
-        `RunResult` must wrap a `RunResultError` structure.
         """
-        raise NotImplementedError(f'{type(self)} must implement exec_run_input')
+        metadata = input['metadata']
+        context = metadata['context']
+        extension = metadata['input_extension']
+        context = RunContext[context['name']]
+        query = (extension, context)
+        all_query = ('__extension', '__context')
+        if query in self._exec_methods:
+            method = self._exec_methods[query]
+        elif context in self._exec_ext_methods:
+            method = self._exec_ext_methods[context]
+        elif extension in self._exec_context_methods:
+            method = self._exec_context_methods[extension]
+        elif all_query in self._exec_methods:
+            method = self._exec_methods[all_query]
+        else:
+            raise NotImplementedError(
+                'There is no method available to '
+                f'execute the requested context ({extension}) and file '
+                f'extension ({extension})')
+
+        return method(input, conf)
 
 
 class RunResultViewer:
@@ -417,3 +483,31 @@ class RunExecutorConfigurationGroup(QWidget):
         values.
         """
         pass
+
+
+class SupportedExecutionRunConfiguration(TypedDict):
+    """Run execution configuration metadata."""
+
+    # File extension or identifier of the input context. It must belong to the
+    # `RunInputExtension` set.
+    input_extension: str
+
+    # The context for the given input extension.
+    # e.g., file, selection, cell, others.
+    # The context can be compared against the values of `RunContext`. e.g.,
+    # `info['context'] == RunContext.File`
+    context: Context
+
+    # The output formats available for the given context and extension.
+    output_formats: List[OutputFormat]
+
+    # The configuration widget used to set the options for the current
+    # input extension and context combination. If None or missing then no
+    # configuration widget will be shown on the Run dialog for that combination.
+    configuration_widget: NotRequired[Optional[RunExecutorConfigurationGroup]]
+
+    # True if the executor requires a path in order to work. False otherwise
+    requires_cwd: bool
+
+    # Priority number used to select the executor. The lower, the better.
+    priority: int

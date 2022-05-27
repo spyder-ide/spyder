@@ -3,7 +3,7 @@
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# (see spyder___init__.py for details)
 
 """IPython console run executor configuration widget."""
 
@@ -80,7 +80,7 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         self.pclo_edit = QLineEdit()
         self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
-        self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
+        self.pclo_edit.setToolTip(_("<b>-u<_b> is added to the "
                                     "other options you set here"))
         external_layout.addWidget(self.pclo_edit, 3, 1)
 
@@ -124,13 +124,13 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
     def get_default_configuration(self) -> dict:
         return {
-            'args/enabled': False,
+            'args_enabled': False,
             'args': '',
             'current': True,
             'systerm': False,
             'interact': False,
             'post_mortem': False,
-            'python_args/enabled': False,
+            'python_args_enabled': False,
             'python_args': '',
             'clear_namespace': False,
             'console_namespace': False,
@@ -141,9 +141,9 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         use_systerm = config['systerm']
         interact = config['interact']
         post_mortem = config['post_mortem']
-        args_enabled = config['args/enabled']
+        args_enabled = config['args_enabled']
         args = config['args']
-        py_args_enabled = config['python_args/enabled']
+        py_args_enabled = config['python_args_enabled']
         py_args = config['python_args']
         clear_namespace = config['clear_namespace']
         console_namespace = config['console_namespace']
@@ -162,14 +162,13 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
     def get_configuration(self) -> dict:
         return {
-            # 'default': True,
-            'args/enabled': self.pclo_cb.isChecked(),
+            'args_enabled': self.pclo_cb.isChecked(),
             'args': self.pclo_edit.text(),
             'current': self.current_radio.isChecked(),
             'systerm': self.systerm_radio.isChecked(),
             'interact': self.interact_cb.isChecked(),
             'post_mortem': self.post_mortem_cb.isChecked(),
-            'python_args/enabled': self.clo_cb.isChecked(),
+            'python_args_enabled': self.clo_cb.isChecked(),
             'python_args': self.clo_edit.text(),
             'clear_namespace': self.clear_var_cb.isChecked(),
             'console_namespace': self.console_ns_cb.isChecked(),

@@ -11,6 +11,8 @@ IPython Console plugin based on QtConsole.
 # Standard library imports
 import os
 import os.path as osp
+from pdb import post_mortem
+from typing import List
 
 # Third party imports
 from qtpy.QtCore import Signal
@@ -20,13 +22,17 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
+from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
-from spyder.plugins.run.api import RunExecutor
+from spyder.plugins.run.api import (
+    RunContext, RunExecutor, RunConfiguration,
+    ExtendedRunExecutionParameters, RunResult, run_execute)
+from spyder.plugins.editor.api.run import FileRun
 from spyder.utils.programs import get_temp_dir
 
 # Localization
@@ -209,6 +215,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     working_directory: str
         The new working directory path.
     """
+
+    def __init__(self, parent, configuration):
+        super().__init__(parent, configuration)
+        RunExecutor.__init__(self)
 
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
@@ -636,6 +646,37 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                                        ask_recursive=ask_recursive)
 
     # ---- For execution and debugging
+    @run_execute(context=RunContext.File)
+    def exec_files(
+            self, input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+        wdir = cwd_opts['path']
+        args = params['args']
+        debug = False
+        post_mortem = params['post_mortem']
+        current_client = params['current']
+        clear_variables = params['clear_namespace']
+        console_namespace = params['console_namespace']
+
+        self.run_script(
+            filename,
+            wdir,
+            args,
+            debug,
+            post_mortem,
+            current_client,
+            clear_variables,
+            console_namespace)
+
+        return []
+
     def run_script(self, filename, wdir, args, debug, post_mortem,
                    current_client, clear_variables, console_namespace):
         """

@@ -42,7 +42,7 @@ class Run(SpyderPluginV2):
 
     NAME = "run"
     # TODO: Fix requires to reflect the desired order in the preferences
-    REQUIRES = [Plugins.Preferences]
+    REQUIRES = [Plugins.Preferences, Plugins.WorkingDirectory]
     OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONTAINER_CLASS = RunContainer
     CONF_SECTION = NAME
@@ -85,6 +85,13 @@ class Run(SpyderPluginV2):
     def on_initialize(self):
         self.sig_switch_run_configuration_focus.connect(
             self.switch_focused_run_configuration)
+
+    @on_plugin_available(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_available(self):
+        working_dir = self.get_plugin(Plugins.WorkingDirectory)
+        working_dir.sig_current_directory_changed.connect(
+            self.switch_working_dir)
+        self.switch_working_dir(working_dir.get_workdir())
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -236,3 +243,6 @@ class Run(SpyderPluginV2):
     # ------------------------------------------------------------------------
     def switch_focused_run_configuration(self, uuid: str):
         self.get_container().switch_focused_run_configuration(uuid)
+
+    def switch_working_dir(self, path: str):
+        self.get_container().set_current_working_dir(path)

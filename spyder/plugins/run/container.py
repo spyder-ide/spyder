@@ -7,6 +7,7 @@
 """Spyder run container."""
 
 # Standard library imports
+import os.path as osp
 from collections import OrderedDict
 from weakref import WeakSet, WeakValueDictionary
 from typing import List, Dict, Tuple, Set, Optional
@@ -284,6 +285,8 @@ class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
     def setup(self):
+        self.current_working_dir: Optional[str] = None
+
         self.parameter_model = RunExecutorParameters(self)
         self.executor_model = RunExecutorListModel(self)
         self.metadata_model = RunConfigurationListModel(
@@ -351,8 +354,22 @@ class RunContainer(PluginMainContainer):
         if (status & RunDialogStatus.Run) == RunDialogStatus.Run:
             provider = self.run_metadata_provider[uuid]
             executor = self.run_executors[executor_name]
-            # print(provider, executor)
-            # print('Run')
+            run_conf = provider.get_run_configuration(uuid)
+
+            working_dir_opts = ext_params['params']['working_dir']
+            working_dir_source = working_dir_opts['source']
+            if working_dir_source == WorkingDirSource.ConfigurationDirectory:
+                fname = run_conf['metadata']['path']
+                dirname = osp.dirname(fname)
+            elif working_dir_source == WorkingDirSource.CurrentDirectory:
+                dirname = self.current_working_dir
+            else:
+                dirname = working_dir_opts['path']
+
+            dirname = dirname.replace("'", r"\'").replace('"', r'\"')
+            working_dir_opts['path'] = dirname
+
+            executor.exec_run_configuration(run_conf, ext_params)
 
     def edit_run_configurations(self):
         pass
@@ -368,6 +385,9 @@ class RunContainer(PluginMainContainer):
             self.metadata_model.set_current_run_configuration(uuid)
         else:
             self.run_action.setEnabled(False)
+
+    def set_current_working_dir(self, path: str):
+        self.current_working_dir = path
 
     def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,
