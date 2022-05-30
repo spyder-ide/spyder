@@ -279,8 +279,8 @@ RunExecuteFunc = Callable[
 
 
 def run_execute(func: RunExecuteFunc = None,
-                extension: Optional[str] = None,
-                context: Optional[str] = None) -> RunExecuteFunc:
+                extension: Optional[Union[str, List[str]]] = None,
+                context: Optional[Union[str, List[str]]] = None) -> RunExecuteFunc:
     """
     Method decorator used to mark a method as a executor for a given file
     extension and context.
@@ -295,19 +295,19 @@ def run_execute(func: RunExecuteFunc = None,
 
     Arguments
     ---------
-    func: Callable
+    func: RunExecuteFunc
         Method to mark as an executor handler. Given by default when applying
         the decorator.
-    extension: Optional[str]
-        The file extension that the executor should handle. If None then the
-        method will handle all extensions.
-    context: Optional[str]
-        The execution context that the executor should handle. If None then
-        the method will handle all contexts.
+    extension: Optional[Union[str, List[str]]]
+        The file extension or list of file extensions that the executor
+        should handle. If None then the method will handle all extensions.
+    context: Optional[Union[str, List[str]]]
+        The execution context or list of contexts that the executor should
+        handle. If None then the method will handle all contexts.
 
     Returns
     -------
-    func: Callable
+    func: RunExecuteFunc
         The same method that was given as input.
 
     Notes
@@ -325,7 +325,15 @@ def run_execute(func: RunExecuteFunc = None,
     if context is None:
         context = '__context'
 
-    func._run_exec = (extension, context)
+    if isinstance(extension, str):
+        extension = [extension]
+
+    if isinstance(context, str):
+        context = [context]
+
+    for ext in extension:
+        for ctx in context:
+            func._run_exec = (ext, ctx)
     return func
 
 

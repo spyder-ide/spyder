@@ -19,6 +19,7 @@ class Plugins:
     Console = 'internal_console'
     Editor = 'editor'
     Explorer = 'explorer'
+    ExternalConsole = 'external_console'
     Find = 'find_in_files'
     Help = 'help'
     History = 'historylog'

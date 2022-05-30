@@ -264,6 +264,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         self._remove_old_std_files()
 
+        self.cython_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'pyx',
+            'contexts': [
+                {
+                    'name': 'File'
+                }
+            ]
+        }
+
         self.python_editor_run_configuration = {
             'origin': self.NAME,
             'extension': 'py',
@@ -310,7 +320,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'configuration_widget': None,
                 'requires_cwd': True,
                 'priority': 0
-            }
+            },
+            {
+                'input_extension': 'pyx',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 0
+            },
         ]
 
     @on_plugin_available(plugin=Plugins.Preferences)
@@ -386,6 +406,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         editor.add_supported_run_configuration(
             self.python_editor_run_configuration)
+        editor.add_supported_run_configuration(
+            self.cython_editor_run_configuration)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -436,6 +458,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         editor.remove_supported_run_configuration(
             self.python_editor_run_configuration)
+        editor.remove_supported_run_configuration(
+            self.cython_editor_run_configuration)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
@@ -658,7 +682,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         run_input: FileRun = input['run_input']
         filename = run_input['path']
         wdir = cwd_opts['path']
-        args = params['args']
+        args = params['python_args']
         debug = False
         post_mortem = params['post_mortem']
         current_client = params['current']

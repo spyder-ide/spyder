@@ -50,6 +50,7 @@ class RunExecutorListModel(QAbstractListModel):
             str, SupportedExecutionRunConfiguration]] = {}
         self.executors_per_input: Dict[Tuple[str, str], Dict[str, int]] = {}
         self.inverted_pos: Dict[Tuple[str, str], Dict[int, str]] = {}
+        self.executor_priority: Dict[Tuple[str, str], Dict[str, int]] = {}
 
     def set_executor_name(self, executor_id: str, executor_name: str):
         self.executor_names[executor_id] = executor_name
@@ -62,19 +63,22 @@ class RunExecutorListModel(QAbstractListModel):
         self.executor_configurations[(ext, context_id)] = executor_conf
 
         input_executors = self.executors_per_input.get((ext, context_id), {})
+        all_exec_prio = self.executor_priority.get((ext, context_id), {})
         priority = config['priority']
 
         # Remove if existing
         input_executors.pop(executor_id, None)
-        to_insert = (executor_id, priority)
-        input_values = list(input_executors.items())
-        input_values.append(to_insert)
+        all_exec_prio.pop(executor_id, None)
+        all_exec_prio[executor_id] = priority
+
+        input_values = list(all_exec_prio.items())
         input_values = sorted(input_values, key=lambda k: k[1])
 
         input_values = [(x, i) for i, (x, _) in enumerate(input_values)]
         self.executors_per_input[(ext, context_id)] = dict(input_values)
 
         self.inverted_pos[(ext, context_id)] = {v: k for (k, v) in input_values}
+        self.executor_priority[(ext, context_id)] = all_exec_prio
 
     def remove_input_executor_configuration(
             self, ext: str, context_id: str, executor_id: str):
