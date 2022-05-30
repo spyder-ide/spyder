@@ -22,8 +22,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions)
-from spyder.config.base import (_, running_under_pytest, is_pynsist,
-                                running_in_mac_app)
+from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
@@ -489,7 +488,7 @@ class SpyderErrorDialog(QDialog):
 
 def test():
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # noqa
     dlg = SpyderErrorDialog()
     dlg._testing = True
     dlg.show()
