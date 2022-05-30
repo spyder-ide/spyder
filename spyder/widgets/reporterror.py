@@ -22,10 +22,14 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions)
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import (_, running_under_pytest, is_pynsist,
+                                running_in_mac_app)
 from spyder.config.gui import get_font
+from spyder.config.manager import CONF
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
+from spyder.utils.conda import is_conda_env, get_conda_env_path, find_conda
 from spyder.utils.icon_manager import ima
+from spyder.utils.programs import run_program
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
@@ -285,6 +289,9 @@ class SpyderErrorDialog(QDialog):
         if versions['revision']:
             revision = versions['revision']
 
+        # Indicate whether Spyder is from installer
+        installer = is_pynsist() or running_in_mac_app()
+
         # Make a description header in case no description is supplied
         if not description:
             description = "### What steps reproduce the problem?"
@@ -297,7 +304,7 @@ class SpyderErrorDialog(QDialog):
                              "```".format(traceback))
         else:
             error_section = ''
-        issue_template = """\
+        issue_template = f"""\
 ## Description
 
 {description}
@@ -306,28 +313,46 @@ class SpyderErrorDialog(QDialog):
 
 ## Versions
 
-* Spyder version: {spyder_version} {commit}
-* Python version: {python_version}
-* Qt version: {qt_version}
-* {qt_api_name} version: {qt_api_version}
-* Operating System: {os_name} {os_version}
+* Spyder version: {versions['spyder']} {revision}
+* Installer: {installer}
+* Python version: {versions['python']}
+* Qt version: {versions['qt']}
+* {versions['qt_api']} version: {versions['qt_api_ver']}
+* Operating System: {versions['system']} {versions['release']}
 
 ### Dependencies
 
 ```
-{dependencies}
+{dependencies.status()}
 ```
-""".format(description=description,
-           error_section=error_section,
-           spyder_version=versions['spyder'],
-           commit=revision,
-           python_version=versions['python'],
-           qt_version=versions['qt'],
-           qt_api_name=versions['qt_api'],
-           qt_api_version=versions['qt_api_ver'],
-           os_name=versions['system'],
-           os_version=versions['release'],
-           dependencies=dependencies.status())
+"""
+        # Report environment except if standalone and internal
+        if not installer or not CONF.get('main_interpreter', 'default'):
+            if CONF.get('main_interpreter', 'default'):
+                pyexe = sys.executable
+            else:
+                pyexe = CONF.get('main_interpreter', 'custom_interpreter')
+
+            if is_conda_env(pyexec=pyexe):
+                path = get_conda_env_path(pyexe)
+                exe = find_conda()
+                args = ['list', '--prefix', path]
+            else:
+                exe = pyexe
+                args = ['-m', 'pip', 'list']
+
+            proc = run_program(exe, args=args)
+            ext_env, stderr = proc.communicate()
+            issue_template += f"""
+### Environment
+
+<details><summary>Environment</summary>
+
+```
+{ext_env.decode()}
+```
+</details>
+"""
 
         return issue_template
 
