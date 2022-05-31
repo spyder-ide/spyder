@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions)
-from spyder.config.base import _
+from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
@@ -210,8 +210,9 @@ class SpyderErrorDialog(QDialog):
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox(_("Hide all future errors during this "
                                        "session"))
-        if self.is_report:
-            self.dismiss_box.hide()
+
+        # Checkbox to include IPython console environment
+        self.include_env = QCheckBox(_("Include IPython console environment"))
 
         # Dialog buttons
         gh_icon = ima.icon('github')
@@ -248,8 +249,13 @@ class SpyderErrorDialog(QDialog):
         layout.addWidget(self.details)
         layout.addWidget(self.desc_chars_label)
         layout.addSpacing(15)
-        layout.addWidget(self.dismiss_box)
-        layout.addSpacing(15)
+        if not self.is_report:
+            layout.addWidget(self.dismiss_box)
+            layout.addSpacing(15)
+        if (not (is_pynsist() or running_in_mac_app())
+                or not CONF.get('main_interpreter', 'default')):
+            layout.addWidget(self.include_env)
+            layout.addSpacing(15)
         layout.addLayout(buttons_layout)
         layout.setContentsMargins(25, 20, 25, 10)
         self.setLayout(layout)
@@ -261,7 +267,7 @@ class SpyderErrorDialog(QDialog):
         self.setTabOrder(self.title, self.input_description)
 
     @staticmethod
-    def render_issue(description='', traceback=''):
+    def render_issue(description='', traceback='', include_env=False):
         """
         Render issue content.
 
@@ -271,6 +277,8 @@ class SpyderErrorDialog(QDialog):
             Description to include in issue message.
         traceback: str
             Traceback text.
+        include_env: bool (False)
+            Whether to include the IPython console environment.
         """
         # Get component versions
         versions = get_versions()
@@ -321,8 +329,7 @@ class SpyderErrorDialog(QDialog):
 ```
 """
         # Report environment except if standalone and internal
-        if (not versions['installer'] == 'standalone'
-                or not CONF.get('main_interpreter', 'default')):
+        if include_env:
             if CONF.get('main_interpreter', 'default'):
                 pyexe = sys.executable
             else:
@@ -395,8 +402,9 @@ class SpyderErrorDialog(QDialog):
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        issue_text = self.render_issue(description=description,
-                                       traceback=traceback)
+        issue_text = self.render_issue(
+            description=description, traceback=traceback,
+            include_env=self.include_env.isChecked())
 
         try:
             org = self._github_org if not self._testing else 'ccordoba12'
