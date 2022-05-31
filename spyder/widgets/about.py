@@ -309,7 +309,7 @@ def test():
     """Run about widget test"""
 
     from spyder.utils.qthelpers import qapplication
-    qapplication()
+    app = qapplication()  # noqa
     abt = AboutDialog(None)
     abt.show()
     sys.exit(abt.exec_())
