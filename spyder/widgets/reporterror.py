@@ -225,8 +225,7 @@ class SpyderErrorDialog(QDialog):
             self.details_btn.hide()
 
         self.close_btn = QPushButton(_('Close'))
-        if self.is_report:
-            self.close_btn.clicked.connect(self.reject)
+        self.close_btn.clicked.connect(self.reject)
 
         # Buttons layout
         buttons_layout = QHBoxLayout()
