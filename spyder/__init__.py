@@ -52,20 +52,6 @@ import os
 # Directory of the current file
 __current_directory__ = os.path.dirname(os.path.abspath(__file__))
 
-def add_to_distribution(dist):
-    """Add package to py2exe/cx_Freeze distribution object
-    Extension to guidata.disthelpers"""
-    try:
-        dist.add_qt_bindings()
-    except AttributeError:
-        raise ImportError("This script requires guidata 1.5+")
-    for _modname in ('spyder', 'spyderplugins'):
-        dist.add_module_data_files(_modname, ("", ),
-                                   ('.png', '.svg', '.html', '.png', '.txt',
-                                    '.js', '.inv', '.ico', '.css', '.doctree',
-                                    '.qm', '.py',),
-                                   copy_to_root=False)
-
 
 def get_versions(reporev=True):
     """Get version information for components used by Spyder"""
