@@ -64,11 +64,15 @@ def get_versions(reporev=True):
     from spyder.utils.conda import is_conda_env
     from spyder.config.base import is_pynsist, running_in_mac_app
 
-    revision = None
+    revision = branch = None
     if reporev:
-        from spyder.utils import vcs
-        revision, branch = vcs.get_git_revision(
-            os.path.dirname(__current_directory__))
+        if running_in_mac_app():
+            revision = os.environ.get('SPY_COMMIT', None)
+            branch = os.environ.get('SPY_BRANCH', None)
+        else:
+            from spyder.utils import vcs
+            revision, branch = vcs.get_git_revision(
+                os.path.dirname(__current_directory__))
 
     if is_pynsist() or running_in_mac_app():
         installer = 'standalone'
