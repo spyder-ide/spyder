@@ -14,7 +14,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QScrollArea, QTabWidget, QWidget)
+                            QScrollArea, QTabWidget)
 
 # Local imports
 from spyder import (__project_url__, __forum_url__,
@@ -22,7 +22,7 @@ from spyder import (__project_url__, __forum_url__,
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import APP_STYLESHEET, DialogStyle
 
 
