@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions)
-from spyder.config.base import _, is_pynsist, running_in_mac_app
+from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
@@ -288,9 +288,6 @@ class SpyderErrorDialog(QDialog):
         if versions['revision']:
             revision = versions['revision']
 
-        # Indicate whether Spyder is from installer
-        installer = is_pynsist() or running_in_mac_app()
-
         # Make a description header in case no description is supplied
         if not description:
             description = "### What steps reproduce the problem?"
@@ -312,8 +309,7 @@ class SpyderErrorDialog(QDialog):
 
 ## Versions
 
-* Spyder version: {versions['spyder']} {revision}
-* Installer: {installer}
+* Spyder version: {versions['spyder']} {revision} ({versions['installer']})
 * Python version: {versions['python']}
 * Qt version: {versions['qt']}
 * {versions['qt_api']} version: {versions['qt_api_ver']}
@@ -326,7 +322,8 @@ class SpyderErrorDialog(QDialog):
 ```
 """
         # Report environment except if standalone and internal
-        if not installer or not CONF.get('main_interpreter', 'default'):
+        if (not versions['installer'] == 'standalone'
+                or not CONF.get('main_interpreter', 'default')):
             if CONF.get('main_interpreter', 'default'):
                 pyexe = sys.executable
             else:

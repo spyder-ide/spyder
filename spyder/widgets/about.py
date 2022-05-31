@@ -38,8 +38,8 @@ class AboutDialog(QDialog):
         revlink = ''
         if versions['revision']:
             rev = versions['revision']
-            revlink = " (<a href='https://github.com/spyder-ide/spyder/" \
-                      "commit/%s'>Commit: <br> %s</a>)" % (rev, rev)
+            revlink = ("<a href='https://github.com/spyder-ide/spyder/"
+                       "commit/%s'>%s</a>" % (rev, rev))
 
         # Get current font properties
         font = self.font()
@@ -202,10 +202,12 @@ class AboutDialog(QDialog):
             <p>
             <b>Spyder IDE</b>
             <br>{spyder_ver}
-            <br> {revision}
-            <br> """).format(
+            <br>{revision}
+            <br>({installer})
+            <br>""").format(
             spyder_ver=versions['spyder'],
             revision=revlink,
+            installer=versions['installer'],
             font_family=font_family,
             font_size=font_size))
         self.info.setAlignment(Qt.AlignHCenter)
@@ -286,13 +288,14 @@ class AboutDialog(QDialog):
     def copy_to_clipboard(self):
         versions = get_versions()
         QApplication.clipboard().setText(
-            "* Spyder version: {spyder_ver} {revision}\n"
+            "* Spyder version: {spyder_ver} {revision} ({installer})\n"
             "* Python version: {python_ver} {bitness}-bit\n"
             "* Qt version: {qt_ver}\n"
             "* {qt_api} version: {qt_api_ver}\n"
             "* Operating System: {os_name} {os_ver}".format(
                 spyder_ver=versions['spyder'],
                 revision=versions['revision'],
+                installer=versions['installer'],
                 python_ver=versions['python'],
                 bitness=versions['bitness'],
                 qt_ver=versions['qt'],

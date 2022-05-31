@@ -75,6 +75,9 @@ def get_versions(reporev=True):
     import qtpy
     import qtpy.QtCore
 
+    from spyder.utils.conda import is_conda_env
+    from spyder.config.base import is_pynsist, running_in_mac_app
+
     revision = None
     if reporev:
         from spyder.utils import vcs
@@ -86,8 +89,16 @@ def get_versions(reporev=True):
     else:
         system = 'Darwin'
 
+    if is_pynsist() or running_in_mac_app():
+        installer = 'standalone'
+    elif is_conda_env(pyexec=sys.executable):
+        installer = 'conda'
+    else:
+        installer = 'pip'
+
     return {
         'spyder': __version__,
+        'installer': installer,
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': qtpy.QtCore.__version__,
