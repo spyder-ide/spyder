@@ -70,11 +70,6 @@ def get_versions(reporev=True):
         revision, branch = vcs.get_git_revision(
             os.path.dirname(__current_directory__))
 
-    if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
-        system = platform.system()
-    else:
-        system = 'Darwin'
-
     if is_pynsist() or running_in_mac_app():
         installer = 'standalone'
     elif is_conda_env(pyexec=sys.executable):
@@ -91,7 +86,7 @@ def get_versions(reporev=True):
         'qt_api': qtpy.API_NAME,      # PyQt5
         'qt_api_ver': (qtpy.PYSIDE_VERSION if qtpy.API == "pyside2"
                        else qtpy.PYQT_VERSION),
-        'system': system,   # Linux, Windows, ...
+        'system': platform.system(),   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
         'revision': revision,  # '9fdf926eccce',
         'branch': branch,  # '4.x' or master
