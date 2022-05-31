@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
-                    get_versions)
+                    get_versions_text)
 from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
@@ -280,20 +280,12 @@ class SpyderErrorDialog(QDialog):
         include_env: bool (False)
             Whether to include the IPython console environment.
         """
-        # Get component versions
-        versions = get_versions()
-
         # Get dependencies if they haven't beed computed yet.
         if not dependencies.DEPENDENCIES:
             try:
                 dependencies.declare_dependencies()
             except ValueError:
                 pass
-
-        # Get git revision for development version
-        revision = ''
-        if versions['revision']:
-            revision = versions['revision']
 
         # Make a description header in case no description is supplied
         if not description:
@@ -307,6 +299,9 @@ class SpyderErrorDialog(QDialog):
                              "```".format(traceback))
         else:
             error_section = ''
+
+        versions_text = get_versions_text()
+
         issue_template = f"""\
 ## Description
 
@@ -316,12 +311,7 @@ class SpyderErrorDialog(QDialog):
 
 ## Versions
 
-* Spyder version: {versions['spyder']} {revision} ({versions['installer']})
-* Python version: {versions['python']}
-* Qt version: {versions['qt']}
-* {versions['qt_api']} version: {versions['qt_api_ver']}
-* Operating System: {versions['system']} {versions['release']}
-
+{versions_text}
 ### Dependencies
 
 ```

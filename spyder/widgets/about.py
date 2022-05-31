@@ -17,8 +17,8 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QScrollArea, QTabWidget)
 
 # Local imports
-from spyder import (__project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+from spyder import (__project_url__, __forum_url__, __trouble_url__,
+                    __website_url__, get_versions, get_versions_text)
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
@@ -286,23 +286,7 @@ class AboutDialog(QDialog):
         self.setStyleSheet(str(css))
 
     def copy_to_clipboard(self):
-        versions = get_versions()
-        QApplication.clipboard().setText(
-            "* Spyder version: {spyder_ver} {revision} ({installer})\n"
-            "* Python version: {python_ver} {bitness}-bit\n"
-            "* Qt version: {qt_ver}\n"
-            "* {qt_api} version: {qt_api_ver}\n"
-            "* Operating System: {os_name} {os_ver}".format(
-                spyder_ver=versions['spyder'],
-                revision=versions['revision'],
-                installer=versions['installer'],
-                python_ver=versions['python'],
-                bitness=versions['bitness'],
-                qt_ver=versions['qt'],
-                qt_api=versions['qt_api'],
-                qt_api_ver=versions['qt_api_ver'],
-                os_name=versions['system'],
-                os_ver=versions['release']))
+        QApplication.clipboard().setText(get_versions_text())
 
 
 def test():

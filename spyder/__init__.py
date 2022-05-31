@@ -95,3 +95,18 @@ def get_versions(reporev=True):
         'revision': revision,  # '9fdf926eccce',
         'branch': branch,  # '4.x' or master
     }
+
+
+def get_versions_text(reporev=True):
+    versions = get_versions(reporev=reporev)
+
+    # Get git revision for development version
+    revision = versions['revision'] or ''
+
+    return f"""\
+* Spyder version: {versions['spyder']} {revision} ({versions['installer']})
+* Python version: {versions['python']} {versions['bitness']}-bit
+* Qt version: {versions['qt']}
+* {versions['qt_api']} version: {versions['qt_api_ver']}
+* Operating System: {versions['system']} {versions['release']}
+"""
