@@ -493,6 +493,14 @@ class RunExecutorConfigurationGroup(QWidget):
         pass
 
 
+RunExecutorConfigurationGroupFactory = Callable[
+    [QWidget, Context, str, RunConfigurationMetadata],
+    RunExecutorConfigurationGroup]
+
+RunExecutorConfigurationGroupCreator = Union[
+    RunExecutorConfigurationGroup, RunExecutorConfigurationGroupFactory]
+
+
 class SupportedExecutionRunConfiguration(TypedDict):
     """Run execution configuration metadata."""
 
@@ -512,7 +520,8 @@ class SupportedExecutionRunConfiguration(TypedDict):
     # The configuration widget used to set the options for the current
     # input extension and context combination. If None or missing then no
     # configuration widget will be shown on the Run dialog for that combination.
-    configuration_widget: NotRequired[Optional[RunExecutorConfigurationGroup]]
+    configuration_widget: NotRequired[
+        Optional[RunExecutorConfigurationGroupCreator]]
 
     # True if the executor requires a path in order to work. False otherwise
     requires_cwd: bool

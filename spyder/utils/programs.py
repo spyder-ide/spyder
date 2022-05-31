@@ -30,6 +30,7 @@ from pkg_resources import parse_version
 import psutil
 
 # Local imports
+from spyder.api.translations import get_translation
 from spyder.config.base import (running_under_pytest, get_home_dir,
                                 running_in_mac_app)
 from spyder.py3compat import is_text_string, to_text_string
@@ -720,6 +721,106 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     return p_args
 
 
+def run_general_file_in_terminal(executable: str, args: str, fname: str,
+                                 script_args: str, wdir: str,
+                                 close_after_exec: bool = False):
+    """
+    Run a file on a given CLI executable.
+
+    Arguments
+    ---------
+    executable: str
+        Name or path to the executable.
+    args: str
+        Arguments to pass to the executable.
+    fname: str
+        Path to the file to execute in the shell interpreter/executable.
+    script_args: str
+        Arguments
+    wdir: str
+        Working directory path from which the file will be executed.
+    """
+
+    # Quote fname in case it has spaces (all platforms)
+    fname = f'"{fname}"'
+    wdir = None if not wdir else wdir  # Cannot be empty string
+    args = shell_split(args)
+    script_args = shell_split(script_args)
+    p_args = args + [fname] + script_args
+
+    if os.name == 'nt':
+        if wdir is not None:
+            # wdir can come with / as os.sep, so we need to take care of it.
+            wdir = wdir.replace('/', '\\')
+
+        # python_exe must be quoted in case it has spaces
+        cmd = f'start cmd.exe /K ""{executable}" '
+        cmd += ' '.join(p_args) + '"'
+
+        if close_after_exec:
+            cmd += ' ^&^& exit'
+
+        try:
+            run_shell_command(cmd, cwd=wdir)
+        except WindowsError:
+            from qtpy.QtWidgets import QMessageBox
+            from spyder.config.base import _
+            QMessageBox.critical(None, _('Run'),
+                                 _("It was not possible to run this file in "
+                                   "an external terminal"),
+                                 QMessageBox.Ok)
+    elif sys.platform.startswith('linux'):
+        programs = [#{'cmd': 'x-terminal-emulator', 'execute-option': '-x'},
+                    {'cmd': 'gnome-terminal', 'execute-option': '--'},
+                    {'cmd': 'konsole', 'execute-option': '-e'},
+                    {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
+                    {'cmd': 'xterm', 'execute-option': '-e'}]
+        for program in programs:
+            _ = get_translation('spyder')
+            if is_program_installed(program['cmd']):
+                f = None
+                if not close_after_exec:
+                    f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
+                                        suffix='.sh', dir=get_temp_dir(),
+                                        delete=False)
+
+                    f.write(' '.join([executable] + p_args) + '\n')
+                    f.write(f'read -p "{_("Press enter to continue...")}"\n')
+                    executable = '/usr/bin/bash'
+                    p_args = [f.name]
+
+                cmd = [program['cmd'], program['execute-option'], executable]
+                cmd.extend(p_args)
+                run_shell_command(' '.join(cmd), cwd=wdir)
+                if f:
+                    f.close()
+                return
+    elif sys.platform == 'darwin':
+        _ = get_translation('spyder')
+        f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
+                                        suffix='.sh', dir=get_temp_dir(),
+                                        delete=False)
+        if wdir:
+            f.write('cd "{}"\n'.format(wdir))
+        f.write(' '.join([executable] + p_args) + '\n')
+        if not close_after_exec:
+            f.write(f'read -p "{_("Press enter to continue...")}"\n')
+        f.close()
+        os.chmod(f.name, 0o777)
+
+        def run_terminal_thread():
+            proc = run_shell_command(f'open -a Terminal.app {f.name}')
+            # Prevent race condition
+            time.sleep(3)
+            proc.wait()
+            os.remove(f.name)
+
+        thread = threading.Thread(target=run_terminal_thread)
+        thread.start()
+    else:
+        raise NotImplementedError
+
+
 def run_python_script_in_terminal(fname, wdir, args, interact,
                                   debug, python_args, executable=None):
     """
@@ -755,7 +856,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                    "an external terminal"),
                                  QMessageBox.Ok)
     elif sys.platform.startswith('linux'):
-        programs = [{'cmd': 'gnome-terminal', 'execute-option': '-x'},
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '--'},
                     {'cmd': 'konsole', 'execute-option': '-e'},
                     {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
                     {'cmd': 'xterm', 'execute-option': '-e'}]

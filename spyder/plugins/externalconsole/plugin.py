@@ -25,9 +25,10 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.plugins.editor.api.run import FileRun
-from spyder.plugins.externalconsole.api import ExtConsolePyConfiguration
+from spyder.plugins.externalconsole.api import (
+    ExtConsolePyConfiguration, ExtConsoleShConfiguration)
 from spyder.plugins.externalconsole.widgets.run_conf import (
-    ExternalConsolePyConfiguration)
+    ExternalConsolePyConfiguration, ExternalConsoleShConfiguration)
 
 # Localization
 _ = get_translation('spyder')
@@ -101,7 +102,8 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': None,
+                'configuration_widget': ExternalConsoleShConfiguration(
+                    'cmd.exe', '/K'),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -122,7 +124,8 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': None,
+                'configuration_widget': ExternalConsoleShConfiguration(
+                    'pwsh.exe'),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -144,7 +147,8 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': None,
+                'configuration_widget': ExternalConsoleShConfiguration(
+                    programs.is_program_installed('bash')),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -210,3 +214,24 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         python_args = params['python_args']
         self.open_external_python_console(
             filename, wdir, args, interact, debug, python_args)
+
+    @run_execute(extension='sh')
+    def run_shell_files(
+            self, input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        params: ExtConsoleShConfiguration = exec_params['executor_params']
+
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+
+        executable = params['interpreter']
+        executable_args = params['interpreter_opts']
+        script_args = params['script_opts']
+        close_after_exec = params['close_after_exec']
+        wdir = cwd_opts['path']
+
+        programs.run_general_file_in_terminal(
+            executable, executable_args, filename, script_args, wdir,
+            close_after_exec)

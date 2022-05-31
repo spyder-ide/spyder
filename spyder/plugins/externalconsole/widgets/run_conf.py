@@ -7,21 +7,26 @@
 """External console run executor configurations."""
 
 # Standard library imports
+import os
+import sys
 import os.path as osp
+from typing import Callable
 
 # Third-party imports
-from qtpy.compat import getexistingdirectory
+from qtpy.compat import getexistingdirectory, getopenfilename
 from qtpy.QtWidgets import (
     QWidget, QRadioButton, QGroupBox, QVBoxLayout, QGridLayout,
-    QCheckBox, QLineEdit, QHBoxLayout)
+    QCheckBox, QLineEdit, QHBoxLayout, QLabel)
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.plugins.run.api import (
-    RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
+    RunExecutorConfigurationGroup, Context, RunConfigurationMetadata,
+    RunExecutorConfigurationGroupFactory)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
+from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 
 _ = get_translation('spyder')
 
@@ -125,3 +130,129 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
             'python_args_enabled': self.clo_cb.isChecked(),
             'python_args': self.clo_edit.text(),
         }
+
+
+class GenExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
+    """External console shell run configuration options."""
+
+    def __init__(self, default_shell: str, parent,
+                 context: Context, input_extension: str,
+                 input_metadata: RunConfigurationMetadata,
+                 shell_args: str = ''):
+        super().__init__(parent, context, input_extension, input_metadata)
+
+        self.default_shell = default_shell
+
+        # --- Interpreter ---
+        interpreter_group = QGroupBox(_("Interpreter"))
+        interpreter_layout = QGridLayout(interpreter_group)
+
+        interpreter_label = QLabel(_("Shell interpreter:"))
+        interpreter_layout.addWidget(interpreter_label, 0, 0)
+        edit_layout = QHBoxLayout()
+        self.interpreter_edit = QLineEdit()
+        browse_btn = create_toolbutton(
+            self,
+            triggered=self.select_directory,
+            icon=ima.icon('DirOpenIcon'),
+            tip=_("Select directory")
+        )
+        edit_layout.addWidget(self.interpreter_edit)
+        edit_layout.addWidget(browse_btn)
+        interpreter_layout.addLayout(edit_layout, 0, 1)
+
+        self.interpreter_opts_cb = QCheckBox(_("Interpreter arguments:"))
+        interpreter_layout.addWidget(self.interpreter_opts_cb, 1, 0)
+        self.interpreter_opts_edit = QLineEdit()
+        self.interpreter_opts_cb.toggled.connect(
+            self.interpreter_opts_edit.setEnabled)
+        self.interpreter_opts_edit.setEnabled(False)
+        interpreter_layout.addWidget(self.interpreter_opts_edit, 1, 1)
+
+        if shell_args:
+            self.interpreter_opts_cb.setChecked(True)
+            self.interpreter_opts_edit.setText(shell_args)
+
+        # --- Script ---
+        script_group = QGroupBox(_('Script'))
+        script_layout = QGridLayout(script_group)
+
+        self.script_opts_cb = QCheckBox(_("Script arguments:"))
+        script_layout.addWidget(self.script_opts_cb, 1, 0)
+        self.script_opts_edit = QLineEdit()
+        self.script_opts_cb.toggled.connect(
+            self.script_opts_edit.setEnabled)
+        self.script_opts_edit.setEnabled(False)
+        script_layout.addWidget(self.script_opts_edit, 1, 1)
+
+        self.close_after_exec_cb = QCheckBox(
+            _('Close console after execution'))
+        script_layout.addWidget(self.close_after_exec_cb, 2, 0)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(interpreter_group)
+        layout.addWidget(script_group)
+        layout.addStretch(100)
+
+    def select_directory(self):
+        """Select directory"""
+        basedir = str(self.interpreter_edit.text())
+        if not osp.isdir(basedir):
+            basedir = getcwd_or_home()
+        file, __ = getopenfilename(self, _("Select executable"), basedir)
+        if file:
+            self.interpreter_edit.setText(file)
+
+    def get_default_configuration(self) -> ExtConsoleShConfiguration:
+        return {
+            'interpreter': self.default_shell,
+            'interpreter_opts_enabled': False,
+            'interpreter_opts': '',
+            'script_opts_enabled': False,
+            'script_opts': '',
+            'close_after_exec': False,
+        }
+
+    def set_configuration(self, config: ExtConsoleShConfiguration):
+        interpreter = config['interpreter']
+        interpreter_opts_enabled = config['interpreter_opts_enabled']
+        interpreter_opts = config['interpreter_opts']
+        script_opts_enabled = config['script_opts_enabled']
+        script_opts = config['script_opts']
+        close_after_exec = config['close_after_exec']
+
+        self.interpreter_edit.setText(interpreter)
+        self.interpreter_opts_cb.setChecked(interpreter_opts_enabled)
+        self.interpreter_opts_edit.setText(interpreter_opts)
+        self.script_opts_cb.setChecked(script_opts_enabled)
+        self.script_opts_edit.setText(script_opts)
+        self.close_after_exec_cb.setChecked(close_after_exec)
+
+    def get_configuration(self) -> ExtConsoleShConfiguration:
+        return {
+            'interpreter': self.interpreter_edit.text(),
+            'interpreter_opts_enabled': self.interpreter_opts_cb.isChecked(),
+            'interpreter_opts': self.interpreter_opts_edit.text(),
+            'script_opts_enabled': self.script_opts_cb.isChecked(),
+            'script_opts': self.script_opts_edit.text(),
+            'close_after_exec': self.close_after_exec_cb.isChecked()
+        }
+
+
+def ExternalConsoleShConfiguration(
+        default_shell: str,
+        shell_args: str = '') -> RunExecutorConfigurationGroupFactory:
+
+    def spawn_console_conf(
+            parent, context: Context,
+            input_extension: str, input_metadata: RunConfigurationMetadata):
+        return GenExternalConsoleShConfiguration(
+            default_shell,
+            parent,
+            context,
+            input_extension,
+            input_metadata,
+            shell_args=shell_args
+        )
+
+    return spawn_console_conf
