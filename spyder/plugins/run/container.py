@@ -375,6 +375,11 @@ class RunContainer(PluginMainContainer):
 
             executor.exec_run_configuration(run_conf, ext_params)
 
+            last_used_conf = StoredRunConfigurationExecutor(
+                executor=executor_name, selected=ext_params['uuid'])
+
+            self.set_last_used_execution_params(uuid, last_used_conf)
+
     def edit_run_configurations(self):
         pass
 
@@ -688,3 +693,24 @@ class RunContainer(PluginMainContainer):
         if params['executor'] == executor_name:
             last_used_params = params['selected']
         return last_used_params
+
+    def set_last_used_execution_params(
+            self, uuid: str, params: StoredRunConfigurationExecutor):
+        """
+        Store the last used executor and parameters for a given run
+        configuration.
+
+        Parameters
+        ----------
+        uuid: str
+            The run configuration identifier.
+        params: StoredRunConfigurationExecutor
+            Dictionary containing the last used executor and run parameters
+            used.
+        """
+        mru_executors_uuids: Dict[
+            str, StoredRunConfigurationExecutor] = self.get_conf(
+                'last_used_parameters', default={})
+
+        mru_executors_uuids[uuid] = params
+        self.set_conf('last_used_parameters', mru_executors_uuids)

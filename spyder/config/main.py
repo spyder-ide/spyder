@@ -578,6 +578,7 @@ NAME_MAP = {
             'layout_settings',
             'recent_files',
             'splitter_state',
+            'file_uuids'
             ]
          ),
         ('explorer', [

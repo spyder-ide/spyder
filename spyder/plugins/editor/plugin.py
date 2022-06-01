@@ -365,7 +365,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def register_file_run_metadata(self, filename, filename_ext):
         # Register opened files with the run plugin
-        file_id = str(uuid.uuid4())
+        all_uuids = CONF.get('editor', 'file_uuids', default={})
+        file_id = all_uuids.get(filename, str(uuid.uuid4()))
+        all_uuids[filename] = file_id
+        CONF.set('editor', 'file_uuids', all_uuids)
+
         metadata: RunConfigurationMetadata = {
             'name': filename,
             'source': self.NAME,
@@ -384,6 +388,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         run = self.main.get_plugin(Plugins.Run)
         run.register_run_configuration_metadata(self, metadata)
+
 
     @Slot(dict)
     def report_open_file(self, options):
