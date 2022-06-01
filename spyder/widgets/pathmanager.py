@@ -72,16 +72,17 @@ class PathManager(QDialog):
         self.setWindowIcon(ima.icon('pythonpath'))
         self.resize(500, 300)
         self.import_button.setVisible(sync)
-        self.export_button.setVisible(os.name == 'nt' and sync)
+        # self.export_button.setVisible(os.name == 'nt' and sync)
 
         # Layouts
         description = QLabel(
-            _("Only paths listed here will be passed to IPython consoles and "
-              "the language server<br>as additional Python search paths."
-              "<br>"
-              "Paths in your system <b>PYTHONPATH</b> environment variable "
-              "can be imported to this list.")
+            _("The paths listed below will be passed to IPython consoles and "
+              "the language server as additional locations to search for "
+              "Python modules. Any paths in your system <b>PYTHONPATH</b> "
+              "environment variable can be imported here if you'd like to use "
+              "them.")
         )
+        description.setWordWrap(True)
         top_layout = QHBoxLayout()
         self._add_widgets_to_layout(self.top_toolbar_widgets, top_layout)
 
@@ -242,12 +243,12 @@ class PathManager(QDialog):
         answer = QMessageBox.question(
             self,
             _("Export"),
-            _("This will export Spyder's path list to "
+            _("This will export Spyder's path list to the "
               "<b>PYTHONPATH</b> environment variable for the current user, "
               "allowing you to run your Python modules outside Spyder "
               "without having to configure sys.path. "
-              "<br>"
-              "Do you want to clear contents of PYTHONPATH before "
+              "<br><br>"
+              "Do you want to clear the contents of PYTHONPATH before "
               "adding Spyder's path list?"),
             QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
 
@@ -467,7 +468,7 @@ def test():
         sys.stdout.write(str(path_dict))
 
     dlg.sig_path_changed.connect(callback)
-    dlg.exec_()
+    sys.exit(dlg.exec_())
 
 
 if __name__ == "__main__":
