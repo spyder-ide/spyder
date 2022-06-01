@@ -2466,6 +2466,9 @@ def test_run_static_code_analysis(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and running_in_ci(),
+    reason="It stalls the CI sometimes on Linux")
 def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
     """Test that the troubleshooting menu item calls the valid URL."""
     application_plugin = main_window.application
@@ -2486,6 +2489,9 @@ def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
 @pytest.mark.skipif(
     sys.platform == 'darwin' and running_in_ci(),
     reason="It stalls the CI sometimes on MacOS")
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and running_in_ci(),
+    reason="It stalls the CI sometimes on Linux")
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """
     Test fix for spyder-ide/spyder#6317.
@@ -4048,6 +4054,7 @@ hello()
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_project
 @pytest.mark.skipif(os.name == 'nt', reason='Times out on Windows')
+@pytest.mark.known_leak
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a
@@ -4155,6 +4162,7 @@ def test_tour_message(main_window, qtbot):
 @pytest.mark.preload_complex_project
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Only works on Linux")
+@pytest.mark.known_leak
 def test_update_outline(main_window, qtbot, tmpdir):
     """
     Test that files in the Outline pane are updated at startup and
