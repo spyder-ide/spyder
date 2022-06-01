@@ -13,6 +13,8 @@ yapf
 numpy
 scipy
 pandas
+openpyxl  # pandas optional dependency to handle Excel files
+defusedxml  # openpyxl dependency to prevent security issues
 matplotlib
 cython
 sympy
