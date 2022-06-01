@@ -684,6 +684,11 @@ class RunDialog(BaseRunConfigDialog):
         if index < 0:
             return
 
+        if self.index_to_select is not None:
+            index = self.index_to_select
+            self.index_to_select = None
+            self.parameters_combo.setCurrentIndex(index)
+
         action, params = self.parameter_model.get_executor_parameters(index)
         working_dir_params = params['working_dir']
         stored_parameters = params['executor_params']
@@ -743,6 +748,9 @@ class RunDialog(BaseRunConfigDialog):
         selected_params = self.run_conf_model.get_last_used_execution_params(
             uuid, executor_name)
         index = self.parameter_model.get_parameters_index(selected_params)
+
+        if self.parameters_combo.count() == 0:
+            self.index_to_select = index
 
         self.parameters_combo.setCurrentIndex(index)
 
