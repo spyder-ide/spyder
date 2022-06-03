@@ -1117,6 +1117,18 @@ class BaseEditMixin(object):
         cursor.select(QTextCursor.BlockUnderCursor)
         return to_text_string(cursor.selectedText())
 
+    def get_current_line_bounds(self):
+        """Return the (line, column) bounds for the current line."""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return self.get_selection_start_end(cursor)
+
+    def get_current_line_offsets(self):
+        """Return the start and end offset positions for the current line."""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return self.get_selection_offsets()
+
     def get_current_line_to_cursor(self):
         """Return text from prompt to cursor."""
         return self.get_text(self.current_prompt_pos, 'cursor')
@@ -1174,6 +1186,13 @@ class BaseEditMixin(object):
         end_cursor.setPosition(end)
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
+
+    def get_selection_offsets(self, cursor=None):
+        """Return selection start and end offset positions."""
+        if cursor is None:
+            cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        return start, end
 
     #------Text selection
     def has_selected_text(self):

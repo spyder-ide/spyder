@@ -250,7 +250,7 @@ class RunConfigurationProvider:
     This API needs to be implemented by any plugin that wants to provide
     an input/file to a code runner. e.g., Editor files/ to be executed into
     the IPythonConsole. This interface needs to be covariant with respect to
-    :class:`spyder.api.plugins.SpyderDockablePlugin`
+    :class:`spyder.api.plugins.SpyderDockablePlugin`.
     """
 
     def get_run_configuration(self, uuid: str) -> RunConfiguration:
@@ -270,7 +270,36 @@ class RunConfigurationProvider:
             A dictionary containing the information required by the run
             executor.
         """
-        raise NotImplementedError(f'{type(self)} must implement get_run_input')
+        raise NotImplementedError(f'{type(self)} must implement '
+                                  'get_run_configuration')
+
+    def get_run_configuration_per_context(
+            self, context: str,
+            action_name: Optional[str] = None) -> RunConfiguration:
+        """
+        Return the run information for the given context.
+
+        The run configuration requested must be returned based on the
+        currently focused file/object/etc.
+
+        Arguments
+        ---------
+        context: str
+            The context identifier for which the run configuration
+            is requested.
+        action_name: Optional[str]
+            If not None, the name of the action that the provider should take
+            after gathering the run configuration input. Else, no action needs
+            to take place.
+
+        Returns
+        -------
+        configuration: RunConfiguration
+            A dictionary containing the information required by the run
+            executor.
+        """
+        raise NotImplementedError(f'{type(self)} must implement '
+                                  'get_run_configuration_per_context')
 
 
 RunExecuteFunc = Callable[
@@ -403,8 +432,8 @@ class RunExecutor:
         else:
             raise NotImplementedError(
                 'There is no method available to '
-                f'execute the requested context ({extension}) and file '
-                f'extension ({extension})')
+                f'execute the requested context ({context}) and file '
+                f'extension ({extension}) in {type(self)}')
 
         return method(input, conf)
 
@@ -477,7 +506,8 @@ class RunExecutorConfigurationGroup(QWidget):
         """
         return {}
 
-    def get_default_configuration(self) -> dict:
+    @staticmethod
+    def get_default_configuration() -> dict:
         """
         Obtain a dictionary containing the default values for the
         executor configuration.

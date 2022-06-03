@@ -45,7 +45,8 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.editor.api.run import EditorRunConfiguration, FileRun
+from spyder.plugins.editor.api.run import (
+    EditorRunConfiguration, FileRun, SelectionRun)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -61,7 +62,8 @@ from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.run.api import RunContext, RunConfigurationMetadata, RunConfiguration
+from spyder.plugins.run.api import (
+    RunContext, RunConfigurationMetadata, RunConfiguration)
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration, RunConfigDialog,
                                         RunConfigOneDialog)
@@ -241,7 +243,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run = self.main.get_plugin(Plugins.Run, error=False)
         if run:
             self.sig_editor_focus_changed_uuid.connect(
-                run.sig_switch_run_configuration_focus)
+                run.switch_focused_run_configuration)
+
+            run.create_run_button(RunContext.Selection,
+                                  _("Run &selection or current line"),
+                                  icon=ima.icon('run_selection'),
+                                  tip=_("Run selection or current line"),
+                                  shortcut_context="editor",
+                                  register_shortcut=True,
+                                  add_to_toolbar=True,
+                                  add_to_menu=True)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -396,7 +407,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
-        _, filename_ext = osp.splitext(filename)
+        __, filename_ext = osp.splitext(filename)
         filename_ext = filename_ext[1:]
 
         able_to_run_file = False
@@ -3061,6 +3072,35 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run_conf = RunConfiguration(output_formats=[], run_input=run_input,
                                     metadata=metadata)
         return run_conf
+
+    def get_run_configuration_per_context(
+            self, context, action_name) -> RunConfiguration:
+        if context == RunContext.Selection:
+            editorstack = self.get_current_editorstack()
+            fname = self.get_current_filename()
+            __, filename_ext = osp.splitext(fname)
+            fname_ext = filename_ext[1:]
+
+            text, offsets, line_cols, enc = editorstack.run_selection()
+
+            metadata: RunConfigurationMetadata = {
+                'name': fname,
+                'source': self.NAME,
+                'path': fname,
+                'datetime': datetime.now(),
+                'uuid': None,
+                'context': {
+                    'name': 'Selection'
+                },
+                'input_extension': fname_ext
+            }
+            run_input = SelectionRun(
+                path=fname, selection=text, encoding=enc,
+                line_col_bounds=line_cols, character_bounds=offsets)
+            run_conf = RunConfiguration(output_formats=[],
+                                        run_input=run_input,
+                                        metadata=metadata)
+            return run_conf
 
     @Slot()
     def edit_run_configurations(self):

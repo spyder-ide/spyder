@@ -2756,7 +2756,7 @@ class EditorStack(QWidget):
         elif direction == 'down':
             cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
 
-        code_text = editor.get_selection_as_executable_code(cursor)
+        code_text, _, _ = editor.get_selection_as_executable_code(cursor)
         if code_text:
             self.exec_in_extconsole.emit(code_text.rstrip(),
                                          self.focus_to_editor)
@@ -2787,18 +2787,25 @@ class EditorStack(QWidget):
         cursor there. If cursor is on last line and that line is empty, then do
         not move cursor.
         """
-        text = self.get_current_editor().get_selection_as_executable_code()
-        if text:
-            self.exec_in_extconsole.emit(text.rstrip(), self.focus_to_editor)
-            return
+        finfo = self.get_current_finfo()
+        enc = finfo.encoding
+        ret = self.get_current_editor().get_selection_as_executable_code()
+        if ret:
+            text, off_pos, line_col_pos = ret
+            # self.exec_in_extconsole.emit(text.rstrip(), self.focus_to_editor)
+            return text, off_pos, line_col_pos, enc
         editor = self.get_current_editor()
+        line_col_from, line_col_to = editor.get_current_line_bounds()
+        line_off_from, line_off_to = editor.get_current_line_offsets()
         line = editor.get_current_line()
         text = line.lstrip()
-        if text:
-            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        # if text:
+        #     self.exec_in_extconsole.emit(text, self.focus_to_editor)
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
         editor.move_cursor_to_next('line', 'down')
+        return (text, (line_off_from, line_off_to),
+                (line_col_from, line_col_to), enc)
 
     def run_cell(self, debug=False):
         """Run current cell."""

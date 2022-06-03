@@ -7,14 +7,16 @@
 """Spyder run container."""
 
 # Standard library imports
+import functools
 import os.path as osp
 from collections import OrderedDict
 from weakref import WeakSet, WeakValueDictionary
-from typing import List, Dict, Tuple, Set, Optional
+from typing import Any, Callable, List, Dict, Tuple, Set, Optional
 
 # Third-party imports
+from qtpy.QtGui import QIcon
 from qtpy.QtCore import Qt, Signal, QAbstractListModel, QModelIndex
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QMessageBox, QAction
 
 # Local imports
 from spyder.utils.sourcecode import camel_case_to_snake_case
@@ -23,13 +25,13 @@ from spyder.api.translations import get_translation
 from spyder.plugins.run.widgets import RunDialog, RunDialogStatus
 # from spyder.plugins.run.api import RunActions, RunResult, ExtendedRunExecutionParameters
 from spyder.plugins.run.api import (
-    RunActions, RunResult, StoredRunExecutorParameters,
+    RunActions, RunConfiguration, RunExecutionMetadata, RunResult, StoredRunExecutorParameters,
     RunContext, RunExecutor, RunResultFormat, RunInputExtension,
     RunConfigurationProvider, SupportedRunConfiguration,
     SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
     RunConfigurationMetadata, RunParameterFlags, StoredRunConfigurationExecutor,
     ExtendedRunExecutionParameters, RunExecutionParameters,
-    WorkingDirOpts, WorkingDirSource)
+    WorkingDirOpts, WorkingDirSource, Context)
 
 # Localization
 _ = get_translation('spyder')
@@ -117,6 +119,10 @@ class RunExecutorListModel(QAbstractListModel):
             pos = executors[executor_id]
         return pos
 
+    def get_default_executor(self, input: Tuple[str, str]) -> str:
+        executors = self.inverted_pos[input]
+        return executors[0]
+
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         if role == Qt.DisplayRole:
             executor_indices = self.inverted_pos[self.current_input]
@@ -126,6 +132,14 @@ class RunExecutorListModel(QAbstractListModel):
     def rowCount(self, parent: QModelIndex = None) -> int:
         executors = self.executors_per_input.get(self.current_input, {})
         return len(executors)
+
+    def __contains__(self, exec_input: Tuple[str, str]) -> bool:
+        return exec_input in self.executor_configurations
+
+    def __getitem__(self, input_executor: tuple) -> SupportedExecutionRunConfiguration:
+        (input, executor) = input_executor
+        input_executors = self.executor_configurations[input]
+        return input_executors[executor]
 
 
 class RunConfigurationListModel(QAbstractListModel):
@@ -326,8 +340,57 @@ class RunContainer(PluginMainContainer):
             shortcut_context='_'
         )
 
+        self.current_input_provider: Optional[str] = None
+        self.current_input_extension: Optional[str] = None
+        self.context_actions: Dict[
+            Tuple[str, str], Tuple[QAction, Callable]] = {}
+        self.last_executed_per_context: Dict[
+            str, Tuple[
+                str, RunConfiguration, ExtendedRunExecutionParameters]] = {}
+
     def update_actions(self):
         pass
+
+    def gen_annonymous_execution_run(self, context: str,
+                                     action_name: Optional[str]) -> Callable:
+        def annonymous_execution_run():
+            input_provider = self.run_metadata_provider[
+                self.currently_selected_configuration]
+            run_conf = input_provider.get_run_configuration_per_context(
+                context, action_name)
+
+            uuid = self.currently_selected_configuration
+            super_metadata = self.metadata_model[uuid]
+            extension = super_metadata['input_extension']
+
+            path = super_metadata['path']
+            dirname = osp.dirname(path)
+            dirname = dirname.replace("'", r"\'").replace('"', r'\"')
+
+            last_executor = self.get_last_used_executor(uuid)
+            last_executor = last_executor['executor']
+            if last_executor is None:
+                last_executor = self.executor_model.get_default_executor()
+            executor_metadata = self.executor_model[
+                ((extension, context), last_executor)]
+            ConfWidget = executor_metadata['configuration_widget']
+
+            conf = {}
+            if ConfWidget is not None:
+                conf = ConfWidget.get_default_configuration()
+
+            working_dir = WorkingDirOpts(
+                source=WorkingDirSource.ConfigurationDirectory,
+                path=dirname)
+
+            exec_params = RunExecutionParameters(
+                working_dir=working_dir, executor_params=conf)
+
+            ext_exec_params = ExtendedRunExecutionParameters(
+                uuid=None, name=None, params=exec_params)
+            executor = self.run_executors[last_executor]
+            executor.exec_run_configuration(run_conf, ext_exec_params)
+        return annonymous_execution_run
 
     def run_file(self):
         dialog = RunDialog(self, self.metadata_model, self.executor_model,
@@ -392,11 +455,94 @@ class RunContainer(PluginMainContainer):
             self.run_action.setEnabled(True)
             self.currently_selected_configuration = uuid
             self.metadata_model.set_current_run_configuration(uuid)
+
+            metadata = self.metadata_model[uuid]
+            self.current_input_provider = metadata['source']
+            self.current_input_extension = metadata['input_extension']
+
+            for context, act in self.context_actions:
+                status = (self.current_input_extension,
+                          context) in self.executor_model
+                action, __ = self.context_actions[(context, act)]
+                action.setEnabled(status)
         else:
             self.run_action.setEnabled(False)
 
     def set_current_working_dir(self, path: str):
         self.current_working_dir = path
+
+    def create_run_button(self, context_name: str, text: str,
+                          icon: Optional[QIcon] = None,
+                          tip: Optional[str] = None,
+                          shortcut_context: Optional[str] = None,
+                          register_shortcut: bool = False,
+                          extra_action_name: Optional[str] = None,
+                          ) -> QAction:
+        """
+        Create a run or a "run and do something" button
+        for a specific run context.
+
+        Parameters
+        ----------
+        context_name: str
+            The identifier of the run context.
+        text: str
+           Localized text for the action
+        icon: Optional[QIcon]
+            Icon for the action when applied to menu or toolbutton.
+        tip: Optional[str]
+            Tooltip to define for action on menu or toolbar.
+        shortcut_context: Optional[str]
+            Set the `str` context of the shortcut.
+        register_shortcut: bool
+            If True, main window will expose the shortcut in Preferences.
+            The default value is `False`.
+        extra_action_name: Optional[str]
+            The name of the action to execute on the run input provider
+            after requesting the run input.
+
+        Notes
+        -----
+        1. The context passed as a parameter must be a subordinate of the
+        context of the current focused run configuration that was
+        registered via `register_run_configuration_metadata`. e.g., Cell can
+        be used if and only if the file was registered.
+
+        2. The button will be registered as `run <context>` or
+        `run <context> and <extra_action_name>` on the action registry.
+
+        3. The created button will operate over the last focused run input
+        provider.
+
+        4. If the requested button already exists, this method will not do
+        anything, which implies that the first registered shortcut will be the
+        one to be used. For the built-in run contexts
+        (file, cell and selection), the editor will register their
+        corresponding icons and shortcuts.
+        """
+        if (context_name, extra_action_name) in self.context_actions:
+            action, __ = self.context_actions[
+                (context_name, extra_action_name)]
+            return action
+
+        action_name = f'run {context_name}'
+        if extra_action_name is not None:
+            action_name = f'{action_name} and {extra_action_name}'
+
+        func = self.gen_annonymous_execution_run(
+            context_name, extra_action_name)
+        action = self.create_action(
+            action_name, text, icon, tip=tip,
+            triggered=func,
+            register_shortcut=register_shortcut,
+            shortcut_context=shortcut_context
+        )
+        self.context_actions[(context_name, extra_action_name)] = (
+            action, func)
+        return action
+
+    def create_re_run_button(self, context: Context, extra_behaviour: str):
+        pass
 
     def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,

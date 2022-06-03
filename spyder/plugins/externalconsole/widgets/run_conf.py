@@ -100,7 +100,8 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
             self.wd_edit.setText(directory)
             self.dir = directory
 
-    def get_default_configuration(self) -> dict:
+    @staticmethod
+    def get_default_configuration() -> dict:
         return {
             'args_enabled': False,
             'args': '',
@@ -135,13 +136,10 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
 class GenExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
     """External console shell run configuration options."""
 
-    def __init__(self, default_shell: str, parent,
+    def __init__(self, parent,
                  context: Context, input_extension: str,
-                 input_metadata: RunConfigurationMetadata,
-                 shell_args: str = ''):
+                 input_metadata: RunConfigurationMetadata):
         super().__init__(parent, context, input_extension, input_metadata)
-
-        self.default_shell = default_shell
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Interpreter"))
@@ -168,10 +166,6 @@ class GenExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
             self.interpreter_opts_edit.setEnabled)
         self.interpreter_opts_edit.setEnabled(False)
         interpreter_layout.addWidget(self.interpreter_opts_edit, 1, 1)
-
-        if shell_args:
-            self.interpreter_opts_cb.setChecked(True)
-            self.interpreter_opts_edit.setText(shell_args)
 
         # --- Script ---
         script_group = QGroupBox(_('Script'))
@@ -203,16 +197,6 @@ class GenExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         if file:
             self.interpreter_edit.setText(file)
 
-    def get_default_configuration(self) -> ExtConsoleShConfiguration:
-        return {
-            'interpreter': self.default_shell,
-            'interpreter_opts_enabled': False,
-            'interpreter_opts': '',
-            'script_opts_enabled': False,
-            'script_opts': '',
-            'close_after_exec': False,
-        }
-
     def set_configuration(self, config: ExtConsoleShConfiguration):
         interpreter = config['interpreter']
         interpreter_opts_enabled = config['interpreter_opts_enabled']
@@ -239,20 +223,35 @@ class GenExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         }
 
 
+class MetaShConfiguration(type(GenExternalConsoleShConfiguration)):
+    def __new__(cls, clsname, bases, attrs):
+        interp = attrs.pop('default_shell_meta')
+        interp_opts = attrs.pop('shell_args_meta')
+        interp_opts_enabled = interp_opts != ''
+
+        def get_default_configuration() -> RunExecutorConfigurationGroupFactory:
+            return {
+                'interpreter': interp,
+                'interpreter_opts_enabled': interp_opts_enabled,
+                'interpreter_opts': interp_opts,
+                'script_opts_enabled': False,
+                'script_opts': '',
+                'close_after_exec': False,
+            }
+
+        return super(MetaShConfiguration, cls).__new__(cls, clsname, bases, {
+            **attrs,
+            'get_default_configuration': staticmethod(get_default_configuration)
+        })
+
+
 def ExternalConsoleShConfiguration(
         default_shell: str,
-        shell_args: str = '') -> RunExecutorConfigurationGroupFactory:
+        shell_args: str = '') -> RunExecutorConfigurationGroup:
 
-    def spawn_console_conf(
-            parent, context: Context,
-            input_extension: str, input_metadata: RunConfigurationMetadata):
-        return GenExternalConsoleShConfiguration(
-            default_shell,
-            parent,
-            context,
-            input_extension,
-            input_metadata,
-            shell_args=shell_args
-        )
+    class WrappedExternalConsoleShConfiguration(
+            GenExternalConsoleShConfiguration, metaclass=MetaShConfiguration):
+        default_shell_meta = default_shell
+        shell_args_meta = shell_args
 
-    return spawn_console_conf
+    return WrappedExternalConsoleShConfiguration

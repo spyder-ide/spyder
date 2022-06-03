@@ -98,7 +98,8 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
             self.wd_edit.setText(directory)
             self.dir = directory
 
-    def get_default_configuration(self) -> dict:
+    @staticmethod
+    def get_default_configuration() -> dict:
         return {
             'current': True,
             'post_mortem': False,

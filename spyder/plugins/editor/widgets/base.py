@@ -532,6 +532,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         _indent = lambda line: len(line)-len(line.lstrip())
 
         line_from, line_to = self.get_selection_bounds(cursor)
+        line_col_from, line_col_to = self.get_selection_start_end(cursor)
+        line_from_off, line_to_off = self.get_selection_offsets(cursor)
+
         text = self.get_selected_text(cursor)
         if not text:
             return
@@ -578,7 +581,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
 
-        return leading_lines_str + ls.join(lines)
+        return (leading_lines_str + ls.join(lines),
+                (line_from_off, line_to_off),
+                (line_col_from, line_col_to))
 
     def get_cell_as_executable_code(self, cursor=None):
         """Return cell contents as executable code."""
@@ -593,7 +598,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if not is_cell_header(block) and start > 0:
             block = self.document().findBlock(start - 1)
         # Get text
-        text = self.get_selection_as_executable_code(cursor)
+        text, _, _ = self.get_selection_as_executable_code(cursor)
         if text is not None:
             text = ls * line_from + text
         return text, block

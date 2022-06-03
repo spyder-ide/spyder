@@ -32,7 +32,7 @@ from spyder.plugins.mainmenu.api import (
 from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunConfiguration,
     ExtendedRunExecutionParameters, RunResult, run_execute)
-from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.editor.api.run import FileRun, SelectionRun
 from spyder.utils.programs import get_temp_dir
 
 # Localization
@@ -700,6 +700,18 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             console_namespace)
 
         return []
+
+    @run_execute(context=RunContext.Selection)
+    def exec_files(
+            self, input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+        run_input: SelectionRun = input['run_input']
+        text = run_input['selection']
+        self.execute_code_and_focus_editor(text)
 
     def run_script(self, filename, wdir, args, debug, post_mortem,
                    current_client, clear_variables, console_namespace):

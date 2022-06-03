@@ -11,10 +11,11 @@ Run Plugin.
 """
 
 # Standard library imports
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 # Third-party imports
 from qtpy.QtCore import Signal
+from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
@@ -28,6 +29,7 @@ from spyder.plugins.run.api import (
     RunResultViewer, OutputFormat, RunConfigurationMetadata, RunActions)
 from spyder.plugins.run.container import RunContainer
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 
 # Localization
 _ = get_translation('spyder')
@@ -83,6 +85,9 @@ class Run(SpyderPluginV2):
         return self.create_icon('run')
 
     def on_initialize(self):
+        self.pending_toolbar_actions = []
+        self.pending_menu_actions = []
+
         self.sig_switch_run_configuration_focus.connect(
             self.switch_focused_run_configuration)
 
@@ -96,6 +101,17 @@ class Run(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
+        main_menu.add_item_to_application_menu(
+            self.get_action(RunActions.Run),
+            ApplicationMenus.Run, RunMenuSections.Run
+        )
+        while self.pending_menu_actions != []:
+            action = self.pending_menu_actions.pop(0)
+            main_menu.add_item_to_application_menu(
+                action,
+                ApplicationMenus.Run,
+                RunMenuSections.RunExtras
+            )
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -106,7 +122,12 @@ class Run(SpyderPluginV2):
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.add_item_to_application_toolbar(
-            self.get_action(RunActions.Run), ApplicationToolbars.Debug)
+            self.get_action(RunActions.Run), ApplicationToolbars.Run)
+
+        while self.pending_toolbar_actions != []:
+            action = self.pending_toolbar_actions.pop(0)
+            toolbar.add_item_to_application_toolbar(
+                action, ApplicationToolbars.Run)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -238,6 +259,88 @@ class Run(SpyderPluginV2):
             A list of output formats that the viewer wants to deregister.
         """
         self.get_container().deregister_viewer_configuration(viewer, formats)
+
+    def create_run_button(self, context_name: str, text: str,
+                          icon: Optional[QIcon] = None,
+                          tip: Optional[str] = None,
+                          shortcut_context: Optional[str] = None,
+                          register_shortcut: bool = False,
+                          extra_action_name: Optional[str] = None,
+                          add_to_toolbar: bool = False,
+                          add_to_menu: bool = False):
+        """
+        Create a run or a "run and do something" button
+        for a specific run context.
+
+        Parameters
+        ----------
+        context_name: str
+            The identifier of the run context.
+        text: str
+           Localized text for the action
+        icon: Optional[QIcon]
+            Icon for the action when applied to menu or toolbutton.
+        tip: Optional[str]
+            Tooltip to define for action on menu or toolbar.
+        shortcut_context: Optional[str]
+            Set the `str` context of the shortcut.
+        register_shortcut: bool
+            If True, main window will expose the shortcut in Preferences.
+            The default value is `False`.
+        extra_action_name: Optional[str]
+            The name of the action to execute on the run input provider
+            after requesting the run input.
+        add_to_toolbar: bool
+            If True, then the action will be added to the Run section of the
+            main toolbar.
+        add_to_menu: bool
+            If True, then the action will be added to the Run menu.
+
+        Notes
+        -----
+        1. The context passed as a parameter must be a subordinate of the
+        context of the current focused run configuration that was
+        registered via `register_run_configuration_metadata`. e.g., Cell can
+        be used if and only if the file was registered.
+
+        2. The button will be registered as `run <context>` or
+        `run <context> and <extra_action_name>` on the action registry.
+
+        3. The created button will operate over the last focused run input
+        provider.
+
+        4. If the requested button already exists, this method will not do
+        anything, which implies that the first registered shortcut will be the
+        one to be used. For the built-in run contexts
+        (file, cell and selection), the editor will register their
+        corresponding icons and shortcuts.
+        """
+        action = self.get_container().create_run_button(
+            context_name, text,
+            icon=icon,
+            tip=tip,
+            shortcut_context=shortcut_context,
+            register_shortcut=register_shortcut,
+            extra_action_name=extra_action_name
+        )
+
+        if add_to_toolbar:
+            toolbar = self.get_plugin(Plugins.Toolbar)
+            if toolbar:
+                toolbar.add_item_to_application_toolbar(
+                    action, ApplicationToolbars.Run)
+            else:
+                self.pending_toolbar_actions.append(action)
+
+        if add_to_menu:
+            main_menu = self.get_plugin(Plugins.MainMenu)
+            if main_menu:
+                main_menu.add_item_to_application_menu(
+                    action, ApplicationMenus.Run, RunMenuSections.RunExtras
+                )
+            else:
+                self.pending_menu_actions.append(action)
+        return action
 
     # --- Private API
     # ------------------------------------------------------------------------
