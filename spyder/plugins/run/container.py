@@ -123,6 +123,11 @@ class RunExecutorListModel(QAbstractListModel):
         executors = self.inverted_pos[input]
         return executors[0]
 
+    def executor_supports_configuration(self, executor: str,
+                                        exec_input: Tuple[str, str]) -> bool:
+        input_executors = self.executor_configurations.get(exec_input, {})
+        return executor in input_executors
+
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         if role == Qt.DisplayRole:
             executor_indices = self.inverted_pos[self.current_input]
@@ -324,7 +329,8 @@ class RunContainer(PluginMainContainer):
         self.run_action = self.create_action(
             RunActions.Run, _('&Run (New)'), self.create_icon('run'),
             tip=_("Run file"), triggered=self.run_file,
-            register_shortcut=True, shortcut_context='_')
+            register_shortcut=True, shortcut_context='_',
+            context=Qt.ApplicationShortcut)
 
         self.configure_action = self.create_action(
             RunActions.Configure, _('&Configuration per file...'),
@@ -369,8 +375,12 @@ class RunContainer(PluginMainContainer):
 
             last_executor = self.get_last_used_executor(uuid)
             last_executor = last_executor['executor']
-            if last_executor is None:
-                last_executor = self.executor_model.get_default_executor()
+            run_comb = (extension, context)
+            if (last_executor is None or
+                    not self.executor_model.executor_supports_configuration(
+                        last_executor, run_comb)):
+                last_executor = self.executor_model.get_default_executor(
+                    run_comb)
             executor_metadata = self.executor_model[
                 ((extension, context), last_executor)]
             ConfWidget = executor_metadata['configuration_widget']

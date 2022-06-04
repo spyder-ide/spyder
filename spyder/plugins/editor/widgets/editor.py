@@ -2807,9 +2807,20 @@ class EditorStack(QWidget):
         return (text, (line_off_from, line_off_to),
                 (line_col_from, line_col_to), enc)
 
+    def get_cell(self):
+        text, block, off_pos, line_col_pos = (
+            self.get_current_editor().get_cell_as_executable_code())
+        finfo = self.get_current_finfo()
+        editor = self.get_current_editor()
+        name = cell_name(block)
+        filename = finfo.filename
+        enc = finfo.encoding
+        return text, off_pos, line_col_pos, name, enc
+
     def run_cell(self, debug=False):
         """Run current cell."""
-        text, block = self.get_current_editor().get_cell_as_executable_code()
+        text, block, *__ = (
+            self.get_current_editor().get_cell_as_executable_code())
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
         name = cell_name(block)

@@ -598,10 +598,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if not is_cell_header(block) and start > 0:
             block = self.document().findBlock(start - 1)
         # Get text
-        text, _, _ = self.get_selection_as_executable_code(cursor)
+        text, off_pos, col_pos = self.get_selection_as_executable_code(cursor)
         if text is not None:
             text = ls * line_from + text
-        return text, block
+        return text, block, off_pos, col_pos
 
     def select_current_cell(self, cursor=None):
         """

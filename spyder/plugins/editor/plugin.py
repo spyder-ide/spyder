@@ -46,7 +46,7 @@ from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.api.run import (
-    EditorRunConfiguration, FileRun, SelectionRun)
+    EditorRunConfiguration, FileRun, SelectionRun, CellRun)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -249,7 +249,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                   _("Run &selection or current line"),
                                   icon=ima.icon('run_selection'),
                                   tip=_("Run selection or current line"),
-                                  shortcut_context="editor",
+                                  shortcut_context="Editor",
+                                  register_shortcut=True,
+                                  add_to_toolbar=True,
+                                  add_to_menu=True)
+
+            run.create_run_button(RunContext.Cell,
+                                  _("Run cell"),
+                                  icon=ima.icon('run_cell'),
+                                  tip=_("Run current cell \n"
+                                        "[Use #%% to create cells]"),
                                   register_shortcut=True,
                                   add_to_toolbar=True,
                                   add_to_menu=True)
@@ -746,11 +755,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                add_shortcut_to_tip=True)
 
         # --- Run toolbar ---
-        run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
-                                   tip=_("Run file"),
-                                   triggered=self.run_file)
-        self.register_shortcut(run_action, context="_", name="Run",
-                               add_shortcut_to_tip=True)
+        # run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
+        #                            tip=_("Run file"),
+        #                            triggered=self.run_file)
+        # self.register_shortcut(run_action, context="_", name="Run",
+        #                        add_shortcut_to_tip=True)
 
         configure_action = create_action(
             self,
@@ -795,16 +804,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.register_shortcut(run_from_line_action, context="Editor",
                                name="Run from line", add_shortcut_to_tip=True)
 
-        run_cell_action = create_action(self,
-                            _("Run cell"),
-                            icon=ima.icon('run_cell'),
-                            tip=_("Run current cell \n"
-                                  "[Use #%% to create cells]"),
-                            triggered=self.run_cell,
-                            context=Qt.WidgetShortcut)
+        # run_cell_action = create_action(self,
+        #                     _("Run cell"),
+        #                     icon=ima.icon('run_cell'),
+        #                     tip=_("Run current cell \n"
+        #                           "[Use #%% to create cells]"),
+        #                     triggered=self.run_cell,
+        #                     context=Qt.WidgetShortcut)
 
-        self.register_shortcut(run_cell_action, context="Editor",
-                               name="Run cell", add_shortcut_to_tip=True)
+        # self.register_shortcut(run_cell_action, context="Editor",
+        #                        name="Run cell", add_shortcut_to_tip=True)
 
         run_cell_advance_action = create_action(
             self,
@@ -1199,7 +1208,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             search_menu_actions + self.main.search_menu_actions)
 
         # ---- Run menu/toolbar construction ----
-        run_menu_actions = [run_action, run_cell_action,
+        run_menu_actions = [#run_action, # run_cell_action,
                             run_cell_advance_action,
                             re_run_last_cell_action, MENU_SEPARATOR,
                             run_selected_action, run_to_line_action,
@@ -1207,7 +1216,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
-        run_toolbar_actions = [run_action, run_cell_action,
+        run_toolbar_actions = [#run_action, #run_cell_action,
                                run_cell_advance_action, run_selected_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
@@ -1274,20 +1283,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             debug_toolbar_actions
         )
         self.pythonfile_dependent_actions = [
-            run_action,
+            #run_action,
             configure_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             self.debug_action,
             self.debug_cell_action,
             run_selected_action,
-            run_cell_action,
+            #run_cell_action,
             run_cell_advance_action,
             re_run_last_cell_action,
             blockcomment_action,
             unblockcomment_action,
         ]
-        self.cythonfile_compatible_actions = [run_action, configure_action]
+        self.cythonfile_compatible_actions = [configure_action]
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
@@ -3075,32 +3084,41 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def get_run_configuration_per_context(
             self, context, action_name) -> RunConfiguration:
+        editorstack = self.get_current_editorstack()
+        fname = self.get_current_filename()
+        __, filename_ext = osp.splitext(fname)
+        fname_ext = filename_ext[1:]
+        run_input = {}
+        context_name = None
         if context == RunContext.Selection:
-            editorstack = self.get_current_editorstack()
-            fname = self.get_current_filename()
-            __, filename_ext = osp.splitext(fname)
-            fname_ext = filename_ext[1:]
-
             text, offsets, line_cols, enc = editorstack.run_selection()
+            context_name = 'Selection'
+            print(text)
+            run_input = SelectionRun(
+                path=fname, selection=text, encoding=enc,
+                line_col_bounds=line_cols, character_bounds=offsets)
+        elif context == RunContext.Cell:
+            text, offsets, line_cols, cell_name, enc = editorstack.get_cell()
+            context_name = 'Cell'
+            run_input = CellRun(
+                path=fname, cell=text, cell_name=cell_name, encoding=enc,
+                line_col_bounds=line_cols, character_bounds=offsets)
 
-            metadata: RunConfigurationMetadata = {
+        metadata: RunConfigurationMetadata = {
                 'name': fname,
                 'source': self.NAME,
                 'path': fname,
                 'datetime': datetime.now(),
                 'uuid': None,
                 'context': {
-                    'name': 'Selection'
+                    'name': context_name
                 },
                 'input_extension': fname_ext
             }
-            run_input = SelectionRun(
-                path=fname, selection=text, encoding=enc,
-                line_col_bounds=line_cols, character_bounds=offsets)
-            run_conf = RunConfiguration(output_formats=[],
-                                        run_input=run_input,
-                                        metadata=metadata)
-            return run_conf
+        run_conf = RunConfiguration(output_formats=[],
+                                    run_input=run_input,
+                                    metadata=metadata)
+        return run_conf
 
     @Slot()
     def edit_run_configurations(self):

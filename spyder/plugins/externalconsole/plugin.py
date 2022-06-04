@@ -9,7 +9,10 @@
 # Standard library imports.
 import os
 import sys
+import tempfile
+import platform
 from typing import List
+from distutils.version import LooseVersion
 
 # Third-party imports
 from qtpy.QtWidgets import QMessageBox
@@ -18,13 +21,13 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.utils import programs
 from spyder.utils.misc import get_python_executable
 from spyder.plugins.run.api import (
-    run_execute, RunConfiguration, ExtendedRunExecutionParameters, RunResult,
-    RunExecutor)
+    RunContext, run_execute, RunConfiguration, ExtendedRunExecutionParameters,
+    RunResult, RunExecutor)
 from spyder.api.translations import get_translation
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.editor.api.run import FileRun, SelectionRun
 from spyder.plugins.externalconsole.api import (
     ExtConsolePyConfiguration, ExtConsoleShConfiguration)
 from spyder.plugins.externalconsole.widgets.run_conf import (
@@ -92,6 +95,9 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 'contexts': [
                     {
                         'name': 'File'
+                    },
+                    {
+                        'name': 'Selection'
                     }
                 ]
             })
@@ -108,12 +114,27 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 'priority': 1
             })
 
+            self.executor_configuration.append({
+                'input_extension': 'bat',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': ExternalConsoleShConfiguration(
+                    'cmd.exe', '/K'),
+                'requires_cwd': True,
+                'priority': 1
+            })
+
             self.editor_configurations.append({
                 'origin': self.NAME,
                 'extension': 'ps1',
                 'contexts': [
                     {
                         'name': 'File'
+                    },
+                    {
+                        'name': 'Selection'
                     }
                 ]
             })
@@ -130,13 +151,35 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 'priority': 1
             })
 
+            self.executor_configuration.append({
+                'input_extension': 'ps1',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': ExternalConsoleShConfiguration(
+                    'pwsh.exe'),
+                'requires_cwd': True,
+                'priority': 1
+            })
+
         if sys.platform in {'linux', 'darwin'}:
+            default_shell = 'bash'
+            if sys.platform == 'darwin':
+                mac_ver = LooseVersion(platform.mac_ver()[0])
+                if mac_ver >= LooseVersion('10.15.0'):
+                    # Catalina changed the default shell to zsh
+                    default_shell = 'zsh'
+
             self.editor_configurations.append({
                 'origin': self.NAME,
                 'extension': 'sh',
                 'contexts': [
                     {
                         'name': 'File'
+                    },
+                    {
+                        'name': 'Selection'
                     }
                 ]
             })
@@ -148,7 +191,19 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 },
                 'output_formats': [],
                 'configuration_widget': ExternalConsoleShConfiguration(
-                    programs.is_program_installed('bash')),
+                    programs.is_program_installed(default_shell)),
+                'requires_cwd': True,
+                'priority': 1
+            })
+
+            self.executor_configuration.append({
+                'input_extension': 'sh',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': ExternalConsoleShConfiguration(
+                    programs.is_program_installed(default_shell)),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -215,7 +270,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         self.open_external_python_console(
             filename, wdir, args, interact, debug, python_args)
 
-    @run_execute(extension='sh')
+    @run_execute(extension=['sh', 'bat', 'ps1'])
     def run_shell_files(
             self, input: RunConfiguration,
             conf: ExtendedRunExecutionParameters) -> List[RunResult]:
@@ -235,3 +290,34 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         programs.run_general_file_in_terminal(
             executable, executable_args, filename, script_args, wdir,
             close_after_exec)
+
+
+    @run_execute(extension=['sh', 'bat', 'ps1'], context=RunContext.Selection)
+    def run_shell_selection(
+            self, input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        params: ExtConsoleShConfiguration = exec_params['executor_params']
+
+        metadata = input['metadata']
+        run_input: SelectionRun = input['run_input']
+        selection = run_input['selection']
+
+        executable = params['interpreter']
+        executable_args = params['interpreter_opts']
+        script_args = params['script_opts']
+        close_after_exec = params['close_after_exec']
+        wdir = cwd_opts['path']
+
+        f = tempfile.NamedTemporaryFile(
+            'wt', prefix='run_spyder_',
+            suffix=f'.{metadata["input_extension"]}',
+            dir=programs.get_temp_dir(),
+            delete=False)
+
+        with f:
+            f.write(selection)
+            programs.run_general_file_in_terminal(
+                executable, executable_args, f.name, script_args, wdir,
+                close_after_exec)

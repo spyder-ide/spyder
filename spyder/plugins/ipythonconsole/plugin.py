@@ -32,7 +32,7 @@ from spyder.plugins.mainmenu.api import (
 from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunConfiguration,
     ExtendedRunExecutionParameters, RunResult, run_execute)
-from spyder.plugins.editor.api.run import FileRun, SelectionRun
+from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
 from spyder.utils.programs import get_temp_dir
 
 # Localization
@@ -702,7 +702,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         return []
 
     @run_execute(context=RunContext.Selection)
-    def exec_files(
+    def exec_selection(
             self, input: RunConfiguration,
             conf: ExtendedRunExecutionParameters) -> List[RunResult]:
 
@@ -711,7 +711,20 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         params: IPythonConsolePyConfiguration = exec_params['executor_params']
         run_input: SelectionRun = input['run_input']
         text = run_input['selection']
+        print(text)
         self.execute_code_and_focus_editor(text)
+
+    @run_execute(context=RunContext.Cell)
+    def exec_cell(
+            self, input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        run_input: CellRun = input['run_input']
+        cell_text = run_input['cell']
+        cell_name = run_input['cell_name']
+        filename = run_input['path']
+        self.run_cell(cell_text, cell_name, filename, False, True)
 
     def run_script(self, filename, wdir, args, debug, post_mortem,
                    current_client, clear_variables, console_namespace):

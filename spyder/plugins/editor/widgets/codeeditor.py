@@ -2989,7 +2989,7 @@ class CodeEditor(TextEditBaseWidget):
             if indentations:
                 max_dedent = min(indentations)
                 lines_adjustment = max(lines_adjustment, -max_dedent)
-    
+
             # Get new text
             remaining_lines = [
                 self.adjust_indentation(line, lines_adjustment)
@@ -3317,7 +3317,7 @@ class CodeEditor(TextEditBaseWidget):
             raise RuntimeError("Cell {} not found.".format(repr(cell)))
 
         cursor = QTextCursor(selected_block)
-        cell_code, _ = self.get_cell_as_executable_code(cursor)
+        cell_code, _, _, _ = self.get_cell_as_executable_code(cursor)
         return cell_code
 
     def get_cell_count(self):

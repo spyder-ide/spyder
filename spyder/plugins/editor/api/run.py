@@ -67,3 +67,25 @@ class SelectionRun(TypedDict):
 
     # Selection start and end in characters
     character_bounds: Tuple[int, int]
+
+
+class CellRun(TypedDict):
+    """Schema emitted by the editor for the `Cell` run context."""
+
+    # File path to the file that contains the selection to execute.
+    path: str
+
+    # Actual cell text to execute.
+    cell: str
+
+    # Name of the cell.
+    cell_name: str
+
+    # Encoding of the text.
+    encoding: str
+
+    # Selection start and end in (line, column) format
+    line_col_bounds: Tuple[Tuple[int, int], Tuple[int, int]]
+
+    # Selection start and end in characters
+    character_bounds: Tuple[int, int]
