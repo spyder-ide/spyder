@@ -58,8 +58,10 @@ INCLUDES = [
 
 SCIENTIFIC = [
     'cython',
+    'defusedxml',
     'matplotlib',
     'numpy',
+    'openpyxl',
     'pandas',
     'scipy',
     'sympy',
