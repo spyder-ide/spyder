@@ -489,6 +489,7 @@ class RunContainer(PluginMainContainer):
                           shortcut_context: Optional[str] = None,
                           register_shortcut: bool = False,
                           extra_action_name: Optional[str] = None,
+                          conjunction_or_preposition: str = "and"
                           ) -> QAction:
         """
         Create a run or a "run and do something" button
@@ -512,6 +513,10 @@ class RunContainer(PluginMainContainer):
         extra_action_name: Optional[str]
             The name of the action to execute on the run input provider
             after requesting the run input.
+        conjunction_or_preposition: str
+            The conjunction or preposition used to describe the action that
+            should take place after the context. i.e., run <and> advance,
+            run selection <from> the current line, etc. Default: and
 
         Notes
         -----
@@ -539,7 +544,8 @@ class RunContainer(PluginMainContainer):
 
         action_name = f'run {context_name}'
         if extra_action_name is not None:
-            action_name = f'{action_name} and {extra_action_name}'
+            action_name = (f'{action_name} {conjunction_or_preposition} '
+                           f'{extra_action_name}')
 
         func = self.gen_annonymous_execution_run(
             context_name, extra_action_name)

@@ -388,6 +388,7 @@ DEFAULTS = [
               '_/debug step return': "Ctrl+Shift+F11",
               '_/debug exit': "Ctrl+Shift+F12",
               '_/run': "F5",
+              '_/run selection': "F9",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
               # -- In plugins/init
@@ -456,9 +457,8 @@ DEFAULTS = [
               'editor/inspect current object': 'Ctrl+I',
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
-              'editor/run selection': "F9",
-              'editor/run to line': 'Shift+F9',
-              'editor/run from line': CTRL + '+F9',
+              'editor/run selection up to line': 'Shift+F9',
+              'editor/run selection from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -646,4 +646,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '70.4.0'
+CONF_VERSION = '71.0.0'

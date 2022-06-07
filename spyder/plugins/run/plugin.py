@@ -280,6 +280,7 @@ class Run(SpyderPluginV2):
                           shortcut_context: Optional[str] = None,
                           register_shortcut: bool = False,
                           extra_action_name: Optional[str] = None,
+                          conjunction_or_preposition: str = "and",
                           add_to_toolbar: bool = False,
                           add_to_menu: bool = False):
         """
@@ -304,6 +305,10 @@ class Run(SpyderPluginV2):
         extra_action_name: Optional[str]
             The name of the action to execute on the run input provider
             after requesting the run input.
+        conjunction_or_preposition: str
+            The conjunction or preposition used to describe the action that
+            should take place after the context. i.e., run <and> advance,
+            run selection <from> the current line, etc. Default: "and".
         add_to_toolbar: bool
             If True, then the action will be added to the Run section of the
             main toolbar.
@@ -335,7 +340,8 @@ class Run(SpyderPluginV2):
             tip=tip,
             shortcut_context=shortcut_context,
             register_shortcut=register_shortcut,
-            extra_action_name=extra_action_name
+            extra_action_name=extra_action_name,
+            conjunction_or_preposition=conjunction_or_preposition
         )
 
         if add_to_toolbar:

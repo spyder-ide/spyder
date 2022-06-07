@@ -34,7 +34,7 @@ from IPython.core.inputtransformer2 import TransformerManager
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QEventLoop, QRegExp, Qt, QTimer, QThread,
-                         QUrl, Signal, Slot)
+                         QUrl, Signal, Slot, QObject)
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
@@ -4420,31 +4420,10 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.go_to_definition_from_cursor)
 
         # Run actions
-        self.run_cell_action = create_action(
-            self, _("Run cell"), icon=ima.icon('run_cell'),
-            shortcut=CONF.get_shortcut('editor', 'run cell'),
-            triggered=self.sig_run_cell.emit)
-        self.run_cell_and_advance_action = create_action(
-            self, _("Run cell and advance"), icon=ima.icon('run_cell_advance'),
-            shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
-            triggered=self.sig_run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
             self, _("Re-run last cell"),
             shortcut=CONF.get_shortcut('editor', 're-run last cell'),
             triggered=self.sig_re_run_last_cell.emit)
-        self.run_selection_action = create_action(
-            self, _("Run &selection or current line"),
-            icon=ima.icon('run_selection'),
-            shortcut=CONF.get_shortcut('editor', 'run selection'),
-            triggered=self.sig_run_selection.emit)
-        self.run_to_line_action = create_action(
-            self, _("Run to current line"),
-            shortcut=CONF.get_shortcut('editor', 'run to line'),
-            triggered=self.sig_run_to_line.emit)
-        self.run_from_line_action = create_action(
-            self, _("Run from current line"),
-            shortcut=CONF.get_shortcut('editor', 'run from line'),
-            triggered=self.sig_run_from_line.emit)
         self.debug_cell_action = create_action(
             self, _("Debug cell"), icon=ima.icon('debug_cell'),
             shortcut=CONF.get_shortcut('editor', 'debug cell'),
@@ -4487,9 +4466,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Build menu
         self.menu = QMenu(self)
-        actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
-                     self.re_run_last_cell_action, self.run_selection_action,
-                     self.run_to_line_action, self.run_from_line_action,
+        actions_1 = [self.re_run_last_cell_action,
                      self.gotodef_action, None, self.undo_action,
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
@@ -5323,11 +5300,6 @@ class CodeEditor(TextEditBaseWidget):
                                                 nbformat is not None)
         self.ipynb_convert_action.setVisible(self.is_json() and
                                              nbformat is not None)
-        self.run_cell_action.setVisible(self.is_python_or_ipython())
-        self.run_cell_and_advance_action.setVisible(self.is_python_or_ipython())
-        self.run_selection_action.setVisible(self.is_python_or_ipython())
-        self.run_to_line_action.setVisible(self.is_python_or_ipython())
-        self.run_from_line_action.setVisible(self.is_python_or_ipython())
         self.re_run_last_cell_action.setVisible(self.is_python_or_ipython())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 

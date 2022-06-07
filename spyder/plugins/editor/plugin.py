@@ -24,7 +24,7 @@ from typing import Dict
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir, QEvent
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
@@ -270,10 +270,30 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                   _("Run &selection or current line"),
                                   icon=ima.icon('run_selection'),
                                   tip=_("Run selection or current line"),
-                                  shortcut_context="editor",
+                                  shortcut_context="_",
                                   register_shortcut=True,
                                   add_to_toolbar=True,
                                   add_to_menu=True)
+
+            run.create_run_button(RunContext.Selection,
+                                  _("Run &to line"),
+                                  tip=_("Run selection up to the current line"),
+                                  shortcut_context="editor",
+                                  register_shortcut=True,
+                                  add_to_toolbar=False,
+                                  add_to_menu=True,
+                                  extra_action_name="to line",
+                                  conjunction_or_preposition="up")
+
+            run.create_run_button(RunContext.Selection,
+                                  _("Run &from line"),
+                                  tip=_("Run selection from the current line"),
+                                  shortcut_context="editor",
+                                  register_shortcut=True,
+                                  add_to_toolbar=False,
+                                  add_to_menu=True,
+                                  extra_action_name="line",
+                                  conjunction_or_preposition="from")
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -786,19 +806,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Re-run last script",
                                add_shortcut_to_tip=True)
 
-        run_to_line_action = create_action(self, _("Run &to current line"),
-                                           tip=_("Run to current line"),
-                                           triggered=self.run_to_line,
-                                           context=Qt.WidgetShortcut)
-        self.register_shortcut(run_to_line_action, context="Editor",
-                               name="Run to line", add_shortcut_to_tip=True)
-
-        run_from_line_action = create_action(self, _("Run &from current line"),
-                                             tip=_("Run from current line"),
-                                             triggered=self.run_from_line,
-                                             context=Qt.WidgetShortcut)
-        self.register_shortcut(run_from_line_action, context="Editor",
-                               name="Run from line", add_shortcut_to_tip=True)
 
         self.debug_cell_action = create_action(
             self,
@@ -1181,11 +1188,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             search_menu_actions + self.main.search_menu_actions)
 
         # ---- Run menu/toolbar construction ----
-        run_menu_actions = [#run_action, # run_cell_action,
-                            # run_cell_advance_action,
-                            re_run_last_cell_action, MENU_SEPARATOR,
-                            run_to_line_action,
-                            run_from_line_action, re_run_action,
+        run_menu_actions = [re_run_last_cell_action, MENU_SEPARATOR,
+                            re_run_action,
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
@@ -3063,7 +3067,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run_input = {}
         context_name = None
         if context == RunContext.Selection:
-            text, offsets, line_cols, enc = editorstack.run_selection()
+            if action_name == 'to line':
+                text, offsets, line_cols, enc = editorstack.run_to_line()
+            elif action_name == 'line':
+                text, offsets, line_cols, enc = editorstack.run_from_line()
+            else:
+                text, offsets, line_cols, enc = editorstack.run_selection()
             context_name = 'Selection'
             run_input = SelectionRun(
                 path=fname, selection=text, encoding=enc,

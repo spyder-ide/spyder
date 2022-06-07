@@ -248,7 +248,7 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Edit: self._main.edit_menu_actions,
             ApplicationMenus.Search: self._main.search_menu_actions,
             ApplicationMenus.Source: self._main.source_menu_actions,
-            ApplicationMenus.Run: self._main.run_menu_actions,
+            # ApplicationMenus.Run: self._main.run_menu_actions,
             ApplicationMenus.Debug: self._main.debug_menu_actions,
         }
 

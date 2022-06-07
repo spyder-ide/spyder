@@ -191,14 +191,15 @@ class Shortcuts(SpyderPluginV2):
 
             try:
                 if isinstance(qobject, QAction):
-                    if (sys.platform == 'darwin'
-                            and qobject._shown_shortcut == 'missing'):
-                        qobject._shown_shortcut = keyseq
-                    else:
-                        qobject.setShortcut(keyseq)
+                    if qobject.shortcuts() == []:
+                        if (sys.platform == 'darwin'
+                                and qobject._shown_shortcut == 'missing'):
+                            qobject._shown_shortcut = keyseq
+                        else:
+                            qobject.setShortcut(keyseq)
 
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
+                        if add_shortcut_to_tip:
+                            add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
             except RuntimeError:
