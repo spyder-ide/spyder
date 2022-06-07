@@ -85,8 +85,19 @@ def try_to_eval(value):
 def get_size(item):
     """Return shape/size/len of an item of arbitrary type"""
     try:
-        if (hasattr(item, 'shape') and
-                isinstance(item.shape, (tuple, np.integer))):
+        if (
+            hasattr(item, 'size') and hasattr(item.size, 'compute') or
+            hasattr(item, 'shape') and hasattr(item.shape, 'compute')
+        ):
+            # This is necessary to avoid an error when trying to
+            # get the size/shape of dask objects. We don't compute the
+            # size/shape since such operation could be expensive.
+            # Fixes spyder-ide/spyder#16844
+            return 1
+        elif (
+            hasattr(item, 'shape') and
+            isinstance(item.shape, (tuple, np.integer))
+        ):
             try:
                 if item.shape:
                     # This is needed since values could return as
@@ -648,7 +659,7 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
     """
     supported_types = get_supported_types()
     assert mode in list(supported_types.keys())
-    excluded_names = settings['excluded_names']
+    excluded_names = list(settings['excluded_names'])
     if more_excluded_names is not None:
         excluded_names += more_excluded_names
     return globalsfilter(

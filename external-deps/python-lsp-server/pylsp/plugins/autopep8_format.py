@@ -2,9 +2,12 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
+
 import pycodestyle
 from autopep8 import fix_code, continued_indentation as autopep8_c_i
+
 from pylsp import hookimpl
+from pylsp._utils import get_eol_chars
 
 log = logging.getLogger(__name__)
 
@@ -38,14 +41,26 @@ def _format(config, document, line_range=None):
     del pycodestyle._checks['logical_line'][pycodestyle.continued_indentation]
     pycodestyle.register_check(autopep8_c_i)
 
-    new_source = fix_code(document.source, options=options)
+    # Autopep8 doesn't work with CR line endings, so we replace them by '\n'
+    # and restore them below.
+    replace_cr = False
+    source = document.source
+    eol_chars = get_eol_chars(source)
+    if eol_chars == '\r':
+        replace_cr = True
+        source = source.replace('\r', '\n')
+
+    new_source = fix_code(source, options=options)
 
     # Switch it back
     del pycodestyle._checks['logical_line'][autopep8_c_i]
     pycodestyle.register_check(pycodestyle.continued_indentation)
 
-    if new_source == document.source:
+    if new_source == source:
         return []
+
+    if replace_cr:
+        new_source = new_source.replace('\n', '\r')
 
     # I'm too lazy at the moment to parse diffs into TextEdit items
     # So let's just return the entire file...

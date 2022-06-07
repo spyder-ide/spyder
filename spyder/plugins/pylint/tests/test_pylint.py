@@ -13,9 +13,18 @@ import os.path as osp
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QMainWindow
+from qtpy.QtWidgets import QApplication, QMainWindow
+
+# This is necessary to run these tests independently from the rest in our
+# test suite.
+# NOTE: Don't move it to another place; it needs to be before importing the
+# Pylint plugin below.
+# Fixes spyder-ide/spyder#17071
+if QApplication.instance() is None:
+    app = QApplication([])
 
 # Local imports
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
@@ -52,12 +61,11 @@ bad-names={bad_names}
 good-names=e
 """
 
-
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
 
     def __init__(self):
-        super(MainWindowMock, self).__init__(None)
+        super().__init__(None)
         self.editor = Mock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
         self.projects = MagicMock()
@@ -74,15 +82,25 @@ class MainWindowMock(QMainWindow):
 @pytest.fixture
 def pylint_plugin(mocker, qtbot):
     main_window = MainWindowMock()
+    qtbot.addWidget(main_window)
+    main_window.resize(640, 480)
     main_window.projects.get_active_project_path = mocker.MagicMock(
         return_value=None)
+    main_window.show()
+
     plugin = Pylint(parent=main_window, configuration=CONF)
     plugin._register()
     plugin.set_conf("history_filenames", [])
+
     widget = plugin.get_widget()
+    widget.resize(640, 480)
     widget.filecombo.clear()
-    qtbot.addWidget(widget)
+    widget.show()
+
     yield plugin
+
+    widget.close()
+    plugin.on_close()
 
 
 @pytest.fixture
@@ -189,7 +207,7 @@ def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker,
 
     qtbot.waitUntil(
         lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
-        timeout=5000)
+        timeout=10000)
     pylint_data = pylint_widget.get_data(filename=pylint_test_script)
 
     print(pylint_data)
@@ -199,6 +217,7 @@ def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker,
     assert pylint_data[1] is not None
 
 
+@flaky(max_runs=3)
 def test_pylint_widget_pylintrc(
         pylint_plugin, pylint_test_script, pylintrc_files, mocker, qtbot):
     """Test that entire pylint widget gets results depending on pylintrc."""

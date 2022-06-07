@@ -66,7 +66,8 @@ class DebuggerManager(Manager):
     def __init__(self, editor):
         super(DebuggerManager, self).__init__(editor)
         self.filename = None
-        self.breakpoints = self.get_breakpoints()
+        self._breakpoint_blocks = {}
+        self.breakpoints = []
         self.editor.sig_breakpoints_changed.connect(self.breakpoints_changed)
         self.editor.sig_filename_changed.connect(self.set_filename)
 
@@ -113,6 +114,8 @@ class DebuggerManager(Manager):
             text = to_text_string(block.text()).strip()
             if len(text) == 0 or text.startswith(('#', '"', "'")):
                 data.breakpoint = False
+            else:
+                self._breakpoint_blocks[id(block)] = block
         block.setUserData(data)
         self.editor.sig_flags_changed.emit()
         self.editor.sig_breakpoints_changed.emit()
@@ -120,12 +123,17 @@ class DebuggerManager(Manager):
     def get_breakpoints(self):
         """Get breakpoints"""
         breakpoints = []
-        block = self.editor.document().firstBlock()
-        for line_number in range(1, self.editor.document().blockCount()+1):
-            data = block.userData()
-            if data and data.breakpoint:
-                breakpoints.append((line_number, data.breakpoint_condition))
-            block = block.next()
+        pruned_breakpoint_blocks = {}
+        for block_id in self._breakpoint_blocks:
+            block = self._breakpoint_blocks[block_id]
+            if block.isValid():
+                data = block.userData()
+                if data and data.breakpoint:
+                    pruned_breakpoint_blocks[block_id] = block
+                    line_number = block.blockNumber() + 1
+                    breakpoints.append(
+                        (line_number, data.breakpoint_condition))
+        self._breakpoint_blocks = pruned_breakpoint_blocks
         return breakpoints
 
     def clear_breakpoints(self):
@@ -134,6 +142,7 @@ class DebuggerManager(Manager):
         for data in self.editor.blockuserdata_list():
             data.breakpoint = False
             # data.breakpoint_condition = None  # not necessary, but logical
+        self._breakpoint_blocks = {}
         # Inform the editor that the breakpoints are changed
         self.editor.sig_breakpoints_changed.emit()
         # Inform the editor that the flags must be updated
@@ -146,16 +155,13 @@ class DebuggerManager(Manager):
             self.toogle_breakpoint(line_number, condition)
         self.breakpoints = self.get_breakpoints()
 
-    def update_breakpoints(self):
-        """Update breakpoints"""
-        self.editor.sig_breakpoints_changed.emit()
-
     def breakpoints_changed(self):
         """Breakpoint list has changed"""
         breakpoints = self.get_breakpoints()
         if self.breakpoints != breakpoints:
             self.breakpoints = breakpoints
             self.save_breakpoints()
+            self.editor.sig_repaint_breakpoints.emit()
 
     def save_breakpoints(self):
         breakpoints = repr(self.breakpoints)

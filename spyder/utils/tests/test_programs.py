@@ -188,6 +188,8 @@ def test_is_module_installed():
     assert is_module_installed('qtconsole', '>=4.5')
     assert not is_module_installed('IPython', '>=1.0;<3.0')
     assert is_module_installed('jedi', '>=0.7.0')
+    assert not is_module_installed('foo')
+    assert not is_module_installed('foo1', '>=1.2.0')
 
 
 def test_is_module_installed_with_custom_interpreter():
@@ -286,12 +288,13 @@ Icon=/blah/blah.xpm
 def test_get_package_version():
     # Primarily a test of pkg_resources/setuptools being installed properly
     assert get_package_version('IPython')
+    assert get_package_version('python_lsp_black')
 
 
 def test_get_module_version():
-    # pyls_black should not have a __version__ attribute, so tests that the
+    # intervaltree should not have a __version__ attribute, so test that the
     # fallback mechanism to get_package_version is working
-    assert get_module_version('python_lsp_black')
+    assert get_module_version('intervaltree')
 
 
 if __name__ == '__main__':

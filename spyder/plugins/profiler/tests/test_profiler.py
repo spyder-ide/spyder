@@ -29,6 +29,7 @@ def profiler_datatree_bot(qtbot):
     """Set up Profiler widget."""
     # Avoid qtawesome startup errors
     ProfilerDataTree.create_icon = lambda x, y: QIcon()
+    ProfilerDataTree.CONF_SECTION = ''
     tree = ProfilerDataTree(None)
     qtbot.addWidget(tree)
     tree.show()

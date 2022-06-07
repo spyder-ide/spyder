@@ -17,6 +17,7 @@ import glob
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
+from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
@@ -99,13 +100,14 @@ class ApplicationContainer(PluginMainContainer):
     # -------------------------------------------------------------------------
     def setup(self):
         # Compute dependencies in a thread to not block the interface.
-        self.dependencies_thread = QThread()
+        self.dependencies_thread = QThread(None)
 
         # Attributes
         self.dialog_manager = DialogManager()
         self.give_updates_feedback = False
         self.thread_updates = None
         self.worker_updates = None
+        self.updates_timer = None
 
         # Actions
         # Documentation actions
@@ -211,6 +213,14 @@ class ApplicationContainer(PluginMainContainer):
     def on_close(self):
         """To call from Spyder when the plugin is closed."""
         self.dialog_manager.close_all()
+        if self.updates_timer is not None:
+            self.updates_timer.stop()
+        if self.thread_updates is not None:
+            self.thread_updates.quit()
+            self.thread_updates.wait()
+        if self.dependencies_thread is not None:
+            self.dependencies_thread.quit()
+            self.dependencies_thread.wait()
 
     @Slot()
     def show_about(self):
@@ -319,9 +329,10 @@ class ApplicationContainer(PluginMainContainer):
         self.check_updates_action.setDisabled(True)
 
         if self.thread_updates is not None:
-            self.thread_updates.terminate()
+            self.thread_updates.quit()
+            self.thread_updates.wait()
 
-        self.thread_updates = QThread(self)
+        self.thread_updates = QThread(None)
         self.worker_updates = WorkerUpdates(self, startup=startup)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
@@ -331,24 +342,39 @@ class ApplicationContainer(PluginMainContainer):
         # Delay starting this check to avoid blocking the main window
         # while loading.
         # Fixes spyder-ide/spyder#15839
-        updates_timer = QTimer(self)
-        updates_timer.setInterval(3000)
-        updates_timer.setSingleShot(True)
-        updates_timer.timeout.connect(self.thread_updates.start)
-        updates_timer.start()
+        self.updates_timer = QTimer(self)
+        self.updates_timer.setInterval(3000)
+        self.updates_timer.setSingleShot(True)
+        self.updates_timer.timeout.connect(self.thread_updates.start)
+        self.updates_timer.start()
 
     # ---- Dependencies
     # -------------------------------------------------------------------------
     @Slot()
     def show_dependencies(self):
         """Show Spyder Dependencies dialog."""
+        # This is here in case the user tries to display the dialog before
+        # dependencies_thread has finished.
+        if not dependencies.DEPENDENCIES:
+            dependencies.declare_dependencies()
+
         dlg = DependenciesDialog(self)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.show()
 
+    def _compute_dependencies(self):
+        """Compute dependencies without errors."""
+        # Skip error when trying to register dependencies several times.
+        # This can happen if the user tries to display the dependencies
+        # dialog before dependencies_thread has finished.
+        try:
+            dependencies.declare_dependencies()
+        except ValueError:
+            pass
+
     def compute_dependencies(self):
-        """Compute dependencies"""
-        self.dependencies_thread.run = dependencies.declare_dependencies
+        """Compute dependencies."""
+        self.dependencies_thread.run = self._compute_dependencies
         self.dependencies_thread.finished.connect(
             self.report_missing_dependencies)
 
@@ -551,3 +577,16 @@ class ApplicationContainer(PluginMainContainer):
             self.dpi_messagebox.finished.connect(
                 lambda result: self.handle_dpi_change_response(result, dpi))
             self.dpi_messagebox.open()
+
+            # Show dialog always in the primary screen to prevent not being
+            # able to see it if a screen gets disconnected while
+            # in suspended state. See spyder-ide/spyder#16390
+            dpi_messagebox_width = self.dpi_messagebox.rect().width()
+            dpi_messagebox_height = self.dpi_messagebox.rect().height()
+            screen_geometry = QGuiApplication.primaryScreen().geometry()
+            x = (screen_geometry.width() - dpi_messagebox_width) / 2
+            y = (screen_geometry.height() - dpi_messagebox_height) / 2
+
+            # Convert coordinates to int to avoid a TypeError in Python 3.10
+            # Fixes spyder-ide/spyder#17677
+            self.dpi_messagebox.move(int(x), int(y))

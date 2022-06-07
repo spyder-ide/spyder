@@ -9,11 +9,12 @@
 # Standard library imports
 import time
 
+# Third-party imports
+import pytest
+
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.config.manager import CONF
-from spyder.plugins.preferences.api import PreferencePages
 from spyder.plugins.maininterpreter.plugin import MainInterpreter
 from spyder.plugins.preferences.tests.conftest import MainWindowMock
 from spyder.utils.conda import get_list_conda_envs
@@ -22,23 +23,24 @@ from spyder.utils.pyenv import get_list_pyenv_envs
 
 # Get envs to show them in the Main interpreter page. This is actually
 # done in a thread in the InterpreterStatus widget.
-# We also recording the time needed to get them to compare it with the
+# We're also recording the time needed to get them to compare it with the
 # loading time of that config page.
 t0 = time.time()
-get_list_conda_envs()
-get_list_pyenv_envs()
+conda_envs = get_list_conda_envs()
+pyenv_envs = get_list_pyenv_envs()
 GET_ENVS_TIME = time.time() - t0
 
 
+@pytest.mark.skipif(
+    len(conda_envs) == 0 and len(pyenv_envs) == 0,
+    reason="Makes no sense if conda and pyenv are not installed"
+)
 def test_load_time(qtbot):
-    from spyder.plugins.maininterpreter.confpage import (
-        MainInterpreterConfigPage)
-
     # Create Preferences dialog
-    main = MainWindowMock()
+    main = MainWindowMock(None)
     preferences = main.get_plugin(Plugins.Preferences)
 
-    main_interpreter = PLUGIN_REGISTRY.register_plugin(main, MainInterpreter)
+    PLUGIN_REGISTRY.register_plugin(main, MainInterpreter)
 
     # Create page and measure time to do it
     t0 = time.time()

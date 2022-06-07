@@ -17,9 +17,11 @@ def pylsp_settings():
 
 
 def _resolve_completion(completion, data):
+    # pylint: disable=broad-except
     try:
         doc = data.get_doc()
-    except AttributeError:
+    except Exception as e:
+        log.debug("Failed to resolve Rope completion: %s", e)
         doc = ""
     completion['detail'] = '{0} {1}'.format(data.scope or "", data.name)
     completion['documentation'] = doc
@@ -83,8 +85,11 @@ def pylsp_completions(config, workspace, document, position):
 @hookimpl
 def pylsp_completion_item_resolve(completion_item, document):
     """Resolve formatted completion for given non-resolved completion"""
-    completion, data = document.shared_data['LAST_ROPE_COMPLETIONS'].get(completion_item['label'])
-    return _resolve_completion(completion, data)
+    shared_data = document.shared_data['LAST_ROPE_COMPLETIONS'].get(completion_item['label'])
+    if shared_data:
+        completion, data = shared_data
+        return _resolve_completion(completion, data)
+    return completion_item
 
 
 def _sort_text(definition):

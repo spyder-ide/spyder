@@ -839,7 +839,6 @@ class SnippetsExtension(EditorExtension):
 
         self.inserting_snippet = True
         self.editor.insert_text(ast.text(), will_insert_text=False)
-        self.editor.document_did_change()
 
         if not self.editor.code_snippets:
             return

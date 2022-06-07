@@ -240,6 +240,10 @@ class CompletionWidget(QListWidget):
 
         item_widget.setText(item_text)
         item_widget.setIcon(self._get_cached_icon(item_type))
+        # Set data for accessible readers using item label and type
+        # See spyder-ide/spyder#17047 and
+        # https://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
+        item_widget.setData(Qt.AccessibleTextRole, f"{item_label} {item_type}")
 
     def get_html_item_representation(self, item_completion, item_type,
                                      icon_provider=None,

@@ -305,6 +305,7 @@ class HelpWidget(PluginMainWidget):
 
         # Widgets
         self._sphinx_thread = SphinxThread(
+            None,
             html_text_no_doc=warning(self.no_docs, css_path=self.css_path),
             css_path=self.css_path,
         )
@@ -547,6 +548,10 @@ class HelpWidget(PluginMainWidget):
         else:
             self.force_refresh()
 
+    @on_conf_change(section='appearance', option='selected')
+    def change_color_scheme(self, value):
+        self.set_plain_text_color_scheme(value)
+
     def update_actions(self):
         for __, action in self.get_actions().items():
             # IMPORTANT: Since we are defining the main actions in here
@@ -559,7 +564,10 @@ class HelpWidget(PluginMainWidget):
                            self.object_combo,
                            self.object_edit]:
                 if action not in widget.actions():
-                    widget.addAction(action)
+                    try:
+                        widget.addAction(action)
+                    except RuntimeError:
+                        pass
 
     def get_focus_widget(self):
         self.object_combo.lineEdit().selectAll()
@@ -779,10 +787,10 @@ class HelpWidget(PluginMainWidget):
             "activate this behavior in %s.")
         prefs = _("Preferences > Help")
 
-        shortcut_editor = self.get_conf('editor/inspect current object',
-                                        section='shortcuts')
-        shortcut_console = self.get_conf('console/inspect current object',
-                                         section='shortcuts')
+        shortcut_editor = self.get_conf(
+            'editor/inspect current object', section='shortcuts')
+        shortcut_console = self.get_conf(
+            'ipython_console/inspect current object', section='shortcuts')
 
         if sys.platform == 'darwin':
             shortcut_editor = shortcut_editor.replace('Ctrl', 'Cmd')

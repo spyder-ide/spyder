@@ -8,16 +8,13 @@
 
 from qtconsole.styles import dark_color
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import (QApplication, QDialog, QFontComboBox,
-                            QGridLayout, QGroupBox, QMessageBox,
-                            QPushButton, QStackedWidget, QStyleFactory,
-                            QVBoxLayout)
+from qtpy.QtWidgets import (QFontComboBox, QGridLayout, QGroupBox, QMessageBox,
+                            QPushButton, QStackedWidget, QVBoxLayout)
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
 from spyder.config.gui import get_font, is_dark_font_color, set_font
 from spyder.config.manager import CONF
-from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
 from spyder.utils.palette import QStylePalette
@@ -48,6 +45,7 @@ class AppearanceConfigPage(PluginConfigPage):
                                               ui_theme_choices,
                                               'ui_theme',
                                               restart=True)
+        self.ui_combobox = ui_theme_combo.combobox
 
         themes = ['Spyder 2', 'Spyder 3']
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
@@ -172,55 +170,31 @@ class AppearanceConfigPage(PluginConfigPage):
             plugin.update_font()
 
     def apply_settings(self):
-        self.set_option('selected', self.current_scheme)
-        color_scheme = self.get_option('selected')
-
-        # A dark color scheme is characterized by a light font and viceversa
-        is_dark_color_scheme = not is_dark_font_color(color_scheme)
         ui_theme = self.get_option('ui_theme')
+        mismatch = self.color_scheme_and_ui_theme_mismatch(
+            self.current_scheme, ui_theme)
 
         if ui_theme == 'automatic':
-            if ((self.is_dark_interface() and not is_dark_color_scheme) or
-                    (not self.is_dark_interface() and is_dark_color_scheme)):
+            if mismatch:
+                # Ask for a restart
                 self.changed_options.add('ui_theme')
-            elif 'ui_theme' in self.changed_options:
-                self.changed_options.remove('ui_theme')
-
-            if 'ui_theme' not in self.changed_options:
-                self.main.editor.apply_plugin_settings(['color_scheme_name'])
-
-                for plugin in self.main.thirdparty_plugins:
-                    try:
-                        # New API
-                        plugin.apply_conf(['color_scheme_name'])
-                    except AttributeError:
-                        # Old API
-                        plugin.apply_plugin_settings(['color_scheme_name'])
-
-                self.update_combobox()
-                self.update_preview()
+            else:
+                # Don't ask for a restart
+                if 'ui_theme' in self.changed_options:
+                    self.changed_options.remove('ui_theme')
         else:
             if 'ui_theme' in self.changed_options:
-                if ((self.is_dark_interface() and ui_theme == 'dark') or
-                    (not self.is_dark_interface() and ui_theme == 'light')):
+                if not mismatch:
+                    # Don't ask for a restart
                     self.changed_options.remove('ui_theme')
+            else:
+                if mismatch:
+                    # Ask for a restart
+                    self.changed_options.add('ui_theme')
 
-            if 'ui_theme' not in self.changed_options:
-                self.main.editor.apply_plugin_settings(['color_scheme_name'])
+        self.update_combobox()
+        self.update_preview()
 
-                for plugin in self.main.thirdparty_plugins:
-                    try:
-                        # New API
-                        plugin.apply_conf(['color_scheme_name'])
-                    except AttributeError:
-                        # Old API
-                        plugin.apply_plugin_settings(['color_scheme_name'])
-
-                self.update_combobox()
-                self.update_preview()
-
-        if self.main.historylog is not None:
-            self.main.historylog.apply_conf(['color_scheme_name'])
         return set(self.changed_options)
 
     # Helpers
@@ -434,3 +408,32 @@ class AppearanceConfigPage(PluginConfigPage):
         detect correctly the current theme.
         """
         return dark_color(QStylePalette.COLOR_BACKGROUND_1)
+
+    def color_scheme_and_ui_theme_mismatch(self, color_scheme, ui_theme):
+        """
+        Detect if there is a mismatch between the current color scheme and
+        UI theme.
+
+        Parameters
+        ----------
+        color_scheme: str
+            Name of one of Spyder's color schemes. For instance: 'Zenburn' or
+            'Monokai'.
+        ui_theme: str
+            Name of the one of Spyder's interface themes. This can 'automatic',
+            'dark' or 'light'.
+        """
+        # A dark color scheme is characterized by a light font and viceversa
+        is_dark_color_scheme = not is_dark_font_color(color_scheme)
+        if ui_theme == 'automatic':
+            mismatch = (
+                (self.is_dark_interface() and not is_dark_color_scheme) or
+                (not self.is_dark_interface() and is_dark_color_scheme)
+            )
+        else:
+            mismatch = (
+                (self.is_dark_interface() and ui_theme == 'light') or
+                (not self.is_dark_interface() and ui_theme == 'dark')
+            )
+
+        return mismatch

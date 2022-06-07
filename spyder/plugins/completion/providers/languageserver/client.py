@@ -21,15 +21,16 @@ import sys
 import time
 
 # Third-party imports
-from qtpy.QtCore import (QObject, QProcess, QProcessEnvironment,
-                         QSocketNotifier, Signal, Slot)
+from qtpy.QtCore import QObject, QProcess, QSocketNotifier, Signal, Slot
 import zmq
 import psutil
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, running_in_ci, running_under_pytest)
+    DEV, get_conf_path, get_debug_level, is_pynsist, running_in_ci,
+    running_under_pytest)
+from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
     TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
@@ -292,12 +293,23 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             if not osp.exists(cwd):
                 os.makedirs(cwd)
 
-            # On Windows, some modules (notably Matplotlib)
-            # cause exceptions if they cannot get the user home.
-            # So, we need to pass the USERPROFILE env variable to
-            # the PyLS.
-            if os.name == "nt" and "USERPROFILE" in os.environ:
-                env.insert("USERPROFILE", os.environ["USERPROFILE"])
+            if os.name == "nt":
+                # On Windows, some modules (notably Matplotlib)
+                # cause exceptions if they cannot get the user home.
+                # So, we need to pass the USERPROFILE env variable to
+                # the PyLSP.
+                if "USERPROFILE" in os.environ:
+                    env.insert("USERPROFILE", os.environ["USERPROFILE"])
+
+                # The PyLSP can't start on pip installations if APPDATA
+                # is missing and the user has installed their packages on
+                # that directory.
+                # Fixes spyder-ide/spyder#17661
+                if (
+                    not (is_anaconda() or is_pynsist())
+                    and "APPDATA" in os.environ
+                ):
+                    env.insert("APPDATA", os.environ["APPDATA"])
         else:
             # There's no need to define a cwd for other servers.
             cwd = None
@@ -390,11 +402,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         # running.”). No further error handling because we are out of luck
         # anyway if the process doesn’t finish.
         if self.transport is not None:
-            self.transport.kill()
+            self.transport.close()
             self.transport.waitForFinished(1000)
         self.context.destroy()
         if self.server is not None:
-            self.server.kill()
+            self.server.close()
             self.server.waitForFinished(1000)
 
     def is_transport_alive(self):

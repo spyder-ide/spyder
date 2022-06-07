@@ -43,8 +43,8 @@ def test_flake8_unsaved(workspace):
 
 
 def test_flake8_lint(workspace):
+    name, doc = temp_document(DOC, workspace)
     try:
-        name, doc = temp_document(DOC, workspace)
         diags = flake8_lint.pylsp_lint(workspace, doc)
         msg = 'F841 local variable \'a\' is assigned to but never used'
         unused_var = [d for d in diags if d['message'] == msg][0]
@@ -54,7 +54,6 @@ def test_flake8_lint(workspace):
         assert unused_var['range']['start'] == {'line': 5, 'character': 1}
         assert unused_var['range']['end'] == {'line': 5, 'character': 11}
         assert unused_var['severity'] == lsp.DiagnosticSeverity.Warning
-
     finally:
         os.remove(name)
 

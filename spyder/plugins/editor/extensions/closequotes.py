@@ -60,7 +60,6 @@ class CloseQuotesExtension(EditorExtension):
         if char in ('"', '\'') and self.enabled:
             self.editor.completion_widget.hide()
             self._autoinsert_quotes(char)
-            self.editor.document_did_change()
             event.accept()
 
     def _autoinsert_quotes(self, char):

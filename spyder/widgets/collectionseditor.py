@@ -27,14 +27,12 @@ import warnings
 
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
-                         Signal, Slot)
+from qtpy.QtCore import (
+    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QHBoxLayout, QHeaderView, QInputDialog,
-                            QLineEdit, QMenu, QMessageBox,
-                            QPushButton, QTableView, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit, QMenu,
+    QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
@@ -46,14 +44,16 @@ from spyder_kernels.utils.nsview import (
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.config.base import _
+from spyder.api.widgets.toolbars import SpyderToolbar
+from spyder.config.base import _, running_under_pytest
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
                               is_type_text_string, NUMERIC_TYPES)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
+from spyder.utils.qthelpers import (
+    add_actions, create_action, MENU_SEPARATOR, mimedata2url)
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
@@ -61,6 +61,7 @@ from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -589,6 +590,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         self.array_filename = None
         self.menu = None
+        self.menu_actions = []
         self.empty_ws_menu = None
         self.paste_action = None
         self.copy_action = None
@@ -617,18 +619,22 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setSectionsMovable(True)
         self.adjust_columns()
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
+        self.selectionModel().selectionChanged.connect(self.refresh_menu)
 
     def setup_menu(self):
         """Setup context menu"""
         resize_action = create_action(self, _("Resize rows to contents"),
+                                      icon=ima.icon('collapse_row'),
                                       triggered=self.resizeRowsToContents)
         resize_columns_action = create_action(
             self,
             _("Resize columns to contents"),
+            icon=ima.icon('collapse_column'),
             triggered=self.resize_column_contents)
         self.paste_action = create_action(self, _("Paste"),
                                           icon=ima.icon('editpaste'),
@@ -662,12 +668,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         )
         self.insert_action_above = create_action(
             self, _("Insert above"),
-            icon=ima.icon('insert'),
+            icon=ima.icon('insert_above'),
             triggered=lambda: self.insert_item(below=False)
         )
         self.insert_action_below = create_action(
             self, _("Insert below"),
-            icon=ima.icon('insert'),
+            icon=ima.icon('insert_below'),
             triggered=lambda: self.insert_item(below=True)
         )
         self.remove_action = create_action(self, _("Remove"),
@@ -684,21 +690,37 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             _("View with the Object Explorer"),
             icon=ima.icon('outline_explorer'),
             triggered=self.view_item)
+
         menu = QMenu(self)
-        menu_actions = [self.edit_action, self.plot_action, self.hist_action,
-                        self.imshow_action, self.save_array_action,
-                        self.insert_action,
-                        self.insert_action_above, self.insert_action_below,
-                        self.remove_action, self.copy_action,
-                        self.paste_action, self.view_action,
-                        None, self.rename_action, self.duplicate_action,
-                        None, resize_action, resize_columns_action]
-        add_actions(menu, menu_actions)
+        self.menu_actions = [
+            self.edit_action,
+            self.copy_action,
+            self.paste_action,
+            self.rename_action,
+            self.remove_action,
+            self.save_array_action,
+            MENU_SEPARATOR,
+            self.insert_action,
+            self.insert_action_above,
+            self.insert_action_below,
+            self.duplicate_action,
+            MENU_SEPARATOR,
+            self.view_action,
+            self.plot_action,
+            self.hist_action,
+            self.imshow_action,
+            MENU_SEPARATOR,
+            resize_action,
+            resize_columns_action
+        ]
+        add_actions(menu, self.menu_actions)
+
         self.empty_ws_menu = QMenu(self)
         add_actions(
             self.empty_ws_menu,
             [self.insert_action, self.paste_action]
         )
+
         return menu
 
 
@@ -763,12 +785,58 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def refresh_menu(self):
         """Refresh context menu"""
         index = self.currentIndex()
-        condition = index.isValid()
-        self.edit_action.setEnabled(condition)
-        self.remove_action.setEnabled(condition)
-        self.refresh_plot_entries(index)
+        data = self.source_model.get_data()
+        is_list_instance = isinstance(data, list)
+        is_dict_instance = isinstance(data, dict)
 
-    def refresh_plot_entries(self, index):
+        def indexes_in_same_row():
+            indexes = self.selectedIndexes()
+            if len(indexes) > 1:
+                rows = [idx.row() for idx in indexes]
+                return len(set(rows)) == 1
+            else:
+                return True
+
+        # Enable/disable actions
+        condition_edit = (
+            (not isinstance(data, (tuple, set))) and
+            index.isValid() and
+            (len(self.selectedIndexes()) > 0) and
+            indexes_in_same_row() and
+            not self.readonly
+        )
+        self.edit_action.setEnabled(condition_edit)
+        self.insert_action_above.setEnabled(condition_edit)
+        self.insert_action_below.setEnabled(condition_edit)
+        self.duplicate_action.setEnabled(condition_edit)
+        self.rename_action.setEnabled(condition_edit)
+        self.plot_action.setEnabled(condition_edit)
+        self.hist_action.setEnabled(condition_edit)
+        self.imshow_action.setEnabled(condition_edit)
+        self.save_array_action.setEnabled(condition_edit)
+
+        condition_select = (
+            index.isValid() and
+            (len(self.selectedIndexes()) > 0)
+        )
+        self.view_action.setEnabled(
+            condition_select and indexes_in_same_row())
+        self.copy_action.setEnabled(condition_select)
+
+        condition_remove = (
+            (not isinstance(data, (tuple, set))) and
+            index.isValid() and
+            (len(self.selectedIndexes()) > 0) and
+            not self.readonly
+        )
+        self.remove_action.setEnabled(condition_remove)
+
+        self.insert_action.setEnabled(
+            is_dict_instance and not self.readonly)
+        self.paste_action.setEnabled(
+            is_dict_instance and not self.readonly)
+
+        # Hide/show actions
         if index.isValid():
             if self.proxy_model:
                 key = self.proxy_model.get_key(index)
@@ -783,12 +851,14 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             is_array = condition_plot = condition_imshow = is_list \
                      = condition_hist = False
-        is_list_instance = isinstance(self.source_model.get_data(), list)
+
         self.plot_action.setVisible(condition_plot or is_list)
         self.hist_action.setVisible(condition_hist or is_list)
-        self.insert_action.setVisible(not is_list_instance)
+        self.insert_action.setVisible(is_dict_instance)
         self.insert_action_above.setVisible(is_list_instance)
         self.insert_action_below.setVisible(is_list_instance)
+        self.rename_action.setVisible(is_dict_instance)
+        self.paste_action.setVisible(is_dict_instance)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
 
@@ -889,6 +959,22 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             event.ignore()
 
+    def _deselect_index(self, index):
+        """
+        Deselect index after any operation that adds or removes rows to/from
+        the editor.
+
+        Notes
+        -----
+        * This avoids showing the wrong buttons in the editor's toolbar when
+          the operation is completed.
+        * Also, if we leave something selected, then the next operation won't
+          introduce the item in the expected row. That's why we need to force
+          users to select a row again after this.
+        """
+        self.selectionModel().select(index, QItemSelectionModel.Select)
+        self.selectionModel().select(index, QItemSelectionModel.Deselect)
+
     @Slot()
     def edit_item(self):
         """Edit item"""
@@ -901,18 +987,23 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     @Slot()
     def remove_item(self, force=False):
         """Remove item"""
+        current_index = self.currentIndex()
         indexes = self.selectedIndexes()
+
         if not indexes:
             return
+
         for index in indexes:
             if not index.isValid():
                 return
+
         if not force:
             one = _("Do you want to remove the selected item?")
             more = _("Do you want to remove all selected items?")
             answer = QMessageBox.question(self, _("Remove"),
                                           one if len(indexes) == 1 else more,
                                           QMessageBox.Yes | QMessageBox.No)
+
         if force or answer == QMessageBox.Yes:
             if self.proxy_model:
                 idx_rows = unsorted_unique(
@@ -923,25 +1014,44 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
+        # This avoids a segfault in our tests that doesn't happen when
+        # removing items manually.
+        if not running_under_pytest():
+            self._deselect_index(current_index)
+
     def copy_item(self, erase_original=False, new_name=None):
         """Copy item"""
+        current_index = self.currentIndex()
         indexes = self.selectedIndexes()
+
         if not indexes:
             return
+
         if self.proxy_model:
             idx_rows = unsorted_unique(
                 [self.proxy_model.mapToSource(idx).row() for idx in indexes])
         else:
             idx_rows = unsorted_unique([idx.row() for idx in indexes])
+
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
+
         orig_key = self.source_model.keys[idx_rows[0]]
         if erase_original:
+            if not isinstance(orig_key, str):
+                QMessageBox.warning(
+                    self,
+                    _("Warning"),
+                    _("You can only rename keys that are strings")
+                )
+                return
+
             title = _('Rename')
             field_text = _('New variable name:')
         else:
             title = _('Duplicate')
             field_text = _('Variable name:')
+
         data = self.source_model.get_data()
         if isinstance(data, (list, set)):
             new_key, valid = len(data), True
@@ -950,6 +1060,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             new_key, valid = QInputDialog.getText(self, title, field_text,
                                                   QLineEdit.Normal, orig_key)
+
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
             if new_key == orig_key:
@@ -957,6 +1068,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.copy_value(orig_key, new_key)
             if erase_original:
                 self.remove_values([orig_key])
+
+        self._deselect_index(current_index)
 
     @Slot()
     def duplicate_item(self):
@@ -986,11 +1099,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                 else:
                     row = index.row()
         data = self.source_model.get_data()
+
         if isinstance(data, list):
             key = row
             data.insert(row, '')
         elif isinstance(data, dict):
-            key, valid = QInputDialog.getText(self, _( 'Insert'), _( 'Key:'),
+            key, valid = QInputDialog.getText(self, _('Insert'), _('Key:'),
                                               QLineEdit.Normal)
             if valid and to_text_string(key):
                 key = try_to_eval(to_text_string(key))
@@ -998,8 +1112,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                 return
         else:
             return
+
         value, valid = QInputDialog.getText(self, _('Insert'), _('Value:'),
                                             QLineEdit.Normal)
+
         if valid and to_text_string(value):
             self.new_value(key, try_to_eval(to_text_string(value)))
 
@@ -1186,7 +1302,6 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu()
-
         if isinstance(data, set):
             self.horizontalHeader().hideSection(0)
 
@@ -1211,9 +1326,11 @@ class CollectionsEditorTableView(BaseTableView):
 
     def new_value(self, key, value):
         """Create new value in data"""
+        index = self.currentIndex()
         data = self.source_model.get_data()
         data[key] = value
         self.set_data(data)
+        self._deselect_index(index)
 
     def is_list(self, key):
         """Return True if variable is a list or a tuple"""
@@ -1284,22 +1401,6 @@ class CollectionsEditorTableView(BaseTableView):
         data[key].show()
     #--------------------------------------------------------------------------
 
-    def refresh_menu(self):
-        """Refresh context menu"""
-        data = self.source_model.get_data()
-        index = self.currentIndex()
-        condition = (not isinstance(data, (tuple, set))) and index.isValid() \
-                    and not self.readonly
-        self.edit_action.setEnabled( condition )
-        self.remove_action.setEnabled( condition )
-        self.insert_action.setEnabled(not self.readonly)
-        self.insert_action_above.setEnabled(not self.readonly)
-        self.insert_action_below.setEnabled(not self.readonly)
-        self.duplicate_action.setEnabled(condition)
-        condition_rename = not isinstance(data, (tuple, list, set))
-        self.rename_action.setEnabled(condition_rename)
-        self.refresh_plot_entries(index)
-
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
         self.dictfilter = dictfilter
@@ -1314,7 +1415,18 @@ class CollectionsEditorWidget(QWidget):
         else:
             self.editor = CollectionsEditorTableView(self, data, readonly,
                                                      title)
+
+        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
+        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+
+        for item in self.editor.menu_actions:
+            if item is not None:
+                toolbar.addAction(item)
+
+        # Update the toolbar actions state
+        self.editor.refresh_menu()
         layout = QVBoxLayout()
+        layout.addWidget(toolbar)
         layout.addWidget(self.editor)
         self.setLayout(layout)
 
@@ -1375,7 +1487,7 @@ class CollectionsEditor(BaseDialog):
                                               title=title, readonly=readonly,
                                               remote=remote)
         self.widget.editor.source_model.sig_setting_data.connect(
-                                                    self.save_and_close_enable)
+            self.save_and_close_enable)
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
@@ -1404,7 +1516,7 @@ class CollectionsEditor(BaseDialog):
             self.setWindowIcon(ima.icon('dictedit'))
 
         if sys.platform == 'darwin':
-            # See: https://github.com/spyder-ide/spyder/issues/9051
+            # See spyder-ide/spyder#9051
             self.setWindowFlags(Qt.Tool)
         else:
             # Make the dialog act as a window
@@ -1574,6 +1686,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         """Setup context menu."""
         menu = BaseTableView.setup_menu(self)
         return menu
+
+    def refresh_menu(self):
+        if self.var_properties:
+            super().refresh_menu()
 
     def do_find(self, text):
         """Update the regex text for the variable finder."""
@@ -1766,20 +1882,13 @@ def get_test_data():
 
 def editor_test():
     """Test Collections editor."""
-    from spyder.utils.qthelpers import qapplication
-
-    app = qapplication()             #analysis:ignore
     dialog = CollectionsEditor()
     dialog.setup(get_test_data())
     dialog.show()
-    app.exec_()
 
 
 def remote_editor_test():
     """Test remote collections editor."""
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-
     from spyder.config.manager import CONF
     from spyder_kernels.utils.nsview import (make_remote_view,
                                              REMOTE_SETTINGS)
@@ -1792,9 +1901,12 @@ def remote_editor_test():
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
-    app.exec_()
 
 
 if __name__ == "__main__":
+    from spyder.utils.qthelpers import qapplication
+
+    app = qapplication()  # analysis:ignore
     editor_test()
     remote_editor_test()
+    app.exec_()

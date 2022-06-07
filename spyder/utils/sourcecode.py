@@ -8,15 +8,14 @@
 Source code text utilities
 """
 
+# Standard library imports
 import re
 import os
 import sys
 
-# Local imports
-from spyder.py3compat import PY2
+# Third-part imports
+from pylsp._utils import get_eol_chars as _get_eol_chars
 
-if PY2:
-    from itertools import izip as zip
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
@@ -24,14 +23,24 @@ EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 
 def get_eol_chars(text):
     """
-    Get text EOL characters.
+    Get text end-of-line (eol) characters.
 
-    If None is found, return the eol based on the operatin system.
+    If no eol chars are found, return ones based on the operating
+    system.
+
+    Parameters
+    ----------
+    text: str
+        Text to get its eol chars from
+
+    Returns
+    -------
+    eol: str or None
+        Eol found in ``text``.
     """
-    for eol_chars, _os_name in EOL_CHARS:
-        if text.find(eol_chars) > -1:
-            break
-    else:
+    eol_chars = _get_eol_chars(text)
+
+    if not eol_chars:
         if os.name == 'nt':
             eol_chars = "\r\n"
         elif sys.platform.startswith('linux'):

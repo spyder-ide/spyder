@@ -11,11 +11,11 @@
 # Standard library imports
 import os
 import signal
-import sys
 
 # Third party imports
-from qtconsole.manager import QtKernelManager
+from jupyter_client.utils import run_sync
 import psutil
+from qtconsole.manager import QtKernelManager
 
 
 class SpyderKernelManager(QtKernelManager):
@@ -33,8 +33,8 @@ class SpyderKernelManager(QtKernelManager):
         return QtKernelManager.__init__(self, *args, **kwargs)
 
     @staticmethod
-    def kill_proc_tree(pid, sig=signal.SIGTERM, include_parent=True,
-                       timeout=None, on_terminate=None):
+    async def kill_proc_tree(pid, sig=signal.SIGTERM, include_parent=True,
+                             timeout=None, on_terminate=None):
         """
         Kill a process tree (including grandchildren) with sig and return a
         (gone, still_alive) tuple.
@@ -76,41 +76,45 @@ class SpyderKernelManager(QtKernelManager):
 
         return (gone, alive)
 
-    def _kill_kernel(self):
-        """
-        Kill the running kernel.
-
-        Override private method to be able to correctly close kernel that was
-        started via a batch/bash script for correct conda env activation.
+    async def _async_kill_kernel(self, restart: bool = False) -> None:
+        """Kill the running kernel.
+        Override private method of jupyter_client 7 to be able to correctly
+        close kernel that was started via a batch/bash script for correct conda
+        env activation.
         """
         if self.has_kernel:
+            assert self.provisioner is not None
 
-            # Signal the kernel to terminate (sends SIGKILL on Unix and calls
-            # TerminateProcess() on Win32).
+            # This is the additional line that was added to properly
+            # kill the kernel started by Spyder.
+            await self.kill_proc_tree(self.provisioner.process.pid)
+
+            await self.provisioner.kill(restart=restart)
+
+            # Wait until the kernel terminates.
+            import asyncio
             try:
-                if hasattr(signal, 'SIGKILL'):
-                    self.signal_kernel(signal.SIGKILL)
-                else:
-                    # This is the additional line that was added to properly
-                    # kill the kernel started by Spyder.
-                    self.kill_proc_tree(self.kernel.pid)
+                await asyncio.wait_for(self._async_wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                # Wait timed out, just log warning but continue
+                #  - not much more we can do.
+                self.log.warning("Wait for final termination of kernel timed"
+                                 " out - continuing...")
+                pass
+            else:
+                # Process is no longer alive, wait and clear
+                if self.has_kernel:
+                    await self.provisioner.wait()
 
-                    self.kernel.kill()
-            except OSError as e:
-                # In Windows, we will get an Access Denied error if the process
-                # has already terminated. Ignore it.
-                if sys.platform == 'win32':
-                    if e.winerror != 5:
-                        raise
-                # On Unix, we may get an ESRCH error if the process has already
-                # terminated. Ignore it.
-                else:
-                    from errno import ESRCH
-                    if e.errno != ESRCH:
-                        raise
+    _kill_kernel = run_sync(_async_kill_kernel)
 
-            # Block until the kernel terminates.
-            self.kernel.wait()
-            self.kernel = None
-        else:
-            raise RuntimeError("Cannot kill kernel. No kernel is running!")
+    async def _async_send_kernel_sigterm(self, restart: bool = False) -> None:
+        """similar to _kill_kernel, but with sigterm (not sigkill), but do not block"""
+        if self.has_kernel:
+            assert self.provisioner is not None
+
+            # This is the line that was added to properly kill kernels started
+            # by Spyder.
+            await self.kill_proc_tree(self.provisioner.process.pid)
+
+    _send_kernel_sigterm = run_sync(_async_send_kernel_sigterm)

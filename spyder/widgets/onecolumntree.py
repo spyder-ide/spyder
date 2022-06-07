@@ -6,8 +6,8 @@
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QTreeWidget
+from qtpy.QtCore import Qt, Slot
+from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QTreeWidget
 
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -62,10 +62,18 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
         self.itemClicked.connect(self.clicked)
         self.itemSelectionChanged.connect(self.item_selection_changed)
 
+        # To use mouseMoveEvent
+        self.setMouseTracking(True)
+
+        # Use horizontal scrollbar when needed
+        self.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.header().setStretchLastSection(False)
+
         self.item_selection_changed()
 
-    # --- SpyderWidgetMixin API
-    # ------------------------------------------------------------------------
+    # ---- SpyderWidgetMixin API
+    # -------------------------------------------------------------------------
     def setup(self):
         self.menu = self.create_menu("context_menu")
 
@@ -129,8 +137,8 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     def update_actions(self):
         pass
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def activated(self, item):
         """Double-click event"""
         raise NotImplementedError
@@ -279,6 +287,21 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
             self.insertTopLevelItem(index, item)
         self.restore_expanded_state()
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def contextMenuEvent(self, event):
         """Override Qt method"""
         self.menu.popup(event.globalPos())
+
+    def mouseMoveEvent(self, event):
+        """Change cursor shape."""
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            vrect = self.visualRect(index)
+            item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
+            if event.pos().x() > item_identation:
+                # When hovering over results
+                self.setCursor(Qt.PointingHandCursor)
+            else:
+                # On every other element
+                self.setCursor(Qt.ArrowCursor)

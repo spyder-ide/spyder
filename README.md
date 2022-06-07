@@ -189,14 +189,14 @@ to install them separately in those cases.
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version equal or greater than 3.6.
+a Python version equal or greater than 3.7.
 
 ### Runtime dependencies
 
 The basic dependencies to run Spyder are:
 
-* **Python** 3.6+: The core language Spyder is written in and for.
-* **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
+* **Python** 3.7+: The core language Spyder is written in and for.
+* **PyQt5** 5.9+: Python bindings for Qt, used for Spyder's GUI.
 
 The rest our dependencies (both required and optional) are declared in
 [this file](https://github.com/spyder-ide/spyder/blob/master/spyder/dependencies.py).
@@ -207,7 +207,7 @@ The rest our dependencies (both required and optional) are declared in
 Spyder is funded thanks to the generous support of
 
 
-[![Quansight](https://static.wixstatic.com/media/095d2c_2508c560e87d436ea00357abc404cf1d~mv2.png/v1/crop/x_0,y_9,w_915,h_329/fill/w_380,h_128,al_c,usm_0.66_1.00_0.01/095d2c_2508c560e87d436ea00357abc404cf1d~mv2.png)](https://www.quansight.com/)[![Numfocus](https://i2.wp.com/numfocus.org/wp-content/uploads/2017/07/NumFocus_LRG.png?fit=320%2C148&ssl=1)](https://numfocus.org/)
+[![Quansight](https://user-images.githubusercontent.com/16781833/142477716-53152d43-99a0-470c-a70b-c04bbfa97dd4.png)](https://www.quansight.com/)[![Numfocus](https://i2.wp.com/numfocus.org/wp-content/uploads/2017/07/NumFocus_LRG.png?fit=320%2C148&ssl=1)](https://numfocus.org/)
 
 
 and the donations we have received from our users around the world through [Open Collective](https://opencollective.com/spyder/):
