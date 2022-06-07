@@ -767,12 +767,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                add_shortcut_to_tip=True)
 
         # --- Run toolbar ---
-        # run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
-        #                            tip=_("Run file"),
-        #                            triggered=self.run_file)
-        # self.register_shortcut(run_action, context="_", name="Run",
-        #                        add_shortcut_to_tip=True)
-
         configure_action = create_action(
             self,
             _("&Configuration per file..."),
@@ -792,16 +786,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Re-run last script",
                                add_shortcut_to_tip=True)
 
-        run_selected_action = create_action(self, _("Run &selection or "
-                                                    "current line"),
-                                            icon=ima.icon('run_selection'),
-                                            tip=_("Run selection or "
-                                                  "current line"),
-                                            triggered=self.run_selection,
-                                            context=Qt.WidgetShortcut)
-        self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection", add_shortcut_to_tip=True)
-
         run_to_line_action = create_action(self, _("Run &to current line"),
                                            tip=_("Run to current line"),
                                            triggered=self.run_to_line,
@@ -815,29 +799,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                              context=Qt.WidgetShortcut)
         self.register_shortcut(run_from_line_action, context="Editor",
                                name="Run from line", add_shortcut_to_tip=True)
-
-        # run_cell_action = create_action(self,
-        #                     _("Run cell"),
-        #                     icon=ima.icon('run_cell'),
-        #                     tip=_("Run current cell \n"
-        #                           "[Use #%% to create cells]"),
-        #                     triggered=self.run_cell,
-        #                     context=Qt.WidgetShortcut)
-
-        # self.register_shortcut(run_cell_action, context="Editor",
-        #                        name="Run cell", add_shortcut_to_tip=True)
-
-        run_cell_advance_action = create_action(
-            self,
-            _("Run cell and advance"),
-            icon=ima.icon('run_cell_advance'),
-            tip=_("Run current cell and go to the next one "),
-            triggered=self.run_cell_and_advance,
-            context=Qt.WidgetShortcut)
-
-        self.register_shortcut(run_cell_advance_action, context="Editor",
-                               name="Run cell and advance",
-                               add_shortcut_to_tip=True)
 
         self.debug_cell_action = create_action(
             self,
@@ -1221,15 +1182,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [#run_action, # run_cell_action,
-                            run_cell_advance_action,
+                            # run_cell_advance_action,
                             re_run_last_cell_action, MENU_SEPARATOR,
-                            run_selected_action, run_to_line_action,
+                            run_to_line_action,
                             run_from_line_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
-        run_toolbar_actions = [#run_action, #run_cell_action,
-                               run_cell_advance_action, run_selected_action]
+        run_toolbar_actions = []
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
@@ -1301,9 +1261,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             set_cond_breakpoint_action,
             self.debug_action,
             self.debug_cell_action,
-            run_selected_action,
+            #run_selected_action,
             #run_cell_action,
-            run_cell_advance_action,
+            #run_cell_advance_action,
             re_run_last_cell_action,
             blockcomment_action,
             unblockcomment_action,

@@ -12,6 +12,7 @@ Run Plugin.
 
 # Standard library imports
 from typing import List, Dict, Optional
+from numpy import short
 
 # Third-party imports
 from qtpy.QtCore import Signal
@@ -45,7 +46,7 @@ class Run(SpyderPluginV2):
     NAME = "run"
     # TODO: Fix requires to reflect the desired order in the preferences
     REQUIRES = [Plugins.Preferences, Plugins.WorkingDirectory]
-    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
+    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar, Plugins.Shortcuts]
     CONTAINER_CLASS = RunContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = RunConfigPage
@@ -87,9 +88,14 @@ class Run(SpyderPluginV2):
     def on_initialize(self):
         self.pending_toolbar_actions = []
         self.pending_menu_actions = []
+        self.pending_shortcut_actions = []
 
         self.sig_switch_run_configuration_focus.connect(
             self.switch_focused_run_configuration)
+
+        container = self.get_container()
+        container.sig_run_action_created.connect(
+            self.register_action_shortcuts)
 
     @on_plugin_available(plugin=Plugins.WorkingDirectory)
     def on_working_directory_available(self):
@@ -133,6 +139,14 @@ class Run(SpyderPluginV2):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.Shortcuts)
+    def on_shortcuts_available(self):
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
+        while self.pending_shortcut_actions != []:
+            args = self.pending_shortcut_actions.pop(0)
+            shortcuts.register_shortcut(*args)
+        shortcuts.apply_shortcuts()
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -349,3 +363,17 @@ class Run(SpyderPluginV2):
 
     def switch_working_dir(self, path: str):
         self.get_container().set_current_working_dir(path)
+
+    def register_action_shortcuts(self, action_name: str,
+                                  register_shortcut: bool,
+                                  shortcut_context: str):
+        if register_shortcut:
+            action = self.get_action(action_name)
+            shortcuts = self.get_plugin(Plugins.Shortcuts)
+            if shortcuts:
+                shortcuts.register_shortcut(action, shortcut_context,
+                                            action_name)
+                shortcuts.apply_shortcuts()
+            else:
+                self.pending_shortcut_actions.append(
+                    (action, shortcut_context, action_name))

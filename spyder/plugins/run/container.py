@@ -307,6 +307,8 @@ class RunExecutorParameters(QAbstractListModel):
 class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
+    sig_run_action_created = Signal(str, bool, str)
+
     def setup(self):
         self.current_working_dir: Optional[str] = None
 
@@ -541,14 +543,20 @@ class RunContainer(PluginMainContainer):
 
         func = self.gen_annonymous_execution_run(
             context_name, extra_action_name)
+
         action = self.create_action(
             action_name, text, icon, tip=tip,
             triggered=func,
             register_shortcut=register_shortcut,
-            shortcut_context=shortcut_context
+            shortcut_context=shortcut_context,
+            context=Qt.ApplicationShortcut
         )
+
         self.context_actions[(context_name, extra_action_name)] = (
             action, func)
+
+        self.sig_run_action_created.emit(action_name, register_shortcut,
+                                         shortcut_context)
         return action
 
     def create_re_run_button(self, context: Context, extra_behaviour: str):

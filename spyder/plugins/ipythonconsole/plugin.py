@@ -711,7 +711,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         params: IPythonConsolePyConfiguration = exec_params['executor_params']
         run_input: SelectionRun = input['run_input']
         text = run_input['selection']
-        print(text)
         self.execute_code_and_focus_editor(text)
 
     @run_execute(context=RunContext.Cell)
