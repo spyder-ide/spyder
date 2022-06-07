@@ -38,25 +38,33 @@ jobs:
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
-          ${pythonLocation}/bin/python -m pip install -U pip setuptools
-          ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
-          ${pythonLocation}/bin/python -m pip uninstall -q -y spyder
+          ${pythonLocation}/bin/python -m pip install -U pip setuptools wheel
+          ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: |
-          ${pythonLocation}/bin/python -m pip install \
-            -e ${GITHUB_WORKSPACE}/external-deps/spyder-kernels \
-            -e ${GITHUB_WORKSPACE}/external-deps/python-lsp-server \
-            -e ${GITHUB_WORKSPACE}/external-deps/qdarkstyle
+          for dep in $(ls ${GITHUB_WORKSPACE}/external-deps)
+          do
+              if [ "$dep" = "python-lsp-server" ]; then
+                  SETUPTOOLS_SCM_PRETEND_VERSION=`${pythonLocation}/bin/python ${GITHUB_WORKSPACE}/pylsp_utils.py` \
+                  ${pythonLocation}/bin/python -m pip install ${GITHUB_WORKSPACE}/external-deps/$dep
+              else
+                  ${pythonLocation}/bin/python -m pip install ${GITHUB_WORKSPACE}/external-deps/$dep
+              fi
+          done
       - name: Show Build Environment
         run: |
           ${pythonLocation}/bin/python -V -V
           ${pythonLocation}/bin/python -m pip list
+      - name: Install Micromamba
+        working-directory: ${{ github.workspace }}/spyder
+        run: |
+          curl -Ls https://micro.mamba.pm/api/micromamba/osx-64/latest | tar -xvj bin/micromamba
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Test Application Bundle
         if: ${{github.event_name == 'pull_request'}}
-        run: ./test_app.sh -t 60 ${DISTDIR}
+        run: ./test_app.sh -t 60 -d 10 ${DISTDIR}
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Upload Artifact

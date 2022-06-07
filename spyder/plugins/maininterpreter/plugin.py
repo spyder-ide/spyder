@@ -61,11 +61,6 @@ class MainInterpreter(SpyderPluginV2):
             self._open_interpreter_preferences
         )
 
-        # Report that the interpreter has changed
-        container.sig_interpreter_changed.connect(
-            self._main.sig_main_interpreter_changed
-        )
-
         # Add custom interpreter to list of saved ones
         container.sig_add_to_custom_interpreters_requested.connect(
             self._add_to_custom_interpreters
@@ -104,12 +99,6 @@ class MainInterpreter(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         statusbar.remove_status_widget(self.interpreter_status.ID)
 
-    # ---- Public API
-    def get_interpreter(self):
-        """Get current interpreter."""
-        container = self.get_container()
-        return container.get_main_interpreter()
-
     @property
     def interpreter_status(self):
         return self.get_container().interpreter_status
@@ -131,4 +120,3 @@ class MainInterpreter(SpyderPluginV2):
         if interpreter not in custom_list:
             custom_list.append(interpreter)
             self.set_conf('custom_interpreters_list', custom_list)
-        self.set_conf('executable', interpreter)

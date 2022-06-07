@@ -4,9 +4,11 @@
 
 import logging
 from functools import lru_cache
-import pkg_resources
+from typing import List, Mapping, Sequence, Union
 
+import pkg_resources
 import pluggy
+from pluggy._hooks import HookImpl
 
 from pylsp import _utils, hookspecs, uris, PYLSP
 
@@ -14,6 +16,24 @@ log = logging.getLogger(__name__)
 
 # Sources of config, first source overrides next source
 DEFAULT_CONFIG_SOURCES = ['pycodestyle']
+
+
+class PluginManager(pluggy.PluginManager):
+
+    def _hookexec(
+        self,
+        hook_name: str,
+        methods: Sequence[HookImpl],
+        kwargs: Mapping[str, object],
+        firstresult: bool,
+    ) -> Union[object, List[object]]:
+        # called from all hookcaller instances.
+        # enable_tracing will set its own wrapping function at self._inner_hookexec
+        try:
+            return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+        except Exception as e:  # pylint: disable=broad-except
+            log.warning(f"Failed to load hook {hook_name}: {e}")
+            return []
 
 
 class Config:
@@ -39,7 +59,7 @@ class Config:
         except ImportError:
             pass
 
-        self._pm = pluggy.PluginManager(PYLSP)
+        self._pm = PluginManager(PYLSP)
         self._pm.trace.root.setwriter(log.debug)
         self._pm.enable_tracing()
         self._pm.add_hookspecs(hookspecs)
@@ -50,7 +70,7 @@ class Config:
         for entry_point in pkg_resources.iter_entry_points(PYLSP):
             try:
                 entry_point.load()
-            except ImportError as e:
+            except Exception as e:  # pylint: disable=broad-except
                 log.warning("Failed to load %s entry point '%s': %s", PYLSP, entry_point.name, e)
                 self._pm.set_blocked(entry_point.name)
 

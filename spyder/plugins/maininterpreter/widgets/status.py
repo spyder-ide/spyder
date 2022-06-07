@@ -5,7 +5,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Status bar widget."""
+"""Main interpreter status widget."""
 
 # Standard library imports
 import os
@@ -13,13 +13,11 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import QPoint, QTimer, Signal
-from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import QTimer, Signal
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
-from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
@@ -33,7 +31,6 @@ _ = get_translation('spyder')
 class InterpreterStatus(BaseTimerStatus):
     """Status bar widget for displaying the current conda environment."""
     ID = 'interpreter_status'
-
     CONF_SECTION = 'main_interpreter'
 
     sig_open_preferences_requested = Signal()
@@ -50,9 +47,6 @@ class InterpreterStatus(BaseTimerStatus):
         self.path_to_env = {}
         self.envs = {}
         self.value = ''
-
-        self.menu = QMenu(self)
-        self.sig_clicked.connect(self.show_menu)
 
         # Worker to compute envs in a thread
         self._worker_manager = WorkerManager(max_threads=1)
@@ -76,17 +70,13 @@ class InterpreterStatus(BaseTimerStatus):
 
         if not osp.isdir(env_dir):
             # Env was removed on Mac or Linux
-            self.set_conf('custom', False)
-            self.set_conf('default', True)
-            self.update_interpreter(sys.executable)
+            self._on_interpreter_removed()
         elif not osp.isfile(self._interpreter):
             # This can happen on Windows because the interpreter was
             # renamed to .conda_trash
             if not osp.isdir(osp.join(env_dir, 'conda-meta')):
                 # If conda-meta is missing, it means the env was removed
-                self.set_conf('custom', False)
-                self.set_conf('default', True)
-                self.update_interpreter(sys.executable)
+                self._on_interpreter_removed()
             else:
                 # If not, it means the interpreter is being updated so
                 # we need to update its version
@@ -99,14 +89,13 @@ class InterpreterStatus(BaseTimerStatus):
 
         return self.value
 
-    def get_tooltip(self):
-        """Override api method."""
-        return self._interpreter if self._interpreter else ''
+    # ---- Qt reimplemented methods
+    def closeEvent(self, event):
+        self._get_envs_timer.stop()
+        self._worker_manager.terminate_all()
+        super().closeEvent(event)
 
-    def get_icon(self):
-        return self.create_icon('environment')
-
-    # ---- Widget API
+    # ---- Private API
     def _get_env_dir(self, interpreter):
         """Get env directory from interpreter executable."""
         if os.name == 'nt':
@@ -127,6 +116,43 @@ class InterpreterStatus(BaseTimerStatus):
         pyenv_env = get_list_pyenv_envs()
         return {**conda_env, **pyenv_env}
 
+    def _get_env_info(self, path):
+        """Get environment information."""
+        path = path.lower() if os.name == 'nt' else path
+        try:
+            name = self.path_to_env[path]
+        except KeyError:
+            win_app_path = osp.join(
+                'AppData', 'Local', 'Programs', 'spyder')
+            if 'Spyder.app' in path or win_app_path in path:
+                name = 'internal'
+            elif 'conda' in path:
+                name = 'conda'
+            elif 'pyenv' in path:
+                name = 'pyenv'
+            else:
+                name = 'custom'
+            version = get_interpreter_info(path)
+            self.path_to_env[path] = name
+            self.envs[name] = (path, version)
+        __, version = self.envs[name]
+        return f'{name} ({version})'
+
+    def _on_interpreter_removed(self):
+        """
+        Actions to take when the current custom interpreter is removed
+        outside Spyder.
+        """
+        # NOTES:
+        # 1. The interpreter will be updated when the option changes below
+        # generate a change in the 'executable' one in the container.
+        # 2. *Do not* change the order in which these options are set or the
+        # interpreter won't be updated correctly.
+        self.set_conf('custom_interpreter', ' ')
+        self.set_conf('custom', False)
+        self.set_conf('default', True)
+
+    # ---- Public API
     def get_envs(self):
         """
         Get the list of environments in a thread to keep them up to
@@ -153,49 +179,9 @@ class InterpreterStatus(BaseTimerStatus):
         """Request to open the main interpreter preferences."""
         self.sig_open_preferences_requested.emit()
 
-    def show_menu(self):
-        """Display a menu when clicking on the widget."""
-        menu = self.menu
-        menu.clear()
-        text = _("Change default environment in Preferences...")
-        change_action = create_action(
-            self,
-            text=text,
-            triggered=self.open_interpreter_preferences,
-        )
-        add_actions(menu, [change_action])
-        rect = self.contentsRect()
-        os_height = 7 if os.name == 'nt' else 12
-        pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-40, -rect.height() - os_height))
-        menu.popup(pos)
-
-    def _get_env_info(self, path):
-        """Get environment information."""
-        path = path.lower() if os.name == 'nt' else path
-        try:
-            name = self.path_to_env[path]
-        except KeyError:
-            win_app_path = osp.join(
-                'AppData', 'Local', 'Programs', 'spyder')
-            if 'Spyder.app' in path or win_app_path in path:
-                name = 'internal'
-            elif 'conda' in path:
-                name = 'conda'
-            elif 'pyenv' in path:
-                name = 'pyenv'
-            else:
-                name = 'custom'
-            version = get_interpreter_info(path)
-            self.path_to_env[path] = name
-            self.envs[name] = (path, version)
-        __, version = self.envs[name]
-        return f'{name} ({version})'
-
     def update_interpreter(self, interpreter=None):
         """Set main interpreter and update information."""
         if interpreter:
             self._interpreter = interpreter
         self.value = self._get_env_info(self._interpreter)
         self.set_value(self.value)
-        self.update_tooltip()

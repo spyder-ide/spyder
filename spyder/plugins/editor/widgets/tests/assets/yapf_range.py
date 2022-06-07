@@ -10,6 +10,7 @@ import os;import sys
 
 # %% functions
 def d():
+
     def inner():
         return 2
 

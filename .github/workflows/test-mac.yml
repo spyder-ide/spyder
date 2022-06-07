@@ -43,9 +43,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        INSTALL_TYPE: ['conda']
-        PYTHON_VERSION: ['3.7']
+        INSTALL_TYPE: ['pip']
+        PYTHON_VERSION: ['3.9']
         TEST_TYPE: ['fast', 'slow']
+    timeout-minutes: 120
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'

@@ -58,8 +58,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                        get_run_configuration,
-                                        RunConfigDialog, RunConfigOneDialog)
+                                        get_run_configuration, RunConfigDialog,
+                                        RunConfiguration, RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 
 
@@ -699,6 +699,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", add_shortcut_to_tip=True)
 
+        run_to_line_action = create_action(self, _("Run &to current line"),
+                                           tip=_("Run to current line"),
+                                           triggered=self.run_to_line,
+                                           context=Qt.WidgetShortcut)
+        self.register_shortcut(run_to_line_action, context="Editor",
+                               name="Run to line", add_shortcut_to_tip=True)
+
+        run_from_line_action = create_action(self, _("Run &from current line"),
+                                             tip=_("Run from current line"),
+                                             triggered=self.run_from_line,
+                                             context=Qt.WidgetShortcut)
+        self.register_shortcut(run_from_line_action, context="Editor",
+                               name="Run from line", add_shortcut_to_tip=True)
+
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
@@ -862,17 +876,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.win_eol_action = create_action(
             self,
-            _("Carriage return and line feed (Windows)"),
+            _("CRLF (Windows)"),
             toggled=lambda checked: self.toggle_eol_chars('nt', checked)
         )
         self.linux_eol_action = create_action(
             self,
-            _("Line feed (UNIX)"),
+            _("LF (Unix)"),
             toggled=lambda checked: self.toggle_eol_chars('posix', checked)
         )
         self.mac_eol_action = create_action(
             self,
-            _("Carriage return (Mac)"),
+            _("CR (macOS)"),
             toggled=lambda checked: self.toggle_eol_chars('mac', checked)
         )
         eol_action_group = QActionGroup(self)
@@ -1106,7 +1120,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run_menu_actions = [run_action, run_cell_action,
                             run_cell_advance_action,
                             re_run_last_cell_action, MENU_SEPARATOR,
-                            run_selected_action, re_run_action,
+                            run_selected_action, run_to_line_action,
+                            run_from_line_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
@@ -1323,8 +1338,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 kite_call_to_action = finfo.editor.kite_call_to_action
-                comp_widget.setParent(ancestor)
-                kite_call_to_action.setParent(ancestor)
+
+                # This is necessary to catch an error when the plugin is
+                # undocked and docked back, and (probably) a completion is
+                # in progress.
+                # Fixes spyder-ide/spyder#17486
+                try:
+                    comp_widget.setParent(ancestor)
+                    kite_call_to_action.setParent(ancestor)
+                except RuntimeError:
+                    pass
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
@@ -1783,7 +1806,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
             slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.warning_menu.addAction(action)
 
     def update_todo_menu(self):
@@ -1795,7 +1819,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for text, line0 in results:
             icon = ima.icon('todo')
             slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
 
@@ -2929,6 +2954,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 return
             runconf = dialog.get_configuration()
 
+        if runconf.default:
+            # use global run preferences settings
+            runconf = RunConfiguration()
+
         args = runconf.get_arguments()
         python_args = runconf.get_python_arguments()
         interact = runconf.interact
@@ -3001,6 +3030,18 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection()
+
+    @Slot()
+    def run_to_line(self):
+        """Run all lines from beginning up to current line"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_to_line()
+
+    @Slot()
+    def run_from_line(self):
+        """Run all lines from current line to end"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_from_line()
 
     @Slot()
     def run_cell(self):
@@ -3432,6 +3473,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                         self.editorwindows_to_be_created.append(
                             layout_settings)
                 self.set_last_focused_editorstack(self, self.editorstacks[0])
+
+            # This is necessary to update the statusbar widgets after files
+            # have been loaded.
+            editorstack = self.get_current_editorstack()
+            if editorstack:
+                self.get_current_editorstack().refresh()
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)

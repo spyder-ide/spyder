@@ -8,6 +8,7 @@
 Tests for pydocgui.py
 """
 # Standard library imports
+import os
 import sys
 from unittest.mock import MagicMock
 
@@ -18,6 +19,7 @@ import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 
@@ -27,19 +29,18 @@ def pydocbrowser(qtbot):
     plugin_mock = MagicMock()
     plugin_mock.CONF_SECTION = 'onlinehelp'
     widget = PydocBrowser(parent=None, plugin=plugin_mock, name='pydoc')
-    widget._setup()
-    widget.setup()
-    widget.resize(640, 480)
-    widget.show()
-
-    with qtbot.waitSignal(widget.sig_load_finished, timeout=6000):
-        widget.initialize()
-
-    qtbot.addWidget(widget)
-    return widget
+    with qtbot.waitSignal(widget.webview.loadFinished, timeout=20000):
+        widget._setup()
+        widget.setup()
+        widget.resize(640, 480)
+        widget.show()
+        widget.initialize(force=True)
+    yield widget
+    widget.close()
 
 
 @flaky(max_runs=5)
+@pytest.mark.order(1)
 @pytest.mark.parametrize(
     "lib",
     [('str', 'class str', [0, 1]), ('numpy.testing', 'numpy.testing', [5, 10])]
@@ -48,6 +49,10 @@ def pydocbrowser(qtbot):
     (sys.platform == 'darwin' or
      NumpyVersion(np.__version__) < NumpyVersion('1.21.0')),
     reason="Fails on Mac and older versions of Numpy"
+)
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') or os.name == 'nt' and running_in_ci(),
+    reason="Stalls CI frequenly on Linux and Windows"
 )
 def test_get_pydoc(pydocbrowser, qtbot, lib):
     """

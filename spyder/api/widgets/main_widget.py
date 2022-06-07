@@ -33,7 +33,6 @@ from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
                                       PluginMainWidgetMenus)
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
-from spyder.config.manager import CONF
 from spyder.py3compat import qbytearray_to_str
 from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
@@ -192,14 +191,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     needs its ancestor to be updated.
     """
 
-    def __init__(self, name, plugin, parent=None, configuration=CONF):
+    def __init__(self, name, plugin, parent=None):
         if PYQT5:
-            super().__init__(parent=parent, class_parent=plugin,
-                             configuration=configuration)
+            super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=plugin,
-                                       configuration=configuration)
+            SpyderWidgetMixin.__init__(self, class_parent=plugin)
 
         # Attributes
         # --------------------------------------------------------------------
@@ -431,6 +428,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         super().setLayout(self._main_layout)
         layout.setContentsMargins(self._margin_left, 0, self._margin_right, 0)
         layout.setSpacing(0)
+
+    def closeEvent(self, event):
+        self.on_close()
+        super().closeEvent(event)
 
     # --- Public methods to use
     # ------------------------------------------------------------------------
@@ -894,6 +895,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             'A PluginMainWidget subclass must define an `update_actions` '
             f'method! Hint: {type(self)} should implement `update_actions`')
 
+    def on_close(self):
+        """
+        Perform actions before the widget is closed.
+
+        This method **must** only operate on local attributes.
+        """
+        pass
 
 def run_test():
     # Third party imports

@@ -19,10 +19,10 @@ from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
 from qtpy.QtCore import Qt, Signal, Slot, QRegExp
 from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
-                            QFontComboBox, QGridLayout, QGroupBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QRadioButton, QSpinBox, QVBoxLayout, QWidget,
-                            QPlainTextEdit, QTabWidget)
+                            QFileDialog, QFontComboBox, QGridLayout, QGroupBox,
+                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
+                            QPlainTextEdit, QPushButton, QRadioButton,
+                            QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -189,8 +189,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 text = to_text_string(lineedit.text())
                 if not validator(text):
                     QMessageBox.critical(self, self.get_name(),
-                                     "%s:<br><b>%s</b>" % (invalid_msg, text),
-                                     QMessageBox.Ok)
+                                         f"{invalid_msg}:<br><b>{text}</b>",
+                                         QMessageBox.Ok)
                     return False
 
         if self.tabs is not None and status:
@@ -271,9 +271,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     index = None
             if index:
                 combobox.setCurrentIndex(index)
-            combobox.currentIndexChanged.connect(lambda _foo, opt=option, sect=sec:
-                                                 self.has_been_modified(
-                                                     sect, opt))
+            combobox.currentIndexChanged.connect(
+                lambda _foo, opt=option, sect=sec:
+                    self.has_been_modified(sect, opt))
             if combobox.restart_required:
                 if sec is None:
                     self.restart_options[option] = combobox.label_text
@@ -566,7 +566,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         browsedir.setLayout(layout)
         return browsedir
 
-    def select_file(self, edit, filters=None):
+    def select_file(self, edit, filters=None, **kwargs):
         """Select File"""
         basedir = osp.dirname(to_text_string(edit.text()))
         if not osp.isdir(basedir):
@@ -574,7 +574,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if filters is None:
             filters = _("All files (*)")
         title = _("Select file")
-        filename, _selfilter = getopenfilename(self, title, basedir, filters)
+        filename, _selfilter = getopenfilename(self, title, basedir, filters,
+                                               **kwargs)
         if filename:
             edit.setText(filename)
 
@@ -733,7 +734,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             msg)
         browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
-        browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
+        options = QFileDialog.DontResolveSymlinks
+        browse_btn.clicked.connect(
+            lambda: self.select_file(edit, filters, options=options))
 
         layout = QGridLayout()
         layout.addWidget(combobox, 0, 0, 0, 9)
@@ -759,7 +762,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
 
-        sizelabel = QLabel("  "+_("Size"))
+        sizelabel = QLabel("  " + _("Size"))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         self.fontboxes[(fontbox, sizebox)] = option

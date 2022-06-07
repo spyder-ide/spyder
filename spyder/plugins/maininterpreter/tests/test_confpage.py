@@ -37,7 +37,7 @@ GET_ENVS_TIME = time.time() - t0
 )
 def test_load_time(qtbot):
     # Create Preferences dialog
-    main = MainWindowMock()
+    main = MainWindowMock(None)
     preferences = main.get_plugin(Plugins.Preferences)
 
     PLUGIN_REGISTRY.register_plugin(main, MainInterpreter)

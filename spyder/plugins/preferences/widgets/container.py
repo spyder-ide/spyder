@@ -91,8 +91,13 @@ class PreferencesContainer(PluginMainContainer):
         """Preference page index has changed."""
         self.dialog_index = index
 
-    def is_dialog_open(self):
+    def is_preferences_open(self):
+        """Check if preferences is open."""
         return self.dialog is not None and self.dialog.isVisible()
+
+    def close_preferences(self):
+        """Close preferences"""
+        self.dialog.close()
 
     def show_preferences(self):
         """Show preferences."""

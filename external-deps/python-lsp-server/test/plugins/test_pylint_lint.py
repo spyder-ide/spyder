@@ -84,10 +84,7 @@ def test_syntax_error_pylint_py3(config, workspace):
         config.plugin_settings('pylint')['executable'] = 'pylint'
         diag = pylint_lint.pylsp_lint(config, doc, True)[0]
 
-        if sys.version_info[:2] >= (3, 10):
-            assert diag['message'].count("expected ':'")
-        else:
-            assert diag['message'].startswith('invalid syntax')
+        assert diag['message'].count("expected ':'") or diag['message'].startswith('invalid syntax')
         # Pylint doesn't give column numbers for invalid syntax.
         assert diag['range']['start'] == {'line': 0, 'character': 12}
         assert diag['severity'] == lsp.DiagnosticSeverity.Error

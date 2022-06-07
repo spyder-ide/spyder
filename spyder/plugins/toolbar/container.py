@@ -128,7 +128,8 @@ class ToolbarContainer(PluginMainContainer):
         self.toolbars_menu.setObjectName('checkbox-padding')
 
     def update_actions(self):
-        if self.get_conf("toolbars_visible"):
+        visible_toolbars = self.get_conf("toolbars_visible")
+        if visible_toolbars:
             text = _("Hide toolbars")
             tip = _("Hide toolbars")
         else:
@@ -137,6 +138,7 @@ class ToolbarContainer(PluginMainContainer):
 
         self.show_toolbars_action.setText(text)
         self.show_toolbars_action.setToolTip(tip)
+        self.toolbars_menu.setEnabled(visible_toolbars)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -328,9 +330,16 @@ class ToolbarContainer(PluginMainContainer):
         """
         return self._toolbarslist
 
+    def save_last_visible_toolbars(self):
+        """Save the last visible toolbars state in our preferences."""
+        if self.get_conf("toolbars_visible"):
+            self._get_visible_toolbars()
+        self._save_visible_toolbars()
+
     def load_last_visible_toolbars(self):
-        """Load the last visible toolbars from our preferences.."""
+        """Load the last visible toolbars from our preferences."""
         toolbars_names = self.get_conf('last_visible_toolbars')
+        toolbars_visible = self.get_conf("toolbars_visible")
 
         if toolbars_names:
             toolbars_dict = {}
@@ -347,7 +356,7 @@ class ToolbarContainer(PluginMainContainer):
             self._get_visible_toolbars()
 
         for toolbar in self._visible_toolbars:
-            toolbar.setVisible(True)
+            toolbar.setVisible(toolbars_visible)
 
         self.update_actions()
 

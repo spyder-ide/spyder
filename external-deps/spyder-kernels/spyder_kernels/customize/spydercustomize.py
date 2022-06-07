@@ -11,6 +11,7 @@
 # Spyder consoles sitecustomize
 #
 
+import ast
 import bdb
 import cmd
 import io
@@ -27,9 +28,12 @@ from IPython.core.getipython import get_ipython
 
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
-from spyder_kernels.customize.spyderpdb import SpyderPdb, enter_debugger
+from spyder_kernels.customize.spyderpdb import SpyderPdb, get_new_debugger
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
+from spyder_kernels.py3compat import (
+    TimeoutError, PY2, _print, encode, compat_exec, FileNotFoundError)
+from spyder_kernels.customize.utils import (
+    capture_last_Expr, normalise_filename)
 
 if not PY2:
     from IPython.core.inputtransformer2 import (
@@ -375,7 +379,7 @@ def post_mortem_excepthook(type, value, tb):
 def get_current_file_name():
     """Get the current file name."""
     try:
-        return frontend_request().current_filename()
+        return frontend_request(blocking=True).current_filename()
     except Exception:
         _print("This command failed to be executed because an error occurred"
                " while trying to get the current file name from Spyder's"
@@ -420,7 +424,8 @@ def transform_cell(code, indent_only=False):
     return '\n' * number_empty_lines + code
 
 
-def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
+def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
+              exec_fun=None, capture_last_expression=False):
     """Execute code and display any exception."""
     # Tell IPython to hide this frame (>7.16)
     __tracebackhide__ = True
@@ -430,6 +435,10 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
         filename = encode(filename)
         code = encode(code)
 
+    if exec_fun is None:
+        # Replace by exec when dropping Python 2
+        exec_fun = compat_exec
+
     ipython_shell = get_ipython()
     is_ipython = os.path.splitext(filename)[1] == '.ipy'
     try:
@@ -437,11 +446,10 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
             # TODO: remove the try-except and let the SyntaxError raise
             # Because there should not be ipython code in a python file
             try:
-                compiled = compile(
-                    transform_cell(code, indent_only=True), filename, 'exec')
+                ast_code = ast.parse(transform_cell(code, indent_only=True))
             except SyntaxError as e:
                 try:
-                    compiled = compile(transform_cell(code), filename, 'exec')
+                    ast_code = ast.parse(transform_cell(code))
                 except SyntaxError:
                     if PY2:
                         raise e
@@ -459,8 +467,23 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
                             ".ipy extension.\n")
                         SHOW_INVALID_SYNTAX_MSG = False
         else:
-            compiled = compile(transform_cell(code), filename, 'exec')
-        exec(compiled, ns_globals, ns_locals)
+            ast_code = ast.parse(transform_cell(code))
+
+        if code.rstrip()[-1] == ";":
+            # Supress output with ;
+            capture_last_expression = False
+
+        if capture_last_expression:
+            ast_code, capture_last_expression = capture_last_Expr(
+                ast_code, "_spyder_out")
+
+        exec_fun(compile(ast_code, filename, 'exec'), ns_globals, ns_locals)
+
+        if capture_last_expression:
+            out = ns_globals.pop("_spyder_out", None)
+            if out is not None:
+                return out
+
     except SystemExit as status:
         # ignore exit(0)
         if status.code:
@@ -476,16 +499,17 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
-    __tracebackhide__ = "__pdb_exit__"
+    finally:
+        __tracebackhide__ = "__pdb_exit__"
 
 
 def get_file_code(filename, save_all=True):
     """Retrive the content of a file."""
     # Get code from spyder
     try:
-        file_code = frontend_request().get_file_code(
+        file_code = frontend_request(blocking=True).get_file_code(
             filename, save_all=save_all)
-    except (CommError, TimeoutError, RuntimeError):
+    except (CommError, TimeoutError, RuntimeError, FileNotFoundError):
         file_code = None
     if file_code is None:
         with open(filename, 'r') as f:
@@ -503,6 +527,14 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
     post_mortem: boolean, whether to enter post-mortem mode on error
     current_namespace: if true, run the file in the current namespace
     """
+    return _exec_file(
+        filename, args, wdir, namespace,
+        post_mortem, current_namespace, stack_depth=1)
+
+
+def _exec_file(filename=None, args=None, wdir=None, namespace=None,
+               post_mortem=False, current_namespace=False, stack_depth=0,
+               exec_fun=None):
     # Tell IPython to hide this frame (>7.16)
     __tracebackhide__ = True
     ipython_shell = get_ipython()
@@ -541,12 +573,25 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
         _print("Could not get code from editor.\n")
         return
 
+    # Normalise the filename
+    filename = os.path.abspath(filename)
+    filename = os.path.normcase(filename)
+
     with NamespaceManager(filename, namespace, current_namespace,
-                          file_code=file_code) as (ns_globals, ns_locals):
+                          file_code=file_code, stack_depth=stack_depth + 1
+                          ) as (ns_globals, ns_locals):
         sys.argv = [filename]
         if args is not None:
             for arg in shlex.split(args):
                 sys.argv.append(arg)
+
+        if "multiprocessing" in sys.modules:
+            # See https://github.com/spyder-ide/spyder/issues/16696
+            try:
+                sys.modules['__mp_main__'] = sys.modules['__main__']
+            except Exception:
+                pass
+
         if wdir is not None:
             if PY2:
                 try:
@@ -567,15 +612,17 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
             else:
                 _print("Working directory {} doesn't exist.\n".format(wdir))
 
-        if __umr__.has_cython:
-            # Cython files
-            with io.open(filename, encoding='utf-8') as f:
-                ipython_shell.run_cell_magic('cython', '', f.read())
-        else:
-            exec_code(file_code, filename, ns_globals, ns_locals,
-                      post_mortem=post_mortem)
-
-        sys.argv = ['']
+        try:
+            if __umr__.has_cython:
+                # Cython files
+                with io.open(filename, encoding='utf-8') as f:
+                    ipython_shell.run_cell_magic('cython', '', f.read())
+            else:
+                exec_code(file_code, filename, ns_globals, ns_locals,
+                          post_mortem=post_mortem, exec_fun=exec_fun,
+                          capture_last_expression=False)
+        finally:
+            sys.argv = ['']
 
 
 # IPykernel 6.3.0+ shadows our runfile because it depends on the Pydev
@@ -602,11 +649,27 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
         if filename is None:
             return
 
-    enter_debugger(
-        filename, True,
-        "runfile({}" +
-        ", args=%r, wdir=%r, current_namespace=%r)" % (
-            args, wdir, current_namespace))
+    shell = get_ipython()
+    if shell.is_debugging():
+        # Recursive
+        code = (
+            "runfile({}".format(repr(normalise_filename(filename))) +
+            ", args=%r, wdir=%r, current_namespace=%r)" % (
+                args, wdir, current_namespace)
+        )
+
+        shell.pdb_session.enter_recursive_debugger(
+            code, filename, True,
+        )
+    else:
+        debugger = get_new_debugger(filename, True)
+        _exec_file(
+            filename=debugger.canonic(filename),
+            args=args, wdir=wdir,
+            current_namespace=current_namespace,
+            exec_fun=debugger.run,
+            stack_depth=1
+        )
 
 
 builtins.debugfile = debugfile
@@ -616,16 +679,24 @@ def runcell(cellname, filename=None, post_mortem=False):
     """
     Run a code cell from an editor as a file.
 
-    Currently looks for code in an `ipython` property called `cell_code`.
-    This property must be set by the editor prior to calling this function.
-    This function deletes the contents of `cell_code` upon completion.
-
     Parameters
     ----------
     cellname : str or int
         Cell name or index.
     filename : str
         Needed to allow for proper traceback links.
+    post_mortem: bool
+        Automatically enter post mortem on exception.
+    """
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
+    return _exec_cell(cellname, filename, post_mortem, stack_depth=1)
+
+
+def _exec_cell(cellname, filename=None, post_mortem=False, stack_depth=0,
+               exec_fun=None):
+    """
+    Execute a code cell with a given exec function.
     """
     # Tell IPython to hide this frame (>7.16)
     __tracebackhide__ = True
@@ -647,7 +718,8 @@ def runcell(cellname, filename=None, post_mortem=False):
     ipython_shell = get_ipython()
     try:
         # Get code from spyder
-        cell_code = frontend_request().run_cell(cellname, filename)
+        cell_code = frontend_request(
+            blocking=True).run_cell(cellname, filename)
     except Exception:
         _print("This command failed to be executed because an error occurred"
                " while trying to get the cell code from Spyder's"
@@ -666,10 +738,17 @@ def runcell(cellname, filename=None, post_mortem=False):
         file_code = get_file_code(filename, save_all=False)
     except Exception:
         file_code = None
+
+    # Normalise the filename
+    filename = os.path.abspath(filename)
+    filename = os.path.normcase(filename)
+
     with NamespaceManager(filename, current_namespace=True,
-                          file_code=file_code) as (ns_globals, ns_locals):
-        exec_code(cell_code, filename, ns_globals, ns_locals,
-                  post_mortem=post_mortem)
+                          file_code=file_code, stack_depth=stack_depth + 1
+                          ) as (ns_globals, ns_locals):
+        return exec_code(cell_code, filename, ns_globals, ns_locals,
+                         post_mortem=post_mortem, exec_fun=exec_fun,
+                         capture_last_expression=True)
 
 
 builtins.runcell = runcell
@@ -684,10 +763,24 @@ def debugcell(cellname, filename=None, post_mortem=False):
         if filename is None:
             return
 
-    enter_debugger(
-        filename, False,
-        "runcell({}, ".format(repr(cellname)) +
-        "{})")
+    shell = get_ipython()
+    if shell.is_debugging():
+        # Recursive
+        code = (
+            "runcell({}, ".format(repr(cellname)) +
+            "{})".format(repr(normalise_filename(filename)))
+        )
+        shell.pdb_session.enter_recursive_debugger(
+            code, filename, False,
+        )
+    else:
+        debugger = get_new_debugger(filename, False)
+        _exec_cell(
+            cellname=cellname,
+            filename=debugger.canonic(filename),
+            exec_fun=debugger.run,
+            stack_depth=1
+        )
 
 
 builtins.debugcell = debugcell
@@ -708,7 +801,7 @@ def cell_count(filename=None):
             raise RuntimeError('Could not get cell count from frontend.')
     try:
         # Get code from spyder
-        cell_count = frontend_request().cell_count(filename)
+        cell_count = frontend_request(blocking=True).cell_count(filename)
         return cell_count
     except Exception:
         etype, error, tb = sys.exc_info()

@@ -12,7 +12,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QBuffer, QByteArray
-from qtpy.QtGui import QIcon, QImage
+from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -195,9 +195,13 @@ class IconManager():
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
+            'insert_above':            [('mdi.table-arrow-up',), {'color': self.MAIN_FG_COLOR}],
+            'insert_below':            [('mdi.table-arrow-down',), {'color': self.MAIN_FG_COLOR}],
             'rename':                  [('mdi.rename-box',), {'color': self.MAIN_FG_COLOR}],
             'move':                    [('mdi.file-move',), {'color': self.MAIN_FG_COLOR}],
             'edit_add':                [('mdi.plus',), {'color': self.MAIN_FG_COLOR}],
+            'collapse_column':         [('mdi.arrow-collapse-horizontal',), {'color': self.MAIN_FG_COLOR}],
+            'collapse_row':            [('mdi.arrow-collapse-vertical',), {'color': self.MAIN_FG_COLOR}],
             'edit_remove':             [('mdi.minus',), {'color': self.MAIN_FG_COLOR}],
             'browse_tab':              [('mdi.tab',), {'color': self.MAIN_FG_COLOR}],
             'filelist':                [('mdi.view-list',), {'color': self.MAIN_FG_COLOR}],
@@ -267,6 +271,7 @@ class IconManager():
             'close_pane':              [('mdi.window-close',), {'color': self.MAIN_FG_COLOR}],
             'toolbar_ext_button':      [('mdi.dots-horizontal',), {'color': self.MAIN_FG_COLOR}],
             # --- Autocompletion/document symbol type icons --------------
+            'completions':             [('mdi.code-tags-check',), {'color': self.MAIN_FG_COLOR}],
             'keyword':                 [('mdi.alpha-k-box',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'color':                   [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'enum':                    [('mdi.alpha-e-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
@@ -326,7 +331,8 @@ class IconManager():
             'folding.arrow_right_on':  [('mdi.menu-right',), {'color': self.MAIN_FG_COLOR}],
             'folding.arrow_down_off':  [('mdi.menu-down',), {'color': SpyderPalette.GROUP_3}],
             'folding.arrow_down_on':   [('mdi.menu-down',), {'color': self.MAIN_FG_COLOR}],
-            'lspserver':               [('mdi.code-tags-check',), {'color': self.MAIN_FG_COLOR}],
+            'lspserver.down':          [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
+            'lspserver.ready':         [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
             'dependency_ok':           [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
             'dependency_warning':      [('mdi.alert',), {'color': SpyderPalette.COLOR_WARN_2}],
             'dependency_error':        [('mdi.alert',), {'color': SpyderPalette.COLOR_ERROR_1}],
@@ -351,20 +357,44 @@ class IconManager():
     def get_icon(self, name, resample=False):
         """Return image inside a QIcon object.
 
-        default: default image name or icon
-        resample: if True, manually resample icon pixmaps for usual sizes
-        (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons
-        created from SVG images on non-Windows platforms due to a Qt bug.
-        See spyder-ide/spyder#1314.
+        Parameters
+        ----------
+        name: str
+            Image name or icon
+        resample: bool
+            If True, manually resample icon pixmaps for usual sizes
+            (16, 24, 32, 48, 96, 128, 256). This is recommended for
+            QMainWindow icons created from SVG images on non-Windows
+            platforms due to a Qt bug. See spyder-ide/spyder#1314.
         """
         icon_path = get_image_path(name)
-        icon = QIcon(icon_path)
         if resample:
+            # This only applies to the Spyder 2 icons
+            icon = QIcon(icon_path)
             icon0 = QIcon()
             for size in (16, 24, 32, 48, 96, 128, 256, 512):
                 icon0.addPixmap(icon.pixmap(size, size))
             return icon0
         else:
+            icon = QIcon()
+
+            # Normal state
+            normal_state = QPixmap(icon_path)
+            icon.addPixmap(normal_state, QIcon.Normal)
+
+            # This is the color GammaRay reports for icons in disabled
+            # buttons, both for the dark and light themes
+            disabled_color = QColor(150, 150, 150)
+
+            # Paint icon with the previous color to get the disabled state.
+            # Taken from https://stackoverflow.com/a/65618075/438386
+            disabled_state = QPixmap(icon_path)
+            qp = QPainter(disabled_state)
+            qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
+            qp.fillRect(disabled_state.rect(), disabled_color)
+            qp.end()
+            icon.addPixmap(disabled_state, QIcon.Disabled)
+
             return icon
 
     def icon(self, name, scale_factor=None, resample=False):

@@ -168,8 +168,11 @@ class CommBase(object):
         id_list = self.get_comm_id_list(comm_id)
 
         for comm_id in id_list:
-            self._comms[comm_id]['comm'].close()
-            del self._comms[comm_id]
+            try:
+                self._comms[comm_id]['comm'].close()
+                del self._comms[comm_id]
+            except KeyError:
+                pass
 
     def is_open(self, comm_id=None):
         """Check to see if the comm is open."""

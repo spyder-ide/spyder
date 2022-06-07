@@ -30,7 +30,8 @@ class HistoryLog(SpyderDockablePlugin):
     """
 
     NAME = 'historylog'
-    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Console]
+    REQUIRES = [Plugins.Preferences, Plugins.Console]
+    OPTIONAL = [Plugins.IPythonConsole]
     TABIFY = Plugins.IPythonConsole
     WIDGET_CLASS = HistoryWidget
     CONF_SECTION = NAME
@@ -76,6 +77,12 @@ class HistoryLog(SpyderDockablePlugin):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.connect(self.refresh)
 
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_append_to_history_requested.connect(
+            self.append_to_history)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -85,6 +92,12 @@ class HistoryLog(SpyderDockablePlugin):
     def on_console_teardown(self):
         console = self.get_plugin(Plugins.Console)
         console.sig_refreshed.disconnect(self.refresh)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipyconsole_teardown(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_append_to_history_requested.disconnect(
+            self.append_to_history)
 
     def update_font(self):
         color_scheme = self.get_color_scheme()

@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/jupyter/qtconsole.git
+	branch = master
+	commit = 3d29df8adc23ab8ab6c20b870c369806339ee342
+	parent = ba96ec79f4a35e749bd9f6d331898dc2f1748a53
+	method = merge
+	cmdver = 0.4.3

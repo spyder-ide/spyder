@@ -11,19 +11,20 @@ Tests for the console plugin.
 """
 
 # Standard library imports
-from unittest.mock import call, Mock
+from unittest.mock import call
+import sys
 
 # Third party imports
+from flaky import flaky
+import pytest
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMainWindow
-import pytest
-from flaky import flaky
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.config.manager import CONF
+from spyder.app.cli_options import get_options
 from spyder.plugins.console.plugin import Console
 from spyder.widgets.reporterror import SpyderErrorDialog
 
@@ -45,6 +46,9 @@ def console_plugin(qtbot):
 
     class MainWindowMock(QMainWindow):
         def __init__(self):
+            # This avoids using the cli options passed to pytest
+            sys_argv = [sys.argv[0]]
+            self._cli_options = get_options(sys_argv)[0]
             super().__init__()
 
     window = MainWindowMock()
@@ -127,7 +131,8 @@ ZeroDivisionError: division by zero
             text=error,
             is_traceback=True,
             title='Internal Python Language Server error',
-        )
+        ),
+        sender=console_plugin
     )
 
     # Make sure the error dialog was generated.

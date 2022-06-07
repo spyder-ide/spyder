@@ -23,7 +23,6 @@ from collections import namedtuple
 
 # Test imports
 import ipykernel
-import IPython
 import pytest
 from flaky import flaky
 from jupyter_core import paths
@@ -33,6 +32,7 @@ import numpy as np
 # Local imports
 from spyder_kernels.py3compat import PY2, PY3, to_text_string
 from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
 from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 
@@ -95,7 +95,8 @@ def setup_kernel(cmd):
         finally:
             client.stop_channels()
     finally:
-        kernel.terminate()
+        if not PY2:
+            kernel.terminate()
 
 
 # =============================================================================
@@ -477,6 +478,54 @@ if __name__ == '__main__':
             msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(not PY3,
+                    reason="Only meant for Python 3")
+def test_multiprocessing_2(tmpdir):
+    """
+    Test that multiprocessing works on Python 3.
+    """
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Remove all variables
+        client.execute("%reset -f")
+        client.get_shell_msg(timeout=TIMEOUT)
+
+        # Write multiprocessing code to a file
+        code = """
+from multiprocessing import Pool
+
+class myClass():
+    def __init__(self, i):
+        self.i = i + 10
+
+def myFunc(i):
+    return myClass(i)
+
+if __name__ == '__main__':
+    with Pool(5) as p:
+        result = p.map(myFunc, [1, 2, 3])
+    result = [r.i for r in result]
+"""
+        p = tmpdir.join("mp-test.py")
+        p.write(code)
+
+        # Run code
+        client.execute("runfile(r'{}')".format(to_text_string(p)))
+        client.get_shell_msg(timeout=TIMEOUT)
+
+        # Verify that the `result` variable is defined
+        client.inspect('result')
+        msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
+        content = msg['content']
+        assert content['found']
+        assert "[11, 12, 13]" in content['data']['text/plain']
 
 
 @flaky(max_runs=3)
@@ -1043,6 +1092,47 @@ def test_locals_globals_in_pdb(kernel):
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
+
+
+@flaky(max_runs=3)
+@pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt5'])
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Doesn't work reliably on Windows and Mac")
+@pytest.mark.skipif(
+    not bool(os.environ.get('USE_CONDA')),
+    reason="Doesn't work with pip packages")
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 8),
+    reason="Too flaky in Python 3.7 and doesn't work in older versions")
+def test_get_interactive_backend(backend):
+    """
+    Test that we correctly get the interactive backend set in the kernel.
+    """
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Set backend
+        if backend is not None:
+            client.execute("%matplotlib {}".format(backend))
+            client.get_shell_msg(timeout=TIMEOUT)
+
+        # Get backend
+        code = "backend = get_ipython().kernel.get_mpl_interactive_backend()"
+        client.execute(code, user_expressions={'output': 'backend'})
+        reply = client.get_shell_msg(timeout=TIMEOUT)
+        while 'user_expressions' not in reply['content']:
+            reply = client.get_shell_msg(timeout=TIMEOUT)
+
+        # Get value obtained through user_expressions
+        user_expressions = reply['content']['user_expressions']
+        value = user_expressions['output']['data']['text/plain']
+
+        # Assert we got the right interactive backend
+        if backend is not None:
+            assert MPL_BACKENDS_FROM_SPYDER[value] == backend
+        else:
+            assert value == '0'
 
 
 if __name__ == "__main__":

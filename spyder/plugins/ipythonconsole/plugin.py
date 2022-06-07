@@ -41,7 +41,8 @@ class IPythonConsole(SpyderDockablePlugin):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
+                Plugins.Projects, Plugins.WorkingDirectory]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -96,6 +97,16 @@ class IPythonConsole(SpyderDockablePlugin):
     processevents: bool
         True if the code editor need to process qt events when loading the
         requested file.
+    """
+
+    sig_edit_new = Signal(str)
+    """
+    This signal will request to create a new file in a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
     """
 
     sig_pdb_state_changed = Signal(bool, dict)
@@ -219,6 +230,7 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_edit_goto_requested[str, int, str, bool].connect(
             self.sig_edit_goto_requested[str, int, str, bool])
+        widget.sig_edit_new.connect(self.sig_edit_new)
         widget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
@@ -299,6 +311,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested.connect(editor.load)
         self.sig_edit_goto_requested[str, int, str, bool].connect(
             self._load_file_in_editor)
+        self.sig_edit_new.connect(editor.new)
         editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         editor.run_in_current_ipyclient.connect(self.run_script)
         editor.run_cell_in_ipyclient.connect(self.run_cell)
@@ -313,8 +326,6 @@ class IPythonConsole(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-        widget = self.get_widget()
-        widget.projects_available = True
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
 
@@ -341,6 +352,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested.disconnect(editor.load)
         self.sig_edit_goto_requested[str, int, str, bool].disconnect(
             self._load_file_in_editor)
+        self.sig_edit_new.disconnect(editor.new)
         editor.breakpoints_saved.disconnect(self.set_spyder_breakpoints)
         editor.run_in_current_ipyclient.disconnect(self.run_script)
         editor.run_cell_in_ipyclient.disconnect(self.run_cell)
@@ -356,8 +368,6 @@ class IPythonConsole(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
-        widget = self.get_widget()
-        widget.projects_available = False
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
 
@@ -374,6 +384,11 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)
+
+        # Raise plugin the first time Spyder starts
+        if self.get_conf('show_first_time', default=True):
+            self.dockwidget.raise_()
+            self.set_conf('show_first_time', False)
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -409,6 +424,12 @@ class IPythonConsole(SpyderDockablePlugin):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
+
+    def _get_working_directory(self):
+        """Get current working directory from its plugin."""
+        workdir = self.get_plugin(Plugins.WorkingDirectory)
+        if workdir:
+            return workdir.get_workdir()
 
     # ---- Public API
     # -------------------------------------------------------------------------

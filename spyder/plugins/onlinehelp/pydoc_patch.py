@@ -985,6 +985,7 @@ def _start_server(urlhandler, hostname, port):
             self.url = None
 
     thread = ServerThread(urlhandler, hostname, port)
+    thread.daemon = True
     thread.start()
     # Wait until thread.serving is True to make sure we are
     # really up before returning.

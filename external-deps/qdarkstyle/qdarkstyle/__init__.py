@@ -70,36 +70,46 @@ from qdarkstyle.dark.palette import DarkPalette
 from qdarkstyle.light.palette import LightPalette
 from qdarkstyle.palette import Palette
 
-__version__ = "3.0.2"
+__version__ = "3.0.3"
 
 _logger = logging.getLogger(__name__)
 
 # Folder's path
-REPO_PATH = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+def _set_global_paths(palette='dark'):
+    global REPO_PATH
+    REPO_PATH = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
-EXAMPLE_PATH = os.path.join(REPO_PATH, 'example')
-IMAGES_PATH = os.path.join(REPO_PATH, 'docs/images')
-PACKAGE_PATH = os.path.join(REPO_PATH, 'qdarkstyle')
+    global EXAMPLE_PATH, IMAGES_PATH, PACKAGE_PATH
+    EXAMPLE_PATH = os.path.join(REPO_PATH, 'example')
+    IMAGES_PATH = os.path.join(REPO_PATH, 'docs/images')
+    PACKAGE_PATH = os.path.join(REPO_PATH, 'qdarkstyle')
 
-QSS_PATH = os.path.join(PACKAGE_PATH, 'qss')
-RC_PATH = os.path.join(PACKAGE_PATH, 'rc')
-SVG_PATH = os.path.join(PACKAGE_PATH, 'svg')
+    global QSS_PATH, RC_PATH, SVG_PATH
+    QSS_PATH = os.path.join(PACKAGE_PATH, 'qss')
+    RC_PATH = os.path.join(PACKAGE_PATH, palette, 'rc')
+    SVG_PATH = os.path.join(PACKAGE_PATH, 'svg')
 
-# File names
-QSS_FILE = 'style.qss'
-QRC_FILE = QSS_FILE.replace('.qss', '.qrc')
+    # File names
+    global QSS_FILE, QRC_FILE
+    QSS_FILE = 'style.qss'
+    QRC_FILE = QSS_FILE.replace('.qss', '.qrc')
 
-MAIN_SCSS_FILE = 'main.scss'
-STYLES_SCSS_FILE = '_styles.scss'
-VARIABLES_SCSS_FILE = '_variables.scss'
+    global MAIN_SCSS_FILE, STYLES_SCSS_FILE, VARIABLES_SCSS_FILE
+    MAIN_SCSS_FILE = 'main.scss'
+    STYLES_SCSS_FILE = '_styles.scss'
+    VARIABLES_SCSS_FILE = '_variables.scss'
 
-# File paths
-QSS_FILEPATH = os.path.join(PACKAGE_PATH, QSS_FILE)
-QRC_FILEPATH = os.path.join(PACKAGE_PATH, QRC_FILE)
+    # File paths
+    global QSS_FILEPATH, QRC_FILEPATH
+    QSS_FILEPATH = os.path.join(PACKAGE_PATH, palette, QSS_FILE)
+    QRC_FILEPATH = os.path.join(PACKAGE_PATH, palette, QRC_FILE)
 
-MAIN_SCSS_FILEPATH = os.path.join(QSS_PATH, MAIN_SCSS_FILE)
-STYLES_SCSS_FILEPATH = os.path.join(QSS_PATH, STYLES_SCSS_FILE)
-VARIABLES_SCSS_FILEPATH = os.path.join(QSS_PATH, VARIABLES_SCSS_FILE)
+    global MAIN_SCSS_FILEPATH, STYLES_SCSS_FILEPATH, VARIABLES_SCSS_FILEPATH
+    MAIN_SCSS_FILEPATH = os.path.join(QSS_PATH, palette, MAIN_SCSS_FILE)
+    STYLES_SCSS_FILEPATH = os.path.join(QSS_PATH, STYLES_SCSS_FILE)
+    VARIABLES_SCSS_FILEPATH = os.path.join(QSS_PATH, palette, VARIABLES_SCSS_FILE)
+
+_set_global_paths()
 
 # Todo: check if we are deprecate all those functions or keep them
 DEPRECATION_MSG = '''This function will be deprecated in v3.0.
@@ -204,10 +214,10 @@ def _apply_application_patches(QCoreApplication, QPalette, QColor, palette):
         app_palette.setColor(QPalette.Normal, QPalette.Link, qcolor)
         app.setPalette(app_palette)
     else:
-        _logger.warn("No QCoreApplication instance found. "
-                     "Application patches not applied. "
-                     "You have to call load_stylesheet function after "
-                     "instantiation of QApplication to take effect. ")
+        _logger.warning("No QCoreApplication instance found. "
+                        "Application patches not applied. "
+                        "You have to call load_stylesheet function after "
+                        "instantiation of QApplication to take effect. ")
 
 
 def _load_stylesheet(qt_api='', palette=None):
@@ -249,12 +259,15 @@ def _load_stylesheet(qt_api='', palette=None):
     if palette is None:
         from qdarkstyle.dark import style_rc
         palette = DarkPalette
+        _set_global_paths('dark')
     elif palette.ID == 'dark':
         from qdarkstyle.dark import style_rc
         palette = DarkPalette
+        _set_global_paths('dark')
     elif palette.ID == 'light':
         from qdarkstyle.light import style_rc
         palette = LightPalette
+        _set_global_paths('light')
     else:
         print("Not recognized ID for palette! Exiting!")
         sys.exit(1)

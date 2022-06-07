@@ -52,6 +52,7 @@ class KernelComm(CommBase, QObject):
         try:
             yield
         finally:
+            id_list = self.get_comm_id_list(comm_id)
             for comm_id in id_list:
                 self._comms[comm_id]['comm']._send_channel = (
                     self.kernel_client.shell_channel)
@@ -84,10 +85,16 @@ class KernelComm(CommBase, QObject):
     def open_comm(self, kernel_client):
         """Open comm through the kernel client."""
         self.kernel_client = kernel_client
-        self._register_comm(
-            # Create new comm and send the highest protocol
-            kernel_client.comm_manager.new_comm(self._comm_name, data={
-                'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL}))
+        try:
+            self._register_comm(
+                # Create new comm and send the highest protocol
+                kernel_client.comm_manager.new_comm(self._comm_name, data={
+                    'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL}))
+        except AttributeError:
+            logger.info(
+                "Unable to open comm due to unexistent comm manager: " +
+                "kernel_client.comm_manager=" + str(kernel_client.comm_manager)
+            )
 
     def remote_call(self, interrupt=False, blocking=False, callback=None,
                     comm_id=None, timeout=None, display_error=False):
@@ -110,8 +117,9 @@ class KernelComm(CommBase, QObject):
             else:
                 # The user has other problems
                 logger.info(
-                    "Dropping message because kernel is dead: ",
-                    str(call_dict))
+                    "Dropping message because kernel is dead: %s",
+                    str(call_dict)
+                )
                 return
 
         with self.comm_channel_manager(
@@ -168,8 +176,8 @@ class KernelComm(CommBase, QObject):
             raise RuntimeError("Kernel is dead")
 
         # Create event loop to wait with
-        wait_loop = QEventLoop()
-        wait_timeout = QTimer()
+        wait_loop = QEventLoop(None)
+        wait_timeout = QTimer(self)
         wait_timeout.setSingleShot(True)
 
         # Connect signals to stop kernel loop

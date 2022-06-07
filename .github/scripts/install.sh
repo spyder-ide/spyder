@@ -5,6 +5,11 @@ if [ "$OS" = "macos" ]; then
     PATH=/Users/runner/miniconda3/envs/test/bin:/Users/runner/miniconda3/condabin:$PATH
 fi
 
+# Install gdb
+if [ "$USE_GDB" = "true" ]; then
+    mamba install gdb -c conda-forge -q -y
+fi
+
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
@@ -14,33 +19,30 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     mamba install python=$PYTHON_VERSION --file requirements/tests.txt -c conda-forge -q -y
 
-    # Install Pyzmq 19 because our tests are failing with version 20
-    if [ "$OS" = "win" ]; then
-        mamba install pyzmq=19
-    fi
-
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y
 
     # Remove packages we have subrepos for.
-    conda remove spyder-kernels --force -q -y
-    conda remove python-lsp-server --force -q -y
-    conda remove qdarkstyle --force -q -y
+    for dep in $(ls external-deps)
+    do
+        echo "Removing $dep package"
+
+        if [ "$dep" = "qtconsole" ]; then
+            conda remove qtconsole-base qtconsole --force -q -y
+        else
+            conda remove $dep --force -q -y
+        fi
+    done
+
 else
     # Update pip and setuptools
-    pip install -U pip setuptools
+    python -m pip install -U pip setuptools
 
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
 
-    # Remove pytest-xvfb because it causes hangs
-    pip uninstall -q -y pytest-xvfb
-
     # Install qtpy from Github
     pip install git+https://github.com/spyder-ide/qtpy.git
-
-    # Install qtconsole from Github
-    pip install git+https://github.com/jupyter/qtconsole.git
 
     # Install QtAwesome from Github
     pip install git+https://github.com/spyder-ide/qtawesome.git
@@ -49,9 +51,11 @@ else
     pip install -q check-manifest codecov
 
     # Remove packages we have subrepos for
-    pip uninstall spyder-kernels -q -y
-    pip uninstall python-lsp-server -q -y
-    pip uninstall qdarkstyle -q -y
+    for dep in $(ls external-deps)
+    do
+        echo "Removing $dep package"
+        pip uninstall $dep -q -y
+    done
 
     # Remove Spyder to properly install it below
     pip uninstall spyder -q -y
@@ -60,9 +64,14 @@ fi
 # Install subrepos in development mode
 for dep in $(ls external-deps)
 do
-    pushd external-deps/$dep
-    pip install --no-deps -q -e .
-    popd
+    echo "Installing $dep subrepo"
+
+    # This is necessary to pass our minimal required version of PyLSP to setuptools-scm
+    if [ "$dep" = "python-lsp-server" ]; then
+        SETUPTOOLS_SCM_PRETEND_VERSION=`python pylsp_utils.py` pip install --no-deps -q -e external-deps/$dep
+    else
+        pip install --no-deps -q -e external-deps/$dep
+    fi
 done
 
 # Install boilerplate plugin

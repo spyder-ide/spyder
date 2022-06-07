@@ -47,8 +47,13 @@ PYTHON_CONFIG = {
                 'autopep8': {
                     'enabled': True
                 },
-                'black': {
+                'pylsp_black': {
                     'enabled': False
+                },
+                'black': {
+                    'line_length': 79,
+                    'preview': False,
+                    'cache_config': False,
                 },
                 'yapf': {
                     'enabled': False

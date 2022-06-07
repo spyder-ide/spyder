@@ -19,7 +19,7 @@ setup(
     author_email="spyder.python@gmail.com",
     description="Plugin that registers a programmatic custom layout",
     license="MIT license",
-    python_requires='>= 3.6',
+    python_requires='>= 3.7',
     install_requires=[
         "qtpy",
         "qtawesome",
