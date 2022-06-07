@@ -9,6 +9,7 @@
 # Standard library imports
 from __future__ import annotations
 from ast import Call
+from cProfile import run
 
 import sys
 import functools
@@ -360,9 +361,11 @@ def run_execute(func: RunExecuteFunc = None,
     if isinstance(context, str):
         context = [context]
 
+    run_exec_list = []
     for ext in extension:
         for ctx in context:
-            func._run_exec = (ext, ctx)
+            run_exec_list.append((ext, ctx))
+    func._run_exec = run_exec_list
     return func
 
 
@@ -385,13 +388,13 @@ class RunExecutor:
         for method_name in dir(self):
             method = getattr(self, method_name, None)
             if hasattr(method, '_run_exec'):
-                extension, context = method._run_exec
-                if extension == '__extension' and context != '__context':
-                    self._exec_ext_methods[context] = method
-                elif extension != '__extension' and context == '__context':
-                    self._exec_context_methods[extension] = method
-                else:
-                    self._exec_methods[(extension, context)] = method
+                for extension, context in method._run_exec:
+                    if extension == '__extension' and context != '__context':
+                        self._exec_ext_methods[context] = method
+                    elif extension != '__extension' and context == '__context':
+                        self._exec_context_methods[extension] = method
+                    else:
+                        self._exec_methods[(extension, context)] = method
 
     def exec_run_configuration(
             self, input: RunConfiguration,

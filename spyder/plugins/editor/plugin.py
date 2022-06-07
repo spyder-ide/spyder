@@ -245,20 +245,32 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.sig_editor_focus_changed_uuid.connect(
                 run.switch_focused_run_configuration)
 
-            run.create_run_button(RunContext.Selection,
-                                  _("Run &selection or current line"),
-                                  icon=ima.icon('run_selection'),
-                                  tip=_("Run selection or current line"),
-                                  shortcut_context="Editor",
-                                  register_shortcut=True,
-                                  add_to_toolbar=True,
-                                  add_to_menu=True)
-
             run.create_run_button(RunContext.Cell,
                                   _("Run cell"),
                                   icon=ima.icon('run_cell'),
                                   tip=_("Run current cell \n"
                                         "[Use #%% to create cells]"),
+                                  shortcut_context="editor",
+                                  register_shortcut=True,
+                                  add_to_toolbar=True,
+                                  add_to_menu=True)
+
+            run.create_run_button(RunContext.Cell,
+                                  _("Run cell and advance"),
+                                  icon=ima.icon('run_cell_advance'),
+                                  tip=_("Run current cell and go to "
+                                        "the next one "),
+                                  shortcut_context="editor",
+                                  register_shortcut=True,
+                                  add_to_toolbar=True,
+                                  add_to_menu=True,
+                                  extra_action_name='advance')
+
+            run.create_run_button(RunContext.Selection,
+                                  _("Run &selection or current line"),
+                                  icon=ima.icon('run_selection'),
+                                  tip=_("Run selection or current line"),
+                                  shortcut_context="editor",
                                   register_shortcut=True,
                                   add_to_toolbar=True,
                                   add_to_menu=True)
@@ -3093,7 +3105,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if context == RunContext.Selection:
             text, offsets, line_cols, enc = editorstack.run_selection()
             context_name = 'Selection'
-            print(text)
             run_input = SelectionRun(
                 path=fname, selection=text, encoding=enc,
                 line_col_bounds=line_cols, character_bounds=offsets)
@@ -3103,6 +3114,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             run_input = CellRun(
                 path=fname, cell=text, cell_name=cell_name, encoding=enc,
                 line_col_bounds=line_cols, character_bounds=offsets)
+
+            if action_name == 'advance':
+                editorstack.advance_cell()
 
         metadata: RunConfigurationMetadata = {
                 'name': fname,

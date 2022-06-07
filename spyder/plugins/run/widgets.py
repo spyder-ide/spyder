@@ -653,13 +653,10 @@ class RunDialog(BaseRunConfigDialog):
         self.parameters_combo.setModel(self.parameter_model)
 
         widget_dialog = QWidget()
+        widget_dialog.setMinimumWidth(600)
         widget_dialog.setLayout(layout)
-        scrollarea = QScrollArea(self)
-        scrollarea.setWidget(widget_dialog)
-        scrollarea.setMinimumWidth(600)
-        scrollarea.setWidgetResizable(True)
         scroll_layout = QVBoxLayout(self)
-        scroll_layout.addWidget(scrollarea)
+        scroll_layout.addWidget(widget_dialog)
         self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
@@ -753,6 +750,7 @@ class RunDialog(BaseRunConfigDialog):
             self.index_to_select = index
 
         self.parameters_combo.setCurrentIndex(index)
+        self.adjustSize()
 
     def reset_btn_clicked(self):
         self.parameters_combo.setCurrentIndex(-1)
