@@ -10,10 +10,7 @@ API to create an entry in Spyder Preferences associated to a given plugin.
 
 # Standard library imports
 import types
-from typing import Tuple, Union, Set
-
-# Third party imports
-from qtpy.QtWidgets import QWidget
+from typing import Set
 
 # Local imports
 from spyder.config.manager import CONF

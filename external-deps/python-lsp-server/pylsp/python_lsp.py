@@ -319,6 +319,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_text_document__did_close(self, textDocument=None, **_kwargs):
         workspace = self._match_uri_to_workspace(textDocument['uri'])
+        workspace.publish_diagnostics(textDocument['uri'], [])
         workspace.rm_document(textDocument['uri'])
 
     def m_text_document__did_open(self, textDocument=None, **_kwargs):

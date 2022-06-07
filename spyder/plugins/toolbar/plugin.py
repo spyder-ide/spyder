@@ -39,6 +39,7 @@ class Toolbar(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
     CONTAINER_CLASS = ToolbarContainer
+    CAN_BE_DISABLED = False
 
     # --- SpyderDocakblePlugin API
     #  -----------------------------------------------------------------------
@@ -117,7 +118,7 @@ class Toolbar(SpyderPluginV2):
 
     def on_close(self, _unused):
         container = self.get_container()
-        container._save_visible_toolbars()
+        container.save_last_visible_toolbars()
         for toolbar in container._visible_toolbars:
             toolbar.setVisible(False)
 

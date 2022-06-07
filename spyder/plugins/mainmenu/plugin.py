@@ -39,6 +39,7 @@ class MainMenu(SpyderPluginV2):
     NAME = 'mainmenu'
     CONF_SECTION = NAME
     CONF_FILE = False
+    CAN_BE_DISABLED = False
 
     @staticmethod
     def get_name():
@@ -79,9 +80,10 @@ class MainMenu(SpyderPluginV2):
         # and "Preferences") are located in the right place in Mac's menu
         # bar.
         # Fixes spyder-ide/spyder#14917
-        if sys.platform == 'darwin':
-            for menu in self._APPLICATION_MENUS.values():
-                menu._render()
+        # This also registers shortcuts for actions that are only in menus.
+        # Fixes spyder-ide/spyder#16061
+        for menu in self._APPLICATION_MENUS.values():
+            menu._render()
 
     # ---- Private methods
     # ------------------------------------------------------------------------

@@ -209,7 +209,7 @@ def test_load_bookmark(editor_plugin_open_files):
     edtr.stdkey_backspace()
     editor.load_bookmark(2)
 
-    assert edtr.get_cursor_line_column() == (1, 18)
+    assert edtr.get_cursor_line_column() == (1, 20)
 
     # Check if loading bookmark switches file correctly
     editor.save_bookmark(2)

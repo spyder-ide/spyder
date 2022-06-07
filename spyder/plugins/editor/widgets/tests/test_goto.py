@@ -16,8 +16,6 @@ from qtpy.QtWidgets import QMessageBox
 import pytest
 
 # Local imports
-from spyder.config.base import running_in_ci
-from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
 from spyder.utils.vcs import get_git_remotes
 
 # Constants
@@ -30,7 +28,6 @@ TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = 'conftest.py'
 
 
-@pytest.mark.skipif(running_in_ci(), reason='Fails on CI!')
 @pytest.mark.parametrize('params', [
             # Parameter, expected output 1, full file path, expected output 2
             # ----------------------------------------------------------------
@@ -81,9 +78,9 @@ TEST_FILE_REL = 'conftest.py'
                              reason='not in a git repository')),
         ]
     )
-def test_goto_uri(qtbot, editorbot, mocker, params):
+def test_goto_uri(qtbot, codeeditor, mocker, params):
     """Test that the uri search is working correctly."""
-    _, code_editor = editorbot
+    code_editor = codeeditor
     code_editor.show()
     mocker.patch.object(QDesktopServices, 'openUrl')
 
@@ -98,8 +95,8 @@ def test_goto_uri(qtbot, editorbot, mocker, params):
     code_editor.moveCursor(QTextCursor.Start)
     x, y = code_editor.get_coordinates('cursor')
 
-    # The `+ 23` is to put the mouse on top of the word
-    point = code_editor.calculate_real_position(QPoint(x + 23, y))
+    # The `+ 30` is to put the mouse on top of the word
+    point = code_editor.calculate_real_position(QPoint(x + 30, y))
 
     # Move cursor to end of line
     code_editor.moveCursor(QTextCursor.End)
@@ -121,9 +118,9 @@ def test_goto_uri(qtbot, editorbot, mocker, params):
         assert expected_output_2 == output_2
 
 
-def test_goto_uri_project_root_path(qtbot, editorbot, mocker, tmpdir):
+def test_goto_uri_project_root_path(qtbot, codeeditor, mocker, tmpdir):
     """Test that the uri search is working correctly."""
-    _, code_editor = editorbot
+    code_editor = codeeditor
     code_editor.show()
     mock_project_dir = str(tmpdir)
     expected_output_path = os.path.join(mock_project_dir, "some-file.txt")
@@ -169,12 +166,12 @@ def test_goto_uri_project_root_path(qtbot, editorbot, mocker, tmpdir):
         assert args[0] == expected_output_path
 
 
-def test_goto_uri_message_box(qtbot, editorbot, mocker):
+def test_goto_uri_message_box(qtbot, codeeditor, mocker):
     """
     Test that a message box is displayed when the shorthand issue notation is
     used (gh-123) indicating the user that the file is not under a repository
     """
-    _, code_editor = editorbot
+    code_editor = codeeditor
     code_editor.filename = TEMPFILE_PATH
     code_editor._last_hover_pattern_key = 'issue'
 
@@ -196,9 +193,9 @@ def test_goto_uri_message_box(qtbot, editorbot, mocker):
     code_editor._last_hover_pattern_text = None
 
 
-def test_pattern_highlight_regression(qtbot, editorbot):
+def test_pattern_highlight_regression(qtbot, codeeditor):
     """Fix regression on spyder-ide/spyder#11376."""
-    _, code_editor = editorbot
+    code_editor = codeeditor
     code_editor.show()
 
     # This was generating an infinite loop

@@ -71,8 +71,6 @@ class VariableExplorerContextMenuActions:
     ImshowAction = 'imshow_action'
     SaveArrayAction = 'save_array_action'
     InsertAction = 'insert_action'
-    InsertActionAbove = 'insert_action_above'
-    InsertActionBelow = 'insert_action_below'
     RemoveAction = 'remove_action'
     RenameAction = 'rename_action'
     DuplicateAction = 'duplicate_action'
@@ -81,7 +79,8 @@ class VariableExplorerContextMenuActions:
 
 class VariableExplorerContextMenuSections:
     Edit = 'edit_section'
-    Rename = 'rename_section'
+    Insert = 'insert_section'
+    View = 'view_section'
     Resize = 'resize_section'
 
 
@@ -215,12 +214,14 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         resize_rows_action = self.create_action(
             VariableExplorerContextMenuActions.ResizeRowsAction,
             text=_("Resize rows to contents"),
+            icon=self.create_icon('collapse_row'),
             triggered=self.resize_rows
         )
 
         resize_columns_action = self.create_action(
             VariableExplorerContextMenuActions.ResizeColumnsAction,
             _("Resize columns to contents"),
+            icon=self.create_icon('collapse_column'),
             triggered=self.resize_columns
         )
 
@@ -338,25 +339,31 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         # ---- Context menu to show when there are variables present
         self.context_menu = self.create_menu(
             VariableExplorerWidgetMenus.PopulatedContextMenu)
-        for item in [self.edit_action, self.plot_action, self.hist_action,
-                     self.imshow_action, self.save_array_action,
-                     self.insert_action, self.remove_action, self.copy_action,
-                     self.paste_action, self.view_action]:
+        for item in [self.edit_action, self.copy_action, self.paste_action,
+                     self.rename_action, self.remove_action,
+                     self.save_array_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
                 section=VariableExplorerContextMenuSections.Edit,
             )
 
-        for item in [self.rename_action, self.duplicate_action]:
+        for item in [self.insert_action, self.duplicate_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
-                section=VariableExplorerContextMenuSections.Rename,
+                section=VariableExplorerContextMenuSections.Insert,
             )
 
-        for item in [resize_rows_action, resize_columns_action,
-                     self.show_minmax_action]:
+        for item in [self.view_action, self.plot_action, self.hist_action,
+                     self.imshow_action, self.show_minmax_action]:
+            self.add_item_to_menu(
+                item,
+                menu=self.context_menu,
+                section=VariableExplorerContextMenuSections.View,
+            )
+
+        for item in [resize_rows_action, resize_columns_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,

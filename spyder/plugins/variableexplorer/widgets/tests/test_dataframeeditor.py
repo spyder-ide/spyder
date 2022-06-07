@@ -103,8 +103,8 @@ def test_dataframe_to_type(qtbot):
     df = DataFrame(data=d)
     editor = DataFrameEditor()
     assert editor.setup_and_check(df, 'Test DataFrame To action')
-    editor.show()
-    qtbot.waitForWindowShown(editor)
+    with qtbot.waitExposed(editor):
+        editor.show()
 
     # Check editor doesn't have changes to save and select an initial element
     assert not editor.btn_save_and_close.isEnabled()
@@ -534,8 +534,8 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.dataTable
 
         qtbot.keyClick(view, Qt.Key_Right)
@@ -611,8 +611,8 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
         test_df = DataFrame(numpy.arange(10, 15), dtype=complex_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.dataTable
 
         qtbot.keyClick(view, Qt.Key_Right)
@@ -684,8 +684,8 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
         test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.dataTable
 
         qtbot.keyClick(view, Qt.Key_Right)

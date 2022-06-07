@@ -187,11 +187,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # Temporary flags
         self._tmp_reading = False
         # super init
-        # Needed to handle other configuration objects than the default CONF.
-        # Useful for changing preferences when testing while using the
-        # `ipyconsole` fixture.
-        configuration = kwargs.pop('configuration', self.CONFIGURATION)
-        self.CONFIGURATION = configuration
         super(DebuggingWidget, self).__init__(*args, **kwargs)
 
         # Adapted from qtconsole/frontend_widget.py
@@ -431,6 +426,21 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if pdb_state is not None and isinstance(pdb_state, dict):
             self.refresh_from_pdb(pdb_state)
 
+    def show_pdb_output(self, text):
+        """Show Pdb output."""
+        self._append_plain_text(self.output_sep, before_prompt=True)
+        prompt = self._current_out_prompt()
+        self._append_html(
+            '<span class="out-prompt">%s</span>' % prompt,
+            before_prompt=True
+        )
+        # If the repr is multiline, make sure we start on a new line,
+        # so that its lines are aligned.
+        if "\n" in text and not self.output_sep.endswith("\n"):
+            self._append_plain_text('\n', before_prompt=True)
+        self._append_plain_text(text + self.output_sep2, before_prompt=True)
+        self._append_plain_text('\n', before_prompt=True)
+
     def get_pdb_last_step(self):
         """Get last pdb step retrieved from a Pdb session."""
         fname, lineno = self._pdb_frame_loc
@@ -466,6 +476,14 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     # --- Private API --------------------------------------------------
     def _current_prompt(self):
         prompt = "IPdb [{}]".format(self._pdb_history_input_number + 1)
+        for i in range(self._pdb_in_loop - 1):
+            # Add recursive debugger prompt
+            prompt = "({})".format(prompt)
+        return prompt + ": "
+
+    def _current_out_prompt(self):
+        """Get current out prompt."""
+        prompt = "Out\u00A0\u00A0[{}]".format(self._pdb_history_input_number)
         for i in range(self._pdb_in_loop - 1):
             # Add recursive debugger prompt
             prompt = "({})".format(prompt)
@@ -620,14 +638,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             return
 
     # --- Private API (overrode by us) ----------------------------------------
-    def _show_prompt(self, prompt=None, html=False, newline=True):
+    def _show_prompt(self, prompt=None, html=False, newline=True,
+                     separator=True):
         """
         Writes a new prompt at the end of the buffer.
         """
         if prompt == self._pdb_prompt[0]:
             html = True
             prompt = '<span class="in-prompt">%s</span>' % prompt
-        super(DebuggingWidget, self)._show_prompt(prompt, html, newline)
+        super(DebuggingWidget, self)._show_prompt(prompt, html, newline,
+                                                  separator)
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""

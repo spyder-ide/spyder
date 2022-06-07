@@ -11,14 +11,18 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QPoint, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
+from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QBrush,
+                        QFontMetrics, QPalette, QTextDocument)
 from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.config.gui import get_font
+from spyder.plugins.findinfiles.widgets.search_thread import (
+    ELLIPSIS, MAX_RESULT_LENGTH)
 from spyder.utils import icon_manager as ima
+from spyder.utils.palette import QStylePalette
 from spyder.widgets.onecolumntree import OneColumnTree
 
 # Localization
@@ -38,7 +42,8 @@ class LineMatchItem(QTreeWidgetItem):
     def __init__(self, parent, lineno, colno, match, font, text_color):
         self.lineno = lineno
         self.colno = colno
-        self.match = match
+        self.match = match['formatted_text']
+        self.plain_match = match['text']
         self.text_color = text_color
         self.font = font
         super().__init__(parent, [self.__repr__()], QTreeWidgetItem.Type)
@@ -48,6 +53,7 @@ class LineMatchItem(QTreeWidgetItem):
         _str = (
             f"<!-- LineMatchItem -->"
             f"<p style=\"color:'{self.text_color}';\">"
+            f'&nbsp;&nbsp;'
             f"<b>{self.lineno}</b> ({self.colno}): "
             f"<span style='font-family:{self.font.family()};"
             f"font-size:{self.font.pointSize()}pt;'>{match}</span></p>"
@@ -79,13 +85,14 @@ class FileMatchItem(QTreeWidgetItem):
         rel_dirname = dirname.split(path)[1]
         if rel_dirname.startswith(osp.sep):
             rel_dirname = rel_dirname[1:]
+        self.rel_dirname = rel_dirname
 
         title = (
             f'<!-- FileMatchItem -->'
             f'<b style="color:{text_color}">{osp.basename(filename)}</b>'
             f'&nbsp;&nbsp;&nbsp;'
             f'<span style="color:{text_color}">'
-            f'<em>{rel_dirname}</em>'
+            f'<em>{self.rel_dirname}</em>'
             f'</span>'
         )
 
@@ -114,20 +121,40 @@ class ItemDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
         self._margin = None
+        self._background_color = QColor(QStylePalette.COLOR_BACKGROUND_3)
+        self.width = 0
 
     def paint(self, painter, option, index):
         options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
-
         style = (QApplication.style() if options.widget is None
                  else options.widget.style())
 
+        # Set background color for selected and hovered items.
+        # Inspired by:
+        # - https://stackoverflow.com/a/43253004/438386
+        # - https://stackoverflow.com/a/27274233/438386
+
+        # This is commented for now until we find a way to correctly colorize
+        # the entire line with a single color.
+        # if options.state & QStyle.State_Selected:
+        #     # This only applies when the selected item doesn't have focus
+        #     if not (options.state & QStyle.State_HasFocus):
+        #         options.palette.setBrush(
+        #             QPalette.Highlight,
+        #             QBrush(self._background_color)
+        #         )
+
+        if options.state & QStyle.State_MouseOver:
+            painter.fillRect(option.rect, self._background_color)
+
+        # Set text
         doc = QTextDocument()
         text = options.text
         doc.setHtml(text)
         doc.setDocumentMargin(0)
 
-        # This needs to be an empty string to avoid the overlapping the
+        # This needs to be an empty string to avoid overlapping the
         # normal text of the QTreeWidgetItem
         options.text = ""
         style.drawControl(QStyle.CE_ItemViewItem, options, painter)
@@ -148,7 +175,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
-        size = QSize(int(doc.idealWidth()), int(doc.size().height()))
+        size = QSize(self.width, int(doc.size().height()))
         return size
 
 
@@ -171,6 +198,8 @@ class ResultsBrowser(OneColumnTree):
         self.root_items = None
         self.text_color = text_color
         self.path = None
+        self.longest_file_item = ''
+        self.longest_line_item = ''
 
         # Setup
         self.set_title('')
@@ -206,7 +235,13 @@ class ResultsBrowser(OneColumnTree):
 
     def clicked(self, item):
         """Click event."""
-        self.activated(item)
+        if isinstance(item, FileMatchItem):
+            if item.isExpanded():
+                self.collapseItem(item)
+            else:
+                self.expandItem(item)
+        else:
+            self.activated(item)
 
     def clear_title(self, search_text):
         self.font = get_font()
@@ -225,10 +260,20 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            self.files[filename] = FileMatchItem(self, self.path, filename,
-                                                 self.sorting, self.text_color)
-            self.files[filename].setExpanded(True)
+            self.files[filename] = item = FileMatchItem(
+                self,
+                self.path,
+                filename,
+                self.sorting,
+                self.text_color
+            )
+
+            item.setExpanded(True)
             self.num_files += 1
+
+            item_text = osp.join(item.rel_dirname, item.filename)
+            if len(item_text) > len(self.longest_file_item):
+                self.longest_file_item = item_text
 
     @Slot(object, object)
     def append_result(self, items, title):
@@ -252,6 +297,10 @@ class ResultsBrowser(OneColumnTree):
                 item = LineMatchItem(file_item, lineno, colno, line,
                                      self.font, self.text_color)
                 self.data[id(item)] = (filename, lineno, colno, match_end)
+
+                if len(item.plain_match) > len(self.longest_line_item):
+                    self.longest_line_item = item.plain_match
+
         self.setUpdatesEnabled(True)
 
     def set_max_results(self, value):
@@ -261,3 +310,28 @@ class ResultsBrowser(OneColumnTree):
     def set_path(self, path):
         """Set path where the search is performed."""
         self.path = path
+
+    def set_width(self):
+        """Set widget width according to its longest item."""
+        # File item width
+        file_item_size = self.fontMetrics().size(
+            Qt.TextSingleLine,
+            self.longest_file_item
+        )
+        file_item_width = file_item_size.width()
+
+        # Line item width
+        metrics = QFontMetrics(self.font)
+        line_item_chars = len(self.longest_line_item)
+        if line_item_chars >= MAX_RESULT_LENGTH:
+            line_item_chars = MAX_RESULT_LENGTH + len(ELLIPSIS) + 1
+        line_item_width = line_item_chars * metrics.width('W')
+
+        # Select width
+        if file_item_width > line_item_width:
+            width = file_item_width
+        else:
+            width = line_item_width
+
+        # Increase width a bit to not be too near to the edge
+        self.itemDelegate().width = width + 10

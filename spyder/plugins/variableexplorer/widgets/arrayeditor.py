@@ -152,20 +152,21 @@ class ArrayModel(QAbstractTableModel):
         self.total_cols = self._data.shape[1]
         size = self.total_rows * self.total_cols
 
-        try:
-            self.vmin = np.nanmin(self.color_func(data))
-            self.vmax = np.nanmax(self.color_func(data))
-            if self.vmax == self.vmin:
-                self.vmin -= 1
-            self.hue0 = huerange[0]
-            self.dhue = huerange[1]-huerange[0]
-            self.bgcolor_enabled = True
-        except (AttributeError, TypeError, ValueError):
-            self.vmin = None
-            self.vmax = None
-            self.hue0 = None
-            self.dhue = None
-            self.bgcolor_enabled = False
+        if not self._data.dtype.name == 'object':
+            try:
+                self.vmin = np.nanmin(self.color_func(data))
+                self.vmax = np.nanmax(self.color_func(data))
+                if self.vmax == self.vmin:
+                    self.vmin -= 1
+                self.hue0 = huerange[0]
+                self.dhue = huerange[1]-huerange[0]
+                self.bgcolor_enabled = True
+            except (AttributeError, TypeError, ValueError):
+                self.vmin = None
+                self.vmax = None
+                self.hue0 = None
+                self.dhue = None
+                self.bgcolor_enabled = False
 
         # Array with infinite values cannot display background colors and
         # crashes. See: spyder-ide/spyder#8093

@@ -717,9 +717,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         current_ordered_items = [self.topLevelItem(index) for index in
                                  range(self.topLevelItemCount())]
+
+        # Convert list to a dictionary in order to remove duplicated entries
+        # when having multiple editors (splitted or in new windows).
+        # See spyder-ide/spyder#14646
+        current_ordered_items_dict = {
+            item.path.lower(): item for item in current_ordered_items}
+
         if self.sort_files_alphabetically:
             new_ordered_items = sorted(
-                current_ordered_items,
+                current_ordered_items_dict.values(),
                 key=lambda item: osp.basename(item.path.lower()))
         else:
             new_ordered_items = [
@@ -794,7 +801,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         root_item = editor_root.node
         text = ''
         if isinstance(item, FileRootItem):
-            line = 1
+            line = None
             if id(root_item) != id(item):
                 root_item = item
         else:

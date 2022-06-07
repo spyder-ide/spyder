@@ -18,6 +18,7 @@ disable =
     too-many-instance-attributes,
     import-error,
     consider-using-f-string,
+    logging-fstring-interpolation
 
 [REPORTS]
 

@@ -57,6 +57,7 @@ class Preferences(SpyderPluginV2):
     OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
+    CAN_BE_DISABLED = False
 
     NEW_API = 'new'
     OLD_API = 'old'
@@ -309,7 +310,6 @@ class Preferences(SpyderPluginV2):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
-        container = self.get_container()
         main_menu = self.get_plugin(Plugins.MainMenu)
 
         main_menu.remove_item_from_application_menu(
@@ -324,7 +324,6 @@ class Preferences(SpyderPluginV2):
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
-        container = self.get_container()
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.remove_item_from_application_toolbar(
             PreferencesActions.Show,
@@ -347,6 +346,8 @@ class Preferences(SpyderPluginV2):
             application = self.get_plugin(Plugins.Application)
             application.sig_restart_requested.emit()
 
-    def can_close(self) -> bool:
+    def on_close(self, cancelable=False):
         container = self.get_container()
-        return not container.is_dialog_open()
+        if container.is_preferences_open():
+            container.close_preferences()
+        return True

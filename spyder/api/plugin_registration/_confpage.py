@@ -62,9 +62,16 @@ class PluginsConfigPage(PluginConfigPage):
         self.external_plugins_group = QGroupBox(_("External plugins"))
 
         i = 0
+        # Temporal fix to avoid disabling external plugins.
+        # for more info see spyder#17464
+        show_external_plugins_group = False
         for i, plugin_name in enumerate(self.plugin.all_external_plugins):
             (conf_section_name,
              PluginClass) = self.plugin.all_external_plugins[plugin_name]
+
+            if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
+                # Do not list external plugins that can not be disabled
+                continue
 
             plugin_loc_name = None
             if hasattr(PluginClass, 'get_name'):
@@ -75,7 +82,8 @@ class PluginsConfigPage(PluginConfigPage):
             cb = newcb(plugin_loc_name, 'enable', default=True,
                        section=conf_section_name, restart=True)
             external_layout.addWidget(cb, i // 2, i % 2)
-            self.plugins_checkboxes[plugin_name] = cb
+            plugin_state = CONF.get(conf_section_name, 'enable', True)
+            self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
             i += 1
 
         self.external_plugins_group.setLayout(external_layout)
@@ -83,7 +91,7 @@ class PluginsConfigPage(PluginConfigPage):
         layout = QVBoxLayout()
         layout.addWidget(header_label)
         layout.addWidget(self.internal_plugins_group)
-        if self.plugin.all_external_plugins:
+        if show_external_plugins_group:
             layout.addWidget(self.external_plugins_group)
         layout.addStretch(1)
         self.setLayout(layout)

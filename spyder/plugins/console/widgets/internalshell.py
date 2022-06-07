@@ -147,7 +147,7 @@ class InternalShell(PythonShellWidget):
     # TODO: I think this is not being used now?
     sig_focus_changed = Signal()
 
-    def __init__(self, parent=None, namespace=None, commands=[], message=None,
+    def __init__(self, parent=None, commands=[], message=None,
                  max_line_count=300, exitfunc=None, profile=False,
                  multithreaded=True):
         super().__init__(parent, get_conf_path('history_internal.py'),
@@ -252,7 +252,7 @@ class InternalShell(PythonShellWidget):
         self.new_prompt(prompt)
         self.setFocus()
         self.input_mode = True
-        self.input_loop = QEventLoop()
+        self.input_loop = QEventLoop(None)
         self.input_loop.exec_()
         self.input_loop = None
 

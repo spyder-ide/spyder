@@ -107,9 +107,10 @@ class WorkspaceWatcher(QObject):
     It provides methods to start and stop watching folders.
     """
 
+    observer = None
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.observer = None
         self.event_handler = WorkspaceEventHandler(self)
 
     def connect_signals(self, project):
@@ -131,6 +132,7 @@ class WorkspaceWatcher(QObject):
                 # This error happens frequently on Linux
                 logger.debug("Watcher could not be started.")
         except OSError as e:
+            self.observer = None
             if u'inotify' in to_text_string(e):
                 QMessageBox.warning(
                     self.parent(),
@@ -152,7 +154,6 @@ class WorkspaceWatcher(QObject):
                       "<br><br>"
                       "After doing that, you need to close and start Spyder "
                       "again so those changes can take effect."))
-                self.observer = None
             else:
                 raise e
 
@@ -165,5 +166,6 @@ class WorkspaceWatcher(QObject):
                 self.observer.stop()
                 self.observer.join()
                 del self.observer
+                self.observer = None
             except RuntimeError:
                 pass

@@ -1,7 +1,9 @@
 # Scientific packages (for Same as Spyder)
-numpy
-scipy
-pandas
-matplotlib
 cython
+defusedxml
+matplotlib
+numpy
+openpyxl
+pandas
+scipy
 sympy

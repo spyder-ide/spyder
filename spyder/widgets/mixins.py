@@ -19,23 +19,43 @@ import re
 import sre_constants
 import sys
 import textwrap
+from pkg_resources import parse_version
 
 # Third party imports
+from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
-from qtpy import QT_VERSION
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
 from spyder.utils.palette import QStylePalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
+
+
+# List of possible EOL symbols
+EOL_SYMBOLS = [
+    # Put first as it correspond to a single line return
+    "\r\n",  # Carriage Return + Line Feed
+    "\r",  # Carriage Return
+    "\n",  # Line Feed
+    "\v",  # Line Tabulation
+    "\x0b",  # Line Tabulation
+    "\f",  # Form Feed
+    "\x0c",   # Form Feed
+    "\x1c",   # File Separator
+    "\x1d",   # Group Separator
+    "\x1e",   # Record Separator
+    "\x85",   # Next Line (C1 Control Code)
+    "\u2028",   # Line Separator
+    "\u2029",   # Paragraph Separator
+]
 
 
 class BaseEditMixin(object):
@@ -664,18 +684,35 @@ class BaseEditMixin(object):
         pass
 
     #------EOL characters
-    def set_eol_chars(self, text):
-        """Set widget end-of-line (EOL) characters from text (analyzes text)"""
-        if not is_text_string(text): # testing for QString (PyQt API#1)
-            text = to_text_string(text)
-        eol_chars = sourcecode.get_eol_chars(text)
-        is_document_modified = eol_chars is not None and self.eol_chars is not None
-        self.eol_chars = eol_chars
+    def set_eol_chars(self, text=None, eol_chars=None):
+        """
+        Set widget end-of-line (EOL) characters.
+
+        Parameters
+        ----------
+        text: str
+            Text to detect EOL characters from.
+        eol_chars: str
+            EOL characters to set.
+
+        Notes
+        -----
+        If `text` is passed, then `eol_chars` has no effect.
+        """
+        if text is not None:
+            detected_eol_chars = sourcecode.get_eol_chars(text)
+            is_document_modified = (
+                detected_eol_chars is not None and self.eol_chars is not None
+            )
+            self.eol_chars = detected_eol_chars
+        elif eol_chars is not None:
+            is_document_modified = eol_chars != self.eol_chars
+            self.eol_chars = eol_chars
+
         if is_document_modified:
             self.document().setModified(True)
             if self.sig_eol_chars_changed is not None:
                 self.sig_eol_chars_changed.emit(eol_chars)
-            self.document_did_change(text)
 
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
@@ -690,12 +727,10 @@ class BaseEditMixin(object):
         characters.
         """
         text = self.toPlainText()
-        lines = text.splitlines()
         linesep = self.get_line_separator()
-        text_with_eol = linesep.join(lines)
-        if text.endswith('\n'):
-            text_with_eol += linesep
-        return text_with_eol
+        for symbol in EOL_SYMBOLS:
+            text = text.replace(symbol, linesep)
+        return text
 
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
@@ -901,9 +936,7 @@ class BaseEditMixin(object):
         if remove_newlines:
             remove_newlines = position_from != 'sof' or position_to != 'eof'
         if text and remove_newlines:
-            while text.endswith("\n"):
-                text = text[:-1]
-            while text.endswith(u"\u2029"):
+            while text and text[-1] in EOL_SYMBOLS:
                 text = text[:-1]
         return text
 
@@ -928,7 +961,6 @@ class BaseEditMixin(object):
             self.textCursor().insertText(text)
             if self.sig_text_was_inserted is not None:
                 self.sig_text_was_inserted.emit()
-            self.document_did_change()
 
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
@@ -941,7 +973,6 @@ class BaseEditMixin(object):
         cursor.insertText(text)
         if self.sig_text_was_inserted is not None:
             self.sig_text_was_inserted.emit()
-        self.document_did_change()
 
     def remove_text(self, position_from, position_to):
         cursor = self.__select_text(position_from, position_to)
@@ -949,7 +980,6 @@ class BaseEditMixin(object):
             start, end = self.get_selection_start_end(cursor)
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
-        self.document_did_change()
 
     def get_current_object(self):
         """
@@ -1166,12 +1196,14 @@ class BaseEditMixin(object):
         """Delete selected text."""
         self.textCursor().removeSelectedText()
         # The next three lines are a workaround for a quirk of
-        # QTextEdit. See spyder-ide/spyder#12663 and
+        # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
+        # See spyder-ide/spyder#12663 and
         # https://bugreports.qt.io/browse/QTBUG-35861
-        cursor = self.textCursor()
-        cursor.setPosition(cursor.position())
-        self.setTextCursor(cursor)
-        self.document_did_change()
+        if (parse_version(QT_VERSION) < parse_version('5.15')
+                or os.name == 'nt' or sys.platform == 'darwin'):
+            cursor = self.textCursor()
+            cursor.setPosition(cursor.position())
+            self.setTextCursor(cursor)
 
     def replace(self, text, pattern=None):
         """Replace selected text by *text*.
@@ -1195,7 +1227,6 @@ class BaseEditMixin(object):
         if self.sig_text_was_inserted is not None:
             self.sig_text_was_inserted.emit()
         cursor.endEditBlock()
-        self.document_did_change()
 
 
     #------Find/replace
@@ -1380,7 +1411,6 @@ class BaseEditMixin(object):
                 if self.sig_text_was_inserted is not None:
                     self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
-                self.document_did_change()
 
 
 class TracebackLinksMixin(object):

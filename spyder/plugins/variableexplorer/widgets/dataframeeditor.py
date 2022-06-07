@@ -241,19 +241,25 @@ class DataFrameModel(QAbstractTableModel):
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
             return
         self.max_min_col = []
-        for dummy, col in self.df.iteritems():
-            if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
-                if col.dtype in REAL_NUMBER_TYPES:
-                    vmax = col.max(skipna=True)
-                    vmin = col.min(skipna=True)
+        for __, col in self.df.iteritems():
+            # This is necessary to catch an error in Pandas when computing
+            # the maximum of a column.
+            # Fixes spyder-ide/spyder#17145
+            try:
+                if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
+                    if col.dtype in REAL_NUMBER_TYPES:
+                        vmax = col.max(skipna=True)
+                        vmin = col.min(skipna=True)
+                    else:
+                        vmax = col.abs().max(skipna=True)
+                        vmin = col.abs().min(skipna=True)
+                    if vmax != vmin:
+                        max_min = [vmax, vmin]
+                    else:
+                        max_min = [vmax, vmin - 1]
                 else:
-                    vmax = col.abs().max(skipna=True)
-                    vmin = col.abs().min(skipna=True)
-                if vmax != vmin:
-                    max_min = [vmax, vmin]
-                else:
-                    max_min = [vmax, vmin - 1]
-            else:
+                    max_min = None
+            except TypeError:
                 max_min = None
             self.max_min_col.append(max_min)
 
@@ -284,8 +290,10 @@ class DataFrameModel(QAbstractTableModel):
     def get_bgcolor(self, index):
         """Background color depending on value."""
         column = index.column()
+
         if not self.bgcolor_enabled:
             return
+
         value = self.get_value(index.row(), column)
         if self.max_min_col[column] is None or pd.isna(value):
             color = QColor(BACKGROUND_NONNUMBER_COLOR)
@@ -299,10 +307,18 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column)
-            if vmax - vmin == 0:
-                vmax_vmin_diff = 1.0
-            else:
-                vmax_vmin_diff = vmax - vmin
+
+            # This is necessary to catch an error in Pandas when computing
+            # the difference between the max and min of a column.
+            # Fixes spyder-ide/spyder#18005
+            try:
+                if vmax - vmin == 0:
+                    vmax_vmin_diff = 1.0
+                else:
+                    vmax_vmin_diff = vmax - vmin
+            except TypeError:
+                return
+
             hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
                    (vmax - color_func(value)) / (vmax_vmin_diff))
             hue = float(abs(hue))
@@ -311,6 +327,7 @@ class DataFrameModel(QAbstractTableModel):
             color = QColor.fromHsvF(hue, BACKGROUND_NUMBER_SATURATION,
                                     BACKGROUND_NUMBER_VALUE,
                                     BACKGROUND_NUMBER_ALPHA)
+
         return color
 
     def get_value(self, row, column):
@@ -529,8 +546,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
         self.setVerticalScrollBar(vscroll)
-        self.setHorizontalScrollMode(1)
-        self.setVerticalScrollMode(1)
+        self.setHorizontalScrollMode(QTableView.ScrollPerPixel)
+        self.setVerticalScrollMode(QTableView.ScrollPerPixel)
 
         self.sort_old = [None]
         self.header_class = header
@@ -751,7 +768,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
             if orientation == Qt.Horizontal:
                 return Qt.AlignCenter
             else:
-                return Qt.AlignRight | Qt.AlignVCenter
+                return int(Qt.AlignRight | Qt.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.axis == 1 and self._shape[1] <= 1:
@@ -843,7 +860,7 @@ class DataFrameLevelModel(QAbstractTableModel):
             if orientation == Qt.Horizontal:
                 return Qt.AlignCenter
             else:
-                return Qt.AlignRight | Qt.AlignVCenter
+                return int(Qt.AlignRight | Qt.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
@@ -1362,7 +1379,6 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 #==============================================================================
 def test_edit(data, title="", parent=None):
     """Test subroutine"""
-    app = qapplication()                  # analysis:ignore
     dlg = DataFrameEditor(parent=parent)
 
     if dlg.setup_and_check(data, title=title):
@@ -1377,6 +1393,8 @@ def test():
     """DataFrame editor test"""
     from numpy import nan
     from pandas.util.testing import assert_frame_equal, assert_series_equal
+
+    app = qapplication()                  # analysis:ignore
 
     df1 = pd.DataFrame(
         [

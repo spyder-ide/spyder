@@ -19,13 +19,14 @@ from threading import Lock
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
+from traitlets import observe
 
 # Local imports
 from spyder.config.base import (
     _, is_pynsist, running_in_mac_app, running_under_pytest)
+from spyder.config.gui import get_color_scheme
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
-from spyder.utils import encoding
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
@@ -84,8 +85,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     @classmethod
     def prune_shutdown_thread_list(cls):
         """Remove shutdown threads."""
-        cls.shutdown_thread_list = [
-            t for t in cls.shutdown_thread_list if t.isRunning()]
+        pruned_shutdown_thread_list = []
+        for t in cls.shutdown_thread_list:
+            try:
+                if t.isRunning():
+                    pruned_shutdown_thread_list.append(t)
+            except RuntimeError:
+                pass
+        cls.shutdown_thread_list = pruned_shutdown_thread_list
 
     @classmethod
     def wait_all_shutdown(cls):
@@ -96,6 +103,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     thread.kernel_manager._kill_kernel()
                 except Exception:
                     pass
+                thread.quit()
                 thread.wait()
         cls.shutdown_thread_list = []
 
@@ -131,6 +139,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers.update({
             'pdb_state': self.set_pdb_state,
             'pdb_execute': self.pdb_execute,
+            'show_pdb_output': self.show_pdb_output,
             'get_pdb_settings': self.get_pdb_settings,
             'set_debug_state': self.set_debug_state,
             'update_syspath': self.update_syspath,
@@ -171,18 +180,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
         self.shutting_down = True
         if shutdown_kernel:
-            self.interrupt_kernel()
-            self.spyder_kernel_comm.close()
-            self.kernel_manager.stop_restarter()
+            if not self.kernel_manager:
+                return
 
-            shutdown_thread = QThread()
-            shutdown_thread.kernel_manager = self.kernel_manager
-            shutdown_thread.run = self.shutdown_kernel
+            self.interrupt_kernel()
+            if self.kernel_manager:
+                self.kernel_manager.stop_restarter()
+            self.spyder_kernel_comm.close()
             if self.kernel_client is not None:
-                shutdown_thread.finished.connect(
-                    self.kernel_client.stop_channels)
-            shutdown_thread.start()
-            self.shutdown_thread_list.append(shutdown_thread)
+                self.kernel_client.stop_channels()
+            if self.kernel_manager:
+                shutdown_thread = QThread(None)
+                shutdown_thread.kernel_manager = self.kernel_manager
+                shutdown_thread.run = self.shutdown_kernel
+                self.shutdown_thread_list.append(shutdown_thread)
+                shutdown_thread.start()
         else:
             self.spyder_kernel_comm.close(shutdown_channel=False)
             if self.kernel_client is not None:
@@ -251,6 +263,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         Executes source or the input buffer, possibly prompting for more
         input.
         """
+        # Needed for cases where there is no kernel initialized but
+        # an execution is triggered like when setting initial configs.
+        # See spyder-ide/spyder#16896
+        if self.kernel_client is None:
+            return
         if self._executing:
             self._execute_queue.append((source, hidden, interactive))
             return
@@ -298,8 +315,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def remote_set_cwd(self, cwd):
         """Get current working directory from kernel."""
-        self._cwd = cwd
-        self.sig_working_directory_changed.emit(self._cwd)
+        if cwd != self._cwd:
+            self._cwd = cwd
+            self.sig_working_directory_changed.emit(self._cwd)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
@@ -365,6 +383,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         return self.call_kernel(
             interrupt=True,
             blocking=True).get_matplotlib_backend()
+
+    def get_mpl_interactive_backend(self):
+        """Call kernel to get current interactive backend."""
+        return self.call_kernel(
+            interrupt=True,
+            blocking=True).get_mpl_interactive_backend()
 
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""
@@ -928,7 +952,8 @@ the sympy module (e.g. plot)
         super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
         self.sig_kernel_restarted.emit()
 
-    def _syntax_style_changed(self):
+    @observe('syntax_style')
+    def _syntax_style_changed(self, changed=None):
         """Refresh the highlighting with the current syntax style by class."""
         if self._highlighter is None:
             # ignore premature calls
@@ -938,6 +963,17 @@ the sympy module (e.g. plot)
             self._highlighter._clear_caches()
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
+
+    def _get_color(self, color):
+        """
+        Get a color as qtconsole.styles._get_color() would return from
+        a builtin Pygments style.
+        """
+        color_scheme = get_color_scheme(self.syntax_style)
+        return dict(
+            bgcolor=color_scheme['background'],
+            select=color_scheme['background'],
+            fgcolor=color_scheme['normal'][0])[color]
 
     def _prompt_started_hook(self):
         """Emit a signal when the prompt is ready."""

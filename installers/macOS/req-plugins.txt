@@ -1,0 +1,2 @@
+# Spyder plugins
+spyder-terminal

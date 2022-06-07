@@ -89,6 +89,11 @@ class VCSStatus(StatusBarWidget):
         self._git_job_queue = None
         self._last_git_job = None
 
+    # ---- Qt reimplemented
+    def closeEvent(self, event):
+        super().closeEvent(event)
+        self._worker_manager.terminate_all()
+
     def update_vcs_state(self, idx, fname, fname2):
         """Update vcs status."""
         self.update_vcs(fname, None)

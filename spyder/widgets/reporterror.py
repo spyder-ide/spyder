@@ -126,6 +126,11 @@ class SpyderErrorDialog(QDialog):
     def __init__(self, parent=None, is_report=False):
         QDialog.__init__(self, parent)
         self.is_report = is_report
+
+        # Set to true to run tests on the dialog. This is the default
+        # in the test function at the end of this file.
+        self._testing = False
+
         self.setWindowTitle(_("Issue reporter"))
         self._github_org = 'spyder-ide'
         self._github_repo = 'spyder'
@@ -268,6 +273,13 @@ class SpyderErrorDialog(QDialog):
         # Get component versions
         versions = get_versions()
 
+        # Get dependencies if they haven't beed computed yet.
+        if not dependencies.DEPENDENCIES:
+            try:
+                dependencies.declare_dependencies()
+            except ValueError:
+                pass
+
         # Get git revision for development version
         revision = ''
         if versions['revision']:
@@ -363,25 +375,16 @@ class SpyderErrorDialog(QDialog):
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        if traceback:
-            issue_text = self.render_issue(description=description,
-                                           traceback=traceback)
-        else:
-            issue_text = description
+        issue_text = self.render_issue(description=description,
+                                       traceback=traceback)
 
         try:
-            if running_under_pytest():
-                org = 'ccordoba12'
-            else:
-                org = self._github_org
-
+            org = self._github_org if not self._testing else 'ccordoba12'
             repo = self._github_repo
             github_backend = GithubBackend(org, repo, parent_widget=self)
             github_report = github_backend.send_report(title, issue_text)
-
             if github_report:
                 self.close()
-
         except Exception:
             ret = QMessageBox.question(
                 self,
@@ -463,6 +466,7 @@ def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
     dlg = SpyderErrorDialog()
+    dlg._testing = True
     dlg.show()
     sys.exit(dlg.exec_())
 

@@ -12,8 +12,6 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
-from __future__ import print_function
-
 import codecs
 import locale
 import os
@@ -65,6 +63,11 @@ def running_under_pytest():
 def running_in_ci():
     """Return True if currently running under CI."""
     return bool(os.environ.get('CI'))
+
+
+def running_in_ci_with_conda():
+    """Return True if currently running under CI with conda packages."""
+    return running_in_ci() and bool(os.environ.get('USE_CONDA'))
 
 
 def is_stable_version(version):
@@ -283,7 +286,7 @@ def get_conf_paths():
         search_paths = []
         tmpfolder = str(tempfile.gettempdir())
         for i in range(3):
-            path = os.path.join(tmpfolder, 'site-config-'+str(i))
+            path = os.path.join(tmpfolder, 'site-config-' + str(i))
             if not os.path.isdir(path):
                 os.makedirs(path)
             search_paths.append(path)
@@ -353,6 +356,7 @@ def is_pynsist():
         return pkgs_path in os.environ.get('PYTHONPATH')
     return False
 
+
 #==============================================================================
 # Translations
 #==============================================================================
@@ -377,6 +381,7 @@ LANGUAGE_CODES = {
 # Disabled languages because their translations are outdated or incomplete
 DISABLED_LANGUAGES = ['hu', 'pl']
 
+
 def get_available_translations():
     """
     List available translations for spyder based on the folders found in the
@@ -391,15 +396,16 @@ def get_available_translations():
     langs = [DEFAULT_LANGUAGE] + langs
 
     # Remove disabled languages
-    langs = list( set(langs) - set(DISABLED_LANGUAGES) )
+    langs = list(set(langs) - set(DISABLED_LANGUAGES))
 
     # Check that there is a language code available in case a new translation
     # is added, to ensure LANGUAGE_CODES is updated.
     for lang in langs:
         if lang not in LANGUAGE_CODES:
-            error = ('Update LANGUAGE_CODES (inside config/base.py) if a new '
-                     'translation has been added to Spyder')
-            print(error)  # spyder: test-skip
+            if DEV:
+                error = ('Update LANGUAGE_CODES (inside config/base.py) if a '
+                         'new translation has been added to Spyder')
+                print(error)  # spyder: test-skip
             return ['en']
     return langs
 
@@ -509,6 +515,7 @@ def get_translation(modname, dirname=None):
     try:
         _trans = gettext.translation(modname, locale_path, codeset="utf-8")
         lgettext = _trans.lgettext
+
         def translate_gettext(x):
             if not PY3 and is_unicode(x):
                 x = x.encode("utf-8")
@@ -521,6 +528,7 @@ def get_translation(modname, dirname=None):
     except Exception:
         return translate_dumb
 
+
 # Translation callback
 _ = get_translation("spyder")
 
@@ -530,23 +538,17 @@ _ = get_translation("spyder")
 #==============================================================================
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
-CHECK_ALL = False #XXX: If True, this should take too much to compute...
+CHECK_ALL = False  # XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
-                  'sctypeNA', 'typeNA', 'False_', 'True_',]
+                  'sctypeNA', 'typeNA', 'False_', 'True_']
 
 
 #==============================================================================
 # Mac application utilities
 #==============================================================================
-if PY3:
-    MAC_APP_NAME = 'Spyder.app'
-else:
-    MAC_APP_NAME = 'Spyder-Py2.app'
-
-
 def running_in_mac_app(pyexec=None):
     """
     Check if Python executable is located inside a standalone Mac app.
@@ -560,12 +562,44 @@ def running_in_mac_app(pyexec=None):
     if pyexec is None:
         pyexec = sys.executable
 
-    if sys.platform == "darwin":
-        if MAC_APP_NAME not in pyexec:
-            return False
+    bpath = get_mac_app_bundle_path()
+
+    if bpath and pyexec == osp.join(bpath, 'Contents/MacOS/python'):
         return True
     else:
         return False
+
+
+def get_mac_app_bundle_path():
+    """
+    Return the full path to the macOS app bundle. Otherwise return None.
+
+    EXECUTABLEPATH environment variable only exists if Spyder is a macOS app
+    bundle. In which case it will always end with
+    "/<app name>.app/Conents/MacOS/Spyder".
+    """
+    app_exe_path = os.environ.get('EXECUTABLEPATH', None)
+    if sys.platform == "darwin" and app_exe_path:
+        return osp.dirname(osp.dirname(osp.dirname(osp.abspath(app_exe_path))))
+    else:
+        return None
+
+
+# =============================================================================
+# Micromamba
+# =============================================================================
+def get_spyder_umamba_path():
+    """Return the path to the Micromamba executable bundled with Spyder."""
+    if running_in_mac_app():
+        path = osp.join(osp.dirname(osp.dirname(__file__)),
+                        'bin', 'micromamba')
+    elif is_pynsist():
+        path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
+                                    'bin', 'micromamba.exe'))
+    else:
+        path = None
+
+    return path
 
 
 #==============================================================================

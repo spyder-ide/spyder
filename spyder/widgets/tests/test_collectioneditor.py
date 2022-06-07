@@ -151,23 +151,29 @@ def test_remove_remote_variable(qtbot, monkeypatch):
     """Test the removing of the correct remote variable."""
     variables = {'a': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '1'},
+                       'view': '1',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'b': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '2'},
+                       'view': '2',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'c': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '3'},
+                       'view': '3',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'd': {'type': 'str',
-                       'size': 1, 'color': '#800000',
-                       'view': '4'},
+                       'size': 1,
+                       'view': '4',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'},
                  'e': {'type': 'int',
                        'size': 1,
-                       'color': '#0000ff',
-                       'view': '5'}}
+                       'view': '5',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'}}
     editor = RemoteCollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
     editor.setCurrentIndex(editor.model.index(1, 0))
@@ -177,19 +183,24 @@ def test_remove_remote_variable(qtbot, monkeypatch):
         assert names == ['b']
         data = {'a': {'type': 'int',
                       'size': 1,
-                      'color': '#0000ff',
-                      'view': '1'},
+                      'view': '1',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'},
                 'c': {'type': 'int',
                       'size': 1,
-                      'color': '#0000ff',
-                      'view': '3'},
+                      'view': '3',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'},
                 'd': {'type': 'str',
-                      'size': 1, 'color': '#800000',
-                      'view': '4'},
+                      'size': 1,
+                      'view': '4',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'},
                 'e': {'type': 'int',
                       'size': 1,
-                      'color': '#0000ff',
-                      'view': '5'}}
+                      'view': '5',
+                      'python_type': 'int',
+                      'numpy_type': 'Unknown'}}
         editor.set_data(data)
     monkeypatch.setattr(
         'spyder.widgets'
@@ -219,11 +230,17 @@ def test_filter_rows(qtbot):
     """Test rows filtering."""
     data = (
         {'dfa':
-            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
-             'view': 'Column names: 0'},
+            {'type': 'DataFrame',
+             'size': (2, 1),
+             'view': 'Column names: 0',
+             'python_type': 'DataFrame',
+             'numpy_type': 'Unknown'},
          'dfb':
-            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
-             'view': 'Column names: 0'}}
+            {'type': 'DataFrame',
+             'size': (2, 1),
+             'view': 'Column names: 0',
+             'python_type': 'DataFrame',
+             'numpy_type': 'Unknown'}}
     )
     editor = RemoteCollectionsEditorTableView(None, data)
     qtbot.addWidget(editor)
@@ -248,7 +265,7 @@ def test_filter_rows(qtbot):
     assert editor.model.rowCount() == 0
 
 
-def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
+def test_create_dataframeeditor_with_correct_format(qtbot):
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
@@ -257,6 +274,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
     dataframe_editor.dataModel._format == '%10d'
+
 
 def test_collectionsmodel_with_two_ints():
     coll = {'x': 1, 'y': 2}
@@ -281,6 +299,7 @@ def test_collectionsmodel_with_two_ints():
     assert data(cm, row_with_y, 2) == 1
     assert data(cm, row_with_y, 3) == '2'
 
+
 def test_collectionsmodel_with_index():
     # Regression test for spyder-ide/spyder#3380,
     # modified for spyder-ide/spyder#3758.
@@ -296,8 +315,8 @@ def test_collectionsmodel_with_index():
         assert data(cm, 0, 3) == rng.summary()
 
 
-def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
-    for rng_name, rng in generate_pandas_indexes().items():
+def test_shows_dataframeeditor_when_editing_index(monkeypatch):
+    for __, rng in generate_pandas_indexes().items():
         MockDataFrameEditor = Mock()
         mockDataFrameEditor_instance = MockDataFrameEditor()
         attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
@@ -590,6 +609,7 @@ def test_view_module_in_coledit():
     editor.setup(os, "module_test", readonly=False)
     assert editor.widget.editor.readonly
 
+
 def test_notimplementederror_multiindex():
     """
     Test that the NotImplementedError when scrolling a MultiIndex is handled.
@@ -728,8 +748,8 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
     for test_obj, expected_obj, keys in nonsettable_objects_data:
         col_editor = CollectionsEditor(None)
         col_editor.setup(test_obj)
-        col_editor.show()
-        qtbot.waitForWindowShown(col_editor)
+        with qtbot.waitExposed(col_editor):
+            col_editor.show()
         view = col_editor.widget.editor
         indicies = [view.source_model.get_index_from_key(key) for key in keys]
 
@@ -803,6 +823,7 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     li = [1] * 10000
     editor = CollectionsEditor()
     editor.setup(li)
+    editor.show()
 
     # Perform the sorting. It should be done quite quickly because
     # there's a very small number of rows in display.
@@ -813,6 +834,8 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
 
     # Assert data was sorted correctly.
     assert data(view.model, 0, 0) == 9999
+
+    editor.accept()
 
 
 def test_dicts_with_mixed_types_as_key(qtbot):

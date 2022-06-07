@@ -317,8 +317,10 @@ else:
 # =============================================================================
 if PY2:
     TimeoutError = RuntimeError
+    FileNotFoundError = IOError
 else:
     TimeoutError = TimeoutError
+    FileNotFoundError = FileNotFoundError
 
 if PY2:
     import re
@@ -347,6 +349,12 @@ else:
     def encode(u):
         """Encoding is not a problem in python 3."""
         return u
+
+
+def compat_exec(code, globals, locals):
+    # Wrap exec in a function
+    exec(code, globals, locals)
+
 
 if __name__ == '__main__':
     pass

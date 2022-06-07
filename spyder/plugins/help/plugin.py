@@ -12,20 +12,18 @@ Help Plugin.
 import os
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Signal
 
 # Local imports
-from spyder import __docs_url__, __forum_url__, __trouble_url__
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
-from spyder.utils.qthelpers import start_file
 
 # Localization
 _ = get_translation('spyder')
@@ -127,8 +125,7 @@ class Help(SpyderDockablePlugin):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
 
         # See: spyder-ide/spyder#6992
-        self._show_intro_message = lambda: self.show_intro_message()
-        shortcuts.sig_shortcuts_updated.connect(self._show_intro_message)
+        shortcuts.sig_shortcuts_updated.connect(self.show_intro_message)
 
         if self.is_plugin_available(Plugins.MainMenu):
             self._setup_menus()
@@ -175,7 +172,7 @@ class Help(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Shortcuts)
     def on_shortcuts_teardown(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
-        shortcuts.sig_shortcuts_updated.disconnect(self._show_intro_message)
+        shortcuts.sig_shortcuts_updated.disconnect(self.show_intro_message)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -197,14 +194,19 @@ class Help(SpyderDockablePlugin):
 
     def apply_conf(self, options_set, notify=False):
         super().apply_conf(options_set)
-        widget = self.get_widget()
-
-        if 'color_scheme_name' in options_set:
-            widget.set_plain_text_color_scheme(self.get_color_scheme())
 
         # To make auto-connection changes take place instantly
-        editor = self.get_plugin(Plugins.Editor)
-        editor.apply_plugin_settings({'connect_to_oi'})
+        try:
+            editor = self.get_plugin(Plugins.Editor)
+            editor.apply_plugin_settings({'connect_to_oi'})
+        except SpyderAPIError:
+            pass
+
+    def on_mainwindow_visible(self):
+        # Raise plugin the first time Spyder starts
+        if self.get_conf('show_first_time', default=True):
+            self.dockwidget.raise_()
+            self.set_conf('show_first_time', False)
 
     # --- Private API
     # ------------------------------------------------------------------------
@@ -282,7 +284,6 @@ class Help(SpyderDockablePlugin):
 
     def show_intro_message(self):
         """Show the IPython introduction message."""
-        self.switch_to_plugin()
         self.get_widget().show_intro_message()
 
     def show_rich_text(self, text, collapse=False, img_path=''):

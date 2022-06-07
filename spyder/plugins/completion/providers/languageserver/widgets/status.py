@@ -48,7 +48,7 @@ class LSPStatusWidget(StatusBarWidget):
         "folding and symbols status."
     )
 
-    STATUS = "LSP {}: {}"
+    STATUS = "LSP: {}"
 
     def __init__(self, parent, provider):
         self.tooltip = self.BASE_TOOLTIP
@@ -88,6 +88,7 @@ class LSPStatusWidget(StatusBarWidget):
 
     def set_status(self, lsp_language=None, status=None):
         """Set LSP status."""
+        # Spinner
         if status in [ClientStatus.STARTING, ClientStatus.RESTARTING]:
             self.spinner.show()
             self.spinner.start()
@@ -95,22 +96,24 @@ class LSPStatusWidget(StatusBarWidget):
             self.spinner.hide()
             self.spinner.stop()
 
-        if status is None:
-            status = ClientStatus.STRINGS_FOR_TRANSLATION[
-                ClientStatus.STARTING]
-        else:
-            status = ClientStatus.STRINGS_FOR_TRANSLATION[status]
+        # Icon
+        if status == ClientStatus.READY:
+            self._icon = self.create_icon('lspserver.ready')
+        elif status in [ClientStatus.DOWN, ClientStatus.STARTING,
+                        ClientStatus.RESTARTING]:
+            self._icon = self.create_icon('lspserver.down')
+        self.set_icon()
 
+        # Language
         if lsp_language is not None:
-            status = self.STATUS.format(lsp_language.capitalize(), status)
-        self.set_value(status)
+            self.set_value(self.STATUS.format(lsp_language.capitalize()))
 
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
         return self.tooltip
 
     def get_icon(self):
-        return self.create_icon('lspserver')
+        return self.create_icon('lspserver.down')
 
     @Slot()
     def update_status(self, lsp_language=None, status=None):
