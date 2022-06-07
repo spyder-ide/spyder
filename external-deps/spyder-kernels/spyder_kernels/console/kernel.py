@@ -36,11 +36,6 @@ from spyder_kernels.console.shell import SpyderShell
 
 if PY3:
     import faulthandler
-    basestring = (str,)
-
-
-logger = logging.getLogger(__name__)
-
 
 
 logger = logging.getLogger(__name__)
@@ -168,7 +163,6 @@ class SpyderKernel(IPythonKernel):
         """Return the list of system threads id."""
         ignore_threads = [
             self.parent.poller,  # Parent poller
-            self.frontend_comm.comm_socket_thread,  # comms
             self.shell.history_manager.save_thread,  # history
             self.parent.heartbeat,  # heartbeat
             self.parent.iopub_thread.thread,  # iopub
@@ -181,9 +175,6 @@ class SpyderKernel(IPythonKernel):
 
     def filter_stack(self, stack, is_main):
         """Return the part of the stack the user needs to see."""
-        if not PY3:
-            # Not implemented
-            return stack
         # Remove wurlitzer frames
         for frame_summary in stack:
             if "wurlitzer.py" in frame_summary.filename:

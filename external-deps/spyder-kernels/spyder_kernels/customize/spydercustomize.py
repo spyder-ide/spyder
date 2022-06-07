@@ -427,7 +427,7 @@ def transform_cell(code, indent_only=False):
 
 
 def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
-              exec_fun=None):
+              exec_fun=None, capture_last_expression=False):
     """Execute code and display any exception."""
     # Tell IPython to hide this frame (>7.16)
     __tracebackhide__ = True
@@ -469,18 +469,22 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
                             ".ipy extension.\n")
                         SHOW_INVALID_SYNTAX_MSG = False
         else:
-            compiled = compile(transform_cell(code), filename, 'exec')
+            ast_code = ast.parse(transform_cell(code))
 
-        if exec_fun is None:
-            exec(
-                compiled,
-                ns_globals,
-                ns_locals)
-        else:
-            exec_fun(
-                compiled,
-                ns_globals,
-                ns_locals)
+        if code.rstrip()[-1] == ";":
+            # Supress output with ;
+            capture_last_expression = False
+
+        if capture_last_expression:
+            ast_code, capture_last_expression = capture_last_Expr(
+                ast_code, "_spyder_out")
+
+        exec_fun(compile(ast_code, filename, 'exec'), ns_globals, ns_locals)
+
+        if capture_last_expression:
+            out = ns_globals.pop("_spyder_out", None)
+            if out is not None:
+                return out
 
     except SystemExit as status:
         # ignore exit(0)
@@ -516,8 +520,7 @@ def get_file_code(filename, save_all=True):
 
 
 def runfile(filename=None, args=None, wdir=None, namespace=None,
-            post_mortem=False, current_namespace=False, stack_depth=0,
-            **kwargs):
+            post_mortem=False, current_namespace=False):
     """
     Run filename
     args: command line arguments (string)
@@ -611,14 +614,17 @@ def _exec_file(filename=None, args=None, wdir=None, namespace=None,
             else:
                 _print("Working directory {} doesn't exist.\n".format(wdir))
 
-        if __umr__.has_cython:
-            # Cython files
-            with io.open(filename, encoding='utf-8') as f:
-                ipython_shell.run_cell_magic('cython', '', f.read())
-        else:
-            exec_code(file_code, filename, ns_globals, ns_locals,
-                      post_mortem=post_mortem,
-                      **kwargs)
+        try:
+            if __umr__.has_cython:
+                # Cython files
+                with io.open(filename, encoding='utf-8') as f:
+                    ipython_shell.run_cell_magic('cython', '', f.read())
+            else:
+                exec_code(file_code, filename, ns_globals, ns_locals,
+                          post_mortem=post_mortem, exec_fun=exec_fun,
+                          capture_last_expression=False)
+        finally:
+            sys.argv = ['']
 
 
 # IPykernel 6.3.0+ shadows our runfile because it depends on the Pydev
@@ -628,14 +634,6 @@ if PY2:
     builtins.runfile = runfile
 else:
     builtins.spyder_runfile = runfile
-
-
-def normalise_filename(filename):
-    """Normalise path for window."""
-    # Recursive
-    if os.name == 'nt':
-        return filename.replace('\\', '/')
-    return filename
 
 
 def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
@@ -659,27 +657,27 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
         code = (
             "runfile({}".format(repr(normalise_filename(filename))) +
             ", args=%r, wdir=%r, current_namespace=%r)" % (
-                args, wdir, current_namespace))
+                args, wdir, current_namespace)
+        )
 
         shell.pdb_session.enter_recursive_debugger(
             code, filename, True,
         )
-
     else:
         debugger = get_new_debugger(filename, True)
-        runfile(
+        _exec_file(
             filename=debugger.canonic(filename),
             args=args, wdir=wdir,
             current_namespace=current_namespace,
             exec_fun=debugger.run,
-            stack_depth=1)
+            stack_depth=1
+        )
 
 
 builtins.debugfile = debugfile
 
 
-def runcell(cellname, filename=None, post_mortem=False, stack_depth=0,
-            **kwargs):
+def runcell(cellname, filename=None, post_mortem=False):
     """
     Run a code cell from an editor as a file.
 
@@ -750,8 +748,9 @@ def _exec_cell(cellname, filename=None, post_mortem=False, stack_depth=0,
     with NamespaceManager(filename, current_namespace=True,
                           file_code=file_code, stack_depth=stack_depth + 1
                           ) as (ns_globals, ns_locals):
-        exec_code(cell_code, filename, ns_globals, ns_locals,
-                  post_mortem=post_mortem, **kwargs)
+        return exec_code(cell_code, filename, ns_globals, ns_locals,
+                         post_mortem=post_mortem, exec_fun=exec_fun,
+                         capture_last_expression=True)
 
 
 builtins.runcell = runcell
@@ -771,17 +770,19 @@ def debugcell(cellname, filename=None, post_mortem=False):
         # Recursive
         code = (
             "runcell({}, ".format(repr(cellname)) +
-            "{})".format(repr(normalise_filename(filename))))
+            "{})".format(repr(normalise_filename(filename)))
+        )
         shell.pdb_session.enter_recursive_debugger(
             code, filename, False,
         )
     else:
         debugger = get_new_debugger(filename, False)
-        runcell(
+        _exec_cell(
             cellname=cellname,
             filename=debugger.canonic(filename),
             exec_fun=debugger.run,
-            stack_depth=1)
+            stack_depth=1
+        )
 
 
 builtins.debugcell = debugcell

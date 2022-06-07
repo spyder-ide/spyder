@@ -813,8 +813,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         with DebugWrapper(self):
             super(SpyderPdb, self).runcall(*args, **kwds)
 
-    def enter_recursive_debugger(
-            self, code, filename, continue_if_has_breakpoints):
+    def enter_recursive_debugger(self, code, filename,
+                                 continue_if_has_breakpoints):
         """
         Enter debugger recursively.
         """
