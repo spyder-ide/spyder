@@ -1,5 +1,19 @@
 # History of changes
 
+## Version 2.3.1 (2022-05-21)
+
+### Pull Requests Merged
+
+* [PR 385](https://github.com/spyder-ide/spyder-kernels/pull/385) - PR: Add an upper constraint to our most important dependencies, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 384](https://github.com/spyder-ide/spyder-kernels/pull/384) - PR: Prevent an error in Python 2 with our tests, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 382](https://github.com/spyder-ide/spyder-kernels/pull/382) - PR: Increase minimal required version of jupyter_client to 7.3.1, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 3 pull requests were closed.
+
+
+---
+
+
 ## Version 2.3.0 (2022-03-30)
 
 ### New features

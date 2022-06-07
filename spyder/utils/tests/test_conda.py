@@ -40,11 +40,8 @@ def test_add_quotes():
 
 
 def test_get_conda_activation_script():
-    output = get_conda_activation_script(TEST_PYEXEC)
-    if os.name == 'nt':
-        assert output == 'c:/miniconda/Scripts/activate'
-    else:
-        assert output == '/miniconda/bin/activate'
+    output = get_conda_activation_script()
+    assert os.path.exists(output)
 
 
 def test_get_conda_env_path():
