@@ -2743,9 +2743,10 @@ class EditorStack(QWidget):
         elif direction == 'down':
             cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
 
-        code_text, off_pos, line_col_pos = (
+        ret = (
             editor.get_selection_as_executable_code(cursor))
-        if code_text:
+        if ret:
+            code_text, off_pos, line_col_pos = ret
             return code_text.rstrip(), off_pos, line_col_pos, enc
 
     def run_to_line(self):

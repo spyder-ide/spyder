@@ -16,7 +16,7 @@ from typing import Any, Callable, List, Dict, Tuple, Set, Optional
 # Third-party imports
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import Qt, Signal, QAbstractListModel, QModelIndex
-from qtpy.QtWidgets import QMessageBox, QAction
+from qtpy.QtWidgets import QMessageBox, QAction, QDialog
 
 # Local imports
 from spyder.utils.sourcecode import camel_case_to_snake_case
@@ -111,7 +111,8 @@ class RunExecutorListModel(QAbstractListModel):
         return executor_name, executor
 
     def get_initial_index(self) -> int:
-        last_executor = self.parent.get_last_used_executor(self.uuid)
+        last_executor = self.parent.get_last_used_executor_parameters(
+            self.uuid)
         executor_id = last_executor['executor']
         pos = 0
         if executor_id is not None:
@@ -208,6 +209,10 @@ class RunConfigurationListModel(QAbstractListModel):
             self, uuid: str, executor: str) -> Optional[str]:
         return self.parent.get_last_used_execution_params(uuid, executor)
 
+    def get_last_used_executor_parameters(
+            self, uuid: str) -> StoredRunConfigurationExecutor:
+        return self.parent.get_last_used_executor_parameters(uuid)
+
     def pop(self, uuid: str) -> RunConfigurationMetadata:
         item = self.run_configurations.pop(uuid)
         self.metadata_index = dict(enumerate(self.run_configurations))
@@ -231,6 +236,9 @@ class RunConfigurationListModel(QAbstractListModel):
         self.inverted_index[uuid] = len(self.inverted_index)
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
+
+    def __contains__(self, uuid: str):
+        return uuid in self.run_configurations
 
 
 class RunExecutorParameters(QAbstractListModel):
@@ -329,7 +337,7 @@ class RunContainer(PluginMainContainer):
         self.currently_selected_configuration: Optional[str] = None
 
         self.run_action = self.create_action(
-            RunActions.Run, _('&Run (New)'), self.create_icon('run'),
+            RunActions.Run, _('&Run'), self.create_icon('run'),
             tip=_("Run file"), triggered=self.run_file,
             register_shortcut=True, shortcut_context='_',
             context=Qt.ApplicationShortcut)
@@ -337,12 +345,15 @@ class RunContainer(PluginMainContainer):
         self.configure_action = self.create_action(
             RunActions.Configure, _('&Configuration per file...'),
             self.create_icon('run_settings'), tip=_('Run settings'),
-            triggered=self.edit_run_configurations, register_shortcut=True,
-            shortcut_context='_'
+            triggered=functools.partial(self.edit_run_configurations,
+                                        display_dialog=True,
+                                        disable_run_btn=True),
+            register_shortcut=True,
+            shortcut_context='_', context=Qt.ApplicationShortcut
         )
 
         self.re_run_action = self.create_action(
-            RunActions.ReRun, _('Re-run &last script'),
+            RunActions.ReRun, _('Re-run &last file'),
             self.create_icon('run_again'), tip=_('Run again last file'),
             triggered=self.re_run_file, register_shortcut=True,
             shortcut_context='_'
@@ -367,6 +378,9 @@ class RunContainer(PluginMainContainer):
             run_conf = input_provider.get_run_configuration_per_context(
                 context, action_name)
 
+            if run_conf is None:
+                return
+
             uuid = self.currently_selected_configuration
             super_metadata = self.metadata_model[uuid]
             extension = super_metadata['input_extension']
@@ -375,7 +389,7 @@ class RunContainer(PluginMainContainer):
             dirname = osp.dirname(path)
             dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
-            last_executor = self.get_last_used_executor(uuid)
+            last_executor = self.get_last_used_executor_parameters(uuid)
             last_executor = last_executor['executor']
             run_comb = (extension, context)
             if (last_executor is None or
@@ -404,36 +418,35 @@ class RunContainer(PluginMainContainer):
             executor.exec_run_configuration(run_conf, ext_exec_params)
         return annonymous_execution_run
 
-    def run_file(self):
-        dialog = RunDialog(self, self.metadata_model, self.executor_model,
-                           self.parameter_model)
-        dialog.setup()
-        dialog.exec_()
+    def run_file(self, selected_uuid=None):
+        if not isinstance(selected_uuid, bool) and selected_uuid is not None:
+            self.switch_focused_run_configuration(selected_uuid)
 
-        status = dialog.status
+        exec_params = self.get_last_used_executor_parameters(
+            self.currently_selected_configuration)
+
+        first_execution = exec_params['first_execution']
+        display_dialog = exec_params['display_dialog']
+        display_dialog = display_dialog or first_execution
+
+        status, conf = self.edit_run_configurations(
+            display_dialog=display_dialog)
+
         if status == RunDialogStatus.Close:
             return
 
-        uuid, executor_name, ext_params = dialog.get_configuration()
-
-        if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
-            exec_uuid = ext_params['uuid']
-            if exec_uuid is not None:
-                context, ext = self.metadata_model.get_metadata_context_extension(
-                    uuid)
-                context_name = context['name']
-                context_id = getattr(RunContext, context_name)
-                all_exec_params = self.get_executor_configuration_parameters(
-                    executor_name, ext, context_id)
-                exec_params = all_exec_params['params']
-                exec_params[exec_uuid] = ext_params
-                self.set_executor_configuration_parameters(
-                    executor_name, ext, context_id, all_exec_params)
+        (uuid, executor_name,
+         ext_params, __) = conf
 
         if (status & RunDialogStatus.Run) == RunDialogStatus.Run:
             provider = self.run_metadata_provider[uuid]
             executor = self.run_executors[executor_name]
             run_conf = provider.get_run_configuration(uuid)
+
+            context, ext = self.metadata_model.get_metadata_context_extension(
+                    uuid)
+            context_name = context['name']
+            context_id = getattr(RunContext, context_name)
 
             working_dir_opts = ext_params['params']['working_dir']
             working_dir_source = working_dir_opts['source']
@@ -450,20 +463,55 @@ class RunContainer(PluginMainContainer):
 
             executor.exec_run_configuration(run_conf, ext_params)
 
+
+    def edit_run_configurations(self, display_dialog=True,
+                                disable_run_btn=False):
+        dialog = RunDialog(self, self.metadata_model, self.executor_model,
+                           self.parameter_model,
+                           disable_run_btn=disable_run_btn)
+        dialog.setup()
+
+        if display_dialog:
+            dialog.exec_()
+        else:
+            dialog.run_btn_clicked()
+            dialog.accept()
+
+        status = dialog.status
+        if status == RunDialogStatus.Close:
+            return status, tuple()
+
+        (uuid, executor_name,
+         ext_params, open_dialog) = dialog.get_configuration()
+
+        if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
+            exec_uuid = ext_params['uuid']
+            if exec_uuid is not None:
+                context, ext = self.metadata_model.get_metadata_context_extension(
+                    uuid)
+                context_name = context['name']
+                context_id = getattr(RunContext, context_name)
+                all_exec_params = self.get_executor_configuration_parameters(
+                    executor_name, ext, context_id)
+                exec_params = all_exec_params['params']
+                exec_params[exec_uuid] = ext_params
+                self.set_executor_configuration_parameters(
+                    executor_name, ext, context_id, all_exec_params)
+
             last_used_conf = StoredRunConfigurationExecutor(
-                executor=executor_name, selected=ext_params['uuid'])
+                executor=executor_name, selected=ext_params['uuid'],
+                display_dialog=open_dialog, first_execution=False)
 
             self.set_last_used_execution_params(uuid, last_used_conf)
 
-    def edit_run_configurations(self):
-        pass
+        return status, (uuid, executor_name, ext_params, open_dialog)
 
     def re_run_file(self):
         pass
 
     def switch_focused_run_configuration(self, uuid: Optional[str]):
         uuid = uuid or None
-        if uuid is not None:
+        if uuid is not None and uuid != self.currently_selected_configuration:
             self.run_action.setEnabled(True)
             self.currently_selected_configuration = uuid
             self.metadata_model.set_current_run_configuration(uuid)
@@ -472,13 +520,19 @@ class RunContainer(PluginMainContainer):
             self.current_input_provider = metadata['source']
             self.current_input_extension = metadata['input_extension']
 
+            input_provider = self.run_metadata_provider[uuid]
+            input_provider.focus_run_configuration(uuid)
+
             for context, act in self.context_actions:
                 status = (self.current_input_extension,
                           context) in self.executor_model
                 action, __ = self.context_actions[(context, act)]
                 action.setEnabled(status)
-        else:
+        elif uuid is None:
             self.run_action.setEnabled(False)
+            for context, act in self.context_actions:
+                action, __ = self.context_actions[(context, act)]
+                action.setEnabled(False)
 
     def set_current_working_dir(self, path: str):
         self.current_working_dir = path
@@ -807,9 +861,11 @@ class RunContainer(PluginMainContainer):
         all_executor_params[executor_name] = executor_params
         self.set_conf('parameters', all_executor_params)
 
-    def get_last_used_executor(self, uuid: str) -> StoredRunConfigurationExecutor:
+    def get_last_used_executor_parameters(
+            self, uuid: str) -> StoredRunConfigurationExecutor:
         """
-        Retrieve the last used executor for a given run configuration.
+        Retrieve the last used execution parameters for a given
+        run configuration.
 
         Parameters
         ----------
@@ -818,7 +874,7 @@ class RunContainer(PluginMainContainer):
 
         Returns
         -------
-        last_used_executor: StoredRunConfigurationExecutor
+        last_used_params: StoredRunConfigurationExecutor
             A dictionary containing the last used executor and parameters
             for the given run configuration.
         """
@@ -826,9 +882,11 @@ class RunContainer(PluginMainContainer):
             str, StoredRunConfigurationExecutor] = self.get_conf(
                 'last_used_parameters', default={})
 
-        last_used_executor = mru_executors_uuids.get(
-            uuid, StoredRunConfigurationExecutor(executor=None, selected=None))
-        return last_used_executor
+        last_used_params = mru_executors_uuids.get(
+            uuid, StoredRunConfigurationExecutor(
+                executor=None, selected=None, display_dialog=False,
+                first_execution=True))
+        return last_used_params
 
     def get_last_used_execution_params(
             self, uuid: str, executor_name: str) -> Optional[str]:
@@ -856,7 +914,8 @@ class RunContainer(PluginMainContainer):
                 'last_used_parameters', default={})
 
         default = StoredRunConfigurationExecutor(
-            executor=executor_name, selected=None)
+            executor=executor_name, selected=None, display_dialog=False,
+            first_execution=True)
         params = mru_executors_uuids.get(uuid, default)
 
         last_used_params = None

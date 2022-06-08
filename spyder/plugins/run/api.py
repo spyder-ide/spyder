@@ -243,6 +243,14 @@ class StoredRunConfigurationExecutor(TypedDict):
     # if using default or transient settings.
     selected: Optional[str]
 
+    # If True, then the run dialog will displayed every time the run
+    # configuration is executed. Otherwise not.
+    display_dialog: bool
+
+    # True if the configuration has been executed in the past, False
+    # otherwise.
+    first_execution: bool
+
 
 class RunConfigurationProvider:
     """
@@ -276,7 +284,7 @@ class RunConfigurationProvider:
 
     def get_run_configuration_per_context(
             self, context: str,
-            action_name: Optional[str] = None) -> RunConfiguration:
+            action_name: Optional[str] = None) -> Optional[RunConfiguration]:
         """
         Return the run information for the given context.
 
@@ -295,12 +303,28 @@ class RunConfigurationProvider:
 
         Returns
         -------
-        configuration: RunConfiguration
+        configuration: Optional[RunConfiguration]
             A dictionary containing the information required by the run
-            executor.
+            executor. If None, then the provider indicates to the Run plugin
+            that the input needs to be discarded.
         """
         raise NotImplementedError(f'{type(self)} must implement '
                                   'get_run_configuration_per_context')
+
+    def focus_run_configuration(self, uuid: str):
+        """
+        Switch the focus of the run configuration provider to
+        the run configuration given by parameter.
+
+        Arguments
+        ---------
+        context: str
+            The unique identifier for the run configuration that should be
+            focused on, such id should have been registered previously via
+            `register_run_configuration_metadata` on the Run plugin.
+        """
+        raise NotImplementedError(f'{type(self)} must implement '
+                                  'focus_run_configuration')
 
 
 RunExecuteFunc = Callable[

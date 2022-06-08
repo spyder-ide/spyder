@@ -51,7 +51,7 @@ WDIR_USE_CWD_DIR_OPTION = 'default/wdir/use_cwd_directory'
 WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
 WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 
-ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
+ALWAYS_OPEN_FIRST_RUN = _("Always show %s for this run configuration")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
@@ -379,7 +379,7 @@ class BaseRunConfigDialog(QDialog):
     """Run configuration dialog box, base widget"""
     size_change = Signal(QSize)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, disable_run_btn=False):
         QDialog.__init__(self, parent)
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
@@ -393,6 +393,7 @@ class BaseRunConfigDialog(QDialog):
         self.setWindowIcon(ima.icon('run_settings'))
         layout = QVBoxLayout()
         self.setLayout(layout)
+        self.disable_run_btn = disable_run_btn
 
     def add_widgets(self, *widgets_or_spacings):
         """Add widgets/spacing to dialog vertical layout"""
@@ -407,9 +408,10 @@ class BaseRunConfigDialog(QDialog):
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
         bbox = QDialogButtonBox(stdbtns)
-        run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+        if not self.disable_run_btn:
+            run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+            run_btn.clicked.connect(self.run_btn_clicked)
         reset_deafults_btn = bbox.addButton(_('Reset'), QDialogButtonBox.ResetRole)
-        run_btn.clicked.connect(self.run_btn_clicked)
         reset_deafults_btn.clicked.connect(self.reset_btn_clicked)
         bbox.accepted.connect(self.accept)
         bbox.accepted.connect(self.ok_btn_clicked)
@@ -553,8 +555,8 @@ class RunDialog(BaseRunConfigDialog):
     """Run dialog used to configure run executors."""
 
     def __init__(self, parent=None, run_conf_model=None, executors_model=None,
-                 parameter_model=None):
-        super().__init__(parent)
+                 parameter_model=None, disable_run_btn=False):
+        super().__init__(parent, disable_run_btn=disable_run_btn)
         self.run_conf_model = run_conf_model
         self.executors_model = executors_model
         self.parameter_model = parameter_model
@@ -737,6 +739,9 @@ class RunDialog(BaseRunConfigDialog):
             self, context, input_extension, metadata)
         self.stack.addWidget(self.current_widget)
 
+        if uuid not in self.run_conf_model:
+            return
+
         stored_parameters = self.run_conf_model.get_run_configuration_parameters(
             uuid, executor_name)
 
@@ -744,12 +749,16 @@ class RunDialog(BaseRunConfigDialog):
 
         selected_params = self.run_conf_model.get_last_used_execution_params(
             uuid, executor_name)
+        all_selected_params = (
+            self.run_conf_model.get_last_used_executor_parameters(uuid))
+        re_open_dialog = all_selected_params['display_dialog']
         index = self.parameter_model.get_parameters_index(selected_params)
 
         if self.parameters_combo.count() == 0:
             self.index_to_select = index
 
         self.parameters_combo.setCurrentIndex(index)
+        self.firstrun_cb.setChecked(re_open_dialog)
         self.adjustSize()
 
     def reset_btn_clicked(self):
@@ -804,9 +813,12 @@ class RunDialog(BaseRunConfigDialog):
             self.configuration_combo.currentIndex()
         )
 
-        self.saved_conf = metadata_info['uuid'], executor_name, ext_exec_params
+        open_dialog = self.firstrun_cb.isChecked()
+
+        self.saved_conf = (metadata_info['uuid'], executor_name,
+                           ext_exec_params, open_dialog)
         return super().accept()
 
     def get_configuration(self) -> Tuple[
-            str, str, ExtendedRunExecutionParameters]:
+            str, str, ExtendedRunExecutionParameters, bool]:
         return self.saved_conf

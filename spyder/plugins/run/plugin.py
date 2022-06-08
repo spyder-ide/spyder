@@ -107,10 +107,16 @@ class Run(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
+
         main_menu.add_item_to_application_menu(
             self.get_action(RunActions.Run),
             ApplicationMenus.Run, RunMenuSections.Run
         )
+        main_menu.add_item_to_application_menu(
+            self.get_action(RunActions.Configure),
+            ApplicationMenus.Run, RunMenuSections.Run
+        )
+
         while self.pending_menu_actions != []:
             action = self.pending_menu_actions.pop(0)
             main_menu.add_item_to_application_menu(

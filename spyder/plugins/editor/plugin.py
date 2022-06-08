@@ -20,7 +20,7 @@ import sys
 import time
 import uuid
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Optional
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
@@ -787,17 +787,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                add_shortcut_to_tip=True)
 
         # --- Run toolbar ---
-        configure_action = create_action(
-            self,
-            _("&Configuration per file..."),
-            icon=ima.icon('run_settings'),
-            tip=_("Run settings"),
-            menurole=QAction.NoRole,
-            triggered=self.edit_run_configurations)
-
-        self.register_shortcut(configure_action, context="_",
-                               name="Configure", add_shortcut_to_tip=True)
-
         re_run_action = create_action(self, _("Re-run &last script"),
                                       icon=ima.icon('run_again'),
                             tip=_("Run again last file"),
@@ -1190,7 +1179,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [re_run_last_cell_action, MENU_SEPARATOR,
                             re_run_action,
-                            configure_action, MENU_SEPARATOR]
+                            MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
         run_toolbar_actions = []
@@ -1260,7 +1249,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         )
         self.pythonfile_dependent_actions = [
             #run_action,
-            configure_action,
+            #configure_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             self.debug_action,
@@ -1272,7 +1261,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             blockcomment_action,
             unblockcomment_action,
         ]
-        self.cythonfile_compatible_actions = [configure_action]
+        # self.cythonfile_compatible_actions = [configure_action]
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
@@ -1957,10 +1946,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             cython_enable = python_enable or (
                 programs.is_module_installed('Cython') and editor.is_cython())
             for action in self.pythonfile_dependent_actions:
-                if action in self.cythonfile_compatible_actions:
-                    enable = cython_enable
-                else:
-                    enable = python_enable
+                enable = python_enable
                 action.setEnabled(enable)
             self.sig_file_opened_closed_or_updated.emit(
                 self.get_current_filename(), self.get_current_language())
@@ -3059,7 +3045,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return run_conf
 
     def get_run_configuration_per_context(
-            self, context, action_name) -> RunConfiguration:
+            self, context, action_name) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
         fname = self.get_current_filename()
         __, filename_ext = osp.splitext(fname)
@@ -3068,7 +3054,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         context_name = None
         if context == RunContext.Selection:
             if action_name == 'to line':
-                text, offsets, line_cols, enc = editorstack.run_to_line()
+                ret = editorstack.run_to_line()
+                if ret is not None:
+                    text, offsets, line_cols, enc = ret
+                else:
+                    return
             elif action_name == 'line':
                 text, offsets, line_cols, enc = editorstack.run_from_line()
             else:
@@ -3102,6 +3092,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                     run_input=run_input,
                                     metadata=metadata)
         return run_conf
+
+    def focus_run_configuration(self, uuid: str):
+        fname = self.file_per_id[uuid]
+        editorstack = self.get_current_editorstack()
+        current_fname = self.get_current_filename()
+        if current_fname != fname:
+            editorstack.set_current_filename(fname)
 
     @Slot()
     def edit_run_configurations(self):
