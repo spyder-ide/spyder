@@ -112,6 +112,12 @@ class Run(SpyderPluginV2):
             self.get_action(RunActions.Run),
             ApplicationMenus.Run, RunMenuSections.Run
         )
+
+        main_menu.add_item_to_application_menu(
+            self.get_action(RunActions.ReRun),
+            ApplicationMenus.Run, RunMenuSections.Run
+        )
+
         main_menu.add_item_to_application_menu(
             self.get_action(RunActions.Configure),
             ApplicationMenus.Run, RunMenuSections.Run

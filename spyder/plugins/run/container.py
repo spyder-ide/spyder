@@ -356,15 +356,20 @@ class RunContainer(PluginMainContainer):
             RunActions.ReRun, _('Re-run &last file'),
             self.create_icon('run_again'), tip=_('Run again last file'),
             triggered=self.re_run_file, register_shortcut=True,
-            shortcut_context='_'
+            shortcut_context='_', context=Qt.ApplicationShortcut
         )
+
+        self.re_run_action.setEnabled(False)
 
         self.current_input_provider: Optional[str] = None
         self.current_input_extension: Optional[str] = None
+
         self.context_actions: Dict[
             Tuple[str, str], Tuple[QAction, Callable]] = {}
+
+        self.last_executed_file: Optional[str] = None
         self.last_executed_per_context: Dict[
-            str, Tuple[
+            Tuple[str, str], Tuple[
                 str, RunConfiguration, ExtendedRunExecutionParameters]] = {}
 
     def update_actions(self):
@@ -461,6 +466,9 @@ class RunContainer(PluginMainContainer):
             dirname = dirname.replace("'", r"\'").replace('"', r'\"')
             working_dir_opts['path'] = dirname
 
+            self.last_executed_file = uuid
+            self.re_run_action.setEnabled(True)
+
             executor.exec_run_configuration(run_conf, ext_params)
 
 
@@ -507,7 +515,7 @@ class RunContainer(PluginMainContainer):
         return status, (uuid, executor_name, ext_params, open_dialog)
 
     def re_run_file(self):
-        pass
+        self.run_file(self.last_executed_file)
 
     def switch_focused_run_configuration(self, uuid: Optional[str]):
         uuid = uuid or None
@@ -666,6 +674,10 @@ class RunContainer(PluginMainContainer):
         """
         self.metadata_model.pop(uuid)
         self.run_metadata_provider.pop(uuid)
+
+        if uuid == self.last_executed_file:
+            self.last_executed_file = None
+            self.re_run_action.setEnabled(False)
 
     def register_executor_configuration(
             self, executor: RunExecutor,
