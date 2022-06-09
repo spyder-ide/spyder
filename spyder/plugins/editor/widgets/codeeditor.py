@@ -3318,8 +3318,35 @@ class CodeEditor(TextEditBaseWidget):
             raise RuntimeError("Cell {} not found.".format(repr(cell)))
 
         cursor = QTextCursor(selected_block)
-        cell_code, _, _, _ = self.get_cell_as_executable_code(cursor)
-        return cell_code
+        text, _, off_pos, col_pos = self.get_cell_as_executable_code(cursor)
+        return text
+
+    def get_cell_code_and_position(self, cell):
+        """
+        Get cell code for a given cell.
+
+        If the cell doesn't exist, raises an exception
+        """
+        selected_block = None
+        if is_string(cell):
+            for oedata in self.cell_list():
+                if oedata.def_name == cell:
+                    selected_block = oedata.block
+                    break
+        else:
+            if cell == 0:
+                selected_block = self.document().firstBlock()
+            else:
+                cell_list = list(self.cell_list())
+                if cell <= len(cell_list):
+                    selected_block = cell_list[cell - 1].block
+
+        if not selected_block:
+            raise RuntimeError("Cell {} not found.".format(repr(cell)))
+
+        cursor = QTextCursor(selected_block)
+        text, _, off_pos, col_pos = self.get_cell_as_executable_code(cursor)
+        return text, off_pos, col_pos
 
     def get_cell_count(self):
         """Get number of cells in document."""
@@ -4420,10 +4447,6 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.go_to_definition_from_cursor)
 
         # Run actions
-        self.re_run_last_cell_action = create_action(
-            self, _("Re-run last cell"),
-            shortcut=CONF.get_shortcut('editor', 're-run last cell'),
-            triggered=self.sig_re_run_last_cell.emit)
         self.debug_cell_action = create_action(
             self, _("Debug cell"), icon=ima.icon('debug_cell'),
             shortcut=CONF.get_shortcut('editor', 'debug cell'),
@@ -4466,8 +4489,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Build menu
         self.menu = QMenu(self)
-        actions_1 = [self.re_run_last_cell_action,
-                     self.gotodef_action, None, self.undo_action,
+        actions_1 = [self.gotodef_action, None, self.undo_action,
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
@@ -5300,7 +5322,6 @@ class CodeEditor(TextEditBaseWidget):
                                                 nbformat is not None)
         self.ipynb_convert_action.setVisible(self.is_json() and
                                              nbformat is not None)
-        self.re_run_last_cell_action.setVisible(self.is_python_or_ipython())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
         formatter = CONF.get(

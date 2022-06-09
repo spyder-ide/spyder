@@ -366,22 +366,23 @@ class RunContainer(PluginMainContainer):
 
         self.context_actions: Dict[
             Tuple[str, str], Tuple[QAction, Callable]] = {}
+        self.re_run_actions: Dict[
+            Tuple[str, str], Tuple[QAction, Callable]] = {}
 
         self.last_executed_file: Optional[str] = None
-        self.last_executed_per_context: Dict[
-            Tuple[str, str], Tuple[
-                str, RunConfiguration, ExtendedRunExecutionParameters]] = {}
+        self.last_executed_per_context: Set[Tuple[str, str]] = set()
 
     def update_actions(self):
         pass
 
     def gen_annonymous_execution_run(self, context: str,
-                                     action_name: Optional[str]) -> Callable:
+                                     action_name: Optional[str],
+                                     re_run: bool = False) -> Callable:
         def annonymous_execution_run():
             input_provider = self.run_metadata_provider[
                 self.currently_selected_configuration]
             run_conf = input_provider.get_run_configuration_per_context(
-                context, action_name)
+                context, action_name, re_run=re_run)
 
             if run_conf is None:
                 return
@@ -421,6 +422,13 @@ class RunContainer(PluginMainContainer):
                 uuid=None, name=None, params=exec_params)
             executor = self.run_executors[last_executor]
             executor.exec_run_configuration(run_conf, ext_exec_params)
+
+            self.last_executed_per_context |= {(uuid, context)}
+
+            if (context, action_name) in self.re_run_actions:
+                act, _ = self.re_run_actions[(context, action_name)]
+                act.setEnabled(True)
+
         return annonymous_execution_run
 
     def run_file(self, selected_uuid=None):
@@ -536,10 +544,26 @@ class RunContainer(PluginMainContainer):
                           context) in self.executor_model
                 action, __ = self.context_actions[(context, act)]
                 action.setEnabled(status)
+
+            for context, act in self.re_run_actions:
+                status = (self.current_input_extension,
+                          context) in self.executor_model
+
+                last_run_exists = (
+                    (uuid, context) in self.last_executed_per_context)
+
+                action, __ = self.re_run_actions[(context, act)]
+                action.setEnabled(status and last_run_exists)
+
         elif uuid is None:
             self.run_action.setEnabled(False)
+
             for context, act in self.context_actions:
                 action, __ = self.context_actions[(context, act)]
+                action.setEnabled(False)
+
+            for context, act in self.re_run_actions:
+                action, __ = self.re_run_actions[(context, act)]
                 action.setEnabled(False)
 
     def set_current_working_dir(self, path: str):
@@ -551,7 +575,8 @@ class RunContainer(PluginMainContainer):
                           shortcut_context: Optional[str] = None,
                           register_shortcut: bool = False,
                           extra_action_name: Optional[str] = None,
-                          conjunction_or_preposition: str = "and"
+                          conjunction_or_preposition: str = "and",
+                          re_run: bool = False
                           ) -> QAction:
         """
         Create a run or a "run and do something" button
@@ -579,6 +604,9 @@ class RunContainer(PluginMainContainer):
             The conjunction or preposition used to describe the action that
             should take place after the context. i.e., run <and> advance,
             run selection <from> the current line, etc. Default: and
+        re_run: bool
+            If True, then the button will act as a re-run button instead of
+            a run one.
 
         Notes
         -----
@@ -599,18 +627,20 @@ class RunContainer(PluginMainContainer):
         (file, cell and selection), the editor will register their
         corresponding icons and shortcuts.
         """
-        if (context_name, extra_action_name) in self.context_actions:
+        dict_actions = self.re_run_actions if re_run else self.context_actions
+        if (context_name, extra_action_name) in dict_actions:
             action, __ = self.context_actions[
                 (context_name, extra_action_name)]
             return action
 
-        action_name = f'run {context_name}'
+        prefix = 're-' if re_run else ''
+        action_name = f'{prefix}run {context_name}'
         if extra_action_name is not None:
             action_name = (f'{action_name} {conjunction_or_preposition} '
                            f'{extra_action_name}')
 
         func = self.gen_annonymous_execution_run(
-            context_name, extra_action_name)
+            context_name, extra_action_name, re_run=re_run)
 
         action = self.create_action(
             action_name, text, icon, tip=tip,
@@ -620,15 +650,17 @@ class RunContainer(PluginMainContainer):
             context=Qt.ApplicationShortcut
         )
 
-        self.context_actions[(context_name, extra_action_name)] = (
-            action, func)
+        if re_run:
+            self.re_run_actions[(context_name, extra_action_name)] = (
+                action, func)
+            action.setEnabled(False)
+        else:
+            self.context_actions[(context_name, extra_action_name)] = (
+                action, func)
 
         self.sig_run_action_created.emit(action_name, register_shortcut,
                                          shortcut_context)
         return action
-
-    def create_re_run_button(self, context: Context, extra_behaviour: str):
-        pass
 
     def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,
@@ -678,6 +710,13 @@ class RunContainer(PluginMainContainer):
         if uuid == self.last_executed_file:
             self.last_executed_file = None
             self.re_run_action.setEnabled(False)
+
+        to_remove = set({})
+        for (opened_uuid, context) in self.last_executed_per_context:
+            if opened_uuid == uuid:
+                to_remove |= {(opened_uuid, context)}
+
+        self.last_executed_per_context -= to_remove
 
     def register_executor_configuration(
             self, executor: RunExecutor,

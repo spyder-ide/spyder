@@ -284,7 +284,8 @@ class RunConfigurationProvider:
 
     def get_run_configuration_per_context(
             self, context: str,
-            action_name: Optional[str] = None) -> Optional[RunConfiguration]:
+            action_name: Optional[str] = None,
+            re_run: bool = False) -> Optional[RunConfiguration]:
         """
         Return the run information for the given context.
 
@@ -300,6 +301,9 @@ class RunConfigurationProvider:
             If not None, the name of the action that the provider should take
             after gathering the run configuration input. Else, no action needs
             to take place.
+        re_run: bool
+            If True, then the requested configuration should correspond to the
+            last executed configuration for the given context.
 
         Returns
         -------

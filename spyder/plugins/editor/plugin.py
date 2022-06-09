@@ -295,6 +295,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                   extra_action_name="line",
                                   conjunction_or_preposition="from")
 
+            run.create_run_button(RunContext.Cell,
+                                  _("Re-run last cell"),
+                                  tip=_("Re run last cell "),
+                                  shortcut_context="editor",
+                                  register_shortcut=True,
+                                  add_to_menu=True,
+                                  re_run=True)
+
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
@@ -809,16 +817,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Debug cell",
                                add_shortcut_to_tip=True)
 
-        re_run_last_cell_action = create_action(self,
-                   _("Re-run last cell"),
-                   tip=_("Re run last cell "),
-                   triggered=self.re_run_last_cell,
-                   context=Qt.WidgetShortcut)
-        self.register_shortcut(re_run_last_cell_action,
-                               context="Editor",
-                               name='re-run last cell',
-                               add_shortcut_to_tip=True)
-
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
@@ -1177,9 +1175,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             search_menu_actions + self.main.search_menu_actions)
 
         # ---- Run menu/toolbar construction ----
-        run_menu_actions = [re_run_last_cell_action, MENU_SEPARATOR,
-                            re_run_action,
-                            MENU_SEPARATOR]
+        run_menu_actions = []
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
         run_toolbar_actions = []
@@ -1248,16 +1244,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             debug_toolbar_actions
         )
         self.pythonfile_dependent_actions = [
-            #run_action,
-            #configure_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             self.debug_action,
             self.debug_cell_action,
-            #run_selected_action,
-            #run_cell_action,
-            #run_cell_advance_action,
-            re_run_last_cell_action,
             blockcomment_action,
             unblockcomment_action,
         ]
@@ -3045,7 +3035,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return run_conf
 
     def get_run_configuration_per_context(
-            self, context, action_name) -> Optional[RunConfiguration]:
+            self, context, action_name,
+            re_run=False) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
         fname = self.get_current_filename()
         __, filename_ext = osp.splitext(fname)
@@ -3068,7 +3059,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 path=fname, selection=text, encoding=enc,
                 line_col_bounds=line_cols, character_bounds=offsets)
         elif context == RunContext.Cell:
-            text, offsets, line_cols, cell_name, enc = editorstack.get_cell()
+            if re_run:
+                text, offsets, line_cols, cell_name, enc = editorstack.re_run_last_cell()
+            else:
+                text, offsets, line_cols, cell_name, enc = editorstack.get_cell()
             context_name = 'Cell'
             run_input = CellRun(
                 path=fname, cell=text, cell_name=cell_name, encoding=enc,

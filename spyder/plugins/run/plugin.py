@@ -294,7 +294,8 @@ class Run(SpyderPluginV2):
                           extra_action_name: Optional[str] = None,
                           conjunction_or_preposition: str = "and",
                           add_to_toolbar: bool = False,
-                          add_to_menu: bool = False):
+                          add_to_menu: bool = False,
+                          re_run: bool = False):
         """
         Create a run or a "run and do something" button
         for a specific run context.
@@ -326,6 +327,9 @@ class Run(SpyderPluginV2):
             main toolbar.
         add_to_menu: bool
             If True, then the action will be added to the Run menu.
+        re_run: bool
+            If True, then the button will act as a re-run button instead of
+            a run one.
 
         Notes
         -----
@@ -353,7 +357,8 @@ class Run(SpyderPluginV2):
             shortcut_context=shortcut_context,
             register_shortcut=register_shortcut,
             extra_action_name=extra_action_name,
-            conjunction_or_preposition=conjunction_or_preposition
+            conjunction_or_preposition=conjunction_or_preposition,
+            re_run=re_run
         )
 
         if add_to_toolbar:

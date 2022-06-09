@@ -581,12 +581,6 @@ class EditorStack(QWidget):
             name="go to previous cell",
             parent=self)
 
-        re_run_last_cell = CONF.config_shortcut(
-            self.re_run_last_cell,
-            context="Editor",
-            name="re-run last cell",
-            parent=self)
-
         prev_warning = CONF.config_shortcut(
             lambda: self.sig_prev_warning.emit(),
             context="Editor",
@@ -630,7 +624,7 @@ class EditorStack(QWidget):
                 prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
                 zoom_out, zoom_reset, close_file_1, close_file_2,
                 debug_cell,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+                go_to_next_cell, go_to_previous_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
                 prevtab, nexttab, external_fileexp]
@@ -2461,13 +2455,7 @@ class EditorStack(QWidget):
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
-        editor.sig_run_selection.connect(self.run_selection)
-        editor.sig_run_to_line.connect(self.run_to_line)
-        editor.sig_run_from_line.connect(self.run_from_line)
-        editor.sig_run_cell.connect(self.run_cell)
         editor.sig_debug_cell.connect(self.debug_cell)
-        editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
-        editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
@@ -2848,11 +2836,13 @@ class EditorStack(QWidget):
         editor = self.data[index].editor
 
         try:
-            text = editor.get_cell_code(cell_name)
+            text, off_pos, col_pos = editor.get_cell_code_and_position(cell_name)
+            finfo = self.get_current_finfo()
+            enc = finfo.encoding
         except RuntimeError:
             return
 
-        self._run_cell_text(text, editor, (filename, cell_name))
+        return text, off_pos, col_pos, cell_name, enc
 
     def _run_cell_text(self, text, editor, cell_id, debug=False):
         """Run cell code in the console.

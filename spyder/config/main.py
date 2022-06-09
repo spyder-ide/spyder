@@ -487,7 +487,7 @@ DEFAULTS = [
               'editor/debug cell': 'Alt+Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
-              'editor/re-run last cell': 'Alt+Return',
+              'editor/re-run cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
