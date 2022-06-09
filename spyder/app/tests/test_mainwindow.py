@@ -323,6 +323,8 @@ def main_window(request, tmpdir, qtbot):
         # Not all tests that use this fixture define request.param
         pass
 
+    QApplication.processEvents()
+
     if not hasattr(main_window, 'window') or main_window.window is None:
         from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
         PLUGIN_REGISTRY.reset()
@@ -334,26 +336,28 @@ def main_window(request, tmpdir, qtbot):
     else:
         window = main_window.window
 
-        QApplication.processEvents()
-
         if not request.node.get_closest_marker('no_new_console'):
             # Create a new console to ensure new config is loaded
             # even if the same mainwindow instance is reused
             window.ipyconsole.create_new_client(give_focus=True)
 
     # Wait until console is up
-    shell = window.ipyconsole.get_current_shellwidget()
     try:
-        qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                        timeout=SHELL_TIMEOUT)
+        qtbot.waitUntil(
+            lambda:
+                window.ipyconsole
+                .get_current_shellwidget()._prompt_html is not None,
+            timeout=SHELL_TIMEOUT)
     except Exception:
         # Print content of shellwidget and close window
+        shell = window.ipyconsole.get_current_shellwidget()
         print(shell._control.toPlainText())
         client = window.ipyconsole.get_current_client()
         if client.info_page != client.blank_page:
             print('info_page')
             print(client.info_page)
         main_window.window = None
+        window.deleteLater()
         window.close()
         window = None
         CONF.reset_to_defaults(notification=False)
@@ -387,62 +391,69 @@ def main_window(request, tmpdir, qtbot):
                 print('info_page')
                 print(client.info_page)
             main_window.window = None
+            window.deleteLater()
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
         else:
             # Try to close used mainwindow directly on fixture
-            # after running last expected test that uses the fixture
-            # Currently 'test_out_runfile_runcell'
-            if 'test_out_runfile_runcell' in request.node.name:
+            # after running test that uses the fixture
+            # Currently 'test_out_runfile_runcell' is the last tests so
+            # in order to prevent errors finalizing the test suit such test has
+            # this marker
+            close_main_window = request.node.get_closest_marker(
+                'close_main_window')
+            if close_main_window:
                 main_window.window = None
+                window.deleteLater()
                 window.close()
                 window = None
                 CONF.reset_to_defaults(notification=False)
             else:
-                # Close everything we can think of
-                window.switcher.close()
+                try:
+                    # Close everything we can think of
+                    window.switcher.close()
 
-                # Close editor related elements
-                window.editor.close_all_files()
-                for editorwindow in window.editor.editorwindows:
-                    editorwindow.close()
-                editorstack = window.editor.get_current_editorstack()
-                if editorstack.switcher_dlg:
-                    editorstack.switcher_dlg.close()
+                    # Close editor related elements
+                    window.editor.close_all_files()
+                    for editorwindow in window.editor.editorwindows:
+                        editorwindow.close()
+                    editorstack = window.editor.get_current_editorstack()
+                    if editorstack.switcher_dlg:
+                        editorstack.switcher_dlg.close()
 
-                window.projects.close_project()
+                    window.projects.close_project()
 
-                if window.console.error_dialog:
-                    window.console.close_error_dialog()
+                    if window.console.error_dialog:
+                        window.console.close_error_dialog()
 
-                # Reset cwd
-                window.explorer.chdir(get_home_dir())
+                    # Reset cwd
+                    window.explorer.chdir(get_home_dir())
 
-                # Restore default Spyder Python Path
-                CONF.set(
-                    'main', 'spyder_pythonpath',
-                    CONF.get_default('main', 'spyder_pythonpath'))
+                    # Restore default Spyder Python Path
+                    CONF.set(
+                        'main', 'spyder_pythonpath',
+                        CONF.get_default('main', 'spyder_pythonpath'))
 
-                # Restore run configurations
-                CONF.set('run', 'configurations', [])
+                    # Restore run configurations
+                    CONF.set('run', 'configurations', [])
 
-                # Close consoles
-                (window.ipyconsole.get_widget()
-                    .create_new_client_if_empty) = False
-                window.ipyconsole.get_widget().close_clients()
-                qtbot.wait(2000)
+                    # Close consoles
+                    (window.ipyconsole.get_widget()
+                        .create_new_client_if_empty) = False
+                    window.ipyconsole.restart()
+                    qtbot.wait(2000)
 
-                # Create new console and wait for it to appear
-                window.ipyconsole.create_new_client(give_focus=True)
-                qtbot.waitUntil(
-                    lambda:
-                        window.ipyconsole.get_current_shellwidget()
-                        is not None,
-                    timeout=SHELL_TIMEOUT)
-                shell = window.ipyconsole.get_current_shellwidget()
-                qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                                timeout=SHELL_TIMEOUT)
+                    shell = window.ipyconsole.get_current_shellwidget()
+                    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                                    timeout=SHELL_TIMEOUT)
+                except Exception:
+                    main_window.window = None
+                    window.deleteLater()
+                    window.close()
+                    window = None
+                    CONF.reset_to_defaults(notification=False)
+                    return
 
                 if os.name == 'nt':
                     # Do not test leaks on windows
@@ -488,6 +499,7 @@ def main_window(request, tmpdir, qtbot):
                                 "\nThread " + str(threads) + ":\n")
                             traceback.print_stack(frame)
                     main_window.window = None
+                    window.deleteLater()
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
@@ -501,6 +513,7 @@ def main_window(request, tmpdir, qtbot):
                     subprocesses = [repr(f) for f in proc.children()]
                     show_diff(init_subprocesses, subprocesses, "processes")
                     main_window.window = None
+                    window.deleteLater()
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
@@ -514,6 +527,7 @@ def main_window(request, tmpdir, qtbot):
                     files = [repr(f) for f in proc.open_files()]
                     show_diff(init_files, files, "files")
                     main_window.window = None
+                    window.deleteLater()
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
@@ -523,12 +537,14 @@ def main_window(request, tmpdir, qtbot):
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request, qapp):
     """Cleanup the testing setup once we are finished."""
+    qapp.setQuitOnLastWindowClosed(False)
 
     def close_window():
         # Close last used mainwindow and QApplication if needed
         if hasattr(main_window, 'window') and main_window.window is not None:
             window = main_window.window
             main_window.window = None
+            window.deleteLater()
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
@@ -2466,6 +2482,7 @@ def test_run_static_code_analysis(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.close_main_window
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It stalls the CI sometimes on Linux")
@@ -2489,9 +2506,7 @@ def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
 @pytest.mark.skipif(
     sys.platform == 'darwin' and running_in_ci(),
     reason="It stalls the CI sometimes on MacOS")
-@pytest.mark.skipif(
-    sys.platform.startswith('linux') and running_in_ci(),
-    reason="It stalls the CI sometimes on Linux")
+@pytest.mark.close_main_window
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """
     Test fix for spyder-ide/spyder#6317.
@@ -2550,11 +2565,12 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.close_main_window
 def test_report_issue(main_window, qtbot):
     """Test that the report error dialog opens correctly."""
     main_window.console.report_issue()
-    qtbot.wait(300)
-    assert main_window.console.get_widget()._report_dlg is not None
+    qtbot.waitUntil(
+        lambda: main_window.console.get_widget()._report_dlg is not None)
     assert main_window.console.get_widget()._report_dlg.isVisible()
     assert main_window.console.get_widget()._report_dlg.close()
 
@@ -2656,6 +2672,8 @@ def test_save_on_runfile(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Fails on Linux sometimes")
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     pylint_plugin = main_window.get_plugin(Plugins.Pylint)
@@ -2800,7 +2818,15 @@ def test_preferences_run_section_exists(main_window, qtbot):
     Test for spyder-ide/spyder#13524 regression.
     Ensure the Run section exists.
     """
-    assert preferences_dialog_helper(qtbot, main_window, 'run')
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window, 'run')
+    assert page
+
+    preferences = main_window.preferences
+    container = preferences.get_container()
+    with qtbot.waitSignal(container.dialog.finished, timeout=5000):
+        container.dialog.ok_btn.animateClick()
+
+    assert container.dialog is None
 
 
 @pytest.mark.slow
@@ -2872,6 +2898,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
              False)
+
 
 @pytest.mark.slow
 def test_preferences_change_font_regression(main_window, qtbot):
@@ -2960,6 +2987,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.close_main_window
 def test_preferences_shortcut_reset_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#11132 regression.
@@ -2979,6 +3007,7 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
+@flaky(max_runs=3)
 def test_preferences_change_interpreter(qtbot, main_window):
     """Test that on main interpreter change signal is emitted."""
     # Check original pyls configuration
@@ -4054,7 +4083,11 @@ hello()
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_project
 @pytest.mark.skipif(os.name == 'nt', reason='Times out on Windows')
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and running_in_ci(),
+    reason="Too flaky with Linux on CI")
 @pytest.mark.known_leak
+@pytest.mark.close_main_window
 def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     """
     Test the ordering of requests we send to the LSP at startup when a
@@ -4854,6 +4887,7 @@ def test_debug_unsaved_function(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.close_main_window
 def test_out_runfile_runcell(main_window, qtbot):
     """
     Test that runcell and runfile return values if last statment
