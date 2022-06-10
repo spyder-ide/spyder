@@ -341,6 +341,8 @@ def main_window(request, tmpdir, qtbot):
             # even if the same mainwindow instance is reused
             window.ipyconsole.create_new_client(give_focus=True)
 
+    QApplication.processEvents()
+
     # Wait until console is up
     try:
         qtbot.waitUntil(
@@ -357,7 +359,6 @@ def main_window(request, tmpdir, qtbot):
             print('info_page')
             print(client.info_page)
         main_window.window = None
-        window.deleteLater()
         window.close()
         window = None
         CONF.reset_to_defaults(notification=False)
@@ -391,7 +392,6 @@ def main_window(request, tmpdir, qtbot):
                 print('info_page')
                 print(client.info_page)
             main_window.window = None
-            window.deleteLater()
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
@@ -405,7 +405,6 @@ def main_window(request, tmpdir, qtbot):
                 'close_main_window')
             if close_main_window:
                 main_window.window = None
-                window.deleteLater()
                 window.close()
                 window = None
                 CONF.reset_to_defaults(notification=False)
@@ -442,14 +441,9 @@ def main_window(request, tmpdir, qtbot):
                     (window.ipyconsole.get_widget()
                         .create_new_client_if_empty) = False
                     window.ipyconsole.restart()
-                    qtbot.wait(2000)
 
-                    shell = window.ipyconsole.get_current_shellwidget()
-                    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                                    timeout=SHELL_TIMEOUT)
                 except Exception:
                     main_window.window = None
-                    window.deleteLater()
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
@@ -499,7 +493,6 @@ def main_window(request, tmpdir, qtbot):
                                 "\nThread " + str(threads) + ":\n")
                             traceback.print_stack(frame)
                     main_window.window = None
-                    window.deleteLater()
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
@@ -513,7 +506,6 @@ def main_window(request, tmpdir, qtbot):
                     subprocesses = [repr(f) for f in proc.children()]
                     show_diff(init_subprocesses, subprocesses, "processes")
                     main_window.window = None
-                    window.deleteLater()
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
@@ -527,7 +519,6 @@ def main_window(request, tmpdir, qtbot):
                     files = [repr(f) for f in proc.open_files()]
                     show_diff(init_files, files, "files")
                     main_window.window = None
-                    window.deleteLater()
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
@@ -537,14 +528,12 @@ def main_window(request, tmpdir, qtbot):
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request, qapp):
     """Cleanup the testing setup once we are finished."""
-    qapp.setQuitOnLastWindowClosed(False)
 
     def close_window():
         # Close last used mainwindow and QApplication if needed
         if hasattr(main_window, 'window') and main_window.window is not None:
             window = main_window.window
             main_window.window = None
-            window.deleteLater()
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
@@ -2716,6 +2705,8 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform == 'darwin', reason="Segfaults on MacOS after passing")
 def test_report_comms_error(qtbot, main_window):
     """Test if a comms error is correctly displayed."""
     CONF.set('main', 'show_internal_errors', True)
@@ -2821,12 +2812,12 @@ def test_preferences_run_section_exists(main_window, qtbot):
     dlg, index, page = preferences_dialog_helper(qtbot, main_window, 'run')
     assert page
 
+    dlg.ok_btn.animateClick()
+
     preferences = main_window.preferences
     container = preferences.get_container()
-    with qtbot.waitSignal(container.dialog.finished, timeout=5000):
-        container.dialog.ok_btn.animateClick()
 
-    assert container.dialog is None
+    qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
 @pytest.mark.slow
@@ -2918,10 +2909,9 @@ def test_preferences_change_font_regression(main_window, qtbot):
     preferences = main_window.preferences
     container = preferences.get_container()
 
-    with qtbot.waitSignal(container.dialog.finished, timeout=5000):
-        dlg.ok_btn.animateClick()
+    dlg.ok_btn.animateClick()
 
-    assert container.dialog is None
+    qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
 @pytest.mark.slow
@@ -2987,7 +2977,6 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.close_main_window
 def test_preferences_shortcut_reset_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#11132 regression.
@@ -2999,10 +2988,9 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
     page.reset_to_default(force=True)
     dlg.ok_btn.animateClick()
 
-    preferences = main_window.preferences
-    container = preferences.get_container()
-    qtbot.waitUntil(lambda: container.dialog is None,
-                    timeout=5000)
+    qtbot.waitUntil(
+        lambda: main_window.preferences.get_container().dialog is None,
+        timeout=EVAL_TIMEOUT)
 
 
 @pytest.mark.slow
