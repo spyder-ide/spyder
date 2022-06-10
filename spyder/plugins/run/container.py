@@ -386,10 +386,10 @@ class RunContainer(PluginMainContainer):
         pass
 
     def gen_anonymous_execution_run(self, context: str,
-                                     action_name: Optional[str],
-                                     re_run: bool = False,
-                                     last_executor: Optional[str] = None
-                                     ) -> Callable:
+                                    action_name: Optional[str],
+                                    re_run: bool = False,
+                                    last_executor_name: Optional[str] = None
+                                    ) -> Callable:
         def anonymous_execution_run():
             input_provider = self.run_metadata_provider[
                 self.currently_selected_configuration]
@@ -407,6 +407,7 @@ class RunContainer(PluginMainContainer):
             dirname = osp.dirname(path)
             dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
+            last_executor = last_executor_name
             if last_executor is None:
                 last_executor = self.get_last_used_executor_parameters(uuid)
                 last_executor = last_executor['executor']
@@ -672,7 +673,8 @@ class RunContainer(PluginMainContainer):
                            f'{extra_action_name}')
 
         func = self.gen_anonymous_execution_run(
-            context_name, extra_action_name, re_run=re_run)
+            context_name, extra_action_name, re_run=re_run,
+            last_executor_name=None)
 
         action = self.create_action(
             action_name, text, icon, tip=tip,
@@ -759,7 +761,8 @@ class RunContainer(PluginMainContainer):
                                      selected_executor=executor_name)
         else:
             func = self.gen_anonymous_execution_run(
-                context_name, None, re_run=False, last_executor=executor_name)
+                context_name, None, re_run=False,
+                last_executor_name=executor_name)
 
         action = self.create_action(
             action_name, text, icon, tip=tip,
