@@ -110,6 +110,11 @@ class RunExecutorListModel(QAbstractListModel):
         executor = executors[executor_name]
         return executor_name, executor
 
+    def get_run_executor_index(self, executor_name: str) -> int:
+        ordered_executors = self.executors_per_input[self.current_input]
+        executor_index = ordered_executors[executor_name]
+        return executor_index
+
     def get_initial_index(self) -> int:
         last_executor = self.parent.get_last_used_executor_parameters(
             self.uuid)
@@ -338,7 +343,9 @@ class RunContainer(PluginMainContainer):
 
         self.run_action = self.create_action(
             RunActions.Run, _('&Run'), self.create_icon('run'),
-            tip=_("Run file"), triggered=self.run_file,
+            tip=_("Run file"), triggered=functools.partial(
+                self.run_file, selected_uuid=None,
+                selected_executor=None),
             register_shortcut=True, shortcut_context='_',
             context=Qt.ApplicationShortcut)
 
@@ -347,7 +354,8 @@ class RunContainer(PluginMainContainer):
             self.create_icon('run_settings'), tip=_('Run settings'),
             triggered=functools.partial(self.edit_run_configurations,
                                         display_dialog=True,
-                                        disable_run_btn=True),
+                                        disable_run_btn=True,
+                                        selected_executor=None),
             register_shortcut=True,
             shortcut_context='_', context=Qt.ApplicationShortcut
         )
@@ -368,6 +376,8 @@ class RunContainer(PluginMainContainer):
             Tuple[str, str], Tuple[QAction, Callable]] = {}
         self.re_run_actions: Dict[
             Tuple[str, str], Tuple[QAction, Callable]] = {}
+        self.run_executor_actions: Dict[
+            Tuple[str, str], Tuple[QAction, Callable]] = {}
 
         self.last_executed_file: Optional[str] = None
         self.last_executed_per_context: Set[Tuple[str, str]] = set()
@@ -375,10 +385,12 @@ class RunContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
-    def gen_annonymous_execution_run(self, context: str,
+    def gen_anonymous_execution_run(self, context: str,
                                      action_name: Optional[str],
-                                     re_run: bool = False) -> Callable:
-        def annonymous_execution_run():
+                                     re_run: bool = False,
+                                     last_executor: Optional[str] = None
+                                     ) -> Callable:
+        def anonymous_execution_run():
             input_provider = self.run_metadata_provider[
                 self.currently_selected_configuration]
             run_conf = input_provider.get_run_configuration_per_context(
@@ -395,8 +407,9 @@ class RunContainer(PluginMainContainer):
             dirname = osp.dirname(path)
             dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
-            last_executor = self.get_last_used_executor_parameters(uuid)
-            last_executor = last_executor['executor']
+            if last_executor is None:
+                last_executor = self.get_last_used_executor_parameters(uuid)
+                last_executor = last_executor['executor']
             run_comb = (extension, context)
             if (last_executor is None or
                     not self.executor_model.executor_supports_configuration(
@@ -429,9 +442,9 @@ class RunContainer(PluginMainContainer):
                 act, _ = self.re_run_actions[(context, action_name)]
                 act.setEnabled(True)
 
-        return annonymous_execution_run
+        return anonymous_execution_run
 
-    def run_file(self, selected_uuid=None):
+    def run_file(self, selected_uuid=None, selected_executor=None):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
             self.switch_focused_run_configuration(selected_uuid)
 
@@ -443,7 +456,8 @@ class RunContainer(PluginMainContainer):
         display_dialog = display_dialog or first_execution
 
         status, conf = self.edit_run_configurations(
-            display_dialog=display_dialog)
+            display_dialog=display_dialog,
+            selected_executor=selected_executor)
 
         if status == RunDialogStatus.Close:
             return
@@ -481,11 +495,15 @@ class RunContainer(PluginMainContainer):
 
 
     def edit_run_configurations(self, display_dialog=True,
-                                disable_run_btn=False):
+                                disable_run_btn=False,
+                                selected_executor=None):
         dialog = RunDialog(self, self.metadata_model, self.executor_model,
                            self.parameter_model,
                            disable_run_btn=disable_run_btn)
         dialog.setup()
+
+        if selected_executor is not None:
+            dialog.select_executor(selected_executor)
 
         if display_dialog:
             dialog.exec_()
@@ -523,7 +541,7 @@ class RunContainer(PluginMainContainer):
         return status, (uuid, executor_name, ext_params, open_dialog)
 
     def re_run_file(self):
-        self.run_file(self.last_executed_file)
+        self.run_file(self.last_executed_file, selected_executor=None)
 
     def switch_focused_run_configuration(self, uuid: Optional[str]):
         uuid = uuid or None
@@ -555,6 +573,15 @@ class RunContainer(PluginMainContainer):
                 action, __ = self.re_run_actions[(context, act)]
                 action.setEnabled(status and last_run_exists)
 
+            for context_name, executor_name in self.run_executor_actions:
+                status = self.executor_model.executor_supports_configuration(
+                    executor_name,
+                    (self.current_input_extension, context_name))
+
+                action, __ = self.run_executor_actions[
+                    (context_name, executor_name)]
+                action.setEnabled(status)
+
         elif uuid is None:
             self.run_action.setEnabled(False)
 
@@ -564,6 +591,11 @@ class RunContainer(PluginMainContainer):
 
             for context, act in self.re_run_actions:
                 action, __ = self.re_run_actions[(context, act)]
+                action.setEnabled(False)
+
+            for context_name, executor_name in self.run_executor_actions:
+                action, __ = self.run_executor_actions[
+                    (context_name, executor_name)]
                 action.setEnabled(False)
 
     def set_current_working_dir(self, path: str):
@@ -639,7 +671,7 @@ class RunContainer(PluginMainContainer):
             action_name = (f'{action_name} {conjunction_or_preposition} '
                            f'{extra_action_name}')
 
-        func = self.gen_annonymous_execution_run(
+        func = self.gen_anonymous_execution_run(
             context_name, extra_action_name, re_run=re_run)
 
         action = self.create_action(
@@ -657,6 +689,88 @@ class RunContainer(PluginMainContainer):
         else:
             self.context_actions[(context_name, extra_action_name)] = (
                 action, func)
+
+        self.sig_run_action_created.emit(action_name, register_shortcut,
+                                         shortcut_context)
+        return action
+
+    def create_run_in_executor_button(self, context_name: str,
+                                      executor_name: str,
+                                      text: str,
+                                      icon: Optional[QIcon] = None,
+                                      tip: Optional[str] = None,
+                                      shortcut_context: Optional[str] = None,
+                                      register_shortcut: bool = False,
+                                      ) -> QAction:
+        """
+        Create a "run <context> in <provider>" button for a given run context
+        and executor.
+
+        Parameters
+        ----------
+        context_name: str
+            The identifier of the run context.
+        executor_name: str
+            The identifier of the run executor.
+        text: str
+           Localized text for the action
+        icon: Optional[QIcon]
+            Icon for the action when applied to menu or toolbutton.
+        tip: Optional[str]
+            Tooltip to define for action on menu or toolbar.
+        shortcut_context: Optional[str]
+            Set the `str` context of the shortcut.
+        register_shortcut: bool
+            If True, main window will expose the shortcut in Preferences.
+            The default value is `False`.
+
+        Returns
+        -------
+        action: SpyderAction
+            The corresponding action that was created.
+
+        Notes
+        -----
+        1. The context passed as a parameter must be a subordinate of the
+        context of the current focused run configuration that was
+        registered via `register_run_configuration_metadata`. e.g., Cell can
+        be used if and only if the file was registered.
+
+        2. The button will be registered as `run <context> in <provider>` on
+        the action registry.
+
+        3. The created button will operate over the last focused run input
+        provider.
+
+        4. If the requested button already exists, this method will not do
+        anything, which implies that the first registered shortcut will be the
+        one to be used.
+        """
+        if (context_name, executor_name) in self.run_executor_actions:
+            action, __ = self.run_executor_actions[
+                (context_name, executor_name)]
+            return action
+
+        action_name = f'run {context_name} in {executor_name}'
+
+        func = lambda: None
+        if context_name == RunContext.File:
+            func = functools.partial(self.run_file,
+                                     selected_executor=executor_name)
+        else:
+            func = self.gen_anonymous_execution_run(
+                context_name, None, re_run=False, last_executor=executor_name)
+
+        action = self.create_action(
+            action_name, text, icon, tip=tip,
+            triggered=func,
+            register_shortcut=register_shortcut,
+            shortcut_context=shortcut_context,
+            context=Qt.ApplicationShortcut
+        )
+
+        self.run_executor_actions[
+            (context_name, executor_name)] = (action, func)
 
         self.sig_run_action_created.emit(action_name, register_shortcut,
                                          shortcut_context)

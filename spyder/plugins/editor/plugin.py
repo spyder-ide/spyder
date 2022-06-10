@@ -266,6 +266,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                   add_to_menu=True,
                                   extra_action_name='advance')
 
+            run.create_run_button(RunContext.Cell,
+                                  _("Re-run last cell"),
+                                  tip=_("Re run last cell "),
+                                  shortcut_context="editor",
+                                  register_shortcut=True,
+                                  add_to_menu=True,
+                                  re_run=True)
+
             run.create_run_button(RunContext.Selection,
                                   _("Run &selection or current line"),
                                   icon=ima.icon('run_selection'),
@@ -294,14 +302,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                   add_to_menu=True,
                                   extra_action_name="line",
                                   conjunction_or_preposition="from")
-
-            run.create_run_button(RunContext.Cell,
-                                  _("Re-run last cell"),
-                                  tip=_("Re run last cell "),
-                                  shortcut_context="editor",
-                                  register_shortcut=True,
-                                  add_to_menu=True,
-                                  re_run=True)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -3024,6 +3024,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                         (filename, metadata['input_extension'])}
 
     def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
+        self.focus_run_configuration(metadata_id)
+        self.save()
         metadata = self.metadata_per_id[metadata_id]
         context = metadata['context']['name']
         context = getattr(RunContext, context)
@@ -3038,6 +3040,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self, context, action_name,
             re_run=False) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
+        editorstack.save()
         fname = self.get_current_filename()
         __, filename_ext = osp.splitext(fname)
         fname_ext = filename_ext[1:]

@@ -62,8 +62,7 @@ class SourceMenuSections:
 class RunMenuSections:
     Run = 'run_section'
     RunExtras = 'run_extras_section'
-    Profile = 'profile_section'
-
+    RunInExecutors = 'executors_section'
 
 class DebugMenuSections:
     Run = 'debug_section'

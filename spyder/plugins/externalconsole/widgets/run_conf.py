@@ -74,7 +74,7 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
         interpreter_layout.addWidget(external_group)
 
         # --- General settings ----
-        common_group = QGroupBox(_("General settings"))
+        common_group = QGroupBox(_("Script settings"))
 
         common_layout = QGridLayout(common_group)
 

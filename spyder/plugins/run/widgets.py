@@ -761,6 +761,10 @@ class RunDialog(BaseRunConfigDialog):
         self.firstrun_cb.setChecked(re_open_dialog)
         self.adjustSize()
 
+    def select_executor(self, executor_name: str):
+        self.executor_combo.setCurrentIndex(
+            self.executors_model.get_run_executor_index(executor_name))
+
     def reset_btn_clicked(self):
         self.parameters_combo.setCurrentIndex(-1)
         index = self.executor_combo.currentIndex()

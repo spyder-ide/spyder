@@ -17,6 +17,7 @@ from numpy import short
 # Third-party imports
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
@@ -110,7 +111,8 @@ class Run(SpyderPluginV2):
 
         main_menu.add_item_to_application_menu(
             self.get_action(RunActions.Run),
-            ApplicationMenus.Run, RunMenuSections.Run
+            ApplicationMenus.Run, RunMenuSections.Run,
+            before_section=RunMenuSections.RunExtras
         )
 
         main_menu.add_item_to_application_menu(
@@ -331,6 +333,11 @@ class Run(SpyderPluginV2):
             If True, then the button will act as a re-run button instead of
             a run one.
 
+        Returns
+        -------
+        action: SpyderAction
+            The corresponding action that was created.
+
         Notes
         -----
         1. The context passed as a parameter must be a subordinate of the
@@ -373,7 +380,91 @@ class Run(SpyderPluginV2):
             main_menu = self.get_plugin(Plugins.MainMenu)
             if main_menu:
                 main_menu.add_item_to_application_menu(
-                    action, ApplicationMenus.Run, RunMenuSections.RunExtras
+                    action, ApplicationMenus.Run, RunMenuSections.RunExtras,
+                    before_section=RunMenuSections.RunInExecutors
+                )
+            else:
+                self.pending_menu_actions.append(action)
+        return action
+
+
+    def create_run_in_executor_button(self, context_name: str,
+                                      executor_name: str,
+                                      text: str,
+                                      icon: Optional[QIcon] = None,
+                                      tip: Optional[str] = None,
+                                      shortcut_context: Optional[str] = None,
+                                      register_shortcut: bool = False,
+                                      add_to_toolbar: bool = False,
+                                      add_to_menu: bool = False) -> QAction:
+        """
+        Create a "run <context> in <provider>" button for a given run context
+        and executor.
+
+        Parameters
+        ----------
+        context_name: str
+            The identifier of the run context.
+        executor_name: str
+            The identifier of the run executor.
+        text: str
+           Localized text for the action
+        icon: Optional[QIcon]
+            Icon for the action when applied to menu or toolbutton.
+        tip: Optional[str]
+            Tooltip to define for action on menu or toolbar.
+        shortcut_context: Optional[str]
+            Set the `str` context of the shortcut.
+        register_shortcut: bool
+            If True, main window will expose the shortcut in Preferences.
+            The default value is `False`.
+
+        Returns
+        -------
+        action: SpyderAction
+            The corresponding action that was created.
+
+        Notes
+        -----
+        1. The context passed as a parameter must be a subordinate of the
+        context of the current focused run configuration that was
+        registered via `register_run_configuration_metadata`. e.g., Cell can
+        be used if and only if the file was registered.
+
+        2. The button will be registered as `run <context> in <provider>` on
+        the action registry.
+
+        3. The created button will operate over the last focused run input
+        provider.
+
+        4. If the requested button already exists, this method will not do
+        anything, which implies that the first registered shortcut will be the
+        one to be used.
+        """
+        action = self.get_container().create_run_in_executor_button(
+            context_name,
+            executor_name,
+            text,
+            icon=icon,
+            tip=tip,
+            shortcut_context=shortcut_context,
+            register_shortcut=register_shortcut
+        )
+
+        if add_to_toolbar:
+            toolbar = self.get_plugin(Plugins.Toolbar)
+            if toolbar:
+                toolbar.add_item_to_application_toolbar(
+                    action, ApplicationToolbars.Run)
+            else:
+                self.pending_toolbar_actions.append(action)
+
+        if add_to_menu:
+            main_menu = self.get_plugin(Plugins.MainMenu)
+            if main_menu:
+                main_menu.add_item_to_application_menu(
+                    action, ApplicationMenus.Run,
+                    RunMenuSections.RunInExecutors
                 )
             else:
                 self.pending_menu_actions.append(action)
