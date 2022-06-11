@@ -18,7 +18,7 @@ jobs:
         if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
             build_type=$(echo [\"Full\", \"Lite\"])
         else
-            build_type=$(echo [\"Lite\"])
+            build_type=$(echo [\"Full\"])
         fi
         echo ::set-output name=build_type::{\"build_type\":$(echo $build_type)}
   build:
