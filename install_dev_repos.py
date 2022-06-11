@@ -53,12 +53,16 @@ def get_python_lsp_version():
         for line in f:
             if 'python-lsp-server' not in line:
                 continue
-
-            spec = Requirement(line).specifier
-            version = sorted([s.version for s in spec])[0]
+            specifiers = Requirement(line).specifier
             break
-
-    return version
+        else:
+            return "0.0.0"
+            
+    for specifier in specifiers:
+        if "=" in specifier.operator:
+            return specifier.version
+    else:
+        return "0.0.0"
 
 
 def install_repo(name, not_editable=False):
