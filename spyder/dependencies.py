@@ -334,6 +334,9 @@ class Dependency(object):
 
     def check(self):
         """Check if dependency is installed"""
+        if self.modname == 'spyder_kernels':
+            # TODO: Remove when spyder-kernels 3 is released!
+            return True
         if self.required_version:
             installed = programs.is_module_installed(
                 self.modname,

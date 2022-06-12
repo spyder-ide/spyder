@@ -39,7 +39,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             "<tt>kernel-1234.json</tt>) of the existing kernel, and enter "
             "the SSH information if connecting to a remote machine. "
             "To learn more about starting external kernels and connecting "
-            "to them, see <a href=\"https://docs.spyder-ide.org/5/panes/"
+            "to them, see <a href=\"https://docs.spyder-ide.org/current/panes/"
             "ipythonconsole.html#using-external-kernels\">"
             "our documentation</a>.</p>"))
         main_label.setWordWrap(True)
