@@ -312,9 +312,7 @@ class FinderLineEdit(QLineEdit):
     sig_hide_requested = Signal()
     sig_find_requested = Signal()
 
-    def __init__(self, parent,
-                 regex_base=None,
-                 key_filter_dict=None):
+    def __init__(self, parent, regex_base=None, key_filter_dict=None):
         super(FinderLineEdit, self).__init__(parent)
         self.key_filter_dict = key_filter_dict
 
@@ -340,14 +338,15 @@ class FinderWidget(QWidget):
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
 
-    def __init__(self, parent, regex_base=None,
-                 key_filter_dict=None, find_on_change=False):
-        super(FinderWidget, self).__init__(parent)
+    def __init__(self, parent, regex_base=None, key_filter_dict=None,
+                 find_on_change=False):
+        super().__init__(parent)
         # Parent is assumed to be a spyder widget
         self.text_finder = FinderLineEdit(
             self,
             regex_base=regex_base,
-            key_filter_dict=key_filter_dict)
+            key_filter_dict=key_filter_dict
+        )
         self.text_finder.sig_find_requested.connect(self.do_find)
         if find_on_change:
             self.text_finder.textChanged.connect(self.do_find)

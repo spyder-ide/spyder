@@ -118,7 +118,7 @@ class ShortcutFinder(QLineEdit):
 
     def __init__(self, parent, callback=None, main=None,
                  regex_base=VALID_FINDER_CHARS):
-        super(ShortcutFinder, self).__init__(parent)
+        super().__init__(parent)
         self._parent = parent
         self.main = main
 
