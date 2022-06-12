@@ -25,10 +25,10 @@ class SpyderKernelClient(QtKernelClient):
     # Useful for pdb completion
     control_channel_class = Type(QtZMQSocketChannel)
 
+
 # qtconsole and spyder-kernels depend on jupyter_client
 if hasattr(QtKernelManager, 'provisioner'):
     JUPYTER_CLIENT_GE_7 = True
-    from jupyter_client.utils import run_sync
 else:
     JUPYTER_CLIENT_GE_7 = False
 
