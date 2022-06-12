@@ -14,8 +14,8 @@ import signal
 
 # Third party imports
 from jupyter_client.utils import run_sync
-from qtconsole.client import QtKernelClient, QtZMQSocketChannel
 import psutil
+from qtconsole.client import QtKernelClient, QtZMQSocketChannel
 from qtconsole.manager import QtKernelManager
 from traitlets import Type, DottedObjectName
 
@@ -25,12 +25,6 @@ class SpyderKernelClient(QtKernelClient):
     # Useful for pdb completion
     control_channel_class = Type(QtZMQSocketChannel)
 
-
-# qtconsole and spyder-kernels depend on jupyter_client
-if hasattr(QtKernelManager, 'provisioner'):
-    JUPYTER_CLIENT_GE_7 = True
-else:
-    JUPYTER_CLIENT_GE_7 = False
 
 class SpyderKernelManager(QtKernelManager):
     """
