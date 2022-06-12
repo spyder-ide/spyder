@@ -88,12 +88,14 @@ class ShellConnectMainWidget(PluginMainWidget):
             widget = self.create_new_widget(shellwidget)
             self._stack.addWidget(widget)
             self._shellwidgets[shellwidget_id] = widget
+
             # Add all actions to new widget for shortcuts to work.
             for __, action in self.get_actions().items():
                 if action:
                     widget_actions = widget.actions()
                     if action not in widget_actions:
                         widget.addAction(action)
+
             self.set_shellwidget(shellwidget)
 
     def remove_shellwidget(self, shellwidget):

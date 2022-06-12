@@ -107,11 +107,13 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             key_filter_dict = {
                 Qt.Key_Up: self.editor.previous_row,
                 Qt.Key_Down: self.editor.next_row
-                }
+            }
             self.finder = FinderWidget(
-                self, find_on_change=True,
+                self,
+                find_on_change=True,
                 regex_base=VALID_VARIABLE_CHARS,
-                key_filter_dict=key_filter_dict)
+                key_filter_dict=key_filter_dict
+            )
 
             # Signals
             self.editor.sig_files_dropped.connect(self.import_data)
