@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """Utility functions for tesing Spyder installers."""
-
+ 
 import os
 import glob
 import textwrap
