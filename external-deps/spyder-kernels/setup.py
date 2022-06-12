@@ -36,17 +36,12 @@ def get_version(module='spyder_kernels'):
 
 
 REQUIREMENTS = [
-    'decorator<5; python_version<"3"',
-    'backports.functools-lru-cache; python_version<"3"',
     'cloudpickle',
-    'ipykernel<5; python_version<"3"',
-    'ipykernel>=6.9.2,<7; python_version>="3"',
-    'ipython<6; python_version<"3"',
-    'ipython>=7.31.1,<8; python_version>="3"',
-    'jupyter-client>=5.3.4,<6; python_version<"3"',
-    'jupyter-client>=7.3.1,<8; python_version>="3"',
-    'pyzmq>=17,<20; python_version<"3"',
-    'pyzmq>=22.1.0; python_version>="3"',
+    'ipykernel>=6.9.2,<7',
+    'ipython>=7.31.1,<8',
+    'jupyter-client>=7.3.1,<8',
+    'packaging',
+    'pyzmq>=22.1.0',
     'wurlitzer>=1.0.3;platform_system!="Windows"',
 ]
 
@@ -82,6 +77,7 @@ setup(
     install_requires=REQUIREMENTS,
     extras_require={'test': TEST_REQUIREMENTS},
     include_package_data=True,
+    python_requires='>=3.7',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Framework :: Jupyter',
@@ -89,13 +85,11 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Software Development :: Interpreters',
     ]
 )

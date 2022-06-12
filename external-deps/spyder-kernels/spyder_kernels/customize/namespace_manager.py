@@ -10,10 +10,8 @@ import sys
 
 from IPython.core.getipython import get_ipython
 
-from spyder_kernels.py3compat import PY2
 
-
-class NamespaceManager(object):
+class NamespaceManager:
     """
     Get a namespace and set __file__ to filename for this namespace.
 
@@ -65,7 +63,6 @@ class NamespaceManager(object):
             self.ns_globals, self.ns_locals)
 
         if (self._file_code is not None
-                and not PY2
                 and isinstance(self._file_code, bytes)):
             try:
                 self._file_code = self._file_code.decode()

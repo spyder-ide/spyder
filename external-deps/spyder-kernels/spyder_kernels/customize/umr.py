@@ -9,10 +9,9 @@ import os
 import sys
 
 from spyder_kernels.customize.utils import path_is_library
-from spyder_kernels.py3compat import PY2, _print
 
 
-class UserModuleReloader(object):
+class UserModuleReloader:
     """
     User Module Reloader (UMR) aims at deleting user modules
     to force Python to deeply reload them during import
@@ -43,9 +42,6 @@ class UserModuleReloader(object):
         # pythoncom: See spyder-ide/spyder#7190
         # tensorflow: See spyder-ide/spyder#8697
         other_modules = ['pytorch', 'pythoncom', 'tensorflow']
-        if PY2:
-            py2_modules = ['astropy', 'fastmat']
-            other_modules = other_modules + py2_modules
         self.namelist = namelist + spy_modules + mpl_modules + other_modules
 
         self.pathlist = pathlist
@@ -139,5 +135,5 @@ class UserModuleReloader(object):
         # Report reloaded modules
         if self.verbose and self.modnames_to_reload:
             modnames = self.modnames_to_reload
-            _print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"
-                   % ("Reloaded modules", ": "+", ".join(modnames)))
+            print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"
+                  % ("Reloaded modules", ": "+", ".join(modnames)))

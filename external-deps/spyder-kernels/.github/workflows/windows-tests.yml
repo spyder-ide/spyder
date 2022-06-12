@@ -50,10 +50,6 @@ jobs:
         run: |
           conda info
           conda list
-      - name: Set correct enconding
-        shell: bash -l {0}
-        if: matrix.PYTHON_VERSION == '2.7'
-        run: echo "::set-env name=PYTHONIOENCODING::cp1252"
       - name: Run tests
         shell: bash -l {0}
         run: pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv

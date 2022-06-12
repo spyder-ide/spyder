@@ -13,6 +13,7 @@
 
 import ast
 import bdb
+import builtins
 import cmd
 import io
 import logging
@@ -25,21 +26,15 @@ import warnings
 
 from IPython import __version__ as ipy_version
 from IPython.core.getipython import get_ipython
+from IPython.core.inputtransformer2 import (
+    TransformerManager, leading_indent, leading_empty_lines)
 
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb, get_new_debugger
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.py3compat import (
-    TimeoutError, PY2, _print, encode, compat_exec, FileNotFoundError)
 from spyder_kernels.customize.utils import (
     capture_last_Expr, normalise_filename)
-
-if not PY2:
-    from IPython.core.inputtransformer2 import (
-        TransformerManager, leading_indent, leading_empty_lines)
-else:
-    from IPython.core.inputsplitter import IPythonInputSplitter
 
 
 logger = logging.getLogger(__name__)
@@ -60,42 +55,6 @@ if not hasattr(sys, 'argv'):
 IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 HIDE_CMD_WINDOWS = os.environ.get('SPY_HIDE_CMD') == "True"
 SHOW_INVALID_SYNTAX_MSG = True
-
-
-# =============================================================================
-# Execfile functions
-#
-# The definitions for Python 2 on Windows were taken from the IPython project
-# Copyright (C) The IPython Development Team
-# Distributed under the terms of the modified BSD license
-# =============================================================================
-try:
-    # Python 2
-    import __builtin__ as builtins
-
-except ImportError:
-    # Python 3
-    import builtins
-    basestring = (str,)
-
-
-# =============================================================================
-# Setting console encoding (otherwise Python does not recognize encoding)
-# for Windows platforms
-# =============================================================================
-if os.name == 'nt' and PY2:
-    try:
-        import locale, ctypes
-        _t, _cp = locale.getdefaultlocale('LANG')
-        try:
-            _cp = int(_cp[2:])
-            ctypes.windll.kernel32.SetConsoleCP(_cp)
-            ctypes.windll.kernel32.SetConsoleOutputCP(_cp)
-        except (ValueError, TypeError):
-            # Code page number in locale is not valid
-            pass
-    except Exception:
-        pass
 
 
 # =============================================================================
@@ -121,17 +80,6 @@ try:
     import sitecustomize  #analysis:ignore
 except Exception:
     pass
-
-
-# =============================================================================
-# Add default filesystem encoding on Linux to avoid an error with
-# Matplotlib 1.5 in Python 2 (Fixes Issue 2793)
-# =============================================================================
-if PY2 and sys.platform.startswith('linux'):
-    def _getfilesystemencoding_wrapper():
-        return 'utf-8'
-
-    sys.getfilesystemencoding = _getfilesystemencoding_wrapper
 
 
 # =============================================================================
@@ -282,39 +230,37 @@ except Exception:
 # =============================================================================
 # Multiprocessing adjustments
 # =============================================================================
-# This patch is only needed on Python 3
-if not PY2:
-    # This could fail with changes in Python itself, so we protect it
-    # with a try/except
-    try:
-        import multiprocessing.spawn
-        _old_preparation_data = multiprocessing.spawn.get_preparation_data
+# This could fail with changes in Python itself, so we protect it
+# with a try/except
+try:
+    import multiprocessing.spawn
+    _old_preparation_data = multiprocessing.spawn.get_preparation_data
 
-        def _patched_preparation_data(name):
-            """
-            Patched get_preparation_data to work when all variables are
-            removed before execution.
-            """
-            try:
-                d = _old_preparation_data(name)
-            except AttributeError:
-                main_module = sys.modules['__main__']
-                # Any string for __spec__ does the job
-                main_module.__spec__ = ''
-                d = _old_preparation_data(name)
-            # On windows, there is no fork, so we need to save the main file
-            # and import it
-            if (os.name == 'nt' and 'init_main_from_path' in d
-                    and not os.path.exists(d['init_main_from_path'])):
-                _print(
-                    "Warning: multiprocessing may need the main file to exist. "
-                    "Please save {}".format(d['init_main_from_path']))
-                # Remove path as the subprocess can't do anything with it
-                del d['init_main_from_path']
-            return d
-        multiprocessing.spawn.get_preparation_data = _patched_preparation_data
-    except Exception:
-        pass
+    def _patched_preparation_data(name):
+        """
+        Patched get_preparation_data to work when all variables are
+        removed before execution.
+        """
+        try:
+            d = _old_preparation_data(name)
+        except AttributeError:
+            main_module = sys.modules['__main__']
+            # Any string for __spec__ does the job
+            main_module.__spec__ = ''
+            d = _old_preparation_data(name)
+        # On windows, there is no fork, so we need to save the main file
+        # and import it
+        if (os.name == 'nt' and 'init_main_from_path' in d
+                and not os.path.exists(d['init_main_from_path'])):
+            print(
+                "Warning: multiprocessing may need the main file to exist. "
+                "Please save {}".format(d['init_main_from_path']))
+            # Remove path as the subprocess can't do anything with it
+            del d['init_main_from_path']
+        return d
+    multiprocessing.spawn.get_preparation_data = _patched_preparation_data
+except Exception:
+    pass
 
 
 # =============================================================================
@@ -335,9 +281,7 @@ def cmd_input(prompt=''):
 
 
 pdb.Pdb = SpyderPdb
-
-if not PY2:
-    cmd.input = cmd_input
+cmd.input = cmd_input
 
 
 # =============================================================================
@@ -361,9 +305,9 @@ def post_mortem_excepthook(type, value, tb):
     if not type == SyntaxError:
         # wait for stderr to print (stderr.flush does not work in this case)
         time.sleep(0.1)
-        _print('*' * 40)
-        _print('Entering post mortem debugging...')
-        _print('*' * 40)
+        print('*' * 40)
+        print('Entering post mortem debugging...')
+        print('*' * 40)
         #  add ability to move between frames
         p.send_initial_notification = False
         p.reset()
@@ -381,19 +325,16 @@ def get_current_file_name():
     try:
         return frontend_request(blocking=True).current_filename()
     except Exception:
-        _print("This command failed to be executed because an error occurred"
-               " while trying to get the current file name from Spyder's"
-               " editor. The error was:\n\n")
+        print("This command failed to be executed because an error occurred"
+              " while trying to get the current file name from Spyder's"
+              " editor. The error was:\n\n")
         get_ipython().showtraceback(exception_only=True)
         return None
 
 
 def count_leading_empty_lines(cell):
     """Count the number of leading empty cells."""
-    if PY2:
-        lines = cell.splitlines(True)
-    else:
-        lines = cell.splitlines(keepends=True)
+    lines = cell.splitlines(keepends=True)
     if not lines:
         return 0
     for i, line in enumerate(lines):
@@ -406,21 +347,14 @@ def transform_cell(code, indent_only=False):
     """Transform IPython code to Python code."""
     number_empty_lines = count_leading_empty_lines(code)
     if indent_only:
-        # Not implemented for PY2
-        if PY2:
-            return code
         if not code.endswith('\n'):
             code += '\n'  # Ensure the cell has a trailing newline
         lines = code.splitlines(keepends=True)
         lines = leading_indent(leading_empty_lines(lines))
         code = ''.join(lines)
     else:
-        if PY2:
-            tm = IPythonInputSplitter()
-            return tm.transform_cell(code)
-        else:
-            tm = TransformerManager()
-            code = tm.transform_cell(code)
+        tm = TransformerManager()
+        code = tm.transform_cell(code)
     return '\n' * number_empty_lines + code
 
 
@@ -431,13 +365,8 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
     __tracebackhide__ = True
     global SHOW_INVALID_SYNTAX_MSG
 
-    if PY2:
-        filename = encode(filename)
-        code = encode(code)
-
     if exec_fun is None:
-        # Replace by exec when dropping Python 2
-        exec_fun = compat_exec
+        exec_fun = exec
 
     ipython_shell = get_ipython()
     is_ipython = os.path.splitext(filename)[1] == '.ipy'
@@ -451,15 +380,10 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
                 try:
                     ast_code = ast.parse(transform_cell(code))
                 except SyntaxError:
-                    if PY2:
-                        raise e
-                    else:
-                        # Need to call exec to avoid Syntax Error in Python 2.
-                        # TODO: remove exec when dropping Python 2 support.
-                        exec("raise e from None")
+                    raise e from None
                 else:
                     if SHOW_INVALID_SYNTAX_MSG:
-                        _print(
+                        print(
                             "\nWARNING: This is not valid Python code. "
                             "If you want to use IPython magics, "
                             "flexible indentation, and prompt removal, "
@@ -548,29 +472,21 @@ def _exec_file(filename=None, args=None, wdir=None, namespace=None,
         if os.name == 'nt':
             filename = filename.replace('/', '\\')
 
-    try:
-        filename = filename.decode('utf-8')
-    except (UnicodeError, TypeError, AttributeError):
-        # UnicodeError, TypeError --> eventually raised in Python 2
-        # AttributeError --> systematically raised in Python 3
-        pass
-    if PY2:
-        filename = encode(filename)
     if __umr__.enabled:
         __umr__.run()
-    if args is not None and not isinstance(args, basestring):
+    if args is not None and not isinstance(args, str):
         raise TypeError("expected a character buffer object")
     try:
         file_code = get_file_code(filename)
     except Exception:
-        _print(
+        print(
             "This command failed to be executed because an error occurred"
             " while trying to get the file code from Spyder's"
             " editor. The error was:\n\n")
         get_ipython().showtraceback(exception_only=True)
         return
     if file_code is None:
-        _print("Could not get code from editor.\n")
+        print("Could not get code from editor.\n")
         return
 
     # Normalise the filename
@@ -593,12 +509,6 @@ def _exec_file(filename=None, args=None, wdir=None, namespace=None,
                 pass
 
         if wdir is not None:
-            if PY2:
-                try:
-                    wdir = wdir.decode('utf-8')
-                except (UnicodeError, TypeError):
-                    # UnicodeError, TypeError --> eventually raised in Python 2
-                    pass
             if os.path.isdir(wdir):
                 os.chdir(wdir)
                 # See https://github.com/spyder-ide/spyder/issues/13632
@@ -610,7 +520,7 @@ def _exec_file(filename=None, args=None, wdir=None, namespace=None,
                     except Exception:
                         pass
             else:
-                _print("Working directory {} doesn't exist.\n".format(wdir))
+                print("Working directory {} doesn't exist.\n".format(wdir))
 
         try:
             if __umr__.has_cython:
@@ -628,10 +538,7 @@ def _exec_file(filename=None, args=None, wdir=None, namespace=None,
 # IPykernel 6.3.0+ shadows our runfile because it depends on the Pydev
 # debugger, which adds its own runfile to builtins. So we replace it with
 # our own using exec_lines in start.py
-if PY2:
-    builtins.runfile = runfile
-else:
-    builtins.spyder_runfile = runfile
+builtins.spyder_runfile = runfile
 
 
 def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
@@ -709,26 +616,20 @@ def _exec_cell(cellname, filename=None, post_mortem=False, stack_depth=0,
         # Otherwise code caching doesn't work
         if os.name == 'nt':
             filename = filename.replace('/', '\\')
-    try:
-        filename = filename.decode('utf-8')
-    except (UnicodeError, TypeError, AttributeError):
-        # UnicodeError, TypeError --> eventually raised in Python 2
-        # AttributeError --> systematically raised in Python 3
-        pass
     ipython_shell = get_ipython()
     try:
         # Get code from spyder
         cell_code = frontend_request(
             blocking=True).run_cell(cellname, filename)
     except Exception:
-        _print("This command failed to be executed because an error occurred"
-               " while trying to get the cell code from Spyder's"
-               " editor. The error was:\n\n")
+        print("This command failed to be executed because an error occurred"
+              " while trying to get the cell code from Spyder's"
+              " editor. The error was:\n\n")
         get_ipython().showtraceback(exception_only=True)
         return
 
     if not cell_code or cell_code.strip() == '':
-        _print("Nothing to execute, this cell is empty.\n")
+        print("Nothing to execute, this cell is empty.\n")
         return
 
     # Trigger `post_execute` to exit the additional pre-execution.

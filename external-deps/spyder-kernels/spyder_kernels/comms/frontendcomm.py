@@ -67,7 +67,8 @@ class FrontendComm(CommBase):
             # use the regular shell stream.
             out_stream = self.kernel.shell_streams[0]
         try:
-            ident, msg = self.kernel.session.recv(self.kernel.parent.control_socket, 0)
+            ident, msg = self.kernel.session.recv(
+                self.kernel.parent.control_socket, 0)
         except zmq.error.ContextTerminated:
             return
         except Exception:
@@ -76,21 +77,11 @@ class FrontendComm(CommBase):
         msg_type = msg['header']['msg_type']
 
         handler = self.kernel.control_handlers.get(msg_type, None)
+        if handler is None:
+            self.kernel.log.warning("Unknown message type: %r", msg_type)
+            return
         try:
-            if handler is None:
-                self.kernel.log.warning("Unknown message type: %r", msg_type)
-                return
-
-            if (getattr(asyncio, 'run', False) and
-                    asyncio.iscoroutinefunction(handler)):
-                # This is needed for ipykernel 6+
-                asyncio.run(handler(out_stream, ident, msg))
-            else:
-                # This is required for Python 3.6, which doesn't have
-                # asyncio.run or ipykernel versions less than 6. The
-                # nice thing is that ipykernel 6, which requires
-                # asyncio, doesn't support Python 3.6.
-                handler(out_stream, ident, msg)
+            asyncio.run(handler(out_stream, ident, msg))
         except Exception:
             self.kernel.log.error(
                 "Exception in message handler:", exc_info=True)
@@ -155,7 +146,7 @@ class FrontendComm(CommBase):
         self._set_pickle_protocol(
             msg['content']['data']['pickle_highest_protocol'])
         self.remote_call()._set_pickle_protocol(pickle.HIGHEST_PROTOCOL)
-        # Handle cacahed messages
+        # Handle cached messages
         if comm.comm_id in self._cached_messages:
             for msg in self._cached_messages[comm.comm_id]:
                 comm.handle_msg(msg)

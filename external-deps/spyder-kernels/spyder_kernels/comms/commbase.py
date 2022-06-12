@@ -62,8 +62,7 @@ import traceback
 
 logger = logging.getLogger(__name__)
 
-# To be able to get and set variables between Python 2 and 3
-DEFAULT_PICKLE_PROTOCOL = 2
+DEFAULT_PICKLE_PROTOCOL = 4
 
 # Max timeout (in secs) for blocking calls
 TIMEOUT = 3
@@ -130,7 +129,7 @@ def comm_excepthook(type, value, tb):
 sys.excepthook = comm_excepthook
 
 
-class CommBase(object):
+class CommBase:
     """
     Class with the necessary attributes and methods to handle
     communications between a kernel and a frontend.
@@ -402,7 +401,7 @@ class CommBase(object):
             comm_id=comm_id)
 
     def _get_call_return_value(self, call_dict, comm_id):
-        """_get_call_return_value
+        """
         Send a remote call and return the reply.
 
         If settings['blocking'] == True, this will wait for a reply and return
@@ -488,7 +487,7 @@ class CommBase(object):
         error_wrapper.raise_error()
 
 
-class RemoteCallFactory(object):
+class RemoteCallFactory:
     """Class to create `RemoteCall`s."""
 
     def __init__(self, comms_wrapper, comm_id, callback, **settings):
