@@ -86,10 +86,6 @@ def create_completion_plugin():
         # Remove Kite (In case it was registered via setup.py)
         completions.providers.pop('kite', None)
 
-        def teardown():
-            pass
-
-        request.addfinalizer(teardown)
         return completions
     return completion_plugin_wrap
 
@@ -122,7 +118,8 @@ def completion_plugin_all_started(request, qtbot_module,
     qtbot_module.waitUntil(wait_until_all_started, timeout=30000)
 
     with qtbot_module.waitSignal(
-            completion_plugin.sig_language_completions_available, timeout=30000) as blocker:
+            completion_plugin.sig_language_completions_available,
+            timeout=30000) as blocker:
         completion_plugin.start_completion_services_for_language('python')
 
     capabilities, _ = blocker.args

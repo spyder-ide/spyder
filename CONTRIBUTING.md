@@ -46,7 +46,6 @@ If you use a Conda-based distribution (Anaconda, etc), you can create an environ
 ```bash
 $ conda create -n spyder-dev -c conda-forge --file requirements/conda.txt
 $ conda activate spyder-dev
-(spyder-dev) $ python install_dev_repos.py
 ```
 
 If you are running on macOS, you will also need to install `python.app`, so after activating the environment, run
@@ -61,7 +60,6 @@ You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
 $ mkvirtualenv spyder-dev
 $ workon spyder-dev
 (spyder-dev) $ pip install -e .
-(spyder-dev) $ python install_dev_repos.py --no-install spyder
 ```
 
 

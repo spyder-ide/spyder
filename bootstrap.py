@@ -142,11 +142,6 @@ if not programs.is_module_installed('qtpy', '>=1.1.0'):
 
 # ---- Execute Spyder
 
-if args.show_console:
-    logger.info("(Deprecated) --show console does nothing, now the default "
-                "behavior is to show the console, use --hide-console if you "
-                "want to hide it")
-
 if args.hide_console and os.name == 'nt':
     logger.info("Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console

@@ -24,8 +24,11 @@ BASE_COMMAND = [sys.executable, '-m', 'pip', 'install', '--no-deps']
 
 REPOS = {}
 for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
-    if p.name.startswith('.') or not p.is_dir() and not (
-            (p / 'setup.py').exists() or (p / 'pyproject.toml').exists()):
+    if (
+        p.name.startswith('.')
+        or not p.is_dir()
+        and not ((p / 'setup.py').exists() or (p / 'pyproject.toml').exists())
+    ):
         continue
     try:
         dist = distribution(p.name)._path
@@ -57,7 +60,7 @@ def get_python_lsp_version():
             break
         else:
             return "0.0.0"
-            
+
     for specifier in specifiers:
         if "=" in specifier.operator:
             return specifier.version
