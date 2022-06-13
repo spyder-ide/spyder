@@ -1183,13 +1183,15 @@ class IPythonConsoleWidget(PluginMainWidget):
                     shell_port=kernel_client.shell_port,
                     iopub_port=kernel_client.iopub_port,
                     stdin_port=kernel_client.stdin_port,
-                    hb_port=kernel_client.hb_port)
+                    hb_port=kernel_client.hb_port,
+                    control_port=kernel_client.control_port)
                 newports = self.tunnel_to_kernel(connection_info, hostname,
                                                  sshkey, password)
                 (kernel_client.shell_port,
                  kernel_client.iopub_port,
                  kernel_client.stdin_port,
-                 kernel_client.hb_port) = newports
+                 kernel_client.hb_port,
+                 kernel_client.control_port) = newports
             except Exception as e:
                 QMessageBox.critical(self, _('Connection error'),
                                      _("Could not open ssh tunnel. The "
@@ -2074,9 +2076,10 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         Remote ports are specified in the connection info ci.
         """
-        lports = zmqtunnel.select_random_ports(4)
+        lports = zmqtunnel.select_random_ports(5)
         rports = (connection_info['shell_port'], connection_info['iopub_port'],
-                  connection_info['stdin_port'], connection_info['hb_port'])
+                  connection_info['stdin_port'], connection_info['hb_port'],
+                  connection_info['control_port'])
         remote_ip = connection_info['ip']
         for lp, rp in zip(lports, rports):
             self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password,
