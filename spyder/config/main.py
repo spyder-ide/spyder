@@ -501,7 +501,7 @@ DEFAULTS = [
               'console/clear shell': "Ctrl+L",
               'console/clear line': "Shift+Escape",
               # ---- In Pylint ----
-              'pylint/run analysis': "F8",
+              'pylint/run file in pylint': "F8",
               # ---- In Profiler ----
               'profiler/run file in profiler': "F10",
               # ---- In widgets/ipythonconsole/shell.py ----

@@ -10,6 +10,7 @@ Pylint Code Analysis Plugin.
 
 # Standard library imports
 import os.path as osp
+from typing import List
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
@@ -25,6 +26,10 @@ from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import (PylintWidget,
                                                PylintWidgetActions)
+from spyder.plugins.run.api import (
+    RunContext, RunConfiguration, PossibleRunResult, run_execute,
+    ExtendedRunExecutionParameters, RunExecutor)
+from spyder.plugins.editor.api.run import FileRun
 
 
 # Localization
@@ -35,13 +40,13 @@ class PylintActions:
     AnalyzeCurrentFile = 'run analysis'
 
 
-class Pylint(SpyderDockablePlugin):
+class Pylint(SpyderDockablePlugin, RunExecutor):
 
     NAME = "pylint"
     WIDGET_CLASS = PylintWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = PylintConfigPage
-    REQUIRES = [Plugins.Preferences, Plugins.Editor]
+    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
     OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
@@ -61,6 +66,10 @@ class Pylint(SpyderDockablePlugin):
     word: str
         Word to select on given row.
     """
+
+    def __init__(self, parent, configuration):
+        super().__init__(parent, configuration)
+        RunExecutor.__init__(self)
 
     @staticmethod
     def get_name():
@@ -83,16 +92,20 @@ class Pylint(SpyderDockablePlugin):
             lambda: self.start_code_analysis())
 
         # Add action to application menus
-        pylint_act = self.create_action(
-            PylintActions.AnalyzeCurrentFile,
-            text=_("Run code analysis"),
-            tip=_("Run code analysis"),
-            icon=self.create_icon("pylint"),
-            triggered=lambda: self.start_code_analysis(),
-            context=Qt.ApplicationShortcut,
-            register_shortcut=True
-        )
-        pylint_act.setEnabled(is_module_installed("pylint"))
+        self.run_action = None
+
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': False,
+                'priority': 4
+            }
+        ]
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
@@ -102,11 +115,6 @@ class Pylint(SpyderDockablePlugin):
         # Connect to Editor
         widget.sig_edit_goto_requested.connect(editor.load)
         editor.sig_editor_focus_changed.connect(self._set_filename)
-
-        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-
-        # TODO: use new API when editor has migrated
-        editor.pythonfile_dependent_actions += [pylint_act]
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -127,9 +135,31 @@ class Pylint(SpyderDockablePlugin):
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-        mainmenu.add_item_to_application_menu(
-            pylint_act, menu_id=ApplicationMenus.Source)
+        if self.run_action is not None:
+            mainmenu.add_item_to_application_menu(
+                self.run_action, menu_id=ApplicationMenus.Source)
+
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
+
+        if is_module_installed("pylint"):
+            self.run_action = run.create_run_in_executor_button(
+                RunContext.File,
+                self.NAME,
+                text=_("Run code analysis"),
+                tip=_("Run code analysis"),
+                icon=self.create_icon("pylint"),
+                shortcut_context='pylint',
+                register_shortcut=True,
+                add_to_menu=True
+            )
+
+            mainmenu = self.get_plugin(Plugins.MainMenu)
+            if mainmenu:
+                mainmenu.add_item_to_application_menu(
+                    self.run_action, menu_id=ApplicationMenus.Source)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -139,12 +169,6 @@ class Pylint(SpyderDockablePlugin):
         # Connect to Editor
         widget.sig_edit_goto_requested.disconnect(editor.load)
         editor.sig_editor_focus_changed.disconnect(self._set_filename)
-
-        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-
-        # TODO: use new API when editor has migrated
-        pylint_act.setVisible(False)
-        editor.pythonfile_dependent_actions.remove(pylint_act)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -162,9 +186,15 @@ class Pylint(SpyderDockablePlugin):
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            PylintActions.AnalyzeCurrentFile,
+            self.run_action.name,
             menu_id=ApplicationMenus.Source
         )
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
 
     # --- Private API
     # ------------------------------------------------------------------------
@@ -208,6 +238,19 @@ class Pylint(SpyderDockablePlugin):
         Get current filename in combobox.
         """
         return self.get_widget().get_filename()
+
+    @run_execute(context=RunContext.File)
+    def run_file(
+            self, input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[PossibleRunResult]:
+        self.switch_to_plugin()
+
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+        self.start_code_analysis(filename)
 
     def start_code_analysis(self, filename=None):
         """

@@ -262,12 +262,12 @@ class RunConfigOptions(QWidget):
         common_layout.addWidget(self.clo_edit, 3, 1)
 
         # --- Working directory ---
-        wdir_group = QGroupBox(_("Working directory settings"))
-        wdir_group.setDisabled(True)
+        self.wdir_group = QGroupBox(_("Working directory settings"))
+        self.wdir_group.setDisabled(True)
 
-        self.run_custom_config_radio.toggled.connect(wdir_group.setEnabled)
+        self.run_custom_config_radio.toggled.connect(self.wdir_group.setEnabled)
 
-        wdir_layout = QVBoxLayout(wdir_group)
+        wdir_layout = QVBoxLayout(self.wdir_group)
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
         wdir_layout.addWidget(self.file_dir_radio)
@@ -302,7 +302,7 @@ class RunConfigOptions(QWidget):
         layout.addWidget(self.run_custom_config_radio)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
-        layout.addWidget(wdir_group)
+        layout.addWidget(self.wdir_group)
         layout.addWidget(self.firstrun_cb)
         layout.addStretch(100)
 
@@ -584,13 +584,13 @@ class RunDialog(BaseRunConfigDialog):
         executor_group.setLayout(executor_layout)
 
         # --- Working directory ---
-        wdir_group = QGroupBox(_("Working directory settings"))
-        # wdir_group.setDisabled(True)
-        executor_layout.addWidget(wdir_group)
+        self.wdir_group = QGroupBox(_("Working directory settings"))
+        # self.wdir_group.setDisabled(True)
+        executor_layout.addWidget(self.wdir_group)
 
-        # self.run_custom_config_radio.toggled.connect(wdir_group.setEnabled)
+        # self.run_custom_config_radio.toggled.connect(self.wdir_group.setEnabled)
 
-        wdir_layout = QVBoxLayout(wdir_group)
+        wdir_layout = QVBoxLayout(self.wdir_group)
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
         wdir_layout.addWidget(self.file_dir_radio)
@@ -727,6 +727,9 @@ class RunDialog(BaseRunConfigDialog):
 
         exec_tuple = self.executors_model.get_selected_run_executor(index)
         executor_name, executor_info = exec_tuple
+        enable_cwd = executor_info['requires_cwd']
+        self.wdir_group.setEnabled(enable_cwd)
+
         ConfigWidget = (executor_info['configuration_widget'] or
                         RunExecutorConfigurationGroup)
 
