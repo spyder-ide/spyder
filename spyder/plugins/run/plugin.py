@@ -11,8 +11,8 @@ Run Plugin.
 """
 
 # Standard library imports
+from threading import Lock
 from typing import List, Dict, Optional
-from numpy import short
 
 # Third-party imports
 from qtpy.QtCore import Signal
@@ -30,6 +30,7 @@ from spyder.plugins.run.api import (
     SupportedRunConfiguration, RunExecutor, SupportedExecutionRunConfiguration,
     RunResultViewer, OutputFormat, RunConfigurationMetadata, RunActions)
 from spyder.plugins.run.container import RunContainer
+from spyder.plugins.shortcuts.plugin import Shortcuts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 
@@ -90,6 +91,11 @@ class Run(SpyderPluginV2):
         self.pending_toolbar_actions = []
         self.pending_menu_actions = []
         self.pending_shortcut_actions = []
+        self.all_run_actions = {}
+        self.menu_actions = set({})
+        self.toolbar_actions = set({})
+        self.shortcut_actions = {}
+        self.action_lock = Lock()
 
         self.sig_switch_run_configuration_focus.connect(
             self.switch_focused_run_configuration)
@@ -149,17 +155,68 @@ class Run(SpyderPluginV2):
             toolbar.add_item_to_application_toolbar(
                 action, ApplicationToolbars.Run)
 
-    @on_plugin_teardown(plugin=Plugins.Preferences)
-    def on_preferences_teardown(self):
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.deregister_plugin_preferences(self)
-
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
         while self.pending_shortcut_actions != []:
             args = self.pending_shortcut_actions.pop(0)
             shortcuts.register_shortcut(*args)
+        shortcuts.apply_shortcuts()
+
+    @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_teardown(self):
+        working_dir = self.get_plugin(Plugins.WorkingDirectory)
+        working_dir.sig_current_directory_changed.disconnect(
+            self.switch_working_dir)
+        self.switch_working_dir(None)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+
+        main_menu.remove_item_from_application_menu(
+            RunActions.Run, ApplicationMenus.Run
+        )
+
+        main_menu.remove_item_from_application_menu(
+            RunActions.ReRun, ApplicationMenus.Run
+        )
+
+        main_menu.remove_item_from_application_menu(
+            RunActions.Configure, ApplicationMenus.Run
+        )
+
+        for key in self.menu_actions:
+            (_, _, name) = self.all_run_actions[key]
+            main_menu.remove_item_from_application_menu(
+                name, ApplicationMenus.Run
+            )
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.remove_item_from_application_toolbar(
+            RunActions.Run, ApplicationToolbars.Run)
+
+        for key in self.toolbar_actions:
+            (_, _, name) = self.all_run_actions[key]
+            toolbar.remove_item_from_application_toolbar(
+                name, ApplicationToolbars.Run
+            )
+
+    @on_plugin_teardown(plugin=Plugins.Shortcuts)
+    def on_shortcuts_teardown(self):
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
+        for key in self.shortcut_actions:
+            (action, _, name) = self.all_run_actions[key]
+            shortcut_context = self.shortcut_actions[key]
+            shortcuts.unregister_shortcut(
+                action, shortcut_context, name)
         shortcuts.apply_shortcuts()
 
     # --- Public API
@@ -297,9 +354,9 @@ class Run(SpyderPluginV2):
                           conjunction_or_preposition: str = "and",
                           add_to_toolbar: bool = False,
                           add_to_menu: bool = False,
-                          re_run: bool = False):
+                          re_run: bool = False) -> QAction:
         """
-        Create a run or a "run and do something" button
+        Create a run or a "run and do something" (optionally re-run) button
         for a specific run context.
 
         Parameters
@@ -357,6 +414,9 @@ class Run(SpyderPluginV2):
         (file, cell and selection), the editor will register their
         corresponding icons and shortcuts.
         """
+        key = (context_name, extra_action_name, conjunction_or_preposition,
+               re_run)
+
         action = self.get_container().create_run_button(
             context_name, text,
             icon=icon,
@@ -376,6 +436,8 @@ class Run(SpyderPluginV2):
             else:
                 self.pending_toolbar_actions.append(action)
 
+            self.toolbar_actions |= {key}
+
         if add_to_menu:
             main_menu = self.get_plugin(Plugins.MainMenu)
             if main_menu:
@@ -385,8 +447,72 @@ class Run(SpyderPluginV2):
                 )
             else:
                 self.pending_menu_actions.append(action)
+
+            self.menu_actions |= {key}
+
+        if register_shortcut:
+            self.shortcut_actions[key] = shortcut_context
+
+        with self.action_lock:
+            (_, count, _) = self.all_run_actions.get(key, (None, 0, None))
+            count += 1
+            self.all_run_actions[key] = (action, count, action.name)
         return action
 
+    def destroy_run_button(self, context_name: str,
+                           extra_action_name: Optional[str] = None,
+                           conjunction_or_preposition: str = "and",
+                           re_run: bool = False):
+        """
+        Destroy a run or a "run and do something" (optionally re-run) button
+        for a specific run context.
+
+        Parameters
+        ----------
+        context_name: str
+            The identifier of the run context.
+        extra_action_name: Optional[str]
+            The name of the action to execute on the run input provider
+            after requesting the run input.
+        conjunction_or_preposition: str
+            The conjunction or preposition used to describe the action that
+            should take place after the context. i.e., run <and> advance,
+            run selection <from> the current line, etc. Default: "and".
+        re_run: bool
+            If True, then the button was registered as a re-run button
+            instead of a run one.
+
+        Notes
+        -----
+        1. The action will be removed from the main menu and toolbar if and
+        only if there is no longer a RunInputProvider that registered the same
+        action and has not called this method.
+        """
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
+
+        key = (context_name, extra_action_name, conjunction_or_preposition,
+               re_run)
+        with self.action_lock:
+            action, count, name = self.all_run_actions[key]
+
+            count -= 1
+            if count == 0:
+                self.all_run_actions.pop(key)
+                if key in self.menu_actions and main_menu:
+                    main_menu.remove_item_from_application_menu(
+                        name, menu_id=ApplicationMenus.Run)
+                if key in self.toolbar_actions and toolbar:
+                    toolbar.remove_item_from_application_toolbar(
+                        name, toolbar_id=ApplicationToolbars.Run)
+                if key in self.shortcut_actions and shortcuts:
+                    shortcut_context = self.shortcut_actions[key]
+                    shortcuts.unregister_shortcut(
+                        action, shortcut_context, name)
+                    shortcuts.apply_shortcuts()
+            else:
+                self.all_run_actions[key] = (action, count, name)
 
     def create_run_in_executor_button(self, context_name: str,
                                       executor_name: str,
@@ -441,6 +567,8 @@ class Run(SpyderPluginV2):
         anything, which implies that the first registered shortcut will be the
         one to be used.
         """
+        key = (context_name, executor_name, None, False)
+
         action = self.get_container().create_run_in_executor_button(
             context_name,
             executor_name,
@@ -459,6 +587,8 @@ class Run(SpyderPluginV2):
             else:
                 self.pending_toolbar_actions.append(action)
 
+            self.toolbar_actions |= {key}
+
         if add_to_menu:
             main_menu = self.get_plugin(Plugins.MainMenu)
             if main_menu:
@@ -468,7 +598,29 @@ class Run(SpyderPluginV2):
                 )
             else:
                 self.pending_menu_actions.append(action)
+
+            self.menu_actions |= {key}
+
+        if register_shortcut:
+            self.shortcut_actions[key] = shortcut_context
+
+        self.all_run_actions[key] = (action, 1, action.name)
         return action
+
+    def destroy_run_in_executor_button(self, context_name: str,
+                                       executor_name: str):
+        """
+        Destroy a "run <context> in <provider>" button for a given run context
+        and executor.
+
+        Parameters
+        ----------
+        context_name: str
+            The identifier of the run context.
+        executor_name: str
+            The identifier of the run executor.
+        """
+        self.destroy_run_button(context_name, executor_name, None)
 
     # --- Private API
     # ------------------------------------------------------------------------

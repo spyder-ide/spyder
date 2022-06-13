@@ -146,6 +146,8 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
         run = self.get_plugin(Plugins.Run)
         run.deregister_executor_configuration(
             self, self.executor_configuration)
+        run.destroy_run_in_executor_button(
+            RunContext.File, self.NAME)
 
     # --- Public API
     # ------------------------------------------------------------------------
