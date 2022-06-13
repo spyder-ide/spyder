@@ -1190,8 +1190,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                  kernel_client.iopub_port,
                  kernel_client.stdin_port,
                  kernel_client.hb_port) = newports
-                # Save parameters to connect comm later
-                kernel_client.ssh_parameters = (hostname, sshkey, password)
             except Exception as e:
                 QMessageBox.critical(self, _('Connection error'),
                                      _("Could not open ssh tunnel. The "
