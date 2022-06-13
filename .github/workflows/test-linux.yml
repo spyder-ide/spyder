@@ -40,7 +40,7 @@ jobs:
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
       USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
-      USE_GDB: 'true'
+      USE_GDB: 'false'
     strategy:
       fail-fast: false
       matrix:

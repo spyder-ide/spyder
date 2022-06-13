@@ -1169,6 +1169,8 @@ def spam():
 @pytest.mark.skipif(not running_in_ci(), reason='Run tests only on CI.')
 @pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
                     reason="Quite flaky with Linux on CI")
+@pytest.mark.skipif(running_in_ci() and sys.platform == 'darwin',
+                    reason="Quite flaky with MacOS on CI")
 @flaky(max_runs=5)
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""
