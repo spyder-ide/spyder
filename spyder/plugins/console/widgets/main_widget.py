@@ -467,6 +467,7 @@ class ConsoleWidget(PluginMainWidget):
         """
         Remove error dialog.
         """
+        self.error_dlg.disconnect()
         self.error_dlg = None
 
     @Slot()
