@@ -43,6 +43,7 @@ class PreferencesContainer(PluginMainContainer):
 
         def _dialog_finished(result_code):
             """Restore preferences dialog instance variable."""
+            self.dialog.disconnect()
             self.dialog = None
 
         if self.dialog is None:
@@ -97,7 +98,8 @@ class PreferencesContainer(PluginMainContainer):
 
     def close_preferences(self):
         """Close preferences"""
-        self.dialog.close()
+        if self.dialog is not None:
+            self.dialog.close()
 
     def show_preferences(self):
         """Show preferences."""
