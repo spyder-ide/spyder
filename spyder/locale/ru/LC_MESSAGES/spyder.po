@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-09 12:58-0500\n"
-"PO-Revision-Date: 2022-05-09 19:24\n"
+"PO-Revision-Date: 2022-06-14 16:17\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -222,7 +222,8 @@ msgstr "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 #: spyder/config/manager.py:649
 msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr ""
+msgstr "При загрузке конфигурации Spyder произошла ошибка. Для запуска Spyder вам нужно перенастроить их.\n\n"
+"Хотите ли вы продолжать?"
 
 #: spyder/config/manager.py:657
 msgid "Spyder configuration files resetted!"
