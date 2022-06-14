@@ -1,6 +1,5 @@
 # Scientific packages (for Same as Spyder)
 cython
-defusedxml
 matplotlib
 numpy
 openpyxl
