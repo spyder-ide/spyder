@@ -1299,11 +1299,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         named_options = dict(zip(option_names, options))
         for name, action in self.checkable_actions.items():
             if name in named_options:
-                section = 'completions'
                 if name == 'underline_errors':
                     section = 'editor'
+                    opt = 'underline_errors'
+                else:
+                    section = 'completions'
+                    opt = named_options[name]
 
-                opt = named_options[name]
                 state = self.get_option(opt, section=section)
 
                 # Avoid triggering the action when this action changes state
