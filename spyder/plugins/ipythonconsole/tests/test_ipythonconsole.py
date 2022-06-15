@@ -485,7 +485,8 @@ def test_pylab_client(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.sympy_client
-@pytest.mark.xfail('1.0' < sympy.__version__ < '1.2',
+@pytest.mark.xfail(parse_version('1.0') < parse_version(sympy.__version__) <
+                   parse_version('1.2'),
                    reason="A bug with sympy 1.1.1 and IPython-Qtconsole")
 def test_sympy_client(ipyconsole, qtbot):
     """Test that the SymPy console is working correctly."""
