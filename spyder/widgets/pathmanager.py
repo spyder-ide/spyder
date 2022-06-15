@@ -218,34 +218,36 @@ class PathManager(QDialog):
     def import_pythonpath(self):
         """Import from PYTHONPATH environment variable"""
         env_pypath = os.environ.get('PYTHONPATH', '')
-        if not env_pypath:
-            return
 
-        env_pypath = env_pypath.split(os.pathsep)
-        env_pypath_msg = '<br>'.join(env_pypath)
-        answer = QMessageBox.question(
-            self,
-            _("Import"),
-            _("Do you want to import the contents of your <tt>PYTHONPATH</tt> "
-              "environment variable into Spyder? The following paths will be "
-              "imported:"
-              "<br><br>"
-              + env_pypath_msg),
-            QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
+        if env_pypath:
+            env_pypath = env_pypath.split(os.pathsep)
+            env_pypath_msg = '<br>'.join(env_pypath)
+	        answer = QMessageBox.question(
+                self,
+                _("Import"),
+                _("Do you want to import the contents of your "
+                  "<tt>PYTHONPATH</tt> environment variable into Spyder? "
+                  "The following paths will be imported:"
+                  "<br><br>" + env_pypath_msg),
+                QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
 
-        if answer == QMessageBox.Yes:
-            spy_pypath = self.get_path_dict()
-            n = len(spy_pypath)
+            if answer == QMessageBox.Yes:
+                spy_pypath = self.get_path_dict()
+                n = len(spy_pypath)
 
-            for path in reversed(env_pypath):
-                if (path in spy_pypath) or not self.check_path(path):
-                    continue
-                item = self._create_item(path)
-                self.listwidget.insertItem(n, item)
+                for path in reversed(env_pypath):
+                    if (path in spy_pypath) or not self.check_path(path):
+                        continue
+                    item = self._create_item(path)
+                    self.listwidget.insertItem(n, item)
 
-            self.refresh()
+                self.refresh()
         else:
-            return
+            QMessageBox.information(
+                self,
+                _("PYTHONPATH"),
+                _("<tt>PYTHONPATH</tt> is empty; nothing to import."),
+                QMessageBox.Ok)
 
     @Slot()
     def export_pythonpath(self):
