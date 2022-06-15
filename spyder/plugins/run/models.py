@@ -442,3 +442,10 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
 
     def __iter__(self):
         return iter(self.executor_conf_params)
+
+    def __getitem__(
+            self, index: int) -> Tuple[
+                str, str, ExtendedRunExecutionParameters]:
+        tuple_index = self.params_index[index]
+        (ext, context, _) = tuple_index
+        return (ext, context, self.executor_conf_params[tuple_index])

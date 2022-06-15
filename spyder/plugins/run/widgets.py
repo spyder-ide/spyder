@@ -10,7 +10,7 @@
 from datetime import datetime
 import os.path as osp
 from uuid import uuid4
-from typing import Tuple
+from typing import Optional, Tuple, List, Dict
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -18,13 +18,13 @@ from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
                             QRadioButton, QStackedWidget, QVBoxLayout, QWidget,
-                            QLineEdit)
+                            QLineEdit, QLayout)
 
 # Local imports
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
     RunExecutionParameters, ExtendedRunExecutionParameters,
-    RunExecutorConfigurationGroup)
+    RunExecutorConfigurationGroup, SupportedExecutionRunConfiguration)
 from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
@@ -95,24 +95,26 @@ class BaseRunConfigDialog(QDialog):
         for widget_or_spacing in widgets_or_spacings:
             if isinstance(widget_or_spacing, int):
                 layout.addSpacing(widget_or_spacing)
+            elif isinstance(widget_or_spacing, QLayout):
+                layout.addLayout(widget_or_spacing)
             else:
                 layout.addWidget(widget_or_spacing)
         return layout
 
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
-        bbox = QDialogButtonBox(stdbtns)
+        self.bbox = QDialogButtonBox(stdbtns)
         if not self.disable_run_btn:
-            run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+            run_btn = self.bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
             run_btn.clicked.connect(self.run_btn_clicked)
-        reset_deafults_btn = bbox.addButton(_('Reset'), QDialogButtonBox.ResetRole)
+        reset_deafults_btn = self.bbox.addButton(_('Reset'), QDialogButtonBox.ResetRole)
         reset_deafults_btn.clicked.connect(self.reset_btn_clicked)
-        bbox.accepted.connect(self.accept)
-        bbox.accepted.connect(self.ok_btn_clicked)
-        bbox.rejected.connect(self.reject)
+        self.bbox.accepted.connect(self.accept)
+        self.bbox.accepted.connect(self.ok_btn_clicked)
+        self.bbox.rejected.connect(self.reject)
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
-        btnlayout.addWidget(bbox)
+        btnlayout.addWidget(self.bbox)
         self.layout().addLayout(btnlayout)
 
     def resizeEvent(self, event):
@@ -138,6 +140,268 @@ class BaseRunConfigDialog(QDialog):
     def setup(self):
         """Setup Run Configuration dialog with filename *fname*"""
         raise NotImplementedError
+
+
+class ExecutionParametersDialog(BaseRunConfigDialog):
+    """Run execution parameters edition dialog."""
+
+    def __init__(self, parent, executor_params: Dict[
+                    Tuple[str, str], SupportedExecutionRunConfiguration],
+                 extensions: Optional[List[str]] = None,
+                 contexts: Optional[Dict[str, List[str]]] = None,
+                 default_params: Optional[
+                    ExtendedRunExecutionParameters] = None,
+                 extension: Optional[str] = None,
+                 context: Optional[str] = None):
+        super().__init__(parent, True)
+
+        self.executor_params = executor_params
+        self.default_params = default_params
+        self.extensions = extensions or []
+        self.contexts = contexts or {}
+        self.extension = extension
+        self.context = context
+
+        self.parameters_name = None
+        if default_params is not None:
+            self.parameters_name = default_params['name']
+
+        self.current_widget = None
+        self.status = RunDialogStatus.Close
+
+    def setup(self):
+        ext_combo_label = QLabel(_("Select a file extension:"))
+        context_combo_label = QLabel(_("Select a run context:"))
+
+        self.extension_combo = QComboBox()
+        self.extension_combo.currentIndexChanged.connect(
+            self.extension_changed)
+
+        self.context_combo = QComboBox()
+        self.context_combo.currentIndexChanged.connect(self.context_changed)
+
+        self.stack = QStackedWidget()
+        self.executor_group = QGroupBox(_("Executor parameters"))
+        executor_layout = QVBoxLayout(self.executor_group)
+        executor_layout.addWidget(self.stack)
+
+        self.wdir_group = QGroupBox(_("Working directory settings"))
+
+        wdir_layout = QVBoxLayout(self.wdir_group)
+
+        self.file_dir_radio = QRadioButton(FILE_DIR)
+        wdir_layout.addWidget(self.file_dir_radio)
+
+        self.cwd_radio = QRadioButton(CW_DIR)
+        wdir_layout.addWidget(self.cwd_radio)
+
+        fixed_dir_layout = QHBoxLayout()
+        self.fixed_dir_radio = QRadioButton(FIXED_DIR)
+        fixed_dir_layout.addWidget(self.fixed_dir_radio)
+
+        self.wd_edit = QLineEdit()
+        self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
+        self.wd_edit.setEnabled(False)
+        fixed_dir_layout.addWidget(self.wd_edit)
+        browse_btn = create_toolbutton(
+            self,
+            triggered=self.select_directory,
+            icon=ima.icon('DirOpenIcon'),
+            tip=_("Select directory")
+            )
+        fixed_dir_layout.addWidget(browse_btn)
+        wdir_layout.addLayout(fixed_dir_layout)
+
+        params_name_label = QLabel(_('Configuration name:'))
+        self.store_params_text = QLineEdit()
+        store_params_layout = QHBoxLayout()
+        store_params_layout.addWidget(params_name_label)
+        store_params_layout.addWidget(self.store_params_text)
+
+        self.store_params_text.setPlaceholderText(_('My configuration name'))
+
+        all_group = QVBoxLayout()
+        all_group.addWidget(self.executor_group)
+        all_group.addWidget(self.wdir_group)
+        all_group.addLayout(store_params_layout)
+
+        layout = self.add_widgets(ext_combo_label, self.extension_combo,
+                                  context_combo_label, self.context_combo,
+                                  10, all_group)
+
+        widget_dialog = QWidget()
+        widget_dialog.setMinimumWidth(600)
+        widget_dialog.setLayout(layout)
+        scroll_layout = QVBoxLayout(self)
+        scroll_layout.addWidget(widget_dialog)
+        self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        self.setWindowTitle(_("Run parameters"))
+
+        self.extension_combo.addItems(self.extensions)
+
+        extension_index = 0
+        if self.extension is not None:
+            extension_index = self.extensions.index(self.extension)
+            self.extension_combo.setEnabled(False)
+
+        if self.context is not None:
+            self.context_combo.setEnabled(False)
+
+        self.extension_combo.setCurrentIndex(extension_index)
+
+        if self.parameters_name:
+            self.store_params_text.setText(self.parameters_name)
+
+    def extension_changed(self, index: int):
+        if index < 0:
+            return
+
+        self.selected_extension = self.extension_combo.itemText(index)
+        contexts = self.contexts[self.selected_extension]
+
+        self.context_combo.clear()
+        self.context_combo.addItems(contexts)
+        self.context_combo.setCurrentIndex(-1)
+
+        context_index = 0
+        if self.context is not None:
+            context_index = contexts.index(self.context)
+        self.context_combo.setCurrentIndex(context_index)
+
+    def context_changed(self, index: int):
+        if index < 0:
+            return
+
+        # Clear the QStackWidget contents
+        self.current_widget = None
+        while self.stack.count() > 0:
+            widget = self.stack.widget(0)
+            self.stack.removeWidget(widget)
+
+        self.selected_context = self.context_combo.itemText(index)
+
+        executor_conf_metadata = self.executor_params[
+            (self.selected_extension, self.selected_context)]
+
+        requires_cwd = executor_conf_metadata['requires_cwd']
+        ConfigWidget = (executor_conf_metadata['configuration_widget'] or
+                        RunExecutorConfigurationGroup)
+
+        if executor_conf_metadata['configuration_widget'] is None:
+            self.executor_group.setEnabled(False)
+        else:
+            self.executor_group.setEnabled(True)
+
+        self.wdir_group.setEnabled(requires_cwd)
+
+        self.current_widget = ConfigWidget(
+            self, self.selected_context, self.selected_extension, {})
+        self.stack.addWidget(self.current_widget)
+
+        working_dir_params = WorkingDirOpts(
+            source=WorkingDirSource.ConfigurationDirectory,
+            path=None)
+        exec_params = RunExecutionParameters(
+            working_dir=working_dir_params,
+            executor_params=None)
+
+        default_params = self.current_widget.get_default_configuration()
+
+        if self.default_params:
+            params = self.default_params['params']
+            working_dir_params = params['working_dir']
+            exec_params = params
+
+        params_set = exec_params['executor_params'] or default_params
+
+        if params_set.keys() == default_params.keys():
+            self.current_widget.set_configuration(params_set)
+
+        source = working_dir_params['source']
+        path = working_dir_params['path']
+
+        if source == WorkingDirSource.ConfigurationDirectory:
+            self.file_dir_radio.setChecked(True)
+            self.cwd_radio.setChecked(False)
+            self.fixed_dir_radio.setChecked(False)
+            self.wd_edit.setText('')
+        elif source == WorkingDirSource.CurrentDirectory:
+            self.file_dir_radio.setChecked(False)
+            self.cwd_radio.setChecked(True)
+            self.fixed_dir_radio.setChecked(False)
+            self.wd_edit.setText('')
+        elif source == WorkingDirSource.CustomDirectory:
+            self.file_dir_radio.setChecked(False)
+            self.cwd_radio.setChecked(False)
+            self.fixed_dir_radio.setChecked(True)
+            self.wd_edit.setText(path)
+
+        if not self.executor_group.isEnabled() and not self.wdir_group.isEnabled():
+            ok_btn = self.bbox.button(QDialogButtonBox.Ok)
+            ok_btn.setEnabled(False)
+
+        self.adjustSize()
+
+    def select_directory(self):
+        """Select directory"""
+        basedir = str(self.wd_edit.text())
+        if not osp.isdir(basedir):
+            basedir = getcwd_or_home()
+        directory = getexistingdirectory(self, _("Select directory"), basedir)
+        if directory:
+            self.wd_edit.setText(directory)
+            self.dir = directory
+
+    def reset_btn_clicked(self):
+        index = self.context_combo.currentIndex()
+        self.context_changed(index)
+
+    def run_btn_clicked(self):
+        self.status |= RunDialogStatus.Run
+
+    def ok_btn_clicked(self):
+        self.status |= RunDialogStatus.Save
+
+    def accept(self) -> None:
+        widget_conf = self.current_widget.get_configuration()
+
+        path = None
+        source = None
+        if self.file_dir_radio.isChecked():
+            source = WorkingDirSource.ConfigurationDirectory
+        elif self.cwd_radio.isChecked():
+            source = WorkingDirSource.CurrentDirectory
+        else:
+            source = WorkingDirSource.CustomDirectory
+            path = self.wd_edit.text()
+
+        cwd_opts = WorkingDirOpts(source=source, path=path)
+
+        exec_params = RunExecutionParameters(
+            working_dir=cwd_opts, executor_params=widget_conf)
+
+        if self.default_params:
+            uuid = self.default_params['uuid']
+            name = self.default_params['name']
+        else:
+            uuid = str(uuid4())
+            name = self.store_params_text.text()
+            if name == '':
+                date_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                name = f'Configuration-{date_str}'
+
+        ext_exec_params = ExtendedRunExecutionParameters(
+            uuid=uuid, name=name, params=exec_params
+        )
+
+        self.saved_conf = (self.selected_extension, self.selected_context,
+                           ext_exec_params)
+        super().accept()
+
+    def get_configuration(
+            self) -> Tuple[str, str, ExtendedRunExecutionParameters]:
+        return self.saved_conf
 
 
 class RunDialog(BaseRunConfigDialog):

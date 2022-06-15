@@ -6,15 +6,21 @@
 
 """Run configuration page."""
 
+# Standard library imports
+from typing import Dict, List, Set
+
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout, QComboBox, QTableView,
                             QAbstractItemView, QPushButton, QGridLayout,
                             QHeaderView)
+from spyder.plugins.run.api import SupportedExecutionRunConfiguration
 
 # Local imports
 from spyder.plugins.run.container import RunContainer
+from spyder.plugins.run.widgets import (
+    ExecutionParametersDialog, RunDialogStatus)
 from spyder.plugins.run.models import (
     RunExecutorNamesListModel, ExecutorRunParametersTableModel)
 from spyder.api.preferences import PluginConfigPage
@@ -25,12 +31,17 @@ from spyder.utils.misc import getcwd_or_home
 _ = get_translation("spyder")
 
 
+def move_file_to_front(contexts: List[str]) -> List[str]:
+    if 'file' in contexts:
+        contexts.insert(0, contexts.pop(contexts.index('file')))
+    return contexts
+
+
 class RunParametersTableView(QTableView):
     def __init__(self, parent, model):
         super().__init__(parent)
         self._parent = parent
         self.setModel(model)
-        # self.setItemDelegateForColumn(CMD, ItemDelegate(self))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
@@ -78,6 +89,44 @@ class RunParametersTableView(QTableView):
         # self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
         self.selectionModel().selectionChanged.connect(self.selection)
 
+    def show_editor(self, new=False):
+        extension, context, params = None, None, None
+        extensions, contexts, executor_params = (
+            self._parent.get_executor_configurations())
+
+        if not new:
+            index = self.currentIndex().row()
+            model: ExecutorRunParametersTableModel = self.model()
+            (extension, context, params) = model[index]
+
+        dialog = ExecutionParametersDialog(
+            self, executor_params, extensions, contexts, params,
+            extension, context)
+
+        dialog.setup()
+        dialog.exec_()
+
+        status = dialog.status
+        if status == RunDialogStatus.Close:
+            return
+
+        extension, context, new_executor_params = dialog.get_configuration()
+
+
+    def keyPressEvent(self, event):
+        """Qt Override."""
+        key = event.key()
+        if key in [Qt.Key_Enter, Qt.Key_Return]:
+            self.show_editor()
+        elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+            super().keyPressEvent(event)
+        else:
+            super().keyPressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        """Qt Override."""
+        self.show_editor()
+
 
 class RunConfigPage(PluginConfigPage):
     """Default Run Settings configuration page."""
@@ -118,6 +167,9 @@ class RunConfigPage(PluginConfigPage):
             _("Delete currently selected parameters"))
         self.delete_configuration_btn.setEnabled(False)
 
+        self.new_configuration_btn.clicked.connect(
+            self.create_new_configuration)
+
         # Buttons layout
         btns = [self.new_configuration_btn,
                 self.delete_configuration_btn]
@@ -152,6 +204,37 @@ class RunConfigPage(PluginConfigPage):
                     (ext, context, exec_params_id)] = exec_params
 
         self.table_model.set_parameters(executor_conf_params)
+
+    def get_executor_configurations(self) -> Dict[
+            str, SupportedExecutionRunConfiguration]:
+        exec_index = self.executor_combo.currentIndex()
+        executor_name, available_inputs = (
+            self.executor_model.selected_executor(exec_index))
+
+        executor_params: Dict[str, SupportedExecutionRunConfiguration] = {}
+        extensions: Set[str] = set({})
+        contexts: Dict[str, List[str]] = {}
+
+        conf_indices = (
+            self.plugin_container.executor_model.executor_configurations)
+
+        for _input in available_inputs:
+            extension, context = _input
+            extensions |= {extension}
+            ext_contexts = contexts.get(extension, [])
+            ext_contexts.append(context)
+            contexts[extension] = ext_contexts
+
+            executors = conf_indices[_input]
+            conf = executors[executor_name]
+            executor_params[_input] = conf
+
+        contexts = {ext: move_file_to_front(ctx)
+                    for ext, ctx in contexts.items()}
+        return list(sorted(extensions)), contexts, executor_params
+
+    def create_new_configuration(self):
+        self.params_table.show_editor(new=True)
 
     def apply_settings(self):
         pass
