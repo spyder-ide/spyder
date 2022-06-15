@@ -59,7 +59,7 @@ def check_if_kite_running():
     return running
 
 
-@lru_cache
+@lru_cache(maxsize=1)
 def locate_kite_darwin():
     """
     Looks up where Kite.app is installed on macOS systems. The bundle ID
