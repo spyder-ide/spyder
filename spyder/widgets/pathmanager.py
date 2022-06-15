@@ -226,8 +226,9 @@ class PathManager(QDialog):
         answer = QMessageBox.question(
             self,
             _("Import"),
-            _("Do you want to import the following paths into "
-              "PYTHONPATH Manager?"
+            _("Do you want to import the contents of your <tt>PYTHONPATH</tt> "
+              "environment variable into Spyder? The following paths will be "
+              "imported:"
               "<br><br>"
               + env_pypath_msg),
             QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
