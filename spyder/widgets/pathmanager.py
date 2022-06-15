@@ -72,15 +72,15 @@ class PathManager(QDialog):
         self.setWindowIcon(ima.icon('pythonpath'))
         self.resize(500, 300)
         self.import_button.setVisible(sync)
-        # self.export_button.setVisible(os.name == 'nt' and sync)
+        self.export_button.setVisible(os.name == 'nt' and sync)
 
         # Layouts
         description = QLabel(
             _("The paths listed below will be passed to IPython consoles and "
               "the language server as additional locations to search for "
-              "Python modules. Any paths in your system <b>PYTHONPATH</b> "
-              "environment variable can be imported here if you'd like to use "
-              "them.")
+              "Python modules.<br><br>"
+              "Any paths in your system <tt>PYTHONPATH</tt> environment "
+              "variable can be imported here if you'd like to use them.")
         )
         description.setWordWrap(True)
         top_layout = QHBoxLayout()

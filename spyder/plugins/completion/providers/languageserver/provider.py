@@ -801,6 +801,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Jedi configuration
         env_vars = os.environ.copy()  # Ensure env is indepependent of PyLSP's
+        env_vars.pop('PYTHONPATH', None)
         if self.get_conf('default', section='main_interpreter'):
             # If not explicitly set, jedi uses PyLSP's sys.path instead of
             # sys.executable's sys.path. This may be a bug in jedi.

@@ -870,7 +870,8 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
         return (map(self.color_string, islice(zip(*data), 1, 4)))
 
     def populate_tree(self, parentItem, children_list):
-        """Recursive method to create each item (and associated data)
+        """
+        Recursive method to create each item (and associated data)
         in the tree.
         """
         for child_key in children_list:
