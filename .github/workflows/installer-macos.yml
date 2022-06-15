@@ -7,12 +7,26 @@ on:
 name: Create macOS App Bundle and DMG
 
 jobs:
+  matrix_prep:
+    name: Matrix Prep
+    runs-on: macos-10.15
+    outputs:
+      build_type: ${{ steps.set-matrix.outputs.build_type }}
+    steps:
+    - id: set-matrix
+      run: |
+        if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
+            build_type=$(echo '["Full", "Lite"]')
+        else
+            build_type=$(echo '["Full"]')
+        fi
+        echo ::set-output name=build_type::'{"build_type":$(echo $build_type)}'
   build:
     name: macOS App Bundle
     runs-on: macos-10.15
+    needs: matrix_prep
     strategy:
-      matrix:
-        build_type: ['Full', 'Lite']
+      matrix: ${{fromJson(needs.matrix_prep.outputs.build_type)}}
     defaults:
       run:
         shell: bash -l {0}
