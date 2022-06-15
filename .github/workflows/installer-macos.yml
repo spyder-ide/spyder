@@ -16,11 +16,11 @@ jobs:
     - id: set-matrix
       run: |
         if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
-            build_type=$(echo '["Full", "Lite"]')
+            build_type=$(echo "['Full', 'Lite']")
         else
-            build_type=$(echo '["Full"]')
+            build_type=$(echo "['Full']")
         fi
-        echo ::set-output name=build_type::'{"build_type":$(echo $build_type)}'
+        echo "::set-output name=build_type::{'build_type':$(echo $build_type)}"
   build:
     name: macOS App Bundle
     runs-on: macos-10.15
