@@ -215,7 +215,7 @@ class ProfilerWidget(PluginMainWidget):
         browse_action = self.create_action(
             ProfilerWidgetActions.Browse,
             text='',
-            tip=_('Select Python script'),
+            tip=_('Select Python file'),
             icon=self.create_icon('fileopen'),
             triggered=lambda x: self.select_file(),
         )
@@ -456,9 +456,9 @@ class ProfilerWidget(PluginMainWidget):
             self.sig_redirect_stdio_requested.emit(False)
             filename, _selfilter = getopenfilename(
                 self,
-                _("Select Python script"),
+                _("Select Python file"),
                 getcwd_or_home(),
-                _("Python scripts") + " (*.py ; *.pyw)"
+                _("Python files") + " (*.py ; *.pyw)"
             )
             self.sig_redirect_stdio_requested.emit(True)
 
