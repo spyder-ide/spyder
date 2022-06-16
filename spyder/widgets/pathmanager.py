@@ -246,7 +246,8 @@ class PathManager(QDialog):
             QMessageBox.information(
                 self,
                 _("PYTHONPATH"),
-                _("<tt>PYTHONPATH</tt> is empty; nothing to import."),
+                _("Your <tt>PYTHONPATH</tt> environment variable is empty, so "
+                  "there is nothing to import."),
                 QMessageBox.Ok)
 
     @Slot()
