@@ -39,8 +39,6 @@ logger.setLevel('INFO')
 
 time_start = time.time()
 
-logger.info("Executing Spyder from source checkout")
-
 # ---- Parse command line
 
 parser = argparse.ArgumentParser(
@@ -75,6 +73,25 @@ assert args.gui in (None, 'pyqt5', 'pyside2'), \
 
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args.spyder_options
+
+# ---- Install sub repos
+
+installed_dev_repo = False
+if not args.no_install:
+    for name in REPOS.keys():
+        if not REPOS[name]['editable']:
+            install_repo(name)
+            installed_dev_repo = True
+        else:
+            logger.info("%s installed in editable mode", name)
+if installed_dev_repo:
+    print("\n" + "*" * 79 + "\n" +
+          "\tOne or more repos were installed in develop mode.\n" +
+          "\tPlease rerun bootstrap.\n" +
+          "*" * 79 + "\n")
+    sys.exit()
+
+logger.info("Executing Spyder from source checkout")
 
 # ---- Update os.environ
 
@@ -112,15 +129,6 @@ if args.gui is None:
 else:
     logger.info("Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
-
-# ---- Install sub repos
-
-if not args.no_install:
-    for name in REPOS.keys():
-        if not REPOS[name]['editable']:
-            install_repo(name)
-        else:
-            logger.info("%s already installed in editable mode", name)
 
 # ---- Check versions
 
