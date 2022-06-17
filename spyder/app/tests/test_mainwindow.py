@@ -496,11 +496,14 @@ def main_window(request, tmpdir, qtbot):
                     raise
 
                 try:
+                    files = [
+                        repr(f) for f in proc.open_files()
+                        if 'QtWebEngine' not in repr(f)
+                    ]
                     qtbot.waitUntil(
-                        lambda: (len(init_files) >= len(proc.open_files())),
+                        lambda: (len(init_files) >= len(files)),
                         timeout=SHELL_TIMEOUT)
                 except Exception:
-                    files = [repr(f) for f in proc.open_files()]
                     show_diff(init_files, files, "files")
                     main_window.window = None
                     window.close()
@@ -3756,8 +3759,7 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
-@pytest.mark.parametrize(
-    "where", [True, False])
+@pytest.mark.parametrize("where", [True, False])
 def test_pdb_step(main_window, qtbot, tmpdir, where):
     """
     Check that pdb notify Spyder only moves when a new line is reached.
