@@ -18,9 +18,11 @@ from subprocess import check_output
 from importlib_metadata import PackageNotFoundError, distribution
 from packaging.requirements import Requirement
 
-# Remove bootstrap.py directory from sys.path, otherwise spyder's install
-# status may be incorrectly determined.
-sys.path.pop(0)
+# Remove current/script directory from sys.path[0] if added by the Python invocation,
+# otherwise Spyder's install status may be incorrectly determined.
+SYS_PATH_0 = Path(sys.path[0]).resolve()
+if SYS_PATH_0 in (Path(__file__).resolve().parent, Path.cwd()):
+    sys.path.pop(0)
 
 DEVPATH = Path(__file__).resolve().parent
 DEPS_PATH = DEVPATH / 'external-deps'
@@ -109,11 +111,6 @@ def install_repo(name, not_editable=False):
         # Add edit flag to install command
         install_cmd.append('-e')
         mode = 'editable'
-
-        # Editable install doesn't update sys.path in current session,
-        # so we must do it manually.
-        if str(repo_path) not in sys.path:
-            sys.path.append(str(repo_path))
 
     logger.info('Installing %r from source in %s mode.', name, mode)
     install_cmd.append(repo_path.as_posix())
