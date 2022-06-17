@@ -7,7 +7,9 @@
 """Run configuration page."""
 
 # Standard library imports
-from typing import Dict, List, Set
+from copy import deepcopy
+from typing import Dict, List, Set, Tuple
+from uuid import uuid4
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -15,7 +17,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout, QComboBox, QTableView,
                             QAbstractItemView, QPushButton, QGridLayout,
                             QHeaderView)
-from spyder.plugins.run.api import SupportedExecutionRunConfiguration
+from spyder.plugins.run.api import ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration
 
 # Local imports
 from spyder.plugins.run.container import RunContainer
@@ -58,7 +60,7 @@ class RunParametersTableView(QTableView):
     def focusOutEvent(self, e):
         """Qt Override."""
         # self.source_model.update_active_row()
-        self._parent.delete_configuration_btn.setEnabled(False)
+        # self._parent.delete_configuration_btn.setEnabled(False)
         super().focusOutEvent(e)
 
     def focusInEvent(self, e):
@@ -71,6 +73,7 @@ class RunParametersTableView(QTableView):
         self.update()
         self.isActiveWindow()
         self._parent.delete_configuration_btn.setEnabled(True)
+        self._parent.clone_configuration_btn.setEnabled(True)
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
@@ -89,7 +92,7 @@ class RunParametersTableView(QTableView):
         # self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
         self.selectionModel().selectionChanged.connect(self.selection)
 
-    def show_editor(self, new=False):
+    def show_editor(self, new=False, clone=False):
         extension, context, params = None, None, None
         extensions, contexts, executor_params = (
             self._parent.get_executor_configurations())
@@ -104,7 +107,12 @@ class RunParametersTableView(QTableView):
             extension, context)
 
         dialog.setup()
-        dialog.exec_()
+
+        if not clone:
+            dialog.exec_()
+        else:
+            dialog.ok_btn_clicked()
+            dialog.accept()
 
         status = dialog.status
         if status == RunDialogStatus.Close:
@@ -112,6 +120,19 @@ class RunParametersTableView(QTableView):
 
         extension, context, new_executor_params = dialog.get_configuration()
 
+        if not new and clone:
+            new_executor_params["uuid"] = str(uuid4())
+            new_executor_params["name"] = _('%s (copy)') % params['name']
+
+        changes = []
+        if params and not clone:
+            changes.append(('deleted', params))
+
+        changes.append(('new', new_executor_params))
+        self.model().apply_changes(changes, extension, context)
+
+    def clone_configuration(self):
+        self.show_editor(clone=True)
 
     def keyPressEvent(self, event):
         """Qt Override."""
@@ -136,6 +157,16 @@ class RunConfigPage(PluginConfigPage):
         self.executor_model = RunExecutorNamesListModel(
             self, self.plugin_container.executor_model)
         self.table_model = ExecutorRunParametersTableModel(self)
+        self.table_model.sig_data_changed.connect(
+            lambda: self.set_modified(True))
+
+        self.all_executor_model: Dict[
+            str, Dict[Tuple[str, str, str],
+                ExtendedRunExecutionParameters]] = {}
+        self.previous_executor_index: int = 0
+        self.default_executor_conf_params: Dict[
+            str, Dict[Tuple[str, str, str],
+                ExtendedRunExecutionParameters]] = {}
 
         about_label = QLabel(_("The following are the per-executor "
                                "configuration settings used for "
@@ -163,16 +194,28 @@ class RunConfigPage(PluginConfigPage):
 
         self.new_configuration_btn = QPushButton(
             _("Create new parameters"))
+        self.clone_configuration_btn = QPushButton(
+            _("Clone currently selected parameters"))
         self.delete_configuration_btn = QPushButton(
             _("Delete currently selected parameters"))
+        self.reset_configuration_btn = QPushButton(
+            _("Reset parameters"))
         self.delete_configuration_btn.setEnabled(False)
+        self.clone_configuration_btn.setEnabled(False)
 
         self.new_configuration_btn.clicked.connect(
             self.create_new_configuration)
+        self.clone_configuration_btn.clicked.connect(
+            self.clone_configuration)
+        self.delete_configuration_btn.clicked.connect(
+            self.delete_configuration)
+        self.reset_configuration_btn.clicked.connect(self.reset_to_default)
 
         # Buttons layout
         btns = [self.new_configuration_btn,
-                self.delete_configuration_btn]
+                self.clone_configuration_btn,
+                self.delete_configuration_btn,
+                self.reset_configuration_btn]
         sn_buttons_layout = QGridLayout()
         for i, btn in enumerate(btns):
             sn_buttons_layout.addWidget(btn, i, 1)
@@ -189,21 +232,32 @@ class RunConfigPage(PluginConfigPage):
         vlayout.addStretch(1)
 
     def executor_index_changed(self, index: int):
+        # Save previous executor configuration
+        prev_executor_info = self.table_model.get_current_view()
+        previous_executor_name, _ = self.executor_model.selected_executor(
+            self.previous_executor_index)
+        self.all_executor_model[previous_executor_name] = prev_executor_info
+        # Handle current executor configuration
         executor, available_inputs = self.executor_model.selected_executor(
             index)
-
-        executor_conf_params = {}
-        for (ext, context) in available_inputs:
-            params = (
-                self.plugin_container.get_executor_configuration_parameters(
-                    executor, ext, context))
-            params = params["params"]
-            for exec_params_id in params:
-                exec_params = params[exec_params_id]
-                executor_conf_params[
-                    (ext, context, exec_params_id)] = exec_params
+        container = self.plugin_container
+        executor_conf_params = self.all_executor_model.get(executor, {})
+        if executor_conf_params == {}:
+            for (ext, context) in available_inputs:
+                params = (
+                    container.get_executor_configuration_parameters(
+                        executor, ext, context))
+                params = params["params"]
+                for exec_params_id in params:
+                    exec_params = params[exec_params_id]
+                    executor_conf_params[
+                        (ext, context, exec_params_id)] = exec_params
+            self.default_executor_conf_params[executor] = deepcopy(
+                executor_conf_params)
+            self.all_executor_model[executor] = deepcopy(executor_conf_params)
 
         self.table_model.set_parameters(executor_conf_params)
+        self.previous_executor_index = index
 
     def get_executor_configurations(self) -> Dict[
             str, SupportedExecutionRunConfiguration]:
@@ -236,5 +290,52 @@ class RunConfigPage(PluginConfigPage):
     def create_new_configuration(self):
         self.params_table.show_editor(new=True)
 
+    def clone_configuration(self):
+        self.params_table.clone_configuration()
+
+    def delete_configuration(self):
+        executor_name, _ = self.executor_model.selected_executor(
+            self.previous_executor_index)
+        index = self.params_table.currentIndex().row()
+        conf_index = self.table_model.get_tuple_index(index)
+        executor_params = self.all_executor_model[executor_name]
+        executor_params.pop(conf_index)
+        self.table_model.set_parameters(executor_params)
+        self.table_model.reset_model()
+
+    def reset_to_default(self):
+        self.all_executor_model = deepcopy(self.default_executor_conf_params)
+        executor_name, _ = self.executor_model.selected_executor(
+            self.previous_executor_index)
+        executor_params = self.all_executor_model[executor_name]
+        self.table_model.set_parameters(executor_params)
+        self.table_model.reset_model()
+        self.set_modified(False)
+
     def apply_settings(self):
-        pass
+        prev_executor_info = self.table_model.get_current_view()
+        previous_executor_name, _ = self.executor_model.selected_executor(
+            self.previous_executor_index)
+        self.all_executor_model[previous_executor_name] = prev_executor_info
+
+        for executor in self.all_executor_model:
+            executor_params = self.all_executor_model[executor]
+            stored_execution_params: Dict[
+                Tuple[str, str],
+                Dict[str, ExtendedRunExecutionParameters]] = {}
+
+            for key in executor_params:
+                (extension, context, params_id) = key
+                params = executor_params[key]
+                ext_ctx_list = stored_execution_params.get(
+                    (extension, context), {})
+                ext_ctx_list[params_id] = params
+                stored_execution_params[(extension, context)] = ext_ctx_list
+
+            for extension, context in stored_execution_params:
+                ext_ctx_list = stored_execution_params[(extension, context)]
+                self.plugin_container.set_executor_configuration_parameters(
+                    executor, extension, context, {'params': ext_ctx_list}
+                )
+
+        return {'parameters'}

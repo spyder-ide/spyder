@@ -383,13 +383,12 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         if self.default_params:
             uuid = self.default_params['uuid']
-            name = self.default_params['name']
         else:
             uuid = str(uuid4())
-            name = self.store_params_text.text()
-            if name == '':
-                date_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-                name = f'Configuration-{date_str}'
+        name = self.store_params_text.text()
+        if name == '':
+            date_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            name = f'Configuration-{date_str}'
 
         ext_exec_params = ExtendedRunExecutionParameters(
             uuid=uuid, name=name, params=exec_params

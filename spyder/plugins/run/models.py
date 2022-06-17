@@ -9,7 +9,7 @@
 # Standard library imports
 from collections import OrderedDict
 import enum
-from typing import Dict, Tuple, Optional, Set, Union
+from typing import Dict, Tuple, Optional, Set, Union, List
 
 # Third-party imports
 from qtpy.QtCore import (Qt, Signal, QAbstractListModel, QModelIndex,
@@ -349,6 +349,8 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
     CONTEXT = 1
     NAME = 2
 
+    sig_data_changed = Signal()
+
     def __init__(self, parent):
         super().__init__(parent)
         self.executor_conf_params: Dict[
@@ -410,6 +412,12 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         self.inverse_index = {v: k for k, v in self.params_index.items()}
         self.endResetModel()
 
+    def get_current_view(self) -> ExtendedRunExecutionParameters:
+        return self.executor_conf_params
+
+    def get_tuple_index(self, index: int) -> Tuple[str, str, str]:
+        return self.params_index[index]
+
     def reset_model(self):
         self.beginResetModel()
         self.endResetModel()
@@ -436,6 +444,22 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         self.params_index = dict(enumerate(sorted_keys))
         self.inverse_index = {v: k for k, v in self.params_index.items()}
         self.endResetModel()
+
+    def apply_changes(
+            self, changes: List[Tuple[str, ExtendedRunExecutionParameters]],
+            extension: str, context: str):
+        self.beginResetModel()
+        for (operation, params) in changes:
+            key = (extension, context, params['uuid'])
+            if operation == 'deleted':
+                self.executor_conf_params.pop(key)
+            else:
+                self.executor_conf_params[key] = params
+
+        self.params_index = dict(enumerate(self.executor_conf_params))
+        self.inverse_index = {v: k for k, v in self.params_index.items()}
+        self.endResetModel()
+        self.sig_data_changed.emit()
 
     def __len__(self):
         return len(self.inverse_index)
