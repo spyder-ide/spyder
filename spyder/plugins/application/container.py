@@ -549,7 +549,12 @@ class ApplicationContainer(PluginMainContainer):
                     sys.platform == 'darwin'):
                 return
 
+            if self.get_conf('high_dpi_scaling'):
+                return
+
             if self.dpi_messagebox is not None:
+                self.dpi_messagebox.activateWindow()
+                self.dpi_messagebox.raise_()
                 return
 
             self.dpi_messagebox = MessageCheckBox(icon=QMessageBox.Warning,
@@ -590,3 +595,4 @@ class ApplicationContainer(PluginMainContainer):
             # Convert coordinates to int to avoid a TypeError in Python 3.10
             # Fixes spyder-ide/spyder#17677
             self.dpi_messagebox.move(int(x), int(y))
+            self.dpi_messagebox.adjustSize()
