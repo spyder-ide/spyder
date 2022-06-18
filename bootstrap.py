@@ -22,6 +22,7 @@ Execute Spyder from source checkout.
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 import time
 from logging import Formatter, StreamHandler, getLogger
@@ -71,8 +72,6 @@ args = parser.parse_args()
 assert args.gui in (None, 'pyqt5', 'pyside2'), \
        "Invalid GUI toolkit option '%s'" % args.gui
 
-# Prepare arguments for Spyder's main script
-sys.argv = [sys.argv[0]] + args.spyder_options
 
 # ---- Install sub repos
 
@@ -85,13 +84,14 @@ if not args.no_install:
         else:
             logger.info("%s installed in editable mode", name)
 if installed_dev_repo:
-    print("\n" + "*" * 79 + "\n" +
-          "\tOne or more repos were installed in develop mode.\n" +
-          "\tPlease rerun bootstrap.\n" +
-          "*" * 79 + "\n")
-    sys.exit()
+    logger.info("Restarting bootstrap to pick up installed subrepos")
+    result = subprocess.run([sys.executable, *sys.argv, '--no-install'])
+    sys.exit(result.returncode)
 
 logger.info("Executing Spyder from source checkout")
+
+# Prepare arguments for Spyder's main script
+sys.argv = [sys.argv[0]] + args.spyder_options
 
 # ---- Update os.environ
 
