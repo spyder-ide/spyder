@@ -72,7 +72,6 @@ args = parser.parse_args()
 assert args.gui in (None, 'pyqt5', 'pyside2'), \
        "Invalid GUI toolkit option '%s'" % args.gui
 
-
 # ---- Install sub repos
 
 installed_dev_repo = False
@@ -85,7 +84,11 @@ if not args.no_install:
             logger.info("%s installed in editable mode", name)
 if installed_dev_repo:
     logger.info("Restarting bootstrap to pick up installed subrepos")
-    result = subprocess.run([sys.executable, *sys.argv, '--no-install'])
+    if '--' in sys.argv:
+        sys.argv.insert(sys.argv.index('--'), '--no-install')
+    else:
+        sys.argv.append('--no-install')
+    result = subprocess.run([sys.executable, *sys.argv])
     sys.exit(result.returncode)
 
 logger.info("Executing Spyder from source checkout")
