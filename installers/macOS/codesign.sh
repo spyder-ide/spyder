@@ -6,6 +6,9 @@ KEY_PASS=keypass
 KEYCHAIN=build.keychain
 KEYCHAINFILE=${HOME}/Library/Keychains/${KEYCHAIN}-db
 
+# certificate common name
+CNAME="Developer ID Application: Ryan Clary (6D7ZTH6B38)"
+
 help(){ cat <<EOF
 $(basename $0) [-h] [-d] -c CERT -p PASS APP
 Codesign an application.
@@ -75,13 +78,16 @@ cleanup  # make sure keychain and file don't exist
 
 # --- Prepare the certificate
 # decode certificate-as-Github-secret back to p12 for import into keychain
+echo "Decoding Certificate..."
 echo $CERT | base64 --decode > ${CERTFILE}
 
 # --- Create keychain
+echo "Creating keychain..."
 security create-keychain -p ${KEY_PASS} ${KEYCHAIN}
 
 # Set keychain to default and unlock it so that we can add the certificate
 # without GUI prompt
+echo "Importing certificate..."
 security default-keychain -s ${KEYCHAIN}
 security unlock-keychain -p ${KEY_PASS} ${KEYCHAIN}
 security import ${CERTFILE} -k ${KEYCHAIN} -P ${PASS} -T /usr/bin/codesign
@@ -90,24 +96,22 @@ security import ${CERTFILE} -k ${KEYCHAIN} -P ${PASS} -T /usr/bin/codesign
 security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${KEY_PASS} ${KEYCHAIN}
 
 # verify import
-security find-identity -p codesigning ${KEYCHAIN}
-
-# certificate common name
-CNAME="Test Code Signing Certificate"
+echo "Verifying identity..."
+security find-identity -p codesigning -v ${KEYCHAIN}
 
 # ---- Sign app
 if [[ -n ${ELEM} ]]; then
-    echo "Signing individual elements"
+    echo "Signing individual elements..."
     # sign frameworks first
     for framework in ${APP}/Contents/Frameworks/*; do
         /usr/bin/codesign -f -v -s "${CNAME}" "${framework}"
     done
 
     # sign extra binary next
+    echo "Signing extra binary..."
     /usr/bin/codesign -f -v -s "${CNAME}" "${APP}/Contents/MacOS/python"
-else
-    echo "Using --deep flag"
 fi
 
 # sign app bundle
+echo "Signing application..."
 /usr/bin/codesign -f -v ${DEEP} -s "${CNAME}" "${APP}"
