@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-09 12:58-0500\n"
-"PO-Revision-Date: 2022-06-14 17:17\n"
+"PO-Revision-Date: 2022-06-19 15:44\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1013,7 +1013,7 @@ msgstr "Загрузка"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:213
 msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you through the <br>rest of the setup process."
-msgstr ""
+msgstr "Kite поставляется с родным приложением Copilot <br>, которое предоставляет вам документацию кода в режиме реального времени. <br><br> После завершения установки Kite, <br>автоматически запустится Copilot и проведет вас через <br> остальную часть настройки."
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:221
 msgid "OK"
@@ -4147,11 +4147,11 @@ msgstr "Очистить консоль"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:510
 msgid "Enter array table"
-msgstr ""
+msgstr "Введите таблицу массивов"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:516
 msgid "Enter array inline"
-msgstr ""
+msgstr "Введите встроенный массив"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:535
 msgid "Special consoles"
@@ -4171,7 +4171,7 @@ msgstr "Новая консоль Cython (Python с расширениями C)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:601
 msgid "Remove all variables from kernel namespace"
-msgstr ""
+msgstr "Удалите все переменные из пространства имен ядра"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:622
 msgid "IPython documentation"
