@@ -2270,7 +2270,7 @@ class CodeEditor(TextEditBaseWidget):
             oedata for oedata in self.highlighter._cell_list if good(oedata)]
 
         return sorted(
-            {oedata.get_block_number(): oedata
+            {oedata.block.blockNumber(): oedata
              for oedata in self.highlighter._cell_list}.items())
 
     def is_json(self):
