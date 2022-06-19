@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-09 12:58-0500\n"
-"PO-Revision-Date: 2022-06-19 15:44\n"
+"PO-Revision-Date: 2022-06-19 17:01\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -4255,7 +4255,7 @@ msgstr "Произошла ошибка, смотрите консоль."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:97
 msgid "The comm channel is not working."
-msgstr ""
+msgstr "Канал связи не работает."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:98
 msgid "%s.<br><br>Note: Please don't report this problem on Github, there's nothing to do about it."
@@ -5178,11 +5178,11 @@ msgstr "Рефакторинг"
 
 #: spyder/plugins/pylint/main_widget.py:122
 msgid "messages"
-msgstr ""
+msgstr "сообщений"
 
 #: spyder/plugins/pylint/main_widget.py:124
 msgid "message"
-msgstr ""
+msgstr "сообщение"
 
 #: spyder/plugins/pylint/main_widget.py:191
 msgid "Results for "
@@ -5270,11 +5270,11 @@ msgstr "Управление конфигурацией запуска."
 
 #: spyder/plugins/run/widgets.py:31
 msgid "Run file with default configuration"
-msgstr ""
+msgstr "Запустить файл с конфигурацией по умолчанию"
 
 #: spyder/plugins/run/widgets.py:32
 msgid "Run file with custom configuration"
-msgstr ""
+msgstr "Запустить файл с пользовательской конфигурацией"
 
 #: spyder/plugins/run/widgets.py:33
 msgid "Execute in current console"
@@ -6294,7 +6294,7 @@ msgstr "Изменить на родительский каталог"
 
 #: spyder/plugins/workingdirectory/plugin.py:65
 msgid "Working directory"
-msgstr ""
+msgstr "Рабочий каталог"
 
 #: spyder/plugins/workingdirectory/plugin.py:68
 msgid "Set the current working directory for various plugins."
