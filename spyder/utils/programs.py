@@ -723,7 +723,8 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 
 def run_general_file_in_terminal(executable: str, args: str, fname: str,
                                  script_args: str, wdir: str,
-                                 close_after_exec: bool = False):
+                                 close_after_exec: bool = False,
+                                 windows_shell: str = "cmd.exe /K"):
     """
     Run a file on a given CLI executable.
 
@@ -739,6 +740,8 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
         Arguments
     wdir: str
         Working directory path from which the file will be executed.
+    windows_shell: str
+        Name of the executable to use as shell (Windows only).
     """
 
     # Quote fname in case it has spaces (all platforms)
@@ -754,11 +757,8 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
             wdir = wdir.replace('/', '\\')
 
         # python_exe must be quoted in case it has spaces
-        cmd = f'start cmd.exe /K ""{executable}" '
+        cmd = f'start {windows_shell} ""{executable}" '
         cmd += ' '.join(p_args) + '"'
-
-        if close_after_exec:
-            cmd += ' ^&^& exit'
 
         try:
             run_shell_command(cmd, cwd=wdir)

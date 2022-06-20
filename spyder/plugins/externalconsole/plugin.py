@@ -146,7 +146,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 },
                 'output_formats': [],
                 'configuration_widget': ExternalConsoleShConfiguration(
-                    'pwsh.exe'),
+                    'powershell.exe'),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -158,7 +158,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 },
                 'output_formats': [],
                 'configuration_widget': ExternalConsoleShConfiguration(
-                    'pwsh.exe'),
+                    'powershell.exe'),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -280,6 +280,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
 
         run_input: FileRun = input['run_input']
         filename = run_input['path']
+        extension = input['metadata']['input_extension']
 
         executable = params['interpreter']
         executable_args = params['interpreter_opts']
@@ -287,9 +288,20 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         close_after_exec = params['close_after_exec']
         wdir = cwd_opts['path']
 
+        windows_shell = 'cmd.exe'
+        no_exit_flag = '/K'
+        if extension == 'ps1':
+            windows_shell = 'powershell.exe'
+            no_exit_flag = '-NoExit'
+
+        if close_after_exec:
+            no_exit_flag = ''
+
+        windows_shell = f'{windows_shell} {no_exit_flag}'.strip()
+
         programs.run_general_file_in_terminal(
             executable, executable_args, filename, script_args, wdir,
-            close_after_exec)
+            close_after_exec, windows_shell=windows_shell)
 
 
     @run_execute(extension=['sh', 'bat', 'ps1'], context=RunContext.Selection)
