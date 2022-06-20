@@ -297,10 +297,9 @@ def test_run_top_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(1) # line number is one based
     editor.move_cursor(3)
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'a = 1'
+    text, _, _, _ = editor_stack.run_selection()
+    # assert blocker.signal_triggered
+    assert text == 'a = 1'
     # check cursor moves to start of next line; note line number is zero based
     assert editor.get_cursor_line_column() == (1, 0)
 
@@ -308,25 +307,21 @@ def test_run_top_line(editor_bot, qtbot):
 def test_run_last_nonempty_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(4)
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'x = 2'
+    text, _, _, _ = editor_stack.run_selection()
+    assert text == 'x = 2'
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
 
 def test_run_empty_line_in_middle(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(3)
-    with qtbot.assertNotEmitted(editor_stack.exec_in_extconsole):
-        editor_stack.run_selection()
+    _, _, _, _ = editor_stack.run_selection()
     assert editor.get_cursor_line_column() == (3, 0) # check cursor moves down
 
 
 def test_run_last_line_when_empty(editor_bot, qtbot):
     editor_stack, editor = editor_bot
-    with qtbot.assertNotEmitted(editor_stack.exec_in_extconsole):
-        editor_stack.run_selection()
+    _, _, _, _ = editor_stack.run_selection()
     # check cursor doesn't move
     assert editor.get_cursor_line_column() == (4, 0)
 
@@ -335,10 +330,8 @@ def test_run_last_line_when_nonempty(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.stdkey_backspace() # delete empty line at end
     old_text = editor.toPlainText()
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'x = 2'
+    text, _, _, _ = editor_stack.run_selection()
+    assert text == 'x = 2'
     expected_new_text = old_text + editor.get_line_separator()
     # check blank line got added
     assert editor.toPlainText() == expected_new_text

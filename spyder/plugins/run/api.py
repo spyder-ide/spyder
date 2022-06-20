@@ -416,6 +416,8 @@ class RunExecutor:
         for method_name in dir(self):
             method = getattr(self, method_name, None)
             if hasattr(method, '_run_exec'):
+                if not isinstance(method._run_exec, list):
+                    continue
                 for extension, context in method._run_exec:
                     if extension == '__extension' and context != '__context':
                         self._exec_ext_methods[context] = method

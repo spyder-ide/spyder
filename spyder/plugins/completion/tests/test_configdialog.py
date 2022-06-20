@@ -7,6 +7,7 @@
 """Tests for plugin config dialog."""
 
 # Standard library imports
+from multiprocessing.sharedctypes import Value
 from unittest.mock import Mock
 import pkg_resources
 
@@ -82,7 +83,10 @@ def test_config_dialog(request, config_dialog):
             pkg_resources.working_set.by_key.pop('unknown', None)
             pkg_resources.working_set.entry_keys.pop('spyder', None)
             pkg_resources.working_set.entry_keys.pop(__file__, None)
-            pkg_resources.working_set.entries.remove('spyder')
+            try:
+                pkg_resources.working_set.entries.remove('spyder')
+            except ValueError:
+                pass
 
     request.addfinalizer(teardown)
 
