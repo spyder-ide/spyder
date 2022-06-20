@@ -14,7 +14,6 @@ from typing import List
 
 # Third party imports
 from qtpy.QtCore import Signal
-from sympy import python
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
