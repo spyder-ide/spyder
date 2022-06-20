@@ -98,6 +98,7 @@ def get_versions(reporev=True):
 
 
 def get_versions_text(reporev=True):
+    """Create string of version information for components used by Spyder"""
     versions = get_versions(reporev=reporev)
 
     # Get git revision for development version

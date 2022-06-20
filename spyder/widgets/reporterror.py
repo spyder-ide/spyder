@@ -22,9 +22,9 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions_text)
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.gui import get_font
-from spyder.config.manager import CONF
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 from spyder.utils.conda import is_conda_env, get_conda_env_path, find_conda
 from spyder.utils.icon_manager import ima
@@ -123,7 +123,7 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
         self.setReadOnly(True)
 
 
-class SpyderErrorDialog(QDialog):
+class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
     """Custom error dialog for error reporting."""
 
     def __init__(self, parent=None, is_report=False):
@@ -256,7 +256,7 @@ class SpyderErrorDialog(QDialog):
 
         if (
             not (is_pynsist() or running_in_mac_app())
-            or not CONF.get('main_interpreter', 'default')
+            or not self.get_conf('default', section='main_interpreter')
         ):
             layout.addWidget(self.include_env)
             layout.addSpacing(15)
@@ -271,8 +271,8 @@ class SpyderErrorDialog(QDialog):
         # Set Tab key focus order
         self.setTabOrder(self.title, self.input_description)
 
-    @staticmethod
-    def render_issue(description='', traceback='', include_env=False):
+    @classmethod
+    def render_issue(cls, description='', traceback='', include_env=False):
         """
         Render issue content.
 
@@ -325,10 +325,11 @@ class SpyderErrorDialog(QDialog):
 """
         # Report environment except if standalone and internal
         if include_env:
-            if CONF.get('main_interpreter', 'default'):
+            if cls.get_conf('default', section='main_interpreter'):
                 pyexe = sys.executable
             else:
-                pyexe = CONF.get('main_interpreter', 'custom_interpreter')
+                pyexe = cls.get_conf('custom_interpreter',
+                                     section='main_interpreter')
 
             if is_conda_env(pyexec=pyexe):
                 path = get_conda_env_path(pyexe)
