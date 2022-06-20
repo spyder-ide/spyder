@@ -36,6 +36,7 @@ for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
         and not ((p / 'setup.py').exists() or (p / 'pyproject.toml').exists())
     ):
         continue
+
     try:
         dist = distribution(p.name)._path
     except PackageNotFoundError:
@@ -138,7 +139,6 @@ def main(install=tuple(REPOS.keys()), no_install=tuple(), **kwargs):
 
 if __name__ == '__main__':
     # ---- Parse command line
-
     parser = argparse.ArgumentParser(
         usage="python install_dev_repos.py [options]")
     parser.add_argument(

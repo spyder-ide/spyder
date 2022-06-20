@@ -64,7 +64,7 @@ parser.add_argument('--filter-log', default='',
                          "messages should be shown. e.g., "
                          "spyder.plugins.completion,spyder.plugins.editor")
 parser.add_argument('--no-install', action='store_true', default=False,
-                    help="Do not install spyder or subrepos")
+                    help="Do not install Spyder or its subrepos")
 parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()
