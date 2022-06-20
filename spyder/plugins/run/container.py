@@ -70,7 +70,7 @@ class RunContainer(PluginMainContainer):
             context=Qt.ApplicationShortcut)
 
         self.configure_action = self.create_action(
-            RunActions.Configure, _('&Configuration per file...'),
+            RunActions.Configure, _('&Open run settings'),
             self.create_icon('run_settings'), tip=_('Run settings'),
             triggered=functools.partial(self.edit_run_configurations,
                                         display_dialog=True,
