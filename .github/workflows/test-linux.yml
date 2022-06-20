@@ -14,6 +14,8 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
   pull_request:
     branches:
@@ -28,10 +30,12 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
 jobs:
   build:
-    name: Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
+    name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
     runs-on: ubuntu-latest
     env:
       CI: 'true'
@@ -124,7 +128,16 @@ jobs:
       - name: Run tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
-        run: xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py
+        run: |
+          touch log.txt  # This is necessary to run the script below
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh
       - name: Coverage
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
