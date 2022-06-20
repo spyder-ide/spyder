@@ -389,6 +389,61 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             plugin_instance = self.plugin_registry[plugin_name]
             plugin_instance.register_plugin_preferences(self)
 
+    def can_delete_plugin(self, plugin_name: str) -> bool:
+        """
+        Check if a plugin from the registry by its name can be deleted.
+
+        Paremeters
+        ----------
+        plugin_name: str
+            Name of the plugin to check for deletion.
+
+        Returns
+        -------
+        plugin_deleted: bool
+            True if the plugin can be deleted. False otherwise.
+        """
+        plugin_instance = self.plugin_registry[plugin_name]
+        # Determine if plugin can be closed
+        can_delete = True
+        if isinstance(plugin_instance, SpyderPluginV2):
+            can_delete = plugin_instance.can_close()
+        elif isinstance(plugin_instance, SpyderPlugin):
+            can_delete = plugin_instance.closing_plugin(True)
+
+        return can_delete
+
+    def save_undocked_plugin_state(self, plugin_name: str):
+        """
+        Dock plugin if undocked and save undocked state
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to check for deletion.
+
+        Returns
+        -------
+        None.
+
+        """
+        plugin_instance = self.plugin_registry[plugin_name]
+
+        if isinstance(plugin_instance, SpyderDockablePlugin):
+            # Close undocked plugin if needed and save undocked state
+            plugin_instance.close_window(save_undocked=True)
+        elif isinstance(plugin_instance, SpyderPluginWidget):
+            # Save if plugin was undocked to restore it the next time.
+            if plugin_instance._undocked_window:
+                plugin_instance.set_option(
+                    'undocked_on_window_close', True)
+            else:
+                plugin_instance.set_option(
+                    'undocked_on_window_close', False)
+
+            # Close undocked plugins.
+            plugin_instance._close_window()
+
     def delete_plugin(self, plugin_name: str, teardown: bool = True) -> bool:
         """
         Remove and delete a plugin from the registry by its name.
@@ -411,12 +466,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         plugin_instance = self.plugin_registry[plugin_name]
 
         # Determine if plugin can be closed
-        can_delete = True
-        if isinstance(plugin_instance, SpyderPluginV2):
-            can_delete = plugin_instance.can_close()
-        elif isinstance(plugin_instance, SpyderPlugin):
-            can_delete = plugin_instance.closing_plugin(True)
-
+        can_delete = self.can_delete_plugin(plugin_name)
         if not can_delete:
             return False
 
@@ -450,17 +500,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 # Disconnect depending plugins from the plugin to delete
                 self._notify_plugin_teardown(plugin_name)
 
-            # Remove the plugin from the main window (if graphical)
-            if isinstance(plugin_instance, SpyderDockablePlugin):
-                # Save if plugin was undocked to restore it the next time.
-                if plugin_instance.get_widget().windowwidget:
-                    plugin_instance.set_conf('undocked_on_window_close', True)
-                else:
-                    plugin_instance.set_conf('undocked_on_window_close', False)
-
-                # Close undocked plugins.
-                plugin_instance.close_window()
-
             # Perform plugin closure tasks
             try:
                 plugin_instance.on_close(True)
@@ -474,17 +513,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if teardown:
                 # Disconnect depending plugins from the plugin to delete
                 self._notify_plugin_teardown(plugin_name)
-            if isinstance(plugin_instance, SpyderPluginWidget):
-                # Save if plugin was undocked to restore it the next time.
-                if plugin_instance._undocked_window:
-                    plugin_instance.set_option(
-                        'undocked_on_window_close', True)
-                else:
-                    plugin_instance.set_option(
-                        'undocked_on_window_close', False)
-
-                # Close undocked plugins.
-                plugin_instance._close_window()
 
         # Delete plugin from the registry and auxiliary structures
         self.plugin_dependents.pop(plugin_name, None)
@@ -518,6 +546,50 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         self.plugin_registry.pop(plugin_name)
 
         return True
+
+    def save_all_undocked_plugins_state(self):
+        """
+        Dock undocked plugins and save if they were undocked.
+
+        Returns
+        -------
+        None.
+
+        """
+        for plugin_name in (
+                set(self.external_plugins) | set(self.internal_plugins)):
+            self.save_undocked_plugin_state(plugin_name)
+
+    def can_delete_all_plugins(self,
+                               excluding: Optional[Set[str]] = None) -> bool:
+        """
+        Determine if all the plugins can be deleted except the ones to exclude
+
+        Parameters
+        ----------
+        excluding: Optional[Set[str]]
+            A set that lists plugins (by name) that will not be deleted.
+
+        Returns
+        -------
+        bool
+            True if all the plugins can be closed. False otherwise.
+
+        """
+        excluding = excluding or set({})
+        can_close = True
+
+        # Check external plugins
+        for plugin_name in (
+                set(self.external_plugins) | set(self.internal_plugins)):
+            if plugin_name not in excluding:
+                plugin_instance = self.plugin_registry[plugin_name]
+                if isinstance(plugin_instance, SpyderPlugin):
+                    can_close &= self.can_delete_plugin(plugin_name)
+                    if not can_close:
+                        break
+
+        return can_close
 
     def delete_all_plugins(self, excluding: Optional[Set[str]] = None,
                            close_immediately: bool = False) -> bool:

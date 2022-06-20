@@ -743,7 +743,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         window.show()
 
     @Slot()
-    def close_window(self):
+    def close_window(self, save_undocked=False):
         """
         Close QMainWindow instance that contains this widget.
         """
@@ -754,6 +754,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             # again.
             geometry = self.windowwidget.saveGeometry()
             self.set_conf('window_geometry', qbytearray_to_str(geometry))
+
+            # Save undocking state if requested
+            if save_undocked:
+                self.set_conf('undocked_on_window_close', True)
 
             # Fixes spyder-ide/spyder#10704
             self.__unsafe_window = self.windowwidget
@@ -771,6 +775,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
                 self._update_actions()
+        else:
+            # Reset undocked state
+            self.set_conf('undocked_on_window_close', False)
 
     def change_visibility(self, enable, force_focus=None):
         """Dock widget visibility has changed."""

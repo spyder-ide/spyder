@@ -1502,6 +1502,14 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.No:
                 return False
 
+        can_close = self.plugin_registry.can_delete_all_plugins(
+            excluding={Plugins.Layout})
+
+        if not can_close and not close_immediately:
+            return False
+
+        self.plugin_registry.save_all_undocked_plugins_state()
+
         can_close = self.plugin_registry.delete_all_plugins(
             excluding={Plugins.Layout},
             close_immediately=close_immediately)
