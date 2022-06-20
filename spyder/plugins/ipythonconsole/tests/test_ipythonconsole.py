@@ -485,7 +485,8 @@ def test_pylab_client(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.sympy_client
-@pytest.mark.xfail('1.0' < sympy.__version__ < '1.2',
+@pytest.mark.xfail(parse_version('1.0') < parse_version(sympy.__version__) <
+                   parse_version('1.2'),
                    reason="A bug with sympy 1.1.1 and IPython-Qtconsole")
 def test_sympy_client(ipyconsole, qtbot):
     """Test that the SymPy console is working correctly."""
@@ -2311,6 +2312,53 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
 
     # Get cwd of new client and assert is the expected one
     assert get_cwd_of_new_client() == fixed_dir
+
+
+def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
+    """
+    Test 'startup/run_lines' config works with code from an active project.
+    """
+    project = tmpdir.mkdir('ipyconsole_project_test')
+    project_dir = str(project)
+    project_script = project.join('project_script.py')
+    project_script.write('from numpy import pi')
+
+    # Config spyder_pythonpath with the project path
+    ipyconsole.set_conf(
+        'spyder_pythonpath',
+        [project_dir],
+        section='main')
+
+    # Config console with project path
+    ipyconsole.set_conf(
+        'startup/run_lines',
+        'from project_script import *',
+        section='ipython_console')
+    ipyconsole.set_conf(
+        'console/use_project_or_home_directory',
+        True,
+        section='workingdir',
+    )
+    ipyconsole.get_widget().update_active_project_path(project_dir)
+
+    # Restart console
+    ipyconsole.restart()
+
+    # Check that the script was imnported
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    assert shell.get_value('pi')
+
+    # Reset config for the 'spyder_pythonpath' and 'startup/run_lines'
+    ipyconsole.set_conf(
+        'spyder_pythonpath',
+        [],
+        section='main')
+    ipyconsole.set_conf(
+        'startup/run_lines',
+        '',
+        section='ipython_console')
 
 
 if __name__ == "__main__":

@@ -485,7 +485,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Notebook Actions
         ipynb_convert_action = self.create_action(
             DirViewActions.ConvertNotebook,
-            _("Convert to Python script"),
+            _("Convert to Python file"),
             icon=ima.icon('python'),
             triggered=lambda: self.convert_notebooks()
         )

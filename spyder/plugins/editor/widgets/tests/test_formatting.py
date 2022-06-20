@@ -226,7 +226,9 @@ def test_closing_document_formatting(
         ('provider_configuration', 'lsp', 'values', 'formatting'),
         formatter
     )
-    completion_plugin.after_configuration_update([])
+
+    with qtbot.waitSignal(completion_plugin.sig_editor_rpc):
+        completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
     # Set text in editor
