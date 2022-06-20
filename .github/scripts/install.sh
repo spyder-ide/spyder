@@ -50,6 +50,12 @@ else
     # To check our manifest and coverage
     pip install -q check-manifest codecov
 
+    # This allows the test suite to run more reliably on Linux
+    if [ "$OS" = "linux" ]; then
+        pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
+        pip install pyqt5==5.12.* pyqtwebengine==5.12.*
+    fi
+
     # Remove packages we have subrepos for
     for dep in $(ls external-deps)
     do
