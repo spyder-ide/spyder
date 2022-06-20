@@ -190,7 +190,7 @@ def pylintrc_files(pylintrc_search_paths, request):
 def test_get_pylintrc_path(pylintrc_files, mocker):
     """Test that get_pylintrc_path finds the expected one in the hierarchy."""
     search_paths, expected_path, __ = pylintrc_files
-    mocker.patch("pylint.config.os.path.expanduser",
+    mocker.patch("os.path.expanduser",
                  return_value=search_paths[HOME_DIR])
     actual_path = get_pylintrc_path(
         search_paths=list(search_paths.values()),
@@ -222,7 +222,7 @@ def test_pylint_widget_pylintrc(
         pylint_plugin, pylint_test_script, pylintrc_files, mocker, qtbot):
     """Test that entire pylint widget gets results depending on pylintrc."""
     search_paths, __, bad_names = pylintrc_files
-    mocker.patch("pylint.config.os.path.expanduser",
+    mocker.patch("os.path.expanduser",
                  return_value=search_paths[HOME_DIR])
     mocker.patch("spyder.plugins.pylint.main_widget.getcwd_or_home",
                  return_value=search_paths[WORKING_DIR])

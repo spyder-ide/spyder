@@ -1542,14 +1542,15 @@ class IPythonConsoleWidget(PluginMainWidget):
     @Slot(bool, bool)
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None):
+                          is_pylab=False, is_sympy=False, given_name=None,
+                          cache=True):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
                          str_id='A')
         std_dir = self._test_dir if self._test_dir else None
         cf, km, kc, stderr_obj, stdout_obj = self.get_new_kernel(
-            is_cython, is_pylab, is_sympy, std_dir=std_dir)
+            is_cython, is_pylab, is_sympy, std_dir=std_dir, cache=cache)
 
         if cf is not None:
             fault_obj = StdFile(cf, '.fault', std_dir)
@@ -1656,7 +1657,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                                            password)
 
     def get_new_kernel(self, is_cython=False, is_pylab=False,
-                       is_sympy=False, std_dir=None):
+                       is_sympy=False, std_dir=None, cache=True):
         """Get a new kernel, and cache one for next time."""
         # Cache another kernel for next time.
         kernel_spec = self.create_kernel_spec(
@@ -1666,8 +1667,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         )
 
         new_kernel = self.create_new_kernel(kernel_spec, std_dir)
-        if new_kernel[2] is None:
-            # error
+
+        if new_kernel[2] is None or not cache:
+            # error or remove/don't use cache if requested
             self.close_cached_kernel()
             return new_kernel
 
@@ -1991,7 +1993,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         for i in range(len(self.clients)):
             client = self.clients[-1]
             self.close_client(client=client, ask_recursive=False)
-        self.create_new_client(give_focus=False)
+        self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
 
     def current_client_inspect_object(self):
