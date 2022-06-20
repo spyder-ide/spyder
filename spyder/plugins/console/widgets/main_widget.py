@@ -188,7 +188,7 @@ class ConsoleWidget(PluginMainWidget):
         run_action = self.create_action(
             ConsoleWidgetActions.Run,
             text=_("&Run..."),
-            tip=_("Run a Python script"),
+            tip=_("Run a Python file"),
             icon=self.create_icon('run_small'),
             triggered=self.run_script,
         )
@@ -467,6 +467,7 @@ class ConsoleWidget(PluginMainWidget):
         """
         Remove error dialog.
         """
+        self.error_dlg.disconnect()
         self.error_dlg = None
 
     @Slot()
@@ -506,9 +507,9 @@ class ConsoleWidget(PluginMainWidget):
             self.shell.interpreter.restore_stds()
             filename, _selfilter = getopenfilename(
                 self,
-                _("Run Python script"),
+                _("Run Python file"),
                 getcwd_or_home(),
-                _("Python scripts") + " (*.py ; *.pyw ; *.ipy)",
+                _("Python files") + " (*.py ; *.pyw ; *.ipy)",
             )
             self.shell.interpreter.redirect_stds()
 

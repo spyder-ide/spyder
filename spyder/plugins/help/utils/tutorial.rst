@@ -310,7 +310,7 @@ Warn if PEP 8 code style guidelines are violated
 
 .. _pep8-enable-ref:
 
-Go to :menuselection:`Tools --> Preferences --> Completion and Linting --> Cody Style` and tick the checkbox next to ``Real-time code style analysis``.
+Go to :menuselection:`Tools --> Preferences --> Completion and linting --> Code style and formatting --> Code style` and tick the checkbox next to ``Enable code style linting``.
 
 
 Automatic Symbolic Python
@@ -628,7 +628,7 @@ Finally, to get out of a function and continue with the next line you need to us
 or the shortcut :kbd:`Ctrl-Shift-F12`.
 
 If you prefer to inspect your program at a specific point, you need to insert a
-*breakpoint* by pressing :kbd:`F12` on the line on which you want to stop, or double-clicking to the left of the line number.
+*breakpoint* by pressing :kbd:`F12` on the line on which you want to stop, or clicking to the right of the line number.
 A red dot in this position indicates a breakpoint; it can be removed by repeating the same procedure.
 
 After entering the Debugger, you can press the ``Continue`` button

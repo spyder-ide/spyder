@@ -14,6 +14,8 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
   pull_request:
     branches:
@@ -28,6 +30,8 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
 jobs:
   build:

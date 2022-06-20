@@ -307,12 +307,12 @@ class OutlineExplorerData(QObject):
     def is_valid(self):
         """Check if the oedata has a valid block attached."""
         block = self.block
-        return (block
-                and block.isValid()
-                and block.userData()
-                and hasattr(block.userData(), 'oedata')
-                and block.userData().oedata == self
-                )
+        if not block or not block.isValid():
+            return False
+        user_data = block.userData()
+        if not user_data or not hasattr(user_data, 'oedata'):
+            return False
+        return user_data.oedata == self
 
     def has_name(self):
         """Check if cell has a name."""
