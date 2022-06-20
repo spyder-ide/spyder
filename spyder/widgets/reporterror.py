@@ -249,13 +249,18 @@ class SpyderErrorDialog(QDialog):
         layout.addWidget(self.details)
         layout.addWidget(self.desc_chars_label)
         layout.addSpacing(15)
+
         if not self.is_report:
             layout.addWidget(self.dismiss_box)
             layout.addSpacing(15)
-        if (not (is_pynsist() or running_in_mac_app())
-                or not CONF.get('main_interpreter', 'default')):
+
+        if (
+            not (is_pynsist() or running_in_mac_app())
+            or not CONF.get('main_interpreter', 'default')
+        ):
             layout.addWidget(self.include_env)
             layout.addSpacing(15)
+
         layout.addLayout(buttons_layout)
         layout.setContentsMargins(25, 20, 25, 10)
         self.setLayout(layout)

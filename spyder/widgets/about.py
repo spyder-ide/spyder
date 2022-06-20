@@ -17,11 +17,13 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QScrollArea, QTabWidget)
 
 # Local imports
-from spyder import (__project_url__ as project_url,
-                    __forum_url__ as forum_url,
-                    __trouble_url__ as trouble_url,
-                    __website_url__ as website_url,
-                    get_versions, get_versions_text)
+from spyder import (
+    __project_url__ as project_url,
+    __forum_url__ as forum_url,
+    __trouble_url__ as trouble_url,
+    __website_url__ as website_url,
+    get_versions, get_versions_text
+)
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
@@ -114,6 +116,7 @@ class AboutDialog(QDialog):
             also contribute to this plan.
             </p>
             </div>""")
+
         self.label_legal = QLabel(
             f"""
             <div style='font-family: "{font_family}";
