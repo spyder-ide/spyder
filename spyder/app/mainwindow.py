@@ -1086,7 +1086,7 @@ class MainWindow(QMainWindow):
         # Tabify external plugins which were installed after Spyder was
         # installed.
         # Note: This is only necessary the first time a plugin is loaded.
-        # Afterwwrds, the plugin placement is recorded on the window hexstate,
+        # Afterwards, the plugin placement is recorded on the window hexstate,
         # which is loaded by the layouts plugin during the next session.
         for plugin_name in PLUGIN_REGISTRY.external_plugins:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -1119,11 +1119,14 @@ class MainWindow(QMainWindow):
                         'Expecting a list of layout classes but got {}'
                         .format(plugin_name, plugin_instance.CUSTOM_LAYOUTS)
                     )
-        self.layouts.update_layout_menu_actions()
+
+        # Needed to ensure dockwidgets/panes layout size distribution
+        # See spyder-ide/spyder#17945
+        if self.layouts is not None:
+            self.layouts.before_mainwindow_visible()
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
-
 
     def post_visible_setup(self):
         """
