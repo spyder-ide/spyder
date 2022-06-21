@@ -2456,7 +2456,7 @@ class EditorStack(QWidget):
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_debug_cell.connect(self.debug_cell)
-        editor.sig_new_file.connect(self.sig_new_file.emit)
+        editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
             lambda: self.update_code_analysis_actions.emit())
@@ -2535,8 +2535,8 @@ class EditorStack(QWidget):
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         editor.sig_eol_chars_changed.connect(
             lambda eol_chars: self.refresh_eol_chars(eol_chars))
-        editor.sig_next_cursor.connect(self.sig_next_cursor.emit)
-        editor.sig_prev_cursor.connect(self.sig_prev_cursor.emit)
+        editor.sig_next_cursor.connect(self.sig_next_cursor)
+        editor.sig_prev_cursor.connect(self.sig_prev_cursor)
 
         self.find_widget.set_editor(editor)
 

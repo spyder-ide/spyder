@@ -4450,20 +4450,20 @@ class CodeEditor(TextEditBaseWidget):
         self.debug_cell_action = create_action(
             self, _("Debug cell"), icon=ima.icon('debug_cell'),
             shortcut=CONF.get_shortcut('editor', 'debug cell'),
-            triggered=self.sig_debug_cell.emit)
+            triggered=self.sig_debug_cell)
 
         # Zoom actions
         zoom_in_action = create_action(
             self, _("Zoom in"), icon=ima.icon('zoom_in'),
             shortcut=QKeySequence(QKeySequence.ZoomIn),
-            triggered=self.zoom_in.emit)
+            triggered=self.zoom_in)
         zoom_out_action = create_action(
             self, _("Zoom out"), icon=ima.icon('zoom_out'),
             shortcut=QKeySequence(QKeySequence.ZoomOut),
-            triggered=self.zoom_out.emit)
+            triggered=self.zoom_out)
         zoom_reset_action = create_action(
             self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
-            triggered=self.zoom_reset.emit)
+            triggered=self.zoom_reset)
 
         # Docstring
         writer = self.writer_docstring

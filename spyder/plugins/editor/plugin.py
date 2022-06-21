@@ -2331,7 +2331,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 if ipyconsole:
                     current_sw = ipyconsole.get_current_shellwidget()
                     current_sw.sig_prompt_ready.connect(
-                        current_editor.sig_debug_stop[()].emit)
+                        current_editor.sig_debug_stop[()])
                     current_pdb_state = ipyconsole.get_pdb_state()
                     pdb_last_step = ipyconsole.get_pdb_last_step()
                     self.update_pdb_state(current_pdb_state, pdb_last_step)
