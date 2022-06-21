@@ -4423,45 +4423,45 @@ class CodeEditor(TextEditBaseWidget):
         self.run_cell_action = create_action(
             self, _("Run cell"), icon=ima.icon('run_cell'),
             shortcut=CONF.get_shortcut('editor', 'run cell'),
-            triggered=self.sig_run_cell.emit)
+            triggered=self.sig_run_cell)
         self.run_cell_and_advance_action = create_action(
             self, _("Run cell and advance"), icon=ima.icon('run_cell_advance'),
             shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
-            triggered=self.sig_run_cell_and_advance.emit)
+            triggered=self.sig_run_cell_and_advance)
         self.re_run_last_cell_action = create_action(
             self, _("Re-run last cell"),
             shortcut=CONF.get_shortcut('editor', 're-run last cell'),
-            triggered=self.sig_re_run_last_cell.emit)
+            triggered=self.sig_re_run_last_cell)
         self.run_selection_action = create_action(
             self, _("Run &selection or current line"),
             icon=ima.icon('run_selection'),
             shortcut=CONF.get_shortcut('editor', 'run selection'),
-            triggered=self.sig_run_selection.emit)
+            triggered=self.sig_run_selection)
         self.run_to_line_action = create_action(
             self, _("Run to current line"),
             shortcut=CONF.get_shortcut('editor', 'run to line'),
-            triggered=self.sig_run_to_line.emit)
+            triggered=self.sig_run_to_line)
         self.run_from_line_action = create_action(
             self, _("Run from current line"),
             shortcut=CONF.get_shortcut('editor', 'run from line'),
-            triggered=self.sig_run_from_line.emit)
+            triggered=self.sig_run_from_line)
         self.debug_cell_action = create_action(
             self, _("Debug cell"), icon=ima.icon('debug_cell'),
             shortcut=CONF.get_shortcut('editor', 'debug cell'),
-            triggered=self.sig_debug_cell.emit)
+            triggered=self.sig_debug_cell)
 
         # Zoom actions
         zoom_in_action = create_action(
             self, _("Zoom in"), icon=ima.icon('zoom_in'),
             shortcut=QKeySequence(QKeySequence.ZoomIn),
-            triggered=self.zoom_in.emit)
+            triggered=self.zoom_in)
         zoom_out_action = create_action(
             self, _("Zoom out"), icon=ima.icon('zoom_out'),
             shortcut=QKeySequence(QKeySequence.ZoomOut),
-            triggered=self.zoom_out.emit)
+            triggered=self.zoom_out)
         zoom_reset_action = create_action(
             self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
-            triggered=self.zoom_reset.emit)
+            triggered=self.zoom_reset)
 
         # Docstring
         writer = self.writer_docstring
