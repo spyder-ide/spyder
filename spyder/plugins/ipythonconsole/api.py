@@ -39,3 +39,5 @@ class IPythonConsolePyConfiguration(TypedDict):
     # If True, then the console will re use the current namespace. If False,
     # then it will create a new one.
     console_namespace: bool
+    # If True, then the console will enter debug mode.
+    debug: NotRequired[bool]

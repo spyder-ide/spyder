@@ -28,7 +28,9 @@ from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.api import (
     RunContext, RunResultFormat, RunInputExtension, RunConfigurationProvider,
     SupportedRunConfiguration, RunExecutor, SupportedExecutionRunConfiguration,
-    RunResultViewer, OutputFormat, RunConfigurationMetadata, RunActions)
+    RunResultViewer, OutputFormat, RunConfigurationMetadata, RunActions,
+    RunConfiguration, ExtendedRunExecutionParameters,
+    StoredRunConfigurationExecutor, StoredRunExecutorParameters)
 from spyder.plugins.run.container import RunContainer
 from spyder.plugins.shortcuts.plugin import Shortcuts
 from spyder.plugins.toolbar.api import ApplicationToolbars
@@ -621,6 +623,83 @@ class Run(SpyderPluginV2):
             The identifier of the run executor.
         """
         self.destroy_run_button(context_name, executor_name, None)
+
+    # -------------------------------------------------------------------------
+    # TODO: Temporary APIs, remove once the debug API is defined.
+    # -------------------------------------------------------------------------
+
+    def get_last_used_executor_parameters(
+            self, uuid: str) -> StoredRunConfigurationExecutor:
+        """
+        Retrieve the last used execution parameters for a given
+        run configuration.
+
+        Parameters
+        ----------
+        uuid: str
+            The run configuration identifier.
+
+        Returns
+        -------
+        last_used_params: StoredRunConfigurationExecutor
+            A dictionary containing the last used executor and parameters
+            for the given run configuration.
+        """
+        return self.get_container().get_last_used_executor_parameters(uuid)
+
+    def get_executor_configuration_parameters(
+            self, executor_name: str,
+            extension: str, context_id: str) -> StoredRunExecutorParameters:
+        """
+        Retrieve the stored parameters for a given executor `executor_name`
+        using context `context_id` with file extension `extension`.
+
+        Parameters
+        ----------
+        executor_name: str
+            The identifier of the run executor.
+        extension: str
+            The file extension to register the configuration parameters for.
+        context_id: str
+            The context to register the configuration parameters for.
+
+        Returns
+        -------
+        config: StoredRunExecutorParameters
+            A dictionary containing the run executor parameters for the given
+            run configuration.
+        """
+        return self.get_container().get_executor_configuration_parameters(
+            executor_name, extension, context_id)
+
+    def run_configuration(self, executor_name: str,
+                          config: RunConfiguration,
+                          executor_conf: ExtendedRunExecutionParameters):
+        """
+        Manually execute a run configuration on a given executor with a set
+        of execution parameters.
+
+        Parameters
+        ----------
+        executor_name: str
+            The name of the run executor to use.
+        config: RunConfiguration
+            The run configuration that will be executed.
+        executor_conf:
+            The parameter set that the run executor requires.
+
+        Notes
+        -----
+        This is a temporary API defined to replace the debug interaction
+        currently defined. It will disappear once the debug API is put in
+        place.
+        """
+        self.get_container().run_configuration(
+            executor_name, config, executor_conf)
+
+    # -------------------------------------------------------------------------
+    # End of temporary APIs
+    # -------------------------------------------------------------------------
 
     # --- Private API
     # ------------------------------------------------------------------------

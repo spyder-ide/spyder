@@ -63,8 +63,11 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.run.api import (
-    RunContext, RunConfigurationMetadata, RunConfiguration)
+    RunContext, RunConfigurationMetadata, RunConfiguration,
+    WorkingDirOpts, WorkingDirSource, RunExecutionParameters,
+    ExtendedRunExecutionParameters)
 from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 
 
 logger = logging.getLogger(__name__)
@@ -3094,7 +3097,40 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         current_editor = self.get_current_editor()
         if current_editor is not None:
             current_editor.sig_debug_start.emit()
-        self.run_file(debug=True)
+        # TODO: This is a temporary measure to debug files whilst the debug API
+        # is defined.
+        current_fname = self.get_current_filename()
+        fname_uuid = self.id_per_file[current_fname]
+        run_conf = self.get_run_configuration(fname_uuid)
+        fname_params = self.main.run.get_last_used_executor_parameters(
+            fname_uuid)
+
+        selected = None
+        if fname_params['executor'] == self.main.ipyconsole.NAME:
+            selected = fname_params['selected']
+        if selected is None:
+            ipy_params = IPythonConsolePyConfiguration(
+                current=True, post_mortem=False,
+                python_args_enabled=False, python_args='',
+                clear_namespace=False, console_namespace=False)
+
+            wdir_opts = WorkingDirOpts(source=WorkingDirSource.CurrentDirectory,
+                                       path=None)
+
+            exec_conf = RunExecutionParameters(
+                working_dir=wdir_opts, executor_params=ipy_params)
+            ext_exec_conf = ExtendedRunExecutionParameters(
+                uuid=None, name=None, params=exec_conf)
+        else:
+            all_exec_conf = self.main.run.get_executor_configuration_parameters(
+                self.main.ipyconsole.NAME, 'py', RunContext.File
+            )
+            all_exec_conf = all_exec_conf['params']
+            ext_exec_conf = all_exec_conf[selected]
+
+        ext_exec_conf['params']['executor_params']['debug'] = True
+        self.main.run.run_configuration(
+            self.main.ipyconsole.NAME, run_conf, ext_exec_conf)
 
     @Slot()
     def run_selection(self):

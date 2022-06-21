@@ -683,11 +683,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         filename = run_input['path']
         wdir = cwd_opts['path']
         args = params['python_args']
-        debug = False
         post_mortem = params['post_mortem']
         current_client = params['current']
         clear_variables = params['clear_namespace']
         console_namespace = params['console_namespace']
+        debug = params.get('debug', False)
 
         # Escape single and double quotes in fname and dirname.
         # Fixes spyder-ide/spyder#2158.
