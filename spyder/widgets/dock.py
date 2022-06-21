@@ -170,7 +170,7 @@ class DockTitleBar(QWidget):
             f"background-color: {QStylePalette.COLOR_BACKGROUND_3}")
 
         close_button = CloseButton(self, button_size)
-        close_button.clicked.connect(parent.sig_plugin_closed.emit)
+        close_button.clicked.connect(parent.sig_plugin_closed)
 
         hlayout = QHBoxLayout(self)
         hlayout.setSpacing(0)
