@@ -52,20 +52,6 @@ import os
 # Directory of the current file
 __current_directory__ = os.path.dirname(os.path.abspath(__file__))
 
-def add_to_distribution(dist):
-    """Add package to py2exe/cx_Freeze distribution object
-    Extension to guidata.disthelpers"""
-    try:
-        dist.add_qt_bindings()
-    except AttributeError:
-        raise ImportError("This script requires guidata 1.5+")
-    for _modname in ('spyder', 'spyderplugins'):
-        dist.add_module_data_files(_modname, ("", ),
-                                   ('.png', '.svg', '.html', '.png', '.txt',
-                                    '.js', '.inv', '.ico', '.css', '.doctree',
-                                    '.qm', '.py',),
-                                   copy_to_root=False)
-
 
 def get_versions(reporev=True):
     """Get version information for components used by Spyder"""
@@ -75,27 +61,53 @@ def get_versions(reporev=True):
     import qtpy
     import qtpy.QtCore
 
-    revision = None
-    if reporev:
-        from spyder.utils import vcs
-        revision, branch = vcs.get_git_revision(
-            os.path.dirname(__current_directory__))
+    from spyder.utils.conda import is_conda_env
+    from spyder.config.base import is_pynsist, running_in_mac_app
 
-    if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
-        system = platform.system()
+    revision = branch = None
+    if reporev:
+        if running_in_mac_app():
+            revision = os.environ.get('SPY_COMMIT', None)
+            branch = os.environ.get('SPY_BRANCH', None)
+        else:
+            from spyder.utils import vcs
+            revision, branch = vcs.get_git_revision(
+                os.path.dirname(__current_directory__))
+
+    if is_pynsist() or running_in_mac_app():
+        installer = 'standalone'
+    elif is_conda_env(pyexec=sys.executable):
+        installer = 'conda'
     else:
-        system = 'Darwin'
+        installer = 'pip'
 
     return {
         'spyder': __version__,
+        'installer': installer,
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': qtpy.QtCore.__version__,
         'qt_api': qtpy.API_NAME,      # PyQt5
         'qt_api_ver': (qtpy.PYSIDE_VERSION if qtpy.API == "pyside2"
                        else qtpy.PYQT_VERSION),
-        'system': system,   # Linux, Windows, ...
+        'system': platform.system(),   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
         'revision': revision,  # '9fdf926eccce',
         'branch': branch,  # '4.x' or master
     }
+
+
+def get_versions_text(reporev=True):
+    """Create string of version information for components used by Spyder"""
+    versions = get_versions(reporev=reporev)
+
+    # Get git revision for development version
+    revision = versions['revision'] or ''
+
+    return f"""\
+* Spyder version: {versions['spyder']} {revision} ({versions['installer']})
+* Python version: {versions['python']} {versions['bitness']}-bit
+* Qt version: {versions['qt']}
+* {versions['qt_api']} version: {versions['qt_api_ver']}
+* Operating System: {versions['system']} {versions['release']}
+"""
