@@ -70,7 +70,7 @@ class PathManager(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(ima.icon('pythonpath'))
-        self.resize(500, 300)
+        self.resize(500, 400)
         self.import_button.setVisible(sync)
         self.export_button.setVisible(os.name == 'nt' and sync)
 
@@ -221,17 +221,29 @@ class PathManager(QDialog):
 
         if env_pypath:
             env_pypath = env_pypath.split(os.pathsep)
-            env_pypath_msg = '<br>'.join(env_pypath)
-	        answer = QMessageBox.question(
-                self,
-                _("Import"),
-                _("Do you want to import the contents of your "
-                  "<tt>PYTHONPATH</tt> environment variable into Spyder? "
-                  "The following paths will be imported:"
-                  "<br><br>" + env_pypath_msg),
-                QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
 
-            if answer == QMessageBox.Yes:
+            dlg = QDialog(self)
+            dlg.setWindowTitle(_("PYTHONPATH"))
+            dlg.setWindowIcon(ima.icon('pythonpath'))
+            dlg.setAttribute(Qt.WA_DeleteOnClose)
+            dlg.setMinimumWidth(400)
+
+            label = QLabel("The following paths will be imported.")
+            listw = QListWidget(dlg)
+            listw.addItems(env_pypath)
+
+            bbox = QDialogButtonBox(
+                QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            bbox.accepted.connect(dlg.accept)
+            bbox.rejected.connect(dlg.reject)
+
+            layout = QVBoxLayout()
+            layout.addWidget(label)
+            layout.addWidget(listw)
+            layout.addWidget(bbox)
+            dlg.setLayout(layout)
+
+            if dlg.exec():
                 spy_pypath = self.get_path_dict()
                 n = len(spy_pypath)
 
@@ -476,7 +488,7 @@ def test():
     _ = qapplication()
     dlg = PathManager(
         None,
-        path=tuple(sys.path[:-2]),
+        path=tuple(sys.path[4:-2]),
         read_only_path=tuple(sys.path[-2:]),
     )
 
