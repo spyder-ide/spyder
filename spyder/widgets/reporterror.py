@@ -252,7 +252,6 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         if not self.is_report:
             layout.addWidget(self.dismiss_box)
-            layout.addSpacing(15)
 
         if (
             not (is_pynsist() or running_in_mac_app())
@@ -325,10 +324,10 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 """
         # Report environment except if standalone and internal
         if include_env:
-            if cls.get_conf('default', section='main_interpreter'):
+            if cls.get_conf(cls, 'default', section='main_interpreter'):
                 pyexe = sys.executable
             else:
-                pyexe = cls.get_conf('custom_interpreter',
+                pyexe = cls.get_conf(cls, 'custom_interpreter',
                                      section='main_interpreter')
 
             if is_conda_env(pyexec=pyexe):
