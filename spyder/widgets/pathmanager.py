@@ -228,7 +228,8 @@ class PathManager(QDialog):
             dlg.setAttribute(Qt.WA_DeleteOnClose)
             dlg.setMinimumWidth(400)
 
-            label = QLabel("The following paths will be imported.")
+            label = QLabel("The following paths from your PYTHONPATH "
+                           "environment variable will be imported.")
             listw = QListWidget(dlg)
             listw.addItems(env_pypath)
 
@@ -260,7 +261,8 @@ class PathManager(QDialog):
                 _("PYTHONPATH"),
                 _("Your <tt>PYTHONPATH</tt> environment variable is empty, so "
                   "there is nothing to import."),
-                QMessageBox.Ok)
+                QMessageBox.Ok
+            )
 
     @Slot()
     def export_pythonpath(self):
@@ -278,7 +280,8 @@ class PathManager(QDialog):
               "<br><br>"
               "Do you want to clear the contents of PYTHONPATH before "
               "adding Spyder's path list?"),
-            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
+        )
 
         if answer == QMessageBox.Cancel:
             return
