@@ -3060,9 +3060,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             else:
                 text, offsets, line_cols, cell_name, enc = editorstack.get_cell()
             context_name = 'Cell'
+            copy_cell = editorstack.run_cell_copy
             run_input = CellRun(
                 path=fname, cell=text, cell_name=cell_name, encoding=enc,
-                line_col_bounds=line_cols, character_bounds=offsets)
+                line_col_bounds=line_cols, character_bounds=offsets,
+                copy=copy_cell)
 
             if action_name == 'advance':
                 editorstack.advance_cell()

@@ -1864,7 +1864,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(500)
 
-    # Check for errors and the copied code
+    # # Check for errors and the copied code
     assert 'runcell' not in shell._control.toPlainText()
     assert 'a = 10' in shell._control.toPlainText()
     assert 'Error:' not in shell._control.toPlainText()

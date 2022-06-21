@@ -89,3 +89,6 @@ class CellRun(TypedDict):
 
     # Selection start and end in characters
     character_bounds: Tuple[int, int]
+
+    # True if the text should be copied over.
+    copy: bool

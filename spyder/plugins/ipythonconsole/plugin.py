@@ -727,7 +727,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         cell_text = run_input['cell']
         cell_name = run_input['cell_name']
         filename = run_input['path']
-        self.run_cell(cell_text, cell_name, filename, False, True)
+        copy = run_input['copy']
+        self.run_cell(cell_text, cell_name, filename, copy, True)
 
     def run_script(self, filename, wdir, args, debug, post_mortem,
                    current_client, clear_variables, console_namespace):
