@@ -3017,8 +3017,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                         (filename, metadata['input_extension'])}
 
     def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
+        editorstack = self.get_current_editorstack()
         self.focus_run_configuration(metadata_id)
-        self.save()
+        if CONF.get('editor', 'save_all_before_run', default=True):
+            editorstack.save_all(save_new_files=False)
         metadata = self.metadata_per_id[metadata_id]
         context = metadata['context']['name']
         context = getattr(RunContext, context)
@@ -3033,7 +3035,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self, context, action_name,
             re_run=False) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
-        editorstack.save()
+        if CONF.get('editor', 'save_all_before_run', default=True):
+            editorstack.save_all(save_new_files=False)
         fname = self.get_current_filename()
         __, filename_ext = osp.splitext(fname)
         fname_ext = filename_ext[1:]

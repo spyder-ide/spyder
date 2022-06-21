@@ -4092,7 +4092,7 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Main variables
-    run_action = main_window.run_toolbar_actions[0]
+    run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
 
     # create new file
@@ -4118,6 +4118,16 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
                 "    p.join()\n")
     code_editor.set_text(text)
     # This code should run even on windows
+
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # Start running
     qtbot.mouseClick(run_button, Qt.LeftButton)
@@ -4862,8 +4872,18 @@ if __name__ == "__main__":
                     timeout=SHELL_TIMEOUT)
     control = main_window.ipyconsole.get_widget().get_focus_widget()
 
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
     # Click the run button
-    run_action = main_window.run_toolbar_actions[0]
+    run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(run_button, Qt.LeftButton)
@@ -4895,8 +4915,18 @@ crash_func()
                     timeout=SHELL_TIMEOUT)
     control = main_window.ipyconsole.get_widget().get_focus_widget()
 
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
     # Click the run button
-    run_action = main_window.run_toolbar_actions[0]
+    run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
     qtbot.mouseClick(run_button, Qt.LeftButton)
 
@@ -4943,7 +4973,7 @@ foo(1)
     assert QApplication.focusWidget() is code_editor
 
     # Select the run cell button to click it
-    run_cell_action = main_window.run_toolbar_actions[1]
+    run_cell_action = main_window.run.get_action('run cell')
     run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
 
     # Make sure we don't switch to the console after pressing the button
@@ -4974,7 +5004,7 @@ foo(1)
     code_editor.setTextCursor(cursor)
 
     # Select the run selection button to click it
-    run_selection_action = main_window.run_toolbar_actions[3]
+    run_selection_action = main_window.run.get_action('run selection')
     run_selection_button = main_window.run_toolbar.widgetForAction(
         run_selection_action)
 
