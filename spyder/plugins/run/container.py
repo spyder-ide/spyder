@@ -192,7 +192,7 @@ class RunContainer(PluginMainContainer):
             run_conf = provider.get_run_configuration(uuid)
 
             context, ext = self.metadata_model.get_metadata_context_extension(
-                    uuid)
+                uuid)
             context_name = context['name']
             context_id = getattr(RunContext, context_name)
 

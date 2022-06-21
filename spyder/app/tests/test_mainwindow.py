@@ -58,8 +58,13 @@ from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.run.api import (
+    RunExecutionParameters, StoredRunConfigurationExecutor,
+    ExtendedRunExecutionParameters, WorkingDirOpts, WorkingDirSource,
+    RunContext)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
@@ -805,6 +810,15 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
 
+    file_uuid = main_window.editor.id_per_file[test_file]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
     # Run test file
     qtbot.keyClick(code_editor, Qt.Key_F5)
     qtbot.wait(500)
@@ -845,6 +859,15 @@ def test_get_help_ipython_console_special_characters(
     test_file = osp.join(LOCATION, 'script_unicode.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
+
+    file_uuid = main_window.editor.id_per_file[test_file]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # Run test file
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1066,21 +1089,43 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on windows!')
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
-    from spyder.plugins.run.widgets import RunConfiguration
-    CONF.set('run', 'configurations', [])
+    CONF.set('run', 'parameters', {})
 
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
+    ipyconsole = main_window.ipyconsole
 
-    # --- Use cwd for this file ---
-    rc = RunConfiguration().get()
-    rc['default'] = False
-    rc['file_dir'] = False
-    rc['cw_dir'] = True
-    config_entry = (test_file, rc)
-    CONF.set('run', 'configurations', [config_entry])
+    # --- Set run options for the executor ---
+    ipy_conf = IPythonConsolePyConfiguration(
+        current=True, post_mortem=False, python_args_enabled=False,
+        python_args='', clear_namespace=False, console_namespace=False)
+
+    wdir_opts = WorkingDirOpts(source=WorkingDirSource.CurrentDirectory,
+                               path=None)
+
+    exec_conf = RunExecutionParameters(
+        working_dir=wdir_opts, executor_params=ipy_conf)
+
+    exec_uuid = str(uuid.uuid4())
+    ext_exec_conf = ExtendedRunExecutionParameters(
+        uuid=exec_uuid, name='TestConf', params=exec_conf)
+
+    ipy_dict = {ipyconsole.NAME: {
+        ('py', RunContext.File): {'params': {exec_uuid: ext_exec_conf}}
+    }}
+    CONF.set('run', 'parameters', ipy_dict)
+
+    # --- Set run options for this file ---
+    file_uuid = main_window.editor.id_per_file[test_file]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=ipyconsole.NAME,
+        selected=exec_uuid,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # --- Run test file ---
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1096,12 +1141,17 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
     # --- Use fixed execution dir for test file ---
     temp_dir = str(tmpdir.mkdir("test_dir"))
-    rc['file_dir'] = False
-    rc['cw_dir'] = False
-    rc['fixed_dir'] = True
-    rc['dir'] = temp_dir
-    config_entry = (test_file, rc)
-    CONF.set('run', 'configurations', [config_entry])
+    wdir_opts = WorkingDirOpts(source=WorkingDirSource.CustomDirectory,
+                               path=temp_dir)
+
+    exec_conf = RunExecutionParameters(
+        working_dir=wdir_opts, executor_params=ipy_conf)
+
+    ext_exec_conf['params'] = exec_conf
+    ipy_dict = {ipyconsole.NAME: {
+        ('py', RunContext.File): {'params': {exec_uuid: ext_exec_conf}}
+    }}
+    CONF.set('run', 'parameters', ipy_dict)
 
     # --- Run test file ---
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1117,7 +1167,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
     # ---- Closing test file and resetting config ----
     main_window.editor.close_file()
-    CONF.set('run', 'configurations', [])
+    CONF.set('run', 'parameters', {})
 
 
 @pytest.mark.slow
@@ -1128,19 +1178,42 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     sys.platform == 'darwin', reason='Hangs sometimes on Mac')
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
-    from spyder.plugins.run.widgets import RunConfiguration
 
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
+    ipyconsole = main_window.ipyconsole
+
+    # --- Set run options for the executor ---
+    ipy_conf = IPythonConsolePyConfiguration(
+        current=False, post_mortem=False, python_args_enabled=False,
+        python_args='', clear_namespace=False, console_namespace=False)
+
+    wdir_opts = WorkingDirOpts(source=WorkingDirSource.ConfigurationDirectory,
+                               path=None)
+
+    exec_conf = RunExecutionParameters(
+        working_dir=wdir_opts, executor_params=ipy_conf)
+
+    exec_uuid = str(uuid.uuid4())
+    ext_exec_conf = ExtendedRunExecutionParameters(
+        uuid=exec_uuid, name='TestConf', params=exec_conf)
+
+    ipy_dict = {ipyconsole.NAME: {
+        ('py', RunContext.File): {'params': {exec_uuid: ext_exec_conf}}
+    }}
+    CONF.set('run', 'parameters', ipy_dict)
 
     # --- Set run options for this file ---
-    rc = RunConfiguration().get()
-    # A dedicated console is used when these three options are False
-    rc['default'] = rc['current'] = rc['systerm'] = False
-    config_entry = (test_file, rc)
-    CONF.set('run', 'configurations', [config_entry])
+    file_uuid = main_window.editor.id_per_file[test_file]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=ipyconsole.NAME,
+        selected=exec_uuid,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # --- Run test file and assert that we get a dedicated console ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1176,7 +1249,8 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # ---- Closing test file and resetting config ----
     main_window.editor.close_file()
-    CONF.set('run', 'configurations', [])
+    CONF.set('run', 'configurations', {})
+    CONF.set('run', 'last_used_parameters', {})
 
 
 @pytest.mark.slow
@@ -1378,7 +1452,18 @@ def test_run_cython_code(main_window, qtbot):
 
     # ---- Run pyx file ----
     # Load test file
-    main_window.editor.load(osp.join(LOCATION, 'pyx_script.pyx'))
+    file_path = osp.join(LOCATION, 'pyx_script.pyx')
+    main_window.editor.load(file_path)
+
+    # --- Set run options for this file ---
+    file_uuid = main_window.editor.id_per_file[file_path]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1400,7 +1485,17 @@ def test_run_cython_code(main_window, qtbot):
 
     # ---- Import pyx file ----
     # Load test file
-    main_window.editor.load(osp.join(LOCATION, 'pyx_lib_import.py'))
+    file_path = osp.join(LOCATION, 'pyx_lib_import.py')
+    main_window.editor.load(file_path)
+
+    file_uuid = main_window.editor.id_per_file[file_path]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1601,6 +1696,15 @@ def test_run_code(main_window, qtbot, tmpdir):
     modifier = Qt.ControlModifier
     if sys.platform == 'darwin':
         modifier = Qt.MetaModifier
+
+    file_uuid = main_window.editor.id_per_file[filepath]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # ---- Run file ----
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -3392,6 +3496,16 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
 
+    # --- Set run options for this file ---
+    file_uuid = main_window.editor.id_per_file[filepath]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
     # ---- Run file ----
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -3457,6 +3571,16 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
+
+    # --- Set run options for this file ---
+    file_uuid = main_window.editor.id_per_file[filepath]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # ---- Run file ----
     with qtbot.waitSignal(shell.executed):

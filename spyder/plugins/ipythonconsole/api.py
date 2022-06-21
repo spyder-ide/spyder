@@ -21,21 +21,11 @@ else:
 # Support PEP 655 (available from Python 3.11 onwards)
 from typing_extensions import NotRequired
 
-
 class IPythonConsolePyConfiguration(TypedDict):
     """IPythonConsole python execution parameters."""
 
-    # True if the external console is using custom arguments. False otherwise
-    args_enabled: bool
-    # Custom arguments to pass to the external console.
-    args: str
     # True if the execution is using the current console. False otherwise
     current: bool
-    # True if the execution is using an external console. False otherwise
-    systerm: bool
-    # True if the console should remain open once the execution finishes.
-    # False otherwise.
-    interact: bool
     # If True, then the console will start a debugging session if an error
     # occurs. False otherwise.
     post_mortem: bool
