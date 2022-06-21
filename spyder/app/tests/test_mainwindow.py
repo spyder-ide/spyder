@@ -33,7 +33,6 @@ from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
-import pkg_resources
 from pkg_resources import parse_version
 import pylint
 import pytest
@@ -151,52 +150,6 @@ def find_desired_tab_in_window(tab_name, window):
     return None, None
 
 
-def register_fake_entrypoints():
-    """
-    Create entry points distribution to register elements:
-     * Completion providers (Fallback, Shippets, LSP)
-    """
-    # Completion providers
-    fallback = pkg_resources.EntryPoint.parse(
-        'fallback = spyder.plugins.completion.providers.fallback.provider:'
-        'FallbackProvider'
-    )
-    snippets = pkg_resources.EntryPoint.parse(
-        'snippets = spyder.plugins.completion.providers.snippets.provider:'
-        'SnippetsProvider'
-    )
-    lsp = pkg_resources.EntryPoint.parse(
-        'lsp = spyder.plugins.completion.providers.languageserver.provider:'
-        'LanguageServerProvider'
-    )
-
-    # Create a fake Spyder distribution
-    d = pkg_resources.Distribution(__file__)
-
-    # Add the providers to the fake EntryPoints
-    d._ep_map = {
-        'spyder.completions': {
-            'fallback': fallback,
-            'snippets': snippets,
-            'lsp': lsp
-        }
-    }
-
-    # Add the fake distribution to the global working_set
-    pkg_resources.working_set.add(d, 'spyder')
-
-
-def remove_fake_entrypoints():
-    """Remove fake entry points from pkg_resources"""
-    try:
-        pkg_resources.working_set.by_key.pop('unknown')
-        pkg_resources.working_set.entry_keys.pop('spyder')
-        pkg_resources.working_set.entry_keys.pop(__file__)
-        pkg_resources.working_set.entries.remove('spyder')
-    except KeyError:
-        pass
-
-
 def read_asset_file(filename):
     """Read contents of an asset file."""
     return encoding.read(osp.join(LOCATION, filename))[0]
@@ -208,8 +161,6 @@ def read_asset_file(filename):
 @pytest.fixture
 def main_window(request, tmpdir, qtbot):
     """Main Window fixture"""
-    if not running_in_ci():
-        register_fake_entrypoints()
 
     # Get original processEvents function in case the test that overrides it
     # fails
@@ -531,10 +482,6 @@ def cleanup(request, qapp):
             CONF.reset_to_defaults(notification=False)
         if qapp.instance():
             qapp.quit()
-
-        # Clean entry points if running locally.
-        if not running_in_ci():
-            remove_fake_entrypoints()
 
     request.addfinalizer(close_window)
 
