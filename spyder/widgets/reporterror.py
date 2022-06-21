@@ -21,11 +21,14 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
-                    get_versions)
-from spyder.config.base import _, running_under_pytest
+                    get_versions_text)
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.gui import get_font
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
+from spyder.utils.conda import is_conda_env, get_conda_env_path, find_conda
 from spyder.utils.icon_manager import ima
+from spyder.utils.programs import run_program
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
@@ -120,7 +123,7 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
         self.setReadOnly(True)
 
 
-class SpyderErrorDialog(QDialog):
+class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
     """Custom error dialog for error reporting."""
 
     def __init__(self, parent=None, is_report=False):
@@ -207,8 +210,9 @@ class SpyderErrorDialog(QDialog):
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox(_("Hide all future errors during this "
                                        "session"))
-        if self.is_report:
-            self.dismiss_box.hide()
+
+        # Checkbox to include IPython console environment
+        self.include_env = QCheckBox(_("Include IPython console environment"))
 
         # Dialog buttons
         gh_icon = ima.icon('github')
@@ -222,8 +226,7 @@ class SpyderErrorDialog(QDialog):
             self.details_btn.hide()
 
         self.close_btn = QPushButton(_('Close'))
-        if self.is_report:
-            self.close_btn.clicked.connect(self.reject)
+        self.close_btn.clicked.connect(self.reject)
 
         # Buttons layout
         buttons_layout = QHBoxLayout()
@@ -246,8 +249,18 @@ class SpyderErrorDialog(QDialog):
         layout.addWidget(self.details)
         layout.addWidget(self.desc_chars_label)
         layout.addSpacing(15)
-        layout.addWidget(self.dismiss_box)
-        layout.addSpacing(15)
+
+        if not self.is_report:
+            layout.addWidget(self.dismiss_box)
+
+        # Only provide checkbox if not an installer default interpreter
+        if (
+            not (is_pynsist() or running_in_mac_app())
+            or not self.get_conf('default', section='main_interpreter')
+        ):
+            layout.addWidget(self.include_env)
+            layout.addSpacing(15)
+
         layout.addLayout(buttons_layout)
         layout.setContentsMargins(25, 20, 25, 10)
         self.setLayout(layout)
@@ -258,8 +271,8 @@ class SpyderErrorDialog(QDialog):
         # Set Tab key focus order
         self.setTabOrder(self.title, self.input_description)
 
-    @staticmethod
-    def render_issue(description='', traceback=''):
+    @classmethod
+    def render_issue(cls, description='', traceback='', include_env=False):
         """
         Render issue content.
 
@@ -269,21 +282,15 @@ class SpyderErrorDialog(QDialog):
             Description to include in issue message.
         traceback: str
             Traceback text.
+        include_env: bool (False)
+            Whether to include the IPython console environment.
         """
-        # Get component versions
-        versions = get_versions()
-
         # Get dependencies if they haven't beed computed yet.
         if not dependencies.DEPENDENCIES:
             try:
                 dependencies.declare_dependencies()
             except ValueError:
                 pass
-
-        # Get git revision for development version
-        revision = ''
-        if versions['revision']:
-            revision = versions['revision']
 
         # Make a description header in case no description is supplied
         if not description:
@@ -297,7 +304,10 @@ class SpyderErrorDialog(QDialog):
                              "```".format(traceback))
         else:
             error_section = ''
-        issue_template = """\
+
+        versions_text = get_versions_text()
+
+        issue_template = f"""\
 ## Description
 
 {description}
@@ -306,28 +316,38 @@ class SpyderErrorDialog(QDialog):
 
 ## Versions
 
-* Spyder version: {spyder_version} {commit}
-* Python version: {python_version}
-* Qt version: {qt_version}
-* {qt_api_name} version: {qt_api_version}
-* Operating System: {os_name} {os_version}
-
+{versions_text}
 ### Dependencies
 
 ```
-{dependencies}
+{dependencies.status()}
 ```
-""".format(description=description,
-           error_section=error_section,
-           spyder_version=versions['spyder'],
-           commit=revision,
-           python_version=versions['python'],
-           qt_version=versions['qt'],
-           qt_api_name=versions['qt_api'],
-           qt_api_version=versions['qt_api_ver'],
-           os_name=versions['system'],
-           os_version=versions['release'],
-           dependencies=dependencies.status())
+"""
+
+        # Report environment if selected
+        if include_env:
+            pyexe = cls.get_conf(cls, 'executable', section='main_interpreter')
+
+            if is_conda_env(pyexec=pyexe):
+                path = get_conda_env_path(pyexe)
+                exe = find_conda()
+                args = ['list', '--prefix', path]
+            else:
+                exe = pyexe
+                args = ['-m', 'pip', 'list']
+
+            proc = run_program(exe, args=args)
+            ext_env, stderr = proc.communicate()
+            issue_template += f"""
+### Environment
+
+<details><summary>Environment</summary>
+
+```
+{ext_env.decode()}
+```
+</details>
+"""
 
         return issue_template
 
@@ -375,8 +395,9 @@ class SpyderErrorDialog(QDialog):
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        issue_text = self.render_issue(description=description,
-                                       traceback=traceback)
+        issue_text = self.render_issue(
+            description=description, traceback=traceback,
+            include_env=self.include_env.isChecked())
 
         try:
             org = self._github_org if not self._testing else 'ccordoba12'
@@ -464,7 +485,7 @@ class SpyderErrorDialog(QDialog):
 
 def test():
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # noqa
     dlg = SpyderErrorDialog()
     dlg._testing = True
     dlg.show()

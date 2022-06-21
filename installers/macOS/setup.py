@@ -17,7 +17,7 @@ from logging import getLogger, StreamHandler, Formatter
 from pathlib import Path
 from setuptools import setup
 
-from spyder import __version__ as SPYVER
+from spyder import get_versions
 
 # Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -39,6 +39,11 @@ APP_BASE_NAME = MAC_APP_NAME[:-4]
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
          sys.version_info.micro]
+
+version = get_versions()
+SPYVER = version['spyder']
+SPYCOM = version['revision']
+SPYBRA = version['branch']
 
 
 def make_app_bundle(dist_dir, make_lite=False):
@@ -81,7 +86,8 @@ def make_app_bundle(dist_dir, make_lite=False):
                                        'CFBundleTypeRole': 'Editor'}],
             'CFBundleIdentifier': 'org.spyder-ide',
             'CFBundleShortVersionString': SPYVER,
-            'NSRequiresAquaSystemAppearance': False  # Darkmode support
+            'NSRequiresAquaSystemAppearance': False,  # Darkmode support
+            'LSEnvironment': {'SPY_COMMIT': SPYCOM, 'SPY_BRANCH': SPYBRA}
         }
     }
 
