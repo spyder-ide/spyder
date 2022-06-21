@@ -253,6 +253,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         if not self.is_report:
             layout.addWidget(self.dismiss_box)
 
+        # Only provide checkbox if not an installer default interpreter
         if (
             not (is_pynsist() or running_in_mac_app())
             or not self.get_conf('default', section='main_interpreter')
@@ -322,13 +323,10 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 {dependencies.status()}
 ```
 """
-        # Report environment except if standalone and internal
+
+        # Report environment if selected
         if include_env:
-            if cls.get_conf(cls, 'default', section='main_interpreter'):
-                pyexe = sys.executable
-            else:
-                pyexe = cls.get_conf(cls, 'custom_interpreter',
-                                     section='main_interpreter')
+            pyexe = cls.get_conf(cls, 'executable', section='main_interpreter')
 
             if is_conda_env(pyexec=pyexe):
                 path = get_conda_env_path(pyexe)
