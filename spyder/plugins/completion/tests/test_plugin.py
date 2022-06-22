@@ -7,9 +7,6 @@
 
 """CompletionPlugin tests."""
 
-# Standard library imports
-import pkg_resources
-
 # Third party imports
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
@@ -46,13 +43,13 @@ def completion_receiver(completion_plugin_all_started):
     return completion_plugin, receiver
 
 
-def test_configuration_merge(completion_plugin):
+def test_configuration_merge(completion_plugin_all):
     first_defaults = dict(FakeProvider.CONF_DEFAULTS)
     first_version = FakeProvider.CONF_VERSION
 
     # Check that a new completion provider configuration is registered without
     # changes
-    result = completion_plugin._merge_default_configurations(
+    result = completion_plugin_all._merge_default_configurations(
         FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, {}
     )
     (conf_version, conf_values, conf_defaults) = result
@@ -76,7 +73,7 @@ def test_configuration_merge(completion_plugin):
         }
     }
 
-    result = completion_plugin._merge_default_configurations(
+    result = completion_plugin_all._merge_default_configurations(
         FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
@@ -103,7 +100,7 @@ def test_configuration_merge(completion_plugin):
         }
     }
 
-    result = completion_plugin._merge_default_configurations(
+    result = completion_plugin_all._merge_default_configurations(
         FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
@@ -120,7 +117,7 @@ def test_configuration_merge(completion_plugin):
 
     FakeProvider.CONF_VERSION = "0.1.1"
 
-    result = completion_plugin._merge_default_configurations(
+    result = completion_plugin_all._merge_default_configurations(
         FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
@@ -136,7 +133,7 @@ def test_configuration_merge(completion_plugin):
 
     FakeProvider.CONF_DEFAULTS = [(k, v) for k, v in fourth_config.items()]
 
-    result = completion_plugin._merge_default_configurations(
+    result = completion_plugin_all._merge_default_configurations(
         FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result
@@ -149,7 +146,7 @@ def test_configuration_merge(completion_plugin):
     FakeProvider.CONF_VERSION = "1.0.0"
     expected_config.pop('key2')
 
-    result = completion_plugin._merge_default_configurations(
+    result = completion_plugin_all._merge_default_configurations(
         FakeProvider, FakeProvider.COMPLETION_PROVIDER_NAME, prev_config
     )
     (conf_version, conf_values, conf_defaults) = result

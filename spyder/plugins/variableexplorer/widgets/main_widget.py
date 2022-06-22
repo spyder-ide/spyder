@@ -486,9 +486,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         self.sig_free_memory_requested.emit()
         QTimer.singleShot(self.INITIAL_FREE_MEMORY_TIME_TRIGGER,
-                          self.sig_free_memory_requested.emit)
+                          self.sig_free_memory_requested)
         QTimer.singleShot(self.SECONDARY_FREE_MEMORY_TIME_TRIGGER,
-                          self.sig_free_memory_requested.emit)
+                          self.sig_free_memory_requested)
 
     def resize_rows(self):
         self._current_editor.resizeRowsToContents()
