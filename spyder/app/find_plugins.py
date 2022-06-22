@@ -7,20 +7,16 @@
 Plugin dependency solver.
 """
 
-import ast
 import importlib
 import logging
-import os
 import traceback
 
 import pkg_resources
 
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import (
-    SpyderDockablePlugin, SpyderPluginWidget, Plugins)
+from spyder.api.plugins import Plugins
 from spyder.api.utils import get_class_values
-from spyder.config.base import (
-    DEV, STDERR, running_in_ci, running_under_pytest)
+from spyder.config.base import STDERR
 
 
 logger = logging.getLogger(__name__)
@@ -28,77 +24,29 @@ logger = logging.getLogger(__name__)
 
 def find_internal_plugins():
     """
-    Find internal plugins based on setup.py entry points.
-
-    In DEV mode we parse the `setup.py` file directly.
+    Find internal plugins based on setuptools entry points.
     """
     internal_plugins = {}
 
-    # If DEV, look for entry points in setup.py file for internal plugins
-    # and then look on the system for the rest
-    HERE = os.path.abspath(os.path.dirname(__file__))
-    base_path = os.path.dirname(os.path.dirname(HERE))
-    setup_path = os.path.join(base_path, "setup.py")
+    entry_points = list(pkg_resources.iter_entry_points("spyder.plugins"))
+    internal_names = get_class_values(Plugins)
 
-    if (DEV or running_under_pytest()) and not running_in_ci():
-        if not os.path.isfile(setup_path):
-            raise Exception(
-                'No "setup.py" file found and running in DEV mode!')
+    for entry_point in entry_points:
+        name = entry_point.name
+        if name not in internal_names:
+            continue
 
-        with open(setup_path, "r") as fh:
-            lines = fh.read().split("\n")
+        class_name = entry_point.attrs[0]
+        mod = importlib.import_module(entry_point.module_name)
+        plugin_class = getattr(mod, class_name, None)
+        internal_plugins[name] = plugin_class
 
-        start = None
-        end = None
-        for idx, line in enumerate(lines):
-            if line.startswith("spyder_plugins_entry_points"):
-                start = idx + 1
-                continue
-
-            if start is not None:
-                if line.startswith("]"):
-                    end = idx + 1
-                    break
-
-        entry_points_list = "[" + "\n".join(lines[start:end])
-        spyder_plugin_entry_points = ast.literal_eval(entry_points_list)
-        for entry_point in spyder_plugin_entry_points:
-            try:
-                name, module = entry_point.split(" = ")
-                name = name.strip()
-                module = module.strip()
-                module, class_name = module.split(":")
-            except Exception:
-                logger.error(
-                    '"setup.py" entry point "{entry_point}" is malformed!'
-                    "".format(entry_point=entry_point)
-                )
-
-            try:
-                mod = importlib.import_module(module)
-                internal_plugins[name] = getattr(mod, class_name, None)
-            except (ModuleNotFoundError, ImportError) as e:
-                raise e
-    else:
-        entry_points = list(pkg_resources.iter_entry_points("spyder.plugins"))
-        internal_names = get_class_values(Plugins)
-
-        for entry_point in entry_points:
-            name = entry_point.name
-            if name not in internal_names:
-                continue
-
-            class_name = entry_point.attrs[0]
-            mod = importlib.import_module(entry_point.module_name)
-            plugin_class = getattr(mod, class_name, None)
-            internal_plugins[name] = plugin_class
-
-        # FIXME: This shouldn't be necessary but it's just to be sure
-        # plugins are sorted in alphabetical order. We need to remove it
-        # in a later version.
-        internal_plugins = {
-            key: value for key, value in sorted(internal_plugins.items())
-        }
+    # FIXME: This shouldn't be necessary but it's just to be sure
+    # plugins are sorted in alphabetical order. We need to remove it
+    # in a later version.
+    internal_plugins = {
+        key: value for key, value in sorted(internal_plugins.items())
+    }
 
     return internal_plugins
 

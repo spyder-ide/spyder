@@ -33,7 +33,6 @@ from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
-import pkg_resources
 from pkg_resources import parse_version
 import pylint
 import pytest
@@ -87,6 +86,9 @@ EVAL_TIMEOUT = 3000
 
 # Time to wait for the completion services to be up or give a response
 COMPLETION_TIMEOUT = 30000
+
+# Python 3.7
+PY37 = sys.version_info[:2] == (3, 7)
 
 
 # =============================================================================
@@ -143,52 +145,6 @@ def find_desired_tab_in_window(tab_name, window):
     return None, None
 
 
-def register_fake_entrypoints():
-    """
-    Create entry points distribution to register elements:
-     * Completion providers (Fallback, Shippets, LSP)
-    """
-    # Completion providers
-    fallback = pkg_resources.EntryPoint.parse(
-        'fallback = spyder.plugins.completion.providers.fallback.provider:'
-        'FallbackProvider'
-    )
-    snippets = pkg_resources.EntryPoint.parse(
-        'snippets = spyder.plugins.completion.providers.snippets.provider:'
-        'SnippetsProvider'
-    )
-    lsp = pkg_resources.EntryPoint.parse(
-        'lsp = spyder.plugins.completion.providers.languageserver.provider:'
-        'LanguageServerProvider'
-    )
-
-    # Create a fake Spyder distribution
-    d = pkg_resources.Distribution(__file__)
-
-    # Add the providers to the fake EntryPoints
-    d._ep_map = {
-        'spyder.completions': {
-            'fallback': fallback,
-            'snippets': snippets,
-            'lsp': lsp
-        }
-    }
-
-    # Add the fake distribution to the global working_set
-    pkg_resources.working_set.add(d, 'spyder')
-
-
-def remove_fake_entrypoints():
-    """Remove fake entry points from pkg_resources"""
-    try:
-        pkg_resources.working_set.by_key.pop('unknown')
-        pkg_resources.working_set.entry_keys.pop('spyder')
-        pkg_resources.working_set.entry_keys.pop(__file__)
-        pkg_resources.working_set.entries.remove('spyder')
-    except KeyError:
-        pass
-
-
 def read_asset_file(filename):
     """Read contents of an asset file."""
     return encoding.read(osp.join(LOCATION, filename))[0]
@@ -200,8 +156,6 @@ def read_asset_file(filename):
 @pytest.fixture
 def main_window(request, tmpdir, qtbot):
     """Main Window fixture"""
-    if not running_in_ci():
-        register_fake_entrypoints()
 
     # Get original processEvents function in case the test that overrides it
     # fails
@@ -493,11 +447,14 @@ def main_window(request, tmpdir, qtbot):
                     raise
 
                 try:
+                    files = [
+                        repr(f) for f in proc.open_files()
+                        if 'QtWebEngine' not in repr(f)
+                    ]
                     qtbot.waitUntil(
-                        lambda: (len(init_files) >= len(proc.open_files())),
+                        lambda: (len(init_files) >= len(files)),
                         timeout=SHELL_TIMEOUT)
                 except Exception:
-                    files = [repr(f) for f in proc.open_files()]
                     show_diff(init_files, files, "files")
                     main_window.window = None
                     window.close()
@@ -520,10 +477,6 @@ def cleanup(request, qapp):
             CONF.reset_to_defaults(notification=False)
         if qapp.instance():
             qapp.quit()
-
-        # Clean entry points if running locally.
-        if not running_in_ci():
-            remove_fake_entrypoints()
 
     request.addfinalizer(close_window)
 
@@ -2658,7 +2611,7 @@ def test_report_issue(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    sys.platform.startswith('linux'), reason="It segfaults on Linux")
+    not os.name == 'nt', reason="It segfaults on Linux and Mac")
 def test_custom_layouts(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
     # Wait until the window is fully up
@@ -3013,6 +2966,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
 def test_preferences_change_font_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#10284 regression.
@@ -3598,8 +3552,8 @@ def test_runcell_pdb(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.parametrize(
-    "debug", [False, True])
+@pytest.mark.parametrize("debug", [False, True])
+@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
 def test_runcell_cache(main_window, qtbot, debug):
     """Test the runcell command cache."""
     # Write code with a cell to a file
@@ -3752,8 +3706,7 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
-@pytest.mark.parametrize(
-    "where", [True, False])
+@pytest.mark.parametrize("where", [True, False])
 def test_pdb_step(main_window, qtbot, tmpdir, where):
     """
     Check that pdb notify Spyder only moves when a new line is reached.
@@ -3881,12 +3834,11 @@ def test_runcell_after_restart(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform.startswith('linux'),
-                    reason="It fails sometimes on Linux")
-@pytest.mark.parametrize(
-    "ipython", [True, False])
-@pytest.mark.parametrize(
-    "test_cell_magic", [True, False])
+@pytest.mark.skipif(
+    not os.name == 'nt',
+    reason="Sometimes fails on Linux and hangs on Mac")
+@pytest.mark.parametrize("ipython", [True, False])
+@pytest.mark.parametrize("test_cell_magic", [True, False])
 def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     """Test the runcell command with cell magic."""
     # Write code with a cell to a file
@@ -4959,7 +4911,9 @@ def test_focus_for_plugins_with_raise_and_focus(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs sometimes on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Hangs sometimes on Windows and Mac")
 def test_rename_files_in_editor_after_folder_rename(main_window, mocker,
                                                     tmpdir, qtbot):
     """

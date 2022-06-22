@@ -406,12 +406,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     # ---- Stack accesors
     # ------------------------------------------------------------------------
     def switch_widget(self, nsb, old_nsb):
-        """
-        Set the current NamespaceBrowser.
-
-        This also setup the finder widget to work with the current
-        NamespaceBrowser.
-        """
+        """Set the current NamespaceBrowser."""
         pass
 
     # ---- Public API
@@ -491,9 +486,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         self.sig_free_memory_requested.emit()
         QTimer.singleShot(self.INITIAL_FREE_MEMORY_TIME_TRIGGER,
-                          self.sig_free_memory_requested.emit)
+                          self.sig_free_memory_requested)
         QTimer.singleShot(self.SECONDARY_FREE_MEMORY_TIME_TRIGGER,
-                          self.sig_free_memory_requested.emit)
+                          self.sig_free_memory_requested)
 
     def resize_rows(self):
         self._current_editor.resizeRowsToContents()
