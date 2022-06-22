@@ -413,14 +413,17 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         return can_delete
 
-    def save_undocked_plugin_state(self, plugin_name: str):
+    def dock_undocked_plugin(
+            self, plugin_name: str, save_undocked: bool = False):
         """
-        Dock plugin if undocked and save undocked state
+        Dock plugin if undocked and save undocked state if requested
 
         Parameters
         ----------
         plugin_name: str
             Name of the plugin to check for deletion.
+        save_undocked : bool, optional
+            True if the undocked state needs to be saved. The default is False.
 
         Returns
         -------
@@ -430,10 +433,10 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         if isinstance(plugin_instance, SpyderDockablePlugin):
             # Close undocked plugin if needed and save undocked state
-            plugin_instance.close_window(save_undocked=True)
+            plugin_instance.close_window(save_undocked=save_undocked)
         elif isinstance(plugin_instance, SpyderPluginWidget):
             # Save if plugin was undocked to restore it the next time.
-            if plugin_instance._undocked_window:
+            if plugin_instance._undocked_window and save_undocked:
                 plugin_instance.set_option(
                     'undocked_on_window_close', True)
             else:
@@ -546,17 +549,24 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         return True
 
-    def save_all_undocked_plugins_state(self):
+    def dock_all_undocked_plugins(self, save_undocked: bool = False):
         """
-        Dock undocked plugins and save if they were undocked.
+        Dock undocked plugins and save undocked state if required.
+
+        Parameters
+        ----------
+        save_undocked : bool, optional
+            True if the undocked state needs to be saved. The default is False.
 
         Returns
         -------
         None.
+
         """
         for plugin_name in (
                 set(self.external_plugins) | set(self.internal_plugins)):
-            self.save_undocked_plugin_state(plugin_name)
+            self.dock_undocked_plugin(
+                plugin_name, save_undocked=save_undocked)
 
     def can_delete_all_plugins(self,
                                excluding: Optional[Set[str]] = None) -> bool:
@@ -611,6 +621,15 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         """
         excluding = excluding or set({})
         can_close = True
+
+        # Check if all the plugins can be closed
+        can_close = self.can_delete_all_plugins(excluding=excluding)
+
+        if not can_close and not close_immediately:
+            return False
+
+        # Dock undocked plugins
+        self.dock_all_undocked_plugins(save_undocked=True)
 
         # Delete Spyder 4 external plugins
         for plugin_name in set(self.external_plugins):

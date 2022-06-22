@@ -746,6 +746,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     def close_window(self, save_undocked=False):
         """
         Close QMainWindow instance that contains this widget.
+
+        Parameters
+        ----------
+        save_undocked : bool, optional
+            True if the undocked state needs to be saved. The default is False.
+
+        Returns
+        -------
+        None.
         """
         logger.debug("Docking plugin back to the main window")
 
