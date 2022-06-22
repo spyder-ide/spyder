@@ -391,7 +391,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
     def can_delete_plugin(self, plugin_name: str) -> bool:
         """
-        Check if a plugin from the registry by its name can be deleted.
+        Check if a plugin from the registry can be deleted by its name.
 
         Paremeters
         ----------
@@ -425,7 +425,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         Returns
         -------
         None.
-
         """
         plugin_instance = self.plugin_registry[plugin_name]
 
@@ -554,7 +553,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         Returns
         -------
         None.
-
         """
         for plugin_name in (
                 set(self.external_plugins) | set(self.internal_plugins)):
@@ -563,7 +561,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
     def can_delete_all_plugins(self,
                                excluding: Optional[Set[str]] = None) -> bool:
         """
-        Determine if all the plugins can be deleted except the ones to exclude
+        Determine if all plugins can be deleted except the ones to exclude.
 
         Parameters
         ----------
@@ -573,8 +571,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         Returns
         -------
         bool
-            True if all the plugins can be closed. False otherwise.
-
+            True if all plugins can be closed. False otherwise.
         """
         excluding = excluding or set({})
         can_close = True
