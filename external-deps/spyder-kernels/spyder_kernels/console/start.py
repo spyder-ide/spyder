@@ -11,23 +11,19 @@ File used to start kernels for the IPython Console
 """
 
 # Standard library imports
-from distutils.version import LooseVersion
 import os
 import os.path as osp
 import sys
 import site
 
+# Third-party imports
+from packaging.version import parse
 from traitlets import DottedObjectName
-import ipykernel
 
 # Local imports
 from spyder_kernels.utils.misc import is_module_installed
 from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, INLINE_FIGURE_FORMATS)
-
-
-PY2 = sys.version[0] == '2'
-IPYKERNEL_6 = ipykernel.__version__[0] >= '6'
 
 
 def import_spydercustomize():
@@ -73,7 +69,6 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options."""
-    import ipykernel
     from IPython.core.application import get_ipython_dir
     from traitlets.config.loader import Config, load_pyconfig_files
 
@@ -98,10 +93,9 @@ def kernel_config():
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
 
-    # Jedi completer. It's only available in Python 3
+    # Jedi completer.
     jedi_o = os.environ.get('SPY_JEDI_O') == 'True'
-    if not PY2:
-        spy_cfg.IPCompleter.use_jedi = jedi_o
+    spy_cfg.IPCompleter.use_jedi = jedi_o
 
     # Clear terminal arguments input.
     # This needs to be done before adding the exec_lines that come from
@@ -113,12 +107,11 @@ def kernel_config():
 
     # Set our runfile in builtins here to prevent other packages shadowing it.
     # This started to be a problem since IPykernel 6.3.0.
-    if not PY2:
-        spy_cfg.IPKernelApp.exec_lines.append(
-            "import builtins; "
-            "builtins.runfile = builtins.spyder_runfile; "
-            "del builtins.spyder_runfile; del builtins"
-        )
+    spy_cfg.IPKernelApp.exec_lines.append(
+        "import builtins; "
+        "builtins.runfile = builtins.spyder_runfile; "
+        "del builtins.spyder_runfile; del builtins"
+    )
 
     # Prevent other libraries to change the breakpoint builtin.
     # This started to be a problem since IPykernel 6.3.0.
@@ -144,24 +137,19 @@ def kernel_config():
     spy_cfg.IPKernelApp.exec_lines.append(
         "get_ipython().kernel._load_wurlitzer()")
 
-    # Default inline backend configuration
+    # Default inline backend configuration.
     # This is useful to have when people doesn't
     # use our config system to configure the
     # inline backend but want to use
     # '%matplotlib inline' at runtime
-    if LooseVersion(ipykernel.__version__) < LooseVersion('4.5'):
-        dpi_option = 'savefig.dpi'
-    else:
-        dpi_option = 'figure.dpi'
-
-    # The typical default figure size is too large for inline use,
-    # so we shrink the figure size to 6x4, and tweak fonts to
-    # make that fit.
     spy_cfg.InlineBackend.rc = {
+        # The typical default figure size is too large for inline use,
+        # so we shrink the figure size to 6x4, and tweak fonts to
+        # make that fit.
         'figure.figsize': (6.0, 4.0),
         # 72 dpi matches SVG/qtconsole.
         # This only affects PNG export, as SVG has no dpi setting.
-        dpi_option: 72,
+        'figure.dpi': 72,
         # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
         'font.size': 10,
         # 10pt still needs a little more room on the xlabel
@@ -190,7 +178,8 @@ def kernel_config():
                 # Resolution
                 resolution_o = os.environ.get('SPY_RESOLUTION_O')
                 if resolution_o is not None:
-                    spy_cfg.InlineBackend.rc[dpi_option] = float(resolution_o)
+                    spy_cfg.InlineBackend.rc['figure.dpi'] = float(
+                        resolution_o)
 
                 # Figure size
                 width_o = float(os.environ.get('SPY_WIDTH_O'))
@@ -233,7 +222,7 @@ def kernel_config():
     if autocall_o is not None:
         spy_cfg.ZMQInteractiveShell.autocall = int(autocall_o)
 
-    # To handle the banner by ourselves in IPython 3+
+    # To handle the banner by ourselves
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
     # Greedy completer
@@ -248,8 +237,7 @@ def kernel_config():
 
     # Disable the new mechanism to capture and forward low-level output
     # in IPykernel 6. For that we have Wurlitzer.
-    if LooseVersion(ipykernel.__version__) >= LooseVersion('6.3.0'):
-        spy_cfg.IPKernelApp.capture_fd_output = False
+    spy_cfg.IPKernelApp.capture_fd_output = False
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
@@ -307,9 +295,8 @@ def main():
 
     class SpyderKernelApp(IPKernelApp):
 
-        if IPYKERNEL_6:
-            outstream_class = DottedObjectName(
-                'spyder_kernels.console.outstream.TTYOutStream')
+        outstream_class = DottedObjectName(
+            'spyder_kernels.console.outstream.TTYOutStream')
 
         def init_pdb(self):
             """

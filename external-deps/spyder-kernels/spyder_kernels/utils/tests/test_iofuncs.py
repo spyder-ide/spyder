@@ -21,7 +21,6 @@ import numpy as np
 
 # Local imports
 import spyder_kernels.utils.iofuncs as iofuncs
-from spyder_kernels.py3compat import is_text_string
 
 
 # Full path to this file's parent directory for loading data
@@ -48,7 +47,7 @@ def are_namespaces_equal(actual, expected):
     return are_equal
 
 
-class CustomObj(object):
+class CustomObj:
     """A custom class of objects for testing."""
     def __init__(self, data):
         self.data = None
@@ -254,7 +253,7 @@ def test_spydata_import_witherror():
     original_cwd = os.getcwd()
     path = os.path.join(LOCATION, 'export_data_withfunction.spydata')
     data, error = iofuncs.load_dictionary(path)
-    assert error and is_text_string(error)
+    assert error and isinstance(error, str)
     assert data is None
     assert os.getcwd() == original_cwd
 

@@ -59,13 +59,10 @@ import sys
 import uuid
 import traceback
 
-from spyder_kernels.py3compat import PY2, PY3
-
 
 logger = logging.getLogger(__name__)
 
-# To be able to get and set variables between Python 2 and 3
-DEFAULT_PICKLE_PROTOCOL = 2
+DEFAULT_PICKLE_PROTOCOL = 4
 
 # Max timeout (in secs) for blocking calls
 TIMEOUT = 3
@@ -132,7 +129,7 @@ def comm_excepthook(type, value, tb):
 sys.excepthook = comm_excepthook
 
 
-class CommBase(object):
+class CommBase:
     """
     Class with the necessary attributes and methods to handle
     communications between a kernel and a frontend.
@@ -309,15 +306,7 @@ class CommBase(object):
 
         # Load the buffer. Only one is supported.
         try:
-            if PY3:
-                # https://docs.python.org/3/library/pickle.html#pickle.loads
-                # Using encoding='latin1' is required for unpickling
-                # NumPy arrays and instances of datetime, date and time
-                # pickled by Python 2.
-                buffer = cloudpickle.loads(msg['buffers'][0],
-                                           encoding='latin-1')
-            else:
-                buffer = cloudpickle.loads(msg['buffers'][0])
+            buffer = cloudpickle.loads(msg['buffers'][0])
         except Exception as e:
             logger.debug(
                 "Exception in cloudpickle.loads : %s" % str(e))
@@ -496,7 +485,7 @@ class CommBase(object):
         error_wrapper.raise_error()
 
 
-class RemoteCallFactory(object):
+class RemoteCallFactory:
     """Class to create `RemoteCall`s."""
 
     def __init__(self, comms_wrapper, comm_id, callback, **settings):

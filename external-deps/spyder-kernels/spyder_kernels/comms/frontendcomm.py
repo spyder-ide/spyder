@@ -21,7 +21,6 @@ from tornado import ioloop
 import zmq
 
 from spyder_kernels.comms.commbase import CommBase, CommError
-from spyder_kernels.py3compat import TimeoutError, PY2
 
 
 def get_free_port():
@@ -87,16 +86,15 @@ class FrontendComm(CommBase):
             self.comm_socket_thread = threading.Thread(target=self.poll_thread)
             self.comm_socket_thread.start()
 
-            # Patch parent.close . This function only exists in Python 3.
-            if not PY2:
-                parent_close = self.kernel.parent.close
+            # Patch parent.close
+            parent_close = self.kernel.parent.close
 
-                def close():
-                    """Close comm_socket_thread."""
-                    self.close_thread()
-                    parent_close()
+            def close():
+                """Close comm_socket_thread."""
+                self.close_thread()
+                parent_close()
 
-                self.kernel.parent.close = close
+            self.kernel.parent.close = close
 
     def close(self, comm_id=None):
         """Close the comm and notify the other side."""
@@ -117,9 +115,8 @@ class FrontendComm(CommBase):
 
     def poll_thread(self):
         """Receive messages from comm socket."""
-        if not PY2:
-            # Create an event loop for the handlers.
-            ioloop.IOLoop().initialize()
+        # Create an event loop for the handlers.
+        ioloop.IOLoop().initialize()
         while not self.comm_thread_close.is_set():
             self.poll_one()
 
@@ -149,10 +146,6 @@ class FrontendComm(CommBase):
             if handler is None:
                 self.kernel.log.warning("Unknown message type: %r", msg_type)
                 return
-            if PY2:
-                handler(out_stream, ident, msg)
-                return
-
             import asyncio
 
             if (getattr(asyncio, 'run', False) and
