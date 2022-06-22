@@ -3102,6 +3102,9 @@ def test_preferences_change_font_regression(main_window, qtbot):
 @pytest.mark.skipif(
     sys.platform == 'darwin',
     reason="Changes of Shitf+Return shortcut cause an ambiguous shortcut")
+@pytest.mark.parametrize('main_window',
+                         [{'spy_config': ('editor', 'run_cell_copy', True)}],
+                         indirect=True)
 def test_preferences_empty_shortcut_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#12992 regression.
@@ -3117,14 +3120,14 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     base_run_cell_advance = CONF.get_shortcut(
         'editor', 'run cell and advance')  # Should be Shift+Return
     base_run_selection = CONF.get_shortcut(
-        'editor', 'run selection')  # Should be F9
+        '_', 'run selection')  # Should be F9
     assert base_run_cell_advance == 'Shift+Return'
     assert base_run_selection == 'F9'
 
     CONF.set_shortcut(
         'editor', 'run cell and advance', '')
     CONF.set_shortcut(
-        'editor', 'run selection', base_run_cell_advance)
+        '_', 'run selection', base_run_cell_advance)
     with qtbot.waitSignal(main_window.shortcuts.sig_shortcuts_updated):
         main_window.shortcuts.apply_shortcuts()
 
@@ -3132,7 +3135,17 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     # Create new file
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.set_text(u'print(0)\nprint(ññ)')
+    code_editor.set_text(u'print(0)\n#%%\nprint(ññ)')
+
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
@@ -3140,10 +3153,8 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     assert u'ññ' not in shell._control.toPlainText()
 
     # Reset shortcuts
-    CONF.set_shortcut(
-        'editor', 'run selection', 'F9')
-    CONF.set_shortcut(
-        'editor', 'run cell and advance', 'Shift+Return')
+    CONF.set_shortcut('_', 'run selection', 'F9')
+    CONF.set_shortcut('editor', 'run cell and advance', 'Shift+Return')
 
     # Wait for shortcut change to actually be applied
     with qtbot.waitSignal(main_window.shortcuts.sig_shortcuts_updated):
@@ -3607,6 +3618,17 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     code_editor = main_window.editor.get_focus_widget()
+
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
     # call runcell
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
@@ -3653,6 +3675,16 @@ def test_runcell_pdb(main_window, qtbot):
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
 
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
     # Start debugging
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
@@ -3694,6 +3726,16 @@ def test_runcell_cache(main_window, qtbot, debug):
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
+
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     if debug:
         # Start debugging
@@ -3941,6 +3983,16 @@ def test_runcell_after_restart(main_window, qtbot):
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
+
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # Restart Kernel
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
@@ -4939,96 +4991,6 @@ crash_func()
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
-@pytest.mark.parametrize("focus_to_editor", [True, False])
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
-    """Test that the focus_to_editor option works as expected."""
-    # Write code with cells to a file
-    code = """# %%
-def foo(x):
-    return 2 * x
-
-# %%
-foo(1)
-"""
-    p = tmpdir.join("test.py")
-    p.write(code)
-
-    # Load code in the editor
-    main_window.editor.load(to_text_string(p))
-
-    # Change focus_to_editor option
-    main_window.editor.set_option('focus_to_editor', focus_to_editor)
-    main_window.editor.apply_plugin_settings({'focus_to_editor'})
-    code_editor = main_window.editor.get_current_editor()
-
-    # Wait for the console to be up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
-    control = main_window.ipyconsole.get_widget().get_focus_widget()
-
-    # Be sure the focus is on the editor before proceeding
-    code_editor.setFocus()
-    assert QApplication.focusWidget() is code_editor
-
-    # Select the run cell button to click it
-    run_cell_action = main_window.run.get_action('run cell')
-    run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
-
-    # Make sure we don't switch to the console after pressing the button
-    if focus_to_editor:
-        with qtbot.assertNotEmitted(
-            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
-        ):
-            qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-    else:
-        qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-        qtbot.wait(1000)
-
-    # Check the right widget has focus
-    focus_widget = QApplication.focusWidget()
-    if focus_to_editor:
-        assert focus_widget is code_editor
-    else:
-        assert focus_widget is control
-
-    # Give focus back to the editor before running the next test
-    if not focus_to_editor:
-        code_editor.setFocus()
-
-    # Move cursor to last line to run it
-    cursor = code_editor.textCursor()
-    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
-    cursor.movePosition(QTextCursor.PreviousBlock, QTextCursor.KeepAnchor)
-    code_editor.setTextCursor(cursor)
-
-    # Select the run selection button to click it
-    run_selection_action = main_window.run.get_action('run selection')
-    run_selection_button = main_window.run_toolbar.widgetForAction(
-        run_selection_action)
-
-    # Make sure we don't switch to the console after pressing the button
-    if focus_to_editor:
-        with qtbot.assertNotEmitted(
-            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
-        ):
-            qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-    else:
-        qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-        qtbot.wait(1000)
-
-    # Check the right widget has focus
-    focus_widget = QApplication.focusWidget()
-    if focus_to_editor:
-        assert focus_widget is code_editor
-    else:
-        assert focus_widget is control
-
-
-@pytest.mark.slow
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 def test_focus_for_plugins_with_raise_and_focus(main_window, qtbot):
     """
     Check that we give focus to the focus widget declared by plugins that use
@@ -5152,8 +5114,9 @@ def test_debug_unsaved_function(main_window, qtbot):
     # Main variables
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
-    run_action = main_window.run_toolbar_actions[0]
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    run_action = main_window.run.get_action('run')
+    run_button = main_window.run_toolbar.widgetForAction(
+        run_action)
 
     # Clear all breakpoints
     main_window.editor.clear_all_breakpoints()
@@ -5162,6 +5125,16 @@ def test_debug_unsaved_function(main_window, qtbot):
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text('def foo():\n    print(1)')
+
+    fname = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[fname]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # Set breakpoint
     code_editor.debugger.toogle_breakpoint(line_number=2)
@@ -5203,6 +5176,17 @@ def test_out_runfile_runcell(main_window, qtbot):
         main_window.editor.new()
         code_editor = main_window.editor.get_focus_widget()
         code_editor.set_text(code)
+
+        fname = main_window.editor.get_current_filename()
+        file_uuid = main_window.editor.id_per_file[fname]
+        file_run_params = StoredRunConfigurationExecutor(
+            executor=main_window.ipyconsole.NAME,
+            selected=None,
+            display_dialog=False,
+            first_execution=False)
+
+        CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
         with qtbot.waitSignal(shell.executed):
             main_window.editor.run_cell()
         if shown:
