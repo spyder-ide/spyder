@@ -814,12 +814,15 @@ builtins.cell_count = cell_count
 
 
 # =============================================================================
-# Extend sys.path with paths that come from Spyder
+# PYTHONPATH and sys.path Adjustments
 # =============================================================================
+# PYTHONPATH is not passed to kernel directly, see spyder-ide/spyder#13519
+# This allows the kernel to start without crashing if modules in PYTHONPATH
+# shadow standard library modules.
 def set_spyder_pythonpath():
     pypath = os.environ.get('SPY_PYTHONPATH')
     if pypath:
-        pathlist = pypath.split(os.pathsep)
-        sys.path.extend(pathlist)
+        sys.path.extend(pypath.split(os.pathsep))
+        os.environ.update({'PYTHONPATH': pypath})
 
 set_spyder_pythonpath()

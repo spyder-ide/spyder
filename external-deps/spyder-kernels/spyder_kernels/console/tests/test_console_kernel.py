@@ -1116,6 +1116,8 @@ def test_get_interactive_backend(backend):
         if backend is not None:
             client.execute("%matplotlib {}".format(backend))
             client.get_shell_msg(timeout=TIMEOUT)
+            client.execute("import time; time.sleep(.1)")
+            client.get_shell_msg(timeout=TIMEOUT)
 
         # Get backend
         code = "backend = get_ipython().kernel.get_mpl_interactive_backend()"

@@ -63,7 +63,7 @@ def test_check_uncheck_path(pathmanager):
 @pytest.mark.parametrize('pathmanager',
                          [(['p1', 'p2', 'p3'], ['p4', 'p5', 'p6'], [])],
                          indirect=True)
-def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
+def test_export_to_PYTHONPATH(pathmanager, mocker):
     # Import here to prevent an ImportError when testing on unix systems
     from spyder.utils.environ import (get_user_env, set_user_env,
                                       listdict2envdict)
@@ -78,7 +78,7 @@ def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
                         return_value=pathmanager_mod.QMessageBox.Yes)
 
     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list
-    pathmanager.synchronize()
+    pathmanager.export_pythonpath()
     expected_pathlist = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6']
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
@@ -86,7 +86,7 @@ def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
     # Uncheck 'path2' and assert that it is removed from PYTHONPATH when it
     # is synchronized with Spyder's path list
     pathmanager.listwidget.item(1).setCheckState(Qt.Unchecked)
-    pathmanager.synchronize()
+    pathmanager.export_pythonpath()
     expected_pathlist = ['p1', 'p3', 'p4', 'p5', 'p6']
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
@@ -99,7 +99,7 @@ def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
     # Uncheck 'path3' and assert that it is kept in PYTHONPATH when it
     # is synchronized with Spyder's path list
     pathmanager.listwidget.item(2).setCheckState(Qt.Unchecked)
-    pathmanager.synchronize()
+    pathmanager.export_pythonpath()
     expected_pathlist = ['p3', 'p1', 'p4', 'p5', 'p6']
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist

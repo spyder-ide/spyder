@@ -306,21 +306,6 @@ class SpyderKernel(IPythonKernel):
             return self.shell.pdb_session.do_complete(code, cursor_pos)
         return self._do_complete(code, cursor_pos)
 
-    def publish_pdb_state(self, step):
-        """
-        Publish Variable Explorer state and Pdb step through
-        send_spyder_msg.
-        """
-        state = dict(
-            namespace_view=self.get_namespace_view(),
-            var_properties=self.get_var_properties(),
-            step=step
-         )
-        try:
-            self.frontend_call(blocking=False).pdb_state(state)
-        except (CommError, TimeoutError):
-            logger.debug("Could not send Pdb state to the frontend.")
-
     def set_spyder_breakpoints(self, breakpoints):
         """
         Handle a message from the frontend
@@ -634,11 +619,12 @@ class SpyderKernel(IPythonKernel):
                 sys.path.remove(path)
 
         # Add new paths
-        # We do this in reverse order as we use `sys.path.insert(1, path)`.
-        # This ensures the end result has the correct path order.
-        for path, active in reversed(new_path_dict.items()):
-            if active:
-                sys.path.insert(1, path)
+        pypath = [path for path, active in new_path_dict.items() if active]
+        if pypath:
+            sys.path.extend(pypath)
+            os.environ.update({'PYTHONPATH': os.pathsep.join(pypath)})
+        else:
+            os.environ.pop('PYTHONPATH', None)
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer

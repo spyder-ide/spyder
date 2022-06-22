@@ -213,6 +213,7 @@ class IconManager():
             'vcs_commit':              [('mdi.source-commit',), {'color': SpyderPalette.ICON_3}],
             'vcs_browse':              [('mdi.source-repository',), {'color': SpyderPalette.ICON_3}],
             'fileimport':              [('mdi.download',), {'color': self.MAIN_FG_COLOR}],
+            'fileexport':              [('mdi.upload',), {'color': self.MAIN_FG_COLOR}],
             'options_less':            [('mdi.minus-box',), {'color': self.MAIN_FG_COLOR}],
             'options_more':            [('mdi.plus-box',), {'color': self.MAIN_FG_COLOR}],
             'ArrowDown':               [('mdi.arrow-down-bold-circle',), {'color': self.MAIN_FG_COLOR}],
