@@ -18,9 +18,6 @@ import traceback
 # Third-party imports
 from ipykernel.zmqshell import ZMQInteractiveShell
 
-# Local imports
-from spyder_kernels.utils.mpl import automatic_backend
-
 
 class SpyderShell(ZMQInteractiveShell):
     """Spyder shell."""

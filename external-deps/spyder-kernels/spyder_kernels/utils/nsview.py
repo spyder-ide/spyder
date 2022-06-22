@@ -16,12 +16,6 @@ from itertools import islice
 import inspect
 import re
 
-# Local imports
-from spyder_kernels.py3compat import (NUMERIC_TYPES, INT_TYPES, TEXT_TYPES,
-                                      to_text_string, is_text_string,
-                                      is_type_text_string,
-                                      is_binary_string, PY2,
-                                      to_binary_string, iteritems)
 from spyder_kernels.utils.lazymodules import (
     bs4, FakeObject, numpy as np, pandas as pd, PIL)
 
@@ -263,7 +257,7 @@ def default_display(value, with_module=True):
             return name + ' object of ' + module + ' module'
         return name
     except Exception:
-        type_str = to_text_string(object_type)
+        type_str = str(object_type)
         return type_str[1:-1]
 
 
@@ -274,7 +268,7 @@ def collections_display(value, level):
 
     # Get elements
     if is_dict:
-        elements = iteritems(value)
+        elements = iter(value.items())
     else:
         elements = value
 
@@ -362,27 +356,15 @@ def value_to_display(value, minmax=False, level=0):
         elif isinstance(value, pd.DataFrame):
             if level == 0:
                 cols = value.columns
-                if PY2 and len(cols) > 0:
-                    # Get rid of possible BOM utf-8 data present at the
-                    # beginning of a file, which gets attached to the first
-                    # column header when headers are present in the first
-                    # row.
-                    # Fixes Issue 2514
-                    try:
-                        ini_col = to_text_string(cols[0], encoding='utf-8-sig')
-                    except:
-                        ini_col = to_text_string(cols[0])
-                    cols = [ini_col] + [to_text_string(c) for c in cols[1:]]
-                else:
-                    cols = [to_text_string(c) for c in cols]
+                cols = [str(c) for c in cols]
                 display = 'Column names: ' + ', '.join(list(cols))
             else:
                 display = 'Dataframe'
         elif isinstance(value, bs4.element.NavigableString):
             # Fixes Issue 2448
-            display = to_text_string(value)
+            display = str(value)
             if level > 0:
-                display = u"'" + display + u"'"
+                display = "'" + display + "'"
         elif isinstance(value, pd.Index):
             if level == 0:
                 try:
@@ -391,33 +373,34 @@ def value_to_display(value, minmax=False, level=0):
                     display = value.summary()
             else:
                 display = 'Index'
-        elif is_binary_string(value):
+        elif isinstance(value, bytes):
             # We don't apply this to classes that extend string types
             # See issue 5636
-            if is_type_text_string(value):
+            if type(value) in [str, bytes]:
                 try:
-                    display = to_text_string(value, 'utf8')
+                    display = str(value, 'utf8')
                     if level > 0:
-                        display = u"'" + display + u"'"
+                        display = "'" + display + "'"
                 except:
                     display = value
                     if level > 0:
                         display = b"'" + display + b"'"
             else:
                 display = default_display(value)
-        elif is_text_string(value):
+        elif isinstance(value, str):
             # We don't apply this to classes that extend string types
             # See issue 5636
-            if is_type_text_string(value):
+            if type(value) in [str, bytes]:
                 display = value
                 if level > 0:
-                    display = u"'" + display + u"'"
+                    display = "'" + display + "'"
             else:
                 display = default_display(value)
+
         elif (isinstance(value, datetime.date) or
               isinstance(value, datetime.timedelta)):
             display = str(value)
-        elif (isinstance(value, NUMERIC_TYPES) or
+        elif (isinstance(value, (int, float, complex)) or
               isinstance(value, bool) or
               isinstance(value, numeric_numpy_types)):
             display = repr(value)
@@ -432,10 +415,10 @@ def value_to_display(value, minmax=False, level=0):
     # Truncate display at 70 chars to avoid freezing Spyder
     # because of large displays
     if len(display) > 70:
-        if is_binary_string(display):
+        if isinstance(display, bytes):
             ellipses = b' ...'
         else:
-            ellipses = u' ...'
+            ellipses = ' ...'
         display = display[:70].rstrip() + ellipses
 
     # Restore Numpy printoptions
@@ -448,7 +431,7 @@ def value_to_display(value, minmax=False, level=0):
 def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
     from qtpy.compat import from_qvariant
-    value = from_qvariant(value, to_text_string)
+    value = from_qvariant(value, str)
     try:
         np_dtype = get_numpy_dtype(default_value)
         if isinstance(default_value, bool):
@@ -463,10 +446,10 @@ def display_to_value(value, default_value, ignore_errors=True):
                 value = np_dtype(complex(value))
             else:
                 value = np_dtype(value)
-        elif is_binary_string(default_value):
-            value = to_binary_string(value, 'utf8')
-        elif is_text_string(default_value):
-            value = to_text_string(value)
+        elif isinstance(default_value, bytes):
+            value = bytes(value, 'utf-8')
+        elif isinstance(default_value, str):
+            value = str(value)
         elif isinstance(default_value, complex):
             value = complex(value)
         elif isinstance(default_value, float):
@@ -516,7 +499,7 @@ def get_type_string(item):
         return "Series"
 
     found = re.findall(r"<(?:type|class) '(\S*)'>",
-                       to_text_string(type(item)))
+                       str(type(item)))
     if found:
         if found[0] == 'type':
             return 'class'
@@ -629,7 +612,7 @@ def get_supported_types():
     """
     from datetime import date, timedelta
     editable_types = [int, float, complex, list, set, dict, tuple, date,
-                      timedelta] + list(TEXT_TYPES) + list(INT_TYPES)
+                      timedelta, str]
     try:
         from numpy import ndarray, matrix, generic
         editable_types += [ndarray, matrix, generic]

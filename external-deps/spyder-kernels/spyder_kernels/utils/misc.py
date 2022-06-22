@@ -10,7 +10,7 @@
 
 import re
 
-from spyder_kernels.py3compat import lru_cache
+from functools import lru_cache
 
 
 @lru_cache(maxsize=100)

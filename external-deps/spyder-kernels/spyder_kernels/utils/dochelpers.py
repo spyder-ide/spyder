@@ -10,13 +10,9 @@
 
 from __future__ import print_function
 
+import builtins
 import inspect
 import re
-
-# Local imports:
-from spyder_kernels.py3compat import (is_text_string, builtins, get_meth_func,
-                                      get_meth_class_inst, get_meth_class,
-                                      get_func_defaults, to_text_string, PY2)
 
 
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
@@ -57,7 +53,7 @@ def getobjdir(obj):
     In special cases (e.g. WrapITK package), will return only string elements
     of result returned by dir(obj)
     """
-    return [item for item in dir(obj) if is_text_string(item)]
+    return [item for item in dir(obj) if isinstance(item, str)]
 
 
 def getdoc(obj):
@@ -84,7 +80,7 @@ def getdoc(obj):
     # yield anything, either. So assume the most commonly used
     # multi-byte file encoding (which also covers ascii). 
     try:
-        docstring = to_text_string(docstring)
+        docstring = str(docstring)
     except:
         pass
     
@@ -101,30 +97,24 @@ def getdoc(obj):
             doc['docstring'] = docstring
             return doc
         if inspect.ismethod(obj):
-            imclass = get_meth_class(obj)
-            if get_meth_class_inst(obj) is not None:
+            imclass = obj.__self__.__class__
+            if obj.__self__ is not None:
                 doc['note'] = 'Method of %s instance' \
-                              % get_meth_class_inst(obj).__class__.__name__
+                              % obj.__self__.__class__.__name__
             else:
                 doc['note'] = 'Unbound %s method' % imclass.__name__
-            obj = get_meth_func(obj)
+            obj = obj.__func__
         elif hasattr(obj, '__module__'):
             doc['note'] = 'Function of %s module' % obj.__module__
         else:
             doc['note'] = 'Function'
         doc['name'] = obj.__name__
         if inspect.isfunction(obj):
-            if PY2:
-                args, varargs, varkw, defaults = inspect.getargspec(obj)
-                doc['argspec'] = inspect.formatargspec(
-                    args, varargs, varkw, defaults,
-                    formatvalue=lambda o:'='+repr(o))
-            else:
-                (args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
-                 annotations) = inspect.getfullargspec(obj)
-                doc['argspec'] = inspect.formatargspec(
-                    args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
-                    annotations, formatvalue=lambda o:'='+repr(o))
+            (args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
+             annotations) = inspect.getfullargspec(obj)
+            doc['argspec'] = inspect.formatargspec(
+                args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
+                annotations, formatvalue=lambda o:'='+repr(o))
             if name == '<lambda>':
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses
@@ -161,10 +151,10 @@ def getsource(obj):
     """Wrapper around inspect.getsource"""
     try:
         try:
-            src = to_text_string(inspect.getsource(obj))
+            src = str(inspect.getsource(obj))
         except TypeError:
             if hasattr(obj, '__class__'):
-                src = to_text_string(inspect.getsource(obj.__class__))
+                src = str(inspect.getsource(obj.__class__))
             else:
                 # Bindings like VTK or ITK require this case
                 src = getdoc(obj)
@@ -233,12 +223,13 @@ def getargs(obj):
     if inspect.isfunction(obj) or inspect.isbuiltin(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = get_meth_func(obj)
+        func_obj = obj.__func__
     elif inspect.isclass(obj) and hasattr(obj, '__init__'):
         func_obj = getattr(obj, '__init__')
     else:
         return []
-    if not hasattr(func_obj, 'func_code'):
+
+    if not hasattr(func_obj, '__code__'):
         # Builtin: try to extract info from doc
         args = getargsfromdoc(func_obj)
         if args is not None:
@@ -246,24 +237,29 @@ def getargs(obj):
         else:
             # Example: PyQt5
             return getargsfromdoc(obj)
-    args, _, _ = inspect.getargs(func_obj.func_code)
+
+    args, _, _ = inspect.getargs(func_obj.__code__)
     if not args:
         return getargsfromdoc(obj)
-    
+
     # Supporting tuple arguments in def statement:
     for i_arg, arg in enumerate(args):
         if isinstance(arg, list):
             args[i_arg] = "(%s)" % ", ".join(arg)
-            
-    defaults = get_func_defaults(func_obj)
+
+    defaults = func_obj.__defaults__
     if defaults is not None:
         for index, default in enumerate(defaults):
-            args[index+len(args)-len(defaults)] += '='+repr(default)
+            args[index + len(args) - len(defaults)] += '=' + repr(default)
+
     if inspect.isclass(obj) or inspect.ismethod(obj):
         if len(args) == 1:
             return None
-        if 'self' in args:
-            args.remove('self')
+
+    # Remove 'self' from args
+    if 'self' in args:
+        args.remove('self')
+
     return args
 
 
@@ -330,7 +326,7 @@ def isdefined(obj, force_import=False, namespace=None):
     
 
 if __name__ == "__main__":
-    class Test(object):
+    class Test:
         def method(self, x, y=2):
             pass
     print(getargtxt(Test.__init__))  # spyder: test-skip

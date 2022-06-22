@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/impact27/spyder-kernels.git
-	branch = get_current_frames
-	commit = a02a02664242282ec25416b71168f276acc0e5f4
-	parent = b63d6f6cdd07658d1522c5b8c89007350d3210ea
+	branch = comm_socket_thread
+	commit = cd3edade95faebfa0c5ac04c128153bcd2d8e5aa
+	parent = 812370a96e420ba9b7c844d2afa922b05a664489
 	method = merge
 	cmdver = 0.4.1

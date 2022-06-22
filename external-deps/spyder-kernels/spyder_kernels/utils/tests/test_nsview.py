@@ -21,7 +21,6 @@ import xarray as xr
 import PIL.Image
 
 # Local imports
-from spyder_kernels.py3compat import PY2
 from spyder_kernels.utils.nsview import (
     sort_against, is_supported, value_to_display, get_size,
     get_supported_types, get_type_string, get_numpy_type_string,
@@ -108,7 +107,7 @@ def test_none_values_are_supported():
 
 
 def test_str_subclass_display():
-    """Test for value_to_display of subclasses of str/basestring."""
+    """Test for value_to_display of subclasses of str."""
     class Test(str):
         def __repr__(self):
             return 'test'
@@ -276,12 +275,6 @@ def test_str_in_container_display():
     # Assert that both bytes and unicode return the right display
     assert value_to_display([b'a', u'b']) == "['a', 'b']"
 
-    # Encoded unicode gives bytes and it can't be transformed to
-    # unicode again. So this test the except part of
-    # is_binary_string(value) in value_to_display
-    if PY2:
-        assert value_to_display([u'Э'.encode('cp1251')]) == "['\xdd']"
-
 
 def test_ellipses(tmpdir):
     """
@@ -306,11 +299,9 @@ def test_get_type_string():
     # Bools
     assert get_type_string(True) == 'bool'
 
-    # Numeric types (PY2 has long, which disappeared in PY3)
-    if not PY2:
-        expected = ['int', 'float', 'complex']
-        numeric_types = [1, 1.5, 1 + 2j]
-        assert [get_type_string(t) for t in numeric_types] == expected
+    expected = ['int', 'float', 'complex']
+    numeric_types = [1, 1.5, 1 + 2j]
+    assert [get_type_string(t) for t in numeric_types] == expected
 
     # Lists
     assert get_type_string([1, 2, 3]) == 'list'
@@ -325,8 +316,7 @@ def test_get_type_string():
     assert get_type_string((1, 2, 3)) == 'tuple'
 
     # Strings
-    if not PY2:
-        assert get_type_string('foo') == 'str'
+    assert get_type_string('foo') == 'str'
 
     # Numpy objects
     assert get_type_string(np.array([1, 2, 3])) == 'NDArray'
