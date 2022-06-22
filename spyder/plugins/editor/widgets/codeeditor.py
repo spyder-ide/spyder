@@ -4419,6 +4419,12 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'go to definition'),
             triggered=self.go_to_definition_from_cursor)
 
+        self.inspect_current_object_action = create_action(
+            self, _("Inspect current object"),
+            icon=ima.icon('MessageBoxInformation'),
+            shortcut=CONF.get_shortcut('editor', 'inspect current object'),
+            triggered=self.sig_show_object_info.emit)
+
         # Run actions
         self.run_cell_action = create_action(
             self, _("Run cell"), icon=ima.icon('run_cell'),
@@ -4490,7 +4496,8 @@ class CodeEditor(TextEditBaseWidget):
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
                      self.re_run_last_cell_action, self.run_selection_action,
                      self.run_to_line_action, self.run_from_line_action,
-                     self.gotodef_action, None, self.undo_action,
+                     self.gotodef_action, self.inspect_current_object_action,
+                     None, self.undo_action,
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
