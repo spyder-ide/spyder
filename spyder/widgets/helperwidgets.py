@@ -377,8 +377,9 @@ class FinderWidget(QWidget):
         self.setVisible(visible)
         if visible:
             self.text_finder.setFocus()
+            self.do_find()
         else:
-            self.text_finder.setText("")
+            self.sig_find_text.emit("")
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom column filter based on regex."""
