@@ -406,12 +406,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     # ---- Stack accesors
     # ------------------------------------------------------------------------
     def switch_widget(self, nsb, old_nsb):
-        """
-        Set the current NamespaceBrowser.
-
-        This also setup the finder widget to work with the current
-        NamespaceBrowser.
-        """
+        """Set the current NamespaceBrowser."""
         pass
 
     # ---- Public API

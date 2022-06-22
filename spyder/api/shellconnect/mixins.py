@@ -90,7 +90,8 @@ class ShellConnectMixin:
 
         Returns
         -------
-        current_widget: The widget displayed in the current tab.
+        current_widget: QWidget
+            The widget displayed in the current tab.
         """
         return self.get_widget().current_widget()
 
