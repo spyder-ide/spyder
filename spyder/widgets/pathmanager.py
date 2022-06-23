@@ -19,11 +19,10 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListWidget, QListWidgetItem, QMessageBox,
-                            QVBoxLayout)
+                            QVBoxLayout, QLabel)
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import PY2
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
@@ -38,7 +37,7 @@ class PathManager(QDialog):
                  not_active_path=None, sync=True):
         """Path manager dialog."""
         super(PathManager, self).__init__(parent)
-        assert isinstance(path, (tuple, None))
+        assert isinstance(path, (tuple, type(None)))
 
         self.path = path or ()
         self.read_only_path = read_only_path or ()
@@ -53,7 +52,8 @@ class PathManager(QDialog):
         self.moveup_button = None
         self.movedown_button = None
         self.movebottom_button = None
-        self.sync_button = None
+        self.import_button = None
+        self.export_button = None
         self.selection_widgets = []
         self.top_toolbar_widgets = self._setup_top_toolbar()
         self.bottom_toolbar_widgets = self._setup_bottom_toolbar()
@@ -70,10 +70,19 @@ class PathManager(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(ima.icon('pythonpath'))
-        self.resize(500, 300)
-        self.sync_button.setVisible(os.name == 'nt' and sync)
+        self.resize(500, 400)
+        self.import_button.setVisible(sync)
+        self.export_button.setVisible(os.name == 'nt' and sync)
 
         # Layouts
+        description = QLabel(
+            _("The paths listed below will be passed to IPython consoles and "
+              "the language server as additional locations to search for "
+              "Python modules.<br><br>"
+              "Any paths in your system <tt>PYTHONPATH</tt> environment "
+              "variable can be imported here if you'd like to use them.")
+        )
+        description.setWordWrap(True)
         top_layout = QHBoxLayout()
         self._add_widgets_to_layout(self.top_toolbar_widgets, top_layout)
 
@@ -83,6 +92,7 @@ class PathManager(QDialog):
         bottom_layout.addWidget(self.bbox)
 
         layout = QVBoxLayout()
+        layout.addWidget(description)
         layout.addLayout(top_layout)
         layout.addWidget(self.listwidget)
         layout.addLayout(bottom_layout)
@@ -152,17 +162,23 @@ class PathManager(QDialog):
             icon=ima.icon('edit_remove'),
             triggered=lambda x: self.remove_path(),
             text_beside_icon=True)
-        self.sync_button = create_toolbutton(
+        self.import_button = create_toolbutton(
             self,
-            text=_("Synchronize..."),
+            text=_("Import"),
             icon=ima.icon('fileimport'),
-            triggered=self.synchronize,
-            tip=_("Synchronize Spyder's path list with PYTHONPATH "
-                  "environment variable"),
+            triggered=self.import_pythonpath,
+            tip=_("Import from PYTHONPATH environment variable"),
+            text_beside_icon=True)
+        self.export_button = create_toolbutton(
+            self,
+            text=_("Export"),
+            icon=ima.icon('fileexport'),
+            triggered=self.export_pythonpath,
+            tip=_("Export to PYTHONPATH environment variable"),
             text_beside_icon=True)
 
-        self.selection_widgets.append(self.remove_button)
-        return [self.add_button, self.remove_button, None, self.sync_button]
+        return [self.add_button, self.remove_button, self.import_button,
+                self.export_button]
 
     def _create_item(self, path):
         """Helper to create a new list item."""
@@ -185,10 +201,7 @@ class PathManager(QDialog):
     def editable_bottom_row(self):
         """Maximum bottom row count that is editable."""
         read_only_count = len(self.read_only_path)
-        if read_only_count == 0:
-            max_row = self.listwidget.count() - 1
-        else:
-            max_row = self.listwidget.count() - read_only_count - 1
+        max_row = self.listwidget.count() - read_only_count - 1
         return max_row
 
     def setup(self):
@@ -202,22 +215,73 @@ class PathManager(QDialog):
         self.refresh()
 
     @Slot()
-    def synchronize(self):
+    def import_pythonpath(self):
+        """Import from PYTHONPATH environment variable"""
+        env_pypath = os.environ.get('PYTHONPATH', '')
+
+        if env_pypath:
+            env_pypath = env_pypath.split(os.pathsep)
+
+            dlg = QDialog(self)
+            dlg.setWindowTitle(_("PYTHONPATH"))
+            dlg.setWindowIcon(ima.icon('pythonpath'))
+            dlg.setAttribute(Qt.WA_DeleteOnClose)
+            dlg.setMinimumWidth(400)
+
+            label = QLabel("The following paths from your PYTHONPATH "
+                           "environment variable will be imported.")
+            listw = QListWidget(dlg)
+            listw.addItems(env_pypath)
+
+            bbox = QDialogButtonBox(
+                QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            bbox.accepted.connect(dlg.accept)
+            bbox.rejected.connect(dlg.reject)
+
+            layout = QVBoxLayout()
+            layout.addWidget(label)
+            layout.addWidget(listw)
+            layout.addWidget(bbox)
+            dlg.setLayout(layout)
+
+            if dlg.exec():
+                spy_pypath = self.get_path_dict()
+                n = len(spy_pypath)
+
+                for path in reversed(env_pypath):
+                    if (path in spy_pypath) or not self.check_path(path):
+                        continue
+                    item = self._create_item(path)
+                    self.listwidget.insertItem(n, item)
+
+                self.refresh()
+        else:
+            QMessageBox.information(
+                self,
+                _("PYTHONPATH"),
+                _("Your <tt>PYTHONPATH</tt> environment variable is empty, so "
+                  "there is nothing to import."),
+                QMessageBox.Ok
+            )
+
+    @Slot()
+    def export_pythonpath(self):
         """
-        Synchronize Spyder's path list with PYTHONPATH environment variable
-        Only apply to: current user, on Windows platforms.
+        Export to PYTHONPATH environment variable
+        Only apply to: current user.
         """
         answer = QMessageBox.question(
             self,
-            _("Synchronize"),
-            _("This will synchronize Spyder's path list with "
+            _("Export"),
+            _("This will export Spyder's path list to the "
               "<b>PYTHONPATH</b> environment variable for the current user, "
               "allowing you to run your Python modules outside Spyder "
               "without having to configure sys.path. "
-              "<br>"
-              "Do you want to clear contents of PYTHONPATH before "
+              "<br><br>"
+              "Do you want to clear the contents of PYTHONPATH before "
               "adding Spyder's path list?"),
-            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
+        )
 
         if answer == QMessageBox.Cancel:
             return
@@ -285,7 +349,9 @@ class PathManager(QDialog):
         for widget in disable_widgets:
             widget.setEnabled(False)
 
-        self.sync_button.setEnabled(self.listwidget.count() > 0)
+        self.remove_button.setEnabled(self.listwidget.count()
+                                      - len(self.read_only_path))
+        self.export_button.setEnabled(self.listwidget.count() > 0)
 
         # Ok button only enabled if actual changes occur
         self.button_ok.setEnabled(
@@ -313,23 +379,7 @@ class PathManager(QDialog):
             directory = getexistingdirectory(self, _("Select directory"),
                                              self.last_path)
             self.redirect_stdio.emit(True)
-
-        if PY2:
-            is_unicode = False
-            try:
-                directory.decode('ascii')
-            except (UnicodeEncodeError, UnicodeDecodeError):
-                is_unicode = True
-
-            if is_unicode:
-                QMessageBox.warning(
-                    self,
-                    _("Add path"),
-                    _("You are using Python 2 and the selected path has "
-                      "Unicode characters."
-                      "<br> "
-                      "Therefore, this path will not be added."),
-                    QMessageBox.Ok)
+            if not directory:
                 return
 
         directory = osp.abspath(directory)
@@ -441,7 +491,7 @@ def test():
     _ = qapplication()
     dlg = PathManager(
         None,
-        path=tuple(sys.path[:-2]),
+        path=tuple(sys.path[4:-2]),
         read_only_path=tuple(sys.path[-2:]),
     )
 
@@ -449,7 +499,7 @@ def test():
         sys.stdout.write(str(path_dict))
 
     dlg.sig_path_changed.connect(callback)
-    dlg.exec_()
+    sys.exit(dlg.exec_())
 
 
 if __name__ == "__main__":

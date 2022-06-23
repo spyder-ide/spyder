@@ -20,7 +20,7 @@ from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
+    NamespaceBrowser)
 from spyder.widgets.collectionseditor import ROWS_TO_LOAD
 from spyder.widgets.tests.test_collectioneditor import data, data_table
 
@@ -157,13 +157,6 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
     """
     browser = namespacebrowser
 
-    text_finder = NamespacesBrowserFinder(
-        browser.editor,
-        callback=browser .editor.set_regex,
-        main=browser,
-        regex_base=VALID_VARIABLE_CHARS)
-    browser.set_text_finder(text_finder)
-
     # Create data
     variables = {}
     for i in range(200):
@@ -185,7 +178,7 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
     assert data(model, 49, 0) == 'e49'
 
     # Assert we can filter variables not loaded yet.
-    qtbot.keyClicks(text_finder, "t19")
+    browser.do_find("t19")
     assert model.rowCount() == 10
 
     # Assert all variables effectively start with 't19'.
@@ -193,7 +186,7 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
         assert data(model, i, 0) == 't19{}'.format(i)
 
     # Reset text_finder widget.
-    text_finder.setText('')
+    browser.do_find('')
 
     # Create a new variable that starts with a different letter than
     # the rest.
@@ -208,7 +201,7 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
     browser.process_remote_view(new_variables)
 
     # Assert that can find 'z' among the declared variables.
-    qtbot.keyClicks(text_finder, "z")
+    browser.do_find("z")
     assert model.rowCount() == 1
 
 

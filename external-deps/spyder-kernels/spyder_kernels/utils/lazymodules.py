@@ -18,12 +18,12 @@ from spyder_kernels.utils.misc import is_module_installed
 # =============================================================================
 # Auxiliary classes
 # =============================================================================
-class FakeObject(object):
+class FakeObject:
     """Fake class used in replacement of missing objects"""
     pass
 
 
-class LazyModule(object):
+class LazyModule:
     """Lazy module loader class."""
 
     def __init__(self, modname, second_level_attrs=None):

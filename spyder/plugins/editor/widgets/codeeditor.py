@@ -4446,6 +4446,12 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'go to definition'),
             triggered=self.go_to_definition_from_cursor)
 
+        self.inspect_current_object_action = create_action(
+            self, _("Inspect current object"),
+            icon=ima.icon('MessageBoxInformation'),
+            shortcut=CONF.get_shortcut('editor', 'inspect current object'),
+            triggered=self.sig_show_object_info.emit)
+
         # Run actions
         self.debug_cell_action = create_action(
             self, _("Debug cell"), icon=ima.icon('debug_cell'),
@@ -4489,7 +4495,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Build menu
         self.menu = QMenu(self)
-        actions_1 = [self.gotodef_action, None, self.undo_action,
+        actions_1 = [self.gotodef_action, self.inspect_current_object_action,
+                     None, self.undo_action,
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,

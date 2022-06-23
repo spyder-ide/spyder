@@ -14,6 +14,7 @@ import functools
 import logging
 import os
 import os.path as osp
+import sys
 
 # Third-party imports
 from qtpy.QtCore import Signal, Slot, QTimer
@@ -799,15 +800,16 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
 
         # Jedi configuration
+        env_vars = os.environ.copy()  # Ensure env is indepependent of PyLSP's
+        env_vars.pop('PYTHONPATH', None)
         if self.get_conf('default', section='main_interpreter'):
-            environment = None
-            env_vars = None
+            # If not explicitly set, jedi uses PyLSP's sys.path instead of
+            # sys.executable's sys.path. This may be a bug in jedi.
+            environment = sys.executable
         else:
             environment = self.get_conf('executable',
                                         section='main_interpreter')
-            env_vars = os.environ.copy()
-            # external interpreter should not use internal PYTHONPATH
-            env_vars.pop('PYTHONPATH', None)
+            # External interpreter cannot have PYTHONHOME
             if running_in_mac_app():
                 env_vars.pop('PYTHONHOME', None)
 

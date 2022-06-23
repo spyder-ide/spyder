@@ -821,8 +821,8 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
         raise NotImplementedError
 
 
-def run_python_script_in_terminal(fname, wdir, args, interact,
-                                  debug, python_args, executable=None):
+def run_python_script_in_terminal(fname, wdir, args, interact, debug,
+                                  python_args, executable=None, pypath=None):
     """
     Run Python script in an external system terminal.
 
@@ -830,6 +830,12 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     """
     if executable is None:
         executable = get_python_executable()
+
+    env = {**os.environ}
+    env.pop('PYTHONPATH', None)
+    if pypath is not None:
+        pypath = os.pathsep.join(pypath)
+        env['PYTHONPATH'] = pypath
 
     # Quote fname in case it has spaces (all platforms)
     fname = f'"{fname}"'
@@ -847,7 +853,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         cmd = f'start cmd.exe /K ""{executable}" '
         cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
         try:
-            run_shell_command(cmd, cwd=wdir)
+            run_shell_command(cmd, cwd=wdir, env=env)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
@@ -864,7 +870,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             if is_program_installed(program['cmd']):
                 cmd = [program['cmd'], program['execute-option'], executable]
                 cmd.extend(p_args)
-                run_shell_command(' '.join(cmd), cwd=wdir)
+                run_shell_command(' '.join(cmd), cwd=wdir, env=env)
                 return
     elif sys.platform == 'darwin':
         f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
@@ -874,6 +880,8 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             f.write('cd "{}"\n'.format(wdir))
         if running_in_mac_app(executable):
             f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
+        if pypath is not None:
+            f.write(f'export PYTHONPATH={pypath}\n')
         f.write(' '.join([executable] + p_args))
         f.close()
         os.chmod(f.name, 0o777)

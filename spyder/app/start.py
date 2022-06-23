@@ -6,15 +6,23 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
+# Remove PYTHONPATH paths from sys.path before other imports to protect against
+# shadowed standard libraries.
+import os
+import sys
+if os.environ.get('PYTHONPATH'):
+    for path in os.environ['PYTHONPATH'].split(os.pathsep):
+        try:
+            sys.path.remove(path.rstrip(os.sep))
+        except ValueError:
+            pass
 
 # Standard library imports
 import ctypes
 import logging
-import os
 import os.path as osp
 import random
 import socket
-import sys
 import time
 
 # Prevent showing internal logging errors

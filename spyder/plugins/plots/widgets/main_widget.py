@@ -306,6 +306,16 @@ class PlotsWidget(ShellConnectMainWidget):
         return fig_browser
 
     def close_widget(self, fig_browser):
+        fig_browser.sig_redirect_stdio_requested.disconnect(
+            self.sig_redirect_stdio_requested)
+
+        fig_browser.sig_figure_menu_requested.disconnect(
+            self.show_figure_menu)
+        fig_browser.sig_thumbnail_menu_requested.disconnect(
+            self.show_thumbnail_menu)
+        fig_browser.sig_figure_loaded.disconnect(self.update_actions)
+        fig_browser.sig_save_dir_changed.disconnect()
+        fig_browser.sig_zoom_changed.disconnect(self.zoom_disp.setValue)
         fig_browser.close()
 
     def switch_widget(self, fig_browser, old_fig_browser):
