@@ -1581,9 +1581,10 @@ class MainWindow(QMainWindow):
                     executable = get_python_executable()
                 else:
                     executable = CONF.get('main_interpreter', 'executable')
+                pypath = CONF.get('main', 'spyder_pythonpath', None)
                 programs.run_python_script_in_terminal(
                         fname, wdir, args, interact, debug, python_args,
-                        executable)
+                        executable, pypath)
             except NotImplementedError:
                 QMessageBox.critical(self, _("Run"),
                                      _("Running an external system terminal "
@@ -1719,15 +1720,6 @@ class MainWindow(QMainWindow):
 
         # Load new path
         new_path_dict_p = self.get_spyder_pythonpath_dict()  # Includes project
-
-        # Update Spyder interpreter
-        for path in path_dict:
-            while path in sys.path:
-                sys.path.remove(path)
-
-        for path, active in reversed(new_path_dict_p.items()):
-            if active:
-                sys.path.insert(1, path)
 
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration

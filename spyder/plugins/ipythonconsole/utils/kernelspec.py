@@ -132,6 +132,9 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # to the kernel sys.path
         env_vars.pop('VIRTUAL_ENV', None)
 
+        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
+        env_vars.pop('PYTHONPATH', None)
+
         # List of paths declared by the user, plus project's path, to
         # add to PYTHONPATH
         pathlist = self.get_conf(
@@ -192,7 +195,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
             else:
                 env_vars.pop('PYTHONHOME', None)
-                env_vars.pop('PYTHONPATH', None)
 
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.

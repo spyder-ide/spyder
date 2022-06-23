@@ -3092,7 +3092,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
-    assert jedi['environment'] is None
+    assert jedi['environment'] is sys.executable
     assert jedi['extra_paths'] == []
 
     # Change main interpreter on preferences
@@ -3589,8 +3589,6 @@ def test_runcell_cache(main_window, qtbot, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Works reliably on Linux")
 def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     """Check that on path manager updates, consoles correctly update."""
     # Wait until the window is fully up
@@ -3611,31 +3609,27 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
 
     cmd = 'import sys;print(sys.path)'
 
-    # Check Spyder is updated
-    main_window.console.execute_lines(cmd)
-    syspath = main_window.console.get_sys_path()
-    assert folder in syspath
+    # Check that there is at least one shell
+    shells = [c.shellwidget for c in main_window.ipyconsole.get_clients()
+              if c is not None]
+    assert len(shells) >= 1
 
     # Check clients are updated
-    count = 0
-    for client in main_window.ipyconsole.get_clients():
-        shell = client.shellwidget
-        if shell is not None:
-            control = shell._control
-            control.setFocus()
+    for shell in shells:
+        control = shell._control
+        control.setFocus()
 
-            qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                            timeout=SHELL_TIMEOUT)
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
 
-            with qtbot.waitSignal(shell.executed):
-                syspath = shell.execute(cmd)
+        with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+            shell.execute(cmd)
 
-            # `shell.executed` signal was not working so we use waitUntil
-            qtbot.waitUntil(lambda: test_folder in control.toPlainText(),
-                            timeout=SHELL_TIMEOUT)
-            assert test_folder in control.toPlainText()
-            count += 1
-    assert count >= 1
+        # Shell sys.path should be updated
+        # Output to shell may be delayed, timeout stands in for assertion
+        # control.toPlainText may have extra file separators so use test_folder
+        qtbot.waitUntil(lambda: test_folder in control.toPlainText(),
+                        timeout=SHELL_TIMEOUT)
 
 
 @pytest.mark.slow
