@@ -76,7 +76,7 @@ WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
 # Optional dependencies
 CYTHON_REQVER = '>=0.21'
 MATPLOTLIB_REQVER = '>=3.0.0'
-NUMPY_REQVER = '>=1.7'
+NUMPY_REQVER = '>=1.7,<1.23'
 PANDAS_REQVER = '>=1.1.1'
 SCIPY_REQVER = '>=0.17.0'
 SYMPY_REQVER = '>=0.7.3'
