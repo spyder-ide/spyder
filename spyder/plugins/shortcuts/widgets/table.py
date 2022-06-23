@@ -12,8 +12,8 @@ import re
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QEvent, QModelIndex,
-                         QSortFilterProxyModel, Qt, Slot)
-from qtpy.QtGui import QIcon, QKeySequence
+                         QSortFilterProxyModel, Qt, Slot, QRegExp)
+from qtpy.QtGui import QIcon, QKeySequence, QRegExpValidator
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QKeySequenceEdit,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
@@ -27,7 +27,7 @@ from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stringmatching import get_search_regex, get_search_scores
 from spyder.widgets.helperwidgets import (VALID_FINDER_CHARS,
                                           CustomSortFilterProxy,
-                                          FinderLineEdit, HelperToolButton,
+                                          HelperToolButton,
                                           HTMLDelegate)
 
 # Localization
@@ -113,8 +113,22 @@ class ShortcutLineEdit(QLineEdit):
         super(ShortcutLineEdit, self).setText(sequence)
 
 
-class ShortcutFinder(FinderLineEdit):
+class ShortcutFinder(QLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
+
+    def __init__(self, parent, callback=None, main=None,
+                 regex_base=VALID_FINDER_CHARS):
+        super().__init__(parent)
+        self._parent = parent
+        self.main = main
+
+        # Widget setup
+        regex = QRegExp(regex_base + "{100}")
+        self.setValidator(QRegExpValidator(regex))
+
+        # Signals
+        if callback:
+            self.textChanged.connect(callback)
 
     def keyPressEvent(self, event):
         """Qt and FilterLineEdit Override."""
@@ -833,7 +847,7 @@ class ShortcutsTable(QTableView):
             if text:
                 if re.search(VALID_FINDER_CHARS, text) is not None:
                     self.finder.setFocus()
-                    self.finder.set_text(text)
+                    self.finder.setText(self.finder.text() + text.strip())
         elif key in [Qt.Key_Escape]:
             self.finder.keyPressEvent(event)
 

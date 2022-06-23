@@ -362,13 +362,6 @@ class Application(SpyderPluginV2):
         env['SPYDER_PID'] = str(pid)
         env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
 
-        if DEV:
-            repo_dir = osp.dirname(spyder_start_directory)
-            if os.name == 'nt':
-                env['PYTHONPATH'] = ';'.join([repo_dir])
-            else:
-                env['PYTHONPATH'] = ':'.join([repo_dir])
-
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':
             # Hide flashing command prompt

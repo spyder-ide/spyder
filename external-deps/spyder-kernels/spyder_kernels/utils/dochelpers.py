@@ -114,7 +114,7 @@ def getdoc(obj):
              annotations) = inspect.getfullargspec(obj)
             doc['argspec'] = inspect.formatargspec(
                 args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
-                annotations, formatvalue=lambda o: '='+repr(o))
+                annotations, formatvalue=lambda o:'='+repr(o))
             if name == '<lambda>':
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses
@@ -228,7 +228,8 @@ def getargs(obj):
         func_obj = getattr(obj, '__init__')
     else:
         return []
-    if not hasattr(func_obj, 'func_code'):
+
+    if not hasattr(func_obj, '__code__'):
         # Builtin: try to extract info from doc
         args = getargsfromdoc(func_obj)
         if args is not None:
@@ -236,24 +237,29 @@ def getargs(obj):
         else:
             # Example: PyQt5
             return getargsfromdoc(obj)
-    args, _, _ = inspect.getargs(func_obj.func_code)
+
+    args, _, _ = inspect.getargs(func_obj.__code__)
     if not args:
         return getargsfromdoc(obj)
-    
+
     # Supporting tuple arguments in def statement:
     for i_arg, arg in enumerate(args):
         if isinstance(arg, list):
             args[i_arg] = "(%s)" % ", ".join(arg)
-            
+
     defaults = func_obj.__defaults__
     if defaults is not None:
         for index, default in enumerate(defaults):
-            args[index+len(args)-len(defaults)] += '='+repr(default)
+            args[index + len(args) - len(defaults)] += '=' + repr(default)
+
     if inspect.isclass(obj) or inspect.ismethod(obj):
         if len(args) == 1:
             return None
-        if 'self' in args:
-            args.remove('self')
+
+    # Remove 'self' from args
+    if 'self' in args:
+        args.remove('self')
+
     return args
 
 

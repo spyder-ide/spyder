@@ -88,8 +88,15 @@ class ShellConnectMainWidget(PluginMainWidget):
             widget = self.create_new_widget(shellwidget)
             self._stack.addWidget(widget)
             self._shellwidgets[shellwidget_id] = widget
+
+            # Add all actions to new widget for shortcuts to work.
+            for __, action in self.get_actions().items():
+                if action:
+                    widget_actions = widget.actions()
+                    if action not in widget_actions:
+                        widget.addAction(action)
+
             self.set_shellwidget(shellwidget)
-            self.update_actions()
 
     def remove_shellwidget(self, shellwidget):
         """Remove widget associated to shellwidget."""
@@ -98,6 +105,7 @@ class ShellConnectMainWidget(PluginMainWidget):
             widget = self._shellwidgets.pop(shellwidget_id)
             self._stack.removeWidget(widget)
             self.close_widget(widget)
+            self.update_actions()
 
     def set_shellwidget(self, shellwidget):
         """
@@ -107,8 +115,9 @@ class ShellConnectMainWidget(PluginMainWidget):
         old_widget = self.current_widget()
         if shellwidget_id in self._shellwidgets:
             widget = self._shellwidgets[shellwidget_id]
-            self.switch_widget(widget, old_widget)
             self._stack.setCurrentWidget(widget)
+            self.switch_widget(widget, old_widget)
+            self.update_actions()
 
     def create_new_widget(self, shellwidget):
         """Create a widget to communicate with shellwidget."""
@@ -127,18 +136,3 @@ class ShellConnectMainWidget(PluginMainWidget):
         if self.count():
             widget = self.current_widget()
             widget.refresh()
-
-    def update_actions(self):
-        """Update the actions."""
-        widget = self.current_widget()
-
-        for __, action in self.get_actions().items():
-            if action:
-                # IMPORTANT: Since we are defining the main actions in here
-                # and the context is WidgetWithChildrenShortcut we need to
-                # assign the same actions to the children widgets in order
-                # for shortcuts to work
-                if widget:
-                    widget_actions = widget.actions()
-                    if action not in widget_actions:
-                        widget.addAction(action)

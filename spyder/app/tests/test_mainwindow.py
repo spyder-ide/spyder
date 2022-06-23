@@ -33,7 +33,6 @@ from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
-import pkg_resources
 from pkg_resources import parse_version
 import pylint
 import pytest
@@ -146,52 +145,6 @@ def find_desired_tab_in_window(tab_name, window):
     return None, None
 
 
-def register_fake_entrypoints():
-    """
-    Create entry points distribution to register elements:
-     * Completion providers (Fallback, Shippets, LSP)
-    """
-    # Completion providers
-    fallback = pkg_resources.EntryPoint.parse(
-        'fallback = spyder.plugins.completion.providers.fallback.provider:'
-        'FallbackProvider'
-    )
-    snippets = pkg_resources.EntryPoint.parse(
-        'snippets = spyder.plugins.completion.providers.snippets.provider:'
-        'SnippetsProvider'
-    )
-    lsp = pkg_resources.EntryPoint.parse(
-        'lsp = spyder.plugins.completion.providers.languageserver.provider:'
-        'LanguageServerProvider'
-    )
-
-    # Create a fake Spyder distribution
-    d = pkg_resources.Distribution(__file__)
-
-    # Add the providers to the fake EntryPoints
-    d._ep_map = {
-        'spyder.completions': {
-            'fallback': fallback,
-            'snippets': snippets,
-            'lsp': lsp
-        }
-    }
-
-    # Add the fake distribution to the global working_set
-    pkg_resources.working_set.add(d, 'spyder')
-
-
-def remove_fake_entrypoints():
-    """Remove fake entry points from pkg_resources"""
-    try:
-        pkg_resources.working_set.by_key.pop('unknown')
-        pkg_resources.working_set.entry_keys.pop('spyder')
-        pkg_resources.working_set.entry_keys.pop(__file__)
-        pkg_resources.working_set.entries.remove('spyder')
-    except KeyError:
-        pass
-
-
 def read_asset_file(filename):
     """Read contents of an asset file."""
     return encoding.read(osp.join(LOCATION, filename))[0]
@@ -203,8 +156,6 @@ def read_asset_file(filename):
 @pytest.fixture
 def main_window(request, tmpdir, qtbot):
     """Main Window fixture"""
-    if not running_in_ci():
-        register_fake_entrypoints()
 
     # Get original processEvents function in case the test that overrides it
     # fails
@@ -526,10 +477,6 @@ def cleanup(request, qapp):
             CONF.reset_to_defaults(notification=False)
         if qapp.instance():
             qapp.quit()
-
-        # Clean entry points if running locally.
-        if not running_in_ci():
-            remove_fake_entrypoints()
 
     request.addfinalizer(close_window)
 
@@ -3145,7 +3092,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
-    assert jedi['environment'] is None
+    assert jedi['environment'] is sys.executable
     assert jedi['extra_paths'] == []
 
     # Change main interpreter on preferences
@@ -3642,8 +3589,6 @@ def test_runcell_cache(main_window, qtbot, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Works reliably on Linux")
 def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     """Check that on path manager updates, consoles correctly update."""
     # Wait until the window is fully up
@@ -3664,31 +3609,27 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
 
     cmd = 'import sys;print(sys.path)'
 
-    # Check Spyder is updated
-    main_window.console.execute_lines(cmd)
-    syspath = main_window.console.get_sys_path()
-    assert folder in syspath
+    # Check that there is at least one shell
+    shells = [c.shellwidget for c in main_window.ipyconsole.get_clients()
+              if c is not None]
+    assert len(shells) >= 1
 
     # Check clients are updated
-    count = 0
-    for client in main_window.ipyconsole.get_clients():
-        shell = client.shellwidget
-        if shell is not None:
-            control = shell._control
-            control.setFocus()
+    for shell in shells:
+        control = shell._control
+        control.setFocus()
 
-            qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                            timeout=SHELL_TIMEOUT)
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
 
-            with qtbot.waitSignal(shell.executed):
-                syspath = shell.execute(cmd)
+        with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+            shell.execute(cmd)
 
-            # `shell.executed` signal was not working so we use waitUntil
-            qtbot.waitUntil(lambda: test_folder in control.toPlainText(),
-                            timeout=SHELL_TIMEOUT)
-            assert test_folder in control.toPlainText()
-            count += 1
-    assert count >= 1
+        # Shell sys.path should be updated
+        # Output to shell may be delayed, timeout stands in for assertion
+        # control.toPlainText may have extra file separators so use test_folder
+        qtbot.waitUntil(lambda: test_folder in control.toPlainText(),
+                        timeout=SHELL_TIMEOUT)
 
 
 @pytest.mark.slow

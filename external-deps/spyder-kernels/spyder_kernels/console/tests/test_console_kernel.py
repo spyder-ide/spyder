@@ -1114,5 +1114,47 @@ def test_get_interactive_backend(backend):
             assert value == '0'
 
 
+def test_global_message(tmpdir):
+    """
+    Test that using `global` triggers a warning.
+    """
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Remove all variables
+        client.execute("%reset -f")
+        client.get_shell_msg(timeout=TIMEOUT)
+
+        # Write code with a global to a file
+        code = (
+            "def foo1():\n"
+            "    global x\n"
+            "    x = 2\n"
+            "x = 1\n"
+            "print(x)\n"
+        )
+
+        p = tmpdir.join("test.py")
+        p.write(code)
+
+        # Run code in current namespace
+        client.execute("runfile(r'{}', current_namespace=True)".format(
+            str(p)))
+        msg = client.get_iopub_msg(timeout=TIMEOUT)
+        while "text" not in msg["content"]:
+            msg = client.get_iopub_msg(timeout=TIMEOUT)
+        assert "WARNING: This file contains a global statement" not in (
+            msg["content"]["text"])
+
+        # Run code in empty namespace
+        client.execute("runfile(r'{}')".format(str(p)))
+        msg = client.get_iopub_msg(timeout=TIMEOUT)
+        while "text" not in msg["content"]:
+            msg = client.get_iopub_msg(timeout=TIMEOUT)
+        assert "WARNING: This file contains a global statement" in (
+            msg["content"]["text"])
+
+
 if __name__ == "__main__":
     pytest.main()
