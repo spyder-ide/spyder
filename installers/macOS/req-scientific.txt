@@ -1,7 +1,7 @@
 # Scientific packages (for Same as Spyder)
 cython
 matplotlib
-numpy
+numpy<1.23
 openpyxl
 pandas
 scipy

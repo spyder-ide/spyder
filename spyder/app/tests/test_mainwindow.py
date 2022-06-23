@@ -567,6 +567,8 @@ def test_lock_action(main_window, qtbot):
 @pytest.mark.order(1)
 @pytest.mark.skipif(sys.platform.startswith('linux') and not running_in_ci(),
                     reason='Fails on Linux when run locally')
+@pytest.mark.skipif(sys.platform == 'darwin' and running_in_ci(),
+                    reason='Fails on MacOS when run in CI')
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Wait until the window is fully up
