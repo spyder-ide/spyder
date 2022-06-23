@@ -1121,8 +1121,9 @@ class MainWindow(QMainWindow):
                     )
 
         # Needed to ensure dockwidgets/panes layout size distribution
+        # when a layout state is already present.
         # See spyder-ide/spyder#17945
-        if self.layouts is not None:
+        if self.layouts is not None and CONF.get('main', 'window/state', None):
             self.layouts.before_mainwindow_visible()
 
         logger.info("*** End of MainWindow setup ***")
