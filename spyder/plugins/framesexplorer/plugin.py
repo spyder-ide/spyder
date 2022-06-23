@@ -21,8 +21,8 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
     """Frames Explorer plugin."""
 
     NAME = 'frames_explorer'
-    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences,
-                Plugins.Editor]
+    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
+    OPTIONAL = [Plugins.Editor]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = FramesExplorerWidget
     CONF_SECTION = NAME
