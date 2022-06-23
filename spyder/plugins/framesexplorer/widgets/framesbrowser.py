@@ -14,14 +14,14 @@ import html
 
 # Third library imports
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import (QVBoxLayout, QWidget, QTreeWidget)
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import (QSize, Qt, Slot)
-from qtpy.QtWidgets import (QApplication, QStyle,
-                            QStyledItemDelegate, QStyleOptionViewItem,
-                            QTreeWidgetItem)
+from qtpy.QtWidgets import (
+    QApplication, QStyle, QStyledItemDelegate, QStyleOptionViewItem,
+    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import get_translation
 from spyder.config.gui import get_font
@@ -223,10 +223,6 @@ class LineFrameItem(QTreeWidgetItem):
         _str += " {}".format(self.text)
         return _str
 
-    def __unicode__(self):
-        """String representation."""
-        return self.__repr__()
-
     def __str__(self):
         """String representation."""
         return self.__repr__()
@@ -309,7 +305,8 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(QTreeWidget):
+class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
+    CONF_SECTION = 'frames_explorer'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
     sig_show_namespace = Signal(dict)
@@ -351,7 +348,7 @@ class ResultsBrowser(QTreeWidget):
             self.sig_edit_goto.emit(filename, lineno, '')
             # Index exists if the item is in self.data
             self.sig_activated.emit(self.currentItem().index)
-        if self.parent().get_conf("show_locals_on_click"):
+        if self.get_conf("show_locals_on_click"):
             self.view_item_locals()
 
     def view_item_locals(self):

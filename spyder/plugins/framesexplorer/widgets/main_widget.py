@@ -78,6 +78,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         self.context_menu = None
         self.empty_context_menu = None
 
+    # ---- PluginMainWidget API
+    # ------------------------------------------------------------------------
     def postmortem(self):
         """Ask for post mortem debug."""
         self.current_widget().shellwidget.execute("%debug")
@@ -93,8 +95,6 @@ class FramesExplorerWidget(ShellConnectMainWidget):
                 ignore_internal_threads=self.get_conf("exclude_internal"),
                 capture_locals=self.get_conf("capture_locals"))
 
-    # ---- PluginMainWidget API
-    # ------------------------------------------------------------------------
     def get_title(self):
         return _('Frames Explorer')
 
@@ -203,6 +203,21 @@ class FramesExplorerWidget(ShellConnectMainWidget):
                 section=FramesExplorerContextMenuSections.Locals,
             )
 
+    def update_actions(self):
+        """Update actions."""
+        widget = self.current_widget()
+        search_action = self.get_action(FramesExplorerWidgetActions.Search)
+        postmortem_debug_action = self.get_action(
+            FramesExplorerWidgetActions.PostMortemDebug)
+        if widget is None:
+            search = False
+            post_mortem = False
+        else:
+            search = widget.finder_is_visible()
+            post_mortem = widget.post_mortem
+        search_action.setChecked(search)
+        postmortem_debug_action.setEnabled(post_mortem)
+
     # ---- ShellConnectMainWidget API
     # ------------------------------------------------------------------------
     def create_new_widget(self, shellwidget):
@@ -277,18 +292,3 @@ class FramesExplorerWidget(ShellConnectMainWidget):
     def view_item_locals(self):
         """Request to view item locals."""
         self.current_widget().results_browser.view_item_locals()
-
-    def update_actions(self):
-        """Update actions."""
-        widget = self.current_widget()
-        search_action = self.get_action(FramesExplorerWidgetActions.Search)
-        postmortem_debug_action = self.get_action(
-            FramesExplorerWidgetActions.PostMortemDebug)
-        if widget is None:
-            search = False
-            post_mortem = False
-        else:
-            search = widget.finder_is_visible()
-            post_mortem = widget.post_mortem
-        search_action.setChecked(search)
-        postmortem_debug_action.setEnabled(post_mortem)
