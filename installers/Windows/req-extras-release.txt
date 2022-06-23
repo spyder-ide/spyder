@@ -10,7 +10,7 @@ rope
 yapf
 
 # Scientific packages (for Same as Spyder)
-numpy
+numpy<1.23
 scipy
 pandas
 openpyxl  # pandas optional dependency to handle Excel files
