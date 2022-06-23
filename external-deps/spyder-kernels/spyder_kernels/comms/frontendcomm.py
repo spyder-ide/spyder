@@ -49,37 +49,6 @@ class FrontendComm(CommBase):
         self.comm_lock = threading.Lock()
         self._cached_messages = {}
 
-        # self.kernel.parent is IPKernelApp unless we are in tests
-        if self.kernel.parent:
-            # Create a new socket
-            self.context = zmq.Context()
-            self.comm_socket = self.context.socket(zmq.ROUTER)
-            self.comm_socket.linger = 1000
-
-            self.comm_port = get_free_port()
-
-            self.comm_port = self.kernel.parent._bind_socket(
-                self.comm_socket, self.comm_port)
-            if hasattr(zmq, 'ROUTER_HANDOVER'):
-                # Set router-handover to workaround zeromq reconnect problems
-                # in certain rare circumstances.
-                # See ipython/ipykernel#270 and zeromq/libzmq#2892
-                self.comm_socket.router_handover = 1
-
-            self.comm_thread_close = threading.Event()
-            self.comm_socket_thread = threading.Thread(target=self.poll_thread)
-            self.comm_socket_thread.start()
-
-            # Patch parent.close
-            parent_close = self.kernel.parent.close
-
-            def close():
-                """Close comm_socket_thread."""
-                self.close_thread()
-                parent_close()
-
-            self.kernel.parent.close = close
-
     def close(self, comm_id=None):
         """Close the comm and notify the other side."""
         with self.comm_lock:
@@ -89,20 +58,6 @@ class FrontendComm(CommBase):
         """Publish custom messages to the other side."""
         with self.comm_lock:
             return super(FrontendComm, self)._send_message(*args, **kwargs)
-
-    def close_thread(self):
-        """Close comm."""
-        self.comm_thread_close.set()
-        self.comm_socket.close()
-        self.context.term()
-        self.comm_socket_thread.join()
-
-    def poll_thread(self):
-        """Receive messages from comm socket."""
-        # Create an event loop for the handlers.
-        ioloop.IOLoop().initialize()
-        while not self.comm_thread_close.is_set():
-            self.poll_one()
 
     def poll_one(self):
         """Receive one message from comm socket."""
@@ -126,21 +81,7 @@ class FrontendComm(CommBase):
             self.kernel.log.warning("Unknown message type: %r", msg_type)
             return
         try:
-            if handler is None:
-                self.kernel.log.warning("Unknown message type: %r", msg_type)
-                return
-            import asyncio
-
-            if (getattr(asyncio, 'run', False) and
-                    asyncio.iscoroutinefunction(handler)):
-                # This is needed for ipykernel 6+
-                asyncio.run(handler(out_stream, ident, msg))
-            else:
-                # This is required for Python 3.6, which doesn't have
-                # asyncio.run or ipykernel versions less than 6. The
-                # nice thing is that ipykernel 6, which requires
-                # asyncio, doesn't support Python 3.6.
-                handler(out_stream, ident, msg)
+            asyncio.run(handler(out_stream, ident, msg))
         except Exception:
             self.kernel.log.error(
                 "Exception in message handler:", exc_info=True)

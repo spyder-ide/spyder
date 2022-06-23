@@ -437,8 +437,8 @@ class IOFunctions:
                 save_extensions[filter_str] = ext
                 save_filters.append(filter_str)
                 save_funcs[ext] = savefunc
-        load_filters.insert(0, str("Supported files"+" (*"+\
-                                  " *".join(load_ext)+")"))
+        load_filters.insert(
+            0, str("Supported files" + " (*" + " *".join(load_ext) + ")"))
         load_filters.append(str("All files (*.*)"))
         self.load_filters = "\n".join(load_filters)
         self.save_filters = "\n".join(save_filters)
