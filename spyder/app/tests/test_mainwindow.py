@@ -5058,10 +5058,9 @@ def test_out_runfile_runcell(main_window, qtbot):
     PY2 or not sys.platform.startswith('linux'),
     reason="Not supported for python 2, Does not work on Mac and Windows!")
 @flaky(max_runs=3)
-@pytest.mark.parametrize(
-    "thread", [False, True])
+@pytest.mark.parametrize("thread", [False, True])
 def test_print_frames(main_window, qtbot, tmpdir, thread):
-    """Test the runcell command."""
+    """Test that frames are displayed as expected."""
     # Write code with a cell to a file
     if thread:
         code = (
@@ -5083,6 +5082,7 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
         expected_number_threads = 1
     p = tmpdir.join("print-test.py")
     p.write(code)
+
     main_window.editor.load(to_text_string(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,

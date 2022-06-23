@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """Frames Explorer Plugin."""
+
 # Local imports
 from spyder.config.base import _
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -22,7 +23,7 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
     NAME = 'frames_explorer'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences,
                 Plugins.Editor]
-    TABIFY = None
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = FramesExplorerWidget
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -36,7 +37,7 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
         return _('Frames explorer')
 
     def get_description(self):
-        return _('Display, explore frames in the current kernel.')
+        return _('Display and explore frames while debugging.')
 
     def get_icon(self):
         return self.create_icon('dictedit')

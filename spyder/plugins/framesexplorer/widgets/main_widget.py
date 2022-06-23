@@ -63,8 +63,6 @@ class FramesExplorerContextMenuActions:
 # =============================================================================
 # ---- Widgets
 # =============================================================================
-
-
 class FramesExplorerWidget(ShellConnectMainWidget):
 
     # PluginMainWidget class constants
@@ -205,15 +203,17 @@ class FramesExplorerWidget(ShellConnectMainWidget):
                 section=FramesExplorerContextMenuSections.Locals,
             )
 
-    # ---- Public API
+    # ---- ShellConnectMainWidget API
     # ------------------------------------------------------------------------
-
     def create_new_widget(self, shellwidget):
         """Create a new widget."""
         color_scheme = get_color_scheme(
             CONF.get('appearance', 'selected'))
         widget = FramesBrowser(
-            self, shellwidget=shellwidget, color_scheme=color_scheme)
+            self,
+            shellwidget=shellwidget,
+            color_scheme=color_scheme
+        )
 
         widget.edit_goto.connect(self.edit_goto)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
@@ -230,18 +230,14 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         widget.setup()
         widget.set_context_menu(
             self.context_menu,
-            self.empty_context_menu)
+            self.empty_context_menu
+        )
 
         widget.results_browser.view_locals_action = self.view_locals_action
         return widget
 
     def switch_widget(self, widget, old_widget):
-        """
-        Set the current FramesBrowser.
-
-        This also setup the finder widget to work with the current
-        FramesBrowser.
-        """
+        """Set the current FramesBrowser."""
         pass
 
     def close_widget(self, widget):
@@ -262,6 +258,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         widget.close()
 
+    # ---- Public API
+    # ------------------------------------------------------------------------
     @Slot(bool)
     def toggle_finder(self, checked):
         """Show or hide finder."""

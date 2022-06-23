@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.framesexplorer
-===========
+=============================
 
 Frames Explorer plugin used to instrospect current frames.
 """

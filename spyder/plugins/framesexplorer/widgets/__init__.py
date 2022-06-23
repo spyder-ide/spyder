@@ -9,7 +9,7 @@
 
 """
 spyder.plugins.framesexplorer.widgets
-=======================================
+=====================================
 
 Frames Explorer-related widgets.
 """
