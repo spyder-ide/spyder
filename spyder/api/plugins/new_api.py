@@ -1028,8 +1028,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     def create_dockwidget(self, mainwindow):
         return self.get_widget().create_dockwidget(mainwindow)
 
-    def close_window(self):
-        self.get_widget().close_window()
+    def close_window(self, save_undocked=False):
+        self.get_widget().close_window(save_undocked=save_undocked)
 
     def change_visibility(self, state, force_focus=False):
         self.get_widget().change_visibility(state, force_focus)
