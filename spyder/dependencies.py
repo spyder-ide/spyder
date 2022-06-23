@@ -248,6 +248,10 @@ DESCRIPTIONS = [
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
      'required_version': WATCHDOG_REQVER},
+    {'modname': "numpy",
+     'package_name': "numpy",
+     'features': _("View and edit two and three dimensional arrays in the Variable Explorer"),
+     'required_version': NUMPY_REQVER},
 ]
 
 
@@ -262,11 +266,6 @@ DESCRIPTIONS += [
      'package_name': "matplotlib",
      'features': _("2D/3D plotting in the IPython console"),
      'required_version': MATPLOTLIB_REQVER,
-     'kind': OPTIONAL},
-    {'modname': "numpy",
-     'package_name': "numpy",
-     'features': _("View and edit two and three dimensional arrays in the Variable Explorer"),
-     'required_version': NUMPY_REQVER,
      'kind': OPTIONAL},
     {'modname': 'pandas',
      'package_name':  'pandas',
