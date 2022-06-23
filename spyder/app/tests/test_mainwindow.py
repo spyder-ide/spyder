@@ -5055,8 +5055,8 @@ def test_out_runfile_runcell(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.skipif(
-    PY2 or not sys.platform.startswith('linux'),
-    reason="Not supported for python 2, Does not work on Mac and Windows!")
+    not sys.platform.startswith('linux'),
+    reason="Does not work on Mac and Windows")
 @flaky(max_runs=3)
 @pytest.mark.parametrize("thread", [False, True])
 def test_print_frames(main_window, qtbot, tmpdir, thread):
