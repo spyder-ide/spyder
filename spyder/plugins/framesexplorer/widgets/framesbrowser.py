@@ -12,7 +12,7 @@ This is the main widget used in the Frames Explorer plugin
 import os.path as osp
 import html
 
-# Third library imports (qtpy)
+# Third library imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (QVBoxLayout, QWidget, QTreeWidget)
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
@@ -24,7 +24,6 @@ from qtpy.QtWidgets import (QApplication, QStyle,
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import get_translation
-from spyder.py3compat import to_text_string
 from spyder.config.gui import get_font
 from spyder.widgets.helperwidgets import FinderWidget
 
@@ -246,9 +245,10 @@ class ThreadItem(QTreeWidgetItem):
     def __init__(self, parent, name, text_color):
         self.name = str(name)
 
-        title_format = to_text_string('<!-- ThreadItem -->'
-                                      '<b style="color:{1}">{0}</b>'
-                                      )
+        title_format = str(
+            '<!-- ThreadItem -->'
+            '<b style="color:{1}">{0}</b>'
+        )
         title = (title_format.format(name, text_color))
         QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
 
@@ -282,7 +282,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc.setHtml(text)
         doc.setDocumentMargin(0)
 
-        # This needs to be an empty string to avoid the overlapping the
+        # This needs to be an empty string to avoid overlapping the
         # normal text of the QTreeWidgetItem
         options.text = ""
         style.drawControl(QStyle.CE_ItemViewItem, options, painter)
@@ -403,25 +403,39 @@ class ResultsBrowser(QTreeWidget):
 
         if frames is None:
             return
+
         for threadId, stack in frames.items():
             parent = ThreadItem(
                 self, threadId, self.text_color)
             parent.setExpanded(True)
             self.threads[threadId] = parent
+
             if stack:
                 for idx, frame in enumerate(stack):
-                    item = LineFrameItem(parent, idx,
-                                         frame.filename,
-                                         frame.line,
-                                         frame.lineno,
-                                         frame.name,
-                                         frame.locals,
-                                         self.font, self.color_scheme)
+                    item = LineFrameItem(
+                        parent,
+                        idx,
+                        frame.filename,
+                        frame.line,
+                        frame.lineno,
+                        frame.name,
+                        frame.locals,
+                        self.font,
+                        self.color_scheme
+                    )
                     self.data[id(item)] = (frame.filename, frame.lineno)
             else:
                 item = LineFrameItem(
-                    parent, 0, None, '', 0, '', None,
-                    self.font, self.color_scheme)
+                    parent,
+                    0,
+                    None,
+                    '',
+                    0,
+                    '',
+                    None,
+                    self.font,
+                    self.color_scheme
+                )
 
     def do_find(self, text):
         """Update the regex text for the variable finder."""
