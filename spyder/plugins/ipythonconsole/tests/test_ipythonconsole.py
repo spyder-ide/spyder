@@ -312,8 +312,8 @@ def ipyconsole(qtbot, request, tmpdir):
         show_diff(init_threads, threads, "thread")
         sys.stderr.write("Running Threads stacks:\n")
         now_thread_ids = [t.ident for t in now_threads]
-        for threadId, frame in sys._current_frames().items():
-            if threadId in now_thread_ids:
+        for thread_id, frame in sys._current_frames().items():
+            if thread_id in now_thread_ids:
                 sys.stderr.write("\nThread " + str(threads) + ":\n")
                 traceback.print_stack(frame)
         raise

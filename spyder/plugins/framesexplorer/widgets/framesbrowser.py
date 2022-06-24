@@ -403,11 +403,11 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
         if frames is None:
             return
 
-        for threadId, stack in frames.items():
+        for thread_id, stack in frames.items():
             parent = ThreadItem(
-                self, threadId, self.text_color)
+                self, thread_id, self.text_color)
             parent.setExpanded(True)
-            self.threads[threadId] = parent
+            self.threads[thread_id] = parent
 
             if stack:
                 for idx, frame in enumerate(stack):
