@@ -80,21 +80,6 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
-    def postmortem(self):
-        """Ask for post mortem debug."""
-        self.current_widget().shellwidget.execute("%debug")
-
-    def capture_frames(self):
-        """Refresh frames table"""
-        widget = self.current_widget()
-        if widget is None:
-            return
-        widget.shellwidget.call_kernel(
-            interrupt=True, callback=widget.set_from_capture_frames
-            ).get_current_frames(
-                ignore_internal_threads=self.get_conf("exclude_internal"),
-                capture_locals=self.get_conf("capture_locals"))
-
     def get_title(self):
         return _('Frames Explorer')
 
@@ -292,3 +277,18 @@ class FramesExplorerWidget(ShellConnectMainWidget):
     def view_item_locals(self):
         """Request to view item locals."""
         self.current_widget().results_browser.view_item_locals()
+
+    def postmortem(self):
+        """Ask for post mortem debug."""
+        self.current_widget().shellwidget.execute("%debug")
+
+    def capture_frames(self):
+        """Refresh frames table"""
+        widget = self.current_widget()
+        if widget is None:
+            return
+        widget.shellwidget.call_kernel(
+            interrupt=True, callback=widget.set_from_capture_frames
+            ).get_current_frames(
+                ignore_internal_threads=self.get_conf("exclude_internal"),
+                capture_locals=self.get_conf("capture_locals"))
