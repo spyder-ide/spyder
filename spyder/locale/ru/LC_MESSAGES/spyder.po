@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-09 12:58-0500\n"
-"PO-Revision-Date: 2022-06-24 11:02\n"
+"PO-Revision-Date: 2022-06-24 13:35\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1105,7 +1105,7 @@ msgstr "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>стра�
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:41
 msgid "Here you can decide if you want to perform style analysis on your docstrings according to the {} or {} conventions. You can also decide if you want to show or ignore specific errors, according to the codes found on this {}."
-msgstr ""
+msgstr "Здесь вы можете решить, хотите ли вы выполнить анализ стиля ваших приёмов в соответствии с соглашениями {} или {}. Вы также можете решить, если вы хотите показать или игнорировать конкретные ошибки, в соответствии с кодами, найденными на этом {}."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:51
 msgid "Enable docstring style linting"
@@ -1149,7 +1149,7 @@ msgstr "Пропускать директории, начинающиеся с �
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:132
 msgid "Show the following errors in addition to the specified convention:"
-msgstr ""
+msgstr "Показывать следующие ошибки в дополнение к указанной конвенции:"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:135
 msgid "Ignore the following errors in addition to the specified convention:"
@@ -1157,11 +1157,11 @@ msgstr "Игнорируйте следующие ошибки в дополне
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:143
 msgid "Directory patterns listed for matching should be valid regular expressions"
-msgstr ""
+msgstr "Шаблоны каталогов, указанные для сопоставления, должны быть допустимыми регулярными выражениями"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:146
 msgid "File patterns listed for matching should be valid regular expressions"
-msgstr ""
+msgstr "Шаблоны файлов, указанные для сопоставления, должны быть допустимыми регулярными выражениями"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:27
 msgid "Code style and formatting"
