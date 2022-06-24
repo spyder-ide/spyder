@@ -9,6 +9,8 @@ Frames browser widget
 
 This is the main widget used in the Frames Explorer plugin
 """
+
+# Standard library imports
 import os.path as osp
 import html
 
