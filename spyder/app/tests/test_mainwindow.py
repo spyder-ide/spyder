@@ -1242,7 +1242,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert nsb.editor.source_model.rowCount() == 1
 
     # Test runfile in external_kernel
-    run_action = main_window.run_toolbar_actions[0]
+    run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
 
     # create new file
@@ -1251,6 +1251,16 @@ def test_connection_to_external_kernel(main_window, qtbot):
     code_editor.set_text(
         "print(2 + 1)"
     )
+
+    file_path = main_window.editor.get_current_filename()
+    file_uuid = main_window.editor.id_per_file[file_path]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # Start running
     with qtbot.waitSignal(shell.executed):
