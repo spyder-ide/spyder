@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-05-09 12:58-0500\n"
-"PO-Revision-Date: 2022-06-24 14:47\n"
+"PO-Revision-Date: 2022-06-25 13:32\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1325,7 +1325,7 @@ msgstr "Другие языки"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:36
 msgid "Spyder uses the <a href=\"{lsp_url}\">Language Server Protocol</a> to provide code completion and linting for its Editor. Here, you can setup and configure LSP servers for languages other than Python, so Spyder can provide such features for those languages as well."
-msgstr ""
+msgstr "Spyder использует <a href=\"{lsp_url}\">Language Server Protocol</a>, чтобы обеспечить завершению кода и проверку для редактора. Здесь вы можете настроить LSP серверы для других языков, чем Python, так чтобы Spyder мог предоставить возможности этих языков."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:47
 msgid "Available servers:"
