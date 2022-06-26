@@ -81,10 +81,11 @@ def send_args_to_spyder(args):
     """
     from spyder.config.manager import CONF
     port = CONF.get('main', 'open_files_port')
+    print_warning = True
 
     # Wait ~50 secs for the server to be up
     # Taken from https://stackoverflow.com/a/4766598/438386
-    for _x in range(200):
+    for __ in range(200):
         try:
             for arg in args:
                 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
@@ -95,6 +96,13 @@ def send_args_to_spyder(args):
                 client.send(osp.abspath(arg))
                 client.close()
         except socket.error:
+            # Print informative warning to let users know what Spyder is doing
+            if print_warning:
+                print("Waiting for the server to open files and directories "
+                      "to be up (perhaps it failed to be started).")
+                print_warning = False
+
+            # Wait 250 ms before trying again
             time.sleep(0.25)
             continue
         break
@@ -249,7 +257,7 @@ def main():
                 send_args_to_spyder(args)
             else:
                 print("Spyder is already running. If you want to open a new \n"
-                      "instance, please pass to it the --new-instance option")
+                      "instance, please use the --new-instance option")
     else:
         from spyder.app import mainwindow
         if running_under_pytest():
