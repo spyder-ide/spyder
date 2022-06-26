@@ -1167,7 +1167,6 @@ class MainWindow(QMainWindow):
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
 
-
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
 
@@ -1817,14 +1816,25 @@ class MainWindow(QMainWindow):
         """Save preferences dialog size."""
         self.prefs_dialog_size = size
 
-    # -- Open files server
+    # ---- Open files server
     def start_open_files_server(self):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
         port = select_port(default_port=OPEN_FILES_PORT)
         CONF.set('main', 'open_files_port', port)
-        self.open_files_server.bind(('127.0.0.1', port))
+
+        # This is necessary in case it's not possible to bind a port for the
+        # server in the system.
+        # Fixes spyder-ide/spyder#18262
+        try:
+            self.open_files_server.bind(('127.0.0.1', port))
+        except OSError:
+            self.open_files_server = None
+            return
+
+        # Number of petitions the server can queue
         self.open_files_server.listen(20)
+
         while 1:  # 1 is faster than True
             try:
                 req, dummy = self.open_files_server.accept()
