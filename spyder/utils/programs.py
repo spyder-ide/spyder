@@ -23,6 +23,7 @@ import sys
 import tempfile
 import threading
 import time
+import logging
 
 # Third party imports
 import pkg_resources
@@ -37,6 +38,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
+logger = logging.getLogger(__name__)
 HERE = osp.abspath(osp.dirname(__file__))
 
 
@@ -784,6 +786,8 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
                                         suffix='.sh', dir=get_temp_dir(),
                                         delete=False)
 
+                    logger.info('Executing on external console: %s',
+                                ' '.join([executable] + p_args))
                     f.write(' '.join([executable] + p_args) + '\n')
                     f.write(f'read -p "{_("Press enter to continue...")}"\n')
                     executable = '/usr/bin/bash'

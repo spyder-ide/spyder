@@ -54,6 +54,7 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
+from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -1198,6 +1199,70 @@ def test_dedicated_consoles(main_window, qtbot):
     main_window.editor.close_file()
     CONF.set('run', 'configurations', {})
     CONF.set('run', 'last_used_parameters', {})
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_shell_execution(main_window, qtbot, tmpdir):
+    """Test that bash/batch files can be executed."""
+    ext = 'sh'
+    script = 'bash_example.sh'
+    interpreter = 'bash'
+    if sys.platform == 'darwin':
+        interpreter = 'zsh'
+    elif os.name == 'nt':
+        interpreter = 'cmd.exe'
+        script = 'batch_example.bat'
+        ext = 'bat'
+
+    # ---- Load test file ----
+    test_file = osp.join(LOCATION, script)
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+    external_console = main_window.external_console
+
+    temp_dir = str(tmpdir.mkdir("test_dir"))
+
+    # --- Set run options for the executor ---
+    ext_conf = ExtConsoleShConfiguration(
+        interpreter=interpreter, interpreter_opts_enabled=False,
+        interpreter_opts='', script_opts_enabled=True, script_opts=temp_dir,
+        close_after_exec=True)
+
+    wdir_opts = WorkingDirOpts(source=WorkingDirSource.ConfigurationDirectory,
+                               path=None)
+
+    exec_conf = RunExecutionParameters(
+        working_dir=wdir_opts, executor_params=ext_conf)
+
+    exec_uuid = str(uuid.uuid4())
+    ext_exec_conf = ExtendedRunExecutionParameters(
+        uuid=exec_uuid, name='TestConf', params=exec_conf)
+
+    ipy_dict = {external_console.NAME: {
+        (ext, RunContext.File): {'params': {exec_uuid: ext_exec_conf}}
+    }}
+    CONF.set('run', 'parameters', ipy_dict)
+
+    # --- Set run options for this file ---
+    file_uuid = main_window.editor.id_per_file[test_file]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=external_console.NAME,
+        selected=exec_uuid,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
+    # --- Run test file and assert that the script gets executed ---
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
+
+    with open(osp.join(temp_dir, 'output_file'), 'r') as f:
+        lines = f.read()
+
+    assert lines.lower().strip() == (
+        f'this is a temporary file created by {sys.platform}')
 
 
 @pytest.mark.slow
@@ -3110,7 +3175,7 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.skipif(
-    sys.platform == 'darwin',
+    sys.platform == 'darwin' or os.name == 'nt',
     reason="Changes of Shitf+Return shortcut cause an ambiguous shortcut")
 @pytest.mark.parametrize('main_window',
                          [{'spy_config': ('editor', 'run_cell_copy', True)}],
