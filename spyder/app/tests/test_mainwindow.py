@@ -69,6 +69,7 @@ from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
+from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
 
 
@@ -1208,12 +1209,14 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     ext = 'sh'
     script = 'bash_example.sh'
     interpreter = 'bash'
+    opts = ''
     if sys.platform == 'darwin':
         interpreter = 'zsh'
     elif os.name == 'nt':
-        interpreter = 'cmd.exe'
+        interpreter = find_program('cmd.exe')
         script = 'batch_example.bat'
         ext = 'bat'
+        opts = '/K'
 
     # ---- Load test file ----
     test_file = osp.join(LOCATION, script)
@@ -1226,7 +1229,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     # --- Set run options for the executor ---
     ext_conf = ExtConsoleShConfiguration(
         interpreter=interpreter, interpreter_opts_enabled=False,
-        interpreter_opts='', script_opts_enabled=True, script_opts=temp_dir,
+        interpreter_opts=opts, script_opts_enabled=True, script_opts=temp_dir,
         close_after_exec=True)
 
     wdir_opts = WorkingDirOpts(source=WorkingDirSource.ConfigurationDirectory,
@@ -1256,12 +1259,16 @@ def test_shell_execution(main_window, qtbot, tmpdir):
 
     # --- Run test file and assert that the script gets executed ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
-    with open(osp.join(temp_dir, 'output_file'), 'r') as f:
+    qtbot.waitUntil(lambda: osp.exists(osp.join(temp_dir, 'output_file.txt')),
+                    timeout=2000)
+    qtbot.wait(1000)
+
+    with open(osp.join(temp_dir, 'output_file.txt'), 'r') as f:
         lines = f.read()
 
-    assert lines.lower().strip() == (
+    assert lines.lower().strip().replace('"', '') == (
         f'this is a temporary file created by {sys.platform}')
 
 
