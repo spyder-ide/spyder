@@ -15,15 +15,8 @@ import signal
 # Third party imports
 from jupyter_client.utils import run_sync
 import psutil
-from qtconsole.client import QtKernelClient, QtZMQSocketChannel
 from qtconsole.manager import QtKernelManager
-from traitlets import Type, DottedObjectName
-
-
-class SpyderKernelClient(QtKernelClient):
-    # Enable receiving messages on control channel.
-    # Useful for pdb completion
-    control_channel_class = Type(QtZMQSocketChannel)
+from traitlets import DottedObjectName
 
 
 class SpyderKernelManager(QtKernelManager):
@@ -37,7 +30,7 @@ class SpyderKernelManager(QtKernelManager):
     """
 
     client_class = DottedObjectName(
-        'spyder.plugins.ipythonconsole.utils.manager.SpyderKernelClient')
+        'spyder.plugins.ipythonconsole.utils.client.SpyderKernelClient')
 
     def __init__(self, *args, **kwargs):
         self.shutting_down = False

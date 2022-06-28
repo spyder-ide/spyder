@@ -33,8 +33,8 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.plugins.ipythonconsole.utils.manager import (
-    SpyderKernelManager, SpyderKernelClient)
+from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
+from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
