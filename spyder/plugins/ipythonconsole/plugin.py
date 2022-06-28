@@ -215,10 +215,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         The new working directory path.
     """
 
-    def __init__(self, parent, configuration):
-        super().__init__(parent, configuration)
-        RunExecutor.__init__(self)
-
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod

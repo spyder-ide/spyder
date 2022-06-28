@@ -25,6 +25,7 @@ else:
 from typing_extensions import NotRequired
 
 # Qt imports
+from qtpy.QtCore import QObject
 from qtpy.QtWidgets import QWidget
 
 
@@ -395,7 +396,7 @@ def run_execute(func: RunExecuteFunc = None,
     return func
 
 
-class RunExecutor:
+class RunExecutor(QObject):
     """
     Interface used to execute run context information.
 
@@ -405,8 +406,8 @@ class RunExecutor:
     covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self._exec_methods: Dict[str, RunExecuteFunc] = {}
         self._exec_ext_methods: Dict[str, RunExecuteFunc] = {}
         self._exec_context_methods: Dict[str, RunExecuteFunc] = {}

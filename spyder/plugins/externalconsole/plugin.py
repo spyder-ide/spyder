@@ -46,10 +46,6 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
     CONF_SECTION = NAME
     CONF_FILE = False
 
-    def __init__(self, parent, configuration=None):
-        super().__init__(parent, configuration)
-        RunExecutor.__init__(self)
-
     # --- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod

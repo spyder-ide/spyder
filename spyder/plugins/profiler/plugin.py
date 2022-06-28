@@ -56,10 +56,6 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     CONF_WIDGET_CLASS = ProfilerConfigPage
     CONF_FILE = False
 
-    def __init__(self, parent, configuration):
-        super().__init__(parent, configuration)
-        RunExecutor.__init__(self)
-
     # --- Signals
     # ------------------------------------------------------------------------
     sig_started = Signal()
