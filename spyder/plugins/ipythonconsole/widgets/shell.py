@@ -11,15 +11,18 @@ Shell Widget for the IPython Console
 # Standard library imports
 import os
 import os.path as osp
+import time
 import uuid
 from textwrap import dedent
 from threading import Lock
+from pickle import PicklingError, UnpicklingError
 
 # Third party imports
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
+from spyder_kernels.comms.commbase import CommError
 
 # Local imports
 from spyder.config.base import (
@@ -35,15 +38,17 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
-    NamepaceBrowserWidget, PageControlWidget)
+    PageControlWidget)
 
 
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
 
+# Max time before giving up when making a blocking call to the kernel
+CALL_KERNEL_TIMEOUT = 30
 
-class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
-                  FigureBrowserWidget):
+
+class ShellWidget(HelpWidget, DebuggingWidget, FigureBrowserWidget):
     """
     Shell widget for the IPython Console
 
@@ -81,6 +86,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # Class array of shutdown threads
     shutdown_thread_list = []
+
+    # To save the replies of kernel method executions (except
+    # getting values of variables)
+    _kernel_methods = {}
+
+    # To save values and messages returned by the kernel
+    _kernel_is_starting = True
+
+    sig_kernel_has_started = Signal()
 
     @classmethod
     def prune_shutdown_thread_list(cls):
@@ -587,7 +601,7 @@ the sympy module (e.g. plot)
                 # This doesn't need to interrupt the kernel because
                 # "%reset -f" is being executed before it.
                 # Fixes spyder-ide/spyder#12689
-                self.refresh_namespacebrowser(interrupt=False)
+                self.sig_kernel_has_started.emit()
 
                 if self.is_spyder_kernel:
                     self.call_kernel().close_all_mpl_figures()
@@ -918,7 +932,47 @@ the sympy module (e.g. plot)
         super().cut()
         self._save_clipboard_indentation()
 
-    # ---- Private methods (overrode by us) -----------------------------------
+    # ---- Private API (overrode by us) ---------------------------------------
+    def _handle_execute_reply(self, msg):
+        """
+        Reimplemented to handle communications between Spyder
+        and the kernel
+        """
+        # Refresh namespacebrowser after the kernel starts running
+        exec_count = msg['content'].get('execution_count', '')
+        if exec_count == 0 and self._kernel_is_starting:
+            self.sig_kernel_has_started.emit()
+            self.ipyclient.t0 = time.monotonic()
+            self._kernel_is_starting = False
+
+
+        super(ShellWidget, self)._handle_execute_reply(msg)
+
+    def _handle_status(self, msg):
+        """
+        Reimplemented to refresh the namespacebrowser after kernel
+        restarts
+        """
+        state = msg['content'].get('execution_state', '')
+        msg_type = msg['parent_header'].get('msg_type', '')
+        if state == 'starting':
+            # This is needed to show the time a kernel
+            # has been alive in each console.
+            self.ipyclient.t0 = time.monotonic()
+            self.ipyclient.timer.timeout.connect(self.ipyclient.show_time)
+            self.ipyclient.timer.start(1000)
+
+            # This handles restarts when the kernel dies
+            # unexpectedly
+            if not self._kernel_is_starting:
+                self._kernel_is_starting = True
+        elif state == 'idle' and msg_type == 'shutdown_request':
+            # This handles restarts asked by the user
+            self.sig_kernel_has_started.emit()
+            self.ipyclient.t0 = time.monotonic()
+        else:
+            super(ShellWidget, self)._handle_status(msg)
+
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
@@ -1015,3 +1069,56 @@ the sympy module (e.g. plot)
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusOutEvent(event)
+
+    # --- value access --------------------------------------------------------
+    def get_value(self, name):
+        """Ask kernel for a value"""
+        reason_big = _("The variable is too big to be retrieved")
+        reason_not_picklable = _("The variable is not picklable")
+        reason_dead = _("The kernel is dead")
+        reason_other = _("An error occured, see the console.")
+        reason_comm = _("The comm channel is not working.")
+        msg = _("%s.<br><br>"
+                "Note: Please don't report this problem on Github, "
+                "there's nothing to do about it.")
+        try:
+            return self.call_kernel(
+                blocking=True,
+                display_error=True,
+                timeout=CALL_KERNEL_TIMEOUT).get_value(name)
+        except TimeoutError:
+            raise ValueError(msg % reason_big)
+        except (PicklingError, UnpicklingError, TypeError):
+            raise ValueError(msg % reason_not_picklable)
+        except RuntimeError:
+            raise ValueError(msg % reason_dead)
+        except KeyError:
+            raise
+        except CommError:
+            raise ValueError(msg % reason_comm)
+        except Exception:
+            raise ValueError(msg % reason_other)
+
+    def set_value(self, name, value):
+        """Set value for a variable"""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False,
+            display_error=True,
+            ).set_value(name, value)
+
+    def remove_value(self, name):
+        """Remove a variable"""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False,
+            display_error=True,
+            ).remove_value(name)
+
+    def copy_value(self, orig_name, new_name):
+        """Copy a variable"""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False,
+            display_error=True,
+            ).copy_value(orig_name, new_name)

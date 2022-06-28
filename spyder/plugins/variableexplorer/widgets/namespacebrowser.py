@@ -13,6 +13,7 @@ This is the main widget used in the Variable Explorer plugin
 # Standard library imports
 import os
 import os.path as osp
+from pickle import UnpicklingError
 
 # Third library imports
 from qtpy import PYQT5
@@ -21,6 +22,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QInputDialog,
                             QMessageBox, QVBoxLayout, QWidget)
+from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
@@ -40,6 +42,8 @@ _ = get_translation('spyder')
 
 # Constants
 VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
+# Max time before giving up when making a blocking call to the kernel
+CALL_KERNEL_TIMEOUT = 30
 
 
 class NamespaceBrowser(QWidget, SpyderWidgetMixin):
@@ -94,7 +98,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         assert self.shellwidget is not None
 
         if self.editor is not None:
-            self.shellwidget.set_namespace_view_settings()
+            self.set_namespace_view_settings()
             self.refresh_table()
         else:
             # Widgets
@@ -147,15 +151,43 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
-        shellwidget.set_namespacebrowser(self)
 
     def refresh_table(self):
         """Refresh variable table."""
-        self.shellwidget.refresh_namespacebrowser()
+        self.refresh_namespacebrowser()
         try:
             self.editor.resizeRowToContents()
         except TypeError:
             pass
+
+    def refresh_namespacebrowser(self, interrupt=True):
+        """Refresh namespace browser"""
+        if self.shellwidget.kernel_client is None:
+            return
+
+        self.shellwidget.call_kernel(
+            interrupt=interrupt,
+            callback=self.process_remote_view
+        ).get_namespace_view()
+
+        self.shellwidget.call_kernel(
+            interrupt=interrupt,
+            callback=self.set_var_properties
+        ).get_var_properties()
+
+    def set_namespace_view_settings(self):
+        """Set the namespace view settings"""
+        if self.shellwidget.kernel_client is None:
+            return
+
+        settings = self.get_view_settings()
+        self.shellwidget.call_kernel(
+            interrupt=True
+        ).set_namespace_view_settings(settings)
+
+    def on_kernel_started(self):
+        self.set_namespace_view_settings()
+        self.refresh_namespacebrowser(interrupt=False)
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
@@ -232,7 +264,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                error_message = self.shellwidget.load_data(self.filename, ext)
+                error_message = self.load_data(self.filename, ext)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
@@ -243,6 +275,37 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                                        "The error message was:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
+
+    def load_data(self, filename, ext):
+        """Load data from a file."""
+        overwrite = False
+        if self.editor.var_properties:
+            message = _('Do you want to overwrite old '
+                        'variables (if any) in the namespace '
+                        'when loading the data?')
+            buttons = QMessageBox.Yes | QMessageBox.No
+            result = QMessageBox.question(
+                self, _('Data loading'), message, buttons)
+            overwrite = result == QMessageBox.Yes
+        try:
+            return self.shellwidget.call_kernel(
+                blocking=True,
+                display_error=True,
+                timeout=CALL_KERNEL_TIMEOUT).load_data(
+                    filename, ext, overwrite=overwrite)
+        except ImportError as msg:
+            module = str(msg).split("'")[1]
+            msg = _("Spyder is unable to open the file "
+                    "you're trying to load because <tt>{module}</tt> is "
+                    "not installed. Please install "
+                    "this package in your working environment."
+                    "<br>").format(module=module)
+            return msg
+        except TimeoutError:
+            msg = _("Data is too big to be loaded")
+            return msg
+        except (UnpicklingError, RuntimeError, CommError):
+            return None
 
     def reset_namespace(self):
         warning = self.get_conf(
@@ -269,7 +332,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
 
-        error_message = self.shellwidget.save_namespace(self.filename)
+        error_message = self.save_namespace(self.filename)
 
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
@@ -286,3 +349,15 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                     "The error message was:<br>") + error_message
 
             QMessageBox.critical(self, _("Save data"), save_data_message)
+
+    def save_namespace(self, filename):
+        try:
+            return self.shellwidget.call_kernel(
+                blocking=True,
+                display_error=True,
+                timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
+        except TimeoutError:
+            msg = _("Data is too big to be saved")
+            return msg
+        except (UnpicklingError, RuntimeError, CommError):
+            return None
