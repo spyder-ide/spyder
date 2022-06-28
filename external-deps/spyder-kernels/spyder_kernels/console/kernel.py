@@ -161,6 +161,7 @@ class SpyderKernel(IPythonKernel):
             self.parent.iopub_thread.thread,  # iopub
             gc.thread,  # ZMQ garbage collector thread
             self.parent.control_thread,  # control
+            self.frontend_comm.comm_socket_thread,
         ]
         return [
             thread.ident for thread in ignore_threads if thread is not None]
