@@ -95,6 +95,22 @@ class ShellConnectMixin:
         """
         return self.get_widget().current_widget()
 
+    def get_widget_for_shellwidget(self, shellwidget):
+        """
+        Return the widget registered with the given shellwidget.
+
+        Parameters
+        ----------
+        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+            The shell widget.
+            
+        Returns
+        -------
+        current_widget: QWidget
+            The widget corresponding to the shellwidget, or None if not found.
+        """
+        return self.get_widget().get_widget_for_shellwidget(shellwidget)
+
     def on_connection_to_external_spyder_kernel(self, shellwidget):
         """
         Actions to take when the IPython console connects to an
