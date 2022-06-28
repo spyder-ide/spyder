@@ -446,7 +446,7 @@ class MainWindow(QMainWindow):
 
         # Check if TABIFY is not a list with None as unique value or a default
         # list
-        if tabify in [[None], []]:
+        if next_to_plugins in [[None], []]:
             return False
 
         # Get the actual plugins from the names
@@ -586,6 +586,7 @@ class MainWindow(QMainWindow):
             'maininterpreter': Plugins.MainInterpreter,
             'outlineexplorer': Plugins.OutlineExplorer,
             'variableexplorer': Plugins.VariableExplorer,
+            'framesexplorer': Plugins.FramesExplorer,
             'ipyconsole': Plugins.IPythonConsole,
             'workingdirectory': Plugins.WorkingDirectory,
             'projects': Plugins.Projects,

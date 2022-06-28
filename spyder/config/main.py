@@ -183,6 +183,12 @@ DEFAULTS = [
               'show_callable_attributes': True,
               'show_special_attributes': False
              }),
+            ('frames_explorer',
+             {
+              'exclude_internal': True,
+              'capture_locals': False,
+              'show_locals_on_click': False,
+             }),
             ('plots',
              {
               'mute_inline_plotting': True,
@@ -521,6 +527,9 @@ DEFAULTS = [
               # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
+              # ---- In widgets/framesexplorer/framesbrowser.py ----
+              'frames_explorer/refresh': 'Ctrl+R',
+              'frames_explorer/search': 'Ctrl+F',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
