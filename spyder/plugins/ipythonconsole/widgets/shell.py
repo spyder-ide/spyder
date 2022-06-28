@@ -938,14 +938,24 @@ the sympy module (e.g. plot)
         Reimplemented to handle communications between Spyder
         and the kernel
         """
-        # Refresh namespacebrowser after the kernel starts running
+        # Notify that kernel has started
         exec_count = msg['content'].get('execution_count', '')
         if exec_count == 0 and self._kernel_is_starting:
             self.sig_kernel_has_started.emit()
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
-        super(ShellWidget, self)._handle_execute_reply(msg)
+        # Handle silent execution of kernel methods
+        msg_id = msg['parent_header']['msg_id']
+        info = self._request_info['execute'].get(msg_id)
+        # unset reading flag, because if execute finished, raw_input can't
+        # still be pending.
+        self._reading = False
+        if info and info.kind == 'silent_exec_method':
+            self.handle_exec_method(msg)
+            self._request_info['execute'].pop(msg_id)
+        else:
+            super()._handle_execute_reply(msg)
 
     def _handle_status(self, msg):
         """
