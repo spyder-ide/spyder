@@ -87,10 +87,6 @@ class ShellWidget(HelpWidget, DebuggingWidget, FigureBrowserWidget):
     # Class array of shutdown threads
     shutdown_thread_list = []
 
-    # To save the replies of kernel method executions (except
-    # getting values of variables)
-    _kernel_methods = {}
-
     # To save values and messages returned by the kernel
     _kernel_is_starting = True
 
@@ -308,7 +304,22 @@ class ShellWidget(HelpWidget, DebuggingWidget, FigureBrowserWidget):
         if self._reading:
             return
         else:
-            self.silent_exec_method(code)
+            self._silent_exec_callback(code, self.check_spyder_kernel_callback)
+
+    def check_spyder_kernel_callback(self, reply):
+        """
+        Handle data returned by silent executions of kernel methods
+
+        This is based on the _handle_exec_callback of RichJupyterWidget.
+        Therefore this is licensed BSD.
+        """
+        # Process kernel reply
+        data = reply.get('data')
+        if data is not None and 'text/plain' in data:
+            is_spyder_kernel = data['text/plain']
+            if 'SpyderKernel' in is_spyder_kernel:
+                self.is_spyder_kernel = True
+                self.sig_is_spykernel.emit(self)
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
@@ -683,72 +694,6 @@ the sympy module (e.g. plot)
         except AttributeError:
             pass
 
-    def silent_exec_method(self, code):
-        """Silently execute a kernel method and save its reply
-
-        The methods passed here **don't** involve getting the value
-        of a variable but instead replies that can be handled by
-        ast.literal_eval.
-
-        To get a value see `get_value`
-
-        Parameters
-        ----------
-        code : string
-            Code that contains the kernel method as part of its
-            string
-
-        See Also
-        --------
-        handle_exec_method : Method that deals with the reply
-
-        Note
-        ----
-        This is based on the _silent_exec_callback method of
-        RichJupyterWidget. Therefore this is licensed BSD
-        """
-        # Generate uuid, which would be used as an indication of whether or
-        # not the unique request originated from here
-        local_uuid = to_text_string(uuid.uuid1())
-        code = to_text_string(code)
-        if self.kernel_client is None:
-            return
-
-        msg_id = self.kernel_client.execute(
-            '', silent=True,
-            user_expressions={local_uuid: code})
-        self._kernel_methods[local_uuid] = code
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(
-            msg_id,
-            'silent_exec_method',
-            False)
-
-    def handle_exec_method(self, msg):
-        """
-        Handle data returned by silent executions of kernel methods
-
-        This is based on the _handle_exec_callback of RichJupyterWidget.
-        Therefore this is licensed BSD.
-        """
-        user_exp = msg['content'].get('user_expressions')
-        if not user_exp:
-            return
-        for expression in user_exp:
-            if expression in self._kernel_methods:
-                # Process kernel reply
-                method = self._kernel_methods[expression]
-                reply = user_exp[expression]
-                data = reply.get('data')
-                if 'getattr' in method:
-                    if data is not None and 'text/plain' in data:
-                        is_spyder_kernel = data['text/plain']
-                        if 'SpyderKernel' in is_spyder_kernel:
-                            self.is_spyder_kernel = True
-                            self.sig_is_spykernel.emit(self)
-
-                # Remove method after being processed
-                self._kernel_methods.pop(expression)
-
     def set_backend_for_mayavi(self, command):
         """
         Mayavi plots require the Qt backend, so we try to detect if one is
@@ -945,17 +890,7 @@ the sympy module (e.g. plot)
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
-        # Handle silent execution of kernel methods
-        msg_id = msg['parent_header']['msg_id']
-        info = self._request_info['execute'].get(msg_id)
-        # unset reading flag, because if execute finished, raw_input can't
-        # still be pending.
-        self._reading = False
-        if info and info.kind == 'silent_exec_method':
-            self.handle_exec_method(msg)
-            self._request_info['execute'].pop(msg_id)
-        else:
-            super()._handle_execute_reply(msg)
+        super()._handle_execute_reply(msg)
 
     def _handle_status(self, msg):
         """
