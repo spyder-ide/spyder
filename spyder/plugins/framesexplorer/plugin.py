@@ -22,7 +22,7 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
 
     NAME = 'frames_explorer'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor]
+    OPTIONAL = [Plugins.Editor, Plugins.VariableExplorer]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = FramesExplorerWidget
     CONF_SECTION = NAME
@@ -64,3 +64,27 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         self.get_widget().edit_goto.disconnect(editor.load)
+
+    @on_plugin_available(plugin=Plugins.VariableExplorer)
+    def on_variable_explorer_available(self):
+        self.get_widget().sig_show_namespace.connect(
+            self.show_namespace_in_variable_explorer)
+
+    @on_plugin_teardown(plugin=Plugins.VariableExplorer)
+    def on_variable_explorer_teardown(self):
+        self.get_widget().sig_show_namespace.disconnect(
+            self.show_namespace_in_variable_explorer)
+
+    def show_namespace_in_variable_explorer(self, namespace, shellwidget):
+        """
+        Find the right variable explorer widget and show the namespace.
+
+        This should only be called when there is a Variable explorer
+        """
+        variable_explorer = self.get_plugin(Plugins.VariableExplorer)
+        if variable_explorer is None:
+            return
+        nsb = variable_explorer.get_widget_for_shellwidget(shellwidget)
+        nsb.process_remote_view(namespace)
+
+

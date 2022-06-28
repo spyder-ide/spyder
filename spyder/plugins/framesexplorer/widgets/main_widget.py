@@ -70,6 +70,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
     # Signals
     edit_goto = Signal((str, int, str), (str, int, str, bool))
+    sig_show_namespace = Signal(dict, object)
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -219,7 +220,9 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         widget.sig_hide_finder_requested.connect(self.hide_finder)
         widget.sig_update_actions_requested.connect(self.update_actions)
 
-        widget.sig_show_namespace.connect(shellwidget.set_namespace_view)
+        widget.sig_show_namespace.connect(
+            lambda namespace: self.sig_show_namespace.emit(
+                namespace, shellwidget))
         shellwidget.executed.connect(widget.clear_if_needed)
 
         shellwidget.spyder_kernel_comm.register_call_handler(
@@ -248,7 +251,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         shellwidget = widget.shellwidget
 
-        widget.sig_show_namespace.disconnect(shellwidget.set_namespace_view)
+        widget.sig_show_namespace.disconnect()
         shellwidget.executed.disconnect(widget.clear_if_needed)
 
         shellwidget.spyder_kernel_comm.register_call_handler(
