@@ -21,7 +21,7 @@ from traitlets import Type, DottedObjectName
 
 
 class SpyderKernelClient(QtKernelClient):
-    # Enable recieving messages on control channel
+    # Enable receiving messages on control channel.
     # Useful for pdb completion
     control_channel_class = Type(QtZMQSocketChannel)
 
