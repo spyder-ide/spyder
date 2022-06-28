@@ -915,7 +915,7 @@ the sympy module (e.g. plot)
             self.sig_kernel_has_started.emit()
             self.ipyclient.t0 = time.monotonic()
         else:
-            super(ShellWidget, self)._handle_status(msg)
+            super()._handle_status(msg)
 
     def _handle_error(self, msg):
         """
