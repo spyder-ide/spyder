@@ -11,7 +11,16 @@ set SPYDER_KERNEL_SPEC=%4
 chcp 65001>nul
 
 :: Activate kernel environment
-call %CONDA_ACTIVATE_SCRIPT% %CONDA_ENV_PATH%
+echo %CONDA_ACTIVATE_SCRIPT%| findstr /e "micromamba.exe">Nul && goto micromamba || goto conda
 
-:: Start kernel
+:micromamba Activate using micromamba
+for /f %%i in ('%CONDA_ACTIVATE_SCRIPT% shell activate %CONDA_ENV_PATH%') do set SCRIPT=%%i
+call %SCRIPT%
+goto start
+
+:conda Activate using conda
+call %CONDA_ACTIVATE_SCRIPT% %CONDA_ENV_PATH%
+goto start
+
+:start Start kernel
 %CONDA_ENV_PYTHON% -m spyder_kernels.console -f %SPYDER_KERNEL_SPEC%

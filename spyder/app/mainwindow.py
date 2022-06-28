@@ -1086,7 +1086,7 @@ class MainWindow(QMainWindow):
         # Tabify external plugins which were installed after Spyder was
         # installed.
         # Note: This is only necessary the first time a plugin is loaded.
-        # Afterwwrds, the plugin placement is recorded on the window hexstate,
+        # Afterwards, the plugin placement is recorded on the window hexstate,
         # which is loaded by the layouts plugin during the next session.
         for plugin_name in PLUGIN_REGISTRY.external_plugins:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -1119,11 +1119,15 @@ class MainWindow(QMainWindow):
                         'Expecting a list of layout classes but got {}'
                         .format(plugin_name, plugin_instance.CUSTOM_LAYOUTS)
                     )
-        self.layouts.update_layout_menu_actions()
+
+        # Needed to ensure dockwidgets/panes layout size distribution
+        # when a layout state is already present.
+        # See spyder-ide/spyder#17945
+        if self.layouts is not None and CONF.get('main', 'window/state', None):
+            self.layouts.before_mainwindow_visible()
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
-
 
     def post_visible_setup(self):
         """
@@ -1162,7 +1166,6 @@ class MainWindow(QMainWindow):
             # Connect the window to the signal emitted by the previous server
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
-
 
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
@@ -1580,9 +1583,10 @@ class MainWindow(QMainWindow):
                     executable = get_python_executable()
                 else:
                     executable = CONF.get('main_interpreter', 'executable')
+                pypath = CONF.get('main', 'spyder_pythonpath', None)
                 programs.run_python_script_in_terminal(
                         fname, wdir, args, interact, debug, python_args,
-                        executable)
+                        executable, pypath)
             except NotImplementedError:
                 QMessageBox.critical(self, _("Run"),
                                      _("Running an external system terminal "
@@ -1719,15 +1723,6 @@ class MainWindow(QMainWindow):
         # Load new path
         new_path_dict_p = self.get_spyder_pythonpath_dict()  # Includes project
 
-        # Update Spyder interpreter
-        for path in path_dict:
-            while path in sys.path:
-                sys.path.remove(path)
-
-        for path, active in reversed(new_path_dict_p.items()):
-            if active:
-                sys.path.insert(1, path)
-
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
         self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
@@ -1821,14 +1816,25 @@ class MainWindow(QMainWindow):
         """Save preferences dialog size."""
         self.prefs_dialog_size = size
 
-    # -- Open files server
+    # ---- Open files server
     def start_open_files_server(self):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
         port = select_port(default_port=OPEN_FILES_PORT)
         CONF.set('main', 'open_files_port', port)
-        self.open_files_server.bind(('127.0.0.1', port))
+
+        # This is necessary in case it's not possible to bind a port for the
+        # server in the system.
+        # Fixes spyder-ide/spyder#18262
+        try:
+            self.open_files_server.bind(('127.0.0.1', port))
+        except OSError:
+            self.open_files_server = None
+            return
+
+        # Number of petitions the server can queue
         self.open_files_server.listen(20)
+
         while 1:  # 1 is faster than True
             try:
                 req, dummy = self.open_files_server.accept()

@@ -19,7 +19,6 @@ import pytest
 import pytestqt
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
-from rtree import index
 
 # Local imports
 from spyder.config.base import running_in_ci
@@ -531,7 +530,6 @@ def test_completions(completions_codeeditor, qtbot):
         # prefix is the same that the completions returned by Jedi.
         # This is a regression test for spyder-ide/spyder#11600
         pass
-
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -1169,6 +1167,10 @@ def spam():
 @pytest.mark.order(1)
 @pytest.mark.skipif(not is_anaconda(), reason='Requires conda to be installed')
 @pytest.mark.skipif(not running_in_ci(), reason='Run tests only on CI.')
+@pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
+                    reason="Quite flaky with Linux on CI")
+@pytest.mark.skipif(running_in_ci() and sys.platform == 'darwin',
+                    reason="Quite flaky with MacOS on CI")
 @flaky(max_runs=5)
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""
@@ -1194,6 +1196,7 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     # Set environment
     set_executable_config_helper()
     completion_plugin.after_configuration_update([])
+    qtbot.wait(2000)
 
     qtbot.keyClicks(code_editor, 'import flas')
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -1203,11 +1206,12 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     # Reset extra paths
     set_executable_config_helper(py_exe)
     completion_plugin.after_configuration_update([])
+    qtbot.wait(2000)
 
     code_editor.set_text('')
-    qtbot.keyClicks(code_editor, 'import flas')
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'import flas')
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     qtbot.keyPress(completion, Qt.Key_Tab)

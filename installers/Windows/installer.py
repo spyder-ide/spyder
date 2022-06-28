@@ -104,6 +104,7 @@ files={package_dist_info} > $INSTDIR/pkgs
     lib
     tcl86t.dll > $INSTDIR/pkgs
     tk86t.dll > $INSTDIR/pkgs
+    micromamba.exe > $INSTDIR/pkgs/spyder/bin
 [Build]
 installer_name={installer_name}
 nsi_template={template}
@@ -319,7 +320,7 @@ def unzip_file(filename, target_directory):
 
 def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
         license_path, extra_packages=None, conda_path=None, suffix=None,
-        template=None):
+        template=None, download_assets=True):
     """
     Run the installer generation.
 
@@ -328,12 +329,13 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
     (locking the dependencies set in setup.py) is generated and pynsist runned.
     """
     try:
-        print("Setting up assets from", ASSETS_URL)
-        print("Downloading assets from ", ASSETS_URL)
-        filename = download_file(ASSETS_URL, 'installers/Windows/assets')
+        if download_assets:
+            print("Setting up assets from", ASSETS_URL)
+            print("Downloading assets from ", ASSETS_URL)
+            filename = download_file(ASSETS_URL, 'installers/Windows/assets')
 
-        print("Unzipping assets to", 'installers/Windows/assets')
-        unzip_file(filename, 'installers/Windows/assets')
+            print("Unzipping assets to", 'installers/Windows/assets')
+            unzip_file(filename, 'installers/Windows/assets')
 
         with tempfile.TemporaryDirectory(
                 prefix="installer-pynsist-") as work_dir:
@@ -361,6 +363,11 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             shutil.copy(
                 "installers/Windows/assets/tcl/tk86t.dll",
                 os.path.join(work_dir, "tk86t.dll"))
+
+            print("Copying micromamba assets")
+            shutil.copy(
+                "installers/Windows/assets/micromamba/micromamba.exe",
+                os.path.join(work_dir, "micromamba.exe"))
 
             print("Copying NSIS plugins into discoverable path")
             shutil.copy(
@@ -484,14 +491,27 @@ if __name__ == "__main__":
     parser.add_argument(
         '-t', '--template',
         help='Path to .nsi template for the installer')
+    parser.add_argument(
+        '-da', '--download_assets',
+        dest='download_assets', action='store_true',
+        help='Download assets from ASSETS_URL environment '''
+             '''variable when running''')
+    parser.add_argument(
+        '-no-da', '--no_download_assets',
+        dest='download_assets', action='store_false',
+        help='''Prevent downloading assets from ASSETS_URL environment '''
+             '''variable when running''')
+    parser.set_defaults(download_assets=True)
 
     args = parser.parse_args()
     from operator import attrgetter
     (python_version, bitness, setup_py_path, entrypoint, package, icon_path,
-     license_path, extra_packages, conda_path, suffix, template) = attrgetter(
+     license_path, extra_packages, conda_path, suffix, template,
+     download_assets) = attrgetter(
          'python_version', 'bitness', 'setup_py_path',
          'entrypoint', 'package', 'icon_path', 'license_path',
-         'extra_packages', 'conda_path', 'suffix', 'template')(args)
+         'extra_packages', 'conda_path', 'suffix', 'template',
+         'download_assets')(args)
 
     if not setup_py_path.endswith("setup.py"):
         sys.exit("Invalid path to setup.py:", setup_py_path)
@@ -506,4 +526,5 @@ if __name__ == "__main__":
 
     run(python_version, bitness, repo_root, entrypoint,
         package, icon_file, license_file, extra_packages=extra_packages,
-        conda_path=conda_path, suffix=suffix, template=template)
+        conda_path=conda_path, suffix=suffix, template=template,
+        download_assets=download_assets)

@@ -154,12 +154,22 @@ def kernel_config():
     else:
         dpi_option = 'figure.dpi'
 
-    spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
-                                dpi_option: 72,
-                                'font.size': 10,
-                                'figure.subplot.bottom': .125,
-                                'figure.facecolor': 'white',
-                                'figure.edgecolor': 'white'}
+    # The typical default figure size is too large for inline use,
+    # so we shrink the figure size to 6x4, and tweak fonts to
+    # make that fit.
+    spy_cfg.InlineBackend.rc = {
+        'figure.figsize': (6.0, 4.0),
+        # 72 dpi matches SVG/qtconsole.
+        # This only affects PNG export, as SVG has no dpi setting.
+        dpi_option: 72,
+        # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
+        'font.size': 10,
+        # 10pt still needs a little more room on the xlabel
+        'figure.subplot.bottom': .125,
+        # Play nicely with any background color.
+        'figure.facecolor': 'white',
+        'figure.edgecolor': 'white'
+    }
 
     # Pylab configuration
     mpl_backend = None

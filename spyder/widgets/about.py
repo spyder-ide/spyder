@@ -14,15 +14,20 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QScrollArea, QTabWidget, QWidget)
+                            QScrollArea, QTabWidget)
 
 # Local imports
-from spyder import (__project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+from spyder import (
+    __project_url__ as project_url,
+    __forum_url__ as forum_url,
+    __trouble_url__ as trouble_url,
+    __website_url__ as website_url,
+    get_versions, get_versions_text
+)
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import APP_STYLESHEET, DialogStyle
 
 
@@ -38,8 +43,8 @@ class AboutDialog(QDialog):
         revlink = ''
         if versions['revision']:
             rev = versions['revision']
-            revlink = " (<a href='https://github.com/spyder-ide/spyder/" \
-                      "commit/%s'>Commit: <br> %s</a>)" % (rev, rev)
+            revlink = ("<a href='https://github.com/spyder-ide/spyder/"
+                       "commit/%s'>%s</a>" % (rev, rev))
 
         # Get current font properties
         font = self.font()
@@ -48,8 +53,13 @@ class AboutDialog(QDialog):
         buttons_font_size = DialogStyle.ButtonsFontSize
         font_size = DialogStyle.ContentFontSize
         dialog_background_color = QStylePalette.COLOR_BACKGROUND_2
-        self.label_overview = QLabel((
-            """
+
+        twitter_url = "https://twitter.com/Spyder_IDE",
+        facebook_url = "https://www.facebook.com/SpyderIDE",
+        youtube_url = "https://www.youtube.com/Spyder-IDE",
+        instagram_url = "https://www.instagram.com/spyderide/",
+        self.label_overview = QLabel(
+            f"""
             <div style='font-family: "{font_family}";
                         font-size: {font_size};
                         font-weight: normal;
@@ -62,37 +72,22 @@ class AboutDialog(QDialog):
             <a href="{website_url}">Spyder-IDE.org</a>
             <br>
             <p>
-            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
-            {qt_api} {qt_api_ver} | {os_name} {os_ver}
+            Python {versions['python']} {versions['bitness']}-bit |
+            Qt {versions['qt']} |
+            {versions['qt_api']} {versions['qt_api_ver']} |
+            {versions['system']} {versions['release']}
             </p>
             <br> <br>
-            <a href="{github_url}">GitHub </a>| <a href="{twitter_url}">
-            Twitter </a>|
-            <a href="{facebook_url}">Facebook </a>| <a href="{youtube_url}">
-            YouTube </a>|
-            <a href="{instagram_url}">Instagram </a>
+            <a href="{project_url}">GitHub</a> | <a href="{twitter_url}">
+            Twitter</a> |
+            <a href="{facebook_url}">Facebook</a> | <a href="{youtube_url}">
+            YouTube</a> |
+            <a href="{instagram_url}">Instagram</a>
 
-            </div>""").format(
-                website_url=__website_url__,
-                github_url=__project_url__,
-                twitter_url="https://twitter.com/Spyder_IDE",
-                facebook_url="https://www.facebook.com/SpyderIDE",
-                youtube_url="https://www.youtube.com/Spyder-IDE",
-                instagram_url="https://www.instagram.com/spyderide/",
-                python_ver=versions['python'],
-                bitness=versions['bitness'],
-                qt_ver=versions['qt'],
-                qt_api=versions['qt_api'],
-                qt_api_ver=versions['qt_api_ver'],
-                os_name=versions['system'],
-                os_ver=versions['release'],
-                font_family=font_family,
-                font_size=font_size,
-            )
-        )
+            </div>""")
 
-        self.label_community = QLabel((
-            """
+        self.label_community = QLabel(
+            f"""
             <div style='font-family: "{font_family}";
                         font-size: {font_size};
                         font-weight: normal;
@@ -101,14 +96,14 @@ class AboutDialog(QDialog):
             <p>
             Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
             Developed by the
-            <a href="{github_url}/graphs/contributors">international
+            <a href="{project_url}/graphs/contributors">international
             Spyder community</a>. Many thanks to all the Spyder beta testers
             and dedicated users.
             </p>
             <p>For help with Spyder errors and crashes, please read our
             <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
             reports and feature requests, visit our
-            <a href="{github_url}">Github site</a>. For project discussion,
+            <a href="{project_url}">Github site</a>. For project discussion,
             see our <a href="{forum_url}">Google Group</a>.
             </p>
             <p>
@@ -120,15 +115,10 @@ class AboutDialog(QDialog):
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
             </p>
-            </div>""").format(
-                github_url=__project_url__,
-                trouble_url=__trouble_url__,
-                forum_url=__forum_url__,
-                font_family=font_family,
-                font_size=font_size,
-            ))
-        self.label_legal = QLabel((
-            """
+            </div>""")
+
+        self.label_legal = QLabel(
+            f"""
             <div style='font-family: "{font_family}";
                         font-size: {font_size};
                         font-weight: normal;
@@ -136,9 +126,9 @@ class AboutDialog(QDialog):
             <br>
             <p>
             Copyright &copy; 2009-2020 Spyder Project Contributors and
-            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
+            <a href="{project_url}/blob/master/AUTHORS.txt">others</a>.
             Distributed under the terms of the
-            <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
+            <a href="{project_url}/blob/master/LICENSE.txt">MIT License</a>.
             </p>
             <p>
             <p>Certain source files under other compatible permissive
@@ -168,16 +158,12 @@ class AboutDialog(QDialog):
             </a>
             </p>
             <p>
-            See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
+            See the
+            <a href="{project_url}/blob/master/NOTICE.txt">NOTICE</a>
             file for full legal information.
             </p>
             </div>
-            """).format(
-                github_url=__project_url__,
-                font_family=font_family,
-                font_size=font_size,
-            )
-        )
+            """)
 
         for label in [self.label_overview, self.label_community,
                       self.label_legal]:
@@ -202,24 +188,22 @@ class AboutDialog(QDialog):
             <p>
             <b>Spyder IDE</b>
             <br>{spyder_ver}
-            <br> {revision}
-            <br> """).format(
+            <br>{revision}
+            <br>({installer})
+            <br>""").format(
             spyder_ver=versions['spyder'],
             revision=revlink,
+            installer=versions['installer'],
             font_family=font_family,
             font_size=font_size))
         self.info.setAlignment(Qt.AlignHCenter)
 
         btn = QPushButton(_("Copy version info"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
-        bbox.setStyleSheet(
-           f"font-size: {buttons_font_size};"
-           f"padding: {buttons_padding}"
-         )
-        btn.setStyleSheet(
-           f"font-size: {buttons_font_size};"
-           f"padding: {buttons_padding}"
-         )
+        bbox.setStyleSheet(f"font-size: {buttons_font_size};"
+                           f"padding: {buttons_padding}")
+        btn.setStyleSheet(f"font-size: {buttons_font_size};"
+                          f"padding: {buttons_padding}")
 
         # Widget setup
         self.setWindowIcon(ima.icon('MessageBoxInformation'))
@@ -284,29 +268,14 @@ class AboutDialog(QDialog):
         self.setStyleSheet(str(css))
 
     def copy_to_clipboard(self):
-        versions = get_versions()
-        QApplication.clipboard().setText(
-            "* Spyder version: {spyder_ver} {revision}\n"
-            "* Python version: {python_ver} {bitness}-bit\n"
-            "* Qt version: {qt_ver}\n"
-            "* {qt_api} version: {qt_api_ver}\n"
-            "* Operating System: {os_name} {os_ver}".format(
-                spyder_ver=versions['spyder'],
-                revision=versions['revision'],
-                python_ver=versions['python'],
-                bitness=versions['bitness'],
-                qt_ver=versions['qt'],
-                qt_api=versions['qt_api'],
-                qt_api_ver=versions['qt_api_ver'],
-                os_name=versions['system'],
-                os_ver=versions['release']))
+        QApplication.clipboard().setText(get_versions_text())
 
 
 def test():
     """Run about widget test"""
 
     from spyder.utils.qthelpers import qapplication
-    qapplication()
+    app = qapplication()  # noqa
     abt = AboutDialog(None)
     abt.show()
     sys.exit(abt.exec_())

@@ -16,7 +16,6 @@ import logging
 import os
 import os.path as osp
 import sys
-import functools
 import unicodedata
 
 # Third party imports
@@ -1881,12 +1880,18 @@ class EditorStack(QWidget):
                 return self.save_as(index=index)
             # The file doesn't need to be saved
             return True
-        if self.always_remove_trailing_spaces:
+
+        # The following options (`always_remove_trailing_spaces`,
+        # `remove_trailing_newlines` and `add_newline`) also depend on the
+        # `format_on_save` value.
+        # See spyder-ide/spyder#17716
+        if self.always_remove_trailing_spaces and not self.format_on_save:
             self.remove_trailing_spaces(index)
-        if self.remove_trailing_newlines:
+        if self.remove_trailing_newlines and not self.format_on_save:
             self.trim_trailing_newlines(index)
-        if self.add_newline:
+        if self.add_newline and not self.format_on_save:
             self.add_newline_to_file(index)
+
         if self.convert_eol_on_save:
             # hack to account for the fact that the config file saves
             # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
@@ -1896,10 +1901,26 @@ class EditorStack(QWidget):
 
         try:
             if self.format_on_save and finfo.editor.formatting_enabled:
-                # Autoformat document and then save
+                # Wait for document autoformat and then save
+
+                # Waiting for the autoformat to complete is needed
+                # when the file is going to be closed after saving.
+                # See spyder-ide/spyder#17836
+                format_eventloop = finfo.editor.format_eventloop
+                format_timer = finfo.editor.format_timer
+                format_timer.setSingleShot(True)
+                format_timer.timeout.connect(format_eventloop.quit)
+
                 finfo.editor.sig_stop_operation_in_progress.connect(
                     lambda: self._save_file(finfo))
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    format_timer.stop)
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    format_eventloop.quit)
+
+                format_timer.start(10000)
                 finfo.editor.format_document()
+                format_eventloop.exec_()
             else:
                 self._save_file(finfo)
             return True
@@ -2478,7 +2499,7 @@ class EditorStack(QWidget):
         editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
-        editor.sig_new_file.connect(self.sig_new_file.emit)
+        editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
             lambda: self.update_code_analysis_actions.emit())
@@ -2557,8 +2578,8 @@ class EditorStack(QWidget):
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         editor.sig_eol_chars_changed.connect(
             lambda eol_chars: self.refresh_eol_chars(eol_chars))
-        editor.sig_next_cursor.connect(self.sig_next_cursor.emit)
-        editor.sig_prev_cursor.connect(self.sig_prev_cursor.emit)
+        editor.sig_next_cursor.connect(self.sig_next_cursor)
+        editor.sig_prev_cursor.connect(self.sig_prev_cursor)
 
         self.find_widget.set_editor(editor)
 
@@ -3015,9 +3036,9 @@ class EditorSplitter(QSplitter):
             focus_widget.setFocus()
 
     def editorstack_closed(self):
-        logger.debug("method 'editorstack_closed':")
-        logger.debug("    self  : %r" % self)
         try:
+            logger.debug("method 'editorstack_closed':")
+            logger.debug("    self  : %r" % self)
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
@@ -3279,8 +3300,11 @@ class EditorWidget(QSplitter):
 
 
 class EditorMainWindow(QMainWindow):
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
-        QMainWindow.__init__(self, plugin)
+    def __init__(
+            self, plugin, menu_actions, toolbar_list, menu_list, parent=None):
+        # Parent needs to be `None` if the the created widget is meant to be
+        # independent. See spyder-ide/spyder#17803
+        QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin

@@ -60,6 +60,7 @@ SCIENTIFIC = [
     'cython',
     'matplotlib',
     'numpy',
+    'openpyxl',
     'pandas',
     'scipy',
     'sympy',

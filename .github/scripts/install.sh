@@ -22,25 +22,15 @@ if [ "$USE_CONDA" = "true" ]; then
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y
 
-    # Remove packages we have subrepos for.
-    for dep in $(ls external-deps)
-    do
-        echo "Removing $dep package"
-
-        if [ "$dep" = "qtconsole" ]; then
-            conda remove qtconsole-base qtconsole --force -q -y
-        else
-            conda remove $dep --force -q -y
-        fi
-    done
-
-    # Install jupyter_client 7.2.0 to prevent ZMQ Socket operation on non-socket
-    # Remove this when the issue is fixed upstream most probaly with jupyter_client=7.2.3
-    # See https://github.com/spyder-ide/spyder/issues/17615
-    mamba install jupyter_client=7.2.0 -c conda-forge -q -y
+    # Numpy 1.23 is not giving completions on the editor and the console
+    if [ "$OS" = "win" ]; then
+        mamba install numpy=1.22
+    else
+        mamba install 'numpy<1.23'
+    fi
 else
     # Update pip and setuptools
-    pip install -U pip setuptools
+    python -m pip install -U pip setuptools wheel build
 
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
@@ -54,34 +44,19 @@ else
     # To check our manifest and coverage
     pip install -q check-manifest codecov
 
-    # Remove packages we have subrepos for
-    for dep in $(ls external-deps)
-    do
-        echo "Removing $dep package"
-        pip uninstall $dep -q -y
-    done
+    # Numpy 1.23 is not giving completions on the editor and the console
+    pip install 'numpy<1.23'
 
-    # Install jupyter_client 7.2.0 to prevent ZMQ Socket operation on non-socket
-    # Remove this when the issue is fixed upstream most probaly with jupyter_client=7.2.3
-    # See https://github.com/spyder-ide/spyder/issues/17615
-    pip install -q jupyter_client==7.2.0
+    # This allows the test suite to run more reliably on Linux
+    if [ "$OS" = "linux" ]; then
+        pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
+        pip install pyqt5==5.12.* pyqtwebengine==5.12.*
+    fi
 
-    # Remove Spyder to properly install it below
-    pip uninstall spyder -q -y
 fi
 
-# Install subrepos in development mode
-for dep in $(ls external-deps)
-do
-    echo "Installing $dep subrepo"
-
-    # This is necessary to pass our minimal required version of PyLSP to setuptools-scm
-    if [ "$dep" = "python-lsp-server" ]; then
-        SETUPTOOLS_SCM_PRETEND_VERSION=`python pylsp_utils.py` pip install --no-deps -q -e external-deps/$dep
-    else
-        pip install --no-deps -q -e external-deps/$dep
-    fi
-done
+# Install subrepos from source
+python -bb -X dev -W error install_dev_repos.py --not-editable --no-install spyder
 
 # Install boilerplate plugin
 pushd spyder/app/tests/spyder-boilerplate
@@ -89,10 +64,8 @@ pip install --no-deps -q -e .
 popd
 
 # Install Spyder to test it as if it was properly installed.
-# Note: `python setup.py egg_info` doesn't work here but it
-# does locally.
-python setup.py -q bdist_wheel
-pip install --no-deps -q dist/spyder*.whl
+python -bb -X dev -W error -m build
+python -bb -X dev -W error -m pip install --no-deps dist/spyder*.whl
 
 # Create environment for Jedi environments tests
 mamba create -n jedi-test-env -q -y python=3.6 flask spyder-kernels

@@ -23,7 +23,6 @@ from collections import namedtuple
 
 # Test imports
 import ipykernel
-import IPython
 import pytest
 from flaky import flaky
 from jupyter_core import paths
@@ -96,7 +95,8 @@ def setup_kernel(cmd):
         finally:
             client.stop_channels()
     finally:
-        kernel.terminate()
+        if not PY2:
+            kernel.terminate()
 
 
 # =============================================================================
@@ -1096,13 +1096,15 @@ def test_locals_globals_in_pdb(kernel):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt5'])
-@pytest.mark.skipif(PY2, reason="Doesn't work on Python 2")
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Doesn't work reliably on Windows and Mac")
 @pytest.mark.skipif(
     not bool(os.environ.get('USE_CONDA')),
     reason="Doesn't work with pip packages")
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 8),
+    reason="Too flaky in Python 3.7 and doesn't work in older versions")
 def test_get_interactive_backend(backend):
     """
     Test that we correctly get the interactive backend set in the kernel.
@@ -1113,6 +1115,8 @@ def test_get_interactive_backend(backend):
         # Set backend
         if backend is not None:
             client.execute("%matplotlib {}".format(backend))
+            client.get_shell_msg(timeout=TIMEOUT)
+            client.execute("import time; time.sleep(.1)")
             client.get_shell_msg(timeout=TIMEOUT)
 
         # Get backend

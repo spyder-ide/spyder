@@ -1299,11 +1299,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         named_options = dict(zip(option_names, options))
         for name, action in self.checkable_actions.items():
             if name in named_options:
-                section = 'completions'
                 if name == 'underline_errors':
                     section = 'editor'
+                    opt = 'underline_errors'
+                else:
+                    section = 'completions'
+                    opt = named_options[name]
 
-                opt = named_options[name]
                 state = self.get_option(opt, section=section)
 
                 # Avoid triggering the action when this action changes state
@@ -1806,7 +1808,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
             slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.warning_menu.addAction(action)
 
     def update_todo_menu(self):
@@ -1818,7 +1821,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for text, line0 in results:
             icon = ima.icon('todo')
             slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
 
@@ -2283,7 +2287,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 if ipyconsole:
                     current_sw = ipyconsole.get_current_shellwidget()
                     current_sw.sig_prompt_ready.connect(
-                        current_editor.sig_debug_stop[()].emit)
+                        current_editor.sig_debug_stop[()])
                     current_pdb_state = ipyconsole.get_pdb_state()
                     pdb_last_step = ipyconsole.get_pdb_last_step()
                     self.update_pdb_state(current_pdb_state, pdb_last_step)

@@ -7,6 +7,7 @@
 """Kite status functions."""
 
 # Standard library imports
+from functools import lru_cache
 import logging
 import os
 import os.path as osp
@@ -58,6 +59,7 @@ def check_if_kite_running():
     return running
 
 
+@lru_cache(maxsize=1)
 def locate_kite_darwin():
     """
     Looks up where Kite.app is installed on macOS systems. The bundle ID

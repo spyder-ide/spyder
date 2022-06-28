@@ -28,8 +28,7 @@ import psutil
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, is_pynsist, running_in_ci,
-    running_under_pytest)
+    DEV, get_conf_path, get_debug_level, is_pynsist, running_under_pytest)
 from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
@@ -278,11 +277,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
-        # Use local PyLS instead of site-packages one.
-        if (DEV or running_under_pytest()) and not running_in_ci():
-            sys_path = self._clean_sys_path()
-            env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
-
         # Adjustments for the Python language server.
         if self.language == 'python':
             # Set the PyLS current working to an empty dir inside
@@ -349,16 +343,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 env.keys()))
 
         self.transport.setProcessEnvironment(env)
-
-        # Modifying PYTHONPATH to run transport in development mode or
-        # tests
-        if (DEV or running_under_pytest()) and not running_in_ci():
-            sys_path = self._clean_sys_path()
-            if running_under_pytest():
-                env.insert('PYTHONPATH', os.pathsep.join(sys_path)[:])
-            else:
-                env.insert('PYTHONPATH', os.pathsep.join(sys_path)[1:])
-            self.transport.setProcessEnvironment(env)
 
         # Set up transport
         self.transport.errorOccurred.connect(self.handle_process_errors)

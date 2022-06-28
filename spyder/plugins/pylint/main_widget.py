@@ -35,7 +35,7 @@ from spyder.config.base import get_conf_path, running_in_mac_app
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
-from spyder.utils.misc import getcwd_or_home
+from spyder.utils.misc import getcwd_or_home, get_home_dir
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
@@ -367,6 +367,13 @@ class PylintWidget(PluginMainWidget):
         command_args = self.get_command(self.get_filename())
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
+
+        # Needed due to changes in Pylint 2.14.0
+        # See spyder-ide/spyder#18175
+        if os.name == 'nt':
+            home_dir = get_home_dir()
+            user_profile = os.environ.get("USERPROFILE", home_dir)
+            processEnvironment.insert("USERPROFILE", user_profile)
 
         # resolve spyder-ide/spyder#14262
         if running_in_mac_app():

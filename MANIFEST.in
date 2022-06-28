@@ -9,4 +9,4 @@ include changelogs/Spyder-5.md
 include AUTHORS.txt
 include NOTICE.txt
 include bootstrap.py
-include pylsp_utils.py
+include install_dev_repos.py

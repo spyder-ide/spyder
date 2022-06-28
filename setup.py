@@ -223,33 +223,36 @@ install_requires = [
     'pickleshare>=0.4',
     'psutil>=5.3',
     'pygments>=2.0',
-    'pylint>=2.5.0',
+    'pylint>=2.5.0,<3.0',
     'python-lsp-black>=1.2.0',
     'pyls-spyder>=0.4.0',
     'pyqt5<5.16',
     'pyqtwebengine<5.16',
     'python-lsp-server[all]>=1.4.1,<1.5.0',
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pyzmq>=17',
+    'pyzmq>=22.1.0',
     'qdarkstyle>=3.0.2,<3.1.0',
     'qstylizer>=0.1.10',
     'qtawesome>=1.0.2',
     'qtconsole>=5.3.0,<5.4.0',
-    'qtpy>=2.0.1',
+    'qtpy>=2.1.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=2.3.0,<2.4.0',
+    'spyder-kernels>=2.3.1,<2.4.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
 ]
 
-# Replace spyder-kernels constraint to enable
-# building Windows installers on PRs
-if 'dev' in __version__ and WINDOWS_INSTALLER_NAME:
-    install_requires.remove('spyder-kernels>=2.3.0,<2.4.0')
-    install_requires.append('spyder-kernels>=2.3.0,<=2.4.0.dev0')
+# Loosen constraints to ensure dev versions still work
+if 'dev' in __version__:
+    reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
+    install_requires = [req for req in install_requires
+                        if req.split(">")[0] not in reqs_to_loosen]
+    install_requires.append('python-lsp-server[all]>=1.4.1,<1.6.0')
+    install_requires.append('qtconsole>=5.3.0,<5.5.0')
+    install_requires.append('spyder-kernels>=2.3.1,<2.5.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],

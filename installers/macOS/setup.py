@@ -17,8 +17,7 @@ from logging import getLogger, StreamHandler, Formatter
 from pathlib import Path
 from setuptools import setup
 
-from spyder import __version__ as SPYVER
-from spyder.config.base import MAC_APP_NAME
+from spyder import get_versions
 
 # Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -34,11 +33,17 @@ SPYREPO = (THISDIR / '..' / '..').resolve()
 ICONFILE = SPYREPO / 'img_src' / 'spyder.icns'
 APPSCRIPT = SPYREPO / 'scripts' / 'spyder'
 
+MAC_APP_NAME = 'Spyder.app'
 APP_BASE_NAME = MAC_APP_NAME[:-4]
 
 # Python version
 PYVER = [sys.version_info.major, sys.version_info.minor,
          sys.version_info.micro]
+
+version = get_versions()
+SPYVER = version['spyder']
+SPYCOM = version['revision']
+SPYBRA = version['branch']
 
 
 def make_app_bundle(dist_dir, make_lite=False):
@@ -81,7 +86,8 @@ def make_app_bundle(dist_dir, make_lite=False):
                                        'CFBundleTypeRole': 'Editor'}],
             'CFBundleIdentifier': 'org.spyder-ide',
             'CFBundleShortVersionString': SPYVER,
-            'NSRequiresAquaSystemAppearance': False  # Darkmode support
+            'NSRequiresAquaSystemAppearance': False,  # Darkmode support
+            'LSEnvironment': {'SPY_COMMIT': SPYCOM, 'SPY_BRANCH': SPYBRA}
         }
     }
 
@@ -117,7 +123,6 @@ def make_disk_image(dist_dir, make_lite=False):
         dmg_name += '-Lite'
     dmg_name += '.dmg'
     dmgfile = (dist_dir / dmg_name).as_posix()
-
 
     settings_file = (THISDIR / 'dmg_settings.py').as_posix()
     settings = {
