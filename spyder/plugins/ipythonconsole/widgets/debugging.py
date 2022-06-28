@@ -415,12 +415,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             if (fname, lineno) != last_pdb_loc:
                 self.sig_pdb_step.emit(fname, lineno)
 
-        if 'namespace_view' in pdb_state:
-            self.set_namespace_view(pdb_state['namespace_view'])
-
-        if 'var_properties' in pdb_state:
-            self.set_var_properties(pdb_state['var_properties'])
-
     def set_pdb_state(self, pdb_state):
         """Set current pdb state."""
         if pdb_state is not None and isinstance(pdb_state, dict):
