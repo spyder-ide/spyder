@@ -100,12 +100,12 @@ class ShellConnectMainWidget(PluginMainWidget):
 
     def remove_shellwidget(self, shellwidget):
         """Remove widget associated to shellwidget."""
-        widget = self.get_widget_for_shellwidget(shellwidget)
-        if widget is None:
-            return
-        self._stack.removeWidget(widget)
-        self.close_widget(widget)
-        self.update_actions()
+        shellwidget_id = id(shellwidget)
+        if shellwidget_id in self._shellwidgets:
+            widget = self._shellwidgets.pop(shellwidget_id)
+            self._stack.removeWidget(widget)
+            self.close_widget(widget)
+            self.update_actions()
 
     def set_shellwidget(self, shellwidget):
         """
@@ -123,7 +123,7 @@ class ShellConnectMainWidget(PluginMainWidget):
         """return widget corresponding to shellwidget."""
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
-            return self._shellwidgets.pop(shellwidget_id)
+            return self._shellwidgets[shellwidget_id]
         return None
 
     def create_new_widget(self, shellwidget):
