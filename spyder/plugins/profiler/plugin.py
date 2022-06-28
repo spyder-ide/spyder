@@ -20,11 +20,9 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
-from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.editor.api.run import FileRun
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
-                                                         ProfilerWidgetActions,
                                                          is_profiler_installed)
 from spyder.plugins.profiler.widgets.run_conf import ProfilerPyConfigurationGroup
 from spyder.plugins.profiler.api import ProfilerPyConfiguration

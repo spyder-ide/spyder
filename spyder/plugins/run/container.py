@@ -190,12 +190,6 @@ class RunContainer(PluginMainContainer):
             provider = self.run_metadata_provider[uuid]
             executor = self.run_executors[executor_name]
             run_conf = provider.get_run_configuration(uuid)
-
-            context, ext = self.metadata_model.get_metadata_context_extension(
-                uuid)
-            context_name = context['name']
-            context_id = getattr(RunContext, context_name)
-
             working_dir_opts = ext_params['params']['working_dir']
             working_dir_source = working_dir_opts['source']
             if working_dir_source == WorkingDirSource.ConfigurationDirectory:

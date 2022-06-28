@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import sys
-from typing import Any, Set, List, Union, Optional, Type, Dict
 
 # PEP 589 and 544 are available from Python 3.8 onwards
 if sys.version_info >= (3, 8):

@@ -191,6 +191,9 @@ class Shortcuts(SpyderPluginV2):
 
             try:
                 if isinstance(qobject, QAction):
+                    # Avoid adding more than one shortcut per action
+                    # TODO: we need to change how shortcuts are registered to
+                    # remove this patch
                     if qobject.shortcuts() == []:
                         if (sys.platform == 'darwin'
                                 and qobject._shown_shortcut == 'missing'):

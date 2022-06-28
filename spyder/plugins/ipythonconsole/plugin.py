@@ -11,7 +11,6 @@ IPython Console plugin based on QtConsole.
 # Standard library imports
 import os
 import os.path as osp
-from pdb import post_mortem
 from typing import List
 
 # Third party imports

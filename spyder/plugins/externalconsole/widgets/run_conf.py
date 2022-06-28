@@ -7,16 +7,13 @@
 """External console run executor configurations."""
 
 # Standard library imports
-import os
-import sys
 import os.path as osp
-from typing import Callable
 
 # Third-party imports
 from qtpy.compat import getexistingdirectory, getopenfilename
 from qtpy.QtWidgets import (
-    QWidget, QRadioButton, QGroupBox, QVBoxLayout, QGridLayout,
-    QCheckBox, QLineEdit, QHBoxLayout, QLabel)
+    QWidget, QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit,
+    QHBoxLayout, QLabel)
 
 # Local imports
 from spyder.api.translations import get_translation

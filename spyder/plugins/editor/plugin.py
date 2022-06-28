@@ -24,7 +24,7 @@ from typing import Dict, Optional
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir, QEvent
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,

@@ -7,25 +7,18 @@
 """Profiler run executor configurations."""
 
 # Standard library imports
-import os
-import sys
 import os.path as osp
-from typing import Callable
 
 # Third-party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtWidgets import (
-    QWidget, QRadioButton, QGroupBox, QVBoxLayout, QGridLayout,
-    QCheckBox, QLineEdit, QHBoxLayout, QLabel)
+    QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit)
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.plugins.run.api import (
-    RunExecutorConfigurationGroup, Context, RunConfigurationMetadata,
-    RunExecutorConfigurationGroupFactory)
-from spyder.utils.icon_manager import ima
+    RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import create_toolbutton
 
 _ = get_translation('spyder')
 

@@ -7,7 +7,6 @@
 """Tests for plugin config dialog."""
 
 # Standard library imports
-from multiprocessing.sharedctypes import Value
 from unittest.mock import Mock
 
 # Test library imports

@@ -8,7 +8,6 @@
 
 # Standard library imports
 from collections import OrderedDict
-import enum
 from typing import Dict, Tuple, Optional, Set, Union, List
 
 # Third-party imports
@@ -36,9 +35,7 @@ class RunExecutorListModel(QAbstractListModel):
         self.parent = parent
         self.uuid: Optional[str] = None
         self.current_input: Optional[Tuple[str, str]] = None
-        # self.current_executor: Optional[str] = None
         self.executor_names: Dict[str, str] = {}
-        # self.executors_per_input: Dict[Tuple[str, str], List[str]] = {}
         self.executor_configurations: Dict[Tuple[str, str], Dict[
             str, SupportedExecutionRunConfiguration]] = {}
         self.executors_per_input: Dict[Tuple[str, str], Dict[str, int]] = {}
@@ -86,7 +83,6 @@ class RunExecutorListModel(QAbstractListModel):
             self.beginResetModel()
             self.current_input = run_input
             self.uuid = uuid
-            executors = self.executors_per_input[run_input]
             self.endResetModel()
         else:
             raise ValueError(
@@ -379,7 +375,6 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
             return int(Qt.AlignHCenter | Qt.AlignVCenter)
         elif role == Qt.ToolTipRole:
             return _("Double-click to view or edit")
-        # return super().data(index, role)
 
     def headerData(self, section: int,
                    orientation: Qt.Orientation,
@@ -396,7 +391,6 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
                     return _('Context name')
                 elif section == self.NAME:
                     return _('Run parameters name')
-        # return super().headerData(section, orientation, role)
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.params_index)

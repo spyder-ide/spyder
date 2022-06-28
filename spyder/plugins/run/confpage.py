@@ -13,10 +13,9 @@ from uuid import uuid4
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout, QComboBox, QTableView,
-                            QAbstractItemView, QPushButton, QGridLayout,
-                            QHeaderView)
+from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout, QComboBox,
+                            QTableView, QAbstractItemView, QPushButton,
+                            QGridLayout, QHeaderView)
 from spyder.plugins.run.api import ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration
 
 # Local imports
@@ -27,7 +26,6 @@ from spyder.plugins.run.models import (
     RunExecutorNamesListModel, ExecutorRunParametersTableModel)
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
-from spyder.utils.misc import getcwd_or_home
 
 # Localization
 _ = get_translation("spyder")
@@ -57,12 +55,6 @@ class RunParametersTableView(QTableView):
             1, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
-    def focusOutEvent(self, e):
-        """Qt Override."""
-        # self.source_model.update_active_row()
-        # self._parent.delete_configuration_btn.setEnabled(False)
-        super().focusOutEvent(e)
-
     def focusInEvent(self, e):
         """Qt Override."""
         super().focusInEvent(e)
@@ -89,7 +81,6 @@ class RunParametersTableView(QTableView):
     def reset_plain(self):
         self.model().reset_model()
         self.adjust_cells()
-        # self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
         self.selectionModel().selectionChanged.connect(self.selection)
 
     def show_editor(self, new=False, clone=False):

@@ -9,11 +9,10 @@ Pylint Code Analysis Plugin.
 """
 
 # Standard library imports
-import os.path as osp
 from typing import List
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -24,8 +23,7 @@ from spyder.api.translations import get_translation
 from spyder.utils.programs import is_module_installed
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
-from spyder.plugins.pylint.main_widget import (PylintWidget,
-                                               PylintWidgetActions)
+from spyder.plugins.pylint.main_widget import PylintWidget
 from spyder.plugins.run.api import (
     RunContext, RunConfiguration, PossibleRunResult, run_execute,
     ExtendedRunExecutionParameters, RunExecutor)

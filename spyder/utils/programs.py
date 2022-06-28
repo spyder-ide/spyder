@@ -773,8 +773,7 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
                                    "an external terminal"),
                                  QMessageBox.Ok)
     elif sys.platform.startswith('linux'):
-        programs = [#{'cmd': 'x-terminal-emulator', 'execute-option': '-x'},
-                    {'cmd': 'gnome-terminal', 'execute-option': '--'},
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '--'},
                     {'cmd': 'konsole', 'execute-option': '-e'},
                     {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
                     {'cmd': 'xterm', 'execute-option': '-e'}]

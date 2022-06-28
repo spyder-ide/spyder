@@ -16,9 +16,8 @@ from typing import Optional, Tuple, List, Dict
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                            QRadioButton, QStackedWidget, QVBoxLayout, QWidget,
-                            QLineEdit, QLayout)
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit, QLayout,
+                            QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.plugins.run.api import (
@@ -425,22 +424,17 @@ class RunDialog(BaseRunConfigDialog):
         parameters_label = QLabel(_("Select the run parameters:"))
         self.parameters_combo = QComboBox()
         self.stack = QStackedWidget()
-        # reset_exec_config = QPushButton("Reset to defaults")
         executor_layout = QVBoxLayout()
         executor_layout.addWidget(parameters_label)
         executor_layout.addWidget(self.parameters_combo)
         executor_layout.addWidget(self.stack)
-        # executor_layout.addWidget(reset_exec_config)
 
         executor_group = QGroupBox(_("Executor parameters"))
         executor_group.setLayout(executor_layout)
 
         # --- Working directory ---
         self.wdir_group = QGroupBox(_("Working directory settings"))
-        # self.wdir_group.setDisabled(True)
         executor_layout.addWidget(self.wdir_group)
-
-        # self.run_custom_config_radio.toggled.connect(self.wdir_group.setEnabled)
 
         wdir_layout = QVBoxLayout(self.wdir_group)
 
