@@ -202,6 +202,9 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
                 self.change_auto_fit_plotting(value)
             elif option == 'mute_inline_plotting':
                 self.mute_inline_plotting = value
+                if self.shellwidget:
+                    self.shellwidget.mute_inline_plotting = value
+
             elif option == 'show_plot_outline':
                 self.show_fig_outline_in_viewer(value)
             elif option == 'save_dir':
@@ -238,7 +241,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""
         self.shellwidget = shellwidget
-        shellwidget.set_figurebrowser(self)
+        self.shellwidget.mute_inline_plotting = self.mute_inline_plotting
         shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
 
     def _handle_new_figure(self, fig, fmt):

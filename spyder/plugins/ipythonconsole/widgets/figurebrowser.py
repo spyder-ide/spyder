@@ -24,15 +24,8 @@ class FigureBrowserWidget(RichJupyterWidget):
     This widget can also block the plotting of inline figures in the IPython
     Console so that figures are only plotted in the plots plugin.
     """
-
-    # Reference to the figurebrowser widget connected to this client
-    figurebrowser = None
-
-    # ---- Public API
-    def set_figurebrowser(self, figurebrowser):
-        """Set the namespace for the figurebrowser widget."""
-        self.figurebrowser = figurebrowser
-        self.sended_render_message = False
+    mute_inline_plotting = None
+    sended_render_message = False
 
     # ---- Private API (overrode by us)
     def _handle_display_data(self, msg):
@@ -56,8 +49,7 @@ class FigureBrowserWidget(RichJupyterWidget):
 
         if img is not None:
             self.sig_new_inline_figure.emit(img, fmt)
-            if (self.figurebrowser is not None and
-                    self.figurebrowser.mute_inline_plotting):
+            if self.mute_inline_plotting:
                 if not self.sended_render_message:
                     self._append_html("<br>", before_prompt=True)
                     self.append_html_message(
