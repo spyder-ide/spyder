@@ -448,7 +448,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             self.lock_unlock_action.setIcon(
                 self.create_icon('drag_dock_widget'))
             self.lock_unlock_action.setToolTip(
-                _("Lock to the current position"))
+                _("Lock pane to the current position"))
 
     # --- Public Qt overriden methods
     # ------------------------------------------------------------------------
