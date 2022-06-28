@@ -86,5 +86,3 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
             return
         nsb = variable_explorer.get_widget_for_shellwidget(shellwidget)
         nsb.process_remote_view(namespace)
-
-
