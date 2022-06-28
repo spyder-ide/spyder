@@ -65,9 +65,9 @@ SPYDER_KERNELS_VERSION_MSG = _(
     '>= {0} and < {1}').format(
         SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
 SPYDER_KERNELS_CONDA = (
-    f'conda install spyder-kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
+    f'conda install spyder&#45;kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
 SPYDER_KERNELS_PIP = (
-    f'pip install spyder-kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
+    f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 
 class IPythonConsoleWidgetActions:
