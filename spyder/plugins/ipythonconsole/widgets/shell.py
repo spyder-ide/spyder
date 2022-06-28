@@ -945,7 +945,6 @@ the sympy module (e.g. plot)
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
-
         super(ShellWidget, self)._handle_execute_reply(msg)
 
     def _handle_status(self, msg):

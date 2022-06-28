@@ -103,7 +103,7 @@ class ShellConnectMixin:
         ----------
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget.
-            
+
         Returns
         -------
         current_widget: QWidget
