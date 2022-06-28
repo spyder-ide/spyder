@@ -34,7 +34,7 @@ from qtpy.QtWidgets import (QApplication, QLabel, QMessageBox, QTreeWidget,
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import get_conf_path
+from spyder.config.base import get_conf_path, running_in_mac_app
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string
 from spyder.utils.misc import get_python_executable, getcwd_or_home
@@ -543,6 +543,13 @@ class ProfilerWidget(PluginMainWidget):
             proc_env.insert('PYTHONPATH', os.pathsep.join(pythonpath))
         self.process.setProcessEnvironment(proc_env)
 
+        executable = self.get_conf('executable', section='main_interpreter')
+
+        if not running_in_mac_app(executable):
+            env = self.process.processEnvironment()
+            env.remove('PYTHONHOME')
+            self.process.setProcessEnvironment(env)
+
         self.output = ''
         self.error_output = ''
         self.running = True
@@ -559,8 +566,6 @@ class ProfilerWidget(PluginMainWidget):
 
         if args:
             p_args.extend(shell_split(args))
-
-        executable = self.get_conf('executable', section='main_interpreter')
 
         self.process.start(executable, p_args)
         running = self.process.waitForStarted()
