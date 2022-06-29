@@ -35,15 +35,16 @@ jobs:
       LITE_FLAG: ${{ matrix.build_type == 'Lite' && '--lite' || '' }}
       DMGNAME: ${{ matrix.build_type == 'Lite' && 'Spyder-Lite.dmg' || 'Spyder.dmg' }}
       DISTDIR: ${{ github.workspace }}/dist
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          # This is the last version working with py2app and modulegraph
           python-version: '3.9.5'
           architecture: 'x64'
       - name: Install Dependencies
@@ -71,16 +72,14 @@ jobs:
         if: ${{github.event_name == 'pull_request'}}
         run: ./test_app.sh -t 60 -d 10 ${DISTDIR}
       - name: Code Sign Application
-        env:
-           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-        run: ./codesign.sh -d -c "${MACOS_CERTIFICATE}" -p "${MACOS_CERTIFICATE_PWD}" "${DISTDIR}/Spyder.app"
+        run: |
+          pil=$(${pythonLocation} -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
+          rm -v ${DISTDIR}/Spyder.app/Contents/Frameworks/liblzma.5.dylib
+          cp -v ${pil}/.dylibs/liblzma.5.dylib ${DISTDIR}/Spyder.app/Contents/Frameworks/
+          ./codesign.sh -a "${DISTDIR}/Spyder.app"
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Sign Disk Image
-        env:
-           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
         run: ./codesign.sh -c "${MACOS_CERTIFICATE}" -p "${MACOS_CERTIFICATE_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
