@@ -46,54 +46,43 @@ code-sign(){
 
 sign-dir(){
     dir=$1; shift
-    for f in $(find "$dir" -type f "$@"); do
-        if [[ -x "$f" || "$f" = *".so" || "$f" = *".dylib" ]]; then
-            code-sign ${csopts[@]} $f
-        fi
+    for f in $(find "$dir" "$@"); do
+        code-sign ${csopts[@]} $f
     done
 }
 
 if [[ "$FILE" = *".app" ]]; then
-#     code-sign ${csopts[@]} --options runtime --deep "$FILE"  # fail: zlib.cpython-310-darwin.so no signature
-#     code-sign --verify --verbose --timestamp --sign $CNAME --options runtime --deep "$FILE"  # same issue
-
     frameworks="$FILE/Contents/Frameworks"
     resources="$FILE/Contents/Resources"
     libdir="$resources/lib"
-    pydir=$(find -E "$libdir" -regex "$libdir/python[0-9]\.[0-9]+")
+    pydir=$(find "$libdir" -maxdepth 1 -type d -name python*)
 
-    skip=()
+    # --- Sign resources
+    log "Signing 'so' and 'dylib' files..."
+    sign-dir "$resources" \( -name *.so -or -name *.dylib \)
+
+    # --- Sign micromamba
+    log "Signing micromamba..."
+    code-sign ${csopts[@]} -o runtime "$pydir/spyder/bin/micromamba"
 
     # --- Sign Qt frameworks
     log "Signing Qt frameworks..."
     for fwk in "$pydir"/PyQt5/Qt5/lib/*.framework; do
-        _skip=()
         if [[ "$fwk" = *"QtWebEngineCore"* ]]; then
             subapp="$fwk/Helpers/QtWebEngineProcess.app"
-            code-sign ${csopts[@]} --options runtime "$subapp"
-            _skip+=("-not" "-path" "$subapp/*")
+            code-sign ${csopts[@]} -o runtime "$subapp"
         fi
-        sign-dir "$fwk" "${_skip[@]}"
-        code-sign ${csopts[@]} --options runtime "$fwk"
-        skip+=("-not" "-path" "$fwk/*")
+        sign-dir "$fwk" -type f -perm +111 -not -path *QtWebEngineProcess.app*
+        code-sign ${csopts[@]} "$fwk"
     done
 
-    # --- Sign micromamba
-    log "Signing micromamba..."
-    code-sign ${csopts[@]} --options runtime "$pydir/spyder/bin/micromamba"
-    skip+=("-not" "-path" "$pydir/spyder/bin/*")
-
-    # --- Sign remaining resources
-    log "Signing resources..."
-    sign-dir "$resources" "${skip[@]}"
-
     # --- Sign zip contents
-    log "Signing zip file contents..."
+    log "Signing 'dylib' files in zip archive..."
     pushd "$libdir"
     zipfile=python*.zip
     zipdir=$(echo $zipfile | egrep -o "python[0-9]+")
     unzip -q $zipfile -d $zipdir
-    sign-dir $zipdir
+    sign-dir $zipdir -name *.dylib
     ditto -c -k $zipdir $zipfile
     rm -d -r -f $zipdir
     popd
@@ -101,15 +90,15 @@ if [[ "$FILE" = *".app" ]]; then
     # --- Sign app frameworks
     log "Signing app frameworks..."
     pyfwk="$frameworks/Python.framework"
-    code-sign ${csopts[@]} --options runtime $pyfwk
-    sign-dir "$frameworks" -not -path "$pyfwk/*"
+    code-sign ${csopts[@]} $pyfwk
+    sign-dir "$frameworks" -name *.dylib
 
     # --- Sign bundle
     log "Signing app bundle..."
-    code-sign ${csopts[@]} --options runtime "$FILE/Contents/MacOS/python"
-    code-sign ${csopts[@]} --options runtime "$FILE/Contents/MacOS/Spyder"
-#     code-sign ${csopts[@]} --options runtime "$FILE"
+    code-sign ${csopts[@]} -o runtime "$FILE/Contents/MacOS/python"
+    code-sign ${csopts[@]} -o runtime "$FILE/Contents/MacOS/Spyder"
 fi
+
 if [[ "$FILE" = *".dmg" ]]; then
     # --- Sign dmg
     log "Signing dmg image..."
