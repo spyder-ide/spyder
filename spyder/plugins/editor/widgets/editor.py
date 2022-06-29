@@ -3436,6 +3436,7 @@ class EditorPluginExample(QSplitter):
         self._undock_action = None
         self._close_plugin_action = None
         self._undocked_window = None
+        self._lock_unlock_action = None
         menu_actions = []
 
         self.editorstacks = []
