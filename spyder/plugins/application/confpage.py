@@ -25,13 +25,6 @@ from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 running_in_mac_app, save_lang_conf)
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string
-from spyder.utils.qthelpers import (register_app_launchservices,
-                                    restore_launchservices)
-
-# To open files from Finder directly in Spyder.
-if sys.platform == "darwin":
-    import applaunchservices as als
-
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
@@ -142,7 +135,11 @@ class ApplicationConfigPage(PluginConfigPage):
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" and not running_in_mac_app():
+            # To open files from Finder directly in Spyder.
+            from spyder.utils.qthelpers import (register_app_launchservices,
+                                                restore_launchservices)
+            import applaunchservices as als
 
             def set_open_file(state):
                 if state:
