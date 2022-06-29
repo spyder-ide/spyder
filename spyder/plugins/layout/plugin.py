@@ -797,14 +797,12 @@ class Layout(SpyderPluginV2):
         Returns
         -------
         None.
-
         """
-        container = self.get_container()
         if self._interface_locked:
-            icon = self.create_icon('lock')
+            icon = self.create_icon('drag_dock_widget')
             text = _('Unlock panes and toolbars')
         else:
-            icon = self.create_icon('lock_open')
+            icon = self.create_icon('lock')
             text = _('Lock panes and toolbars')
         self.lock_interface_action.setIcon(icon)
         self.lock_interface_action.setText(text)
