@@ -372,7 +372,7 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             print("Copying NSIS plugins into discoverable path")
             contents = os.listdir(
                 "installers/Windows/assets/nsist/plugins/x86-unicode/")
-            for element in contents:             
+            for element in contents:
                 shutil.copy(
                     "installers/Windows/assets/nsist/plugins/x86-unicode/" +
                     element,
