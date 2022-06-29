@@ -5169,6 +5169,21 @@ def test_frames_explorer(main_window, qtbot):
     assert frames_browser.frames is None
     assert not postmortem_debug_action.isEnabled()
 
+    # Test that quitting resets the explorer
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    # Restart Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.ipyclient.restart_kernel()
+
+    assert frames_browser.frames is None
+    assert not postmortem_debug_action.isEnabled()
+
 
 if __name__ == "__main__":
     pytest.main()
