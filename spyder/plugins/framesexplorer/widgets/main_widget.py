@@ -196,6 +196,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             FramesExplorerWidgetActions.PostMortemDebug)
         refresh_action = self.get_action(
             FramesExplorerWidgetActions.Refresh)
+
         if widget is None:
             search = False
             post_mortem = False
@@ -204,6 +205,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             search = widget.finder_is_visible()
             post_mortem = widget.post_mortem
             is_debugging = widget.pdb_curindex is not None
+
         search_action.setChecked(search)
         postmortem_debug_action.setEnabled(post_mortem)
         refresh_action.setEnabled(not is_debugging)
@@ -257,11 +259,13 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         shellwidget = widget.shellwidget
 
         widget.sig_show_namespace.disconnect(shellwidget.set_namespace_view)
+
         try:
             shellwidget.sig_prompt_ready.disconnect(widget.clear_if_needed)
         except TypeError:
             # disconnect was called elsewhere without argument
             pass
+
         shellwidget.sig_pdb_prompt_ready.disconnect(widget.clear_if_needed)
 
         shellwidget.spyder_kernel_comm.register_call_handler(

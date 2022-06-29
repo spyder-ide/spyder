@@ -108,6 +108,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.execution_frames = False
         self.post_mortem = False
         self.pdb_curindex = None
+
         if self.results_browser is not None:
             self.results_browser.set_frames(frames)
             self.results_browser.set_title(title)
@@ -132,7 +133,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget.pdb_execute_command(command)
 
     def set_from_pdb(self, pdb_stack, curindex):
-        """Set from pdb stack"""
+        """Set frames from pdb stack"""
         self._set_frames({'pdb': pdb_stack}, _("Pdb stack"))
         self.execution_frames = True
         self.pdb_curindex = curindex
@@ -142,7 +143,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.sig_update_actions_requested.emit()
 
     def set_from_exception(self, etype, error, tb):
-        """Set from exception"""
+        """Set frames from exception"""
         self._set_frames({etype.__name__: tb}, _("Exception occured"))
         self.post_mortem = True
         self.execution_frames = True
