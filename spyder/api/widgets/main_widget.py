@@ -342,7 +342,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.lock_unlock_action = self.create_action(
             name=PluginMainWidgetActions.LockUnlockPosition,
             text=_("Unlock position"),
-            tip=_("Unlock to move to another position"),
+            tip=_("Unlock to move pane to another position"),
             icon=self.create_icon('drag_dock_widget'),
             triggered=self.lock_unlock_position,
         )
@@ -441,14 +441,16 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         if visible:
             self.lock_unlock_action.setText(_('Lock position'))
             self.lock_unlock_action.setIcon(self.create_icon('lock_open'))
-            self.lock_unlock_action.setToolTip(
-                _("Unlock to move to another position"))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self.lock_unlock_action, method_name)
+                method(_("Lock pane to the current position"))
         else:
             self.lock_unlock_action.setText(_('Unlock position'))
             self.lock_unlock_action.setIcon(
                 self.create_icon('drag_dock_widget'))
-            self.lock_unlock_action.setToolTip(
-                _("Lock pane to the current position"))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self.lock_unlock_action, method_name)
+                method(_("Unlock to move pane to another position"))
 
     # --- Public Qt overriden methods
     # ------------------------------------------------------------------------

@@ -505,10 +505,12 @@ class BasePluginWidgetMixin(object):
         if visible:
             self._lock_unlock_action.setText(_('Lock position'))
             self._lock_unlock_action.setIcon(ima.icon('lock_open'))
-            self._lock_unlock_action.setToolTip(
-                _("Unlock to move to another position"))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self._lock_unlock_action, method_name)
+                method(_("Lock pane to the current position"))
         else:
             self._lock_unlock_action.setText(_('Unlock position'))
             self._lock_unlock_action.setIcon(ima.icon('drag_dock_widget'))
-            self._lock_unlock_action.setToolTip(
-                _("Lock pane to the current position"))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self._lock_unlock_action, method_name)
+                method(_("Unlock to move pane to another position"))
