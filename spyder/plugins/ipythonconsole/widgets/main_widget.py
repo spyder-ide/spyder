@@ -18,7 +18,6 @@ import uuid
 # Third-party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
-from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -35,6 +34,7 @@ from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
+from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
@@ -65,9 +65,9 @@ SPYDER_KERNELS_VERSION_MSG = _(
     '>= {0} and < {1}').format(
         SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
 SPYDER_KERNELS_CONDA = (
-    f'conda install spyder-kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
+    f'conda install spyder&#45;kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
 SPYDER_KERNELS_PIP = (
-    f'pip install spyder-kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
+    f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 
 class IPythonConsoleWidgetActions:
@@ -1164,7 +1164,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                               fault_obj=fault_obj)
 
         # Create kernel client
-        kernel_client = QtKernelClient(connection_file=connection_file)
+        kernel_client = SpyderKernelClient(connection_file=connection_file)
 
         # This is needed for issue spyder-ide/spyder#9304.
         try:
@@ -1183,15 +1183,15 @@ class IPythonConsoleWidget(PluginMainWidget):
                     shell_port=kernel_client.shell_port,
                     iopub_port=kernel_client.iopub_port,
                     stdin_port=kernel_client.stdin_port,
-                    hb_port=kernel_client.hb_port)
+                    hb_port=kernel_client.hb_port,
+                    control_port=kernel_client.control_port)
                 newports = self.tunnel_to_kernel(connection_info, hostname,
                                                  sshkey, password)
                 (kernel_client.shell_port,
                  kernel_client.iopub_port,
                  kernel_client.stdin_port,
-                 kernel_client.hb_port) = newports
-                # Save parameters to connect comm later
-                kernel_client.ssh_parameters = (hostname, sshkey, password)
+                 kernel_client.hb_port,
+                 kernel_client.control_port) = newports
             except Exception as e:
                 QMessageBox.critical(self, _('Connection error'),
                                      _("Could not open ssh tunnel. The "
@@ -2078,9 +2078,10 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         Remote ports are specified in the connection info ci.
         """
-        lports = zmqtunnel.select_random_ports(4)
+        lports = zmqtunnel.select_random_ports(5)
         rports = (connection_info['shell_port'], connection_info['iopub_port'],
-                  connection_info['stdin_port'], connection_info['hb_port'])
+                  connection_info['stdin_port'], connection_info['hb_port'],
+                  connection_info['control_port'])
         remote_ip = connection_info['ip']
         for lp, rp in zip(lports, rports):
             self.ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password,
