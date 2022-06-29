@@ -162,9 +162,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def refresh_namespacebrowser(self, interrupt=True):
         """Refresh namespace browser"""
-        if self.shellwidget.kernel_client is None:
-            return
-
         self.shellwidget.call_kernel(
             interrupt=interrupt,
             callback=self.process_remote_view
@@ -177,9 +174,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
-        if self.shellwidget.kernel_client is None:
-            return
-
         settings = self.get_view_settings()
         self.shellwidget.call_kernel(
             interrupt=True
