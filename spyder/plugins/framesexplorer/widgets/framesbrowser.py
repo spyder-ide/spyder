@@ -76,11 +76,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             return False
         return self.finder.isVisible()
 
-    def set_post_mortem_enabled(self, enabled):
-        """Enable post-mortem button."""
-        self.post_mortem = enabled
-        self.sig_update_actions_requested.emit()
-
     def setup(self):
         """
         Setup the frames browser with provided settings.
@@ -108,10 +103,15 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def _set_frames(self, frames, title):
         """Set current frames"""
+        # Reset defaults
+        self.should_clear = False
+        self.execution_frames = False
+        self.post_mortem = False
+        self.pdb_curindex = None
+
         if self.results_browser is not None:
             self.results_browser.set_frames(frames)
             self.results_browser.set_title(title)
-
             try:
                 self.results_browser.sig_activated.disconnect(
                     self.set_pdb_index)
@@ -133,37 +133,35 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget.pdb_execute_command(command)
 
     def set_from_pdb(self, pdb_stack, curindex):
-        """Set from pdb stack"""
-        self.pdb_curindex = curindex
+        """Set frames from pdb stack"""
         self._set_frames({'pdb': pdb_stack}, _("Pdb stack"))
+        self.execution_frames = True
+        self.pdb_curindex = curindex
         self.set_current_item(0, curindex)
         self.results_browser.sig_activated.connect(
             self.set_pdb_index)
-        self.execution_frames = True
-        self.should_clear = False
-        self.set_post_mortem_enabled(False)
+        self.sig_update_actions_requested.emit()
 
     def set_from_exception(self, etype, error, tb):
-        """Set from exception"""
+        """Set frames from exception"""
         self._set_frames({etype.__name__: tb}, _("Exception occured"))
+        self.post_mortem = True
         self.execution_frames = True
-        self.should_clear = False
-        self.set_post_mortem_enabled(True)
+        self.sig_update_actions_requested.emit()
 
     def set_from_capture_frames(self, frames):
-        """Set from pdb call"""
+        """Set from captured frames"""
         self._set_frames(frames, _("Snapshot of frames"))
-        self.execution_frames = False
-        self.should_clear = False
-        self.set_post_mortem_enabled(False)
+        self.sig_update_actions_requested.emit()
 
     def clear_if_needed(self):
         """Execution finished. Clear if it is relevant."""
         if self.should_clear:
-            self.pdb_curindex = None
+            # Do not clear if still debugging
+            if self.shellwidget.is_debugging():
+                return
             self._set_frames(None, "")
-            self.should_clear = False
-            self.set_post_mortem_enabled(False)
+            self.sig_update_actions_requested.emit()
         elif self.execution_frames:
             self.should_clear = True
         self.execution_frames = False
