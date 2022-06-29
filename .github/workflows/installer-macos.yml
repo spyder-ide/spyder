@@ -49,6 +49,7 @@ jobs:
       DISTDIR: ${{ github.workspace }}/dist
       MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
       MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -83,6 +84,8 @@ jobs:
       - name: Test Application Bundle
         if: ${{github.event_name == 'pull_request'}}
         run: ./test_app.sh -t 60 -d 10 ${DISTDIR}
+      - name: Create Keychain
+        run: ./certkeychain.sh "${MACOS_CERTIFICATE}" "${MACOS_CERTIFICATE_PWD}"
       - name: Code Sign Application
         run: |
           pil=$(${pythonLocation} -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
@@ -92,7 +95,9 @@ jobs:
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Sign Disk Image
-        run: ./codesign.sh -c "${MACOS_CERTIFICATE}" -p "${MACOS_CERTIFICATE_PWD}" "${DISTDIR}/${DMGNAME}"
+        run: ./codesign.sh "${DISTDIR}/${DMGNAME}"
+      - name: Notarize Disk Image
+        run: ./notarize.sh -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:

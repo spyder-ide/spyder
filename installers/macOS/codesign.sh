@@ -1,117 +1,117 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-CERTFILE=certificate.p12
-KEY_PASS=keypass
-KEYCHAIN=build.keychain
-KEYCHAINFILE=$HOME/Library/Keychains/$KEYCHAIN-db
-
-# certificate common name
-CNAME="Developer ID Application: Ryan Clary (6D7ZTH6B38)"
-
 help(){ cat <<EOF
-$(basename $0) [-h] [-d] -c CERT -p PASS APP
-Codesign an application.
+$(basename $0) [-h] FILE
+Codesign an application bundle or dmg image.
 
 Required:
-  -c CERT     base64 encoded certificate and private key
-  -p PASS     Password used to encode CERT
-  APP         Path to the application bundle to be signed
+  FILE        Path to the application bundle or dmg image to be signed
 
 Options:
   -h          Display this help
-  -d          Use codesign '--deep' flag. Mutually exclusive with -e.
-  -e          codesign the necessary elements beginning with the frameworks,
-              then the python binary, and finally the app bundle. Mutually
-              exclusive with -d.
 
 EOF
 }
 
-cleanup () {
-    security default-keychain -s login.keychain  # restore default keychain
-    rm -f $CERTFILE  # remove cert file
-
-    # remove temporary keychain
-    if security delete-keychain $KEYCHAIN 2> /dev/null; then
-        echo "clean up: $KEYCHAIN deleted."
-    fi
-
-    # make sure temporary keychain file is gone
-    if [[ -e $KEYCHAINFILE ]]; then
-        rm -f $KEYCHAINFILE
-        echo "clean up: $KEYCHAINFILE file deleted"
-    fi
-}
-
-unset CERT PASS DEEP ELEM APP
-
-while getopts "hc:p:de" option; do
+while getopts ":h" option; do
     case $option in
-        h)
-            help
-            exit;;
-        c)
-            CERT="$OPTARG";;
-        p)
-            PASS="$OPTARG";;
-        d)
-            DEEP="--deep"
-            unset ELEM;;
-        e)
-            ELEM=1
-            unset DEEP;;
+        (h) help; exit ;;
     esac
 done
 shift $(($OPTIND - 1))
 
-test -z "$CERT" && error "Error: Certificate must be provided. $CERT"
+exec 3>&1  # Additional output descriptor for logging
+log(){
+    level="INFO"
+    date "+%Y-%m-%d %H:%M:%S [$level] [codesign] -> $1" 1>&3
+}
 
-test -z "$PASS" && error "Error: Password must be provided. $PASS"
+[[ $# = 0 ]] && log "File not provided" && exit 1
 
-test -n "$1" && APP="$1" || error "Error: Application must be provided."
+# Resolve full path; works for both .app and .dmg
+FILE=$(cd $(dirname $1) && pwd -P)/$(basename $1)
 
-# always cleanup if there is an error
-trap cleanup EXIT
+# --- Get certificate id
+CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
+log "Certificate ID: $CNAME"
 
-cleanup  # make sure keychain and file don't exist
+csopts=("--force" "--verify" "--verbose" "--timestamp" "--sign" "$CNAME")
 
-# --- Prepare the certificate
-# decode certificate-as-Github-secret back to p12 for import into keychain
-echo "Decoding Certificate..."
-echo $CERT | base64 --decode > $CERTFILE
+# --- Helper functions
+code-sign(){
+    codesign $@
+#     echo $@
+}
 
-# --- Create keychain
-echo "Creating keychain..."
-security create-keychain -p $KEY_PASS $KEYCHAIN
+sign-dir(){
+    dir=$1; shift
+    for f in $(find "$dir" -type f "$@"); do
+        if [[ -x "$f" || "$f" = *".so" || "$f" = *".dylib" ]]; then
+            code-sign ${csopts[@]} $f
+        fi
+    done
+}
 
-# Set keychain to default and unlock it so that we can add the certificate
-# without GUI prompt
-echo "Importing certificate..."
-security default-keychain -s $KEYCHAIN
-security unlock-keychain -p $KEY_PASS $KEYCHAIN
-security import $CERTFILE -k $KEYCHAIN -P $PASS -T /usr/bin/codesign
+if [[ "$FILE" = *".app" ]]; then
+#     code-sign ${csopts[@]} --options runtime --deep "$FILE"  # fail: zlib.cpython-310-darwin.so no signature
+#     code-sign --verify --verbose --timestamp --sign $CNAME --options runtime --deep "$FILE"  # same issue
 
-# Ensure that codesign can access the cert without GUI prompt
-security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEY_PASS $KEYCHAIN
+    frameworks="$FILE/Contents/Frameworks"
+    resources="$FILE/Contents/Resources"
+    libdir="$resources/lib"
+    pydir=$(find -E "$libdir" -regex "$libdir/python[0-9]\.[0-9]+")
 
-# verify import
-echo "Verifying identity..."
-security find-identity -p codesigning -v $KEYCHAIN
+    skip=()
 
-# ---- Sign app
-if [[ -n $ELEM ]]; then
-    echo "Signing individual elements..."
-    # sign frameworks first
-    for framework in $APP/Contents/Frameworks/*; do
-        codesign -f -v -s "$CNAME" "$framework"
+    # --- Sign Qt frameworks
+    log "Signing Qt frameworks..."
+    for fwk in "$pydir"/PyQt5/Qt5/lib/*.framework; do
+        _skip=()
+        if [[ "$fwk" = *"QtWebEngineCore"* ]]; then
+            subapp="$fwk/Helpers/QtWebEngineProcess.app"
+            code-sign ${csopts[@]} --options runtime "$subapp"
+            _skip+=("-not" "-path" "$subapp/*")
+        fi
+        sign-dir "$fwk" "${_skip[@]}"
+        code-sign ${csopts[@]} --options runtime "$fwk"
+        skip+=("-not" "-path" "$fwk/*")
     done
 
-    # sign extra binary next
-    echo "Signing extra binary..."
-    codesign -f -v -s "$CNAME" "$APP/Contents/MacOS/python"
-fi
+    # --- Sign micromamba
+    log "Signing micromamba..."
+    code-sign ${csopts[@]} --options runtime "$pydir/spyder/bin/micromamba"
+    skip+=("-not" "-path" "$pydir/spyder/bin/*")
 
-# sign app bundle
-echo "Signing application..."
-codesign -f -v $DEEP -s "$CNAME" "$APP"
+    # --- Sign remaining resources
+    log "Signing resources..."
+    sign-dir "$resources" "${skip[@]}"
+
+    # --- Sign zip contents
+    log "Signing zip file contents..."
+    pushd "$libdir"
+    zipfile=python*.zip
+    zipdir=$(echo $zipfile | egrep -o "python[0-9]+")
+    unzip -q $zipfile -d $zipdir
+    sign-dir $zipdir
+    ditto -c -k $zipdir $zipfile
+    rm -d -r -f $zipdir
+    popd
+
+    # --- Sign app frameworks
+    log "Signing app frameworks..."
+    pyfwk="$frameworks/Python.framework"
+    code-sign ${csopts[@]} --options runtime $pyfwk
+    sign-dir "$frameworks" -not -path "$pyfwk/*"
+
+    # --- Sign bundle
+    log "Signing app bundle..."
+    code-sign ${csopts[@]} --options runtime "$FILE/Contents/MacOS/python"
+    code-sign ${csopts[@]} --options runtime "$FILE/Contents/MacOS/Spyder"
+#     code-sign ${csopts[@]} --options runtime "$FILE"
+fi
+if [[ "$FILE" = *".dmg" ]]; then
+    # --- Sign dmg
+    log "Signing dmg image..."
+    code-sign ${csopts[@]} "$FILE"
+fi
