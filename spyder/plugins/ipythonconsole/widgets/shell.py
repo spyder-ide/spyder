@@ -196,7 +196,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 self.shutdown_thread_list.append(shutdown_thread)
                 shutdown_thread.start()
         else:
-            self.spyder_kernel_comm.close(shutdown_channel=False)
+            self.spyder_kernel_comm.close()
             if self.kernel_client is not None:
                 self.kernel_client.stop_channels()
 
@@ -240,6 +240,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
         if self.is_spyder_kernel:
+            # For completion
+            kernel_client.control_channel.message_received.connect(
+                self._dispatch)
             self.spyder_kernel_comm.open_comm(kernel_client)
 
         # Redefine the complete method to work while debugging.

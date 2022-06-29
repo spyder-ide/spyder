@@ -512,9 +512,9 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         original_complete = client.complete
 
         def complete(code, cursor_pos=None):
-            if self.is_waiting_pdb_input() and client.comm_channel:
+            if self.is_waiting_pdb_input():
                 shell_channel = client.shell_channel
-                client._shell_channel = client.comm_channel
+                client._shell_channel = client.control_channel
                 try:
                     return original_complete(code, cursor_pos)
                 finally:

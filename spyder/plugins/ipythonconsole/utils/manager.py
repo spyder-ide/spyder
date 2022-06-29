@@ -16,6 +16,7 @@ import signal
 from jupyter_client.utils import run_sync
 import psutil
 from qtconsole.manager import QtKernelManager
+from traitlets import DottedObjectName
 
 
 class SpyderKernelManager(QtKernelManager):
@@ -27,6 +28,9 @@ class SpyderKernelManager(QtKernelManager):
     started so this subclass overrides the `_kill_kernel` method to properly
     kill the started kernels by using psutil.
     """
+
+    client_class = DottedObjectName(
+        'spyder.plugins.ipythonconsole.utils.client.SpyderKernelClient')
 
     def __init__(self, *args, **kwargs):
         self.shutting_down = False
