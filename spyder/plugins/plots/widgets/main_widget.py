@@ -247,7 +247,8 @@ class PlotsWidget(ShellConnectMainWidget):
                                              self.undock_action,
                                              self.close_action,
                                              self.dock_action,
-                                             self.toggle_view_action]:
+                                             self.toggle_view_action,
+                                             self.lock_unlock_action]:
                     action.setEnabled(value)
 
                     # IMPORTANT: Since we are defining the main actions in here
@@ -263,7 +264,7 @@ class PlotsWidget(ShellConnectMainWidget):
 
                         if action not in thumbnails_sb_actions:
                             thumbnails_sb.addAction(action)
-            except RuntimeError:
+            except (RuntimeError, AttributeError):
                 pass
 
         self.zoom_disp.setEnabled(value)
