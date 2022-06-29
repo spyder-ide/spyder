@@ -257,7 +257,11 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         shellwidget = widget.shellwidget
 
         widget.sig_show_namespace.disconnect(shellwidget.set_namespace_view)
-        shellwidget.sig_prompt_ready.disconnect(widget.clear_if_needed)
+        try:
+            shellwidget.sig_prompt_ready.disconnect(widget.clear_if_needed)
+        except TypeError:
+            # disconnect was called elsewhere without argument
+            pass
         shellwidget.sig_pdb_prompt_ready.disconnect(widget.clear_if_needed)
 
         shellwidget.spyder_kernel_comm.register_call_handler(
