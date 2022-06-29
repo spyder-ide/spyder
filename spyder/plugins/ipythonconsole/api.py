@@ -20,6 +20,7 @@ else:
 # Support PEP 655 (available from Python 3.11 onwards)
 from typing_extensions import NotRequired
 
+
 class IPythonConsolePyConfiguration(TypedDict):
     """IPythonConsole python execution parameters."""
 

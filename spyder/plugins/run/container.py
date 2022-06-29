@@ -208,7 +208,6 @@ class RunContainer(PluginMainContainer):
 
             executor.exec_run_configuration(run_conf, ext_params)
 
-
     def edit_run_configurations(self, display_dialog=True,
                                 disable_run_btn=False,
                                 selected_executor=None):
@@ -236,8 +235,9 @@ class RunContainer(PluginMainContainer):
         if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
             exec_uuid = ext_params['uuid']
             if exec_uuid is not None:
-                context, ext = self.metadata_model.get_metadata_context_extension(
-                    uuid)
+
+                info = self.metadata_model.get_metadata_context_extension(uuid)
+                context, ext =  info
                 context_name = context['name']
                 context_id = getattr(RunContext, context_name)
                 all_exec_params = self.get_executor_configuration_parameters(

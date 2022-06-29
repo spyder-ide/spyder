@@ -24,7 +24,8 @@ from spyder.plugins.editor.api.run import FileRun
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
                                                          is_profiler_installed)
-from spyder.plugins.profiler.widgets.run_conf import ProfilerPyConfigurationGroup
+from spyder.plugins.profiler.widgets.run_conf import (
+    ProfilerPyConfigurationGroup)
 from spyder.plugins.profiler.api import ProfilerPyConfiguration
 from spyder.plugins.run.api import (
     RunExecutor, run_execute, RunContext, RunConfiguration,

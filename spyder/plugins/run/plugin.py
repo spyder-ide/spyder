@@ -312,9 +312,10 @@ class Run(SpyderPluginV2):
     def register_viewer_configuration(
             self, viewer: RunResultViewer, formats: List[OutputFormat]):
         """
-        Register a :class:`RunExecutorProvider` instance to indicate its support
-        for a given set of output run result formats. This method can be called
-        whenever an viewer can extend its support for a given output format.
+        Register a :class:`RunExecutorProvider` instance to indicate its
+        support for a given set of output run result formats. This method can
+        be called whenever an viewer can extend its support for a given output
+        format.
 
         Parameters
         ----------

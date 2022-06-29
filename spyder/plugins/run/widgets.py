@@ -104,9 +104,11 @@ class BaseRunConfigDialog(QDialog):
         """Create dialog button box and add it to the dialog layout"""
         self.bbox = QDialogButtonBox(stdbtns)
         if not self.disable_run_btn:
-            run_btn = self.bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+            run_btn = self.bbox.addButton(
+                _("Run"), QDialogButtonBox.AcceptRole)
             run_btn.clicked.connect(self.run_btn_clicked)
-        reset_deafults_btn = self.bbox.addButton(_('Reset'), QDialogButtonBox.ResetRole)
+        reset_deafults_btn = self.bbox.addButton(
+            _('Reset'), QDialogButtonBox.ResetRole)
         reset_deafults_btn.clicked.connect(self.reset_btn_clicked)
         self.bbox.accepted.connect(self.accept)
         self.bbox.accepted.connect(self.ok_btn_clicked)
@@ -336,7 +338,8 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             self.fixed_dir_radio.setChecked(True)
             self.wd_edit.setText(path)
 
-        if not self.executor_group.isEnabled() and not self.wdir_group.isEnabled():
+        if (not self.executor_group.isEnabled() and not
+                self.wdir_group.isEnabled()):
             ok_btn = self.bbox.button(QDialogButtonBox.Ok)
             ok_btn.setEnabled(False)
 
@@ -591,10 +594,10 @@ class RunDialog(BaseRunConfigDialog):
         if uuid not in self.run_conf_model:
             return
 
-        stored_parameters = self.run_conf_model.get_run_configuration_parameters(
+        stored_param = self.run_conf_model.get_run_configuration_parameters(
             uuid, executor_name)
 
-        self.parameter_model.set_parameters(stored_parameters['params'])
+        self.parameter_model.set_parameters(stored_param['params'])
 
         selected_params = self.run_conf_model.get_last_used_execution_params(
             uuid, executor_name)

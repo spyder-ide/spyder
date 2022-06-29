@@ -45,8 +45,8 @@ ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 class IPythonConfigOptions(RunExecutorConfigurationGroup):
     """IPython console run configuration options."""
 
-    def __init__(self, parent, context: Context,
-                 input_extension: str, input_metadata: RunConfigurationMetadata):
+    def __init__(self, parent, context: Context, input_extension: str,
+                 input_metadata: RunConfigurationMetadata):
         super().__init__(parent, context, input_extension, input_metadata)
 
         self.dir = None

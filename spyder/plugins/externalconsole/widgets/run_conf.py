@@ -41,8 +41,8 @@ INTERACT = _("Interact with the Python console after execution")
 class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
     """External console Python run configuration options."""
 
-    def __init__(self, parent, context: Context,
-                 input_extension: str, input_metadata: RunConfigurationMetadata):
+    def __init__(self, parent, context: Context, input_extension: str,
+                 input_metadata: RunConfigurationMetadata):
         super().__init__(parent, context, input_extension, input_metadata)
 
         self.dir = None
@@ -226,7 +226,7 @@ class MetaShConfiguration(type(GenExternalConsoleShConfiguration)):
         interp_opts = attrs.pop('shell_args_meta')
         interp_opts_enabled = interp_opts != ''
 
-        def get_default_configuration() -> RunExecutorConfigurationGroupFactory:
+        def get_default_conf() -> RunExecutorConfigurationGroupFactory:
             return {
                 'interpreter': interp,
                 'interpreter_opts_enabled': interp_opts_enabled,
@@ -238,7 +238,7 @@ class MetaShConfiguration(type(GenExternalConsoleShConfiguration)):
 
         return super(MetaShConfiguration, cls).__new__(cls, clsname, bases, {
             **attrs,
-            'get_default_configuration': staticmethod(get_default_configuration)
+            'get_default_configuration': staticmethod(get_default_conf)
         })
 
 

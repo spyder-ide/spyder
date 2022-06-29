@@ -285,7 +285,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
             run.create_run_button(RunContext.Selection,
                                   _("Run &to line"),
-                                  tip=_("Run selection up to the current line"),
+                                  tip=_(
+                                    "Run selection up to the current line"),
                                   shortcut_context="editor",
                                   register_shortcut=True,
                                   add_to_toolbar=False,
@@ -2949,7 +2950,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         return editor.toPlainText()
 
-    #------ Run files
+    # ------ Run files
     def add_supported_run_configuration(self, config: EditorRunConfiguration):
         origin = config['origin']
         extension = config['extension']
@@ -2969,7 +2970,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if context_id == RunContext.File:
                 file_enabled = True
 
-        ext_contexts = self.supported_run_configurations.get(extension, set({}))
+        ext_contexts = self.supported_run_configurations.get(
+            extension, set({}))
         ext_contexts |= actual_contexts
         self.supported_run_configurations[extension] = ext_contexts
         self.run_configurations_per_origin[extension] = ext_origins
@@ -2980,7 +2982,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             else:
                 self.pending_run_files -= {(filename, filename_ext)}
 
-    def remove_supported_run_configuration(self, config: EditorRunConfiguration):
+    def remove_supported_run_configuration(
+            self, config: EditorRunConfiguration):
         origin = config['origin']
         extension = config['extension']
         contexts = config['contexts']
@@ -3059,9 +3062,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 line_col_bounds=line_cols, character_bounds=offsets)
         elif context == RunContext.Cell:
             if re_run:
-                text, offsets, line_cols, cell_name, enc = editorstack.re_run_last_cell()
+                info = editorstack.re_run_last_cell()
             else:
-                text, offsets, line_cols, cell_name, enc = editorstack.get_cell()
+                info = editorstack.get_cell()
+            text, offsets, line_cols, cell_name, enc = info
             context_name = 'Cell'
             copy_cell = editorstack.run_cell_copy
             run_input = CellRun(
@@ -3119,15 +3123,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 python_args_enabled=False, python_args='',
                 clear_namespace=False, console_namespace=False)
 
-            wdir_opts = WorkingDirOpts(source=WorkingDirSource.CurrentDirectory,
-                                       path=None)
+            wdir_opts = WorkingDirOpts(
+                source=WorkingDirSource.CurrentDirectory,
+                path=None)
 
             exec_conf = RunExecutionParameters(
                 working_dir=wdir_opts, executor_params=ipy_params)
             ext_exec_conf = ExtendedRunExecutionParameters(
                 uuid=None, name=None, params=exec_conf)
         else:
-            all_exec_conf = self.main.run.get_executor_configuration_parameters(
+            run_plugin = self.main.run
+            all_exec_conf = run_plugin.get_executor_configuration_parameters(
                 self.main.ipyconsole.NAME, 'py', RunContext.File
             )
             all_exec_conf = all_exec_conf['params']

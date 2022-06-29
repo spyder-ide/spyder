@@ -16,7 +16,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout, QComboBox,
                             QTableView, QAbstractItemView, QPushButton,
                             QGridLayout, QHeaderView)
-from spyder.plugins.run.api import ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration
+from spyder.plugins.run.api import (ExtendedRunExecutionParameters,
+                                    SupportedExecutionRunConfiguration)
 
 # Local imports
 from spyder.plugins.run.container import RunContainer
@@ -153,11 +154,11 @@ class RunConfigPage(PluginConfigPage):
 
         self.all_executor_model: Dict[
             str, Dict[Tuple[str, str, str],
-                ExtendedRunExecutionParameters]] = {}
+            ExtendedRunExecutionParameters]] = {}
         self.previous_executor_index: int = 0
         self.default_executor_conf_params: Dict[
             str, Dict[Tuple[str, str, str],
-                ExtendedRunExecutionParameters]] = {}
+            ExtendedRunExecutionParameters]] = {}
 
         about_label = QLabel(_("The following are the per-executor "
                                "configuration settings used for "

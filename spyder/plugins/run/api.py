@@ -90,10 +90,10 @@ class RunConfiguration(TypedDict):
     """Run input information schema."""
 
     # The output format to produce after executing the input. Each entry on the
-    # set must belong to the `RunResultFormat` dict. The executor is responsible
-    # of producing the correct format. This field will be available on a
-    # RunExecutor but it is not necessary for a RunConfigurationProvider to
-    # include it.
+    # set must belong to the `RunResultFormat` dict. The executor is
+    # responsible of producing the correct format. This field will be available
+    # on a RunExecutor but it is not necessary for a RunConfigurationProvider
+    # to include it.
     output_formats: NotRequired[Set[str]]
 
     # Input to process by the executor. The executor is responsible for the
@@ -153,6 +153,7 @@ class RunResult(TypedDict):
 
 
 PossibleRunResult = Union[RunResult, RunResultError]
+
 
 class Context(TypedDict):
     """Run context name schema."""
@@ -335,9 +336,10 @@ RunExecuteFunc = Callable[
     List[PossibleRunResult]]
 
 
-def run_execute(func: RunExecuteFunc = None,
-                extension: Optional[Union[str, List[str]]] = None,
-                context: Optional[Union[str, List[str]]] = None) -> RunExecuteFunc:
+def run_execute(
+        func: RunExecuteFunc = None,
+        extension: Optional[Union[str, List[str]]] = None,
+        context: Optional[Union[str, List[str]]] = None) -> RunExecuteFunc:
     """
     Method decorator used to mark a method as a executor for a given file
     extension and context.
@@ -346,8 +348,8 @@ def run_execute(func: RunExecuteFunc = None,
 
     .. code-block:: python
         def execution_handler(
-                input: RunConfiguration,
-                conf: ExtendedRunExecutionParameters) -> List[PossibleRunResult]:
+            input: RunConfiguration,
+            conf: ExtendedRunExecutionParameters) -> List[PossibleRunResult]:
             ...
 
     Arguments
@@ -401,8 +403,8 @@ class RunExecutor(QObject):
     Interface used to execute run context information.
 
     This API needs to be implemented by any plugin that wants to execute
-    an input produced by a :class:`RunConfigurationProvider` to produce an output
-    compatible by a :class:`RunResultViewer`. This interface needs to be
+    an input produced by a :class:`RunConfigurationProvider` to produce an
+    output compatible by a :class:`RunResultViewer`. This interface needs to be
     covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
@@ -581,7 +583,8 @@ class SupportedExecutionRunConfiguration(TypedDict):
 
     # The configuration widget used to set the options for the current
     # input extension and context combination. If None or missing then no
-    # configuration widget will be shown on the Run dialog for that combination.
+    # configuration widget will be shown on the Run dialog for that
+    # combination.
     configuration_widget: NotRequired[
         Optional[RunExecutorConfigurationGroupCreator]]
 

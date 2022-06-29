@@ -2834,7 +2834,8 @@ class EditorStack(QWidget):
         editor = self.data[index].editor
 
         try:
-            text, off_pos, col_pos = editor.get_cell_code_and_position(cell_name)
+            text, off_pos, col_pos = editor.get_cell_code_and_position(
+                cell_name)
             finfo = self.get_current_finfo()
             enc = finfo.encoding
         except RuntimeError:

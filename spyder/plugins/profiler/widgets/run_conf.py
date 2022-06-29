@@ -26,8 +26,8 @@ _ = get_translation('spyder')
 class ProfilerPyConfigurationGroup(RunExecutorConfigurationGroup):
     """External console Python run configuration options."""
 
-    def __init__(self, parent, context: Context,
-                 input_extension: str, input_metadata: RunConfigurationMetadata):
+    def __init__(self, parent, context: Context, input_extension: str,
+                 input_metadata: RunConfigurationMetadata):
         super().__init__(parent, context, input_extension, input_metadata)
 
         self.dir = None

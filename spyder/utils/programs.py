@@ -760,7 +760,7 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
 
         # python_exe must be quoted in case it has spaces
         cmd = f'start {windows_shell} ""{executable}" '
-        cmd += ' '.join(p_args) # + '"'
+        cmd += ' '.join(p_args)  # + '"'
         logger.info('Executing on external console: %s', cmd)
 
         try:
@@ -782,9 +782,9 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
             if is_program_installed(program['cmd']):
                 f = None
                 if not close_after_exec:
-                    f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
-                                        suffix='.sh', dir=get_temp_dir(),
-                                        delete=False)
+                    f = tempfile.NamedTemporaryFile(
+                        'wt', prefix='run_spyder_', suffix='.sh',
+                        dir=get_temp_dir(), delete=False)
 
                     logger.info('Executing on external console: %s',
                                 ' '.join([executable] + p_args))

@@ -243,9 +243,9 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     executable)
         except NotImplementedError:
             QMessageBox.critical(self, _("Run"),
-                                    _("Running an external system terminal "
-                                    "is not supported on platform %s."
-                                    ) % os.name)
+                                 _("Running an external system terminal "
+                                 "is not supported on platform %s."
+                                 ) % os.name)
 
     @run_execute(extension='py')
     def run_python_files(
@@ -298,7 +298,6 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         programs.run_general_file_in_terminal(
             executable, executable_args, filename, script_args, wdir,
             close_after_exec, windows_shell=windows_shell)
-
 
     @run_execute(extension=['sh', 'bat', 'ps1'], context=RunContext.Selection)
     def run_shell_selection(

@@ -19,7 +19,8 @@ from spyder.api.translations import get_translation
 from spyder.plugins.run.api import (
     StoredRunExecutorParameters, RunContext,
     SupportedExecutionRunConfiguration,
-    RunConfigurationMetadata, RunParameterFlags, StoredRunConfigurationExecutor,
+    RunConfigurationMetadata, RunParameterFlags,
+    StoredRunConfigurationExecutor,
     ExtendedRunExecutionParameters, RunExecutionParameters,
     WorkingDirOpts, WorkingDirSource)
 
@@ -67,7 +68,8 @@ class RunExecutorListModel(QAbstractListModel):
         input_values = [(x, i) for i, (x, _) in enumerate(input_values)]
         self.executors_per_input[(ext, context_id)] = dict(input_values)
 
-        self.inverted_pos[(ext, context_id)] = {v: k for (k, v) in input_values}
+        self.inverted_pos[(ext, context_id)] = {
+            v: k for (k, v) in input_values}
         self.executor_priority[(ext, context_id)] = all_exec_prio
 
     def remove_input_executor_configuration(
@@ -90,7 +92,8 @@ class RunExecutorListModel(QAbstractListModel):
                 'registered')
 
     def get_selected_run_executor(
-            self, index: int) -> Tuple[str, SupportedExecutionRunConfiguration]:
+            self,
+            index: int) -> Tuple[str, SupportedExecutionRunConfiguration]:
         executor_indices = self.inverted_pos[self.current_input]
         executor_name = executor_indices[index]
         executors = self.executor_configurations[self.current_input]
@@ -134,7 +137,8 @@ class RunExecutorListModel(QAbstractListModel):
     def __contains__(self, exec_input: Tuple[str, str]) -> bool:
         return exec_input in self.executor_configurations
 
-    def __getitem__(self, input_executor: tuple) -> SupportedExecutionRunConfiguration:
+    def __getitem__(
+            self, input_executor: tuple) -> SupportedExecutionRunConfiguration:
         (input, executor) = input_executor
         input_executors = self.executor_configurations[input]
         return input_executors[executor]
@@ -249,7 +253,8 @@ class RunExecutorParameters(QAbstractListModel):
             if role == Qt.DisplayRole:
                 return _("Default/Transient")
             elif role == Qt.ToolTipRole:
-                return _("This configuration will not be saved after execution")
+                return _(
+                    "This configuration will not be saved after execution")
         else:
             params_id = self.params_index[pos]
             params = self.executor_conf_params[params_id]
@@ -432,9 +437,10 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
                                  key=lambda x: x[1],
                                  reverse=reverse)
         elif column == self.NAME:
-            sorted_keys = sorted(self.executor_conf_params,
-                                 key=lambda x: self.executor_conf_params[x]['name'],
-                                 reverse=reverse)
+            sorted_keys = sorted(
+                self.executor_conf_params,
+                key=lambda x: self.executor_conf_params[x]['name'],
+                reverse=reverse)
         self.params_index = dict(enumerate(sorted_keys))
         self.inverse_index = {v: k for k, v in self.params_index.items()}
         self.endResetModel()
