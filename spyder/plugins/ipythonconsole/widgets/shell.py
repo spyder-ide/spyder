@@ -916,6 +916,7 @@ the sympy module (e.g. plot)
         elif state == 'idle' and msg_type == 'shutdown_request':
             # This handles restarts asked by the user
             self.ipyclient.t0 = time.monotonic()
+            self.sig_kernel_started.emit()
         else:
             super()._handle_status(msg)
 
