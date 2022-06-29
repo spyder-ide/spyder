@@ -74,7 +74,8 @@ class ShellWidget(HelpWidget, DebuggingWidget, FigureBrowserWidget):
     new_client = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
-    sig_kernel_restarted = Signal()
+    # Kernel died and restarted (not user requested)
+    sig_kernel_died_restarted = Signal()
     sig_prompt_ready = Signal()
     sig_remote_execute = Signal()
 
@@ -90,7 +91,9 @@ class ShellWidget(HelpWidget, DebuggingWidget, FigureBrowserWidget):
     # To save values and messages returned by the kernel
     _kernel_is_starting = True
 
-    sig_kernel_has_started = Signal()
+    # Kernel started or restarted
+    sig_kernel_started = Signal()
+    sig_kernel_reset = Signal()
 
     @classmethod
     def prune_shutdown_thread_list(cls):
@@ -609,10 +612,7 @@ the sympy module (e.g. plot)
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
 
-                # This doesn't need to interrupt the kernel because
-                # "%reset -f" is being executed before it.
-                # Fixes spyder-ide/spyder#12689
-                self.sig_kernel_has_started.emit()
+                self.sig_kernel_reset.emit()
 
                 if self.is_spyder_kernel:
                     self.call_kernel().close_all_mpl_figures()
@@ -886,7 +886,7 @@ the sympy module (e.g. plot)
         # Notify that kernel has started
         exec_count = msg['content'].get('execution_count', '')
         if exec_count == 0 and self._kernel_is_starting:
-            self.sig_kernel_has_started.emit()
+            self.sig_kernel_started.emit()
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
@@ -912,7 +912,6 @@ the sympy module (e.g. plot)
                 self._kernel_is_starting = True
         elif state == 'idle' and msg_type == 'shutdown_request':
             # This handles restarts asked by the user
-            self.sig_kernel_has_started.emit()
             self.ipyclient.t0 = time.monotonic()
         else:
             super()._handle_status(msg)
@@ -948,7 +947,7 @@ the sympy module (e.g. plot)
 
     def _handle_kernel_restarted(self, *args, **kwargs):
         super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
-        self.sig_kernel_restarted.emit()
+        self.sig_kernel_died_restarted.emit()
 
     @observe('syntax_style')
     def _syntax_style_changed(self, changed=None):

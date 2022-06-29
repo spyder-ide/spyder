@@ -487,7 +487,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted_message.connect(
             self.kernel_restarted_message)
-        self.shellwidget.sig_kernel_restarted.connect(
+        self.shellwidget.sig_kernel_died_restarted.connect(
             self._finalise_restart)
 
         # To correctly change Matplotlib backend interactively
