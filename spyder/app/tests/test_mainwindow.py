@@ -5139,7 +5139,6 @@ def test_frames_explorer(main_window, qtbot):
     assert list(frames_browser.frames.keys())[0] == "ZeroDivisionError"
     assert postmortem_debug_action.isEnabled()
 
-
     # Test post mortem
     with qtbot.waitSignal(shell.executed):
         frames_explorer.postmortem()
