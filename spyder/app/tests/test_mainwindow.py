@@ -5112,5 +5112,64 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     assert len(frames_browser.frames) == expected_number_threads
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_frames_explorer(main_window, qtbot):
+    """Test frames explorer"""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    from spyder.plugins.framesexplorer.widgets.main_widget import (
+        FramesExplorerWidgetActions)
+
+    frames_explorer = main_window.framesexplorer.get_widget()
+    frames_browser = frames_explorer.current_widget().results_browser
+    postmortem_debug_action = frames_explorer.get_action(
+        FramesExplorerWidgetActions.PostMortemDebug)
+
+    assert not postmortem_debug_action.isEnabled()
+
+    # create exception
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "ZeroDivisionError"
+    assert postmortem_debug_action.isEnabled()
+
+
+    # Test post mortem
+    with qtbot.waitSignal(shell.executed):
+        frames_explorer.postmortem()
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    # Test that executing a statement doesn't change the frames browser
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 1')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('w')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    # Test that quitting resets the explorer
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+    assert frames_browser.frames is None
+    assert not postmortem_debug_action.isEnabled()
+
+
 if __name__ == "__main__":
     pytest.main()
