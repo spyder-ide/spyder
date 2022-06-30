@@ -85,7 +85,7 @@ jobs:
       - name: Sign Disk Image
         run: ./codesign.sh "${DISTDIR}/${DMGNAME}"
       - name: Notarize Disk Image
-        run: ./notarize.sh -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
+        run: ./notarize.sh -i 30 -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
