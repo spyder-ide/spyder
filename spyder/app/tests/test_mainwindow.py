@@ -1218,6 +1218,13 @@ def test_shell_execution(main_window, qtbot, tmpdir):
         ext = 'bat'
         opts = '/K'
 
+    # ---- Wait for the ipython console to be ready ----
+    # This helps to give time to process all startup events before adding
+    # more things.
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # ---- Load test file ----
     test_file = osp.join(LOCATION, script)
     main_window.editor.load(test_file)
@@ -1262,7 +1269,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     qtbot.wait(1000)
 
     qtbot.waitUntil(lambda: osp.exists(osp.join(temp_dir, 'output_file.txt')),
-                    timeout=2000)
+                    timeout=EVAL_TIMEOUT)
     qtbot.wait(1000)
 
     with open(osp.join(temp_dir, 'output_file.txt'), 'r') as f:
