@@ -1,6 +1,10 @@
 # Based on https://github.com/tlambert03/napari/blob/master/.github/workflows/make_bundle.yml
 on:
   pull_request:
+    paths:
+      - '!installers/macOS/**'
+      - '!.github/workflows/installer-macos.yml'
+
   release:
     types:
       - created
