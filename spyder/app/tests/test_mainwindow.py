@@ -5318,10 +5318,21 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     frames_explorer = main_window.framesexplorer.get_widget()
     frames_browser = frames_explorer.current_widget().results_browser
 
+    # --- Set run options for this file ---
+    file_uuid = main_window.editor.id_per_file[str(p)]
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=main_window.ipyconsole.NAME,
+        selected=None,
+        display_dialog=False,
+        first_execution=False)
+
+    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
     # Click the run button
-    run_action = main_window.run_toolbar_actions[0]
+    run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
-    qtbot.mouseClick(run_button, Qt.LeftButton)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(run_button, Qt.LeftButton)
     qtbot.wait(1000)
 
     # Check we are blocked
