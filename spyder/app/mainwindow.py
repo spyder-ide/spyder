@@ -446,7 +446,7 @@ class MainWindow(QMainWindow):
 
         # Check if TABIFY is not a list with None as unique value or a default
         # list
-        if tabify in [[None], []]:
+        if next_to_plugins in [[None], []]:
             return False
 
         # Get the actual plugins from the names
@@ -586,6 +586,7 @@ class MainWindow(QMainWindow):
             'maininterpreter': Plugins.MainInterpreter,
             'outlineexplorer': Plugins.OutlineExplorer,
             'variableexplorer': Plugins.VariableExplorer,
+            'framesexplorer': Plugins.FramesExplorer,
             'ipyconsole': Plugins.IPythonConsole,
             'workingdirectory': Plugins.WorkingDirectory,
             'projects': Plugins.Projects,
@@ -1086,7 +1087,7 @@ class MainWindow(QMainWindow):
         # Tabify external plugins which were installed after Spyder was
         # installed.
         # Note: This is only necessary the first time a plugin is loaded.
-        # Afterwwrds, the plugin placement is recorded on the window hexstate,
+        # Afterwards, the plugin placement is recorded on the window hexstate,
         # which is loaded by the layouts plugin during the next session.
         for plugin_name in PLUGIN_REGISTRY.external_plugins:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -1119,11 +1120,15 @@ class MainWindow(QMainWindow):
                         'Expecting a list of layout classes but got {}'
                         .format(plugin_name, plugin_instance.CUSTOM_LAYOUTS)
                     )
-        self.layouts.update_layout_menu_actions()
+
+        # Needed to ensure dockwidgets/panes layout size distribution
+        # when a layout state is already present.
+        # See spyder-ide/spyder#17945
+        if self.layouts is not None and CONF.get('main', 'window/state', None):
+            self.layouts.before_mainwindow_visible()
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
-
 
     def post_visible_setup(self):
         """
@@ -1162,7 +1167,6 @@ class MainWindow(QMainWindow):
             # Connect the window to the signal emitted by the previous server
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
-
 
         # Update plugins toggle actions to show the "Switch to" plugin shortcut
         self._update_shortcuts_in_panes_menu()
@@ -1813,14 +1817,25 @@ class MainWindow(QMainWindow):
         """Save preferences dialog size."""
         self.prefs_dialog_size = size
 
-    # -- Open files server
+    # ---- Open files server
     def start_open_files_server(self):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
         port = select_port(default_port=OPEN_FILES_PORT)
         CONF.set('main', 'open_files_port', port)
-        self.open_files_server.bind(('127.0.0.1', port))
+
+        # This is necessary in case it's not possible to bind a port for the
+        # server in the system.
+        # Fixes spyder-ide/spyder#18262
+        try:
+            self.open_files_server.bind(('127.0.0.1', port))
+        except OSError:
+            self.open_files_server = None
+            return
+
+        # Number of petitions the server can queue
         self.open_files_server.listen(20)
+
         while 1:  # 1 is faster than True
             try:
                 req, dummy = self.open_files_server.accept()

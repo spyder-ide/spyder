@@ -753,9 +753,9 @@ class Layout(SpyderPluginV2):
         Populate panes menu with the toggle view action of each base plugin.
         """
         order = ['editor', 'ipython_console', 'variable_explorer',
-                 'help', 'plots', None, 'explorer', 'outline_explorer',
-                 'project_explorer', 'find_in_files', None, 'historylog',
-                 'profiler', 'breakpoints', 'pylint', None,
+                 'frames_explorer', 'help', 'plots', None, 'explorer',
+                 'outline_explorer', 'project_explorer', 'find_in_files', None,
+                 'historylog', 'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
 
         for plugin in self.get_dockable_plugins():
@@ -797,14 +797,12 @@ class Layout(SpyderPluginV2):
         Returns
         -------
         None.
-
         """
-        container = self.get_container()
         if self._interface_locked:
-            icon = self.create_icon('lock')
+            icon = self.create_icon('drag_dock_widget')
             text = _('Unlock panes and toolbars')
         else:
-            icon = self.create_icon('lock_open')
+            icon = self.create_icon('lock')
             text = _('Lock panes and toolbars')
         self.lock_interface_action.setIcon(icon)
         self.lock_interface_action.setText(text)

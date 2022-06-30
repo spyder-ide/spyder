@@ -429,8 +429,8 @@ def main_window(request, tmpdir, qtbot):
                     show_diff(init_threads, threads, "thread")
                     sys.stderr.write("Running Threads stacks:\n")
                     now_thread_ids = [t.ident for t in now_threads]
-                    for threadId, frame in sys._current_frames().items():
-                        if threadId in now_thread_ids:
+                    for thread_id, frame in sys._current_frames().items():
+                        if thread_id in now_thread_ids:
                             sys.stderr.write(
                                 "\nThread " + str(threads) + ":\n")
                             traceback.print_stack(frame)
@@ -574,6 +574,8 @@ def test_lock_action(main_window, qtbot):
 @pytest.mark.order(1)
 @pytest.mark.skipif(sys.platform.startswith('linux') and not running_in_ci(),
                     reason='Fails on Linux when run locally')
+@pytest.mark.skipif(sys.platform == 'darwin' and running_in_ci(),
+                    reason='Fails on MacOS when run in CI')
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Wait until the window is fully up
@@ -5276,6 +5278,65 @@ def test_out_runfile_runcell(main_window, qtbot):
             assert "]: " + str(num) in control.toPlainText()
         else:
             assert not "]: " + str(num) in control.toPlainText()
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Does not work on Mac and Windows")
+@flaky(max_runs=3)
+@pytest.mark.parametrize("thread", [False, True])
+def test_print_frames(main_window, qtbot, tmpdir, thread):
+    """Test that frames are displayed as expected."""
+    # Write code with a cell to a file
+    if thread:
+        code = (
+            "import threading\n"
+            "def deadlock():\n"
+            "    lock = threading.Lock()\n"
+            "    lock.acquire()\n"
+            "    lock.acquire()\n"
+            "t = threading.Thread(target=deadlock)\n"
+            "t.start()\n"
+            "t.join()\n")
+        expected_number_threads = 2
+    else:
+        code = (
+            'import threading\n'
+            'lock = threading.Lock()\n'
+            'lock.acquire()\n'
+            'lock.acquire()')
+        expected_number_threads = 1
+    p = tmpdir.join("print-test.py")
+    p.write(code)
+
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    frames_explorer = main_window.framesexplorer.get_widget()
+    frames_browser = frames_explorer.current_widget().results_browser
+
+    # Click the run button
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Check we are blocked
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+    assert ']:' not in control.toPlainText().split()[-1]
+
+    frames_explorer.capture_frames()
+    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
+
+    if len(frames_browser.frames) != expected_number_threads:
+        # Failed, print stack for debugging
+        import pprint
+        pprint.pprint(frames_browser.frames)
+    assert len(frames_browser.frames) == expected_number_threads
 
 
 if __name__ == "__main__":

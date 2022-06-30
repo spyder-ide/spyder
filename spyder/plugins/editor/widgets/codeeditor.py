@@ -4623,6 +4623,12 @@ class CodeEditor(TextEditBaseWidget):
             # Fixes spyder-ide/spyder#11021
             self._start_completion_timer()
 
+        if event.modifiers() and self.is_completion_widget_visible():
+            # Hide completion widget before passing event modifiers
+            # since the keypress could be then a shortcut
+            # See spyder-ide/spyder#14806
+            self.completion_widget.hide()
+
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
 

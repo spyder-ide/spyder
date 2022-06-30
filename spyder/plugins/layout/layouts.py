@@ -58,7 +58,8 @@ class SpyderLayout(BaseGridLayoutType):
             visible=False,
         )
         self.add_area(
-            [Plugins.Help, Plugins.VariableExplorer, Plugins.Plots,
+            [Plugins.Help, Plugins.VariableExplorer,
+             Plugins.FramesExplorer, Plugins.Plots,
              Plugins.OnlineHelp, Plugins.Explorer, Plugins.Find],
             row=0,
             column=3,
@@ -94,7 +95,8 @@ class HorizontalSplitLayout(BaseGridLayoutType):
         )
         self.add_area(
             [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
-             Plugins.VariableExplorer, Plugins.Plots, Plugins.History],
+             Plugins.VariableExplorer,
+             Plugins.FramesExplorer, Plugins.Plots, Plugins.History],
             row=0,
             column=1,
             default=True,
@@ -120,7 +122,8 @@ class VerticalSplitLayout(BaseGridLayoutType):
         )
         self.add_area(
             [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
-             Plugins.VariableExplorer, Plugins.Plots, Plugins.History],
+             Plugins.VariableExplorer,
+             Plugins.FramesExplorer, Plugins.Plots, Plugins.History],
             row=1,
             column=0,
             default=True,
@@ -151,7 +154,8 @@ class RLayout(BaseGridLayoutType):
             hidden_plugin_ids=[Plugins.Console]
         )
         self.add_area(
-            [Plugins.VariableExplorer, Plugins.Plots, Plugins.History,
+            [Plugins.VariableExplorer,
+             Plugins.FramesExplorer, Plugins.Plots, Plugins.History,
              Plugins.OutlineExplorer, Plugins.Find],
             row=0,
             column=1,
@@ -199,7 +203,8 @@ class MatlabLayout(BaseGridLayoutType):
             hidden_plugin_ids=[Plugins.Console]
         )
         self.add_area(
-            [Plugins.VariableExplorer, Plugins.Plots, Plugins.Find],
+            [Plugins.VariableExplorer,
+             Plugins.FramesExplorer, Plugins.Plots, Plugins.Find],
             row=0,
             column=2,
             default=True,

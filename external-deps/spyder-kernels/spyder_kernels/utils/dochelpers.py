@@ -114,7 +114,7 @@ def getdoc(obj):
              annotations) = inspect.getfullargspec(obj)
             doc['argspec'] = inspect.formatargspec(
                 args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
-                annotations, formatvalue=lambda o:'='+repr(o))
+                annotations, formatvalue=lambda o: '='+repr(o))
             if name == '<lambda>':
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses
