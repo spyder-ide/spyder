@@ -90,7 +90,10 @@ if [[ "$FILE" = *".app" ]]; then
     # --- Sign app frameworks
     log "Signing app frameworks..."
     pyfwk="$frameworks/Python.framework"
-    code-sign ${csopts[@]} $pyfwk
+    if [[ -e $pyfwk ]]; then
+        # Python.framework is not present on CI
+        code-sign ${csopts[@]} $pyfwk
+    fi
     sign-dir "$frameworks" -name *.dylib
 
     # --- Sign bundle
