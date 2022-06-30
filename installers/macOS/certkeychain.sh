@@ -29,21 +29,6 @@ log(){
     date "+%Y-%m-%d %H:%M:%S [$level] [keychain] -> $1" 1>&3
 }
 
-cleanup () {
-    log "Cleaning up $KEYCHAIN..."
-
-    security default-keychain -s login.keychain  # restore default keychain
-    rm -f $CERTFILE  # remove cert file
-
-    # remove temporary keychain
-    security delete-keychain $KEYCHAIN 2> /dev/null
-
-    # make sure temporary keychain file is gone
-    if [[ -e $KEYCHAINFILE ]]; then
-        rm -f $KEYCHAINFILE
-    fi
-}
-
 while getopts "hc" option; do
     case $option in
         (h) help; exit ;;
@@ -56,8 +41,6 @@ shift $(($OPTIND - 1))
 
 CERT=$1
 PASS=$2
-
-cleanup  # make sure keychain and file don't exist
 
 # --- Prepare the certificate
 # decode certificate-as-Github-secret back to p12 for import into keychain
