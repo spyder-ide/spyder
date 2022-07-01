@@ -839,7 +839,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         debugger.set_remote_filename(filename)
         debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-        debugger._user_requested_quit = False
 
         # Enter recursive debugger
         sys.call_tracing(debugger.run, (code, globals, locals))
@@ -866,5 +865,4 @@ def get_new_debugger(filename, continue_if_has_breakpoints):
     debugger = SpyderPdb()
     debugger.set_remote_filename(filename)
     debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-    debugger._user_requested_quit = False
     return debugger
